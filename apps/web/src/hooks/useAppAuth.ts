@@ -13,14 +13,34 @@ import {
 } from "firebase/auth";
 import { startTransition, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
+  clearAppUseEnded,
   clearUserSignedOutSessionFlag,
-  readGuestEntryAccepted,
+  prepareStartScreen,
+  readAppUseEnded,
   readUserSignedOutSessionFlag,
+  setAppUseEnded,
   setGuestEntryAccepted,
   setUserSignedOutSessionFlag,
 } from "../lib/storage/appSessionKeys";
 import { isBenignAuthPopupCancel } from "../lib/identity/firebaseAuthPopup";
-import { getFirebaseAuth } from "../lib/firebase/app";
+import { ensureAuthPersistence, getFirebaseAuth } from "../lib/firebase/app";
+import {
+  INITIAL_AUTH_EXPOSURE,
+  reduceAuthExposure,
+  verifyRestoredAuthUser,
+  type AuthExpiryKind,
+  type AuthExposure,
+} from "../lib/identity/authRestore";
+import { clearUidLocalCache } from "../lib/identity/uidLocalCache";
+import { decideGuestStart } from "../lib/identity/guestResume";
+import { postGuestActivity } from "../lib/identity/repo/guestLifecycleApi";
+import {
+  clearLastVerifiedGuestUid,
+  readLastVerifiedGuestUid,
+  rememberVerifiedGuestUid,
+} from "../lib/identity/lastVerifiedGuest";
+import { postGuestLink } from "../lib/identity/repo/guestLifecycleApi";
+import { runGuestGoogleLink } from "../lib/identity/guestGoogleLink";
 import {
   claimNicknameTransaction,
   ensureAnonymousUserTier,
@@ -38,8 +58,10 @@ export type FsSyncState =
   | { state: "error"; message: string };
 
 /**
- * Firebase Auth, Firestore 프로필 닉네임 동기(fsSync), 자동 익명 진입·Google·로그아웃.
- * 로그아웃 전 로비/주행 정리는 호출 측에서 한 뒤 `completeFirebaseSignOut`만 호출한다.
+ * Firebase Auth, Firestore 프로필 닉네임 동기(fsSync), 명시적 Guest 시작·Google·이용 종료.
+ * 이용 종료는 `endAppUse`다. Firebase 세션은 남고 앱 사용자만 가려진다.
+ * `completeFirebaseSignOut`은 계정 전환·탈퇴처럼 세션을 끊을 때만 쓴다.
+ * Google 인증이 서버 확인까지 성공하면 종료 표시를 지우고 그 사용자를 연다. 취소·실패·차단·네트워크는 표시를 유지한다.
  */
 export function useAppAuth(configured: boolean) {
   const [user, setUser] = useState<User | null>(null);
@@ -53,7 +75,23 @@ export function useAppAuth(configured: boolean) {
   const [authInitialized, setAuthInitialized] = useState(false);
   const [authSigningIn, setAuthSigningIn] = useState(false);
   const [userSignedOut, setUserSignedOut] = useState(readUserSignedOutSessionFlag);
-  const autoSignInStartedRef = useRef(false);
+  const [appUseEnded, setAppUseEndedState] = useState(readAppUseEnded);
+  const [authExposure, setAuthExposure] = useState<AuthExposure>(INITIAL_AUTH_EXPOSURE);
+  const anonymousFlightRef = useRef<Promise<void> | null>(null);
+  const verifyGenRef = useRef(0);
+  const persistenceSettledRef = useRef(false);
+  const inflightUidRef = useRef<string | null>(null);
+  const explicitSignOutRef = useRef(false);
+  const exposureRef = useRef(authExposure);
+  const expirySignOutRef = useRef<AuthExpiryKind | null>(null);
+  const applyVerifiedUserRef = useRef<(nextUser: User, gen: number) => Promise<void>>(async () => {});
+
+  const commitExposure = (event: Parameters<typeof reduceAuthExposure>[1]) => {
+    const next = reduceAuthExposure(exposureRef.current, event);
+    exposureRef.current = next;
+    setAuthExposure(next);
+    return next;
+  };
 
   const [prevUser, setPrevUser] = useState(user);
   if (user !== prevUser) {
@@ -66,7 +104,6 @@ export function useAppAuth(configured: boolean) {
   useLayoutEffect(() => {
     if (!user) return;
     clearUserSignedOutSessionFlag();
-    autoSignInStartedRef.current = false;
   }, [user]);
 
   const needsSignedOutUi =
@@ -84,47 +121,123 @@ export function useAppAuth(configured: boolean) {
       return;
     }
     const auth = getFirebaseAuth();
-    const unsub = onAuthStateChanged(auth, (nextUser) => {
-      startTransition(() => setAuthInitialized(true));
-      setUser(nextUser);
-    });
-    return () => unsub();
-  }, [configured]);
-
-  useEffect(() => {
-    if (!configured || !authInitialized || user) {
-      return;
-    }
-    if (readUserSignedOutSessionFlag()) {
-      return;
-    }
-    if (!readGuestEntryAccepted()) {
-      return;
-    }
-    if (autoSignInStartedRef.current) {
-      return;
-    }
-    autoSignInStartedRef.current = true;
+    let unsub = () => {};
     let cancelled = false;
-    setAuthSigningIn(true);
-    setError(null);
+    persistenceSettledRef.current = false;
+    const finishInflight = (uid: string) => {
+      if (inflightUidRef.current === uid) inflightUidRef.current = null;
+    };
+    const applyVerifiedUser = async (nextUser: User, gen: number) => {
+      const result = await verifyRestoredAuthUser(nextUser);
+      if (cancelled || verifyGenRef.current !== gen) return;
+      finishInflight(nextUser.uid);
+      if (result.kind === "ready") {
+        if (nextUser.isAnonymous) rememberVerifiedGuestUid(nextUser.uid);
+        else clearLastVerifiedGuestUid();
+        commitExposure({ type: "verified", uid: nextUser.uid });
+        startTransition(() => {
+          setUser(readAppUseEnded() ? null : nextUser);
+          setAuthInitialized(true);
+        });
+        return;
+      }
+      if (result.kind === "expired") {
+        const expiryKind: AuthExpiryKind = nextUser.isAnonymous ? "guest-expired" : "account-unavailable";
+        if (result.clearCache && nextUser.isAnonymous) clearUidLocalCache(nextUser.uid);
+        prepareStartScreen(expiryKind);
+        expirySignOutRef.current = expiryKind;
+        commitExposure({ type: "expired", uid: nextUser.uid, kind: expiryKind });
+        try {
+          await signOut(auth);
+        } catch {
+          expirySignOutRef.current = null;
+        }
+        if (cancelled || (verifyGenRef.current !== gen && expirySignOutRef.current == null)) return;
+        startTransition(() => {
+          setUser(null);
+          setAuthInitialized(true);
+        });
+        return;
+      }
+      commitExposure({ type: "offline", uid: nextUser.uid });
+      startTransition(() => {
+        setUser(null);
+        setAuthInitialized(true);
+      });
+    };
+    applyVerifiedUserRef.current = applyVerifiedUser;
     void (async () => {
       try {
-        await signInAnonymously(getFirebaseAuth());
-      } catch (e: unknown) {
-        if (!cancelled) {
-          autoSignInStartedRef.current = false;
-          const message = e instanceof Error ? e.message : String(e);
-          setError(`익명 로그인 실패: ${message}`);
+        await ensureAuthPersistence();
+      } catch {
+        /* 지속성 확정 실패는 빈 세션으로 보지 않는다 */
+      }
+      if (cancelled) return;
+      unsub = onAuthStateChanged(auth, (nextUser) => {
+        if (!nextUser) {
+          if (inflightUidRef.current && !explicitSignOutRef.current) {
+            return;
+          }
+          verifyGenRef.current += 1;
+          inflightUidRef.current = null;
+          if (!persistenceSettledRef.current) {
+            commitExposure({ type: "early-null" });
+            return;
+          }
+          const expiryKind = expirySignOutRef.current;
+          expirySignOutRef.current = null;
+          explicitSignOutRef.current = false;
+          if (expiryKind) commitExposure({ type: "expiry-sign-out", kind: expiryKind });
+          else commitExposure({ type: "cleared" });
+          startTransition(() => {
+            setAuthInitialized(true);
+            setUser(null);
+          });
+          return;
         }
-      } finally {
-        if (!cancelled) setAuthSigningIn(false);
+        if (inflightUidRef.current === nextUser.uid) return;
+        const gen = ++verifyGenRef.current;
+        inflightUidRef.current = nextUser.uid;
+        explicitSignOutRef.current = false;
+        commitExposure({ type: "candidate", uid: nextUser.uid });
+        startTransition(() => {
+          setAuthInitialized(false);
+          setUser(null);
+        });
+        void applyVerifiedUser(nextUser, gen);
+      });
+      let restoreWaitFailed = false;
+      try {
+        await auth.authStateReady();
+      } catch {
+        restoreWaitFailed = true;
+      }
+      if (cancelled) return;
+      persistenceSettledRef.current = true;
+      if (!auth.currentUser && exposureRef.current.phase === "booting") {
+        const signedOut = readUserSignedOutSessionFlag();
+        const lastGuest = readLastVerifiedGuestUid();
+        if (restoreWaitFailed) {
+          commitExposure({ type: "restore-wait-failed" });
+        } else if (!signedOut && lastGuest) {
+          prepareStartScreen("guest-expired");
+          commitExposure({ type: "guest-restore-unconfirmed" });
+        } else {
+          commitExposure({ type: "persistence-empty" });
+        }
+        startTransition(() => {
+          setAuthInitialized(true);
+          setUser(null);
+        });
       }
     })();
     return () => {
       cancelled = true;
+      verifyGenRef.current += 1;
+      inflightUidRef.current = null;
+      unsub();
     };
-  }, [configured, authInitialized, user]);
+  }, [configured]);
 
   useEffect(() => {
     // authLinkRev: 게스트→Google 연결은 같은 User 객체를 제자리에서 바꿔 onAuthStateChanged 가 울리지 않는다.
@@ -195,17 +308,80 @@ export function useAppAuth(configured: boolean) {
     setGuestEntryAccepted();
     clearUserSignedOutSessionFlag();
     setUserSignedOut(false);
-    autoSignInStartedRef.current = false;
     setError(null);
     setBusy(true);
+    setAuthSigningIn(true);
+    const flight = anonymousFlightRef.current ?? (async () => {
+      const auth = getFirebaseAuth();
+      const current = auth.currentUser;
+      let verifyKind: "ready" | "expired" | "offline" | "none" = "none";
+      let code: string | null = null;
+      let activity: "ok" | "stop" | "retry" | "none" = "none";
+      if (current?.isAnonymous) {
+        const result = await verifyRestoredAuthUser(current);
+        verifyKind = result.kind;
+        if (result.kind !== "ready") code = result.code;
+        if (result.kind === "ready") {
+          try {
+            activity = await postGuestActivity(current);
+          } catch {
+            activity = "retry";
+          }
+        }
+      }
+      const decision = decideGuestStart({
+        hasAnonymousSession: Boolean(current?.isAnonymous),
+        hasGoogleSession: Boolean(current && !current.isAnonymous),
+        verifyKind,
+        code,
+        activity,
+      });
+      if (decision === "reuse" && current) {
+        clearAppUseEnded();
+        setAppUseEndedState(false);
+        rememberVerifiedGuestUid(current.uid);
+        setUser(current);
+        return;
+      }
+      if (decision === "hold-blocked") {
+        setError("계정 정리가 끝난 뒤에 다시 시도해 주세요.");
+        return;
+      }
+      if (decision === "hold-offline") {
+        setError("연결을 확인하지 못했습니다.");
+        return;
+      }
+      if (decision === "switch-from-google") {
+        explicitSignOutRef.current = true;
+        await signOut(auth);
+        explicitSignOutRef.current = false;
+      }
+      if (decision === "create" && current?.isAnonymous && code === "auth/user-not-found") {
+        clearUidLocalCache(current.uid);
+        clearLastVerifiedGuestUid();
+        explicitSignOutRef.current = true;
+        try {
+          await signOut(auth);
+        } catch {
+          /* 이미 없는 계정 */
+        }
+        explicitSignOutRef.current = false;
+      }
+      clearAppUseEnded();
+      setAppUseEndedState(false);
+      await signInAnonymously(auth);
+    })();
+    anonymousFlightRef.current = flight;
     try {
-      await signInAnonymously(getFirebaseAuth());
+      await flight;
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       setError(`익명 로그인 실패: ${message}`);
       throw e;
     } finally {
+      if (anonymousFlightRef.current === flight) anonymousFlightRef.current = null;
       setBusy(false);
+      setAuthSigningIn(false);
     }
   }, []);
 
@@ -215,37 +391,72 @@ export function useAppAuth(configured: boolean) {
     setUserSignedOut(false);
     setError(null);
     setBusy(true);
+    /** 팝업이 이미 끝난 뒤의 서버 확인. 성공만 종료 표시를 지운다. 연결 실패는 표시와 숨김을 유지한다. */
+    const revealVerifiedGoogleUser = async (): Promise<boolean> => {
+      const signedIn = getFirebaseAuth().currentUser;
+      if (!signedIn || signedIn.isAnonymous) return false;
+      const result = await verifyRestoredAuthUser(signedIn);
+      if (result.kind !== "ready") {
+        setError(
+          result.kind === "offline"
+            ? "연결을 확인하지 못했습니다."
+            : "이 계정은 더 이상 사용할 수 없습니다.",
+        );
+        return false;
+      }
+      clearAppUseEnded();
+      setAppUseEndedState(false);
+      clearLastVerifiedGuestUid();
+      setUser(signedIn);
+      return true;
+    };
     try {
       const auth = getFirebaseAuth();
+      const currentSession = auth.currentUser;
+      if (currentSession && !currentSession.isAnonymous) {
+        await revealVerifiedGoogleUser();
+        return;
+      }
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
       const current = auth.currentUser;
       if (!current) {
         await signInWithPopup(auth, provider);
+        await revealVerifiedGoogleUser();
         return;
       }
       if (current.isAnonymous) {
-        try {
-          await linkWithPopup(current, provider);
-          setAuthLinkRev((n) => n + 1);
-        } catch (inner: unknown) {
-          const ie = inner as { code?: string };
-          if (
-            ie.code === "auth/credential-already-in-use" ||
-            ie.code === "auth/account-exists-with-different-credential"
-          ) {
+        const outcome = await runGuestGoogleLink({
+          beginLease: () => postGuestLink(current, "begin"),
+          openLinkPopup: () => linkWithPopup(current, provider).then(() => undefined),
+          completeLease: async (token) => {
+            await postGuestLink(current, "complete", token);
+          },
+          cancelLease: async (token) => {
+            await postGuestLink(current, "cancel", token);
+          },
+          signIntoExistingAccount: async (inner) => {
             const cred = GoogleAuthProvider.credentialFromError(inner as FirebaseError);
-            if (cred) {
-              await signInWithCredential(auth, cred);
-            } else {
-              await signInWithPopup(auth, provider);
-            }
-          } else {
-            throw inner;
-          }
+            if (cred) await signInWithCredential(auth, cred);
+            else await signInWithPopup(auth, provider);
+          },
+          isExistingAccountError: (inner) => {
+            const code = (inner as { code?: string }).code;
+            return code === "auth/credential-already-in-use" || code === "auth/account-exists-with-different-credential";
+          },
+          isPopupCancel: isBenignAuthPopupCancel,
+        });
+        if (outcome === "blocked" || outcome === "blocked-linked") {
+          setError("정리 중인 게스트는 Google에 연결할 수 없습니다.");
+          if (outcome === "blocked-linked") setAuthLinkRev((n) => n + 1);
+          return;
         }
+        if (outcome === "cancelled") return;
+        const revealed = await revealVerifiedGoogleUser();
+        if (outcome === "linked" && revealed) setAuthLinkRev((n) => n + 1);
       } else {
         await signInWithPopup(auth, provider);
+        await revealVerifiedGoogleUser();
       }
     } catch (e: unknown) {
       if (isBenignAuthPopupCancel(e)) {
@@ -316,18 +527,40 @@ export function useAppAuth(configured: boolean) {
     [user],
   );
 
-  /** 로그아웃 = 세션 종료(맵·기능 없음). 자동 익명 재진입은 `beginAuthenticatedSession`으로만. */
+  /** 이용 종료. Firebase 세션과 브라우저 지속성은 남기고 앱 사용자만 가린다. */
+  const endAppUse = useCallback(() => {
+    setAppUseEnded();
+    setAppUseEndedState(true);
+    clearUserSignedOutSessionFlag();
+    setUserSignedOut(false);
+    setUser(null);
+  }, []);
+
+  /** 계정 전환·탈퇴처럼 세션 자체가 필요 없을 때만. 기본 메뉴는 `endAppUse`. */
   const completeFirebaseSignOut = useCallback(async () => {
-    autoSignInStartedRef.current = false;
+    explicitSignOutRef.current = true;
     setUserSignedOutSessionFlag();
     setUserSignedOut(true);
     try {
       await signOut(getFirebaseAuth());
     } catch (signOutErr) {
+      explicitSignOutRef.current = false;
       clearUserSignedOutSessionFlag();
       setUserSignedOut(false);
       throw signOutErr;
     }
+  }, []);
+
+  const retryAuthRestore = useCallback(async () => {
+    const current = getFirebaseAuth().currentUser;
+    if (!current) return;
+    const gen = ++verifyGenRef.current;
+    inflightUidRef.current = current.uid;
+    explicitSignOutRef.current = false;
+    commitExposure({ type: "candidate", uid: current.uid });
+    setAuthInitialized(false);
+    setUser(null);
+    await applyVerifiedUserRef.current(current, gen);
   }, []);
 
   return {
@@ -338,8 +571,14 @@ export function useAppAuth(configured: boolean) {
     authInitialized,
     authSigningIn,
     userSignedOut,
+    appUseEnded,
+    authRestore: authExposure.phase,
+    authOffline: authExposure.phase === "offline",
+    authExpiryKind: authExposure.expiryKind,
     beginAuthenticatedSession,
+    endAppUse,
     handleGoogleSignIn,
+    retryAuthRestore,
     requestNicknameEntry,
     handleCompleteNickname,
     handleChangeNickname,

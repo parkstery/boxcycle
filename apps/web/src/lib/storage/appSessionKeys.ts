@@ -9,6 +9,33 @@
 /** 명시적 로그아웃 후 자동 익명 진입을 막는 플래그(브라우저 전체 — 아래 read 주석). */
 export const USER_SIGNED_OUT_SESSION_KEY = "boxcycle_user_signed_out_v1";
 
+/** 이용 종료. Firebase 세션은 남기고 앱만 시작 메뉴로 돌린다. 새 탭도 같은 표시를 본다. */
+export const APP_USE_ENDED_KEY = "boxcycle_app_use_ended_v1";
+
+export function readAppUseEnded(): boolean {
+  try {
+    return typeof localStorage !== "undefined" && localStorage.getItem(APP_USE_ENDED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function setAppUseEnded(): void {
+  try {
+    localStorage.setItem(APP_USE_ENDED_KEY, "1");
+  } catch {
+    /* noop */
+  }
+}
+
+export function clearAppUseEnded(): void {
+  try {
+    localStorage.removeItem(APP_USE_ENDED_KEY);
+  } catch {
+    /* noop */
+  }
+}
+
 /** 최초 1회 Guest(익명) 진입 안내 수락 — [tier 정책 §3.2](document/reference/product/260519-사용자-tier-및-진입-정책.md) */
 export const GUEST_ENTRY_ACCEPTED_SESSION_KEY = "boxcycle_guest_entry_v1";
 
@@ -79,7 +106,7 @@ export function clearUserSignedOutSessionFlag(): void {
 /** 시작 화면에 한 번 보여 줄 안내(같은 탭) — 탈퇴·게스트 초기화 직후 */
 export const START_SCREEN_NOTICE_SESSION_KEY = "boxcycle_start_notice_v1";
 
-export type StartScreenNotice = "account-deleted";
+export type StartScreenNotice = "account-deleted" | "guest-expired" | "account-unavailable";
 
 /**
  * 탈퇴·게스트 초기화 직후 — 처음 들어온 사람과 같은 시작 화면(GuestEntryCard)으로 돌린다(2026-10-09 Chief).
@@ -100,7 +127,8 @@ export function readStartScreenNotice(): StartScreenNotice | null {
   if (typeof sessionStorage === "undefined") return null;
   try {
     const v = sessionStorage.getItem(START_SCREEN_NOTICE_SESSION_KEY);
-    return v === "account-deleted" ? v : null;
+    if (v === "account-deleted" || v === "guest-expired" || v === "account-unavailable") return v;
+    return null;
   } catch {
     return null;
   }

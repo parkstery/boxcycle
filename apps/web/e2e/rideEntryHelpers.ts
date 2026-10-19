@@ -61,7 +61,7 @@ async function chooseColosseumIfNeeded(page: Page, waitForDialog: boolean): Prom
       .catch(() => false)
     if (!appeared) return
   }
-  const rome = location.getByRole('button', { name: '앱 기본 위치에서 시작' })
+  const rome = location.getByRole('button', { name: '기본 위치' })
   if (!(await rome.isVisible().catch(() => false))) return
   await rome.click()
   await expect(location).toBeHidden({ timeout: 15_000 })

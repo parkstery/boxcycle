@@ -55,6 +55,8 @@ export type MapHudRidePresence = {
 };
 
 export type MapHudProps = {
+  /** Authenticated UI visibility; false also removes controls from keyboard navigation. */
+  visible?: boolean;
   stage: RideUiStage;
 
   // TL — 브랜드 마크 = 좌측 Trail 메뉴(Trail·경로 주행) 트리거
@@ -194,6 +196,7 @@ function HudMetricCell({
  */
 export function MapHud(props: MapHudProps) {
   const {
+    visible = true,
     stage,
     onOpenMenu,
     menuOpen,
@@ -324,6 +327,8 @@ export function MapHud(props: MapHudProps) {
         })
       : null;
 
+  if (!visible) return null;
+
   return (
     <div
       className={`map-hud${activeRide ? " map-hud--active-ride" : ""}`}
@@ -334,9 +339,9 @@ export function MapHud(props: MapHudProps) {
       {showMenuTrigger || (showMetrics && metrics) ? (
         <div className="map-hud__tl">
           {/*
-            한 행 — RTW(좌상단 코너) + 계기판(그 오른쪽).
-            미니맵 세로 공간용: 예전 두 줄(계기/RTW)을 한 줄로 줄인다(20260923-minimap 지시01).
-            한쪽만 있어도 남은 요소가 좌상단 코너를 지킨다(idle=RTW만 / 일부 stage=계기만).
+            한 행 — Spinatlas(좌상단 코너) + 계기판(그 오른쪽).
+            미니맵 세로 공간용: 예전 두 줄(계기/브랜드)을 한 줄로 줄인다(20260923-minimap 지시01).
+            한쪽만 있어도 남은 요소가 좌상단 코너를 지킨다(idle=브랜드만 / 일부 stage=계기만).
           */}
           <div className="map-hud__tl-row">
             {showMenuTrigger ? (
@@ -349,7 +354,7 @@ export function MapHud(props: MapHudProps) {
                 title="Trail menu"
               >
                 <span className="hud-brand__dot" aria-hidden />
-                RTW
+                Spinatlas
               </button>
             ) : null}
             {showMetrics && metrics ? (

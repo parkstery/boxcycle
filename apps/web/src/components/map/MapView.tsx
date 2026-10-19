@@ -167,11 +167,9 @@ import {
   resolveRideCameraPitchClose,
 } from "../../lib/map/mapGlobeView";
 import {
-  BOOT_GLOBE_FLY_MS,
-  BOOT_GLOBE_PAUSE_MS,
-  BOOT_GLOBE_ZOOM,
   MAP_FALLBACK_CENTER,
   MAP_FALLBACK_ZOOM,
+  resolveEntryLocationFlightMs,
 } from "../../lib/map/mapBootCenter";
 import { type LiveRiderMotion } from "./mapViewTypes";
 import {
@@ -422,7 +420,7 @@ export type MapViewProps = {
   initialCenter?: LngLat | null;
   /** 최초 줌. 생략 시 MAP_FALLBACK_ZOOM(15). */
   initialZoom?: number | null;
-  /** true 인 동안 첫 지도 연출의 확대를 미룬다. 위치 목적지가 정해지면 인증 대기와 무관하게 푼다. */
+  /** true 인 동안 시작 지역을 유지한다. 위치 목적지가 정해지면 이동한다. */
   bootFlyHold?: boolean;
   /** 부트 확대 목적지. 이동을 시작하기 전까지만 반영한다. */
   bootFlyTarget?: { center: [number, number]; zoom: number } | null;
@@ -702,8 +700,6 @@ export function MapView({
   bootFlyTargetPropRef.current = bootFlyTarget;
   /** 부트 이동을 시작했거나 제스처·명시 카메라가 취소하면 다시 덮지 않는다. */
   const bootFlyMovedRef = useRef(false);
-  /** 다른 카메라가 지구본을 벗어난 뒤에도 부트 확대를 이어갈 때 쓴다. */
-  const bootFlyBypassZoomGuardRef = useRef(false);
   /** 주행 카메라 거리(m) — 개발용 거리 슬라이더 최신값, rAF 루프에서 참조 */
   const rideCameraDistanceMRef = useRef(rideCameraDistanceM);
   const lockBaseHeadingRef = useRef(lockBaseHeading);
@@ -1113,8 +1109,7 @@ export function MapView({
       typeof initialZoom === "number" && Number.isFinite(initialZoom)
         ? initialZoom
         : DEFAULT_ZOOM;
-    // 첫 지도 연출: 지구의에서 시작해 목적지로 확대한다. 동작 줄이기는 시작 위치를 바로 보여 준 뒤 결정 위치에 점프한다.
-    const bootGlobe = !getReducedMotionSnapshot() && bootZoom > BOOT_GLOBE_ZOOM;
+    // 최초 화면부터 시작 지역을 표시한다. 위치 공유를 기다리는 동안도 지구본으로 축소하지 않는다.
     const pendingBoot = bootFlyTargetPropRef.current;
     const pendingCenter =
       pendingBoot &&
@@ -1140,7 +1135,7 @@ export function MapView({
       container: el,
       style: initialMapStyleRef.current,
       center: bootCenter,
-      zoom: bootGlobe ? BOOT_GLOBE_ZOOM : bootZoom,
+      zoom: bootZoom,
       minZoom: MAP_GLOBE_MIN_ZOOM,
       // 주행 밀착 카메라(거리 1~3m)가 zoom 22+를 요구 — 기본 maxZoom 22 클램프 해제
       maxZoom: 24,
@@ -1207,7 +1202,7 @@ export function MapView({
       });
     };
 
-    // 확대 전에 사용자가 지구의를 직접 움직이면 연출을 취소한다.
+    // 사용자가 지도를 직접 움직이면 초기 위치 이동을 취소한다.
     map.on("movestart", (e: { originalEvent?: unknown }) => {
       if (!e.originalEvent) return;
       bootFlyTargetRef.current = null;
@@ -2853,6 +2848,7 @@ export function MapView({
 
     const applyPropZoom = () => {
       if (bootFlyTargetRef.current) return;
+      if (performance.now() < suppressCameraFollowUntilRef.current) return;
       const m = mapRef.current;
       if (!m || holdCameraAfterRideEndRef.current) return;
       if (Math.abs(m.getZoom() - mapZoom) < 0.05) return;
@@ -2862,6 +2858,7 @@ export function MapView({
       mapZoomApplyRafRef.current = requestAnimationFrame(() => {
         mapZoomApplyRafRef.current = null;
         if (bootFlyTargetRef.current) return;
+        if (performance.now() < suppressCameraFollowUntilRef.current) return;
         const live = mapRef.current;
         if (!live || holdCameraAfterRideEndRef.current) return;
         if (Math.abs(live.getZoom() - mapZoom) < 0.05) return;
@@ -2893,43 +2890,36 @@ export function MapView({
     bootFlyTargetRef.current = { center: [lng, lat], zoom: bootFlyTarget.zoom };
   }, [bootFlyTarget]);
 
-  /** 첫 지도 연출 — 지구본을 보여 준 뒤 목적지로 확대. 위치 미결정 동안은 기다린다. */
+  /** 최초 지역은 유지하고, 위치가 결정되면 거리에 맞춰 5초 안에 상승·이동·하강한다. */
   useEffect(() => {
     if (bootFlyMovedRef.current) return;
     const map = mapRef.current;
     const target = bootFlyTargetRef.current;
     if (!map || !mapLoaded || !target || bootFlyHold) return;
-    const reduced = getReducedMotionSnapshot();
-    const timer = window.setTimeout(() => {
-      const live = mapRef.current;
-      const dest = bootFlyTargetRef.current;
-      if (!live || !dest || bootFlyMovedRef.current) return;
-      const reducedNow = getReducedMotionSnapshot();
-      const bypassZoomGuard = bootFlyBypassZoomGuardRef.current;
-      bootFlyBypassZoomGuardRef.current = false;
-      if (
-        !reducedNow &&
-        (live.isMoving() ||
-          (!bypassZoomGuard && Math.abs(live.getZoom() - BOOT_GLOBE_ZOOM) > 0.05))
-      ) {
-        bootFlyTargetRef.current = null;
-        bootFlyMovedRef.current = true;
-        return;
-      }
-      bootFlyTargetRef.current = null;
-      bootFlyMovedRef.current = true;
-      if (reducedNow) {
-        live.jumpTo({ center: dest.center, zoom: dest.zoom });
-        return;
-      }
-      live.flyTo({
-        center: dest.center,
-        zoom: dest.zoom,
-        duration: BOOT_GLOBE_FLY_MS,
-        essential: true,
-      });
-    }, reduced ? 0 : BOOT_GLOBE_PAUSE_MS);
-    return () => window.clearTimeout(timer);
+    bootFlyTargetRef.current = null;
+    bootFlyMovedRef.current = true;
+    const center = map.getCenter();
+    const sameView =
+      Math.abs(center.lng - target.center[0]) < 1e-7 &&
+      Math.abs(center.lat - target.center[1]) < 1e-7 &&
+      Math.abs(map.getZoom() - target.zoom) < 0.01;
+    if (sameView) return;
+    if (getReducedMotionSnapshot()) {
+      map.jumpTo({ center: target.center, zoom: target.zoom });
+      return;
+    }
+    // HUD의 이전 줌 또는 이미 예약된 rAF가 비행 중간에 카메라를 덮지 않게 한다.
+    const flightMs = resolveEntryLocationFlightMs(
+      getDistanceMeters([center.lng, center.lat], [target.center[0], target.center[1]]),
+    );
+    suppressCameraFollowUntilRef.current = performance.now() + flightMs + 100;
+    map.flyTo({
+      center: target.center,
+      zoom: target.zoom,
+      duration: flightMs,
+      curve: 1.42,
+      essential: false,
+    });
   }, [mapLoaded, bootFlyHold, bootFlyTarget]);
 
   const appliedMapZoomStepIdRef = useRef(0);

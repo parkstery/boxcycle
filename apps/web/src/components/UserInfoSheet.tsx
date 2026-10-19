@@ -409,8 +409,8 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   const showGoogleLink = Boolean(props.isGuest && props.onLinkGoogle);
   const showLogout = props.user != null;
   /**
-   * 계정 탈퇴 — Google 등 정식 계정만. 게스트는 로그아웃이 곧 삭제다(2026-10-09 Chief) — 같은 일을 하던
-   * 「이 기기 데이터 지우기」 버튼은 없앴다.
+   * 계정 탈퇴 — Google 등 정식 계정만. 게스트 로그아웃은 세션만 종료한다(2026-10-19).
+   * 「이 기기 데이터 지우기」 버튼은 없다.
    */
   const showAccountDeletion = Boolean(props.user && !props.user.isAnonymous);
   const showActionsFooter = showGoogleLink || showLogout || showAccountDeletion;
@@ -791,27 +791,10 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
             ) : null}
             {showLogout ? (
               confirmingLogout ? (
-                <div className="user-info-sheet__logout-confirm" role="group" aria-label="로그아웃 확인">
-                  {/*
-                    게스트 로그아웃 = 데이터 삭제(2026-10-09 Chief) — 비밀번호도 Google 계정도 없어 같은 게스트로
-                    다시 들어올 수 없으니 실제로 지운다(App handleServiceExit). 그래서 등록(Google 연결)을 같은 자리에서 권한다.
-                  */}
+                <div className="user-info-sheet__logout-confirm" role="group" aria-label="종료 확인">
                   <p className="user-info-sheet__logout-confirm-copy">
-                    {props.isGuest
-                      ? "게스트는 로그아웃하면 모든 데이터가 삭제됩니다."
-                      : "로그아웃하시겠습니까?"}
+                    진행 중인 주행이 여기서 끝납니다.
                   </p>
-                  {props.isGuest && props.onLinkGoogle ? (
-                    <button
-                      type="button"
-                      className="user-info-sheet__btn user-info-sheet__btn--google"
-                      disabled={props.busy}
-                      onClick={props.onLinkGoogle}
-                    >
-                      <AuthGoogleMark className="user-info-sheet__google-mark" />
-                      Google 연결하고 기록 지키기
-                    </button>
-                  ) : null}
                   <div className="user-info-sheet__logout-confirm-row">
                     <button
                       type="button"
@@ -825,10 +808,10 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                       type="button"
                       className="user-info-sheet__btn user-info-sheet__btn--danger"
                       disabled={props.busy}
-                      title="Sign out"
+                      title="End session"
                       onClick={props.onServiceExit}
                     >
-                      {props.isGuest ? "그래도 로그아웃" : "로그아웃"}
+                      종료
                     </button>
                   </div>
                 </div>
@@ -837,10 +820,10 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                   type="button"
                   className="user-info-sheet__btn user-info-sheet__btn--danger"
                   disabled={props.busy}
-                  title="Sign out"
-                  onClick={() => setConfirmingLogout(true)}
+                  title="End session"
+                  onClick={() => (props.rideActive ? setConfirmingLogout(true) : props.onServiceExit())}
                 >
-                  로그아웃
+                  종료
                 </button>
               )
             ) : null}

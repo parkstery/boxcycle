@@ -63,6 +63,10 @@
   gap: 0.5rem;
 }
 
+.guest-entry__actions .btn {
+  min-height: 44px;
+}
+
 .guest-entry__google {
   display: inline-flex;
   align-items: center;

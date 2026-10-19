@@ -47,9 +47,9 @@ import {
   clearStartScreenNotice,
   readGuestEntryAccepted,
   readStartScreenNotice,
-  setUserSignedOutSessionFlag,
 } from "./lib/storage/appSessionKeys";
-import { resetGuestAccount } from "./lib/identity/guestAccountReset";
+import { startGuestActivityWatch } from "./lib/identity/guestActivity";
+import { postGuestActivity } from "./lib/identity/repo/guestLifecycleApi";
 import { useUserTier } from "./hooks/useUserTier";
 import { RideSummarySheet } from "./components/ride/RideSummarySheet";
 import { NextRideCard, LocalFirstEntryCard } from "./components/ride";
@@ -223,12 +223,16 @@ export default function App() {
     authInitialized,
     authSigningIn,
     userSignedOut,
+    authOffline,
+    authExpiryKind,
     beginAuthenticatedSession,
     handleGoogleSignIn,
+    retryAuthRestore,
     requestNicknameEntry,
     handleCompleteNickname,
     handleChangeNickname,
-    completeFirebaseSignOut,
+    endAppUse,
+    appUseEnded,
     setError,
     setBusy,
   } = useAppAuth(configured);
@@ -1617,7 +1621,7 @@ export default function App() {
     if (lastEndedWasAdhoc) setSummarySheetVisible(true);
   }, [lastEndedWasAdhoc]);
 
-  /** Trailhead·코스 정리 후 Firebase 로그아웃 — 맵·기능 없이 앱 이탈(재진입은 게이트에서) */
+  /** Trailhead·코스 정리 후 이용 종료. Firebase 세션은 남기고 시작 메뉴로 돌아간다. */
   async function handleServiceExit() {
     setError(null);
     setBusy(true);
@@ -1640,20 +1644,8 @@ export default function App() {
         }
       }
       setBasicActiveHubCourseId(null);
-      if (user?.isAnonymous) {
-        // 게스트 로그아웃 = 데이터 삭제(2026-10-09 Chief). 같은 게스트로 다시 들어올 길이 없어 남겨도 쓰레기다.
-        // 서버 삭제가 실패하면 로그아웃하지 않는다 — 계정이 남아 있어야 다시 시도하거나 purge 가 찾는다.
-        const result = await resetGuestAccount(user);
-        if (!result.deletedAuth) {
-          setError(`로그아웃하지 못했습니다. 잠시 후 다시 시도하세요. (${result.deleteError ?? "알 수 없는 오류"})`);
-          return;
-        }
-        setUserSignedOutSessionFlag();
-        location.reload();
-        return;
-      }
       reloadRecentSessionsFromLocalStorage();
-      await completeFirebaseSignOut();
+      endAppUse();
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       setError(message);
@@ -1794,16 +1786,22 @@ export default function App() {
   useEffect(() => {
     if (startScreenNotice) clearStartScreenNotice();
   }, [startScreenNotice]);
+  const expiryKind =
+    authExpiryKind ??
+    (startScreenNotice === "guest-expired" || startScreenNotice === "account-unavailable" ? startScreenNotice : null);
   const needsGuestEntry =
     configured &&
     authInitialized &&
     !user &&
     !userSignedOut &&
+    !appUseEnded &&
+    !authOffline &&
     !readGuestEntryAccepted();
   const showAppIntro =
     needsGuestEntry &&
     !introDismissed &&
     startScreenNotice !== "account-deleted" &&
+    expiryKind == null &&
     !authSigningIn &&
     !busy &&
     !error;
@@ -1822,6 +1820,10 @@ export default function App() {
     entryLocation.phase === "choice" ||
     entryLocation.phase === "locating";
   const bootFlyHold = showAppIntro || !authInitialized || entryLocation.phase !== "ready";
+  useEffect(() => {
+    if (!user?.isAnonymous) return;
+    return startGuestActivityWatch(() => postGuestActivity(user));
+  }, [user]);
   const startIntroGuest = () => {
     setIntroDismissed(true);
     setEntryRequested(true);
@@ -2861,7 +2863,7 @@ export default function App() {
   ]);
 
   return (
-    <div className={`app-shell app-shell--map-first${showAppIntro ? " app-shell--intro" : ""}`}>
+    <div className={`app-shell app-shell--map-first${showAppIntro ? " app-shell--intro" : ""}${!authInitialized || !user ? " app-shell--pre-auth" : ""}`}>
       <RotateOverlay />
       <DevLabPanels
         mapZoom={mapZoom}
@@ -2879,6 +2881,7 @@ export default function App() {
             onMapZoom={setMapZoom}
             onMapViewport={onMapViewport}
             mapHud={{
+              visible: authInitialized && Boolean(user),
               stage,
               onOpenMenu: openMenuPanel,
               menuOpen,
@@ -3050,6 +3053,7 @@ export default function App() {
             }}
             lodDebug={lodDebugPanelProps}
             mapHud={{
+              visible: authInitialized && Boolean(user),
               stage,
               onOpenMenu: openMenuPanel,
               menuOpen,
@@ -3456,6 +3460,7 @@ export default function App() {
         permission={entryLocation.permission}
         onChooseRome={entryLocation.chooseRome}
         onChooseCurrent={entryLocation.chooseCurrent}
+        onPosition={entryLocation.acceptPosition}
       />
 
       {needsGuestEntry && !showAppIntro && !entryRequested && !entryLocationPrompt ? (
@@ -3467,6 +3472,7 @@ export default function App() {
               ? "탈퇴가 완료되었습니다. 그동안 함께 달려 주셔서 고맙습니다."
               : null
           }
+          expiryKind={expiryKind}
           onStartGuest={() => void beginAuthenticatedSession()}
           onGoogleSignIn={() => void handleGoogleSignIn()}
         />
@@ -3478,10 +3484,12 @@ export default function App() {
           authInitialized={authInitialized}
           authSigningIn={authSigningIn}
           userSignedOut={userSignedOut}
+          authOffline={authOffline}
           busy={busy}
           error={error}
           onStartGuest={() => void beginAuthenticatedSession()}
           onGoogleSignIn={() => void handleGoogleSignIn()}
+          onRetryAuth={() => void retryAuthRestore()}
         />
       ) : null}
 
@@ -3503,10 +3511,10 @@ export default function App() {
             type="button"
             className="btn secondary"
             disabled={busy}
-            title="Sign out"
+            title="End session"
             onClick={() => void handleServiceExit()}
           >
-            로그아웃
+            종료
           </button>
         </AuthGateCard>
       ) : null}

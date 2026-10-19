@@ -15,22 +15,19 @@ import {
   ENTRY_LOCATION_NOTICE,
   ENTRY_PERMISSION_QUERY_WATCHDOG_MS,
   createEntryLocationSession,
-  readBrowserEntryLocationEnv,
   type EntryLocationEnv,
-  type EntryLocationPermission,
-  type EntryLocationPhase,
   type EntryLocationReadOptions,
   type EntryLocationSession,
 } from "../../src/lib/geo/entryLocation.ts";
 import { MAP_FALLBACK_CENTER, MAP_FALLBACK_ZOOM } from "../../src/lib/map/mapBootCenter.ts";
 
 await import("./auth-session-gate-tsx-register.mjs");
-const { EntryLocationDialog } = await import("../../src/components/auth/EntryLocationDialog.tsx");
+const { EntryLocationDialog } = await import(
+  "../../src/components/auth/EntryLocationDialog.tsx"
+);
 
-const SHARE =
-  "위치를 공유하면 내 주변 지도에서 시작합니다. 공유하지 않아도 로마 콜로세움에서 시작할 수 있습니다.";
-const CURRENT_LABEL = "내 위치 근처에서 시작";
-const ROME_LABEL = "앱 기본 위치에서 시작";
+const CURRENT_LABEL = "내 위치";
+const ROME_LABEL = "기본 위치";
 
 type QueryResult = "granted" | "prompt" | "denied";
 
@@ -119,7 +116,7 @@ function harness(options?: {
       if (!resolve) throw new Error("대기 중인 권한 조회가 없습니다");
       resolve(state);
     },
-    succeed: (lng, lat) => succeed(lng, lat),
+    get succeed() { return succeed; },
     fail: (kind) => fail(kind),
   };
 }
@@ -361,7 +358,87 @@ test("denied 에서 명시 앱 기본 위치 확정은 콜로세움 ready 를 �
   assert.equal(box.session.getSnapshot().target, ready.target);
 });
 
-test("실패·브라우저 timeout·invalid 는 콜로세움 ready 와 안내를 유지한다", async () => {
+test("acceptPosition 은 choice 에서 유효 좌표를 ready 로 확정한다", async () => {
+  const box = harness();
+  // 비활성(idle)에서는 아무 일도 하지 않는다.
+  box.session.acceptPosition(Number.NaN, 0);
+  box.session.acceptPosition(126.978, 37.5665);
+  assert.equal(box.session.getSnapshot().phase, "idle");
+  assert.equal(box.session.getSnapshot().target, null);
+
+  box.session.setEnabled(true);
+  box.resolveQuery("prompt");
+  await flushMicrotasks();
+  assert.equal(box.session.getSnapshot().phase, "choice");
+
+  // 유효하지 않은 좌표는 무시한다.
+  for (const [lng, lat] of [
+    [Number.NaN, 0],
+    [0, Number.NaN],
+    [Number.POSITIVE_INFINITY, 0],
+    [180.1, 0],
+    [0, -90.1],
+  ] as const) {
+    box.session.acceptPosition(lng, lat);
+    assert.equal(box.session.getSnapshot().phase, "choice", `${lng},${lat}`);
+  }
+
+  // 네이티브 결과로 ready. 위치 API(getCurrentPosition)는 한 번도 부르지 않는다.
+  box.session.acceptPosition(126.978, 37.5665);
+  const ready = box.session.getSnapshot();
+  assert.equal(box.calls.read, 0);
+  assert.equal(box.calls.query, 1);
+  assert.equal(ready.phase, "ready");
+  assert.equal(ready.permission, "granted");
+  assert.equal(ready.notice, null);
+  assert.deepEqual(ready.target?.center, [126.978, 37.5665]);
+  assert.equal(ready.target?.zoom, 15);
+
+  // ready 이후의 늦은 결과는 무시한다.
+  box.session.acceptPosition(10, 20);
+  assert.equal(box.session.getSnapshot().target, ready.target);
+  assert.deepEqual(box.session.getSnapshot().target?.center, [126.978, 37.5665]);
+
+  // locating 중의 결과도 무시한다.
+  const locating = harness({ query: () => Promise.resolve("prompt") });
+  locating.session.setEnabled(true);
+  await flushMicrotasks();
+  locating.session.chooseCurrent();
+  assert.equal(locating.session.getSnapshot().phase, "locating");
+  locating.session.acceptPosition(126.978, 37.5665);
+  assert.equal(locating.session.getSnapshot().phase, "locating");
+  locating.succeed(127.02, 37.5);
+  assert.equal(locating.session.getSnapshot().phase, "ready");
+});
+
+test("기본 위치 확정 뒤의 네이티브 결과는 무시한다", async () => {
+  const box = harness();
+  box.session.setEnabled(true);
+  box.resolveQuery("prompt");
+  await flushMicrotasks();
+  box.session.chooseRome();
+  const rome = box.session.getSnapshot();
+  assert.equal(rome.phase, "ready");
+  assert.deepEqual(rome.target?.center, romeCenter());
+  box.session.acceptPosition(126.978, 37.5665);
+  box.session.acceptPosition(Number.NaN, Number.NaN);
+  assert.equal(box.session.getSnapshot().target, rome.target);
+  assert.deepEqual(box.session.getSnapshot().target?.center, romeCenter());
+  assert.equal(box.calls.read, 0);
+});
+
+test("자기활성 해제 뒤의 네이티브 결과도 무시한다", async () => {
+  const box = harness();
+  box.session.setEnabled(true);
+  box.resolveQuery("prompt");
+  await flushMicrotasks();
+  box.session.setEnabled(false);
+  box.session.acceptPosition(126.978, 37.5665);
+  assert.equal(box.session.getSnapshot().phase, "idle");
+  assert.equal(box.session.getSnapshot().target, null);
+});
+
+test("실패·브라우저 timeout·invalid 는 재시도 선택과 안내를 유지한다", async () => {
   async function locate(onRead: (box: Harness) => void) {
     const box = harness();
     box.session.setEnabled(true);
@@ -373,13 +450,13 @@ test("실패·브라우저 timeout·invalid 는 콜로세움 ready 와 안내를
   }
 
   const failed = await locate((box) => box.fail("failed"));
-  assert.equal(failed.phase, "ready");
+  assert.equal(failed.phase, "choice");
   assert.equal(failed.notice, ENTRY_LOCATION_NOTICE.failed);
-  assert.deepEqual(failed.target?.center, romeCenter());
+  assert.equal(failed.target, null);
 
   const timedOut = await locate((box) => box.fail("timeout"));
-  assert.equal(timedOut.notice, ENTRY_LOCATION_NOTICE.failed);
-  assert.deepEqual(timedOut.target?.center, romeCenter());
+  assert.equal(timedOut.notice, ENTRY_LOCATION_NOTICE.timeout);
+  assert.equal(timedOut.target, null);
 
   for (const [lng, lat] of [
     [Number.NaN, 0],
@@ -392,9 +469,9 @@ test("실패·브라우저 timeout·invalid 는 콜로세움 ready 와 안내를
     [0, -90.1],
   ] as const) {
     const invalid = await locate((box) => box.succeed(lng, lat));
-    assert.equal(invalid.phase, "ready", `${lng},${lat}`);
+    assert.equal(invalid.phase, "choice", `${lng},${lat}`);
     assert.equal(invalid.notice, ENTRY_LOCATION_NOTICE.invalid);
-    assert.deepEqual(invalid.target?.center, romeCenter());
+    assert.equal(invalid.target, null);
     assert.equal(JSON.stringify(invalid.notice).includes(String(lng)), false);
   }
 });
@@ -433,7 +510,7 @@ test("권한 선택을 8초 넘게 기다려도 승인 후 한국 좌표를 목�
   }
 });
 
-test("기승인 위치 watchdog 8초와 늦은 성공 콜백은 콜로세움을 유지한다", async () => {
+test("기승인 위치 watchdog 이후 재시도를 유지하고 늦은 성공은 무시한다", async () => {
   const box = harness();
   box.session.setEnabled(true);
   box.resolveQuery("granted");
@@ -442,12 +519,12 @@ test("기승인 위치 watchdog 8초와 늦은 성공 콜백은 콜로세움을 
   assert.equal(box.session.getSnapshot().phase, "locating");
   box.advance(1);
   const ready = box.session.getSnapshot();
-  assert.equal(ready.phase, "ready");
-  assert.equal(ready.notice, ENTRY_LOCATION_NOTICE.failed);
-  assert.deepEqual(ready.target?.center, romeCenter());
+  assert.equal(ready.phase, "choice");
+  assert.equal(ready.notice, ENTRY_LOCATION_NOTICE.timeout);
+  assert.equal(ready.target, null);
   box.succeed(127, 37);
   assert.equal(box.session.getSnapshot().target, ready.target);
-  assert.deepEqual(box.session.getSnapshot().target?.center, romeCenter());
+  assert.equal(box.session.getSnapshot().target, null);
   assert.equal(box.calls.read, 1);
 });
 
@@ -555,6 +632,17 @@ test("제품 파일은 위치 감시·저장·전송을 넣지 않는다", () =>
       assert.equal(source.includes(banned), false, `${file} ${banned}`);
     }
   }
+  const dialog = readFileSync(
+    fileURLToPath(new URL("../../src/components/auth/EntryLocationDialog.tsx", import.meta.url)),
+    "utf8",
+  );
+  // 대화상자는 콜백을 통해서만 위치를 요청한다.
+  assert.equal(dialog.includes("navigator.geolocation"), false, "dialog navigator.geolocation");
+  assert.equal(dialog.includes("getCurrentPosition"), false, "dialog getCurrentPosition");
+  // 중간 alert 없이 요청하고 차단 상태에는 설정 안내를 표시한다(지시15b).
+  assert.equal(dialog.includes("globalThis.alert"), false, "dialog globalThis.alert");
+  assert.equal(dialog.includes('permission === "denied"'), true);
+  assert.equal(dialog.includes("브라우저 사이트 설정에서 위치를 허용"), true);
 });
 
 test("대화상자 CSS 는 44px 버튼·스크롤·출처 여백을 둔다", () => {
@@ -568,9 +656,19 @@ test("대화상자 CSS 는 44px 버튼·스크롤·출처 여백을 둔다", () 
   assert.equal(css.includes("pointer-events: none"), true);
   assert.equal(css.includes("pointer-events: auto"), true);
   assert.equal(css.includes("inset:"), false);
+  assert.equal(css.includes(".entry-location__icon"), true);
+  assert.equal(css.includes("display: none"), false);
+  assert.equal(css.includes(".entry-location__status"), true);
 });
 
-type ButtonNode = { props: { onClick?: () => void; children?: ReactNode; className?: string } };
+type ButtonNode = {
+  props: {
+    onClick?: () => void;
+    children?: ReactNode;
+    className?: string;
+    "aria-label"?: string;
+  };
+};
 
 function buttonsOf(node: ReactNode): ButtonNode[] {
   const found: ButtonNode[] = [];
@@ -614,91 +712,57 @@ function labelOf(node: ReactNode): string {
   return parts.join("").replace(/\s+/g, " ").trim();
 }
 
-function dialog(phase: EntryLocationPhase, permission: EntryLocationPermission, calls = { rome: 0, current: 0 }) {
-  return createElement(EntryLocationDialog, {
-    phase,
-    permission,
-    onChooseRome: () => {
-      calls.rome += 1;
-    },
-    onChooseCurrent: () => {
-      calls.current += 1;
-    },
+test("첫 위치 버튼은 중간 확인 없이 위치 요청 callback을 한 번 실행한다", () => {
+  let requests = 0;
+  let defaults = 0;
+  const node = createElement(EntryLocationDialog, {
+    phase: "choice", permission: "prompt",
+    onChooseCurrent: () => { requests += 1; },
+    onChooseRome: () => { defaults += 1; },
+    onPosition: () => {},
+  });
+  const html = renderToStaticMarkup(node);
+  assert.ok(html.includes(CURRENT_LABEL));
+  assert.equal(html.includes("위치공유 필요"), false);
+  assert.equal(html.includes("위치 공유를 허용하시겠어요?"), false);
+  const buttons = buttonsOf(node);
+  assert.equal(buttons.length, 2);
+  buttons.find((button) => button.props["aria-label"] === CURRENT_LABEL)?.props.onClick?.();
+  assert.equal(requests, 1);
+  buttons.find((button) => labelOf(button) === ROME_LABEL)?.props.onClick?.();
+  assert.equal(defaults, 1);
+});
+
+test("idle/ready는 선택창을 닫고 checking/locating은 기본 위치 선택을 유지한다", () => {
+  for (const phase of ["idle", "ready", "checking", "locating"] as const) {
+    const node = createElement(EntryLocationDialog, {
+      phase, permission: "unknown", onChooseCurrent: () => {},
+      onChooseRome: () => {}, onPosition: () => {},
+    });
+    const html = renderToStaticMarkup(node);
+    if (phase === "idle" || phase === "ready") assert.equal(html, "");
+    else assert.ok(html.includes(ROME_LABEL));
+  }
+});
+
+for (const failure of ["failed", "timeout"] as const) {
+  test(`허용 후 ${failure}: 로마 확정 없이 재시도하면 현재 위치로 이동`, async () => {
+    const box = harness();
+    box.session.setEnabled(true);
+    box.resolveQuery("granted");
+    await flushMicrotasks();
+    box.fail(failure);
+    assert.equal(box.session.getSnapshot().phase, "choice");
+    assert.equal(box.session.getSnapshot().target, null);
+    assert.ok(box.session.getSnapshot().notice);
+    const staleSuccess = box.succeed;
+    box.session.chooseCurrent();
+    assert.equal(box.calls.read, 2);
+    assert.equal(box.session.getSnapshot().phase, "locating");
+    staleSuccess(12.5, 41.9);
+    assert.equal(box.session.getSnapshot().phase, "locating");
+    box.succeed(126.978, 37.5665);
+    assert.deepEqual(box.session.getSnapshot().target?.center, [126.978, 37.5665]);
+    assert.equal(box.session.getSnapshot().notice, null);
   });
 }
-
-test("대화상자는 idle·ready 에서 비우고 권한별로 문구와 버튼을 가른다", () => {
-  assert.equal(renderToStaticMarkup(dialog("idle", "unknown")), "");
-  assert.equal(renderToStaticMarkup(dialog("ready", "granted")), "");
-
-  const promptHtml = renderToStaticMarkup(dialog("choice", "prompt"));
-  assert.equal(promptHtml.includes("어디에서 시작할까요?"), true);
-  assert.equal(promptHtml.includes('aria-label="어디에서 시작할까요?"'), true);
-  assert.equal(promptHtml.includes("<h2"), true);
-  assert.equal(promptHtml.includes(SHARE), false);
-  assert.equal(promptHtml.includes(CURRENT_LABEL), true);
-  assert.equal(promptHtml.includes('내 위치 근처에서 시작<span class="entry-location__button-hint">(위치공유 필요)</span>'), true);
-  assert.equal(promptHtml.includes(ROME_LABEL), true);
-  assert.equal(promptHtml.includes("entry-location__button--primary"), true);
-
-  const unknownHtml = renderToStaticMarkup(dialog("choice", "unknown"));
-  assert.equal(unknownHtml.includes(SHARE), false);
-  assert.equal(unknownHtml.includes(CURRENT_LABEL), true);
-
-  const deniedHtml = renderToStaticMarkup(dialog("choice", "denied"));
-  assert.equal(deniedHtml.includes("위치 공유가 차단되어 있습니다"), false);
-  assert.equal(deniedHtml.includes("entry-location__body"), false);
-  assert.equal(deniedHtml.includes(SHARE), false);
-  assert.equal(deniedHtml.includes(CURRENT_LABEL), true);
-  assert.equal(deniedHtml.includes(ROME_LABEL), true);
-  assert.equal(deniedHtml.includes("entry-location__button--primary"), true);
-
-  const checkingHtml = renderToStaticMarkup(dialog("checking", "unknown"));
-  assert.equal(checkingHtml.includes("위치 권한을 확인하고 있습니다."), true);
-  assert.equal(checkingHtml.includes(CURRENT_LABEL), false);
-  assert.equal(checkingHtml.includes(ROME_LABEL), true);
-  assert.equal(checkingHtml.includes(SHARE), false);
-
-  const locatingHtml = renderToStaticMarkup(dialog("locating", "granted"));
-  assert.equal(locatingHtml.includes("현재 위치를 확인하고 있습니다."), true);
-  assert.equal(locatingHtml.includes(CURRENT_LABEL), false);
-  assert.equal(locatingHtml.includes(ROME_LABEL), true);
-
-  const calls = { rome: 0, current: 0 };
-  const checkingButtons = buttonsOf(dialog("checking", "unknown", calls));
-  assert.equal(checkingButtons.length, 1);
-  assert.equal(labelOf(checkingButtons[0]), ROME_LABEL);
-  checkingButtons[0].props.onClick?.();
-  assert.equal(calls.rome, 1);
-  assert.equal(calls.current, 0);
-
-  const choiceButtons = buttonsOf(dialog("choice", "prompt", calls));
-  const current = choiceButtons.find((button) => labelOf(button).startsWith(CURRENT_LABEL));
-  const rome = choiceButtons.find((button) => labelOf(button) === ROME_LABEL);
-  current?.props.onClick?.();
-  rome?.props.onClick?.();
-  assert.equal(calls.current, 1);
-  assert.equal(calls.rome, 2);
-
-  // 차단(denied) 선택 화면도 두 버튼이 모두 활성이고 콜백을 호출한다(지시08 ①).
-  const deniedCalls = { rome: 0, current: 0 };
-  const deniedButtons = buttonsOf(dialog("choice", "denied", deniedCalls));
-  assert.equal(deniedButtons.length, 2);
-  const deniedCurrent = deniedButtons.find((button) => labelOf(button).startsWith(CURRENT_LABEL));
-  const deniedRome = deniedButtons.find((button) => labelOf(button) === ROME_LABEL);
-  assert.ok(deniedCurrent);
-  assert.ok(deniedRome);
-  deniedCurrent?.props.onClick?.();
-  deniedRome?.props.onClick?.();
-  assert.equal(deniedCalls.current, 1);
-  assert.equal(deniedCalls.rome, 1);
-});
-
-test("이 런타임에 지리 API가 없으면 브라우저 환경도 콜로세움으로 끝난다", () => {
-  const env = readBrowserEntryLocationEnv();
-  assert.equal(env.hasGeolocation(), false);
-  const session = createEntryLocationSession(env, ENTRY_LOCATION_FALLBACK_TARGET);
-  session.setEnabled(true);
-  assert.equal(session.getSnapshot().phase, "ready");
-  assert.equal(session.getSnapshot().notice, ENTRY_LOCATION_NOTICE.unsupported);
-});

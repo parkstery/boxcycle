@@ -1,5 +1,7 @@
+import type { DocumentReference, Firestore, Transaction } from "firebase-admin/firestore";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { isGuestLifecycleBlockedError, assertGuestLifecycleWritableInTx } from "./guestLifecycleGuard.js";
 import { REGION } from "./region.js";
 
 /**
@@ -121,114 +123,167 @@ export const conquestOnRideCreated = onDocumentCreated(
     const tier: "t0" | "t1" = pedalSec == null ? "t0" : "t1";
 
     const db = getFirestore();
-    const summaryRef = db.doc(`conquest/${userId}`);
-    const chunkIds = [...new Set(cells.map((c) => chunkIdOfCellId(c.id)))];
-    const chunkRefs = chunkIds.map((cid) => summaryRef.collection("chunks").doc(cid));
 
-    await db.runTransaction(async (tx) => {
-      const [summarySnap, ...chunkSnaps] = await Promise.all([
-        tx.get(summaryRef),
-        ...chunkRefs.map((r) => tx.get(r)),
-      ]);
-
-      const today = dayKeyKst();
-      const summary = summarySnap.data() ?? {};
-      const dailyPrev =
-        summary.daily &&
-        typeof summary.daily === "object" &&
-        (summary.daily as { day?: string }).day === today
-          ? (summary.daily as { day: string; usedSec?: number; usedMeters?: number })
-          : { day: today, usedSec: 0, usedMeters: 0 };
-      const usedSec = Math.max(0, Number(dailyPrev.usedSec) || 0);
-      const usedMeters = Math.max(0, Number(dailyPrev.usedMeters) || 0);
-
-      /* ---- 예산 계산(§3.2~3.3): 정복의 화폐 = 검증된 페달링 ---- */
-      let creditMeters: number;
-      if (tier === "t0") {
-        const remainingDaily = Math.max(0, T0_DAILY_METERS - usedMeters);
-        creditMeters = Math.min(distanceMeters, T0_SPEED_CAP_MPS * elapsedSec, remainingDaily);
-      } else {
-        // 일일 [usedSec, usedSec+pedalSec) 구간: 0~2h 전액, 2~4h 절반, 이후 0
-        const start = usedSec;
-        const end = usedSec + (pedalSec ?? 0);
-        const fullPart = Math.max(0, Math.min(end, T1_FULL_SEC) - Math.min(start, T1_FULL_SEC));
-        const halfPart = Math.max(0, Math.min(end, T1_STOP_SEC) - Math.max(start, T1_FULL_SEC));
-        const effSec = fullPart + 0.5 * halfPart;
-        creditMeters = Math.min(distanceMeters, T1_SPEED_CAP_MPS * effSec);
-      }
-
-      /* ---- 소유 현황 로드 ---- */
-      const ownedByChunk = new Map<string, Record<string, unknown>>();
-      chunkIds.forEach((cid, i) => {
-        ownedByChunk.set(cid, (chunkSnaps[i].data()?.cells as Record<string, unknown>) ?? {});
-      });
-
-      /* ---- 경로 순서대로 예산 소진까지 인정 ---- */
-      let remaining = creditMeters;
-      let newCells = 0;
-      let newMeters = 0;
-      const newCellsByChunk = new Map<string, string[]>();
-
-      for (const cell of cells) {
-        if (remaining <= 0) break;
-        const consumed = Math.min(cell.m, remaining);
-        remaining -= consumed;
-        const cid = chunkIdOfCellId(cell.id);
-        const owned = ownedByChunk.get(cid) ?? {};
-        if (Object.prototype.hasOwnProperty.call(owned, cell.id)) continue;
-        owned[cell.id] = today;
-        ownedByChunk.set(cid, owned);
-        const list = newCellsByChunk.get(cid) ?? [];
-        list.push(cell.id);
-        newCellsByChunk.set(cid, list);
-        newCells += 1;
-        newMeters += consumed;
-      }
-
-      const consumedTotal = Math.round(creditMeters - remaining);
-      newMeters = Math.round(newMeters);
-
-      /* ---- 쓰기 ---- */
-      for (const [cid, ids] of newCellsByChunk) {
-        const patch: Record<string, string> = {};
-        for (const id of ids) patch[id] = today;
-        tx.set(summaryRef.collection("chunks").doc(cid), { cells: patch }, { merge: true });
-      }
-
-      // 「내 도로망」 궤적 — 신규 도로가 있을 때만(중복 렌더·문서 낭비 방지). path 는 평탄 배열.
-      if (newMeters > 0 && path.length >= 4) {
-        tx.set(summaryRef.collection("traces").doc(snap.id), {
+    try {
+      await db.runTransaction(async (tx) => {
+        await applyConquestInTransaction(tx, db, snap.ref, {
+          rideId: snap.id,
+          userId,
+          cells,
           path,
-          newMeters,
-          day: today,
-          createdAt: FieldValue.serverTimestamp(),
-        });
-      }
-
-      tx.set(
-        summaryRef,
-        {
-          totalMeters: FieldValue.increment(newMeters),
-          totalCells: FieldValue.increment(newCells),
-          daily: {
-            day: today,
-            usedSec: usedSec + (tier === "t1" ? (pedalSec ?? 0) : 0),
-            usedMeters: usedMeters + (tier === "t0" ? consumedTotal : 0),
-          },
-          updatedAt: FieldValue.serverTimestamp(),
-        },
-        { merge: true },
-      );
-
-      tx.update(snap.ref, {
-        conquestResult: {
-          newMeters,
-          newCells,
-          creditedMeters: consumedTotal,
           tier,
-          day: today,
-        },
+          pedalSec,
+          elapsedSec,
+          distanceMeters,
+        });
       });
-    });
+    } catch (e) {
+      if (isGuestLifecycleBlockedError(e)) {
+        // tombstone 뒤 지연 도착 — 재생성 금지 계약의 정상 종료. 재시도 대상이 아니다.
+        console.warn(
+          "conquestOnRideCreated skipped behind guestLifecycle tombstone",
+          snap.id,
+          userId,
+          e.guestLifecycleStatus,
+        );
+        return;
+      }
+      throw e;
+    }
   },
 );
+
+export type ConquestRideInput = {
+  rideId: string;
+  userId: string;
+  cells: PayloadCell[];
+  path: number[];
+  tier: "t0" | "t1";
+  pedalSec: number | null;
+  elapsedSec: number;
+  distanceMeters: number;
+};
+
+/**
+ * 「내 도로망」 집계 transaction 본문 — Admin trigger 지연 도착 계약을 여기서 고정한다.
+ * marker 검문이 첫 동작: sweep 의 arm/deleted 마커 쓰기와는 Firestore transaction 충돌
+ * 감지로 직렬화되고, blocking 상태면 chunks·traces·summary 쓰기와 rides.conquestResult
+ * 마킹이 전부 폐기된다(conquest/{uid} 재생성 금지 — 02-task-09 §2).
+ */
+export async function applyConquestInTransaction(
+  tx: Transaction,
+  db: Firestore,
+  rideRef: DocumentReference,
+  input: ConquestRideInput,
+): Promise<void> {
+  await assertGuestLifecycleWritableInTx(tx, db, input.userId);
+
+  const { rideId, userId, cells, path, tier, pedalSec, elapsedSec, distanceMeters } = input;
+  const summaryRef = db.doc(`conquest/${userId}`);
+  const chunkIds = [...new Set(cells.map((c) => chunkIdOfCellId(c.id)))];
+  const chunkRefs = chunkIds.map((cid) => summaryRef.collection("chunks").doc(cid));
+
+  const [summarySnap, ...chunkSnaps] = await Promise.all([
+    tx.get(summaryRef),
+    ...chunkRefs.map((r) => tx.get(r)),
+  ]);
+
+  const today = dayKeyKst();
+  const summary = summarySnap.data() ?? {};
+  const dailyPrev =
+    summary.daily &&
+    typeof summary.daily === "object" &&
+    (summary.daily as { day?: string }).day === today
+      ? (summary.daily as { day: string; usedSec?: number; usedMeters?: number })
+      : { day: today, usedSec: 0, usedMeters: 0 };
+  const usedSec = Math.max(0, Number(dailyPrev.usedSec) || 0);
+  const usedMeters = Math.max(0, Number(dailyPrev.usedMeters) || 0);
+
+  /* ---- 예산 계산(§3.2~3.3): 정복의 화폐 = 검증된 페달링 ---- */
+  let creditMeters: number;
+  if (tier === "t0") {
+    const remainingDaily = Math.max(0, T0_DAILY_METERS - usedMeters);
+    creditMeters = Math.min(distanceMeters, T0_SPEED_CAP_MPS * elapsedSec, remainingDaily);
+  } else {
+    // 일일 [usedSec, usedSec+pedalSec) 구간: 0~2h 전액, 2~4h 절반, 이후 0
+    const start = usedSec;
+    const end = usedSec + (pedalSec ?? 0);
+    const fullPart = Math.max(0, Math.min(end, T1_FULL_SEC) - Math.min(start, T1_FULL_SEC));
+    const halfPart = Math.max(0, Math.min(end, T1_STOP_SEC) - Math.max(start, T1_FULL_SEC));
+    const effSec = fullPart + 0.5 * halfPart;
+    creditMeters = Math.min(distanceMeters, T1_SPEED_CAP_MPS * effSec);
+  }
+
+  /* ---- 소유 현황 로드 ---- */
+  const ownedByChunk = new Map<string, Record<string, unknown>>();
+  chunkIds.forEach((cid, i) => {
+    ownedByChunk.set(cid, (chunkSnaps[i].data()?.cells as Record<string, unknown>) ?? {});
+  });
+
+  /* ---- 경로 순서대로 예산 소진까지 인정 ---- */
+  let remaining = creditMeters;
+  let newCells = 0;
+  let newMeters = 0;
+  const newCellsByChunk = new Map<string, string[]>();
+
+  for (const cell of cells) {
+    if (remaining <= 0) break;
+    const consumed = Math.min(cell.m, remaining);
+    remaining -= consumed;
+    const cid = chunkIdOfCellId(cell.id);
+    const owned = ownedByChunk.get(cid) ?? {};
+    if (Object.prototype.hasOwnProperty.call(owned, cell.id)) continue;
+    owned[cell.id] = today;
+    ownedByChunk.set(cid, owned);
+    const list = newCellsByChunk.get(cid) ?? [];
+    list.push(cell.id);
+    newCellsByChunk.set(cid, list);
+    newCells += 1;
+    newMeters += consumed;
+  }
+
+  const consumedTotal = Math.round(creditMeters - remaining);
+  newMeters = Math.round(newMeters);
+
+  /* ---- 쓰기 ---- */
+  for (const [cid, ids] of newCellsByChunk) {
+    const patch: Record<string, string> = {};
+    for (const id of ids) patch[id] = today;
+    tx.set(summaryRef.collection("chunks").doc(cid), { cells: patch }, { merge: true });
+  }
+
+  // 「내 도로망」 궤적 — 신규 도로가 있을 때만(중복 렌더·문서 낭비 방지). path 는 평탄 배열.
+  if (newMeters > 0 && path.length >= 4) {
+    tx.set(summaryRef.collection("traces").doc(rideId), {
+      path,
+      newMeters,
+      day: today,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+  }
+
+  tx.set(
+    summaryRef,
+    {
+      totalMeters: FieldValue.increment(newMeters),
+      totalCells: FieldValue.increment(newCells),
+      daily: {
+        day: today,
+        usedSec: usedSec + (tier === "t1" ? (pedalSec ?? 0) : 0),
+        usedMeters: usedMeters + (tier === "t0" ? consumedTotal : 0),
+      },
+      updatedAt: FieldValue.serverTimestamp(),
+    },
+    { merge: true },
+  );
+
+  tx.update(rideRef, {
+    conquestResult: {
+      newMeters,
+      newCells,
+      creditedMeters: consumedTotal,
+      tier,
+      day: today,
+    },
+  });
+}

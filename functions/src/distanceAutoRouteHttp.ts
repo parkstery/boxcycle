@@ -1,4 +1,4 @@
-import { FieldValue, getFirestore } from "firebase-admin/firestore";
+import { FieldValue, getFirestore, type Firestore } from "firebase-admin/firestore";
 import { HttpsError } from "firebase-functions/v2/https";
 import {
   AUTO_ROUTE_ALGORITHM_VERSION,
@@ -22,6 +22,7 @@ import {
   refundRouteGenerateToken,
   spendRouteGenerateToken,
 } from "./routeTokenCore.js";
+import { assertGuestLifecycleWritableInTx } from "./guestLifecycleGuard.js";
 
 export type { FetchDirectionsFn, RouteProfile } from "./distanceAutoRouteCore.js";
 
@@ -244,13 +245,24 @@ async function readCache(userId: string, requestId: string): Promise<CacheDoc | 
   return data;
 }
 
-async function writeCache(userId: string, requestId: string, doc: CacheDoc): Promise<void> {
-  await getFirestore()
-    .doc(`${ROUTE_AUTO_CACHE}/${cacheDocId(userId, requestId)}`)
-    .set({
+export async function writeRouteAutoRouteCache(
+  db: Firestore,
+  userId: string,
+  requestId: string,
+  doc: CacheDoc,
+): Promise<void> {
+  const ref = db.doc(`${ROUTE_AUTO_CACHE}/${cacheDocId(userId, requestId)}`);
+  await db.runTransaction(async (tx) => {
+    await assertGuestLifecycleWritableInTx(tx, db, userId);
+    tx.set(ref, {
       ...doc,
       updatedAt: FieldValue.serverTimestamp(),
     });
+  });
+}
+
+async function writeCache(userId: string, requestId: string, doc: CacheDoc): Promise<void> {
+  await writeRouteAutoRouteCache(getFirestore(), userId, requestId, doc);
 }
 
 function formatDuration(totalSeconds: number): string {

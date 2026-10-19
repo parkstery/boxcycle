@@ -8,23 +8,16 @@
 
 export const ENTRY_STEPS = [
   {
-    // 2026-10-17(지시08): 위치 차단(denied)에서도 두 시작 버튼이 모두 활성이다.
-    // 라벨이 또 바뀌면 e2e 공용 helper(rideEntryHelpers.ts)의 버튼 이름도 함께 고친다.
     step: "location-choice",
-    desc:
-      "지구본 위 위치 선택 — 「어디에서 시작할까요?」. 차단(denied)에는 설명 문구 없이 " +
-      "「내 위치 근처에서 시작」(클릭 한 번당 위치 요청 한 번)과 " +
-      "「앱 기본 위치에서 시작」(로마 콜로세움 확정) 두 버튼만 둔다.",
+    desc: "최초 위치 컨트롤 클릭은 브라우저 위치 허용으로 직접 연결. 앱 중간 확인 없음.",
     file: "src/components/auth/EntryLocationDialog.tsx",
     anchors: [
-      { name: "dialog role·제목", re: /role="dialog" aria-label=\{TITLE\}/ },
-      { name: "질문 제목", re: /어디에서 시작할까요\?/ },
-      { name: "내 위치 근처 버튼", re: /내 위치 근처에서 시작/ },
-      { name: "앱 기본 위치 버튼", re: /앱 기본 위치에서 시작/ },
-      { name: "차단 시 설명 없음", re: /permission === "denied"\) \{\s*body = null;/ },
-      { name: "버튼 내부 두 줄", re: /\{CURRENT_LABEL\}<span className="entry-location__button-hint">\{CURRENT_HINT\}<\/span>/ },
-      { name: "내 위치 클릭", re: /onClick=\{onChooseCurrent\}/ },
-      { name: "기본 위치 클릭", re: /onClick=\{onChooseRome\}/ },
+      { name: "질문", re: /어디에서 시작할까요/ },
+      { name: "현재 위치", re: /내 위치/ },
+      { name: "기본 위치 문구", re: /const ROME_LABEL = "기본 위치"/ },
+      { name: "현재 위치 직접 요청", re: /onClick=\{onChooseCurrent\}/ },
+      { name: "기본 위치", re: /onClick=\{onChooseRome\}/ },
+      { name: "현재 위치 아이콘", re: /className="entry-location__icon"/ },
     ],
     also: [
       {
@@ -34,10 +27,11 @@ export const ENTRY_STEPS = [
           { name: "permission 연결", re: /permission=\{entryLocation\.permission\}/ },
           { name: "기본 위치 콜백", re: /onChooseRome=\{entryLocation\.chooseRome\}/ },
           { name: "내 위치 콜백", re: /onChooseCurrent=\{entryLocation\.chooseCurrent\}/ },
+          { name: "위치결과 연결", re: /onPosition=\{entryLocation\.acceptPosition\}/ },
         ],
       },
     ],
-    selector: `getByRole('dialog',{name:'어디에서 시작할까요?'}) → getByRole('button',{name:'내 위치 근처에서 시작'}) · getByRole('button',{name:'앱 기본 위치에서 시작'})`,
+    selector: `getByRole('dialog',{name:'어디에서 시작할까요?'}) → getByRole('button',{name:'내 위치'} → 브라우저 허용`,
   },
   {
     step: "app-intro",
@@ -47,7 +41,7 @@ export const ENTRY_STEPS = [
     file: "src/components/auth/AppIntroScreen.tsx",
     anchors: [
       { name: "소개 region", re: /aria-label="앱 소개"/ },
-      { name: "소개 제목", re: /달린 길이,/ },
+      { name: "소개 제목", re: /땀으로 그리는,/ },
       { name: "게스트 시작 콜백", re: /onStartGuest: \(\) => void/ },
       { name: "로그인 콜백", re: /onLogin: \(\) => void/ },
       { name: "게스트로 시작", re: /게스트로 시작/ },
@@ -70,7 +64,7 @@ export const ENTRY_STEPS = [
       { name: "버튼 진입", re: /const \[entryRequested, setEntryRequested\] = useState\(false\)/ },
       {
         name: "소개 조건",
-        re: /const showAppIntro =\s*needsGuestEntry &&\s*!introDismissed &&\s*startScreenNotice !== "account-deleted" &&\s*!authSigningIn &&\s*!busy &&\s*!error/,
+        re: /const showAppIntro =\s*needsGuestEntry &&\s*!introDismissed &&\s*startScreenNotice !== "account-deleted" &&\s*expiryKind == null &&\s*!authSigningIn &&\s*!busy &&\s*!error/,
       },
       { name: "위치 hook", re: /useEntryLocation\(entryLocationEnabled\)/ },
       { name: "부트 목적지", re: /bootFlyTarget: entryLocation\.target/ },
@@ -97,7 +91,7 @@ export const ENTRY_STEPS = [
     step: "auth-session-state",
     desc:
       "인증 세션 게이트 — 설정 없음, 부트·서명·busy 대기(실패/선택 버튼 없음, stale error 숨김), " +
-      "명시 로그아웃, 실제 실패와 다시 시도/Google, idle 선택. App 은 이 컴포넌트에 같은 상태를 연결한다.",
+      "이용 종료 뒤와 실제 실패 모두 로그인·게스트로 시작, 복원 전 오프라인만 재시도, idle 선택. App 은 이 컴포넌트에 같은 상태를 연결한다.",
     file: "src/components/auth/AuthSessionGate.tsx",
     anchors: [
       {
@@ -107,11 +101,10 @@ export const ENTRY_STEPS = [
       { name: "대기 status", re: /role="status"/ },
       { name: "로그인 중 또는 연결 중", re: /authSigningIn \|\| busy \? "로그인 중…" : "연결 중…"/ },
       { name: "설정 없음", re: /Firebase 설정 필요/ },
-      { name: "명시 로그아웃", re: /로그아웃되었습니다\./ },
+      { name: "시작 메뉴 로그인", re: /AuthGoogleMark \/>\s*로그인/ },
       { name: "실패 문구", re: /서비스에 연결할 수 없습니다\./ },
-      { name: "다시 시도", re: /다시 시도/ },
-      { name: "Google 로그인", re: /Google로 로그인/ },
-      { name: "게스트로 새로 시작", re: /게스트로 새로 시작/ },
+      { name: "복원 전 재시도", re: /재시도/ },
+      { name: "게스트로 시작", re: /게스트로 시작/ },
       { name: "idle 선택", re: /시작 방법을 선택해 주세요\./ },
       {
         name: "비대기에서만 error 상세",

@@ -1,0 +1,71 @@
+{
+  "at": "2026-10-19T04:52:40.395Z",
+  "readOnly": true,
+  "googleUsers": 4,
+  "googleSetUnchanged": true,
+  "originalGoogleStatePreserved": true,
+  "authUsers": 8,
+  "authSetUnchanged": false,
+  "originalAuthPreserved": true,
+  "addedAuthUsers": 3,
+  "checkedDocuments": 2176,
+  "protectedPersonalDocuments": 1978,
+  "nonPersonalDocuments": 198,
+  "missingDocuments": 1,
+  "missingDetails": [
+    {
+      "collection": "trails",
+      "subcollection": "members",
+      "ownedByCurrentAuth": true,
+      "ownedByGoogle": false
+    }
+  ],
+  "changedDocuments": 4,
+  "changedCollections": {
+    "users": 1,
+    "conquest": 2,
+    "trails": 1
+  },
+  "googleDocuments": 1976,
+  "missingGoogleDocuments": 0,
+  "changedGoogleDocuments": 4,
+  "changedGoogleFields": [
+    {
+      "collection": "users",
+      "fields": [
+        "mileageRideCount",
+        "mileageTotalSec",
+        "mileageTotalMeters",
+        "updatedAt"
+      ],
+      "removedFields": 0
+    },
+    {
+      "collection": "conquest",
+      "fields": [
+        "daily",
+        "totalMeters",
+        "totalCells",
+        "updatedAt"
+      ],
+      "removedFields": 0
+    },
+    {
+      "collection": "conquest",
+      "fields": [
+        "cells"
+      ],
+      "removedFields": 0
+    },
+    {
+      "collection": "trails",
+      "fields": [
+        "lastSeenAt"
+      ],
+      "removedFields": 0
+    }
+  ],
+  "protectedMotion": 2,
+  "missingMotion": 0,
+  "changedMotion": 0
+}

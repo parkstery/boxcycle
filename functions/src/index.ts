@@ -19,6 +19,12 @@ import { defineSecret } from "firebase-functions/params";
 import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
 import { REGION } from "./region.js";
+import {
+  guestLifecycleBlockedHttpsError,
+  permanentAuthHttpsError,
+  transientStoreHttpsError,
+  verifyUidForAdminHttp,
+} from "./guestLifecycleHttp.js";
 
 initializeApp();
 
@@ -147,15 +153,14 @@ export const getMapboxDirections = onRequest(
       res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
       return;
     }
-    let uid: string;
-    try {
-      const decoded = await getAuth().verifyIdToken(tokenMatch[1]);
-      uid = decoded.uid;
-    } catch {
-      const err = new HttpsError("unauthenticated", "유효하지 않은 인증 토큰입니다.");
-      res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
-      return;
-    }
+
+    /*
+     * 공용 게이트 — verifyIdToken(token, true) 영구/일시 분류 + guestLifecycle tombstone
+     * 차단(null 이면 이미 응답됨). deletionScheduled·deleted 게스트의 기존 토큰은
+     * mergeUserAuthMeta·ensureRouteTokenOnboarding.users 원장을 (재)생성하지 못하게 여기서 끊는다.
+     */
+    const uid = await verifyUidForAdminHttp(res, tokenMatch[1]);
+    if (!uid) return;
 
     let rawBody: unknown = req.body;
     if (typeof rawBody === "string") {
@@ -177,11 +182,12 @@ export const getMapboxDirections = onRequest(
       const dataField = (rawBody as { data?: unknown } | null)?.data;
       const { start, end, profile, waypoints, requestId } = parseBody(dataField);
       const economy = await loadRouteTokenEconomy();
-      try {
-        await mergeUserAuthMeta(uid);
-      } catch {
-        /* users 메타 실패해도 경로 계산은 진행 */
-      }
+      /*
+       * users 메타 merge 실패는 삼키지 않는다(02-task-12 §1 — Task09 검수잔여). 여기서
+       * 실패하면 다음 온보딩·토큰 소모·외부 Mapbox 비용·원장 생성이 아예 시작되지 않고
+       * outer catch 로 넘어간다(삭제경합 user-not-found 401 / guard 403 / 일시 503 / 그 외 500).
+       */
+      await mergeUserAuthMeta(uid);
       await ensureRouteTokenOnboarding(uid);
       const routeTokenBalance = await spendRouteGenerateToken(uid, requestId);
       const generateCost = Math.max(0, Math.floor(economy.generateCostBase));
@@ -286,6 +292,26 @@ export const getMapboxDirections = onRequest(
     } catch (e: unknown) {
       if (e instanceof HttpsError) {
         res.status(e.httpErrorCode.status).json({ error: e.toJSON() });
+        return;
+      }
+      // guestLifecycle guard 차단은 403, 일시적 store 장애는 503 — 정상/500으로 삼키지 않는다.
+      const blocked = guestLifecycleBlockedHttpsError(e);
+      if (blocked) {
+        console.warn("[route] tombstone 차단으로 요청을 종료한다", e);
+        res.status(blocked.httpErrorCode.status).json({ error: blocked.toJSON() });
+        return;
+      }
+      const transient = transientStoreHttpsError(e);
+      if (transient) {
+        console.warn("[route] 일시 장애 — 503 재시도 응답", e);
+        res.status(transient.httpErrorCode.status).json({ error: transient.toJSON() });
+        return;
+      }
+      // mergeUserAuthMeta 의 영구 Auth 오류(삭제경합 user-not-found 등)는 500 으로 줄이지 않는다.
+      const authGone = permanentAuthHttpsError(e);
+      if (authGone) {
+        console.warn("[route] 계정이 Auth 에서 사라져 요청을 끊는다", e);
+        res.status(authGone.httpErrorCode.status).json({ error: authGone.toJSON() });
         return;
       }
       console.error(e);
@@ -414,15 +440,10 @@ export const getDistanceAutoRoute = onRequest(
       res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
       return;
     }
-    let uid: string;
-    try {
-      const decoded = await getAuth().verifyIdToken(tokenMatch[1]);
-      uid = decoded.uid;
-    } catch {
-      const err = new HttpsError("unauthenticated", "유효하지 않은 인증 토큰입니다.");
-      res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
-      return;
-    }
+
+    // 공용 게이트 — verifyIdToken(token, true) + tombstone 차단(null 이면 이미 응답됨).
+    const uid = await verifyUidForAdminHttp(res, tokenMatch[1]);
+    if (!uid) return;
 
     let rawBody: unknown = req.body;
     if (typeof rawBody === "string") {
@@ -442,22 +463,13 @@ export const getDistanceAutoRoute = onRequest(
 
     try {
       const dataField = (rawBody as { data?: unknown } | null)?.data;
-      const {
-        start,
-        targetRoadPoint,
-        profile,
-        targetDistanceMeters,
-        bearingDeg,
-        closeLoop,
-        excludeStartBearingDeg,
-        requestId,
-        readyOneway,
-      } = parseDistanceAutoRouteBody(dataField);
-      try {
-        await mergeUserAuthMeta(uid);
-      } catch {
-        /* users 메타 실패해도 경로 계산은 진행 */
-      }
+      const { start, targetRoadPoint, profile, targetDistanceMeters, bearingDeg, closeLoop, excludeStartBearingDeg, requestId, readyOneway } =
+        parseDistanceAutoRouteBody(dataField);
+      /*
+       * users 메타 merge 실패는 삼키지 않는다(02-task-12 §1). 실패하면 자동 Route 후보·
+       * 온보딩·토큰 소모·원장 생성 앞에서 outer catch 로 끊긴다.
+       */
+      await mergeUserAuthMeta(uid);
       await ensureRouteTokenOnboarding(uid);
 
       const fetchDirections: FetchDirectionsFn = (routeProfile, waypoints) =>
@@ -486,6 +498,26 @@ export const getDistanceAutoRoute = onRequest(
     } catch (e: unknown) {
       if (e instanceof HttpsError) {
         res.status(e.httpErrorCode.status).json({ error: e.toJSON() });
+        return;
+      }
+      // guestLifecycle guard 차단은 403, 일시적 store 장애는 503 — 정상/500으로 삼키지 않는다.
+      const blocked = guestLifecycleBlockedHttpsError(e);
+      if (blocked) {
+        console.warn("[route] tombstone 차단으로 요청을 종료한다", e);
+        res.status(blocked.httpErrorCode.status).json({ error: blocked.toJSON() });
+        return;
+      }
+      const transient = transientStoreHttpsError(e);
+      if (transient) {
+        console.warn("[route] 일시 장애 — 503 재시도 응답", e);
+        res.status(transient.httpErrorCode.status).json({ error: transient.toJSON() });
+        return;
+      }
+      // mergeUserAuthMeta 의 영구 Auth 오류(삭제경합 user-not-found 등)는 500 으로 줄이지 않는다.
+      const authGone = permanentAuthHttpsError(e);
+      if (authGone) {
+        console.warn("[route] 계정이 Auth 에서 사라져 요청을 끊는다", e);
+        res.status(authGone.httpErrorCode.status).json({ error: authGone.toJSON() });
         return;
       }
       console.error(e);
@@ -517,6 +549,8 @@ export {
 } from "./subscriptionHttp.js";
 export { stripeSubscriptionWebhookHttp } from "./stripeWebhookHttp.js";
 export { deleteAccountHttp, resetGuestHttp } from "./accountDeletionHttp.js";
+export { guestActivityHttp, guestLinkHttp } from "./guestLifecycleHttp.js";
+export { guestLifecycleSweep } from "./guestLifecycleScheduled.js";
 export { subscriptionExpireSweep } from "./subscriptionScheduled.js";
 export { subscriptionDevApplyHttp } from "./subscriptionDevHttp.js";
 export { backfillRoutePublicationsHttp } from "./backfillRoutePublications.js";

@@ -1,7 +1,6 @@
 /**
- * 탈퇴·게스트 초기화·게스트 로그아웃 뒤의 첫 화면 (2026-10-09 Chief).
+ * 탈퇴 뒤의 첫 화면과 게스트 로그아웃(2026-10-19: 세션만 종료).
  * 종전: 「게스트로 시작함」 표시가 탭에 남아 새로고침하면 새 게스트가 자동으로 만들어졌다.
- * 게스트 로그아웃은 데이터 삭제다 — 서버가 지운 뒤에만 로그아웃 화면으로 간다.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -62,25 +61,42 @@ test("탈퇴 성공 → 정리 → 새로고침 순서", () => {
   assert.match(sheet, /await deleteMyAccount\([^)]*\);\s*prepareStartScreen\("account-deleted"\);\s*location\.reload\(\);/);
 });
 
-test("게스트 로그아웃 = 서버 삭제 → 로그아웃 표시 → 새로고침, 실패하면 로그아웃하지 않는다", () => {
+test("이용 종료는 Firebase signOut 없이 시작 메뉴로 돌아간다", () => {
   const app = read("../../src/App.tsx");
   const at = app.indexOf("async function handleServiceExit()");
   assert.ok(at >= 0);
   const body = app.slice(at, app.indexOf("\n  }\n", at));
-  const guest = body.slice(body.indexOf("if (user?.isAnonymous)"));
-  assert.match(
-    guest,
-    /await resetGuestAccount\(user\);\s*if \(!result\.deletedAuth\) \{\s*setError\([\s\S]*?\);\s*return;\s*\}\s*setUserSignedOutSessionFlag\(\);\s*location\.reload\(\);\s*return;/,
-  );
-  assert.ok(
-    body.indexOf("resetGuestAccount") < body.indexOf("completeFirebaseSignOut"),
-    "게스트는 그냥 로그아웃(signOut)으로 빠지면 안 된다",
-  );
+  assert.ok(!body.includes("resetGuestAccount"));
+  assert.ok(!body.includes("location.reload"));
+  assert.ok(!body.includes("completeFirebaseSignOut"));
+  assert.ok(!body.includes("signOut("));
+  assert.match(body, /endAppUse\(\)/);
 });
 
-test("게스트 로그아웃 확인 문구", () => {
+test("Google 성공만 종료 표시를 풀고 팝업은 서버 확인보다 먼저 연다", () => {
+  const hook = read("../../src/hooks/useAppAuth.ts");
+  const at = hook.indexOf("const handleGoogleSignIn");
+  assert.ok(at >= 0);
+  const body = hook.slice(at, hook.indexOf("const handleCompleteNickname", at));
+  const reuseAt = body.indexOf("if (currentSession && !currentSession.isAnonymous)");
+  const popupAt = body.indexOf("await signInWithPopup(auth, provider)");
+  const revealAt = body.lastIndexOf("await revealVerifiedGoogleUser()");
+  assert.ok(reuseAt >= 0 && popupAt > reuseAt);
+  assert.match(body.slice(reuseAt, popupAt), /return;/);
+  assert.ok(revealAt > popupAt);
+  assert.match(body, /if \(outcome === "cancelled"\) return;/);
+  assert.match(body, /if \(outcome === "linked" && revealed\) setAuthLinkRev/);
+  assert.match(body, /clearAppUseEnded\(\)/);
+});
+
+test("이용 종료 버튼은 같은 Guest 포기를 말하지 않는다", () => {
   const sheet = read("../../src/components/UserInfoSheet.tsx");
-  assert.ok(sheet.includes('"게스트는 로그아웃하면 모든 데이터가 삭제됩니다."'));
+  const code = sheet.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
+  assert.ok(code.includes(">종료<") || code.includes("종료"));
+  assert.ok(code.includes("진행 중인 주행이 여기서 끝납니다"));
+  assert.ok(!code.includes("같은 게스트로 돌아오지 못할 수 있습니다"));
+  assert.ok(!code.includes("모든 데이터가 삭제됩니다"));
+  assert.ok(!code.includes("게스트로 새로 시작"));
 });
 
 test("시작 화면이 탈퇴 안내를 받는다", () => {

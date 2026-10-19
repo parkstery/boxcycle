@@ -294,7 +294,7 @@ export function applyRtwLayerStyle(
  * 스타일 목록은 지도 설정이지 세션 저장 키가 아니다.
  */
 export const MAP_STYLE_OPTIONS = [
-  { value: RTW_MAP_STYLE_URL, label: "RTW Dark" },
+  { value: RTW_MAP_STYLE_URL, label: "Spinatlas Dark" },
   { value: "mapbox://styles/mapbox/outdoors-v12", label: "Outdoors" },
   { value: "mapbox://styles/mapbox/satellite-streets-v12", label: "Satellite" },
 ];

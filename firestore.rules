@@ -6,6 +6,31 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    /**
+     * Guest 삭제 예약 이후의 ID 토큰은 만료 전이라도 Firestore 재쓰기를 못한다.
+     * isSignedIn() 만 보는 규칙과 request.auth 를 직접 보는 쓰기 규칙이 함께 clientMayWrite/isSelfWriter 를 쓴다.
+     */
+    function guestExpiryBlocksWrites() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/guestLifecycle/$(request.auth.uid))
+        && get(/databases/$(database)/documents/guestLifecycle/$(request.auth.uid)).data.keys().hasAny(['status'])
+        && get(/databases/$(database)/documents/guestLifecycle/$(request.auth.uid)).data.status in [
+          'deletionScheduled',
+          'disabling',
+          'deleting',
+          'failed',
+          'deleted'
+        ];
+    }
+
+    function clientMayWrite() {
+      return isSignedIn() && !guestExpiryBlocksWrites();
+    }
+
+    function isSelfWriter(userId) {
+      return clientMayWrite() && request.auth.uid == userId;
+    }
+
     function isSelf(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
@@ -203,7 +228,7 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow create: if isSelf(userId)
+      allow create: if isSelfWriter(userId)
         && (!request.resource.data.keys().hasAny(['nickname', 'nicknameKey']) || userNicknameReserved())
         && publicPiiNotAdded()
         && userCreateIsProfile()
@@ -216,7 +241,7 @@ service cloud.firestore {
           'routeTokenEarnedToday'
         ])
         && userTierOnCreateValid();
-      allow update: if isSelf(userId)
+      allow update: if isSelfWriter(userId)
         && (!userNicknameChanged() || userNicknameReserved())
         && userRouteTokenFieldsUntouched()
         && userTierProtectedFieldsUntouched()
@@ -231,8 +256,9 @@ service cloud.firestore {
      * users/{uid} 는 로그인 사용자 전원이 읽으므로 민감값은 여기에만 둔다. 본인 외 읽기·쓰기 금지.
      */
     match /userPrivate/{userId} {
-      allow read, delete: if isSelf(userId);
-      allow create, update: if isSelf(userId)
+      allow read: if isSelf(userId);
+      allow delete: if isSelfWriter(userId);
+      allow create, update: if isSelfWriter(userId)
         && request.resource.data.keys().hasOnly(['weightKg', 'intensityId', 'updatedAt'])
         && (!('weightKg' in request.resource.data)
           || request.resource.data.weightKg == null
@@ -254,14 +280,14 @@ service cloud.firestore {
     match /nicknames/{key} {
       allow get: if isSignedIn();
       allow list: if false;
-      allow create: if isSignedIn()
+      allow create: if clientMayWrite()
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.ownerUid is string
         && request.resource.data.keys().hasAll(['ownerUid'])
         && key.matches('^[a-z][a-z0-9]{3,11}$');
       // 옛 이름 7일 묶기(2026-10-09 Chief): 주인이 놓을 때 releasedAt=요청 시각, 주인은 언제든 되찾고,
       // 남은 묶임이 끝난 뒤에만 가져간다.
-      allow update: if isSignedIn()
+      allow update: if clientMayWrite()
         && request.resource.data.ownerUid == request.auth.uid
         && (
           (resource.data.ownerUid == request.auth.uid
@@ -274,7 +300,7 @@ service cloud.firestore {
             && request.time > resource.data.releasedAt + duration.value(7, 'd')
             && request.resource.data.keys().hasOnly(['ownerUid']))
         );
-      allow delete: if isSignedIn() && resource.data.ownerUid == request.auth.uid;
+      allow delete: if clientMayWrite() && resource.data.ownerUid == request.auth.uid;
     }
 
     /**
@@ -283,7 +309,7 @@ service cloud.firestore {
      */
     match /livePresence/{userId} {
       allow read: if isSignedIn();
-      allow create, update: if isSelf(userId)
+      allow create, update: if isSelfWriter(userId)
         && request.resource.data.keys().hasAll(['lat', 'lng', 'updatedAt'])
         && request.resource.data.keys().hasOnly(['lat', 'lng', 'updatedAt', 'displayName'])
         && request.resource.data.lat is number
@@ -295,31 +321,31 @@ service cloud.firestore {
         && (!request.resource.data.keys().hasAny(['displayName'])
             || (request.resource.data.displayName is string
                 && request.resource.data.displayName.size() <= 80));
-      allow delete: if isSelf(userId);
+      allow delete: if isSelfWriter(userId);
     }
 
     /** Trailhead 공개 목록 — CF 전환 전까지 클라이언트도 listing 유지 */
     match /openTrailListings/{trailId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn()
+      allow create: if clientMayWrite()
         && request.resource.data.hostUid == request.auth.uid
         && request.resource.data.trailId == trailId
         && request.resource.data.keys().hasAll(['publicationId'])
         && request.resource.data.publicationId is string
         && request.resource.data.publicationId.size() > 0;
-      allow update: if isSignedIn()
+      allow update: if clientMayWrite()
         && (
           resource.data.hostUid == request.auth.uid
           || request.resource.data.diff(resource.data).affectedKeys()
             .hasOnly(['riderCount', 'updatedAt'])
         );
-      allow delete: if isSignedIn();
+      allow delete: if clientMayWrite();
     }
 
     /** Trail 라이브 인스턴스 메타 (`default` 는 허브 전용·문서 없음) */
     match /trails/{trailId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn()
+      allow create: if clientMayWrite()
         && trailId != 'default'
         && request.resource.data.hostUid == request.auth.uid
         && request.resource.data.displayNumber is int
@@ -331,7 +357,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasAll([
           'hostUid', 'displayNumber', 'status', 'visibility', 'createdAt', 'lastActivityAt'
         ]);
-      allow update: if isSignedIn()
+      allow update: if clientMayWrite()
         && resource.data.hostUid == request.auth.uid
         && request.resource.data.hostUid == resource.data.hostUid
         && request.resource.data.displayNumber == resource.data.displayNumber
@@ -344,8 +370,8 @@ service cloud.firestore {
     /** Trail presence — `rooms/` 레거시는 아래 read-only */
     match /trails/{trailId}/members/{userId} {
       allow read: if isSignedIn();
-      allow create, update: if isSelf(userId) && trailParticipantWriteAllowed(trailId) && publicPiiNotAdded();
-      allow delete: if isSelf(userId);
+      allow create, update: if isSelfWriter(userId) && trailParticipantWriteAllowed(trailId) && publicPiiNotAdded();
+      allow delete: if isSelfWriter(userId);
     }
 
     /**
@@ -358,7 +384,7 @@ service cloud.firestore {
     /** Trail: 출판 주행 진행률만 공유(geometry 미저장). */
     match /trails/{trailId}/livePublicationRides/{userId} {
       allow read: if isSignedIn();
-      allow create, update: if isSelf(userId)
+      allow create, update: if isSelfWriter(userId)
         && trailParticipantWriteAllowed(trailId)
         && request.resource.data.keys().hasAll(['publicationId', 'progressRatio', 'lastSeenAt'])
         && request.resource.data.keys().hasOnly(['publicationId', 'progressRatio', 'lastSeenAt', 'displayName', 'distMeters', 'speedMps', 'ridePhase'])
@@ -382,7 +408,7 @@ service cloud.firestore {
         && (!request.resource.data.keys().hasAny(['ridePhase'])
             || (request.resource.data.ridePhase is string
                 && request.resource.data.ridePhase in ['live', 'paused', 'completed']));
-      allow delete: if isSelf(userId);
+      allow delete: if isSelfWriter(userId);
     }
 
     /** @deprecated `rooms/` — 마이그레이션 후 read-only(클라이언트 write 금지) */
@@ -393,7 +419,7 @@ service cloud.firestore {
 
     match /rides/{rideId} {
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow create: if clientMayWrite() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if false;
     }
 
@@ -404,14 +430,14 @@ service cloud.firestore {
      */
     match /savedRoutes/{routeId} {
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create: if isSignedIn()
+      allow create: if clientMayWrite()
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.routeFingerprint is string
         && request.resource.data.routeFingerprint.size() == 64;
-      allow update: if isSignedIn()
+      allow update: if clientMayWrite()
         && resource.data.userId == request.auth.uid
         && request.resource.data.userId == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if clientMayWrite() && resource.data.userId == request.auth.uid;
     }
 
     match /config/{configId} {
@@ -427,7 +453,7 @@ service cloud.firestore {
       allow read: if isSignedIn()
         && (resource.data.applicantUid == request.auth.uid || isRouteReviewer());
 
-      allow create: if isSignedIn()
+      allow create: if clientMayWrite()
         && userTierAllowsPublicRoute()
         && request.resource.data.applicantUid == request.auth.uid
         && request.resource.data.status == 'pending'
@@ -457,7 +483,8 @@ service cloud.firestore {
         && request.resource.data.namingPolicyVersion is string
         && request.resource.data.namingPolicyVersion.size() >= 4;
 
-      allow update: if resource.data.status == 'pending'
+      allow update: if clientMayWrite()
+        && resource.data.status == 'pending'
         && (
           (
             isRouteReviewer()
@@ -500,7 +527,7 @@ service cloud.firestore {
     match /routePublications/{publicationId} {
       allow read: if isSignedIn()
         || resource.data.get('status', '') == 'published';
-      allow create: if isRouteReviewer()
+      allow create: if clientMayWrite() && isRouteReviewer()
         && request.resource.data.routeId is string
         && request.resource.data.routeId.size() > 0
         && request.resource.data.publicTitle is string
@@ -511,7 +538,7 @@ service cloud.firestore {
         && request.resource.data.routeFingerprint.size() == 64
         && request.resource.data.geometryCoordsJson is string
         && request.resource.data.geometryCoordsJson.size() >= 10;
-      allow update: if isSignedIn()
+      allow update: if clientMayWrite()
         && resource.data.status == 'published'
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['presenceEnabled', 'updatedAt'])
@@ -521,9 +548,9 @@ service cloud.firestore {
 
     match /publicationSessions/{publicationId}/members/{userId} {
       allow read: if isSignedIn() && isPublicationSharedPresenceAllowed(publicationId);
-      allow create, update: if isSelf(userId) && isPublicationSharedPresenceAllowed(publicationId)
+      allow create, update: if isSelfWriter(userId) && isPublicationSharedPresenceAllowed(publicationId)
         && publicPiiNotAdded();
-      allow delete: if isSelf(userId) && isPublicationSharedPresenceAllowed(publicationId);
+      allow delete: if isSelfWriter(userId) && isPublicationSharedPresenceAllowed(publicationId);
     }
 
     /** 월드 활동 집계(선택). 콘솔/CF로만 수정 — 클라이언트 write 금지. 로그인 사용자 읽기. */
@@ -551,7 +578,7 @@ service cloud.firestore {
      */
     match /routeElevations/{routeKey} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn() && routeElevationPayloadValid();
+      allow create: if clientMayWrite() && routeElevationPayloadValid();
       allow update, delete: if false;
     }
 
@@ -596,6 +623,16 @@ service cloud.firestore {
 
     /** Stripe Webhook 멱등 — Functions(Admin SDK) 전용 */
     match /billingProcessedEvents/{eventId} {
+      allow read, write: if false;
+    }
+
+    /** Guest 수명 marker·tombstone. 클라이언트 읽기·쓰기 금지. Rules 의 get() 만 참조한다. */
+    match /guestLifecycle/{uid} {
+      allow read, write: if false;
+    }
+
+    /** Guest 수명 일일 집계 — 서버만 */
+    match /guestLifecycleRuns/{runId} {
       allow read, write: if false;
     }
   }

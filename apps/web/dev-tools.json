@@ -9,6 +9,46 @@
   ],
   "tools": [
     {
+      "id": "guest-explicit-test-reset",
+      "kind": "script",
+      "path": "scripts/guest-test-reset-supervisor.mjs",
+      "class": "permanent",
+      "purpose": "Chief가 명시 요청한 Guest 테스트 초기화. 기본 dry-run, Google4 보호·정확한 manifest·개인 백업 필요",
+      "enable": "node scripts/guest-test-reset-supervisor.mjs; apply는 --apply --project=boxcycle-dc2df --max=N 명시",
+      "bundle": "20261019-guest-lifecycle",
+      "added": "2026-10-19"
+    },
+    {
+      "id": "guest-demo-integration",
+      "kind": "script",
+      "path": "scripts/guest-integration-supervisor.mjs",
+      "class": "permanent",
+      "purpose": "Guest HTTP·Rules·실제 SDK 회귀와 수동 demo 테스트 환경",
+      "enable": "demo-boxcycle-guest localhost 에뮬레이터에서만 실행. --serve는 5004 테스트 앱",
+      "bundle": "20261019-guest-lifecycle",
+      "added": "2026-10-19"
+    },
+    {
+      "id": "guest-preservation-check",
+      "kind": "script",
+      "path": "scripts/guest-preservation-supervisor.mjs",
+      "class": "permanent",
+      "purpose": "로컬 비공개 최초 스냅샷과 운영 사용자·자료 보존을 읽기 전용 비교",
+      "enable": "node scripts/guest-preservation-supervisor.mjs",
+      "bundle": "20261019-guest-lifecycle",
+      "added": "2026-10-19"
+    },
+    {
+      "id": "guest-cache-preservation-check",
+      "kind": "script",
+      "path": "scripts/guest-cache-preservation-supervisor.mjs",
+      "class": "permanent",
+      "purpose": "개인 고아 캐시 정리 대상 잔여와 보호 캐시 해시를 읽기 전용 확인",
+      "enable": "node scripts/guest-cache-preservation-supervisor.mjs",
+      "bundle": "20261019-guest-lifecycle",
+      "added": "2026-10-19"
+    },
+    {
       "id": "distanceAutoRouteClickDebugMarker",
       "kind": "module",
       "path": "apps/web/src/lib/debug/distanceAutoRouteClickDebugMarker.ts",

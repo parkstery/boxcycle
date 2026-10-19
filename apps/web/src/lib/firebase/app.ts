@@ -1,7 +1,8 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
-import { getAuth, connectAuthEmulator, type Auth } from "firebase/auth";
+import { getAuth, connectAuthEmulator, setPersistence, type Auth } from "firebase/auth";
 import { getDatabase, connectDatabaseEmulator, type Database } from "firebase/database";
 import { getFirestore, connectFirestoreEmulator, type Firestore } from "firebase/firestore";
+import { AUTH_BROWSER_PERSISTENCE } from "../identity/authPersistence";
 
 function readConfig() {
   return {
@@ -84,6 +85,16 @@ export function getFirebaseAuth(): Auth {
     }
   }
   return auth;
+}
+
+let authPersistence: Promise<void> | null = null;
+
+/** 리스너를 붙이기 전에 로컬 지속성을 확정한다. 탭을 닫아도 인증이 남는다. */
+export function ensureAuthPersistence(): Promise<void> {
+  if (!authPersistence) {
+    authPersistence = setPersistence(getFirebaseAuth(), AUTH_BROWSER_PERSISTENCE);
+  }
+  return authPersistence;
 }
 
 export function getFirebaseDatabase(): Database {

@@ -9,8 +9,9 @@ export const ENTRY_GEOLOCATION_TIMEOUT_MS = 8000;
 
 export const ENTRY_LOCATION_NOTICE = {
   unsupported: "이 브라우저에서는 위치를 사용할 수 없어 콜로세움에서 시작합니다.",
-  failed: "위치를 확인하지 못해 콜로세움에서 시작합니다.",
-  invalid: "위치 좌표가 올바르지 않아 콜로세움에서 시작합니다.",
+  failed: "현재 위치를 확인하지 못했습니다. 기기의 위치 서비스를 확인한 뒤 다시 시도해 주세요.",
+  timeout: "현재 위치를 확인하는 데 시간이 걸리고 있습니다. 다시 시도해 주세요.",
+  invalid: "현재 위치를 확인하지 못했습니다. 다시 시도해 주세요.",
 } as const;
 
 export type EntryLocationPhase = "idle" | "checking" | "choice" | "locating" | "ready";
@@ -131,6 +132,8 @@ export type EntryLocationSession = {
   setEnabled: (enabled: boolean) => void;
   chooseRome: () => void;
   chooseCurrent: () => void;
+  /** 네이티브 geolocation 컨트롤의 location 결과를 받는다. choice 동안만 유효 좌표를 받는다. */
+  acceptPosition: (lng: number, lat: number) => void;
 };
 
 export function createEntryLocationSession(
@@ -209,6 +212,14 @@ export function createEntryLocationSession(
     emit();
   }
 
+  function retryLocation(gen: number, notice: string) {
+    if (!isCurrent(gen)) return;
+    clearTimers();
+    snapshot = { phase: "choice", permission: snapshot.permission, target: null, notice };
+    retire(gen);
+    emit();
+  }
+
   function startLocate(gen: number, permission: LocatePermission) {
     if (!isCurrent(gen) || locateGen === gen) return;
     if (!env.hasGeolocation()) {
@@ -233,7 +244,7 @@ export function createEntryLocationSession(
       ? arm(ENTRY_GEOLOCATION_TIMEOUT_MS, () => {
           if (done || !isCurrent(gen)) return;
           done = true;
-          settleReady(gen, ENTRY_LOCATION_NOTICE.failed);
+          retryLocation(gen, ENTRY_LOCATION_NOTICE.timeout);
         })
       : () => {};
 
@@ -250,7 +261,7 @@ export function createEntryLocationSession(
             done = true;
             cancelWatch();
             if (!isUsableLngLat(lng, lat)) {
-              settleReady(gen, ENTRY_LOCATION_NOTICE.invalid);
+              retryLocation(gen, ENTRY_LOCATION_NOTICE.invalid);
               return;
             }
             const target: EntryLocationTarget = {
@@ -287,7 +298,7 @@ export function createEntryLocationSession(
               retire(gen);
               return;
             }
-            settleReady(gen, ENTRY_LOCATION_NOTICE.failed);
+            retryLocation(gen, kind === "timeout" ? ENTRY_LOCATION_NOTICE.timeout : ENTRY_LOCATION_NOTICE.failed);
           },
         },
       );
@@ -379,8 +390,27 @@ export function createEntryLocationSession(
       const permission = snapshot.permission;
       // 차단(denied)에서도 클릭 한 번당 위치 요청 한 번을 허용한다. 권한을 우회하거나
       // 자동으로 다시 요청하지 않는다. 브라우저 설정에서 허용한 뒤 같은 버튼으로 재시도한다.
-      if (permission !== "prompt" && permission !== "unknown" && permission !== "denied") return;
+      if (permission !== "prompt" && permission !== "unknown" && permission !== "denied" && permission !== "granted") return;
       startLocate(generation, permission);
+    },
+    acceptPosition(lng, lat) {
+      // 네이티브 컨트롤 경로. 위치 API 를 부르지 않고 결과만 받는다(지시10).
+      if (!active) return;
+      if (snapshot.phase !== "choice") return;
+      if (!isUsableLngLat(lng, lat)) return;
+      // 동의 카드 취소·기본 위치 확정 뒤에 늦게 도착한 결과는 위 두 가드로 버린다.
+      bump();
+      snapshot = {
+        phase: "ready",
+        permission: "granted",
+        target: {
+          center: [lng, lat],
+          zoom: fallback.zoom,
+        },
+        notice: null,
+      };
+      emit();
+      retire(generation);
     },
   };
 }

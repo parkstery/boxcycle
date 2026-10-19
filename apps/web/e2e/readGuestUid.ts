@@ -6,11 +6,11 @@ import { expect, type Page } from '@playwright/test'
  * localStorage 만 보면 timeout 이다. localStorage 는 fallback 으로만 훑는다.
  */
 export async function readGuestUid(page: Page): Promise<string> {
-  let uid: string | null = null
+  const result: { uid: string | null } = { uid: null }
   await expect
     .poll(
       async () => {
-        uid = await page.evaluate(
+        result.uid = await page.evaluate(
           () =>
             new Promise<string | null>((resolve) => {
               const fromLocal = (() => {
@@ -71,10 +71,11 @@ export async function readGuestUid(page: Page): Promise<string> {
               }
             }),
         )
-        return uid
+        return result.uid
       },
       { timeout: 30_000, message: '게스트 uid 를 찾지 못했다 — 익명 인증이 끝나지 않았다' },
     )
     .not.toBeNull()
-  return uid as string
+  if (typeof result.uid !== 'string') throw new Error('Guest 인증 UID가 확인되지 않았다')
+  return result.uid
 }

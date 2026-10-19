@@ -19,7 +19,7 @@ test.describe("계정 탈퇴 UI 촬영", () => {
     fs.mkdirSync(SHOTS, { recursive: true });
   });
 
-  test("게스트 — 로그아웃(데이터 삭제) 확인 화면", async ({ page }) => {
+  test("게스트 — 이용 종료는 시작 메뉴로 돌아가고 계정을 지우지 않는다", async ({ page }) => {
     test.skip(!LIVE, "Firebase 에뮬레이터 필요");
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 690, height: 275 });
@@ -30,9 +30,8 @@ test.describe("계정 탈퇴 UI 촬영", () => {
     const sheet = page.getByRole("dialog", { name: "사용자 정보" });
     await expect(sheet).toBeVisible({ timeout: 15_000 });
     await expect(sheet.getByRole("button", { name: "이 기기 데이터 지우기" })).toHaveCount(0);
-    await sheet.getByRole("button", { name: "로그아웃", exact: true }).click();
-    const confirm = sheet.getByRole("group", { name: "로그아웃 확인" });
-    await expect(confirm).toContainText("게스트는 로그아웃하면 모든 데이터가 삭제됩니다.");
+    await expect(sheet.getByRole("button", { name: "종료", exact: true })).toBeVisible();
+    await expect(sheet.getByText("같은 게스트로 돌아오지 못할 수 있습니다")).toHaveCount(0);
     await page.screenshot({
       path: path.join(SHOTS, "01-guest-logout-confirm.png"),
       fullPage: true,
