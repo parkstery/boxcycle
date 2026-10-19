@@ -652,7 +652,8 @@ test("대화상자 CSS 는 44px 버튼·스크롤·출처 여백을 둔다", () 
   );
   assert.equal(css.includes("min-height: 44px"), true);
   assert.equal(css.includes("overflow: auto"), true);
-  assert.equal(css.includes("bottom: 3.25rem"), true);
+  assert.equal(css.includes("bottom: 0"), true);
+  assert.equal(css.includes("align-items: center"), true);
   assert.equal(css.includes("pointer-events: none"), true);
   assert.equal(css.includes("pointer-events: auto"), true);
   assert.equal(css.includes("inset:"), false);
