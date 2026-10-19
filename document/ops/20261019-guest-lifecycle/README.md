@@ -9,6 +9,8 @@
 
 ## 지금 할 일
 
+2026-10-20 [감리29](04-review-29.md): 첫Ready Ride레퍼런스디자인CSS·15상태/callback/build PASS. main2 18cd66fb·hosting배포·운영JS/CSS일치. 지역명/보조제목·회색pill/짙은선택색·동일폭시작/지역. 기존동작유지·44px터치·Chief디자인확인대기.
+
 2026-10-20 [감리28](04-review-28.md): 위치창화면중앙·🧭제목·버튼186→148.8px(-20%)·카드220→182.8px·padding16유지. 12상태/단위26/전체1295 PASS. main2 87ab273f·hosting반영/운영200·JS/CSS일치. 실폰/Chief화면확인대기.
 
 2026-10-20 [감리27](04-review-27.md): 종료후첫인트로·계정패널닫기·동일Guest재사용. main2 e1ac2199·hosting배포 index-BXz026cM.js/운영200. 실제SDK종료3회동일UID/계정증가0·1295시험PASS. 서버/Rules/운영계정변경없음.
