@@ -320,3 +320,94 @@
     font-size: 0.66rem;
   }
 }
+
+/* First route selection — quiet gray pills and a balanced two-button footer. */
+.local-first-anchor:has(.local-first__head) {
+  width: 220px;
+}
+.local-first-anchor:has(.local-first__chip--aux) {
+  width: 270px;
+}
+.local-first__card:has(.local-first__head) {
+  padding: 12px;
+  gap: 4px;
+  border-color: #dce0e6;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.16);
+}
+.local-first__head { gap: 4px; }
+.local-first__head .local-first__place {
+  font-size: 16px;
+  font-weight: 750;
+  line-height: 21px;
+  letter-spacing: -0.025em;
+  color: #171b24;
+}
+.local-first__head .local-first__subtitle {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 17px;
+  color: #858b95;
+  opacity: 1;
+}
+.local-first__head .local-first__title-unit {
+  font: inherit;
+  opacity: 1;
+}
+.local-first__head .local-first__link {
+  font-size: 10px;
+  font-weight: 400;
+  color: #858b95;
+  margin: -4px 0;
+}
+.local-first__head ~ .local-first__chips {
+  width: 100%;
+  gap: 6px;
+  margin-top: 0;
+}
+.local-first__head ~ .local-first__chips .local-first__chip {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-inline: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #353d4b;
+}
+.local-first__head ~ .local-first__chips .local-first__chip::before {
+  inset: 9px 0;
+  border: 0;
+  background: #eef0f4;
+}
+.local-first__head ~ .local-first__chips .local-first__chip--active {
+  color: #ffffff;
+}
+.local-first__head ~ .local-first__chips .local-first__chip--active::before {
+  background: #0b3b8d;
+}
+.local-first__head ~ .local-first__actions,
+.local-first__head ~ .local-first__ready-fail .local-first__actions {
+  width: 100%;
+  gap: 8px;
+  margin-top: -3px;
+}
+.local-first__head ~ .local-first__actions .local-first__btn,
+.local-first__head ~ .local-first__ready-fail .local-first__btn {
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: 13px;
+}
+.local-first__head ~ .local-first__actions .local-first__btn::before,
+.local-first__head ~ .local-first__ready-fail .local-first__btn::before {
+  inset-block: 5px;
+  border-radius: 9px;
+}
+.local-first__card:has(.local-first__head) .local-first__btn--primary::before {
+  background: #0b3b8d;
+}
+.local-first__card:has(.local-first__head) .local-first__btn--ghost {
+  color: #252d3a;
+}
+.local-first__card:has(.local-first__head) .local-first__btn--ghost::before {
+  background: #eef0f4;
+  border-color: #cbd0d8;
+}
