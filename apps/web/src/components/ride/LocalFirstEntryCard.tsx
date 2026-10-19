@@ -191,11 +191,9 @@ export function LocalFirstEntryCard({
                   aria-label={`${km} km`}
                   disabled={readyRideStatus === "generating"}
                   onClick={() => {
-                    if (km === readyKm) return;
                     setReadyKm(km);
-                    // 경로가 이미 있으면 「시작」이 사라지므로 거리 칩이 곧 「이 거리로 다시 만들기」다.
-                    // 선택만 바꾸고 아무 일도 안 일어나던 죽은 버튼을 없앤다(Chief 2026-10-07).
-                    if (hasActiveGeneratedRoute || readyRideLastResult) onGenerateReadyRide(km);
+                    // 거리 선택 자체가 탐색이다. 기본 거리 재클릭·실패 후에도 다시 생성한다.
+                    onGenerateReadyRide(km);
                   }}
                 >
                   {formatReadyRideDistanceChip(km)}

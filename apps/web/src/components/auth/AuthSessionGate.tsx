@@ -5,16 +5,18 @@ export type AuthSessionGateProps = {
   authInitialized: boolean;
   authSigningIn: boolean;
   userSignedOut: boolean;
+  authOffline?: boolean;
   busy: boolean;
   error: string | null;
   onStartGuest: () => void;
   onGoogleSignIn: () => void;
+  onRetryAuth?: () => void;
 };
 
 /**
  * `stage === "gate" && !needsGuestEntry` 전용 표현.
- * 설정 없음 → 부트·서명·busy 대기 → 명시 로그아웃 → 실제 error → 선택 idle.
- * 대기는 실패 문구와 선택·재시도 버튼을 그리지 않고, 남아 있는 error 도 숨긴다.
+ * 설정 없음 → 부트·서명·busy 대기 → 복원 전 오프라인 재시도 → 오류 설명 + 로그인/게스트로 시작 → 같은 두 버튼의 idle.
+ * 대기는 실패 문구와 선택 버튼을 그리지 않고, 남아 있는 error 도 숨긴다.
  * 구글 창이 열렸는지는 별도 신호가 없어 대기 문구를 그것과 구분하지 않는다.
  */
 export function AuthSessionGate({
@@ -22,10 +24,12 @@ export function AuthSessionGate({
   authInitialized,
   authSigningIn,
   userSignedOut,
+  authOffline = false,
   busy,
   error,
   onStartGuest,
   onGoogleSignIn,
+  onRetryAuth,
 }: AuthSessionGateProps) {
   const pending = configured && (!authInitialized || authSigningIn || busy);
 
@@ -37,39 +41,20 @@ export function AuthSessionGate({
         <p className="meta tight" role="status">
           {authSigningIn || busy ? "로그인 중…" : "연결 중…"}
         </p>
-      ) : userSignedOut ? (
+      ) : authOffline ? (
         <>
-          {/*
-            로그아웃 후(2026-10-09 Chief) — 등록이 주 행동이다. 종전 주 버튼 「다시 시작」 은 누르면 **새**
-            게스트를 만든다는 것이 드러나지 않아, 로그아웃한 사람에게 원치 않은 게스트가 생겼다.
-          */}
-          <p className="meta tight">로그아웃되었습니다.</p>
-          <p className="meta tight">Google로 로그인하면 내 도로망과 주행 기록이 계속 쌓입니다.</p>
-          <div className="auth-actions auth-actions--gate">
-            <button
-              type="button"
-              className="btn auth-gate-google"
-              disabled={busy}
-              title="Sign in with Google"
-              onClick={onGoogleSignIn}
-            >
-              <AuthGoogleMark />
-              Google로 로그인
-            </button>
-            <button type="button" className="btn secondary" disabled={busy} onClick={onStartGuest}>
-              {busy ? "…" : "게스트로 새로 시작"}
-            </button>
-          </div>
-          <p className="meta tight">새 게스트는 이전 게스트의 기록을 이어받지 않습니다.</p>
+          <p className="meta tight" role="status">
+            연결을 확인하지 못했습니다.
+          </p>
+          <button type="button" className="btn primary" disabled={busy} onClick={onRetryAuth}>
+            재시도
+          </button>
         </>
-      ) : error ? (
+      ) : error && !userSignedOut ? (
         <>
           <p className="meta tight">서비스에 연결할 수 없습니다.</p>
           <p className="error tight">{error}</p>
           <div className="auth-actions auth-actions--gate">
-            <button type="button" className="btn primary" disabled={busy} onClick={onStartGuest}>
-              {busy ? "…" : "다시 시도"}
-            </button>
             <button
               type="button"
               className="btn auth-gate-google"
@@ -78,7 +63,10 @@ export function AuthSessionGate({
               onClick={onGoogleSignIn}
             >
               <AuthGoogleMark />
-              Google로 로그인
+              로그인
+            </button>
+            <button type="button" className="btn secondary" disabled={busy} onClick={onStartGuest}>
+              {busy ? "…" : "게스트로 시작"}
             </button>
           </div>
         </>
@@ -94,10 +82,10 @@ export function AuthSessionGate({
               onClick={onGoogleSignIn}
             >
               <AuthGoogleMark />
-              Google로 로그인
+              로그인
             </button>
             <button type="button" className="btn secondary" disabled={busy} onClick={onStartGuest}>
-              {busy ? "…" : "게스트로 새로 시작"}
+              {busy ? "…" : "게스트로 시작"}
             </button>
           </div>
         </>

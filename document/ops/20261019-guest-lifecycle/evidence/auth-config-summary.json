@@ -1,0 +1,4 @@
+{
+  "subtype": "FIREBASE_AUTH",
+  "autodeleteAnonymousUsers": false
+}

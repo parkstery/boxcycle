@@ -23,7 +23,9 @@ export function subscribeRouteTokenBalance(
         }
         const n = snap.data().routeTokenBalance;
         const balance =
-          typeof n === "number" && Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0;
+          // Auth metadata may arrive before the onboarding grant transaction.
+          // An absent balance is unknown; the server will grant/check it on generation.
+          typeof n === "number" && Number.isFinite(n) ? Math.max(0, Math.floor(n)) : null;
         setSubscribedRouteTokenBalance(userId, balance);
         onValue(balance);
       },

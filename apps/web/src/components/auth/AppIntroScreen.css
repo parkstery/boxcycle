@@ -1,7 +1,6 @@
-/* 최초 인증 전 앱 소개. 좌측 밝은 포슬린 그라데이션.
- * 우측은 비워서 아래 맵박스 지도가 비친다.
- * 색은 기존 인증 카드와 같은 계열: 남색 #1e3a8a / 빨강 #dc2626.
- * 중앙 카드·스크림 없음. */
+/* 최초 인증 전 앱 소개. 좌측 짙은 남색 패널 + 우측 실제 지도.
+ * 팔레트: 남색 #0b1020 / 따뜻한 흰색 #f5f2ec / 코랄 #ef4438.
+ * 중앙 카드·스크림 없음. 지도·Mapbox 출처 표기는 가리지 않는다. */
 .app-intro {
   position: fixed;
   inset: 0;
@@ -9,12 +8,13 @@
   /* 오른쪽 지도는 보이되, 인트로 중 클릭으로 지도를 움직이지 않는다. */
   pointer-events: auto;
   background: transparent;
-  color: #0f172a;
-  color-scheme: light;
+  color: #f5f2ec;
+  color-scheme: dark;
   overflow: hidden;
   animation: app-intro-in 0.18s ease-out;
 }
 
+/* 좌측 남색 → 중앙에서 지도 쪽으로 부드럽게 투명해지는 그라데이션. 전체를 단색으로 덮지 않는다. */
 .app-intro::after {
   content: "";
   position: absolute;
@@ -23,11 +23,11 @@
   pointer-events: none;
   background: linear-gradient(
     90deg,
-    #fdfcf9 0%,
-    #faf8f3 30%,
-    rgba(250, 248, 243, 0.92) 44%,
-    rgba(250, 248, 243, 0.45) 58%,
-    rgba(250, 248, 243, 0) 72%
+    #0b1020 0%,
+    #0b1020 42%,
+    rgba(11, 16, 32, 0.92) 52%,
+    rgba(11, 16, 32, 0.42) 62%,
+    rgba(11, 16, 32, 0) 74%
   );
 }
 
@@ -44,9 +44,9 @@
 .app-intro__scroll {
   position: absolute;
   z-index: 2;
-  top: 0;
+  top: 100px;
   left: 0;
-  width: min(46%, 26rem);
+  width: 44%;
   bottom: env(safe-area-inset-bottom, 0px);
   overflow: auto;
   overscroll-behavior: contain;
@@ -74,55 +74,77 @@
 }
 
 .app-intro__brand {
+  position: absolute;
+  z-index: 3;
+  top: max(28px, env(safe-area-inset-top, 0px));
+  left: max(6vw, env(safe-area-inset-left, 0px));
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   flex-wrap: wrap;
 }
 
-.app-intro__brand-dot {
-  width: 0.6rem;
-  height: 0.6rem;
-  border-radius: 50%;
-  background: #dc2626;
-  flex-shrink: 0;
+.app-intro__brand-mark {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  display: inline-flex;
+}
+
+.app-intro__brand-svg {
+  transform-origin: 50% 50%;
+  animation: spinatlas-mark-turn 1.1s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .app-intro__brand-name {
   font-weight: 800;
-  letter-spacing: 0.04em;
-  font-size: 1.6rem;
+  letter-spacing: 0.06em;
+  font-size: 2.1rem;
   line-height: 1.1;
-  color: #1e3a8a;
+  color: #f5f2ec;
 }
 
-.app-intro__brand-sub {
-  flex-basis: 100%;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.32em;
-  color: #1e3a8a;
+.app-intro__eyebrow {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  line-height: 1.2;
+  color: #9aa6bd;
 }
 
 .app-intro__headline {
-  margin: 0.35rem 0 0;
-  font-size: 1.85rem;
-  line-height: 1.3;
+  margin: 0.2rem 0 0;
+  font-size: 3.5rem;
+  line-height: 1.15;
   font-weight: 800;
   letter-spacing: 0.01em;
-  color: #1e3a8a;
+  color: #f5f2ec;
 }
 
 .app-intro__headline-line {
   display: block;
 }
 
+/* 첫 글자 「땀」만 코랄 포인트. */
+.app-intro__headline-line:first-child::first-letter {
+  color: #ef4438;
+}
+
 .app-intro__support {
   margin: 0;
+  max-width: 30rem;
   font-size: 0.95rem;
   line-height: 1.55;
-  color: #334155;
+  color: rgba(245, 242, 236, 0.78);
+}
+
+.app-intro__support > span {
+  display: block;
 }
 
 /* support 아래 한 줄. 높이는 44px, 폭은 내용. 넘치면 이 스크롤 칸 안에서 줄바꿈한다. */
@@ -130,7 +152,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   max-width: 100%;
   min-width: 0;
 }
@@ -140,31 +162,89 @@
   box-sizing: border-box;
   flex: 0 0 auto;
   min-height: 44px;
-  padding: 0 0.75rem;
-  border-radius: 6px;
+  min-width: 44px;
+  padding: 0 1rem;
+  border-radius: 999px;
   font: inherit;
   font-size: 0.95rem;
   font-weight: 700;
   line-height: 1.2;
   cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
+/* 주 행동 — Spinatlas 파랑 pill. */
 .app-intro__guest {
-  border: 1px solid #0f766e;
-  background: #0f766e;
-  color: #f8fafc;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid #0061fd;
+  background: #0061fd;
+  color: #ffffff;
 }
 
+.app-intro__guest:hover {
+  background: #0054e0;
+  border-color: #0054e0;
+}
+
+.app-intro__guest-arrow {
+  font-size: 0.9em;
+  line-height: 1;
+}
+
+/* 보조 행동 — 남색 바탕의 은은한 흰 윤곽. */
 .app-intro__login {
-  border: 1px solid #1e3a8a;
-  background: transparent;
-  color: #1e3a8a;
+  border: 1px solid rgba(245, 242, 236, 0.4);
+  background: rgba(245, 242, 236, 0.06);
+  color: #f5f2ec;
+}
+
+.app-intro__login:hover {
+  background: rgba(245, 242, 236, 0.12);
+  border-color: rgba(245, 242, 236, 0.6);
 }
 
 .app-intro__guest:focus-visible,
 .app-intro__login:focus-visible {
-  outline: 2px solid #1e3a8a;
+  outline: 2px solid #f5f2ec;
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(11, 16, 32, 0.5);
+}
+
+/* 큰 PC 화면에서만 하단 3단계 설명. 낮은 높이·폰에서는 숨긴다. */
+.app-intro__steps {
+  display: none;
+  list-style: none;
+  margin: 0;
+  width: 100%;
+  padding: 0.9rem 1rem max(1rem, env(safe-area-inset-bottom, 0px)) max(6vw, env(safe-area-inset-left, 0px));
+  border-top: 1px solid rgba(245, 242, 236, 0.18);
+  gap: 0.75rem;
+  flex-direction: column;
+}
+
+@media (min-width: 1000px) and (min-height: 600px) {
+  .app-intro__steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.app-intro__steps-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  color: rgba(245, 242, 236, 0.82);
+}
+
+.app-intro__steps-no {
+  color: #ef4438;
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
 /* 인트로가 지도를 보여 주는 동안 줌·나침반·축척은 숨긴다. 맵박스 출처 표기는 남긴다. */
@@ -176,11 +256,62 @@
 
 .app-shell--intro .mapboxgl-ctrl-bottom-left {
   left: 62%;
+  bottom: 22px;
+  z-index: 41;
+}
+
+.app-shell--intro .mapboxgl-ctrl-bottom-right {
+  z-index: 41;
+}
+
+/* 좁은 폰(세로 포함) — 텍스트 폭 약52%, 오른쪽 최소 35~40%는 지도. */
+@media (max-width: 640px) {
+  .app-intro__scroll {
+    width: 52%;
+  }
+
+  .app-intro__content {
+    padding-left: max(5vw, env(safe-area-inset-left, 0px));
+  }
+
+  .app-intro__brand-mark {
+    width: 27px;
+    height: 27px;
+  }
+
+  .app-intro__brand-name {
+    font-size: 1.45rem;
+  }
+
+  .app-intro__eyebrow {
+    font-size: 0.62rem;
+  }
+
+  .app-intro__headline {
+    font-size: 1.5rem;
+  }
+
+  .app-intro__support {
+    font-size: 0.95rem;
+  }
 }
 
 @media (orientation: landscape) and (max-height: 480px) {
+  .app-intro__brand {
+    top: max(12px, env(safe-area-inset-top, 0px));
+    left: max(4vw, env(safe-area-inset-left, 0px));
+  }
+
+  .app-intro__scroll {
+    top: 58px;
+    width: 52%;
+  }
+
   .app-intro__content {
-    gap: 0.5rem;
+    gap: 0.4rem;
+    padding-left: max(4vw, env(safe-area-inset-left, 0px));
+    padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   }
 
   .app-intro__actions {
@@ -188,16 +319,51 @@
   }
 
   .app-intro__headline {
-    font-size: 1.55rem;
+    font-size: 24px;
+  }
+
+  .app-intro__support {
+    line-height: 1.45;
+  }
+
+  .app-intro__brand-mark {
+    width: 28px;
+    height: 28px;
   }
 
   .app-intro__brand-name {
-    font-size: 1.35rem;
+    font-size: 22px;
+  }
+
+  .app-intro__eyebrow {
+    font-size: 10px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .app-intro__brand-svg {
+    animation: none;
+  }
+
   .app-intro {
     animation: none;
   }
+
+  .app-intro__guest,
+  .app-intro__login {
+    transition: none;
+  }
+}
+
+@keyframes spinatlas-mark-turn {
+  from { transform: rotate(-180deg); }
+  to { transform: rotate(0deg); }
+}
+
+/* Authentication completion, rather than intro dismissal, unlocks map controls. */
+.app-shell--pre-auth .mapboxgl-ctrl-top-left,
+.app-shell--pre-auth .mapboxgl-ctrl-top-right,
+.app-shell--pre-auth .map-ctrl-camera-altitude,
+.app-shell--pre-auth .map-ctrl-scale-box {
+  visibility: hidden;
 }

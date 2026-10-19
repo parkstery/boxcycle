@@ -6,9 +6,22 @@ import {
   type Transaction,
 } from "firebase-admin/firestore";
 import { HttpsError } from "firebase-functions/v2/https";
+import { assertGuestLifecycleWritableInTx } from "./guestLifecycleGuard.js";
 
 export const ROUTE_TOKEN_LEDGER = "routeTokenLedger";
 export const ROUTE_TOKEN_ECONOMY_PATH = "config/routeTokenEconomy";
+
+/**
+ * 운영 DB 공급자 기본값. 시험만 격리 DB 를 꽂는다 — guestLifecycle guard 계약을
+ * 실제 해당 transaction 본문으로 검증하기 위한 주입점이다.
+ */
+export type RouteTokenAdminDeps = {
+  db: Firestore;
+};
+
+export function routeTokenDefaultDeps(): RouteTokenAdminDeps {
+  return { db: getFirestore() };
+}
 
 /** `firestore.rules` · `firestoreCourses.ts` 와 동기 — 재생성 전까지 비어 있음 */
 export const BASIC_INTRO_COURSE_IDS = [] as const;
@@ -81,8 +94,8 @@ function ledgerDocId(idempotencyKey: string): string {
   return idempotencyKey.replace(/\//g, "_").slice(0, 1500);
 }
 
-export async function loadRouteTokenEconomy(): Promise<RouteTokenEconomy> {
-  const snap = await getFirestore().doc(ROUTE_TOKEN_ECONOMY_PATH).get();
+export async function loadRouteTokenEconomy(db: Firestore = getFirestore()): Promise<RouteTokenEconomy> {
+  const snap = await db.doc(ROUTE_TOKEN_ECONOMY_PATH).get();
   if (!snap.exists) return DEFAULT_ROUTE_TOKEN_ECONOMY;
   const d = snap.data() ?? {};
   return {
@@ -168,17 +181,22 @@ function patchUserBalance(
 /**
  * 신규·기존 사용자 온보딩 지급(멱등). 잔액 반환.
  * @param isAnonymousHint Firestore `isAnonymous` 미기록 시 사용. HTTP 실패 시 Guest(true)로 보수적 처리.
+ *
+ * 지급 transaction 이 users·routeTokenLedger 를 (재)생성하므로 guestLifecycle marker 를
+ * 같은 transaction 안에서 먼저 읽어 tombstone 뒤 지급을 거절한다(02-task-09 §2).
  */
 export async function ensureRouteTokenOnboarding(
   userId: string,
   isAnonymousHint?: boolean,
+  deps: RouteTokenAdminDeps = routeTokenDefaultDeps(),
 ): Promise<number> {
-  const db = getFirestore();
-  const economy = await loadRouteTokenEconomy();
+  const db = deps.db;
+  const economy = await loadRouteTokenEconomy(db);
   const userRef = db.doc(`users/${userId}`);
   const idempotencyKey = `onboarding:${userId}`;
 
   return db.runTransaction(async (tx) => {
+    await assertGuestLifecycleWritableInTx(tx, db, userId);
     const ledgerRef = db.doc(`${ROUTE_TOKEN_LEDGER}/${ledgerDocId(idempotencyKey)}`);
     const ledgerSnap = await tx.get(ledgerRef);
     const userSnap = await tx.get(userRef);
@@ -215,16 +233,18 @@ export async function ensureRouteTokenOnboarding(
   });
 }
 
+/** route_generate 차감 — users 원장 쓰기라 tombstone 뒤 차감·원장 생성도 거절한다. */
 export async function spendRouteGenerateToken(
   userId: string,
   requestId: string,
   costOverride?: number,
+  deps: RouteTokenAdminDeps = routeTokenDefaultDeps(),
 ): Promise<number> {
-  const db = getFirestore();
-  const economy = await loadRouteTokenEconomy();
+  const db = deps.db;
+  const economy = await loadRouteTokenEconomy(db);
   const cost = Math.max(0, Math.floor(costOverride ?? economy.generateCostBase));
   if (cost === 0) {
-    await ensureRouteTokenOnboarding(userId);
+    await ensureRouteTokenOnboarding(userId, undefined, deps);
     const snap = await db.doc(`users/${userId}`).get();
     const balance = snap.data()?.routeTokenBalance;
     return typeof balance === "number" ? balance : 0;
@@ -234,6 +254,7 @@ export async function spendRouteGenerateToken(
   const idempotencyKey = `route_generate:${requestId}`;
 
   return db.runTransaction(async (tx) => {
+    await assertGuestLifecycleWritableInTx(tx, db, userId);
     const ledgerRef = db.doc(`${ROUTE_TOKEN_LEDGER}/${ledgerDocId(idempotencyKey)}`);
     const ledgerSnap = await tx.get(ledgerRef);
     const state = await readUserTokenState(tx, userRef);
@@ -273,15 +294,17 @@ export async function refundRouteGenerateToken(
   userId: string,
   requestId: string,
   amount: number,
+  deps: RouteTokenAdminDeps = routeTokenDefaultDeps(),
 ): Promise<void> {
   const refund = Math.max(0, Math.floor(amount));
   if (refund === 0) return;
 
-  const db = getFirestore();
+  const db = deps.db;
   const userRef = db.doc(`users/${userId}`);
   const idempotencyKey = `directions_refund:${requestId}`;
 
   await db.runTransaction(async (tx) => {
+    await assertGuestLifecycleWritableInTx(tx, db, userId);
     const ledgerRef = db.doc(`${ROUTE_TOKEN_LEDGER}/${ledgerDocId(idempotencyKey)}`);
     const ledgerSnap = await tx.get(ledgerRef);
     if (ledgerSnap.exists) return;
@@ -301,6 +324,7 @@ export async function refundRouteGenerateToken(
   });
 }
 
+/** rides 완주 적립 — users 원장 쓰기라 지연 trigger 에서도 tombstone 뒤 적립을 거절한다. */
 export async function earnRouteTokenForCompletedRide(input: {
   userId: string;
   rideId: string;
@@ -309,10 +333,11 @@ export async function earnRouteTokenForCompletedRide(input: {
   elapsedSec: number;
   status: string;
   isAnonymous: boolean;
-}): Promise<number> {
+}, deps: RouteTokenAdminDeps = routeTokenDefaultDeps()): Promise<number> {
   if (input.status !== "completed") return 0;
 
-  const economy = await loadRouteTokenEconomy();
+  const db = deps.db;
+  const economy = await loadRouteTokenEconomy(db);
   if (input.distanceMeters < economy.minRideDistanceM) return 0;
   if (input.elapsedSec < economy.minRideDurationSec) return 0;
 
@@ -327,11 +352,11 @@ export async function earnRouteTokenForCompletedRide(input: {
   }
   if (earn <= 0) return 0;
 
-  const db = getFirestore();
   const userRef = db.doc(`users/${input.userId}`);
   const idempotencyKey = `ride_complete:${input.rideId}`;
 
   return db.runTransaction(async (tx) => {
+    await assertGuestLifecycleWritableInTx(tx, db, input.userId);
     const ledgerRef = db.doc(`${ROUTE_TOKEN_LEDGER}/${ledgerDocId(idempotencyKey)}`);
     const ledgerSnap = await tx.get(ledgerRef);
     const state = await readUserTokenState(tx, userRef);

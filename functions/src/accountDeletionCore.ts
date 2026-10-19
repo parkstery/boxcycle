@@ -8,6 +8,7 @@
  *     v1 `pioneerChunks` 는 유휴(cliPurgeConquestV1 정리 대상) — 익명화 대상 없음.
  * - 토큰 원장(routeTokenLedger) 삭제.
  * - 게스트(익명) 계정은 서버 탈퇴 대상이 아니다 — 앱의 「이 기기 데이터 지우기」.
+ * - 2026-10-19: 로그아웃 삭제는 철회됐다. Guest 개인 데이터는 guestLifecycle 일일 작업이 이 deleteAccountData 로 지운다.
  *
  * 개인 데이터 삭제 범위는 게스트 일괄 정리(purgeGuestUsersCore)와 같다 — 그 함수를 그대로 쓴다.
  * 여러 번 호출해도 안전하다(없는 문서 삭제·이미 익명화된 문서 갱신은 무해).
@@ -43,6 +44,7 @@ export const ACCOUNT_DELETION_POLICY: Readonly<Record<string, AccountDeletionAct
   rooms: "none", // 구 Room(유휴)
   rides: "delete",
   savedRoutes: "delete",
+  routeAutoRouteCache: "delete", // 본인 자동 경로 캐시(userId)
   config: "none",
   publicRouteRequests: "delete",
   routePublications: "anonymize",
@@ -57,6 +59,8 @@ export const ACCOUNT_DELETION_POLICY: Readonly<Record<string, AccountDeletionAct
   routeTokenLedger: "delete",
   billingProcessedEvents: "none", // Stripe 이벤트 id 멱등 기록
   accountDeletions: "none", // 탈퇴 진행 기록(본 기능)
+  guestLifecycle: "none", // Guest 수명 tombstone. sweep 가 남기고, 공용 자산은 deleteAccountData 가 익명화한다
+  guestLifecycleRuns: "none", // 일일 집계. 개인 데이터 아님
 };
 
 /** 사용자별 하위 컬렉션(문서 id = uid) — 상위가 「none」이어도 여기는 지운다 */
@@ -107,6 +111,20 @@ export function trailIdsForUid(presence: PresenceIndex, uid: string): string[] {
     if (parentId) ids.add(parentId);
   }
   return [...ids];
+}
+
+/**
+ * presence 인덱스는 Firestore membership 만 보기 때문에 `trails/{trailId}/motion/{uid}` 만 남은
+ * RTDB-only motion 은 놓친다 — 여기서 RTDB 를 직접 훑어 trailId 를 찾는다.
+ * 공용 Trail 문서 자체는 절대 건드리지 않는다.
+ */
+export async function rtdbTrailIdsWithMotion(rtdb: Database, uid: string): Promise<string[]> {
+  const trails = await rtdb.ref("trails").get();
+  const ids: string[] = [];
+  trails.forEach((trail) => {
+    if (trail.child("motion").child(uid).exists()) ids.push(trail.key as string);
+  });
+  return ids;
 }
 
 export type AccountDeletionReport = {
@@ -168,7 +186,9 @@ export async function deleteAccountData(
 
   let rtdbMotionNodesRemoved = 0;
   if (rtdb) {
-    for (const trailId of trailIdsForUid(presence, uid)) {
+    // membership 유무와 무관하게 RTDB motion 노드가 남아 있으면 전부 수거한다.
+    const trailIds = new Set([...trailIdsForUid(presence, uid), ...(await rtdbTrailIdsWithMotion(rtdb, uid))]);
+    for (const trailId of trailIds) {
       await rtdb.ref(`trails/${trailId}/motion/${uid}`).remove();
       rtdbMotionNodesRemoved += 1;
     }

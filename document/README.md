@@ -32,7 +32,7 @@
 | [마스터 비전](reference/product/260511-RTW-마스터-비전-및-종합계획.md) | 정체성·제품 원칙·로드맵 | SoT |
 | [Ontology](reference/product/260714-RTW-Ontology.md) | 개념·용어·금지어 | 채택·SoT |
 | [Trail·Trailhead 상세](reference/product/260517-제품-용어-Trailhead-Trail.md) | 도메인 동작·매핑. 용어 정의는 Ontology | 채택·범위 축소 |
-| [tier·진입 정책](reference/product/260519-사용자-tier-및-진입-정책.md) | identity·tier·진입의 기준. 구현 진도는 상태보드 | SoT·부분 구현 |
+| [tier·진입 정책](reference/product/260519-사용자-tier-및-진입-정책.md) | identity·tier·진입의 기준. Guest 30일 수명. 구현 진도는 상태보드 | SoT·부분 구현 |
 | [tier quota](reference/product/260519-tier-quota-정책.md) | 생성·저장 한도 | 채택(1차)·tier 정책 부록 |
 | [tier subscription](reference/product/260519-tier-subscription-정책.md) | Stripe 구독 | 채택(1차)·tier 정책 부록 |
 | [Route Token 경제](reference/product/260518-Route-Token-경제-설계.md) | 경제 루프·소비처·저장 한도와의 관계 | 검토 중·미결 있음, 한시 무제한 |

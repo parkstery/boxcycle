@@ -11,7 +11,7 @@ export function RotateOverlay() {
       <div className="rotate-overlay__icon" aria-hidden />
       <p className="rotate-overlay__title">가로 모드로 돌려주세요</p>
       <p className="rotate-overlay__hint">
-        RTW 는 스마트폰 가로 모드에 최적화돼 있어요.
+        Spinatlas는 스마트폰 가로 모드에 최적화돼 있어요.
       </p>
     </div>
   );

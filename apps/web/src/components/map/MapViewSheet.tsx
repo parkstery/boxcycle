@@ -134,7 +134,7 @@ export function MapViewSheet(props: MapViewSheetProps) {
             </label>
             <label
               className="map-view-sheet__check map-view-sheet__check--inline-3d"
-              title="임시 — RTW Dark에서 POI 라벨 표시(비교용, 다른 스타일에는 효과 없음)"
+              title="임시 — Spinatlas Dark에서 POI 라벨 표시(비교용, 다른 스타일에는 효과 없음)"
             >
               <input
                 type="checkbox"

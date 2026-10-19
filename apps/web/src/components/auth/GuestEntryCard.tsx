@@ -1,4 +1,6 @@
+import type { AuthExpiryKind } from "../../lib/identity/authRestore";
 import { AuthGoogleMark } from "./AuthGateCard";
+import { AuthExpiryNotice } from "./AuthExpiryNotice";
 import "./GuestEntryCard.css";
 
 type GuestEntryCardProps = {
@@ -6,6 +8,7 @@ type GuestEntryCardProps = {
   error: string | null;
   /** 시작 화면 위 한 줄 안내(예: 탈퇴 완료) */
   notice?: string | null;
+  expiryKind?: AuthExpiryKind | null;
   onStartGuest: () => void;
   onGoogleSignIn: () => void;
 };
@@ -14,15 +17,23 @@ type GuestEntryCardProps = {
  * 최초 진입 — 임시 라이더(익명 인증) 안내 후 세계 참가.
  * [tier 정책 §3.2](document/reference/product/260519-사용자-tier-및-진입-정책.md)
  */
-export function GuestEntryCard({ busy, error, notice = null, onStartGuest, onGoogleSignIn }: GuestEntryCardProps) {
+export function GuestEntryCard({
+  busy,
+  error,
+  notice = null,
+  expiryKind = null,
+  onStartGuest,
+  onGoogleSignIn,
+}: GuestEntryCardProps) {
   return (
     <div className="guest-entry" role="dialog" aria-modal="true" aria-label="시작">
       <div className="guest-entry__card">
         <div className="guest-entry__brand">
           <span className="guest-entry__brand-dot" aria-hidden />
-          RTW
+          Spinatlas
         </div>
-        {notice ? (
+        {expiryKind ? <AuthExpiryNotice kind={expiryKind} /> : null}
+        {!expiryKind && notice ? (
           <p className="guest-entry__notice" role="status">
             {notice}
           </p>

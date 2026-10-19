@@ -1,6 +1,11 @@
-import { getAuth } from "firebase-admin/auth";
 import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https";
 import type { Response } from "express";
+import {
+  guestLifecycleBlockedHttpsError,
+  permanentAuthHttpsError,
+  transientStoreHttpsError,
+  verifyUidForAdminHttp,
+} from "./guestLifecycleHttp.js";
 import { assertTierQuota, type TierQuotaAction } from "./tierQuotaCore.js";
 import { mergeUserAuthMeta } from "./userTierCore.js";
 import { REGION } from "./region.js";
@@ -46,28 +51,40 @@ export const assertTierQuotaHttp = onRequest(
       return;
     }
 
-    let uid: string;
-    try {
-      const decoded = await getAuth().verifyIdToken(tokenMatch[1]);
-      uid = decoded.uid;
-    } catch {
-      const err = new HttpsError("unauthenticated", "유효하지 않은 인증 토큰입니다.");
-      res.status(err.httpErrorCode.status).json({ error: err.toJSON() });
-      return;
-    }
+    // 공용 게이트 — verifyIdToken(token, true) + guestLifecycle tombstone 차단(null 이면 이미 응답됨).
+    const uid = await verifyUidForAdminHttp(res, tokenMatch[1]);
+    if (!uid) return;
 
     try {
       const action = parseAction(req.body);
-      try {
-        await mergeUserAuthMeta(uid);
-      } catch {
-        /* noop */
-      }
+      /*
+       * users 메타 merge 실패는 삼키지 않는다(02-task-12 §1). 실패하면 quota 조회 앞에서
+       * outer catch 가 끊는다 — metadata 실패 뒤 사용자자료 작업 진행 금지.
+       */
+      await mergeUserAuthMeta(uid);
       const result = await assertTierQuota(uid, action);
       res.status(200).json({ result });
     } catch (e: unknown) {
       if (e instanceof HttpsError) {
         res.status(e.httpErrorCode.status).json({ error: e.toJSON() });
+        return;
+      }
+      // transaction guard 의 tombstone 차단은 403, 일시 장애는 503, mergeUserAuthMeta 의
+      // 영구 Auth 오류(삭제경합 user-not-found 등)는 401로 응답한다.
+      const blocked = guestLifecycleBlockedHttpsError(e);
+      if (blocked) {
+        res.status(blocked.httpErrorCode.status).json({ error: blocked.toJSON() });
+        return;
+      }
+      const transient = transientStoreHttpsError(e);
+      if (transient) {
+        res.status(transient.httpErrorCode.status).json({ error: transient.toJSON() });
+        return;
+      }
+      const authGone = permanentAuthHttpsError(e);
+      if (authGone) {
+        console.warn("[quota] 계정이 Auth 에서 사라져 요청을 끊는다", e);
+        res.status(authGone.httpErrorCode.status).json({ error: authGone.toJSON() });
         return;
       }
       console.error(e);

@@ -25,6 +25,7 @@ export const ENTRY_LOCATION_FALLBACK_TARGET = {
 export type EntryLocationState = EntryLocationSnapshot & {
   chooseRome: () => void;
   chooseCurrent: () => void;
+  acceptPosition: (lng: number, lat: number) => void;
 };
 
 /**
@@ -78,6 +79,10 @@ export function useEntryLocation(enabled: boolean): EntryLocationState {
     sessionRef.current?.chooseCurrent();
   }, []);
 
+  const acceptPosition = useCallback((lng: number, lat: number) => {
+    sessionRef.current?.acceptPosition(lng, lat);
+  }, []);
+
   const shown = !enabled ? IDLE_SNAPSHOT : trackedEnabled === enabled ? snap : CHECKING_SNAPSHOT;
 
   return {
@@ -87,5 +92,6 @@ export function useEntryLocation(enabled: boolean): EntryLocationState {
     notice: shown.notice,
     chooseRome,
     chooseCurrent,
+    acceptPosition,
   };
 }

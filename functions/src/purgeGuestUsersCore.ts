@@ -10,6 +10,7 @@
  *   - rides            where userId == uid
  *   - savedRoutes      where userId == uid
  *   - routeTokenLedger where userId == uid   (문서 id 는 idempotencyKey 해시 — uid 아님)
+ *   - routeAutoRouteCache where userId == uid (문서 id 는 uid_requestId — uid 아님)
  *   - livePresence/{uid}
  *   - openTrailListings where hostUid == uid  (Trailhead 목록 항목 — ephemeral)
  *   - trails/{trailId}/members/{uid}                     (collection group "members")
@@ -121,6 +122,7 @@ export type GuestDataCounts = {
   rides: number;
   savedRoutes: number;
   routeTokenLedger: number;
+  routeAutoRouteCache: number;
   livePresence: number;
   openTrailListings: number;
   trailMembers: number;
@@ -143,6 +145,7 @@ function emptyCounts(uid: string): GuestDataCounts {
     rides: 0,
     savedRoutes: 0,
     routeTokenLedger: 0,
+    routeAutoRouteCache: 0,
     livePresence: 0,
     openTrailListings: 0,
     trailMembers: 0,
@@ -234,15 +237,17 @@ export async function countGuestUidData(db: Firestore, uid: string, presence: Pr
   counts.conquestChunks = chunksSnap.data().count;
   counts.conquestTraces = tracesSnap.data().count;
 
-  const [rides, savedRoutes, ledger, publicRouteRequests] = await Promise.all([
+  const [rides, savedRoutes, ledger, routeAutoRouteCache, publicRouteRequests] = await Promise.all([
     countWhere(db, "rides", "userId", uid),
     countWhere(db, "savedRoutes", "userId", uid),
     countWhere(db, "routeTokenLedger", "userId", uid),
+    countWhere(db, "routeAutoRouteCache", "userId", uid),
     countWhere(db, "publicRouteRequests", "applicantUid", uid),
   ]);
   counts.rides = rides;
   counts.savedRoutes = savedRoutes;
   counts.routeTokenLedger = ledger;
+  counts.routeAutoRouteCache = routeAutoRouteCache;
   counts.publicRouteRequests = publicRouteRequests;
 
   const livePresenceSnap = await db.doc(`livePresence/${uid}`).get();
@@ -310,17 +315,18 @@ export async function deleteGuestUidFirestoreData(
   refs.push(db.doc(`conquest/${uid}`));
   refs.push(db.doc(`livePresence/${uid}`));
 
-  const [chunksSnap, tracesSnap, rideRefs, savedRouteRefs, ledgerRefs, requestRefs] = await Promise.all([
+  const [chunksSnap, tracesSnap, rideRefs, savedRouteRefs, ledgerRefs, cacheRefs, requestRefs] = await Promise.all([
     db.collection(`conquest/${uid}/chunks`).get(),
     db.collection(`conquest/${uid}/traces`).get(),
     collectRefsWhere(db, "rides", "userId", uid),
     collectRefsWhere(db, "savedRoutes", "userId", uid),
     collectRefsWhere(db, "routeTokenLedger", "userId", uid),
+    collectRefsWhere(db, "routeAutoRouteCache", "userId", uid),
     collectRefsWhere(db, "publicRouteRequests", "applicantUid", uid),
   ]);
   for (const d of chunksSnap.docs) refs.push(d.ref);
   for (const d of tracesSnap.docs) refs.push(d.ref);
-  refs.push(...rideRefs, ...savedRouteRefs, ...ledgerRefs, ...requestRefs);
+  refs.push(...rideRefs, ...savedRouteRefs, ...ledgerRefs, ...cacheRefs, ...requestRefs);
 
   refs.push(...(presence.openTrailListingsByHostUid.get(uid) ?? []));
   refs.push(...(presence.trailMembersByUid.get(uid) ?? []));
