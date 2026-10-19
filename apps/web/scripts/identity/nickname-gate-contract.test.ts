@@ -23,10 +23,12 @@ test("닉네임이 필요한 사람: 닉네임 규칙을 통과한 이름이 없
 });
 
 test("B: Google 연결 성공 → 닉네임 확인 effect 를 다시 돈다", () => {
-  const linkAt = AUTH.indexOf("await linkWithPopup(current, provider);");
+  const linkAt = AUTH.indexOf("openLinkPopup: () => linkWithPopup(current, provider)");
   assert.ok(linkAt >= 0, "linkWithPopup 호출을 찾지 못함");
-  const afterLink = AUTH.slice(linkAt, linkAt + 200);
-  assert.match(afterLink, /setAuthLinkRev\(/, "연결 직후 신호를 올리지 않는다");
+  const afterLink = AUTH.slice(linkAt, AUTH.indexOf("} catch (e: unknown)", linkAt));
+  assert.match(afterLink, /const revealed = await revealVerifiedGoogleUser\(\)/);
+  assert.match(afterLink, /if \(outcome === "linked" && revealed\) setAuthLinkRev\(/,
+    "검증된 연결 성공 후 닉네임 확인 신호를 올리지 않는다");
   const effectAt = AUTH.indexOf("const stored = await getUserProfileNickname(user.uid);");
   assert.ok(effectAt >= 0, "닉네임 확인 effect 를 찾지 못함");
   const depsAt = AUTH.indexOf("}, [", effectAt);
