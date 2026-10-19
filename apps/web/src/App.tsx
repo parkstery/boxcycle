@@ -3196,23 +3196,6 @@ export default function App() {
           openPlaceSearchPanel();
         }}
       >
-        {/*
-          섹션 라벨 2줄(Trail·경로)은 조작이 없는 순수 라벨인데 폰 가로에서 51px 를 먹었다
-          — 목록에 남던 높이(61px)에 맞먹는다. TrailHubPanel 이 자체 「TRAIL」 라벨을 갖고,
-          경로 쪽은 출처 칩이 스스로 무엇인지 말하므로 라벨 없이도 읽힌다(2026-09-16 Chief).
-        */}
-        <TrailHubPanel
-          user={user}
-          activeTrailId={menuTrailSanitizedId}
-          currentTrail={menuTrailMetaForDisplay}
-          openTrails={openTrailsQuery.rows}
-          openTrailsLoading={openTrailsQuery.loading}
-          openTrailsError={openTrailsQuery.error}
-          onJoinTrail={joinTrailAndCloseMenu}
-          onSetVisibility={handleSetTrailVisibility}
-          visibilityBusy={trailVisibilityBusy}
-          rideSessionActive={isRideSessionActive}
-        />
         <RideRoutePanel
           routeSummary={routeSummary}
           routeLoading={routeLoading || isSearching}
@@ -3272,6 +3255,18 @@ export default function App() {
           onPacerEnabled={setPacerEnabled}
           rideElevationProfileLoading={rideElevationProfileLoading}
           rideBgmCatalogConfigured={rideBgmCatalogConfigured}
+        />
+        <TrailHubPanel
+          user={user}
+          activeTrailId={menuTrailSanitizedId}
+          currentTrail={menuTrailMetaForDisplay}
+          openTrails={openTrailsQuery.rows}
+          openTrailsLoading={openTrailsQuery.loading}
+          openTrailsError={openTrailsQuery.error}
+          onJoinTrail={joinTrailAndCloseMenu}
+          onSetVisibility={handleSetTrailVisibility}
+          visibilityBusy={trailVisibilityBusy}
+          rideSessionActive={isRideSessionActive}
         />
       </MenuPanel>
 

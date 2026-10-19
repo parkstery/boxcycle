@@ -337,17 +337,20 @@
 }
 .local-first__head { gap: 4px; }
 .local-first__head .local-first__place {
+  order: 2;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 17px;
+  letter-spacing: -0.025em;
+  color: #858b95;
+}
+.local-first__head .local-first__subtitle {
+  order: 1;
   font-size: 16px;
   font-weight: 750;
   line-height: 21px;
   letter-spacing: -0.025em;
   color: #171b24;
-}
-.local-first__head .local-first__subtitle {
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 17px;
-  color: #858b95;
   opacity: 1;
 }
 .local-first__head .local-first__title-unit {
