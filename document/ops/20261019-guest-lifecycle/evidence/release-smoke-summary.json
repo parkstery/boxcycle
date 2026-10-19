@@ -1,0 +1,23 @@
+{
+  "site": "https://boxcycle-dc2df.web.app",
+  "expectedBundle": "/assets/index-BgLXKz1W.js",
+  "functions": {
+    "guestActivityHttp": {
+      "preflight": 204,
+      "unauthenticated": 401
+    },
+    "guestLinkHttp": {
+      "preflight": 204,
+      "unauthenticated": 401
+    },
+    "getDistanceAutoRoute": {
+      "preflight": 204,
+      "unauthenticated": 401
+    }
+  },
+  "intro": {
+    "viewport": "844x390",
+    "twoButtons": true,
+    "guestSignups": 0
+  }
+}

@@ -1,13 +1,15 @@
 # Guest 수명·고아 데이터 정리
 
 - 날짜: 2026-10-19 / Chief 승인: 현재 요청으로 구현·기존 고아 데이터 정리 승인.
-- 상태: LOCAL_VERIFIED / TEST_READY. [최신 감리20·실행 방법](04-review-20.md). 운영 Guest 재정리 완료, Functions/Rules/Hosting 미배포. Chief CLOSED 미승인.
+- 상태: **DEPLOYED / Chief 사용 확인 대기**. [배포 감리26·실행 방법](04-review-26-release.md). main2 병합·푸시, Functions12/Rules/Hosting 운영 반영 완료. Chief CLOSED 미승인.
 - 목적: 운영 Google 사용자 4명과 데이터 보존, Guest 유지, 로그아웃 자동 삭제 철회, 활동 30일 만료·재접속 복구·누적 고아 정리.
 - 담당: Supervisor Codex / Developer OpenCode GLM-5.3 (`opencode/glm-5.3-flash-free`), 한도·사용불가 시 Cursor AI.
 - 최신 결과: [통합 감리20](04-review-20.md). [Cursor20](03-result-20.md)·[GLM19](03-result-19.md) 뒤 Supervisor 보완·실제 SDK4/HTTP·Rules14/주행1/인증·종료17 독립 PASS. 서버127 PASS는 감리16에서 확인한 같은 서버 코드의 기존 결과다. 운영 재삭제 후 Google4·문서2227 해시동일. 개별 Developer 보고의 감리 재작업은 감리20이 최종 판정한다.
 - 금지: 기존 dirty 변경 되돌림·무관 변경 커밋/푸시·Google 사용자 삭제·공용 자산 통삭제·자동 신규 Guest 생성에 의한 운영 시험 오염.
 
 ## 지금 할 일
+
+2026-10-19 [배포감리26](04-review-26-release.md): main2 d22c0492·원격반영, Functions12/Rules/Hosting 배포완료. https://boxcycle-dc2df.web.app · web1295/서버127/독립32 PASS,실제인트로·API204/401·Google4/문서2227보존. Guest정리매일03:15KST활성. Chief실사용/최종CLOSED대기. 아래미배포기록은당시이력이다.
 
 2026-10-19 [감리25](04-review-25.md): 위치선택창 「내 위치/기본 위치」·아이콘·220×162카드·44px버튼. 단위26/실제hook DOM1/selector19/lint/build·3화면12상태 PASS. 실앱추가캡처는창해제실패·실기기/Chief디자인확인대기. 주소추적중지·redirect초안제거. 운영변경/배포없음.
 

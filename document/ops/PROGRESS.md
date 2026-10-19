@@ -1,3 +1,5 @@
+2026-10-19 [Guest·위치·Ready Ride 배포26](20261019-guest-lifecycle/04-review-26-release.md): DEPLOYED/Chief사용확인대기. main2 d22c0492원격반영·Functions12/Rules/Hosting성공. web1295/서버127/독립32 PASS,운영인트로·API204/401·Google4/문서2227보존. 매일03:15KST Guest정리활성. https://boxcycle-dc2df.web.app
+
 2026-10-17 개발 부산물 묶음 CLOSED: T1 삭제(Muse→Supervisor), T2 패널 분리(Cursor, 기본 청크 3,731→3,692 kB), T3 dev-tools.json 등록부 59항목 + pre-push 게이트 + scripts/perf/run-real-gpu.mjs (Cursor). main2 5cc0c26 운영 배포. temporary 8건 만료 2026-11-17.
 
 2026-10-17 정리: 10-15~16 묶음 12개 CLOSED — 11개 archive/ops 이동(링크 재작성, 새 오류 0), map-cut 은 스크립트 주석 참조로 제자리. 고아 프로세스(gpuskin vite 3·opencode serve·firebase-functions) 종료, gpuskin 폴더·tmp/stash-backup-20261015 삭제. T1 삭제 완료(Muse 한도 → Supervisor 마무리), T2 Cursor 진행 중.

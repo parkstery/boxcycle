@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "job": "guestLifecycleSweep",
+  "state": "ENABLED",
+  "schedule": "15 3 * * *",
+  "timeZone": "Asia/Seoul"
+}
