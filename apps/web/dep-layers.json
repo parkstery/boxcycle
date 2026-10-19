@@ -172,6 +172,7 @@
   },
   "assign": {
     "firebase": [
+      "firebase/authPersistence.ts",
       "firebase/app.ts",
       "firebase/converters.ts",
       "firebase/functionsEmulatorUrl.ts"
@@ -203,6 +204,12 @@
       "sensor/sessionSpeedKmh.ts"
     ],
     "identity": [
+      "identity/authRestore.ts",
+      "identity/guestActivity.ts",
+      "identity/guestGoogleLink.ts",
+      "identity/guestResume.ts",
+      "identity/lastVerifiedGuest.ts",
+      "identity/uidLocalCache.ts",
       "identity/authDisplay.ts",
       "identity/authGatePolicy.ts",
       "identity/riderName.ts",
@@ -212,6 +219,7 @@
       "identity/nickname.ts"
     ],
     "identity/repo": [
+      "identity/repo/guestLifecycleApi.ts",
       "identity/repo/firestoreUser.ts",
       "identity/repo/guestResetApi.ts"
     ],

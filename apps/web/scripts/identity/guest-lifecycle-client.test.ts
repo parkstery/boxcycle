@@ -20,7 +20,7 @@ const restore = await import("../../src/lib/identity/authRestore.ts");
 const cache = await import("../../src/lib/identity/uidLocalCache.ts");
 const link = await import("../../src/lib/identity/guestGoogleLink.ts");
 const activity = await import("../../src/lib/identity/guestActivity.ts");
-const persistence = await import("../../src/lib/identity/authPersistence.ts");
+const persistence = await import("../../src/lib/firebase/authPersistence.ts");
 const resume = await import("../../src/lib/identity/guestResume.ts");
 
 test("초기 null 은 자동 Guest 를 열지 않고, 복원 확정 후에만 빈 세션이 된다", () => {

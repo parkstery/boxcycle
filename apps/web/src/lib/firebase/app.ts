@@ -2,7 +2,7 @@ import { initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth, connectAuthEmulator, setPersistence, type Auth } from "firebase/auth";
 import { getDatabase, connectDatabaseEmulator, type Database } from "firebase/database";
 import { getFirestore, connectFirestoreEmulator, type Firestore } from "firebase/firestore";
-import { AUTH_BROWSER_PERSISTENCE } from "../identity/authPersistence";
+import { AUTH_BROWSER_PERSISTENCE } from "./authPersistence";
 
 function readConfig() {
   return {
