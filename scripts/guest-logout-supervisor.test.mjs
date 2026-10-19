@@ -27,6 +27,8 @@ for (const isAnonymous of [true, false]) {
       endAppUse: () => events.push('endAppUse'),
       setIntroDismissed: value => events.push(`introDismissed:${value}`),
       setEntryRequested: value => events.push(`entryRequested:${value}`),
+      setUserInfoSheetOpen: value => events.push(`userInfo:${value}`),
+      setMenuOpen: value => events.push(`menu:${value}`),
       resetGuestAccount: async () => { events.push('deleteAccount'); return { deletedAuth: true }; },
       setUserSignedOutSessionFlag: () => {}, location: { reload: () => events.push('reload') },
     });
@@ -39,5 +41,7 @@ for (const isAnonymous of [true, false]) {
     assert.ok(!events.some(e => e.startsWith('error:')), events.join(','));
     assert.ok(events.includes('introDismissed:false'));
     assert.ok(events.includes('entryRequested:false'));
+    assert.ok(events.includes('userInfo:false'));
+    assert.ok(events.includes('menu:false'));
   });
 }

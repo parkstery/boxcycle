@@ -1645,6 +1645,8 @@ export default function App() {
       }
       setBasicActiveHubCourseId(null);
       reloadRecentSessionsFromLocalStorage();
+      setUserInfoSheetOpen(false);
+      setMenuOpen(false);
       setIntroDismissed(false);
       setEntryRequested(false);
       endAppUse();
