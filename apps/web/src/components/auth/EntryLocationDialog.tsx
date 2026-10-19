@@ -19,7 +19,7 @@ export function EntryLocationDialog({ phase, permission, onChooseRome, onChooseC
   if (phase === "idle" || phase === "ready") return null;
   return <div className="entry-location" role="dialog" aria-label={TITLE}>
     <div className="entry-location__card" onPointerDown={keepMapStill} onTouchStart={keepMapStill}>
-      <h2 className="entry-location__title">{TITLE}</h2>
+      <h2 className="entry-location__title"><span aria-hidden="true">🧭</span>{TITLE}</h2>
       {phase === "checking" ? <p className="entry-location__body">위치 권한을 확인하고 있습니다.</p> : null}
       {phase === "locating" ? <p className="entry-location__body">현재 위치를 확인하고 있습니다.</p> : null}
       <div className="entry-location__actions">
