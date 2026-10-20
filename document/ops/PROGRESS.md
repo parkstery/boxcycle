@@ -1,3 +1,5 @@
+2026-10-21 [지도 중심 UI 릴리스07](20261020-ui-800x360/05-release-07.md): DEPLOYED/Chief실기기검수대기. main2 ae646df9·Hosting성공·운영4파일일치. 주소단일면24px/두행85px/5행157px·비노출에지·상단계기. web1319/브라우저14+최종실지도1 PASS. https://boxcycle-dc2df.web.app
+
 2026-10-20 [신규 도로 릴리스](20261020-new-road-display/02-task-02-release.md): IN_PROGRESS. Chief커밋·푸시·병합·배포승인. 날짜형식/긴선분/새기록삭제경로보완, Functions132·Rules실제에뮬레이터PASS. 분리소스빌드·main2병합·선택배포진행.
 
 2026-10-20 [신규 도로 표시 복구](20261020-new-road-display/04-review-01.md): LOCAL_VERIFIED/Chief 실제계정확인대기. 종료시빈서버값덮어쓰기·positive미반영·최근범위이동누락교정, 기존취득일+trace복원. Node94/React시트1(2폭)/build/lint오류0·기존40경고/diff PASS. localhost5000강력새로고침, 배포·커밋·푸시없음.
