@@ -4,6 +4,7 @@
  */
 
 import { formatRideDistanceKmNumber } from "./rideDistanceFormat";
+import type { LineStringGeometry } from "../geo/geo";
 
 /** Conquest 결과 상태 — UI는 이 status로 loading·error·확정 0을 구분한다 */
 export type ConquestResultStatus =
@@ -30,6 +31,8 @@ export type RideConquestResult = {
   tier?: string;
   /** 집계일 (YYYYMMDD) */
   day?: string;
+  /** 서버가 실제 소유 판정 후 생성한 신규 도로 geometry. 메모리 표시용으로만 사용한다. */
+  newGeometry?: LineStringGeometry[];
 };
 
 /** 빈 conquest 결과 (아직 서버 응답 없음) */
@@ -37,6 +40,40 @@ export const EMPTY_CONQUEST_RESULT: RideConquestResult = {
   status: "none",
   newMeters: 0,
 };
+
+function parseNewGeometry(raw: unknown): LineStringGeometry[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: LineStringGeometry[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const path = (item as Record<string, unknown>).path;
+    if (!Array.isArray(path) || path.length < 4 || path.length % 2 !== 0) continue;
+    const coordinates: [number, number][] = [];
+    let valid = true;
+    for (let i = 0; i < path.length; i += 2) {
+      const lng = path[i];
+      const lat = path[i + 1];
+      if (
+        typeof lng !== "number" ||
+        typeof lat !== "number" ||
+        !Number.isFinite(lng) ||
+        !Number.isFinite(lat) ||
+        lng < -180 ||
+        lng > 180 ||
+        lat < -90 ||
+        lat > 90
+      ) {
+        valid = false;
+        break;
+      }
+      coordinates.push([lng, lat]);
+    }
+    if (valid && coordinates.length >= 2) {
+      out.push({ type: "LineString", coordinates });
+    }
+  }
+  return out;
+}
 
 /**
  * Firestore conquestResult raw 필드 → 타입 안전 결과.
@@ -76,6 +113,7 @@ export function parseConquestResult(
       creditedMeters: typeof raw.creditedMeters === "number" ? raw.creditedMeters : undefined,
       tier: typeof raw.tier === "string" ? raw.tier : undefined,
       day: typeof raw.day === "string" ? raw.day : undefined,
+      newGeometry: parseNewGeometry(raw.newGeometry),
     };
   }
 
@@ -86,6 +124,7 @@ export function parseConquestResult(
       newMeters: 0,
       newCells: typeof raw.newCells === "number" ? raw.newCells : undefined,
       day: typeof raw.day === "string" ? raw.day : undefined,
+      newGeometry: parseNewGeometry(raw.newGeometry),
     };
   }
 

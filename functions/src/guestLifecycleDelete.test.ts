@@ -88,10 +88,12 @@ function fakeFirestore(): { db: Firestore; fsDeleted: string[] } {
         get: async () => ({ exists: false, get: () => null }),
       };
     },
-    collection(_name: string) {
+    collection(name: string) {
       return {
         where: () => ({ get: async () => emptyDocs }),
-        get: async () => emptyDocs,
+        get: async () => name.endsWith("/recentNewRoad")
+          ? { docs: [{ ref: { path: `${name}/current` } }] }
+          : emptyDocs,
         select: () => ({ get: async () => emptyDocs }),
       };
     },
@@ -127,6 +129,7 @@ test("RTDB-only motion 도 수거하고, 공용 Trail 문서·다른 라이더 m
   assert.ok(!removed.some((path) => path.includes("other-rider")), "다른 라이더 motion");
   assert.ok(!removed.some((path) => path.includes("third-rider")));
   assert.ok(!fsDeleted.some((path) => /^trails\/trail-/.test(path) && !path.includes("/members/")), "공용 Trail 문서 보존");
+  assert.ok(fsDeleted.includes(`conquest/${uid}/recentNewRoad/current`), "신규 도로 강조 기록도 계정 귀속 정리");
 });
 
 test("rtdbTrailIdsWithMotion 은 RTDB 를 직접 훑어 uid 귀속 trail 을 찾는다", async () => {

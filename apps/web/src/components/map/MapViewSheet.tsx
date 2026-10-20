@@ -9,6 +9,7 @@ import {
   RIDE_CAMERA_DISTANCE_STEP_M,
 } from "../../lib/map/mapGlobeView";
 import type { FollowMode } from "../../lib/map/mapGlobeView";
+import type { ConquestDisplayMode } from "./routeConquestLayers";
 import "./MapViewSheet.css";
 
 type MapViewSheetProps = {
@@ -31,6 +32,10 @@ type MapViewSheetProps = {
   rideActive: boolean;
   rideCameraDistanceM: number;
   onRideCameraDistanceM: (m: number) => void;
+  conquestDisplayMode: ConquestDisplayMode;
+  conquestHasRecentGeometry: boolean;
+  onConquestDisplayMode: (mode: ConquestDisplayMode) => void;
+  onShowAllConquest: () => void;
 };
 
 const FOLLOW_OPTIONS: { value: FollowMode; label: string }[] = [
@@ -95,6 +100,32 @@ export function MapViewSheet(props: MapViewSheetProps) {
           >
             닫기
           </button>
+        </div>
+
+        <div className="map-view-sheet__group">
+          <span className="map-view-sheet__label-title">내 도로망</span>
+          <div className="map-view-sheet__row-body">
+            <div className="map-view-sheet__chips map-view-sheet__chips--inline">
+              <button
+                type="button"
+                className={`map-view-sheet__chip ${props.conquestDisplayMode === "all" ? "is-active" : ""}`}
+                onClick={() => {
+                  props.onConquestDisplayMode("all");
+                  props.onShowAllConquest();
+                }}
+              >
+                전체 도로망
+              </button>
+              <button
+                type="button"
+                className={`map-view-sheet__chip ${props.conquestDisplayMode === "recent" ? "is-active" : ""}`}
+                disabled={!props.conquestHasRecentGeometry}
+                onClick={() => props.onConquestDisplayMode("recent")}
+              >
+                신규 도로만
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="map-view-sheet__group">

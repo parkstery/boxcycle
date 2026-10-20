@@ -10,7 +10,11 @@
  * 둘을 동시에 읽히게 하는 일은 색이 아니라 **순서 + 폭 차이**가 맡는다.
  * 계약 `conquest-emphasis-contract` 가 이 파일을 겨눈다.
  */
-import { rtwAccumulatedWidthExpression } from "../../lib/map/rtwMapConfig";
+import {
+  rtwAccumulatedWidthExpression,
+  RTW_TRACE_LIVE_GLOW_PAINT,
+  RTW_TRACE_LIVE_PAINT,
+} from "../../lib/map/rtwMapConfig";
 import type { ConquestLayerEmphasis } from "../../lib/conquest/conquestLayerEmphasis";
 
 /** 사용자 경로 탐색 결과 폴리라인 (`route` 소스·레이어) */
@@ -31,6 +35,24 @@ export const CONQUEST_TRACES_HALO_LAYER = "boxcycle-conquest-traces-halo";
 export const CONQUEST_LIVE_SRC = "boxcycle-conquest-live";
 export const CONQUEST_LIVE_LAYER = "boxcycle-conquest-live-line";
 export const CONQUEST_LIVE_GLOW_LAYER = "boxcycle-conquest-live-glow";
+/** Conquest — 최근 주행에서 새로 인정된 도로(메모리 전용, 영구 trace 아님) */
+export const CONQUEST_RECENT_NEW_SRC = "boxcycle-conquest-recent-new";
+export const CONQUEST_RECENT_NEW_GLOW_LAYER = "boxcycle-conquest-recent-new-glow";
+export const CONQUEST_RECENT_NEW_LAYER = "boxcycle-conquest-recent-new-line";
+/** 기존 #8A2BE2 도로망과 분명히 분리되는 고채도 신규도로 강조색 */
+export const CONQUEST_RECENT_NEW_COLOR = "#FF3DCE";
+export const CONQUEST_RECENT_NEW_GLOW_PAINT = {
+  ...RTW_TRACE_LIVE_GLOW_PAINT,
+  "line-color": CONQUEST_RECENT_NEW_COLOR,
+  "line-opacity": 0.55,
+};
+export const CONQUEST_RECENT_NEW_PAINT = {
+  ...RTW_TRACE_LIVE_PAINT,
+  "line-color": CONQUEST_RECENT_NEW_COLOR,
+  "line-width": rtwAccumulatedWidthExpression(4),
+};
+
+export type ConquestDisplayMode = "all" | "recent";
 
 /** 경로선 한 겹 — 테두리 없음(위 ROUTE_LINE_WIDTH 주석 참고) */
 export function addRouteLine(map: mapboxgl.Map, beforeId: string | undefined): void {
@@ -64,6 +86,8 @@ const CONQUEST_ORDERED_LAYERS = [
   CONQUEST_TRACES_LAYER,
   CONQUEST_LIVE_GLOW_LAYER,
   CONQUEST_LIVE_LAYER,
+  CONQUEST_RECENT_NEW_GLOW_LAYER,
+  CONQUEST_RECENT_NEW_LAYER,
 ] as const;
 
 function orderConquestLayers(map: mapboxgl.Map, aboveRoute: boolean): void {
@@ -88,10 +112,17 @@ function orderConquestLayers(map: mapboxgl.Map, aboveRoute: boolean): void {
 }
 
 /** 단계 판정을 실제 레이어에 적용 — 순서 + 내 도로망 불투명도 */
-export function applyConquestEmphasis(map: mapboxgl.Map, emphasis: ConquestLayerEmphasis): void {
+export function applyConquestEmphasis(
+  map: mapboxgl.Map,
+  emphasis: ConquestLayerEmphasis,
+  opts: { displayMode?: ConquestDisplayMode } = {},
+): void {
+  void opts;
   orderConquestLayers(map, emphasis.tracesAboveRoute);
   try {
     if (map.getLayer(CONQUEST_TRACES_LAYER)) {
+      // 신규 도로만 모드도 기존 도로망을 숨기거나 흐리게 하지 않는다.
+      // 신규 도로 자체의 고채도 색·glow로 차이를 만든다.
       map.setPaintProperty(CONQUEST_TRACES_LAYER, "line-opacity", emphasis.accumulatedOpacity);
       map.setPaintProperty(
         CONQUEST_TRACES_LAYER,

@@ -112,6 +112,11 @@ describe("경로선 테두리 · 적용 배선", () => {
     path.resolve(__dirname, "../../src/components/map/routeConquestLayers.ts"),
     "utf8",
   );
+  const app = fs.readFileSync(path.resolve(__dirname, "../../src/App.tsx"), "utf8");
+  const summary = fs.readFileSync(
+    path.resolve(__dirname, "../../src/components/ride/RideSummarySheet.tsx"),
+    "utf8",
+  );
 
   it("경로선에 흰 테두리를 두르지 않는다 — 테두리가 내 도로망을 덮었다", () => {
     for (const [name, src] of [["MapView", mapView], ["routeConquestLayers", layers]] as const) {
@@ -144,5 +149,14 @@ describe("경로선 테두리 · 적용 배선", () => {
     const orderCalls = layers.match(/orderConquestLayers\(/g) ?? [];
     assert.equal(orderCalls.length, 2, "선언 1 + applyConquestEmphasis 안 1 뿐이어야 한다");
     assert.doesNotMatch(mapView, /orderConquestLayers\(/, "MapView 가 직접 순서를 세우면 안 된다");
+  });
+
+  it("최근 신규 도로는 누적·live source와 분리된 메모리 강조로 연결된다", () => {
+    assert.match(layers, /CONQUEST_RECENT_NEW_SRC/);
+    assert.match(layers, /CONQUEST_RECENT_NEW_LAYER/);
+    assert.match(mapView, /conquestRecentNewRoad/);
+    assert.match(app, /conquestRecentNewRoad: recentNewRoadGeometry/);
+    assert.match(summary, /onConquestResult/);
+    assert.match(summary, /onConquestTimeout/);
   });
 });

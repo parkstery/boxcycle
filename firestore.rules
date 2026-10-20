@@ -601,6 +601,11 @@ service cloud.firestore {
         allow read: if isSelf(userId);
         allow write: if false;
       }
+
+      match /recentNewRoad/{documentId} {
+        allow read: if isSelf(userId);
+        allow write: if false;
+      }
     }
 
     /** 개척자(pioneer) 전역 레이어 — 로그인 읽기, 쓰기는 Functions 전용(write-once 는 CF 가 보장). */

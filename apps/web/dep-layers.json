@@ -244,7 +244,10 @@
     ],
     "conquest": [
       "conquest/conquestLayerEmphasis.ts",
-      "conquest/conquestTiles.ts"
+      "conquest/conquestTiles.ts",
+      "conquest/conquestNewRoadGeometry.ts",
+      "conquest/conquestOverviewFrame.ts",
+      "conquest/recentNewRoadDisplay.ts"
     ],
     "conquest/repo": [
       "conquest/repo/firestoreConquest.ts"

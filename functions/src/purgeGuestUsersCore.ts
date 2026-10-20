@@ -315,9 +315,10 @@ export async function deleteGuestUidFirestoreData(
   refs.push(db.doc(`conquest/${uid}`));
   refs.push(db.doc(`livePresence/${uid}`));
 
-  const [chunksSnap, tracesSnap, rideRefs, savedRouteRefs, ledgerRefs, cacheRefs, requestRefs] = await Promise.all([
+  const [chunksSnap, tracesSnap, recentSnap, rideRefs, savedRouteRefs, ledgerRefs, cacheRefs, requestRefs] = await Promise.all([
     db.collection(`conquest/${uid}/chunks`).get(),
     db.collection(`conquest/${uid}/traces`).get(),
+    db.collection(`conquest/${uid}/recentNewRoad`).get(),
     collectRefsWhere(db, "rides", "userId", uid),
     collectRefsWhere(db, "savedRoutes", "userId", uid),
     collectRefsWhere(db, "routeTokenLedger", "userId", uid),
@@ -326,6 +327,7 @@ export async function deleteGuestUidFirestoreData(
   ]);
   for (const d of chunksSnap.docs) refs.push(d.ref);
   for (const d of tracesSnap.docs) refs.push(d.ref);
+  for (const d of recentSnap.docs) refs.push(d.ref);
   refs.push(...rideRefs, ...savedRouteRefs, ...ledgerRefs, ...cacheRefs, ...requestRefs);
 
   refs.push(...(presence.openTrailListingsByHostUid.get(uid) ?? []));

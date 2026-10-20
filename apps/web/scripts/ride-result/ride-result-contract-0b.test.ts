@@ -268,6 +268,31 @@ describe("C9 · F3: NO account total − baseline as conquest result source", ()
     assert.equal(result.status, "confirmed_zero", "confirmed 0 → confirmed_zero");
     assert.equal(result.newMeters, 0);
   });
+
+  it("R4: server newGeometry is parsed as transient LineStrings", () => {
+    const result = parseConquestResult({
+      newMeters: 120,
+      newGeometry: [
+        { path: [127, 37.5, 127.001, 37.5] },
+        { path: [127.002, 37.5, 127.003, 37.5] },
+      ],
+    });
+    assert.equal(result.status, "positive");
+    assert.equal(result.newGeometry?.length, 2);
+    assert.deepEqual(result.newGeometry?.[0], {
+      type: "LineString",
+      coordinates: [[127, 37.5], [127.001, 37.5]],
+    });
+  });
+
+  it("R4: malformed server geometry is ignored", () => {
+    const result = parseConquestResult({
+      newMeters: 120,
+      newGeometry: [{ path: [127, 37.5, "bad", 37.5] }],
+    });
+    assert.equal(result.status, "positive");
+    assert.deepEqual(result.newGeometry, []);
+  });
 });
 
 describe("C10 · F4: Ride save status ≠ SavedRoute progress status (independent axes)", () => {

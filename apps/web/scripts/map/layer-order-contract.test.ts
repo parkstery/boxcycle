@@ -113,6 +113,12 @@ describe("G4 — 레이어 순서 레지스트리", () => {
     assert.ok(above < effectiveRank("boxcycle-lobby-spectator-routes-line", true)!);
   });
 
+  it("최근 신규 도로는 라이브 칠하기보다 위·경로선보다 아래에 놓인다", () => {
+    const recent = "boxcycle-conquest-recent-new-line";
+    assert.ok(RTW_LAYER_RANK[recent] > RTW_LAYER_RANK["boxcycle-conquest-live-line"]);
+    assert.ok(RTW_LAYER_RANK[recent] < RTW_LAYER_RANK[ROUTE]);
+  });
+
   const SCRAMBLED = [RIDER_PRESERVED, ROUTE, PULSE_DOTS, HEAT_DOTS, PRESENCE_DOT];
   const WANT = [ROUTE, HEAT_DOTS, PULSE_DOTS, PRESENCE_DOT, RIDER_PRESERVED];
 
@@ -189,6 +195,7 @@ describe("G4 — 레이어 순서 레지스트리", () => {
       "boxcycle-activity-pulse-dots",
       "boxcycle-activity-pulse-routes",
       "boxcycle-conquest-live",
+      "boxcycle-conquest-recent-new",
       "boxcycle-conquest-traces",
       "boxcycle-global-live-presence",
       "boxcycle-lobby-spectator-dots",

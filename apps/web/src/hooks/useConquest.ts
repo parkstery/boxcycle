@@ -1,11 +1,14 @@
+import { restoreRecentRoadDisplay } from "../lib/conquest/recentNewRoadDisplay";
 import type { User } from "firebase/auth";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  loadConquestCellIds,
+  loadConquestCellDays,
   loadConquestTraces,
+  subscribeRecentNewRoad,
   subscribeConquestSummary,
   type ConquestSummary,
   type ConquestTrace,
+  type RecentNewRoad,
 } from "../lib/conquest/repo/firestoreConquest";
 
 /**
@@ -20,6 +23,7 @@ export function useConquest(
   summary: ConquestSummary | null;
   cellIds: string[] | null;
   traces: ConquestTrace[] | null;
+  recentNewRoad: RecentNewRoad | null;
 } {
   const uid = configured ? (user?.uid ?? null) : null;
 
@@ -32,10 +36,20 @@ export function useConquest(
     uid: string;
     traces: ConquestTrace[];
   } | null>(null);
+  const [restoredRecentState, setRestoredRecentState] = useState<{ uid: string; recent: RecentNewRoad | null } | null>(null);
+  const [recentNewRoadState, setRecentNewRoadState] = useState<{
+    uid: string;
+    recent: RecentNewRoad | null;
+  } | null>(null);
 
   useEffect(() => {
     if (!uid) return;
     return subscribeConquestSummary(uid, (summary) => setSummaryState({ uid, summary }));
+  }, [uid]);
+
+  useEffect(() => {
+    if (!uid) return;
+    return subscribeRecentNewRoad(uid, (recent) => setRecentNewRoadState({ uid, recent }));
   }, [uid]);
 
   const summary = summaryState?.uid === uid ? summaryState.summary : null;
@@ -44,22 +58,16 @@ export function useConquest(
   useEffect(() => {
     if (!uid) return;
     let cancelled = false;
-    void loadConquestCellIds(uid)
-      .then((ids) => {
-        if (!cancelled) setCellsState({ uid, ids });
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setCellsState((prev) => (prev?.uid === uid ? prev : { uid, ids: [] }));
-        }
-      });
-    void loadConquestTraces(uid)
-      .then((traces) => {
-        if (!cancelled) setTracesState({ uid, traces });
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setTracesState((prev) => (prev?.uid === uid ? prev : { uid, traces: [] }));
+    void Promise.allSettled([loadConquestCellDays(uid), loadConquestTraces(uid)])
+      .then(([cellsResult, tracesResult]) => {
+        if (cancelled) return;
+        if (cellsResult.status === "fulfilled") setCellsState({ uid, ids: [...cellsResult.value.keys()] });
+        else setCellsState((prev) => (prev?.uid === uid ? prev : { uid, ids: [] }));
+        if (tracesResult.status === "fulfilled") setTracesState({ uid, traces: tracesResult.value });
+        else setTracesState((prev) => (prev?.uid === uid ? prev : { uid, traces: [] }));
+        if (cellsResult.status === "fulfilled" && tracesResult.status === "fulfilled") {
+          const restored = restoreRecentRoadDisplay(cellsResult.value, tracesResult.value);
+          setRestoredRecentState({ uid, recent: restored ? { ...restored, newMeters: 0 } : null });
         }
       });
     return () => {
@@ -67,9 +75,21 @@ export function useConquest(
     };
   }, [uid, totalMeters]);
 
+  const persisted = recentNewRoadState?.uid === uid ? recentNewRoadState.recent : null;
+  const restored = restoredRecentState?.uid === uid ? restoredRecentState.recent : null;
+
+  const recentNewRoad = useMemo(() => {
+    if (!persisted) return restored;
+    if (!restored || persisted.day > restored.day) return persisted;
+    if (restored.day > persisted.day) return restored;
+    // The new server document may cover only rides after its deployment.
+    return { ...persisted, geometry: [...restored.geometry, ...persisted.geometry] };
+  }, [persisted, restored]);
+
   return {
     summary,
     cellIds: cellsState?.uid === uid ? cellsState.ids : null,
     traces: tracesState?.uid === uid ? tracesState.traces : null,
+    recentNewRoad,
   };
 }

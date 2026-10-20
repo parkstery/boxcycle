@@ -46,6 +46,8 @@ export const RTW_LAYER_RANK = {
   "boxcycle-conquest-traces-line": 410,
   "boxcycle-conquest-live-glow": 420,
   "boxcycle-conquest-live-line": 430,
+  "boxcycle-conquest-recent-new-glow": 435,
+  "boxcycle-conquest-recent-new-line": 440,
 
   /** 경로선 — 주행의 주인공 선 */
   route: 500,
