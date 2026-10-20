@@ -4,7 +4,7 @@
 |---|---|
 | 문서 유형 | execution — 릴리스 |
 | 최초 작성 | 2026-10-20 |
-| 상태 | 코드 반영 중 — Chief 커밋·푸시·병합·배포 승인 |
+| 상태 | DEPLOYED — main2 5f012a52 / Chief 실제 사용 확인 대기 |
 | 독자 | chief · AI |
 | 연결 문서 | [미니맵 검수](../20261020-minimap-dock-swap/04-review-03.md) · [lint 검수](../20261018-lint16/04-review-01.md) · [신규 도로 릴리스](../20261020-new-road-display/02-task-02-release.md) |
 
@@ -13,3 +13,5 @@
 Git: fix/pre-ui-release-20261020 → main2. main은 최종 안정선으로 유지. 배포 boxcycle-dc2df Hosting 및 앞서 승인된 신규 도로 Rules/Functions 4종만. 운영 삭제 수동 실행 없음.
 
 분리 실행 위치: C:\20.HDev\boxcycle\.out\pre-ui-release-20261020. 원래 작업 폴더 C:\20.HDev\boxcycle의 UI 수정은 보존한다.
+
+결과 [03-result-01](03-result-01.md) · 검수 [04-review-01](04-review-01.md). https://boxcycle-dc2df.web.app 강력 새로고침. 새800×360 UI와 가장자리 제스처는 이 릴리스에 포함하지 않았다.
