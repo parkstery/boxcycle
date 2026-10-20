@@ -1,0 +1,76 @@
+[
+  {
+    "path": "apps/web/scripts/ride-result/ride-result-f2-boundary.test.ts",
+    "beforeTests": [
+      "50% progress: save 0.5 ratio → resume same meaning",
+      "Max progress: 43% then 20% → save 43%, not 20%",
+      "0.97 cap: 0.98 progress → save 0.98, resume 0.97, completes",
+      "Dual-length 1000m/1200m → card/Go agree (no scaling)"
+    ],
+    "afterTests": [
+      "50% progress: save 0.5 ratio → resume same meaning",
+      "Max progress: 43% then 20% → save 43%, not 20%",
+      "0.97 cap: 0.98 progress → save 0.98, resume 0.97, completes",
+      "Dual-length 1000m/1200m → card/Go agree (no scaling)"
+    ],
+    "beforeAssertions": 11,
+    "afterAssertions": 14,
+    "addedSkipOrDisable": false
+  },
+  {
+    "path": "apps/web/scripts/ride-result/ride-result-f2-card-resume.test.ts",
+    "beforeTests": [
+      "CP1: 0.975 saved → card/Go both capped at 0.97 (970m on 1000m route)",
+      "CP1: Dual-length 1000m/1200m route, 50% progress → card/Go same coordinate",
+      "43% progress → card/Go same coordinate",
+      "0% progress → card/Go both at start"
+    ],
+    "afterTests": [
+      "CP1: 0.975 saved → card/Go both capped at 0.97 (970m on 1000m route)",
+      "CP1: Dual-length 1000m/1200m route, 50% progress → card/Go same coordinate",
+      "43% progress → card/Go same coordinate",
+      "0% progress → card/Go both at start"
+    ],
+    "beforeAssertions": 10,
+    "afterAssertions": 12,
+    "addedSkipOrDisable": false
+  },
+  {
+    "path": "apps/web/scripts/ride-result/ride-result-s1-timers.test.ts",
+    "beforeTests": [
+      "S1-3: 15s delayed status - no result after 15s → error",
+      "S1-3: 15s delayed status - result before 15s → no delayed error",
+      "S1-3: 60s subscription end + re-query",
+      "S1-3: A→B switch - late A timer callbacks blocked",
+      "S1-3: Dispose - timers cleared",
+      "S1-3: Re-query does NOT call Ride writer (read-only)"
+    ],
+    "afterTests": [
+      "S1-3: 15s delayed status - no result after 15s → error",
+      "S1-3: 15s delayed status - result before 15s → no delayed error",
+      "S1-3: 60s subscription end + re-query",
+      "S1-3: A→B switch - late A timer callbacks blocked",
+      "S1-3: Dispose - timers cleared",
+      "S1-3: Re-query does NOT call Ride writer (read-only)"
+    ],
+    "beforeAssertions": 26,
+    "afterAssertions": 27,
+    "addedSkipOrDisable": false
+  },
+  {
+    "path": "apps/web/scripts/ride-result/ride-result-s2-end-snapshot.test.ts",
+    "beforeTests": [
+      "S2: End snapshot captured before async — stale UI does not corrupt",
+      "S2: Synchronous calculation uses frozen snapshot",
+      "S2: Ref reads in async block are stale — use captured values"
+    ],
+    "afterTests": [
+      "S2: End snapshot captured before async — stale UI does not corrupt",
+      "S2: Synchronous calculation uses frozen snapshot",
+      "S2: Ref reads in async block are stale — use captured values"
+    ],
+    "beforeAssertions": 5,
+    "afterAssertions": 10,
+    "addedSkipOrDisable": false
+  }
+]

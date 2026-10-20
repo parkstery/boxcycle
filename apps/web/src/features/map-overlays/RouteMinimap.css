@@ -1,19 +1,8 @@
 /*
- * 좌측 미니맵 — RouteDock **실측 부착**(지시06·07).
- * 평상시 bottom/left 는 JS 가 dock(접힘/펼침 현재 top)·TL rect 로 넣는다.
- * 아래 변수·미디어쿼리는 **dock 미발견 폴백 전용**(식을 맞춰 두면 또 갈라진다).
+ * 좌측 미니맵 — 좌하단 스택에서 RouteDock 아래에 배치한다.
+ * 상자 크기는 JS가 dock·HUD의 가용 높이로 제한한다.
  */
 .route-minimap {
-  /* 폴백 전용 — 지시04 에서 베낀 식. 폰 max-height:560 분기는 RouteDock 에만 있고
-   * 여기 복사본에는 없음 → 그게 폰에서 34px 떠 있던 원인. 측정 경로가 정상일 땐 미사용. */
-  --route-dock-pad: clamp(0.45rem, 1.4vw, 0.85rem);
-  --mapbox-logo-clearance: 2.875rem;
-  --mm-collapsed-dock-h: 3.4rem;
-  --mm-gap-above-dock: 0.35rem;
-  --mm-pad-top: max(var(--route-dock-pad), env(safe-area-inset-top, 0px));
-  --mm-tl-block: 2.55rem;
-  --mm-gap-after-tl: 0.35rem;
-
   position: absolute;
   z-index: 4;
   box-sizing: border-box;
@@ -25,20 +14,66 @@
   -webkit-user-select: none;
 }
 
-/* dock 쿼리 실패 시에만 — CSS 식으로 자리를 잡는다(미니맵이 사라지면 안 됨) */
-.route-minimap--css-fallback {
-  left: max(var(--route-dock-pad), env(safe-area-inset-left, 0px));
-  bottom: calc(
-    max(var(--route-dock-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance) +
-      var(--mm-collapsed-dock-h) + var(--mm-gap-above-dock)
-  );
-}
-
 .route-minimap__svg {
   position: relative;
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.route-minimap__content {
+  width: 100%;
+  height: 100%;
+}
+
+.route-minimap__toggle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Chief 요청: 미니맵 모서리에 붙는 소형 좌우 캐럿. */
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
+  border: 1px solid #CBD5E1;
+  border-radius: 0 0 8px 0;
+  background: #FFFFFF;
+  color: #475569;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 650;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.route-minimap__toggle:hover {
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+.route-minimap__toggle:focus-visible {
+  outline: 2px solid #2563EB;
+  outline-offset: -3px;
+}
+
+.route-minimap--collapsed .route-minimap__toggle {
+  border-radius: 8px;
+  pointer-events: auto;
+}
+
+.route-minimap.route-minimap--collapsed {
+  /* 가로로만 접어 캐럿·RouteDock의 세로 위치를 유지한다. 빈 영역은 지도 터치를 허용한다. */
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  pointer-events: none;
 }
 
 /* 배경 정지 지도(Outdoors) — SVG 아래. 지도가 배경이 되면 어두운 유리판은 걷는다(보류01 §3). */

@@ -1,6 +1,6 @@
-# RTW (repo: boxcycle)
+# Spinatlas (repo: boxcycle)
 
-실내 자전거로 실제 지구의 도로를 달리는 웹앱. 핵심 판타지 **「Ride = Claim」** — 달린 도로가 영구 자산(내 도로망)으로 쌓인다. 브랜드명 RTW(Ride The World), 코드·리포·Firebase projectId는 `boxcycle` 유지.
+실내 자전거로 실제 지구의 도로를 달리는 웹앱. 핵심 판타지 **「Ride = Claim」** — 달린 도로가 영구 자산(내 도로망)으로 쌓인다. 브랜드명 **Spinatlas**(스핀아틀라스; 과거 브랜드 RTW·Ride the World), 코드·리포·Firebase projectId는 `boxcycle` 유지.
 
 ## 용어 (필수)
 

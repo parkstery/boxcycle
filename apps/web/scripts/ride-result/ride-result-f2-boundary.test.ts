@@ -51,6 +51,7 @@ describe("F2 Boundary: End→Save→Restore", () => {
 
     assert.equal(progressToSave, 0.98, "save 0.98 (no cap)");
     assert.equal(resumeRatio, 0.97, "resume capped at 0.97");
+    assert.equal(resumeMeters, 970, "resume 970m (capped)");
     assert.equal(completed, true, "0.98 completes route");
   });
 
@@ -65,6 +66,8 @@ describe("F2 Boundary: End→Save→Restore", () => {
     const cardGeoMeters = offsetMeters; // 500m
     const appGoGeoMeters = offsetMeters; // 500m
 
+    assert.equal(geometryLength, 1200, "geometry length 1200m");
+    assert.notEqual(geometryLength, routeDistanceMeters, "dual-length: geometry ≠ route distance");
     assert.equal(cardGeoMeters, 500, "card 500m");
     assert.equal(appGoGeoMeters, 500, "App Go 500m");
     assert.equal(cardGeoMeters, appGoGeoMeters, "card === App Go");

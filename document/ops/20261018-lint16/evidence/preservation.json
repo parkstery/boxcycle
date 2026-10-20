@@ -1,0 +1,11 @@
+{
+  "beforeFiles": 74,
+  "excludedSupervisorIndexes": [
+    "document/ops/README.md",
+    "document/ops/PROGRESS.md"
+  ],
+  "checked": 72,
+  "preserved": 72,
+  "changedExisting": [],
+  "unexpectedNewTrackedDiff": []
+}
