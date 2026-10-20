@@ -1446,22 +1446,6 @@
 }
 
 /*
- * MapHud 우상단 TR(맵 제어 44px 포함) + 「맵」 트리거 아래와 Mapbox NavigationControl 이 겹침.
- * HUD 상단 패딩과 맞춘 뒤 TR·트리거·소간격만큼 아래로 내림.
- */
-.app-shell--map-first .map-view .mapboxgl-ctrl-top-right {
-  margin-top: calc(
-    max(clamp(0.45rem, 1.4vw, 0.85rem), env(safe-area-inset-top, 0px)) + 44px + 0.35rem + 2rem + 0.25rem
-  );
-}
-
-/* MapZoomGlobeControl — 지구 전체 보기(줌 +/- 아래) */
-.map-view .mapboxgl-ctrl-globe-view .mapboxgl-ctrl-icon {
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 22' fill='none' stroke='%23333' stroke-width='1.55' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8.25'/%3E%3Cellipse cx='11' cy='11' rx='3.25' ry='8.25'/%3E%3Cpath d='M2.75 11h16.5M11 2.75v16.5'/%3E%3C/svg%3E");
-  background-size: 18px 18px;
-}
-
-/*
  * 축척( bottom-right ): Mapbox 기본값이 attribution 위에 넉넉한 간격을 둠 → 저작권 바에 더 붙이기.
  * 고도 라벨은 축척 왼쪽 같은 행. attribution 은 아래 줄 전체.
  * HUD 주행 FAB은 맵 밖 오버레이라 여기 margin 은 Mapbox 컨트롤만 영향.
@@ -1582,18 +1566,10 @@
 }
 
 /*
- * 폰 가로 — 지도 컨트롤(줌·지구·나침반) 버튼만 작게. 열은 오른쪽 가장자리 유지
- * (주행 중에도 margin-right 로 밀지 않음). 「다음 주행」 카드가 비키는 쪽은
- * NextRideCard.css (짧은 뷰포트 padding-right 거터).
+ * 폰 가로 — 하단 Mapbox 컨트롤 그룹(축척 등) 버튼만 작게.
+ * 「다음 주행」 카드가 비키는 쪽은 NextRideCard.css (짧은 뷰포트 padding-right 거터).
  */
 @media (max-height: 560px) {
-  .app-shell--map-first .map-view .mapboxgl-ctrl-top-right {
-    /* TR(44px) + 「맵」 트리거 행 아래 — 오른쪽 복귀 후 트리거와 1줄 겹치지 않게 여유 */
-    margin-top: calc(
-      max(0.45rem, env(safe-area-inset-top, 0px)) + 44px + 0.35rem + 1.75rem + 0.45rem
-    );
-  }
-
   .map-view .mapboxgl-ctrl-group button {
     width: 24px;
     height: 24px;

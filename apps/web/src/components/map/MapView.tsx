@@ -122,7 +122,6 @@ import {
   syncRiderPreservedModels,
 } from "../../lib/map/riderPreservedLayer";
 import { MapCameraAltitudeControl } from "./MapCameraAltitudeControl";
-import { MapZoomGlobeControl } from "./MapZoomGlobeControl";
 
 /**
  * 축척 막대는 Mapbox 가 계산한 폭을 그대로 쓴다(줌에 따라 늘고 준다). 래퍼는 배치용 클래스만 단다.
@@ -1154,11 +1153,6 @@ export function MapView({
       // 주행 밀착 카메라(거리 1~3m)가 zoom 22+를 요구 — 기본 maxZoom 22 클램프 해제
       maxZoom: 24,
     });
-    map.addControl(new MapZoomGlobeControl(), "top-right");
-    map.addControl(
-      new mapboxgl.NavigationControl({ visualizePitch: true, showZoom: false }),
-      "top-right",
-    );
     /** 축척: 가변 막대(createFixedScaleBoxControl 래퍼). 고도는 오른쪽 끝 같은 행(CSS). */
     map.addControl(createFixedScaleBoxControl(), "bottom-right");
     map.addControl(new MapCameraAltitudeControl(), "bottom-right");

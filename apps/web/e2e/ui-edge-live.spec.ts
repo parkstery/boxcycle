@@ -29,6 +29,7 @@ test('실제 지도 800×360: 에지 열기·상단 지표·조밀한 도크·�
     await expect(location).toBeHidden();
   }
   await expect(page.locator('.mapboxgl-canvas').first()).toBeVisible();
+  await expect(page.locator('.mapboxgl-ctrl-top-right button')).toHaveCount(0);
   await page.screenshot({ path: path.join(evidence, 'actual-idle-800.png'), animations: 'disabled' });
   async function edge(side: 'left' | 'right') {
     const width = page.viewportSize()!.width;

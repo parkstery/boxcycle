@@ -34,3 +34,5 @@ http://localhost:5000 — 브라우저 800×360, 강력 새로고침.
 최신: [지시07](02-task-07.md)→[결과07](03-result-07.md)→[감리07](04-review-07.md). 도크두주소175×85·경유지최대5행157px·내부스크롤/중첩카드없음. 브라우저14PASS+최종실지도1PASS. 웹마우스·터치스와이프동일지원. 배포후실기기Chief검수대기.
 
 [릴리스07](05-release-07.md): main2 커밋·푸시·Hosting 배포 완료. 운영 HTML/JS/CSS 4파일 SHA-256 일치, 800×360 인트로 확인. https://boxcycle-dc2df.web.app
+
+후속 [지시08](02-task-08.md)→[결과08](03-result-08.md)→[감리08](04-review-08.md): Chief가 지정한 Mapbox 지구본·나침반 상시 툴 제거. LOCAL_VERIFIED, 소규모 후속 배포 진행. 하단 축척/고도·로고/저작권 유지.
