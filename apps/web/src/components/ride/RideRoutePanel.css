@@ -392,14 +392,15 @@
 /*
  * 경로 출처 한 줄 — 입문 · 퍼블릭 · 내 경로.
  * 종전에는 「공식」 키커 오른쪽에 밀어 붙이느라 flex-end 였는데, 이제 이 줄이 곧 내비게이션이라
- * 왼쪽부터 채운다. 좁으면 줄바꿈해 칩이 찌그러지지 않게 한다(폰 가로 208px 패널).
+ * 세 버튼을 같은 폭으로 나눠 좌우 여백도 동일하게 둔다.
  */
 .ride-panel__official-segments {
   display: flex;
-  flex-wrap: wrap;
+  width: 100%;
+  flex-wrap: nowrap;
   gap: 0.25rem;
   min-width: 0;
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 .ride-panel__official-seg {
@@ -407,7 +408,8 @@
   font-size: 0.7rem;
   font-weight: 600;
   padding: 0.24rem 0.42rem;
-  flex-shrink: 0;
+  flex: 1 1 0;
+  min-width: 0;
   white-space: nowrap;
   border-radius: 999px;
   border: 1px solid var(--rp-border);
@@ -416,27 +418,13 @@
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.28rem;
+  justify-content: center;
 }
 
 .ride-panel__official-seg.is-active {
   border-color: #2563EB;
   background: #2563EB;
   color: #FFFFFF;
-}
-
-.ride-panel__official-seg-badge {
-  font-size: 0.62rem;
-  font-weight: 700;
-  min-width: 0.95rem;
-  height: 0.95rem;
-  padding: 0 0.26rem;
-  border-radius: 999px;
-  background: var(--rp-accent-strong);
-  color: #FFFFFF;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .ride-panel__official-active {

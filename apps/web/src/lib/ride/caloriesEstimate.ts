@@ -9,9 +9,11 @@ export const WEIGHT_KG_MIN = 30;
 export const WEIGHT_KG_MAX = 300;
 
 export const CALORIE_INTENSITY_OPTIONS = [
+  { id: "very-light", label: "매우 가벼움", met: 3 },
   { id: "light", label: "가벼움", met: 4 },
   { id: "moderate", label: "보통", met: 6 },
   { id: "hard", label: "강함", met: 8 },
+  { id: "very-hard", label: "매우 강함", met: 10 },
 ] as const;
 
 export type CalorieIntensityId = (typeof CALORIE_INTENSITY_OPTIONS)[number]["id"];
@@ -80,7 +82,15 @@ export function parseCaloriesMeta(raw: unknown): CaloriesEstimateMeta | null {
 }
 
 export function parseCalorieIntensityId(raw: unknown): CalorieIntensityId | null {
-  if (raw === "light" || raw === "moderate" || raw === "hard") return raw;
+  if (
+    raw === "very-light" ||
+    raw === "light" ||
+    raw === "moderate" ||
+    raw === "hard" ||
+    raw === "very-hard"
+  ) {
+    return raw;
+  }
   return null;
 }
 

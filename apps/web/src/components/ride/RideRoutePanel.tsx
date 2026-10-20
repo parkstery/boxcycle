@@ -209,9 +209,6 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 onClick={() => openOfficialList("public")}
               >
                 퍼블릭
-                {props.publishedPublicCourses.length > 0 ? (
-                  <span className="ride-panel__official-seg-badge">{props.publishedPublicCourses.length}</span>
-                ) : null}
               </button>
               {/*
                 「내 경로」도 같은 줄의 출처 칩이다 — 종전 탭 계층을 없앴다.
@@ -226,9 +223,6 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
                 onClick={() => setSavedModalOpen(true)}
               >
                 내 경로
-                {props.savedRoutes.length > 0 ? (
-                  <span className="ride-panel__official-seg-badge">{props.savedRoutes.length}</span>
-                ) : null}
               </button>
             </div>
 

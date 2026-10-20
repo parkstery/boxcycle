@@ -135,25 +135,46 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
         </div>
 
         <div className="ride-settings-sheet__group">
-          <div className="ride-settings-sheet__calorie-row">
-            <label className="ride-settings-sheet__weight">
-              <span>체중(kg)</span>
+          <div className="profile-edit-sheet__calorie-field">
+            <span className="ride-settings-sheet__kicker">체중(Kg)</span>
+            <div className="profile-edit-sheet__weight-controls">
+              <label className="ride-settings-sheet__weight">
+                <span className="profile-edit-sheet__visually-hidden">체중(kg)</span>
+                <input
+                  type="number"
+                  aria-label="체중(kg)"
+                  inputMode="decimal"
+                  min={WEIGHT_KG_MIN}
+                  max={WEIGHT_KG_MAX}
+                  step="0.1"
+                  placeholder={`${WEIGHT_KG_MIN}–${WEIGHT_KG_MAX}`}
+                  value={weightDraft}
+                  disabled={saving}
+                  onChange={(ev) => {
+                    setWeightDraft(ev.target.value);
+                    setError(null);
+                  }}
+                />
+              </label>
               <input
-                type="number"
-                inputMode="decimal"
+                className="profile-edit-sheet__weight-slider"
+                type="range"
+                aria-label="체중 슬라이더"
                 min={WEIGHT_KG_MIN}
                 max={WEIGHT_KG_MAX}
                 step="0.1"
-                placeholder={`${WEIGHT_KG_MIN}–${WEIGHT_KG_MAX}`}
-                value={weightDraft}
+                value={parseWeightKg(weightDraft) ?? props.weightKg ?? WEIGHT_KG_MIN}
                 disabled={saving}
                 onChange={(ev) => {
                   setWeightDraft(ev.target.value);
                   setError(null);
                 }}
               />
-            </label>
-            <div className="ride-settings-sheet__chips" role="group" aria-label="평소 운동 강도">
+            </div>
+          </div>
+          <div className="profile-edit-sheet__calorie-field">
+            <span className="ride-settings-sheet__kicker">체력</span>
+            <div className="ride-settings-sheet__chips" role="group" aria-label="체력">
               {CALORIE_INTENSITY_OPTIONS.map((opt) => {
                 const active = intensityId === opt.id;
                 return (

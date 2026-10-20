@@ -267,7 +267,7 @@ service cloud.firestore {
             && request.resource.data.weightKg <= 300))
         && (!('intensityId' in request.resource.data)
           || request.resource.data.intensityId == null
-          || request.resource.data.intensityId in ['light', 'moderate', 'hard'])
+          || request.resource.data.intensityId in ['very-light', 'light', 'moderate', 'hard', 'very-hard'])
         && (!('updatedAt' in request.resource.data)
           || request.resource.data.updatedAt == request.time);
     }
