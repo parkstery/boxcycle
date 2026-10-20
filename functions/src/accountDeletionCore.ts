@@ -70,6 +70,7 @@ export const ACCOUNT_DELETION_SUBCOLLECTIONS = [
   "publicationSessions/{publicationId}/members/{uid}",
   "conquest/{uid}/chunks",
   "conquest/{uid}/traces",
+  "conquest/{uid}/recentNewRoad",
 ] as const;
 
 /** Realtime DB — trails/{trailId}/motion/{uid} */

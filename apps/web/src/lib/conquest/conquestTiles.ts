@@ -1,5 +1,6 @@
 import {
   getDistanceMeters,
+  interpolatePoint,
   lineStringLengthMeters,
   type LineStringGeometry,
   type LngLat,
@@ -31,6 +32,22 @@ const MAX_PAYLOAD_CELLS = 8000;
 /** 궤적(trace) 단순화 상한 정점 수 */
 const TRACE_MAX_VERTICES = 300;
 
+/**
+ * 셀 집계와 임시 신규 도로 geometry가 공유하는 경로 조각.
+ *
+ * `cellId`는 기존 Claim 셀 판정과 같은 방식으로 조각의 중점에서 계산한다.
+ * `start`/`end`는 `fromMeters..traveledMeters` 구간에 맞춰 잘린 실제 geometry이고,
+ * `meters`는 기존 `buildConquestCellsFromRoute`가 셀에 더하던 유효 길이다.
+ */
+export type ConquestRoutePiece = {
+  cellId: string;
+  start: LngLat;
+  end: LngLat;
+  meters: number;
+  startMeters: number;
+  endMeters: number;
+};
+
 export type ConquestPayloadCell = {
   /** `z_x_y` (z=CONQUEST_CELL_ZOOM) */
   id: string;
@@ -38,6 +55,7 @@ export type ConquestPayloadCell = {
   m: number;
 };
 
+/** 서버가 예산·소유 판정 후 신규 geometry를 복원할 수 있는 순서 보존 조각. */
 /** ride 문서에 싣는 정복 페이로드 — CF `conquestOnRideCreated` 가 한도 적용 후 집계 */
 export type ConquestRidePayload = {
   v: number;
@@ -95,6 +113,62 @@ export function chunkIdOfConquestCellId(cellId: string): string | null {
 }
 
 /**
+ * `buildConquestCellsFromRoute`와 동일한 12m 샘플링 규칙으로 경로를 조각낸다.
+ *
+ * 셀 ID는 전체 샘플 조각의 중점으로 정한다. 따라서 `fromMeters` 경계에서 조각이
+ * 잘리더라도 기존 Claim 셀 집계와 의미가 달라지지 않는다.
+ */
+export function buildConquestRoutePieces(
+  geometry: LineStringGeometry,
+  traveledMeters: number,
+  fromMeters = 0,
+): ConquestRoutePiece[] {
+  const coords = geometry.coordinates as LngLat[];
+  if (coords.length < 2) return [];
+  const total = Math.min(Math.max(0, traveledMeters), lineStringLengthMeters(geometry));
+  const from = Math.min(Math.max(0, fromMeters), total);
+  if (total - from <= 0) return [];
+
+  const out: ConquestRoutePiece[] = [];
+  let walked = 0;
+  outer: for (let i = 0; i < coords.length - 1; i += 1) {
+    const a = coords[i];
+    const b = coords[i + 1];
+    const segLen = getDistanceMeters(a, b);
+    if (segLen <= 0) continue;
+    const pieces = Math.max(1, Math.ceil(segLen / SAMPLE_STEP_METERS));
+    for (let p = 0; p < pieces; p += 1) {
+      const t0 = p / pieces;
+      const t1 = (p + 1) / pieces;
+      const pieceLen = segLen / pieces;
+      const pieceStart = walked;
+      const pieceEnd = walked + pieceLen;
+      const activeStart = Math.max(pieceStart, from);
+      const activeEnd = Math.min(pieceEnd, total);
+      const effLen = activeEnd - activeStart;
+      if (effLen > 0) {
+        // 기존 셀 집계와 동일하게, 셀은 잘리기 전 샘플 조각의 중점으로 정한다.
+        const tm = (t0 + t1) / 2;
+        const mid: LngLat = interpolatePoint(a, b, tm);
+        const startRatio = t0 + (activeStart - pieceStart) / segLen;
+        const endRatio = t0 + (activeEnd - pieceStart) / segLen;
+        out.push({
+          cellId: conquestCellIdAt(mid),
+          start: interpolatePoint(a, b, startRatio),
+          end: interpolatePoint(a, b, endRatio),
+          meters: effLen,
+          startMeters: activeStart,
+          endMeters: activeEnd,
+        });
+      }
+      walked = pieceEnd;
+      if (walked >= total) break outer;
+    }
+  }
+  return out;
+}
+
+/**
  * 주행 경로의 실제 진행 구간(fromMeters..traveledMeters)을 도로 셀 목록으로 변환.
  * 단일 패스(세그먼트 세분) — 첫 진입 순서 유지, 셀별 내부 이동 거리 합산.
  * `fromMeters` 는 이어 달리기(§9.5.5 단위7)의 세션 시작 오프셋 — 이번 세션에 실제로
@@ -105,12 +179,6 @@ export function buildConquestCellsFromRoute(
   traveledMeters: number,
   fromMeters = 0,
 ): ConquestPayloadCell[] {
-  const coords = geometry.coordinates as LngLat[];
-  if (coords.length < 2) return [];
-  const total = Math.min(Math.max(0, traveledMeters), lineStringLengthMeters(geometry));
-  const from = Math.min(Math.max(0, fromMeters), total);
-  if (total - from <= 0) return [];
-
   const metersByCell = new Map<string, number>();
   const order: string[] = [];
 
@@ -125,27 +193,8 @@ export function buildConquestCellsFromRoute(
     }
   };
 
-  let walked = 0;
-  outer: for (let i = 0; i < coords.length - 1; i += 1) {
-    const a = coords[i];
-    const b = coords[i + 1];
-    const segLen = getDistanceMeters(a, b);
-    if (segLen <= 0) continue;
-    const pieces = Math.max(1, Math.ceil(segLen / SAMPLE_STEP_METERS));
-    for (let p = 0; p < pieces; p += 1) {
-      const t0 = p / pieces;
-      const t1 = (p + 1) / pieces;
-      const pieceLen = segLen / pieces;
-      // 조각과 [from, total] 구간의 겹치는 길이만 인정(경계 조각은 부분 산입)
-      const effLen = Math.min(walked + pieceLen, total) - Math.max(walked, from);
-      if (effLen > 0) {
-        const tm = (t0 + t1) / 2;
-        const mid: LngLat = [a[0] + (b[0] - a[0]) * tm, a[1] + (b[1] - a[1]) * tm];
-        addMeters(conquestCellIdAt(mid), effLen);
-      }
-      walked += pieceLen;
-      if (walked >= total) break outer;
-    }
+  for (const piece of buildConquestRoutePieces(geometry, traveledMeters, fromMeters)) {
+    addMeters(piece.cellId, piece.meters);
   }
 
   return order.map((id) => ({ id, m: Math.round(metersByCell.get(id) ?? 0) }));

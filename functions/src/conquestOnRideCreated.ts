@@ -3,6 +3,7 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { isGuestLifecycleBlockedError, assertGuestLifecycleWritableInTx } from "./guestLifecycleGuard.js";
 import { REGION } from "./region.js";
+import { conquestCellIdAt, type LngLat } from "./geoTiles.js";
 
 /**
  * Conquest(정복) 레이어 v2 — 도로 셀 기반(2026-07-03 도로 전환).
@@ -17,7 +18,8 @@ import { REGION } from "./region.js";
  *   conquest/{uid}                 → 요약: totalMeters, totalCells, daily{day,usedSec,usedMeters}
  *   conquest/{uid}/chunks/{z12}    → { cells: { "<z20Id>": <dayKey> } }
  *   conquest/{uid}/traces/{rideId} → { path: [[lng,lat]...], newMeters, day } (「내 도로망」 렌더)
- *   rides/{rideId}.conquestResult  → { newMeters, newCells, creditedMeters, tier, day }
+ *   conquest/{uid}/recentNewRoad/current → 최신 신규 도로 날짜의 geometry (같은 날짜만 누적)
+ *   rides/{rideId}.conquestResult  → { newMeters, newCells, creditedMeters, tier, day, newGeometry }
  */
 
 const CELL_ZOOM = 20;
@@ -41,6 +43,77 @@ const T1_FULL_SEC = 2 * 3600;
 const T1_STOP_SEC = 4 * 3600;
 
 type PayloadCell = { id: string; m: number };
+type NewGeometrySegment = { path: number[] };
+
+const EARTH_RADIUS_M = 6371000;
+
+function haversineMeters(a: LngLat, b: LngLat): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(b[1] - a[1]);
+  const dLng = toRad(b[0] - a[0]);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a[1])) * Math.cos(toRad(b[1])) * Math.sin(dLng / 2) ** 2;
+  return 2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(h));
+}
+
+function roundCoordinate(value: number): number {
+  return Number(value.toFixed(5));
+}
+
+/** Existing trace path → authoritative newly claimed display geometry. */
+export function buildNewGeometryFromClaimedPath(
+  path: number[],
+  claimedMetersByCell: ReadonlyMap<string, number>,
+): NewGeometrySegment[] {
+  if (path.length < 4 || path.length % 2 !== 0 || claimedMetersByCell.size === 0) return [];
+  const remainingByCell = new Map(claimedMetersByCell);
+  const segments: NewGeometrySegment[] = [];
+  const close = () => {
+    const last = segments[segments.length - 1];
+    if (last && last.path.length < 4) segments.pop();
+  };
+
+  for (let i = 0; i < path.length - 2; i += 2) {
+    const segmentStart: LngLat = [path[i], path[i + 1]];
+    const segmentEnd: LngLat = [path[i + 2], path[i + 3]];
+    const segmentLength = haversineMeters(segmentStart, segmentEnd);
+    const steps = Math.max(1, Math.ceil(segmentLength / 12));
+    for (let step = 0; step < steps; step++) {
+      const interpolate = (ratio: number): LngLat => [
+        segmentStart[0] + (segmentEnd[0] - segmentStart[0]) * ratio,
+        segmentStart[1] + (segmentEnd[1] - segmentStart[1]) * ratio,
+      ];
+      const a = interpolate(step / steps);
+      const b = interpolate((step + 1) / steps);
+      const distance = haversineMeters(a, b);
+      if (!(distance > 0)) continue;
+      const cellId = conquestCellIdAt([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]);
+      const remaining = remainingByCell.get(cellId) ?? 0;
+      if (!(remaining > 0)) {
+        close();
+        continue;
+      }
+      const allowed = Math.min(distance, remaining);
+      const ratio = allowed / distance;
+      const end: LngLat = [a[0] + (b[0] - a[0]) * ratio, a[1] + (b[1] - a[1]) * ratio];
+      const last = segments[segments.length - 1];
+      const start = [roundCoordinate(a[0]), roundCoordinate(a[1])] as [number, number];
+      if (
+        last &&
+        last.path[last.path.length - 2] === start[0] &&
+        last.path[last.path.length - 1] === start[1]
+      ) {
+        last.path.push(roundCoordinate(end[0]), roundCoordinate(end[1]));
+      } else {
+        segments.push({ path: [start[0], start[1], roundCoordinate(end[0]), roundCoordinate(end[1])] });
+      }
+      remainingByCell.set(cellId, remaining - allowed);
+      if (allowed < distance) close();
+    }
+  }
+  return segments.filter((segment) => segment.path.length >= 4);
+}
 
 function chunkIdOfCellId(cellId: string): string {
   const parts = cellId.split("_");
@@ -164,6 +237,82 @@ export type ConquestRideInput = {
   distanceMeters: number;
 };
 
+export type ConquestClaimProjection = {
+  newCellIds: string[];
+  newMeters: number;
+  consumedMeters: number;
+  claimedMetersByCell: Map<string, number>;
+};
+
+export type RecentNewRoadState = {
+  day: string;
+  geometry: NewGeometrySegment[];
+  newMeters: number;
+};
+
+function sanitizeNewGeometry(raw: unknown): NewGeometrySegment[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const path = (item as { path?: unknown }).path;
+    if (!Array.isArray(path) || path.length < 4 || path.length % 2 !== 0) return [];
+    if (
+      path.some(
+        (value, index) =>
+          typeof value !== "number" ||
+          !Number.isFinite(value) ||
+          (index % 2 === 0 && (value < -180 || value > 180)) ||
+          (index % 2 === 1 && (value < -90 || value > 90)),
+      )
+    ) {
+      return [];
+    }
+    return [{ path: path.map((value) => Number(value)) }];
+  });
+}
+
+export function mergeRecentNewRoadState(
+  current: RecentNewRoadState | null,
+  incoming: RecentNewRoadState,
+): RecentNewRoadState {
+  if (!current || incoming.day > current.day) return incoming;
+  if (incoming.day < current.day) return current;
+  return {
+    day: current.day,
+    geometry: [...current.geometry, ...incoming.geometry],
+    newMeters: current.newMeters + incoming.newMeters,
+  };
+}
+
+/** Pure server-side claim projection; the transaction below persists its result. */
+export function resolveConquestClaimProjection(input: {
+  cells: PayloadCell[];
+  ownedCellIds: ReadonlySet<string>;
+  creditMeters: number;
+}): ConquestClaimProjection {
+  let remaining = Math.max(0, input.creditMeters);
+  let newMeters = 0;
+  const newCellIds: string[] = [];
+  const claimedMetersByCell = new Map<string, number>();
+
+  for (const cell of input.cells) {
+    if (remaining <= 0) break;
+    const consumed = Math.min(Math.max(0, cell.m), remaining);
+    remaining -= consumed;
+    if (input.ownedCellIds.has(cell.id)) continue;
+    newCellIds.push(cell.id);
+    newMeters += consumed;
+    claimedMetersByCell.set(cell.id, consumed);
+  }
+
+  return {
+    newCellIds,
+    newMeters: Math.round(newMeters),
+    consumedMeters: Math.round(input.creditMeters - remaining),
+    claimedMetersByCell,
+  };
+}
+
 /**
  * 「내 도로망」 집계 transaction 본문 — Admin trigger 지연 도착 계약을 여기서 고정한다.
  * marker 검문이 첫 동작: sweep 의 arm/deleted 마커 쓰기와는 Firestore transaction 충돌
@@ -180,6 +329,7 @@ export async function applyConquestInTransaction(
 
   const { rideId, userId, cells, path, tier, pedalSec, elapsedSec, distanceMeters } = input;
   const summaryRef = db.doc(`conquest/${userId}`);
+  const recentNewRoadRef = summaryRef.collection("recentNewRoad").doc("current");
   const chunkIds = [...new Set(cells.map((c) => chunkIdOfCellId(c.id)))];
   const chunkRefs = chunkIds.map((cid) => summaryRef.collection("chunks").doc(cid));
 
@@ -187,6 +337,7 @@ export async function applyConquestInTransaction(
     tx.get(summaryRef),
     ...chunkRefs.map((r) => tx.get(r)),
   ]);
+  const recentNewRoadSnap = await tx.get(recentNewRoadRef);
 
   const today = dayKeyKst();
   const summary = summarySnap.data() ?? {};
@@ -221,29 +372,48 @@ export async function applyConquestInTransaction(
   });
 
   /* ---- 경로 순서대로 예산 소진까지 인정 ---- */
-  let remaining = creditMeters;
-  let newCells = 0;
-  let newMeters = 0;
+  const ownedCellIds = new Set<string>();
+  for (const owned of ownedByChunk.values()) {
+    for (const id of Object.keys(owned)) ownedCellIds.add(id);
+  }
+  const projection = resolveConquestClaimProjection({
+    cells,
+    ownedCellIds,
+    creditMeters,
+  });
+  const newCells = projection.newCellIds.length;
+  const newMeters = projection.newMeters;
+  const newGeometry = buildNewGeometryFromClaimedPath(path, projection.claimedMetersByCell);
   const newCellsByChunk = new Map<string, string[]>();
-
-  for (const cell of cells) {
-    if (remaining <= 0) break;
-    const consumed = Math.min(cell.m, remaining);
-    remaining -= consumed;
-    const cid = chunkIdOfCellId(cell.id);
+  for (const id of projection.newCellIds) {
+    const cid = chunkIdOfCellId(id);
     const owned = ownedByChunk.get(cid) ?? {};
-    if (Object.prototype.hasOwnProperty.call(owned, cell.id)) continue;
-    owned[cell.id] = today;
+    owned[id] = today;
     ownedByChunk.set(cid, owned);
     const list = newCellsByChunk.get(cid) ?? [];
-    list.push(cell.id);
+    list.push(id);
     newCellsByChunk.set(cid, list);
-    newCells += 1;
-    newMeters += consumed;
   }
 
-  const consumedTotal = Math.round(creditMeters - remaining);
-  newMeters = Math.round(newMeters);
+  const consumedTotal = projection.consumedMeters;
+
+  const currentRecentData = recentNewRoadSnap.data();
+  const currentRecent: RecentNewRoadState | null =
+    currentRecentData && typeof currentRecentData.day === "string"
+      ? {
+          day: currentRecentData.day,
+          geometry: sanitizeNewGeometry(currentRecentData.geometry),
+          newMeters: Math.max(0, Number(currentRecentData.newMeters) || 0),
+        }
+      : null;
+  const nextRecent =
+    newMeters > 0 && newGeometry.length > 0
+      ? mergeRecentNewRoadState(currentRecent, {
+          day: today,
+          geometry: newGeometry,
+          newMeters,
+        })
+      : null;
 
   /* ---- 쓰기 ---- */
   for (const [cid, ids] of newCellsByChunk) {
@@ -277,6 +447,19 @@ export async function applyConquestInTransaction(
     { merge: true },
   );
 
+  if (nextRecent && nextRecent !== currentRecent) {
+    tx.set(
+      recentNewRoadRef,
+      {
+        day: nextRecent.day,
+        geometry: nextRecent.geometry,
+        newMeters: nextRecent.newMeters,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: false },
+    );
+  }
+
   tx.update(rideRef, {
     conquestResult: {
       newMeters,
@@ -284,6 +467,7 @@ export async function applyConquestInTransaction(
       creditedMeters: consumedTotal,
       tier,
       day: today,
+      newGeometry,
     },
   });
 }

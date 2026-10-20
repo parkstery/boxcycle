@@ -3,6 +3,7 @@ import { validateSavedRouteName } from "../../lib/route/repo/firestoreSavedRoute
 import { isIncompleteQuotaError } from "../../lib/account/tierQuota";
 import { progressPercentLabel, type RideEndResult } from "../../lib/ride/rideEndResult";
 import { useRideConquestResult } from "../../hooks/useRideConquestResult";
+import type { RideConquestResult } from "../../lib/ride/rideConquestResult";
 import { getRideSaveStatusLabel, getSavedRouteProgressStatusLabel } from "../../lib/ride/rideStatusCopy";
 import { formatNewRoadHero, formatConquestStatusCopy } from "../../lib/ride/rideSessionPreview";
 import { formatCaloriesEstimateLabel } from "../../lib/ride/caloriesEstimate";
@@ -41,6 +42,10 @@ type RideSummarySheetProps = {
   result?: RideEndResult | null;
   /** F3: 현재 로그인 사용자 uid (conquest result ownership 체크) */
   userId?: string | null;
+  /** 최근 신규 도로 임시 강조를 서버 판정과 연결한다. */
+  onConquestResult?: (recordId: string, result: RideConquestResult) => void;
+  /** conquestResult 구독이 60초 timeout 된 경우 최근 강조를 제거한다. */
+  onConquestTimeout?: (recordId: string) => void;
   /** ad-hoc(저장 안 한 채) 주행이 직전에 종료되어 「사용자 경로로 저장」 액션이 가능한 상태인지 */
   adhocSaveAvailable: boolean;
   /** 미완주 SavedRoute — 전체 진행률 변화(이전→이번) */
@@ -99,11 +104,23 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
 
   // F3: rides/{serverRideId}.conquestResult 구독
   const result = props.result ?? null;
+  const resultRecordId = result?.recordId;
+  const onConquestResult = props.onConquestResult;
+  const onConquestTimeout = props.onConquestTimeout;
   const conquestResult = useRideConquestResult({
     serverRideId: result?.serverRideId,
     userId: props.userId,
     localRecordId: result?.recordId ?? "",
   });
+  const latestConquestResultRef = useRef(conquestResult);
+  useEffect(() => {
+    latestConquestResultRef.current = conquestResult;
+  }, [conquestResult]);
+
+  useEffect(() => {
+    if (!resultRecordId) return;
+    onConquestResult?.(resultRecordId, conquestResult);
+  }, [conquestResult, onConquestResult, resultRecordId]);
 
   // UI delay 타이머 — serverRideId 가 바뀔 때만 재시작한다.
   // positive/confirmed_zero 에서는 formatConquestStatusCopy 가 null 을 반환하므로
@@ -116,7 +133,19 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
     // 15초 → delayed (타이머 콜백에서 setState — 비동기, 허용됨)
     const t15 = setTimeout(() => setIsDelayed(true), 15000);
     // 60초 → timed out
-    const t60 = setTimeout(() => setIsTimedOut(true), 60000);
+    const t60 = setTimeout(() => {
+      setIsTimedOut(true);
+      const latest = latestConquestResultRef.current.status;
+      // 서버 확정 결과는 timeout이 덮어쓰지 않는다. 아직 미확정인 경우에만
+      // 낙관적으로 그린 최근 도로를 정리한다.
+      if (
+        resultRecordId &&
+        latest !== "positive" &&
+        latest !== "confirmed_zero"
+      ) {
+        onConquestTimeout?.(resultRecordId);
+      }
+    }, 60000);
     delayTimerRef.current = t15;
     timeoutTimerRef.current = t60;
     return () => {
@@ -126,7 +155,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
       setIsDelayed(false);
       setIsTimedOut(false);
     };
-  }, [serverRideId]);
+  }, [onConquestTimeout, resultRecordId, serverRideId]);
 
   // R2: F4 persistence status (independent axes)
   const rideSaveStatus = result?.rideSaveStatus ?? "n/a";

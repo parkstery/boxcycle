@@ -219,6 +219,12 @@ import {
   CONQUEST_LIVE_GLOW_LAYER,
   CONQUEST_LIVE_LAYER,
   CONQUEST_LIVE_SRC,
+  type ConquestDisplayMode,
+  CONQUEST_RECENT_NEW_GLOW_LAYER,
+  CONQUEST_RECENT_NEW_GLOW_PAINT,
+  CONQUEST_RECENT_NEW_LAYER,
+  CONQUEST_RECENT_NEW_PAINT,
+  CONQUEST_RECENT_NEW_SRC,
   CONQUEST_TRACES_HALO_LAYER,
   CONQUEST_TRACES_LAYER,
   CONQUEST_TRACES_SRC,
@@ -386,8 +392,12 @@ export type MapViewProps = {
   routeTokenInsufficient?: boolean;
   /** Conquest — 「내 도로망」 궤적(과거 주행). null=미로그인/로딩 전 */
   conquestTraces?: readonly LineStringGeometry[] | null;
+  /** 내 도로망 표시 모드 — 전체 또는 최근 신규 도로 중심 */
+  conquestDisplayMode?: ConquestDisplayMode;
   /** Conquest — 이번 주행 진행 거리(m). 진행 구간을 실시간으로 칠한다. null=비주행 */
   conquestLiveTraveledMeters?: number | null;
+  /** Conquest — 최근 주행에서 새로 인정된 도로. 메모리 전용 임시 강조 */
+  conquestRecentNewRoad?: readonly LineStringGeometry[] | null;
   /** 지도 지점 선택 팝업에서 출발·도착·경유·계산 경로 전체 초기화 */
   onClearRoute?: () => void;
   /** OSRM(Mapbox Streets) 도로 커버리지 */
@@ -567,7 +577,9 @@ export function MapView({
   onRouteProfile,
   routeTokenInsufficient = false,
   conquestTraces = null,
+  conquestDisplayMode = "all",
   conquestLiveTraveledMeters = null,
+  conquestRecentNewRoad = null,
   onClearRoute,
   coverageOverlayMode,
   externalCameraJump = null,
@@ -747,6 +759,8 @@ export function MapView({
   const onMapZoomRef = useRef(onMapZoom);
   const onMapViewportRef = useRef(onMapViewport);
   const onMapLodViewportRef = useRef(onMapLodViewport);
+  const conquestDisplayModeRef = useRef(conquestDisplayMode);
+  conquestDisplayModeRef.current = conquestDisplayMode;
   const getActivityWorldPinLabelRef = useRef(getActivityWorldPinLabel);
   const prevLiveRef = useRef<LngLat | null>(null);
   /** 지명 검색 flyTo 직후 `liveLngLat` 추적 jumpTo 가 카메라를 되돌리는 것을 막는다 */
@@ -2212,7 +2226,9 @@ export function MapView({
             // beforeId 없음 — 경로선 아래로 넣지 않는다. 순서는 아래에서 세운다.
           );
         }
-        applyConquestEmphasis(map, conquestEmphasisRef.current);
+        applyConquestEmphasis(map, conquestEmphasisRef.current, {
+          displayMode: conquestDisplayModeRef.current,
+        });
       } catch {
         /* noop */
       }
@@ -2225,7 +2241,77 @@ export function MapView({
       map.off("style.load", apply);
       map.off("idle", apply);
     };
-  }, [mapLoaded, conquestTraces]);
+  }, [mapLoaded, conquestTraces, conquestDisplayMode]);
+
+  /**
+   * Conquest — 최근 주행에서 새로 인정된 도로.
+   *
+   * 누적 traces 와 live paint 와 분리된 임시 source다. 영구 trace에는 합치지 않고,
+   * 서버의 최신 신규도로 날짜 snapshot을 App state로 받아 style.load 뒤에도 복원한다.
+   */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    const apply = () => {
+      try {
+        if (!map.getStyle()) return;
+      } catch {
+        return;
+      }
+      try {
+        const features = (conquestRecentNewRoad ?? [])
+          .filter((g) => g?.coordinates?.length >= 2)
+          .map((geometry) => ({
+            type: "Feature" as const,
+            properties: {},
+            geometry,
+          }));
+        const fc = { type: "FeatureCollection" as const, features };
+        const src = map.getSource(CONQUEST_RECENT_NEW_SRC) as mapboxgl.GeoJSONSource | undefined;
+        if (src) {
+          src.setData(fc);
+        } else {
+          map.addSource(CONQUEST_RECENT_NEW_SRC, { type: "geojson", data: fc });
+        }
+        if (!map.getLayer(CONQUEST_RECENT_NEW_GLOW_LAYER)) {
+          map.addLayer({
+            id: CONQUEST_RECENT_NEW_GLOW_LAYER,
+            type: "line",
+            source: CONQUEST_RECENT_NEW_SRC,
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: { ...CONQUEST_RECENT_NEW_GLOW_PAINT },
+          });
+        }
+        if (!map.getLayer(CONQUEST_RECENT_NEW_LAYER)) {
+          map.addLayer({
+            id: CONQUEST_RECENT_NEW_LAYER,
+            type: "line",
+            source: CONQUEST_RECENT_NEW_SRC,
+            layout: { "line-cap": "round", "line-join": "round" },
+            paint: { ...CONQUEST_RECENT_NEW_PAINT },
+          });
+        }
+        applyConquestEmphasis(map, conquestEmphasisRef.current, {
+          displayMode: conquestDisplayModeRef.current,
+        });
+      } catch {
+        /* noop */
+      }
+    };
+
+    try {
+      apply();
+    } catch {
+      /* noop */
+    }
+    if (!map.isStyleLoaded()) map.once("idle", apply);
+    map.on("style.load", apply);
+    return () => {
+      map.off("style.load", apply);
+      map.off("idle", apply);
+    };
+  }, [mapLoaded, conquestRecentNewRoad]);
 
   /**
    * Conquest — 이번 주행의 진행 구간 실시간 칠하기(경로선 위, 라이더가 지나온 길이 골드로 물든다).
@@ -2290,7 +2376,9 @@ export function MapView({
           paint: { ...RTW_TRACE_LIVE_PAINT },
         });
       }
-      applyConquestEmphasis(map, conquestEmphasisRef.current);
+      applyConquestEmphasis(map, conquestEmphasisRef.current, {
+        displayMode: conquestDisplayModeRef.current,
+      });
     };
 
     try {

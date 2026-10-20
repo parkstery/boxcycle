@@ -8,6 +8,7 @@ import {
 import { getFirebaseFirestore } from "../../firebase/app";
 import type { LineStringGeometry } from "../../geo/geo";
 import { trackVisibilityListener } from "../../debug/visibilityReadMeters";
+import { normalizeAcquisitionDay } from "../recentNewRoadDisplay";
 
 /**
  * Conquest(정복) v2 — 도로 셀·궤적. 읽기 전용 클라이언트(쓰기는 CF `conquestOnRideCreated`).
@@ -24,7 +25,42 @@ export type ConquestTrace = {
   id: string;
   geometry: LineStringGeometry;
   newMeters: number;
+  day?: string;
 };
+
+export type RecentNewRoad = {
+  day: string;
+  geometry: LineStringGeometry[];
+  newMeters: number;
+};
+
+function parseRecentGeometry(raw: unknown): LineStringGeometry[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const path = (item as { path?: unknown }).path;
+    if (!Array.isArray(path) || path.length < 4 || path.length % 2 !== 0) return [];
+    const coordinates: [number, number][] = [];
+    for (let i = 0; i < path.length; i += 2) {
+      const lng = path[i];
+      const lat = path[i + 1];
+      if (
+        typeof lng !== "number" ||
+        typeof lat !== "number" ||
+        !Number.isFinite(lng) ||
+        !Number.isFinite(lat) ||
+        lng < -180 ||
+        lng > 180 ||
+        lat < -90 ||
+        lat > 90
+      ) {
+        return [];
+      }
+      coordinates.push([lng, lat]);
+    }
+    return coordinates.length >= 2 ? [{ type: "LineString", coordinates }] : [];
+  });
+}
 
 export function subscribeConquestSummary(
   userId: string,
@@ -51,16 +87,53 @@ export function subscribeConquestSummary(
   );
 }
 
+export function subscribeRecentNewRoad(
+  userId: string,
+  onChange: (recent: RecentNewRoad | null) => void,
+): Unsubscribe {
+  const db = getFirebaseFirestore();
+  return trackVisibilityListener(
+    "conquest",
+    onSnapshot(
+      doc(db, "conquest", userId, "recentNewRoad", "current"),
+      (snap) => {
+        if (!snap.exists()) {
+          onChange(null);
+          return;
+        }
+        const data = snap.data();
+        const day = typeof data.day === "string" ? normalizeAcquisitionDay(data.day) : "";
+        const geometry = parseRecentGeometry(data.geometry);
+        if (!day || geometry.length === 0) {
+          onChange(null);
+          return;
+        }
+        onChange({
+          day,
+          geometry,
+          newMeters: Math.max(0, Number(data.newMeters) || 0),
+        });
+      },
+      () => onChange(null),
+    ),
+  );
+}
+
 /** 내 도로 셀 전체(청크 병합) — 라이브 중복 판정·팝업 소유 판정용. v1(타일) 잔재는 걸러냄. */
 export async function loadConquestCellIds(userId: string): Promise<string[]> {
+  return [...(await loadConquestCellDays(userId)).keys()];
+}
+
+/** Reuses the existing chunks read; acquisition dates also restore legacy highlights. */
+export async function loadConquestCellDays(userId: string): Promise<Map<string, string>> {
   const db = getFirebaseFirestore();
   const snap = await getDocs(collection(db, "conquest", userId, "chunks"));
-  const out: string[] = [];
+  const out = new Map<string, string>();
   snap.forEach((chunkDoc) => {
     const cells = chunkDoc.data().cells;
     if (cells && typeof cells === "object") {
       for (const id of Object.keys(cells as Record<string, unknown>)) {
-        if (id.startsWith("20_")) out.push(id);
+        if (id.startsWith("20_")) out.set(id, typeof cells[id] === "string" ? cells[id] : "");
       }
     }
   });
@@ -86,6 +159,7 @@ export async function loadConquestTraces(userId: string): Promise<ConquestTrace[
     if (coordinates.length < 2) return;
     out.push({
       id: traceDoc.id,
+      day: typeof data.day === "string" ? data.day : undefined,
       geometry: { type: "LineString", coordinates },
       newMeters: Math.max(0, Number(data.newMeters) || 0),
     });

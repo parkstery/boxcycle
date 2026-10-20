@@ -1,3 +1,7 @@
+2026-10-20 [신규 도로 릴리스](20261020-new-road-display/02-task-02-release.md): IN_PROGRESS. Chief커밋·푸시·병합·배포승인. 날짜형식/긴선분/새기록삭제경로보완, Functions132·Rules실제에뮬레이터PASS. 분리소스빌드·main2병합·선택배포진행.
+
+2026-10-20 [신규 도로 표시 복구](20261020-new-road-display/04-review-01.md): LOCAL_VERIFIED/Chief 실제계정확인대기. 종료시빈서버값덮어쓰기·positive미반영·최근범위이동누락교정, 기존취득일+trace복원. Node94/React시트1(2폭)/build/lint오류0·기존40경고/diff PASS. localhost5000강력새로고침, 배포·커밋·푸시없음.
+
 2026-10-19 [Guest·위치·Ready Ride 배포26](20261019-guest-lifecycle/04-review-26-release.md): DEPLOYED/Chief사용확인대기. main2 d22c0492원격반영·Functions12/Rules/Hosting성공. web1295/서버127/독립32 PASS,운영인트로·API204/401·Google4/문서2227보존. 매일03:15KST Guest정리활성. https://boxcycle-dc2df.web.app
 
 2026-10-17 개발 부산물 묶음 CLOSED: T1 삭제(Muse→Supervisor), T2 패널 분리(Cursor, 기본 청크 3,731→3,692 kB), T3 dev-tools.json 등록부 59항목 + pre-push 게이트 + scripts/perf/run-real-gpu.mjs (Cursor). main2 5cc0c26 운영 배포. temporary 8건 만료 2026-11-17.

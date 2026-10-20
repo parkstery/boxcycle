@@ -171,6 +171,9 @@ import { usePublicationCatalogHub } from "./hooks/usePublicationCatalogHub";
 import { usePublicRouteReviewMeta } from "./hooks/usePublicRouteReviewMeta";
 import { useSavedRoutesWorkspace } from "./hooks/useSavedRoutesWorkspace";
 import { useRideEndAndPersistence } from "./hooks/useRideEndAndPersistence";
+import { useRecentRoadDisplay } from "./hooks/useRecentRoadDisplay";
+import { computeConquestOverviewFrame } from "./lib/conquest/conquestOverviewFrame";
+import type { ConquestDisplayMode } from "./components/map/routeConquestLayers";
 import { useDistanceAutoRoute } from "./hooks/useDistanceAutoRoute";
 import { useReadyRide } from "./hooks/useReadyRide";
 import {
@@ -249,6 +252,7 @@ export default function App() {
     summary: conquestSummary,
     cellIds: conquestCellIds,
     traces: conquestTraces,
+    recentNewRoad,
   } = useConquest(user, configured);
 
   /** 첫 지도는 저장 지역이 아니라 콜로세움. 실제 목적지는 위치 선택이 정한다. */
@@ -413,6 +417,7 @@ export default function App() {
   const [subscriptionFlash, setSubscriptionFlash] = useState<string | null>(null);
   const [summarySheetVisible, setSummarySheetVisible] = useState(false);
   const [coverageOverlayMode, setCoverageOverlayMode] = useState<CoverageOverlayMode>("off");
+  const [conquestDisplayMode, setConquestDisplayMode] = useState<ConquestDisplayMode>("all");
   /** 미완료 쿼터 초과 유도 — 안내 배너 문구와 「내 경로」 탭 오픈 신호(nonce) */
   const [savedQuotaNotice, setSavedQuotaNotice] = useState<string | null>(null);
   const [openSavedTabNonce, setOpenSavedTabNonce] = useState(0);
@@ -805,6 +810,21 @@ export default function App() {
     traveledMeters: rideMetrics.virtualDistanceMeters,
     fromMeters: sessionStartOffsetMeters,
     serverCellIds: conquestCellIds,
+  });
+
+  const {
+    geometry: recentNewRoadGeometry,
+    onResult: handleRecentConquestResult,
+    onTimeout: handleRecentConquestTimeout,
+  } = useRecentRoadDisplay({
+    uid: userSignedOut ? null : user?.uid ?? null,
+    active: rideStatus === "running" || rideStatus === "paused",
+    persisted: recentNewRoad,
+    cellIds: conquestCellIds,
+    route: routeGeometry,
+    traveled: rideMetrics.virtualDistanceMeters,
+    from: sessionStartOffsetMeters,
+    ended: lastRideResult,
   });
   /**
    * 「이미 내 도로」 힌트 — +0.00 고정 + 세션 ≥ 10m 일 때 true.
@@ -1200,6 +1220,42 @@ export default function App() {
     [conquestTraces],
   );
 
+  /** 내 도로망 보기 — 전체/최근 geometry를 지도 중심과 함께 전환한다. */
+  const pendingConquestOverviewRef = useRef<ConquestDisplayMode | null>(null);
+  const focusConquestView = useCallback(
+    (mode: ConquestDisplayMode) => {
+      setConquestDisplayMode(mode);
+      const geometries =
+        mode === "recent"
+          ? recentNewRoadGeometry
+          : [...(conquestTraceGeometries ?? []), ...recentNewRoadGeometry];
+      const frame = computeConquestOverviewFrame(geometries);
+      if (!frame) {
+        pendingConquestOverviewRef.current = mode;
+        return;
+      }
+      pendingConquestOverviewRef.current = null;
+
+      cameraJumpSeqRef.current += 1;
+      setFollowMode("free");
+      setActiveQuickCamera(null);
+      setLockBaseHeading(null);
+      setExternalCameraJump({
+        lngLat: frame.center,
+        bbox: frame.bbox,
+        requestId: cameraJumpSeqRef.current,
+      });
+    },
+    [conquestTraceGeometries, recentNewRoadGeometry],
+  );
+
+  useEffect(() => {
+    if (!pendingConquestOverviewRef.current) return;
+    if (!conquestTraceGeometries?.length && recentNewRoadGeometry.length === 0) return;
+    const mode = pendingConquestOverviewRef.current;
+    focusConquestView(mode);
+  }, [conquestTraceGeometries, recentNewRoadGeometry, focusConquestView]);
+
   const { coachData, rideElevationProfile, rideBgmCatalogConfigured } = useRideCoachingMedia({
     routeGeometry,
     routeDistanceMeters,
@@ -1520,6 +1576,7 @@ export default function App() {
           setSessionStartOffsetMeters(rideStartOffsetMeters);
           setResumeCandidateId(null); // 재개 후보 소비 — 종료 후 재로드 전까지 재개 UI 미표시
           setRidingTrailId(currentTid);
+          setLastRideResult(null);
           setRideStatus("running");
           return;
         }
@@ -1551,6 +1608,7 @@ export default function App() {
         setSessionStartOffsetMeters(rideStartOffsetMeters);
         setResumeCandidateId(null); // 재개 후보 소비 — 종료 후 재로드 전까지 재개 UI 미표시
         setRidingTrailId(trail.id);
+        setLastRideResult(null);
         setRideStatus("running");
       } catch (e: unknown) {
         const message = e instanceof Error ? e.message : String(e);
@@ -2721,6 +2779,8 @@ export default function App() {
     resetArrivalToast();
     setLastEndedWasAdhoc(null);
     setLastRideResult(null);
+    // 최근 주행의 신규 도로 강조는 결과 시트를 닫아도 유지한다.
+    // 다음 주행 시작·로그아웃·사용자 전환 시 새 세션 경계에서 정리한다.
     clearRoutePins(routeMenuLockedForProd);
   }
 
@@ -2975,10 +3035,12 @@ export default function App() {
               onRouteProfile: handleMapRouteProfile,
               routeTokenInsufficient,
               conquestTraces: conquestTraceGeometries,
+              conquestDisplayMode,
               conquestLiveTraveledMeters:
                 rideStatus === "running" || rideStatus === "paused"
                   ? rideMetrics.virtualDistanceMeters
                   : (resumePreview?.meters ?? null),
+              conquestRecentNewRoad: recentNewRoadGeometry,
               resumeAnchor: resumePreview
                 ? { lngLat: resumePreview.lngLat, label: resumePreview.label }
                 : null,
@@ -3346,6 +3408,13 @@ export default function App() {
         rideActive={rideStatus === "running" || rideStatus === "paused"}
         rideCameraDistanceM={rideCameraDistanceM}
         onRideCameraDistanceM={handleRideCameraDistancePreset}
+        conquestDisplayMode={conquestDisplayMode}
+        conquestHasRecentGeometry={recentNewRoadGeometry.length > 0}
+        onConquestDisplayMode={(mode) => {
+          if (mode === "recent") focusConquestView(mode);
+          else setConquestDisplayMode(mode);
+        }}
+        onShowAllConquest={() => focusConquestView("all")}
       />
 
       <ProfileEditSheet
@@ -3419,6 +3488,8 @@ export default function App() {
         onGuestLinkGoogle={user?.isAnonymous ? () => void handleGoogleSignIn() : undefined}
         adhocSaveAvailable={lastEndedWasAdhoc !== null}
         userId={user?.uid}
+        onConquestResult={handleRecentConquestResult}
+        onConquestTimeout={handleRecentConquestTimeout}
         maxNameLength={SAVED_ROUTE_NAME_MAX}
         suggestedName={suggestedRouteName}
         onSaveAdhoc={async (name, confirmUpdate) => {
