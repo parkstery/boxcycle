@@ -218,9 +218,12 @@ export const ENTRY_STEPS = [
   },
   {
     step: "open-menu",
-    desc: "HUD 좌상단 Trail 메뉴 트리거",
+    desc: "HUD Trail 메뉴 — 포커스 시 드러나는 대안(지도 알약·에지 탭 없음)",
     file: "src/components/maphud/MapHud.tsx",
-    anchors: [{ name: "Trail 메뉴 aria-label", re: /aria-label="Trail 메뉴"/ }],
+    anchors: [
+      { name: "Trail 메뉴 aria-label", re: /aria-label="Trail 메뉴"/ },
+      { name: "포커스 대안 클래스", re: /map-hud__a11y-trigger--menu/ },
+    ],
     selector: `getByRole('button',{name:'Trail 메뉴'})`,
   },
   {

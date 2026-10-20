@@ -23,7 +23,7 @@ function makeCtrlButton(
   return btn;
 }
 
-/** Mapbox `NavigationControl` 줌 버튼 + 지구 전체 보기(동일 `mapboxgl-ctrl-group`). */
+/** Mapbox 컨트롤 그룹 — HUD에 확대/축소가 있으므로 지구 전체 보기만 둔다. */
 export class MapZoomGlobeControl implements IControl {
   private _container?: HTMLDivElement;
 
@@ -31,18 +31,6 @@ export class MapZoomGlobeControl implements IControl {
     const group = document.createElement("div");
     group.className = "mapboxgl-ctrl mapboxgl-ctrl-group";
 
-    const zoomIn = makeCtrlButton(
-      "mapboxgl-ctrl-zoom-in",
-      "확대",
-      "줌 한 단계 확대",
-      () => map.zoomIn({ duration: 300 }),
-    );
-    const zoomOut = makeCtrlButton(
-      "mapboxgl-ctrl-zoom-out",
-      "축소",
-      "줌 한 단계 축소",
-      () => map.zoomOut({ duration: 300 }),
-    );
     const globe = makeCtrlButton(
       "mapboxgl-ctrl-globe-view",
       "지구 전체 보기",
@@ -50,8 +38,6 @@ export class MapZoomGlobeControl implements IControl {
       () => applyMapGlobeView(map),
     );
 
-    group.appendChild(zoomIn);
-    group.appendChild(zoomOut);
     group.appendChild(globe);
     this._container = group;
     return group;

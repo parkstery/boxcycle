@@ -1,6 +1,9 @@
 import { createPortal } from "react-dom";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
+import { useDialogFocus } from "../ui/useDialogFocus";
 import "./OfficialCourseListModal.css";
+
+export type RouteListSource = "intro" | "public" | "saved";
 
 export type RouteListModalShellProps = {
   /** 제목 요소의 id — 각 모달이 다른 값을 쓴다(둘이 같으면 셀렉터가 서로를 집는다) */
@@ -14,7 +17,36 @@ export type RouteListModalShellProps = {
   onSearchChange: (value: string) => void;
   onClose: () => void;
   children: ReactNode;
+  /** 한 모달 안에서 입문/퍼블릭/내 경로를 전환할 때 */
+  sourceNav?: ReactNode;
 };
+
+const SOURCE_ITEMS: { id: RouteListSource; label: string }[] = [
+  { id: "intro", label: "입문" },
+  { id: "public", label: "퍼블릭" },
+  { id: "saved", label: "내 경로" },
+];
+
+export function RouteListSourceNav(props: {
+  current: RouteListSource;
+  onSelect: (source: RouteListSource) => void;
+}) {
+  return (
+    <div className="oc-modal__sources" role="navigation" aria-label="경로 출처">
+      {SOURCE_ITEMS.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          className={`oc-modal__source${props.current === item.id ? " is-active" : ""}`}
+          aria-current={props.current === item.id ? "page" : undefined}
+          onClick={() => props.onSelect(item.id)}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 /**
  * 경로 목록 모달의 공용 껍데기 — 오버레이 · 제목 줄 · 스크롤 본문.
@@ -30,9 +62,24 @@ export type RouteListModalShellProps = {
  * 닫기 버튼의 접근성 이름(「닫기」)과 대화상자 이름(「입문 경로」 등)은 그대로 — e2e 계약.
  */
 export function RouteListModalShell(props: RouteListModalShellProps) {
+  const { onClose } = props;
+  const panelRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(true, panelRef);
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      e.stopImmediatePropagation();
+      onClose();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
   return createPortal(
     <div className="oc-modal-overlay" role="presentation" onMouseDown={() => props.onClose()}>
       <div
+        ref={panelRef}
         className="oc-modal"
         role="dialog"
         aria-label={props.dialogLabel}
@@ -40,9 +87,13 @@ export function RouteListModalShell(props: RouteListModalShellProps) {
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="oc-modal__head">
-          <h2 id={props.titleId} className="oc-modal__title">
+          <h2
+            id={props.titleId}
+            className={`oc-modal__title${props.sourceNav ? " oc-modal__title--slot" : ""}`}
+          >
             {props.title}
           </h2>
+          {props.sourceNav}
           <input
             type="search"
             className="oc-modal__search"

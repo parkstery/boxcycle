@@ -14,10 +14,10 @@
   max-height: min(85dvh, 560px);
   display: flex;
   flex-direction: column;
-  background: #FFFFFF;
-  color: #1F2937;
+  background: var(--rtw-ui-surface, #ffffff);
+  color: var(--rtw-ui-ink, #1f2937);
   color-scheme: light;
-  border: 1px solid #CBD5E1;
+  border: 1px solid var(--rtw-ui-border, #cbd5e1);
   border-radius: 12px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
   overflow: hidden;
@@ -37,15 +37,50 @@
 .oc-modal__title {
   margin: 0;
   flex-shrink: 0;
-  font-size: 0.85rem;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1.2;
-  padding: 0.3rem 0.6rem;
-  border-radius: 8px;
-  border: 1px solid #2563EB;
-  background: #EFF6FF;
-  color: #1D4ED8;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--rtw-ui-ink, #1f2937);
   white-space: nowrap;
+}
+
+.oc-modal__title--slot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.oc-modal__sources {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.oc-modal__source {
+  appearance: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  min-height: 32px;
+  padding: 0 0.45rem;
+  border-radius: 8px;
+  border: 1px solid var(--rtw-ui-border, #cbd5e1);
+  background: var(--rtw-ui-surface-mute, #f1f5f9);
+  color: var(--rtw-ui-ink, #1f2937);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.oc-modal__source.is-active {
+  background: var(--rtw-ui-primary, #2563eb);
+  border-color: var(--rtw-ui-primary, #2563eb);
+  color: var(--rtw-ui-surface, #ffffff);
 }
 
 .oc-modal__search {
@@ -69,10 +104,10 @@
 
 .oc-modal__close {
   position: absolute;
-  top: 0.3rem;
-  right: 0.3rem;
-  width: 1.9rem;
-  height: 1.9rem;
+  top: 0.15rem;
+  right: 0.15rem;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -204,10 +239,10 @@
 
 .oc-modal__item-name {
   display: block;
-  font-size: 0.82rem;
+  font-size: 12px;
   line-height: 1.35;
-  color: #1F2937;
-  -webkit-text-fill-color: #1F2937;
+  color: var(--rtw-ui-ink, #1f2937);
+  -webkit-text-fill-color: var(--rtw-ui-ink, #1f2937);
 }
 
 .oc-modal__item-sub {
@@ -215,7 +250,7 @@
   align-items: center;
   gap: 0.35rem;
   margin-top: 0.15rem;
-  font-size: 0.72rem;
+  font-size: 11px;
   opacity: 0.78;
   line-height: 1.35;
   min-width: 0;
@@ -485,4 +520,12 @@
 
 .oc-modal[aria-label="입문 경로"] .oc-modal__error-detail {
   overflow-wrap: anywhere;
+}
+
+.oc-modal .saved-routes__name {
+  font-size: 12px;
+}
+
+.oc-modal .saved-routes__meta {
+  font-size: 11px;
 }

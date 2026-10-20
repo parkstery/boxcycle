@@ -5,8 +5,14 @@
   pointer-events: none;
 }
 
-.menu-panel-root.is-open {
+.menu-panel-root.is-open,
+.menu-panel-root.is-dragging {
   pointer-events: auto;
+}
+
+.menu-panel-root.has-list-modal {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .menu-panel__scrim {
@@ -25,6 +31,10 @@
   opacity: 1;
 }
 
+.menu-panel-root.is-dragging .menu-panel__scrim {
+  opacity: var(--menu-reveal, 0);
+}
+
 .menu-panel {
   position: absolute;
   top: 0;
@@ -34,15 +44,15 @@
   /* 내용 높이로 끝내기: bottom 고정 제거, 폰 가로 높이 상한만 둔다 */
   max-height: 100vh;
   max-height: 100dvh;
-  background: #FFFFFF;
-  color: #1F2937;
+  background: var(--rtw-ui-surface, #ffffff);
+  color: var(--rtw-ui-ink, #1f2937);
   font-family: var(--rtw-font, inherit);
-  border-right: 1px solid #CBD5E1;
+  border-right: 1px solid var(--rtw-ui-border, #cbd5e1);
   border-bottom-right-radius: 12px;
   box-shadow: 8px 0 30px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  transform: translateX(-105%);
+  transform: translateX(calc(-105% * (1 - var(--menu-reveal, 0))));
   transition: transform 0.22s ease-out;
   display: flex;
   flex-direction: column;
@@ -50,8 +60,13 @@
   overflow: hidden;
 }
 
-.menu-panel-root.is-open .menu-panel {
-  transform: translateX(0);
+.menu-panel-root.is-dragging .menu-panel {
+  transition: none;
+}
+
+.menu-panel__head {
+  touch-action: none;
+  cursor: grab;
 }
 
 .menu-panel__head {
@@ -62,6 +77,29 @@
   gap: 0.5rem;
   padding: 0.6rem 0.8rem;
   border-bottom: 1px solid #E2E8F0;
+}
+
+.menu-panel__head-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.menu-panel__brand-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #2563eb;
+  flex: 0 0 auto;
+}
+
+.menu-panel__brand {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #1f2937;
+  white-space: nowrap;
 }
 
 .menu-panel__title {
@@ -102,11 +140,11 @@
 
 .menu-panel__close {
   appearance: none;
-  border: 1px solid #CBD5E1;
-  background: #F1F5F9;
-  color: #475569;
-  width: 2rem;
-  height: 2rem;
+  border: 1px solid var(--rtw-ui-border, #cbd5e1);
+  background: var(--rtw-ui-surface-mute, #f1f5f9);
+  color: var(--rtw-ui-muted, #475569);
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   cursor: pointer;
   font: inherit;
@@ -189,4 +227,32 @@
 /* Trail 블록은 줄어들지 않게 — 내용이 많을 때 직계 ride-panel만 스크롤 */
 .menu-panel__body > .trail-hub {
   flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-panel {
+    transition: none;
+  }
+}
+
+body:has(.oc-modal-overlay) .menu-panel-root {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* 폰 가로: 헤더 높이·브랜드 중복을 줄이고 닫기까지 한 줄 안에 담는다. */
+@media (max-height: 560px) {
+  .menu-panel__head { padding: 4px 6px; gap: 4px; }
+  .menu-panel__head-actions { gap: 4px; }
+  .menu-panel__close { width: 28px; height: 28px; flex-shrink: 0; }
+  .menu-panel__settings,
+  .menu-panel__place-search { min-height: 28px; padding: 0 4px; font-size: 11px; }
+  .menu-panel__title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
 }

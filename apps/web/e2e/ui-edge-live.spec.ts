@@ -1,0 +1,134 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { test, expect } from './open-meteo-stub';
+import { guestStart, prepareManualRideInput } from './rideEntryHelpers';
+
+// Supervisor integration check: real App + Mapbox, Firebase writes only to local emulators.
+const enabled = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
+const evidence = path.resolve('..', '..', '.out', 'ui-edge-20261021');
+
+test('실제 지도 800×360: 에지 열기·상단 지표·조밀한 도크·중앙 pan', async ({ page }) => {
+  test.skip(!enabled, '로컬 Firebase 에뮬레이터 전용');
+  test.setTimeout(120_000);
+  page.setDefaultTimeout(12_000);
+  fs.mkdirSync(evidence, { recursive: true });
+  await page.setViewportSize({ width: 800, height: 360 });
+  const forbidden: string[] = [];
+  await page.route(/https:\/\/[^/]*(?:googleapis\.com|firebaseio\.com|cloudfunctions\.net)\//, async route => {
+    const url = new URL(route.request().url());
+    if (/firestore|identitytoolkit|securetoken|firebaseio|cloudfunctions/.test(url.hostname)) {
+      forbidden.push(url.origin + url.pathname);
+      await route.abort();
+    } else await route.continue();
+  });
+  await page.goto('/');
+  await guestStart(page);
+  const location = page.getByRole('dialog', { name: '어디에서 시작할까요?', exact: true });
+  if (await location.waitFor({ state: 'visible', timeout: 8000 }).then(()=>true).catch(()=>false)) {
+    await location.getByRole('button', { name: '기본 위치', exact: true }).click();
+    await expect(location).toBeHidden();
+  }
+  await expect(page.locator('.mapboxgl-canvas').first()).toBeVisible();
+  await page.screenshot({ path: path.join(evidence, 'actual-idle-800.png'), animations: 'disabled' });
+  async function edge(side: 'left' | 'right') {
+    const width = page.viewportSize()!.width;
+    const x = side === 'left' ? 3 : width - 3;
+    const dx = side === 'left' ? 115 : -115;
+    await page.mouse.move(x, 155);
+    await page.mouse.down();
+    await page.mouse.move(x + dx, 155, { steps: 12 });
+    await page.mouse.up();
+  }
+  await prepareManualRideInput(page);
+  await expect(page.locator('.edge-panel-handle--left')).toBeAttached();
+  await edge('left');
+  const menu = page.getByRole('dialog', { name: '메뉴', exact: true });
+  await expect(menu).toBeVisible();
+  await expect(page.locator('.map-view__pick-popup')).toHaveCount(0);
+  await page.screenshot({ path: path.join(evidence, 'actual-menu-800.png'), animations: 'disabled' });
+  await menu.getByRole('button', { name: '입문', exact: true }).click();
+  const routes = page.getByRole('dialog').filter({ has: page.locator('#oc-modal-title') });
+  await expect(routes).toBeVisible();
+  await routes.locator('button.oc-modal__item').first().click();
+  await expect(page.getByRole('button', { name: '주행 시작', exact: true })).toBeEnabled();
+  await expect(page.locator('.mapboxgl-canvas').first()).toBeVisible();
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: path.join(evidence, 'actual-ready-800.png'), animations: 'disabled' });
+  const rows: unknown[] = [];
+  for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }, { width: 844, height: 390 }]) {
+    await page.setViewportSize(size);
+    await expect.poll(async () => {
+      const b = await page.locator('.hud-metrics__capsule').boundingBox();
+      return b?.y ?? Infinity;
+    }).toBeLessThanOrEqual(8);
+    const geometry = await page.evaluate(() => {
+      const rect = (s: string) => document.querySelector(s)?.getBoundingClientRect().toJSON();
+      return { metrics: rect('.hud-metrics__capsule'), dock: rect('.route-dock-anchor'), controls: rect('.map-hud__tr'),
+        canvas: rect('.mapboxgl-canvas'), brand: document.querySelector('.hud-brand')?.getBoundingClientRect().toJSON(),
+        mapTrigger: document.querySelector('.hud-bc-trigger')?.getBoundingClientRect().toJSON() };
+    });
+    expect(geometry.dock!.width).toBeLessThanOrEqual(220);
+    expect(geometry.dock!.height).toBeLessThanOrEqual(100);
+    const a = geometry.metrics!, b = geometry.controls!;
+    expect(a.right <= b.left || a.bottom <= b.top || b.bottom <= a.top).toBeTruthy();
+    rows.push({ size, geometry });
+    await page.screenshot({ path: path.join(evidence, `actual-ready-${size.width}.png`), animations: 'disabled' });
+  }
+  await page.setViewportSize({ width: 800, height: 360 });
+  await page.getByRole('button', { name: '주행 시작', exact: true }).click();
+  await expect(page.getByRole('button', { name: '주행 종료', exact: true })).toBeEnabled();
+  await page.waitForTimeout(700);
+  for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }, { width: 844, height: 390 }]) {
+    await page.setViewportSize(size);
+    await page.waitForTimeout(250);
+    const geometry = await page.evaluate(() => {
+      const metrics = document.querySelector('.hud-metrics__capsule')!.getBoundingClientRect();
+      const controls = [...document.querySelectorAll('.hud-quick-camera,.hud-ride-map-controls,.hud-account')].map(e => e.getBoundingClientRect().toJSON());
+      const hits = [...document.querySelectorAll('.mapboxgl-ctrl-top-right button,.route-dock__caret,.hud-account')].filter(e => (e as HTMLElement).offsetWidth > 0).map(e => {
+        const r = e.getBoundingClientRect();
+        const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+        return { label: e.getAttribute('aria-label') ?? e.className, target: e.contains(hit), rect: r.toJSON(), hit: hit?.className };
+      });
+      return { metrics: metrics.toJSON(), controls, hits };
+    });
+    for (const b of geometry.controls) {
+      const a = geometry.metrics;
+      expect(a.right <= b.left || a.bottom <= b.top || b.bottom <= a.top, `running ${size.width} controls`).toBeTruthy();
+    }
+    expect(geometry.hits.every(h => h.target), JSON.stringify(geometry.hits)).toBeTruthy();
+    rows.push({ state: 'riding', size, geometry });
+    await page.screenshot({ path: path.join(evidence, `actual-riding-${size.width}.png`), animations: 'disabled' });
+  }
+  await page.setViewportSize({ width: 800, height: 360 });
+  await edge('right');
+  const map = page.getByRole('dialog', { name: '맵 뷰', exact: true });
+  await expect(map).toBeVisible();
+  await expect(page.locator('.map-view__pick-popup')).toHaveCount(0);
+  await page.screenshot({ path: path.join(evidence, 'actual-map-panel-800.png'), animations: 'disabled' });
+  await page.keyboard.press('Escape');
+  await expect(map).toBeHidden();
+  // Chromium touch input uses the same real App edge path, rather than synthetic component events.
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 3, y: 155 }] });
+  for (let i = 1; i <= 10; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 3 + i * 12, y: 155 }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await expect(page.getByRole('dialog', { name: '메뉴', exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ id: 1, x: 3, y: 155 }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ id: 1, x: 35, y: 155 }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ id: 1, x: 35, y: 155 }, { id: 2, x: 60, y: 185 }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ id: 1, x: 135, y: 155 }, { id: 2, x: 160, y: 185 }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await expect(page.getByRole('dialog', { name: '메뉴', exact: true })).toHaveCount(0);
+  await cdp.detach();
+  const canvas = page.locator('.mapboxgl-canvas').first();
+  await canvas.evaluate(el => el.addEventListener('pointerdown', () => el.setAttribute('data-audit-central-pan', 'yes')));
+  await page.mouse.move(420, 180);
+  await page.mouse.down();
+  await page.mouse.move(490, 195, { steps: 8 });
+  await page.mouse.up();
+  await expect(canvas).toHaveAttribute('data-audit-central-pan', 'yes');
+  await expect(page.getByRole('dialog', { name: '메뉴', exact: true })).toHaveCount(0);
+  expect(forbidden).toEqual([]);
+  fs.writeFileSync(path.join(evidence, 'actual-geometry.json'), JSON.stringify(rows, null, 2));
+});

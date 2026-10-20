@@ -336,27 +336,34 @@ export function MapHud(props: MapHudProps) {
     >
       {paused ? <div className="map-hud__scrim" aria-hidden /> : null}
 
+      {showMenuTrigger ? (
+        <button
+          type="button"
+          className="map-hud__a11y-trigger map-hud__a11y-trigger--menu"
+          onClick={onOpenMenu}
+          aria-label="Trail 메뉴"
+          aria-expanded={menuOpen}
+          title="Trail menu"
+        >
+          Trail 메뉴
+        </button>
+      ) : null}
+      {showMapViewTrigger ? (
+        <button
+          type="button"
+          className="map-hud__a11y-trigger map-hud__a11y-trigger--map"
+          onClick={onOpenMapView}
+          aria-label="맵 뷰 설정"
+          aria-expanded={mapViewOpen}
+          title="Map view"
+        >
+          맵 뷰
+        </button>
+      ) : null}
+
       {showMenuTrigger || (showMetrics && metrics) ? (
         <div className="map-hud__tl">
-          {/*
-            한 행 — Spinatlas(좌상단 코너) + 계기판(그 오른쪽).
-            미니맵 세로 공간용: 예전 두 줄(계기/브랜드)을 한 줄로 줄인다(20260923-minimap 지시01).
-            한쪽만 있어도 남은 요소가 좌상단 코너를 지킨다(idle=브랜드만 / 일부 stage=계기만).
-          */}
           <div className="map-hud__tl-row">
-            {showMenuTrigger ? (
-              <button
-                type="button"
-                className={`hud-brand ${menuOpen ? "hud-brand--muted" : ""}`}
-                onClick={onOpenMenu}
-                aria-label="Trail 메뉴"
-                aria-expanded={menuOpen}
-                title="Trail menu"
-              >
-                <span className="hud-brand__dot" aria-hidden />
-                SPINATLAS
-              </button>
-            ) : null}
             {showMetrics && metrics ? (
               <div className="map-hud__tl-metrics">
                 <div
@@ -367,7 +374,7 @@ export function MapHud(props: MapHudProps) {
                         이제 누적거리/전체거리 한 줄만 표시(§9.5.5 단위7·U4) */}
                     {metrics.mode === "ride" && metrics.routeTotalKm ? (
                       <span
-                        className="hud-metrics__cell hud-metrics__cell--hero hud-metrics__cell--w-distance"
+                        className={`hud-metrics__cell hud-metrics__cell--hero hud-metrics__cell--w-distance${`${metrics.cumulativeKm}/${metrics.routeTotalKm}`.length > 11 ? " hud-metrics__cell--long-distance" : ""}`}
                         title="주행 누적 거리 / 경로 전체거리"
                       >
                         <span className="hud-metrics__label">거리</span>
@@ -648,29 +655,7 @@ export function MapHud(props: MapHudProps) {
         </time>
       ) : null}
 
-      {/*
-       * 맵 뷰 트리거 — 우상단 칩 행 바로 아래(지도 컨트롤 열의 머리).
-       * 하단 중앙에 두면 폰에서 지도 한가운데를 잡아먹는다.
-       */}
-      {showMapViewTrigger ? (
-        <div className="map-hud__tr-under">
-          <button
-            type="button"
-            className={`hud-bc-trigger ${mapViewOpen ? "is-active" : ""}`}
-            onClick={onOpenMapView}
-            aria-label="맵 뷰 설정"
-            aria-expanded={mapViewOpen}
-            title="Map view"
-          >
-            <span className="hud-bc-trigger__icon" aria-hidden>
-              ◰
-            </span>
-            <span className="hud-bc-trigger__label">맵</span>
-          </button>
-        </div>
-      ) : null}
-
-      {/* BC 슬롯: 코칭 라인(라이딩 중) + 맵 뷰 트리거(항상). 둘은 위·아래로 쌓임. */}
+      {/* BC 슬롯: 코칭 라인(라이딩 중). 맵 뷰는 가장자리 드래그·포커스 대안으로만 연다. */}
       {showCoach ? (
         <div className="map-hud__bc">
           {showCoach && coachData ? (

@@ -180,7 +180,7 @@ export function RouteDock(props: RouteDockProps) {
    * LED 는 셰브런 자리에. 펼치면 칩+셰브런 복귀. 주행 전 접힘에서는 칩을 유지
    * (센서 설정 입구 — sensorChipSlot 2026-09-16 사고).
    *
-   * 첫 화면(idle) — 「SENSOR」 텍스트가 보이는 칩 대신, 주행 중 접힘과 같은 형태로
+   * 첫 화면(idle) — 「센서」 텍스트가 보이는 칩 대신, 주행 중 접힘과 같은 형태로
    * 캐럿 폭에 LED 만 남긴다(지시04 §A, 2026-09-23 미니맵 라운드 형태 재사용 — D7).
    * 경유지가 하나라도 잡히면(stage 가 idle 을 벗어나면) 즉시 원래 칩+캐럿으로 돌아간다.
    * 펼쳐 봐야 빈 목록뿐이라 펼침 대신 **눌러서 바로 센서 시트를 연다**(§A3 동작 유지).
@@ -333,42 +333,50 @@ export function RouteDock(props: RouteDockProps) {
                   );
                 }}
               >
+                {/* 지시01 §2(2026-10-20): 시작·재개는 아이콘만이 아니라 **짧은 보이는
+                    텍스트**를 갖는다. aria-label 계약(재개|주행 시작 분기)은 그대로
+                    유지 — e2e 셀렉터 계약(entry-contract start-ride) 보존. */}
                 <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden focusable="false">
                   <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
                 </svg>
+                <span className="route-dock__go-label" aria-hidden>
+                  {paused ? "재개" : "시작"}
+                </span>
               </button>
-              <button
-                type="button"
-                className="route-dock__transport-btn route-dock__transport-btn--pause"
-                disabled={!riding}
-                aria-label="일시정지"
-                title="Pause"
-                onClick={onPauseRide}
-              >
-                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden focusable="false">
-                  <rect x="7" y="5.5" width="3.6" height="13" rx="1.1" fill="currentColor" />
-                  <rect x="13.4" y="5.5" width="3.6" height="13" rx="1.1" fill="currentColor" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                className="route-dock__transport-btn route-dock__transport-btn--stop"
-                disabled={!isActiveRide}
-                aria-label="주행 종료"
-                title="Stop ride"
-                onClick={onEndRide}
-              >
-                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden focusable="false">
-                  <rect x="6.5" y="6.5" width="11" height="11" rx="1.8" fill="currentColor" />
-                </svg>
-              </button>
+              {riding ? (
+                <button
+                  type="button"
+                  className="route-dock__transport-btn route-dock__transport-btn--pause"
+                  aria-label="일시정지"
+                  title="Pause"
+                  onClick={onPauseRide}
+                >
+                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden focusable="false">
+                    <rect x="7" y="5.5" width="3.6" height="13" rx="1.1" fill="currentColor" />
+                    <rect x="13.4" y="5.5" width="3.6" height="13" rx="1.1" fill="currentColor" />
+                  </svg>
+                </button>
+              ) : null}
+              {isActiveRide ? (
+                <button
+                  type="button"
+                  className="route-dock__transport-btn route-dock__transport-btn--stop"
+                  aria-label="주행 종료"
+                  title="Stop ride"
+                  onClick={onEndRide}
+                >
+                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden focusable="false">
+                    <rect x="6.5" y="6.5" width="11" height="11" rx="1.8" fill="currentColor" />
+                  </svg>
+                </button>
+              ) : null}
             </div>
           </header>
         ) : null}
         </div>
 
         <div
-          className="route-dock__panel hud-glass"
+          className="route-dock__panel"
           hidden={!expanded}
           aria-hidden={!expanded}
         >

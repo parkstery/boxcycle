@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { CalorieIntensityId } from "../../lib/ride/caloriesEstimate";
+import { useDialogFocus } from "../ui/useDialogFocus";
 import { RideSettingsPanel } from "./RideSettingsPanel";
 import "./RideSettingsSheet.css";
 
@@ -24,14 +25,17 @@ type RideSettingsSheetProps = {
 
 /** 주행·표시 설정 — MENU 와 분리된 하단 시트. 센서는 별도 케이던스 상세 설정이 소유. */
 export function RideSettingsSheet(props: RideSettingsSheetProps) {
+  const { onClose } = props;
+  const panelRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(props.open, panelRef);
   useEffect(() => {
     if (!props.open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") props.onClose();
+      if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [props.open, props.onClose]);
+  }, [props.open, onClose]);
 
   if (!props.open) return null;
 
@@ -44,9 +48,20 @@ export function RideSettingsSheet(props: RideSettingsSheetProps) {
         title="Close"
         onClick={props.onClose}
       />
-      <div className="ride-settings-sheet__panel">
+      <div className="ride-settings-sheet__panel" ref={panelRef}>
         <div className="ride-settings-sheet__handle" aria-hidden />
-        <h2 className="ride-settings-sheet__title">주행 설정</h2>
+        <div className="ride-settings-sheet__head">
+          <h2 className="ride-settings-sheet__title">주행 설정</h2>
+          <button
+            type="button"
+            className="ride-settings-sheet__close"
+            aria-label="주행 설정 닫기"
+            title="닫기"
+            onClick={props.onClose}
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
+        </div>
 
         <RideSettingsPanel
           rideTtsEnabled={props.rideTtsEnabled}

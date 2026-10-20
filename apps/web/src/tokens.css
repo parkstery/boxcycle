@@ -75,6 +75,33 @@
   --rtw-danger-bg: rgba(217, 84, 61, 0.12);
   --rtw-danger-border: rgba(217, 84, 61, 0.3);
 
+  /*
+   * ---- UI 역할 토큰 (light surface — 2026-10-20 지시01) ----
+   * 계기판 캡슐·RouteDock·센서 칩 같은 **밝은 지면 위 컨트롤**이 쓰는 공통 역할 값.
+   * light 화면의 흰 패널과 파랑 강조가 같은 역할 이름으로 읽히게 한다.
+   * trace(골드)·내 도로(보라)·Mapbox 지도 색은 여기서 다루지 않는다 — 의미 보존.
+   */
+  --rtw-ui-surface: #FFFFFF;
+  --rtw-ui-surface-mute: #F1F5F9;
+  --rtw-ui-surface-soft: #F8FAFC;
+  /* 파랑 강조가 깔린 약한 배경(hover·선택 톤) */
+  --rtw-ui-surface-primary-soft: #EFF6FF;
+
+  /* 지면 위 글자 */
+  --rtw-ui-ink: #1F2937;
+  --rtw-ui-ink-strong: #0F172A;
+
+  /* 라벨·보조 글자 */
+  --rtw-ui-muted: #475569;
+
+  /* Primary 액션(파랑) — trace 골드와 별개의 UI 강조 역할 */
+  --rtw-ui-primary: #2563EB;
+  --rtw-ui-primary-strong: #1D4ED8;
+
+  /* 컨트롤 테두리 */
+  --rtw-ui-border: #CBD5E1;
+  --rtw-ui-border-soft: #E2E8F0;
+
   /* ---- 구분선 / 보더 ---- */
   --rtw-divider: rgba(255, 255, 255, 0.08);
 

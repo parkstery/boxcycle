@@ -276,8 +276,50 @@
 }
 
 .ride-settings-sheet[aria-label="주행 설정"] .ride-settings-sheet__fitness-label {
-  font-size: 0.76rem;
+  font-size: 11px;
   color: inherit;
   margin-right: 0.15rem;
-  white-space: nowrap;
+  white-space: normal;
+}
+
+.ride-settings-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.ride-settings-sheet__close {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid var(--rtw-ui-border, #cbd5e1);
+  background: var(--rtw-ui-surface-mute, #f1f5f9);
+  color: var(--rtw-ui-muted, #475569);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.ride-settings-sheet__toggle {
+  min-height: 44px;
+  font-size: 13px;
+  white-space: normal;
+}
+
+.ride-settings-sheet__kicker,
+.ride-settings-sheet__help {
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.ride-settings-sheet__panel {
+  font-size: 13px;
+  max-height: calc(100vh - 16px);
+  max-height: calc(100dvh - 16px);
+  background: var(--rtw-ui-surface, #ffffff);
+  border-color: var(--rtw-ui-border, #cbd5e1);
+  color: var(--rtw-ui-ink, #1f2937);
 }

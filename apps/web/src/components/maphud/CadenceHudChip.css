@@ -2,20 +2,23 @@
  * 2026-09-15(UI-DECLUTTER-SENSOR-6A): MapHud.css 에서 분리했다.
  * 칩이 우상단(HUD) 과 RouteDock 두 자리에 살게 되었으므로, 스타일이
  * MapHud 의 파일에 얹혀 있으면 소유가 불분명해진다. 칩은 칩이 소유한다.
+ *
+ * 2026-10-20 지시01: 높이 44px(실제 터치), 글자 11px 최소(폰 가로 루트 13.5px
+ * 에서도 11px 미만으로 내려가지 않는다). 색은 tokens.css 의 light UI 역할 토큰.
  */
 
 .hud-cadence {
   display: inline-flex;
   align-items: center;
   gap: 0.38rem;
-  height: 2.2rem;
+  height: 44px;
   padding: 0 0.7rem;
   border-radius: 999px;
-  background: #FFFFFF;
-  border: 1px solid #CBD5E1;
-  color: #1F2937;
+  background: var(--rtw-ui-surface);
+  border: 1px solid var(--rtw-ui-border);
+  color: var(--rtw-ui-ink);
   font: inherit;
-  font-size: 0.76rem;
+  font-size: 11px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
@@ -26,11 +29,11 @@
 
 .hud-cadence:hover,
 .hud-cadence--open {
-  border-color: #2563EB;
+  border-color: var(--rtw-ui-primary);
 }
 
 .hud-cadence:focus-visible {
-  outline: 2px solid #2563EB;
+  outline: 2px solid var(--rtw-ui-primary);
   outline-offset: 2px;
 }
 
@@ -42,7 +45,7 @@
 }
 
 .hud-cadence__led--white {
-  background: #F1F5F9;
+  background: var(--rtw-ui-surface-mute);
   box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.5);
 }
 
@@ -60,25 +63,24 @@
   50% { opacity: 0.25; }
 }
 
-/* 텍스트 폭이 CAD ↔ NN rpm 사이에서 흔들려 계정 칩을 밀지 않게 최소 폭을 준다 */
+/* 텍스트 폭이 「센서」 ↔ NN rpm 사이에서 흔들려 이웃 칩을 밀지 않게 최소 폭을 준다.
+ * "NN rpm" 이 11px 에서 ~37px — 40px 로 최악값을 담는다(2026-10-20 지시01). */
 .hud-cadence__text {
-  min-width: 3.1rem;
+  min-width: 40px;
   text-align: center;
 }
 
+/* 좁은 폭 — 패딩만 조인다. 글자는 11px 미만으로 줄이지 않는다(겹침·잘림 대신
+ * min-width 로 폭을 유지한다). */
 @media (max-width: 520px) {
   .hud-cadence {
     padding: 0 0.5rem;
-    font-size: 0.7rem;
-  }
-  .hud-cadence__text {
-    min-width: 2.7rem;
   }
 }
 
 /* ── RouteDock 자리 변형 ───────────────────────────────────
- * dock 첫 행 안에 앉는 작은 알약. 저장·삭제 버튼과 같은 높이·같은 톤이라
- * 행의 다른 컨트롤과 형제로 읽힌다.
+ * dock 첫 행 안에 앉는 알약. 주행 제어 버튼과 같은 높이라 행의 다른 컨트롤과
+ * 형제로 읽힌다(2026-10-20 지시01: 44px — 세 버튼·주소 행과 같은 축).
  *
  * ⚠ 세로로 늘리지 않는다(`align-self: stretch` 금지). 전용 컬럼을 만들면
  * 칩 아래가 통째로 비는데 dock 폭만 넓어져 지도를 더 가린다 — 정리하려다
@@ -88,43 +90,28 @@
   /* Go·저장·삭제를 밀거나 줄바꿈시키지 않는다 */
   flex: 0 0 auto;
   align-self: center;
-  height: auto;
-  min-height: 1.5rem;
   gap: 0.3rem;
-  padding: 0.22rem 0.5rem;
-  /* 같은 행의 `route-dock__icon-btn` 과 동일한 톤 */
-  border: 1px solid #CBD5E1;
-  background: #FFFFFF;
-  backdrop-filter: none;
-  font-size: 0.7rem;
+  padding: 0 0.5rem;
+  height: 44px;
 }
 
 .hud-cadence--dock:hover,
 .hud-cadence--dock.hud-cadence--open {
-  background: #EFF6FF;
-  border-color: #2563EB;
+  background: var(--rtw-ui-surface-primary-soft);
+  border-color: var(--rtw-ui-primary);
 }
 
-.hud-cadence--dock .hud-cadence__text {
-  min-width: 2.8rem;
-}
-
-.hud-cadence--dock .hud-cadence__led {
-  width: 0.5rem;
-  height: 0.5rem;
-}
-
-/* 폰 가로 — 루트 16→13.5px 위에서 한 번 더 조인다(행 줄바꿈 금지가 우선) */
+/*
+ * 폰 가로(루트 13.5px) — 뷰포트 800×360·667×300 이 모두 여기에 든다.
+ * 칩은 44px 높이·11px 글자를 유지한다(지시01 §3). 이전 0.64rem(≈8.6px) 은
+ * 지시서의 최소 규격 미달이라 제거했다.
+ */
 @media (max-height: 560px) {
   .hud-cadence--dock {
-    min-height: 1.3rem;
-    gap: 0.24rem;
-    padding: 0.16rem 0.4rem;
-    font-size: 0.64rem;
-  }
-
-  .hud-cadence--dock .hud-cadence__text {
-    min-width: 2.4rem;
+    gap: 0.2rem;
+    padding: 0 0.38rem;
+    height: 28px;
+    font-size: 11px;
   }
 }
 
@@ -140,11 +127,11 @@
 @keyframes hud-cadence-attention {
   0%,
   100% {
-    border-color: #CBD5E1;
-    background: #FFFFFF;
+    border-color: var(--rtw-ui-border);
+    background: var(--rtw-ui-surface);
   }
   50% {
-    border-color: #2563EB;
+    border-color: var(--rtw-ui-primary);
     background: rgba(37, 99, 235, 0.14);
   }
 }
@@ -152,6 +139,6 @@
 @media (prefers-reduced-motion: reduce) {
   .hud-cadence--attention {
     animation: none;
-    border-color: #2563EB;
+    border-color: var(--rtw-ui-primary);
   }
 }

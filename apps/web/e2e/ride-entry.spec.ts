@@ -96,7 +96,9 @@ test.describe('실주행 진입 시퀀스', () => {
 
     for (let i = 0; i < BASIC_INTRO_TITLES.length; i += 1) {
       const item = items.nth(i)
-      await expect(item.locator('.oc-modal__item-name')).toHaveText(BASIC_INTRO_TITLES[i]!)
+      const originalTitle = BASIC_INTRO_TITLES[i]!
+      await expect(item.locator('.oc-modal__item-name')).toHaveText(originalTitle.replace(/^Basic\s+\d+\s*·\s*/i, ''))
+      await expect(item.locator('.oc-modal__item-name')).toHaveAttribute('title', originalTitle)
 
       // 부제 "자전거 · 0.41 km · 예상 …" — 실도로 seed 라면 거리가 양수로 표시된다.
       const sub = (await item.locator('.oc-modal__item-sub').innerText()).trim()

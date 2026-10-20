@@ -1,6 +1,15 @@
 import { cadenceChipView, type CadenceHudState } from "../../lib/sensor/cadenceSensorUi";
 import "./CadenceHudChip.css";
 
+/*
+ * 칩 표시 문구 — 2026-10-20 지시01(§3): 「SENSOR」 대신 **센서**.
+ * `lib/sensor/cadenceSensorUi.ts` 의 `CHIP_IDLE_TEXT` 는 sensor-ui-contract
+ * 계약 시험(scripts/sensor-cadence)이 보는 값이어서 그 파일은 건드리지 않았다.
+ * 접근성 계약(`view.ariaLabel` — 「케이던스 센서: …」)은 이미 한국어이므로 변경
+ * 대상이 아니다. 여기서는 **화면 표시만** 매핑해 lib 계약과 화면 문구를 분리 둔다.
+ */
+const SENSOR_IDLE_LABEL = "SENSOR";
+
 /**
  * 칩이 필요로 하는 최소 결선 — 상태 + 상세 설정 열기.
  * HUD 우상단과 RouteDock 이 같은 모양의 값을 넘긴다(App 은 하나만 만든다).
@@ -42,6 +51,7 @@ export function CadenceHudChip({
   attention = false,
 }: CadenceHudChipProps) {
   const view = cadenceChipView(state, riding);
+  const chipText = view.text === SENSOR_IDLE_LABEL ? "센서" : view.text;
   return (
     <button
       type="button"
@@ -59,7 +69,7 @@ export function CadenceHudChip({
         }`}
         aria-hidden
       />
-      <span className="hud-cadence__text">{view.text}</span>
+      <span className="hud-cadence__text">{chipText}</span>
     </button>
   );
 }

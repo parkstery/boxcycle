@@ -56,8 +56,11 @@ export function RideSettingsPanel(props: RideSettingsPanelProps) {
       {showCalorie ? (
         <div className="ride-settings-sheet__group" aria-label="추정 칼로리">
           <span className="ride-settings-sheet__kicker ride-settings-sheet__calorie-title">
-            주행 Kcal - 체중과 체력 설정하세요. (No 센서 No 측정)
+            추정 칼로리
           </span>
+          <p className="ride-settings-sheet__help">
+            센서 주행 시 체중과 운동 강도를 바탕으로 계산합니다.
+          </p>
           <div className="ride-settings-sheet__calorie-row">
             <label className="ride-settings-sheet__weight" title="Body weight">
               <span>체중(kg)</span>
@@ -95,8 +98,8 @@ export function RideSettingsPanel(props: RideSettingsPanelProps) {
                 }}
               />
             </label>
-            <div className="ride-settings-sheet__chips" role="group" aria-label="체력">
-              <span className="ride-settings-sheet__fitness-label">체력</span>
+            <div className="ride-settings-sheet__chips" role="group" aria-label="운동 강도">
+              <span className="ride-settings-sheet__fitness-label">운동 강도</span>
               {CALORIE_INTENSITY_OPTIONS.map((opt) => {
                 const active = props.calorieIntensityId === opt.id;
                 const label = opt.id === "light" ? "약함" : opt.label;
@@ -137,7 +140,7 @@ export function RideSettingsPanel(props: RideSettingsPanelProps) {
               checked={props.rideTtsEnabled}
               onChange={(e) => props.onRideTtsEnabled(e.target.checked)}
             />
-            TTS
+            음성 안내
           </label>
           <label
             className="ride-settings-sheet__toggle"
@@ -149,7 +152,7 @@ export function RideSettingsPanel(props: RideSettingsPanelProps) {
               disabled={!props.rideBgmCatalogConfigured}
               onChange={(e) => props.onRideBgmEnabled(e.target.checked)}
             />
-            BGM
+            배경 음악
           </label>
           <label className="ride-settings-sheet__toggle" title="Pacer riders">
             <input

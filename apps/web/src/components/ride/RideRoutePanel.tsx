@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { RouteListSource } from "./RouteListModalShell";
 import type { PublishedPublicCourseSummary } from "../../lib/route/repo/firestoreCourses";
 import type { RouteActivitySnapshot } from "../../lib/activity/repo/firestoreRouteActivity";
 import type { SavedRoute } from "../../lib/route/repo/firestoreSavedRoutes";
@@ -100,7 +101,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
    * 종전에는 패널 안 탭이라 폰 가로에서 61px 틈으로 스크롤해야 했다 — 공식 코스와 같은
    * 급의 모달로 옮겨 목록이 화면 높이를 쓴다.
    */
-  const [savedModalOpen, setSavedModalOpen] = useState(false);
+  const [listSource, setListSource] = useState<RouteListSource | null>(null);
   /** ad-hoc 저장 인라인 입력 폼 상태 — 토스트 액션이 열어줌 */
   const [adhocSaveOpen, setAdhocSaveOpen] = useState(false);
   const [adhocSaveDraft, setAdhocSaveDraft] = useState("");
@@ -108,7 +109,6 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
   const [adhocSaveError, setAdhocSaveError] = useState<string | null>(null);
   /** 같은 경로가 이미 있어 "업데이트하시겠습니까?" 확인을 기다리는 중. */
   const [adhocConfirmUpdate, setAdhocConfirmUpdate] = useState(false);
-  const [officialListModal, setOfficialListModal] = useState<OfficialCourseSegment | null>(null);
 
   /** 주행 중에도 MENU(경로·코스)는 사용 가능 — 속도·시작은 RouteDock, 맵 핀은 App 잠금 */
   const routeLocksAsIdle = true;
@@ -119,7 +119,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
   const [prevOpenSavedTabSignal, setPrevOpenSavedTabSignal] = useState(openSavedTabSignal);
   if (openSavedTabSignal !== prevOpenSavedTabSignal) {
     setPrevOpenSavedTabSignal(openSavedTabSignal);
-    if (openSavedTabSignal > 0) setSavedModalOpen(true);
+    if (openSavedTabSignal > 0) setListSource("saved");
   }
 
   // 공개 등록 취소 시 내 경로 창만 복귀 — openSavedTabSignal 은 대기 필터를 강제하므로 재사용 금지(2026-10-06 Chief).
@@ -127,14 +127,16 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
   const [prevReopenSavedSignal, setPrevReopenSavedSignal] = useState(reopenSavedSignal);
   if (reopenSavedSignal !== prevReopenSavedSignal) {
     setPrevReopenSavedSignal(reopenSavedSignal);
-    if (reopenSavedSignal > 0) setSavedModalOpen(true);
+    if (reopenSavedSignal > 0) setListSource("saved");
+  }
+
+  function selectSource(source: RouteListSource) {
+    if (source === "public") props.onRefreshPublishedPublicCourses?.();
+    setListSource(source);
   }
 
   function openOfficialList(segment: OfficialCourseSegment) {
-    setOfficialListModal(segment);
-    if (segment === "public") {
-      props.onRefreshPublishedPublicCourses?.();
-    }
+    selectSource(segment);
   }
 
   const activeOfficialTitle =
@@ -192,20 +194,20 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             <div className="ride-panel__official-segments" role="group" aria-label="경로 출처">
               <button
                 type="button"
-                className={`ride-panel__official-seg ${officialListModal === "intro" ? "is-active" : ""}`}
+                className={`ride-panel__official-seg ${listSource === "intro" ? "is-active" : ""}`}
                 title="입문 경로 목록"
                 aria-haspopup="dialog"
-                aria-expanded={officialListModal === "intro"}
+                aria-expanded={listSource === "intro"}
                 onClick={() => openOfficialList("intro")}
               >
                 입문
               </button>
               <button
                 type="button"
-                className={`ride-panel__official-seg ${officialListModal === "public" ? "is-active" : ""}`}
+                className={`ride-panel__official-seg ${listSource === "public" ? "is-active" : ""}`}
                 title="퍼블릭 경로 목록"
                 aria-haspopup="dialog"
-                aria-expanded={officialListModal === "public"}
+                aria-expanded={listSource === "public"}
                 onClick={() => openOfficialList("public")}
               >
                 퍼블릭
@@ -217,10 +219,12 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               */}
               <button
                 type="button"
-                className="ride-panel__official-seg"
+                className={`ride-panel__official-seg ${listSource === "saved" ? "is-active" : ""}`}
                 aria-label="내 경로 목록"
                 title="내 경로 목록"
-                onClick={() => setSavedModalOpen(true)}
+                aria-haspopup="dialog"
+                aria-expanded={listSource === "saved"}
+                onClick={() => selectSource("saved")}
               >
                 내 경로
               </button>
@@ -371,9 +375,10 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
             </div>
           ) : null}
 
-      {savedModalOpen ? (
+      {listSource === "saved" ? (
         <SavedRoutesModal
-          onClose={() => setSavedModalOpen(false)}
+          onClose={() => setListSource(null)}
+          onSelectSource={selectSource}
           routes={props.savedRoutes}
           loading={props.savedRoutesLoading}
           guestNotice={props.authGuest}
@@ -393,10 +398,11 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
         />
       ) : null}
 
-      {officialListModal ? (
+      {listSource === "intro" || listSource === "public" ? (
         <OfficialCourseListModal
-          segment={officialListModal}
-          onClose={() => setOfficialListModal(null)}
+          segment={listSource}
+          onClose={() => setListSource(null)}
+          onSelectSource={selectSource}
           basicSharedHubs={props.basicSharedHubs}
           basicActiveHubCourseId={props.basicActiveHubCourseId}
           basicStartLoading={props.basicStartLoading}

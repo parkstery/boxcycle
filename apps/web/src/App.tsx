@@ -108,6 +108,7 @@ import {
 import { RotateOverlay } from "./components/RotateOverlay";
 import { DevLabPanels } from "./components/devLabs/DevLabPanels";
 import { MapViewSheet } from "./components/map/MapViewSheet";
+import { EdgePanelHandle } from "./components/ui/EdgePanelHandle";
 import { UserInfoSheet } from "./components/UserInfoSheet";
 import { RideSettingsSheet } from "./components/ride/RideSettingsSheet";
 import { useCalorieProfile } from "./hooks/useCalorieProfile";
@@ -402,6 +403,8 @@ export default function App() {
     openRideSettingsPanel,
     openCadenceSensorPanel,
   } = useAppSheetNavigation();
+  const [menuReveal, setMenuReveal] = useState<number | null>(null);
+  const [mapViewReveal, setMapViewReveal] = useState<number | null>(null);
   const [externalCameraJump, setExternalCameraJump] = useState<{
     lngLat: LngLat;
     zoom?: number;
@@ -2496,6 +2499,63 @@ export default function App() {
     setPlaceSearchOpen,
   ]);
 
+  const handleMenuReveal = useCallback(
+    (progress: number | null) => {
+      setMenuReveal(progress);
+      if (progress == null) return;
+      setMapViewSheetOpen(false);
+      setMapViewReveal(null);
+      setPlaceSearchOpen(false);
+      setUserInfoSheetOpen(false);
+      setRideSettingsSheetOpen(false);
+      setCadenceSensorSheetOpen(false);
+    },
+    [
+      setMapViewSheetOpen,
+      setPlaceSearchOpen,
+      setUserInfoSheetOpen,
+      setRideSettingsSheetOpen,
+      setCadenceSensorSheetOpen,
+    ],
+  );
+
+  const handleMapViewReveal = useCallback(
+    (progress: number | null) => {
+      setMapViewReveal(progress);
+      if (progress == null) return;
+      setMenuOpen(false);
+      setMenuReveal(null);
+      setPlaceSearchOpen(false);
+      setUserInfoSheetOpen(false);
+      setRideSettingsSheetOpen(false);
+      setCadenceSensorSheetOpen(false);
+    },
+    [
+      setMenuOpen,
+      setPlaceSearchOpen,
+      setUserInfoSheetOpen,
+      setRideSettingsSheetOpen,
+      setCadenceSensorSheetOpen,
+    ],
+  );
+
+  const openMapViewFromEdge = useCallback(() => {
+    setMenuOpen(false);
+    setMenuReveal(null);
+    setPlaceSearchOpen(false);
+    setUserInfoSheetOpen(false);
+    setRideSettingsSheetOpen(false);
+    setCadenceSensorSheetOpen(false);
+    setMapViewSheetOpen(true);
+  }, [
+    setMenuOpen,
+    setPlaceSearchOpen,
+    setUserInfoSheetOpen,
+    setRideSettingsSheetOpen,
+    setCadenceSensorSheetOpen,
+    setMapViewSheetOpen,
+  ]);
+
   const handleClearLocalFirstRegion = useCallback(() => {
     setLocalFirstRegion(null);
     clearLocalFirstRegion();
@@ -2560,7 +2620,9 @@ export default function App() {
 
   /** Local First Recognition + 입문 경로 CTA(RIDE-NEXT-VISIT-2 V3 · LF-1) */
   const firstRideIntroCard =
-    (firstRideIntroVisible || readyRideGeneratedActive) && defaultIntroPublication ? (
+    !entryLocationPrompt &&
+    (firstRideIntroVisible || readyRideGeneratedActive) &&
+    defaultIntroPublication ? (
       <LocalFirstEntryCard
         region={localFirstRegion}
         mapboxAccessToken={MAPBOX_TOKEN}
@@ -2926,6 +2988,25 @@ export default function App() {
     courseActivity,
   ]);
 
+  const edgePanelHandlesVisible = Boolean(
+    authInitialized &&
+      user &&
+      !summarySheetVisible &&
+      !showAppIntro &&
+      !entryLocationPrompt &&
+      !needsGuestEntry &&
+      !needsAuthCard &&
+      !needsNicknameCard &&
+      !menuOpen &&
+      !mapViewSheetOpen &&
+      !placeSearchOpen &&
+      !userInfoSheetOpen &&
+      !rideSettingsSheetOpen &&
+      !cadenceSensorSheetOpen &&
+      !publicRouteRequestModalRoute &&
+      !profileEditOpen,
+  );
+
   return (
     <div className={`app-shell app-shell--map-first${showAppIntro ? " app-shell--intro" : ""}${!authInitialized || !user ? " app-shell--pre-auth" : ""}`}>
       <RotateOverlay />
@@ -3244,11 +3325,39 @@ export default function App() {
         )}
       </div>
 
+      {edgePanelHandlesVisible ? (
+        <>
+          <EdgePanelHandle
+            edge="left"
+            open={menuOpen}
+            panelId="menu-panel"
+            label="메뉴 열기"
+            onOpen={openMenuPanel}
+            onClose={() => {
+              setMenuOpen(false);
+              setPlaceSearchMarkerLngLat(null);
+            }}
+            onDragProgress={handleMenuReveal}
+          />
+          <EdgePanelHandle
+            edge="right"
+            open={mapViewSheetOpen}
+            panelId="map-view-sheet"
+            label="맵 뷰 열기"
+            onOpen={openMapViewFromEdge}
+            onClose={() => setMapViewSheetOpen(false)}
+            onDragProgress={handleMapViewReveal}
+          />
+        </>
+      ) : null}
+
       <MenuPanel
         open={menuOpen}
+        revealProgress={menuReveal}
         onClose={() => {
           setMenuOpen(false);
           setPlaceSearchMarkerLngLat(null);
+          setMenuReveal(null);
         }}
         onOpenSettings={openRideSettingsPanel}
         onOpenPlaceSearch={() => {
@@ -3384,7 +3493,11 @@ export default function App() {
 
       <MapViewSheet
         open={mapViewSheetOpen}
-        onClose={() => setMapViewSheetOpen(false)}
+        revealProgress={mapViewReveal}
+        onClose={() => {
+          setMapViewSheetOpen(false);
+          setMapViewReveal(null);
+        }}
         mapStyle={mapStyle}
         mapStyleOptions={MAP_STYLE_OPTIONS}
         onMapStyle={setMapStyle}

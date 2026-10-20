@@ -1,10 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { PublishedPublicCourseSummary } from "../../lib/route/repo/firestoreCourses";
-import { formatPublicationListMeta, publicationDisplayTitle } from "../../lib/route/publicationDisplay";
+import {
+  formatPublicationListMeta,
+  publicationDestinationFromTitle,
+  publicationDisplayTitle,
+  publicationProfileLabelKo,
+} from "../../lib/route/publicationDisplay";
 import type { RouteActivitySnapshot } from "../../lib/activity/repo/firestoreRouteActivity";
 import { formatRouteActivityListBadge } from "../../lib/activity/repo/firestoreRouteActivity";
 import { sortRouteList, type RouteSortKey } from "../../lib/route/routeListSort";
-import { RouteListModalShell } from "./RouteListModalShell";
+import {
+  RouteListModalShell,
+  RouteListSourceNav,
+  type RouteListSource,
+} from "./RouteListModalShell";
 import { RouteSortSelect } from "./RouteSortSelect";
 import "./OfficialCourseListModal.css";
 
@@ -32,11 +41,35 @@ function normalizeForSearch(s: string): string {
   return s.trim().toLowerCase();
 }
 
+function introListTitle(title: string): string {
+  const stripped = title.replace(/^Basic\s+\d+\s*·\s*/i, "").trim();
+  return stripped || title;
+}
+
+function OfficialListMeta(props: {
+  course: PublishedPublicCourseSummary;
+  displayTitle: string;
+}) {
+  const profile = publicationProfileLabelKo(props.course.profile);
+  const km = (props.course.distanceMeters / 1000).toFixed(2);
+  const dest = publicationDestinationFromTitle(props.course.title);
+  const showDest = Boolean(dest && dest !== props.displayTitle);
+  return (
+    <>
+      <span title="도로 기준">{profile}</span>
+      {` · ${km} km`}
+      {showDest ? ` · ${dest}` : null}
+    </>
+  );
+}
+
 function PublicCoursePickRow(props: {
   course: PublishedPublicCourseSummary;
   selected: boolean;
   loadDisabled: boolean;
   activityBadge: string | null;
+  listTitle: string;
+  listMeta: ReactNode;
   onLoad: () => void;
 }) {
   const c = props.course;
@@ -50,10 +83,12 @@ function PublicCoursePickRow(props: {
         onClick={props.onLoad}
       >
         <span className="oc-modal__item-meta">
-          <strong className="oc-modal__item-name">{publicationDisplayTitle(c)}</strong>
+          <strong className="oc-modal__item-name" title={publicationDisplayTitle(c)}>
+            {props.listTitle}
+          </strong>
           <span className="oc-modal__item-sub">
             <span className="oc-modal__item-sub-left">
-              {formatPublicationListMeta(c)}
+              {props.listMeta}
               {props.activityBadge ? (
                 <span className="oc-modal__item-activity"> · {props.activityBadge}</span>
               ) : null}
@@ -85,18 +120,11 @@ export type OfficialCourseListModalProps = {
   publicationActivityByPublicationId?: ReadonlyMap<string, RouteActivitySnapshot | null>;
   onEnterBasicHub: (courseId: string) => void;
   onLeaveBasicHub: () => void;
+  onSelectSource?: (source: RouteListSource) => void;
 };
 
 export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
   const loadDisabled = props.routeLoading || props.basicStartLoading || !props.sessionIdle;
-
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") props.onClose();
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [props.onClose]);
 
   function handleLoad(courseId: string) {
     props.onEnterBasicHub(courseId);
@@ -146,8 +174,10 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
           <p className="oc-modal__hint" role="status">
             선택:{" "}
             <strong>
-              {props.basicSharedHubs.find((h) => h.id === props.basicActiveHubCourseId)?.title ??
-                props.basicActiveHubCourseId}
+              {introListTitle(
+                props.basicSharedHubs.find((h) => h.id === props.basicActiveHubCourseId)?.title ??
+                  props.basicActiveHubCourseId,
+              )}
             </strong>
           </p>
         ) : null}
@@ -158,7 +188,9 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
           {sortBar}
           {introCourses.length === 0 ? <p className="oc-modal__hint">검색 결과가 없습니다.</p> : null}
           <ul className="oc-modal__list">
-            {introCourses.map((c) => (
+            {introCourses.map((c) => {
+              const listTitle = introListTitle(publicationDisplayTitle(c));
+              return (
               <PublicCoursePickRow
                 key={c.id}
                 course={c}
@@ -167,9 +199,12 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
                 activityBadge={formatRouteActivityListBadge(
                   props.publicationActivityByPublicationId?.get(c.id) ?? null,
                 )}
+                listTitle={listTitle}
+                listMeta={<OfficialListMeta course={c} displayTitle={listTitle} />}
                 onLoad={() => handleLoad(c.id)}
               />
-            ))}
+              );
+            })}
           </ul>
           </>
         )}
@@ -219,6 +254,8 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
                 activityBadge={formatRouteActivityListBadge(
                   props.publicationActivityByPublicationId?.get(c.id) ?? null,
                 )}
+                listTitle={publicationDisplayTitle(c)}
+                listMeta={formatPublicationListMeta(c)}
                 onLoad={() => handleLoad(c.id)}
               />
             ))}
@@ -236,6 +273,11 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
       searchValue={queryText}
       onSearchChange={setQueryText}
       onClose={props.onClose}
+      sourceNav={
+        props.onSelectSource ? (
+          <RouteListSourceNav current={props.segment} onSelect={props.onSelectSource} />
+        ) : null
+      }
     >
       {body}
     </RouteListModalShell>

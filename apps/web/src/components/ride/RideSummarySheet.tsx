@@ -9,6 +9,7 @@ import { formatNewRoadHero, formatConquestStatusCopy } from "../../lib/ride/ride
 import { formatCaloriesEstimateLabel } from "../../lib/ride/caloriesEstimate";
 import type { RideStory } from "../../lib/ride/rideStory";
 import { formatElapsedFromMs } from "../../lib/ride/rideFormat";
+import { useDialogFocus } from "../ui/useDialogFocus";
 import "./RideSummarySheet.css";
 
 type RideSummarySheetProps = {
@@ -168,6 +169,19 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
     if (name === prevSuggested) setName(suggested);
   }
 
+  const onClose = props.onClose;
+  const sheetRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(props.open, sheetRef);
+  useEffect(() => {
+    if (!props.open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== "Escape" || busy) return;
+      onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [busy, onClose, props.open]);
+
   if (!props.open) return null;
 
   /*
@@ -289,7 +303,12 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
         title="Close"
         onClick={requestClose}
       />
-      <div className="ride-summary__sheet" role="dialog" aria-labelledby="ride-summary-title">
+      <div
+        ref={sheetRef}
+        className="ride-summary__sheet"
+        role="dialog"
+        aria-labelledby="ride-summary-title"
+      >
         <div className="ride-summary__handle" aria-hidden />
         <div
           className={[
@@ -450,9 +469,11 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
 
         <div className="ride-summary__substats">
           <span className="ride-summary__substat">
+            <span className="ride-summary__substat-label">시간</span>
             <span className="ride-summary__substat-metric">{elapsedLabel}</span>
           </span>
           <span className="ride-summary__substat">
+            <span className="ride-summary__substat-label">평균</span>
             <span className="ride-summary__substat-metric">{avgKmhLabel}&nbsp;km/h</span>
           </span>
           {(() => {

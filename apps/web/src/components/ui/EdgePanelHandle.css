@@ -1,0 +1,31 @@
+/* 시험·레이아웃 표식만 — hit-test 없음(지시06 document capture). */
+.edge-panel-handle {
+  position: fixed;
+  z-index: 0;
+  box-sizing: border-box;
+  width: 20px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  pointer-events: none;
+  top: env(safe-area-inset-top, 0px);
+  bottom: env(safe-area-inset-bottom, 0px);
+  height: auto;
+}
+
+.edge-panel-handle--left {
+  left: 0;
+  right: auto;
+}
+
+.edge-panel-handle--right {
+  right: 0;
+  left: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .edge-panel-handle {
+    transition: none;
+  }
+}

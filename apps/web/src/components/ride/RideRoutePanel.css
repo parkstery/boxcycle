@@ -422,9 +422,9 @@
 }
 
 .ride-panel__official-seg.is-active {
-  border-color: #2563EB;
-  background: #2563EB;
-  color: #FFFFFF;
+  border-color: var(--rtw-ui-primary, #2563eb);
+  background: var(--rtw-ui-primary, #2563eb);
+  color: var(--rtw-ui-surface, #ffffff);
 }
 
 .ride-panel__official-active {

@@ -1,10 +1,15 @@
 import { useState } from "react";
-import { RouteListModalShell } from "./RouteListModalShell";
+import {
+  RouteListModalShell,
+  RouteListSourceNav,
+  type RouteListSource,
+} from "./RouteListModalShell";
 import { SavedRoutesPanel, type SavedRoutesPanelProps } from "./SavedRoutesPanel";
 
 /** 검색어는 이 모달이 제목 줄에서 소유한다 — 호출 측은 넘기지 않는다 */
 export type SavedRoutesModalProps = Omit<SavedRoutesPanelProps, "queryText"> & {
   onClose: () => void;
+  onSelectSource?: (source: RouteListSource) => void;
 };
 
 /**
@@ -18,7 +23,7 @@ export type SavedRoutesModalProps = Omit<SavedRoutesPanelProps, "queryText"> & {
  * 목록·정렬·필터는 `SavedRoutesPanel` 이 그대로 소유한다. 여기서는 자리만 바꾼다.
  * 검색어만은 제목 줄(껍데기)에 입력칸이 있으므로 여기서 들고 패널에 내려준다(2026-10-06).
  */
-export function SavedRoutesModal({ onClose, ...panel }: SavedRoutesModalProps) {
+export function SavedRoutesModal({ onClose, onSelectSource, ...panel }: SavedRoutesModalProps) {
   const [queryText, setQueryText] = useState("");
   return (
     <RouteListModalShell
@@ -28,6 +33,11 @@ export function SavedRoutesModal({ onClose, ...panel }: SavedRoutesModalProps) {
       searchValue={queryText}
       onSearchChange={setQueryText}
       onClose={onClose}
+      sourceNav={
+        onSelectSource ? (
+          <RouteListSourceNav current="saved" onSelect={onSelectSource} />
+        ) : null
+      }
     >
       <SavedRoutesPanel
         {...panel}

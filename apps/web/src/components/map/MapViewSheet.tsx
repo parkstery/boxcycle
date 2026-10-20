@@ -1,4 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useDialogFocus } from "../ui/useDialogFocus";
+import { usePanelHeaderCloseDrag } from "../ui/usePanelHeaderCloseDrag";
 import type { CoverageOverlayMode } from "../../lib/activity/coverageOverlayMode";
 import { COVERAGE_OVERLAY_OPTIONS } from "../../lib/activity/coverageOverlayMode";
 import {
@@ -36,10 +38,22 @@ type MapViewSheetProps = {
   conquestHasRecentGeometry: boolean;
   onConquestDisplayMode: (mode: ConquestDisplayMode) => void;
   onShowAllConquest: () => void;
+  revealProgress?: number | null;
 };
 
+function mapStyleDisplayLabel(label: string): string {
+  if (label === "Outdoors") return "야외";
+  if (label === "Satellite") return "위성";
+  return label;
+}
+
+function coverageDisplayLabel(value: CoverageOverlayMode, fallback: string): string {
+  if (value === "osrm") return "도로 비교";
+  return fallback;
+}
+
 const FOLLOW_OPTIONS: { value: FollowMode; label: string }[] = [
-  { value: "free", label: "free" },
+  { value: "free", label: "자유" },
   { value: "keep", label: "유지" },
   { value: "topDown", label: "상공" },
   { value: "north", label: "북향" },
@@ -66,19 +80,47 @@ const FOLLOW_TITLES: Record<FollowMode, string> = {
  * 각 블록은 한 줄: 왼쪽 타이틀 · 오른쪽 컨트롤(줄바꿈 없이, 필요 시 가로 스크롤).
  */
 export function MapViewSheet(props: MapViewSheetProps) {
+  const { onClose } = props;
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [wasOpen, setWasOpen] = useState(props.open);
+  if (props.open !== wasOpen) {
+    setWasOpen(props.open);
+    if (props.open) setAdvancedOpen(false);
+  }
+  const [headerReveal, setHeaderReveal] = useState<number | null>(null);
+  useDialogFocus(props.open, panelRef);
+  const headerDrag = usePanelHeaderCloseDrag({
+    enabled: props.open,
+    closeDir: 1,
+    onProgress: setHeaderReveal,
+    onClose,
+  });
+
   useEffect(() => {
     if (!props.open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") props.onClose();
+      if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [props.open, props.onClose]);
+  }, [props.open, onClose]);
 
-  if (!props.open) return null;
+  const revealing = props.revealProgress != null;
+  if (!props.open && !revealing) return null;
+  const reveal =
+    headerReveal ?? (props.open ? (props.revealProgress ?? 1) : (props.revealProgress ?? 0));
 
   return (
-    <div className="map-view-sheet" role="dialog" aria-label="맵 뷰">
+    <div
+      className={`map-view-sheet${props.open ? " is-open" : ""}${headerReveal != null || revealing ? " is-dragging" : ""}`}
+      role="dialog"
+      aria-label="맵 뷰"
+      id="map-view-sheet"
+      aria-hidden={!props.open}
+      {...(!props.open ? { inert: true } : {})}
+      style={{ ["--map-view-reveal" as string]: reveal }}
+    >
       <button
         type="button"
         className="map-view-sheet__scrim"
@@ -86,10 +128,9 @@ export function MapViewSheet(props: MapViewSheetProps) {
         title="Close"
         onClick={props.onClose}
       />
-      <div className="map-view-sheet__panel">
+      <div className="map-view-sheet__panel" ref={panelRef}>
         <div className="map-view-sheet__handle" aria-hidden />
-        {/* 우측 패널이 자기 트리거(맵 버튼)를 덮으므로 명시적 닫기가 필요하다 */}
-        <div className="map-view-sheet__head">
+        <div className="map-view-sheet__head" {...headerDrag}>
           <span className="map-view-sheet__head-title">맵 뷰</span>
           <button
             type="button"
@@ -98,7 +139,7 @@ export function MapViewSheet(props: MapViewSheetProps) {
             title="Close"
             onClick={props.onClose}
           >
-            닫기
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
@@ -129,28 +170,7 @@ export function MapViewSheet(props: MapViewSheetProps) {
         </div>
 
         <div className="map-view-sheet__group">
-          <span className="map-view-sheet__label-title">노선</span>
-          <div className="map-view-sheet__row-body">
-            <div className="map-view-sheet__chips map-view-sheet__chips--inline">
-              {COVERAGE_OVERLAY_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  title={opt.value === "off" ? "Hide coverage overlay" : "Road coverage (Mapbox vs OSRM may differ)"}
-                  className={`map-view-sheet__chip ${
-                    props.coverageOverlayMode === opt.value ? "is-active" : ""
-                  }`}
-                  onClick={() => props.onCoverageOverlayMode(opt.value)}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="map-view-sheet__group">
-          <span className="map-view-sheet__label-title">맵 스타일</span>
+          <span className="map-view-sheet__label-title">지도</span>
           <div className="map-view-sheet__row-body">
             <label
               className="map-view-sheet__check map-view-sheet__check--inline-3d"
@@ -163,27 +183,16 @@ export function MapViewSheet(props: MapViewSheetProps) {
               />
               3D 뷰
             </label>
-            <label
-              className="map-view-sheet__check map-view-sheet__check--inline-3d"
-              title="임시 — Spinatlas Dark에서 POI 라벨 표시(비교용, 다른 스타일에는 효과 없음)"
-            >
-              <input
-                type="checkbox"
-                checked={props.showRtwPoi}
-                onChange={(e) => props.onShowRtwPoi(e.target.checked)}
-              />
-              POI
-            </label>
             <div className="map-view-sheet__chips map-view-sheet__chips--inline">
               {props.mapStyleOptions.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
                   className={`map-view-sheet__chip ${props.mapStyle === opt.value ? "is-active" : ""}`}
-                  title={`${opt.label} basemap`}
+                  title={`${mapStyleDisplayLabel(opt.label)} 배경`}
                   onClick={() => props.onMapStyle(opt.value)}
                 >
-                  {opt.label}
+                  {mapStyleDisplayLabel(opt.label)}
                 </button>
               ))}
             </div>
@@ -191,7 +200,7 @@ export function MapViewSheet(props: MapViewSheetProps) {
         </div>
 
         <div className="map-view-sheet__group">
-          <span className="map-view-sheet__label-title">카메라</span>
+          <span className="map-view-sheet__label-title">시점</span>
           <div className="map-view-sheet__row-body">
             <div className="map-view-sheet__chips map-view-sheet__chips--inline">
               {FOLLOW_OPTIONS.map((opt) => (
@@ -209,54 +218,7 @@ export function MapViewSheet(props: MapViewSheetProps) {
           </div>
         </div>
 
-        {props.rideActive ? (
-          // 개발용 거리 튜닝 슬라이더 — 최적값 확정 후 제거 예정
-          <div className="map-view-sheet__group">
-            <span className="map-view-sheet__label-title">거리</span>
-            <div className="map-view-sheet__row-body map-view-sheet__row-body--zoom">
-              <button
-                type="button"
-                className="map-view-sheet__zoom-step"
-                title="한 눈금 가깝게"
-                aria-label="거리 한 눈금 가깝게"
-                onClick={() => {
-                  const m = Math.round((props.rideCameraDistanceM - RIDE_CAMERA_DISTANCE_STEP_M) * 10) / 10;
-                  props.onRideCameraDistanceM(Math.max(RIDE_CAMERA_DISTANCE_MIN_M, m));
-                }}
-              >
-                −
-              </button>
-              <span className="map-view-sheet__zoom-readout" aria-live="polite">
-                {props.rideCameraDistanceM.toFixed(1)}m
-              </span>
-              <button
-                type="button"
-                className="map-view-sheet__zoom-step"
-                title="한 눈금 멀게"
-                aria-label="거리 한 눈금 멀게"
-                onClick={() => {
-                  const m = Math.round((props.rideCameraDistanceM + RIDE_CAMERA_DISTANCE_STEP_M) * 10) / 10;
-                  props.onRideCameraDistanceM(Math.min(RIDE_CAMERA_DISTANCE_MAX_M, m));
-                }}
-              >
-                +
-              </button>
-              <input
-                type="range"
-                className="map-view-sheet__range"
-                min={RIDE_CAMERA_DISTANCE_MIN_M}
-                max={RIDE_CAMERA_DISTANCE_MAX_M}
-                step={RIDE_CAMERA_DISTANCE_STEP_M}
-                value={Math.min(
-                  RIDE_CAMERA_DISTANCE_MAX_M,
-                  Math.max(RIDE_CAMERA_DISTANCE_MIN_M, props.rideCameraDistanceM),
-                )}
-                onChange={(e) => props.onRideCameraDistanceM(Number(e.target.value))}
-                aria-label={`거리 ${props.rideCameraDistanceM.toFixed(1)}m`}
-              />
-            </div>
-          </div>
-        ) : (
+        {props.rideActive ? null : (
           <div className="map-view-sheet__group">
             <span className="map-view-sheet__label-title">줌</span>
             <div className="map-view-sheet__row-body map-view-sheet__row-body--zoom">
@@ -300,6 +262,105 @@ export function MapViewSheet(props: MapViewSheetProps) {
             </div>
           </div>
         )}
+
+        <details
+          className="map-view-sheet__advanced"
+          open={advancedOpen}
+          onToggle={(e) => setAdvancedOpen((e.currentTarget as HTMLDetailsElement).open)}
+        >
+          <summary className="map-view-sheet__advanced-toggle">
+            <span className="map-view-sheet__advanced-leading">
+              <strong>고급 설정</strong>
+              <span className="map-view-sheet__advanced-sub">
+                비교용 표시와 카메라 거리 미세 조정
+              </span>
+            </span>
+          </summary>
+          <div className="map-view-sheet__advanced-body">
+            <div className="map-view-sheet__group map-view-sheet__group--in-advanced">
+              <span className="map-view-sheet__label-title">노선</span>
+              <div className="map-view-sheet__row-body">
+                <div className="map-view-sheet__chips map-view-sheet__chips--inline">
+                  {COVERAGE_OVERLAY_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      title="지도 도로와 경로 엔진이 다를 수 있습니다"
+                      className={`map-view-sheet__chip ${
+                        props.coverageOverlayMode === opt.value ? "is-active" : ""
+                      }`}
+                      onClick={() => props.onCoverageOverlayMode(opt.value)}
+                    >
+                      {coverageDisplayLabel(opt.value, opt.label)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <label
+              className="map-view-sheet__check"
+              title="장소 이름 라벨(일부 지도 스타일)"
+            >
+              <input
+                type="checkbox"
+                checked={props.showRtwPoi}
+                onChange={(e) => props.onShowRtwPoi(e.target.checked)}
+              />
+              장소 이름
+            </label>
+            {props.rideActive ? (
+              <div className="map-view-sheet__group map-view-sheet__group--in-advanced">
+                <span className="map-view-sheet__label-title">거리</span>
+                <div className="map-view-sheet__row-body map-view-sheet__row-body--zoom">
+                  <button
+                    type="button"
+                    className="map-view-sheet__zoom-step"
+                    title="한 눈금 가깝게"
+                    aria-label="거리 한 눈금 가깝게"
+                    onClick={() => {
+                      const m =
+                        Math.round((props.rideCameraDistanceM - RIDE_CAMERA_DISTANCE_STEP_M) * 10) /
+                        10;
+                      props.onRideCameraDistanceM(Math.max(RIDE_CAMERA_DISTANCE_MIN_M, m));
+                    }}
+                  >
+                    −
+                  </button>
+                  <span className="map-view-sheet__zoom-readout" aria-live="polite">
+                    {props.rideCameraDistanceM.toFixed(1)}m
+                  </span>
+                  <button
+                    type="button"
+                    className="map-view-sheet__zoom-step"
+                    title="한 눈금 멀게"
+                    aria-label="거리 한 눈금 멀게"
+                    onClick={() => {
+                      const m =
+                        Math.round((props.rideCameraDistanceM + RIDE_CAMERA_DISTANCE_STEP_M) * 10) /
+                        10;
+                      props.onRideCameraDistanceM(Math.min(RIDE_CAMERA_DISTANCE_MAX_M, m));
+                    }}
+                  >
+                    +
+                  </button>
+                  <input
+                    type="range"
+                    className="map-view-sheet__range"
+                    min={RIDE_CAMERA_DISTANCE_MIN_M}
+                    max={RIDE_CAMERA_DISTANCE_MAX_M}
+                    step={RIDE_CAMERA_DISTANCE_STEP_M}
+                    value={Math.min(
+                      RIDE_CAMERA_DISTANCE_MAX_M,
+                      Math.max(RIDE_CAMERA_DISTANCE_MIN_M, props.rideCameraDistanceM),
+                    )}
+                    onChange={(e) => props.onRideCameraDistanceM(Number(e.target.value))}
+                    aria-label={`거리 ${props.rideCameraDistanceM.toFixed(1)}m`}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </details>
       </div>
     </div>
   );

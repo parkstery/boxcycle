@@ -3,15 +3,21 @@
   inset: 0;
   z-index: 54;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: flex-end;
   pointer-events: none;
+}
+
+.map-view-sheet.is-open,
+.map-view-sheet.is-dragging {
+  pointer-events: auto;
 }
 
 .map-view-sheet__scrim {
   position: absolute;
   inset: 0;
   background: rgba(2, 6, 23, 0.32);
+  opacity: 0;
   border: none;
   margin: 0;
   padding: 0;
@@ -30,17 +36,17 @@
   margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   padding: 0.55rem 0.75rem 0.9rem;
   border-radius: 14px 14px 12px 12px;
-  background: #FFFFFF;
-  border: 1px solid #CBD5E1;
-  color: #1F2937;
+  background: var(--rtw-ui-surface, #ffffff);
+  border: 1px solid var(--rtw-ui-border, #cbd5e1);
+  color: var(--rtw-ui-ink, #1f2937);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   pointer-events: auto;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  animation: map-view-sheet-up 180ms ease-out;
-  box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.35);
+  animation: none;
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.35);
 }
 
 @keyframes map-view-sheet-up {
@@ -404,3 +410,93 @@
 }
 
 .map-view-sheet__chips--inline { gap: 0.2rem; }
+
+.map-view-sheet__panel {
+  font-size: 13px;
+  max-height: calc(100vh - 16px);
+  max-height: calc(100dvh - 16px);
+  margin: 8px 0 8px auto;
+  border-radius: 12px 0 0 12px;
+  animation: none;
+  transform: translateX(calc((1 - var(--map-view-reveal, 0)) * 105%));
+  transition: transform 0.22s ease-out;
+}
+
+.map-view-sheet.is-dragging .map-view-sheet__panel {
+  transition: none;
+}
+
+.map-view-sheet.is-open .map-view-sheet__scrim {
+  opacity: 1;
+}
+
+.map-view-sheet.is-dragging .map-view-sheet__scrim {
+  opacity: var(--map-view-reveal, 0);
+}
+
+.map-view-sheet__label-title {
+  font-size: 11px;
+}
+
+.map-view-sheet__chip,
+.map-view-sheet__zoom-step,
+.map-view-sheet__close,
+.map-view-sheet__check {
+  min-height: 44px;
+}
+
+.map-view-sheet__close {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 16px;
+  background: var(--rtw-ui-surface-mute, #f1f5f9);
+  border-color: var(--rtw-ui-border, #cbd5e1);
+  color: var(--rtw-ui-muted, #475569);
+}
+
+.map-view-sheet__advanced-toggle {
+  min-height: 44px;
+  font-size: 13px;
+  background: var(--rtw-ui-surface-soft, #f8fafc);
+  border-color: var(--rtw-ui-border, #cbd5e1);
+}
+
+.map-view-sheet__advanced-sub {
+  font-size: 11px;
+}
+
+.map-view-sheet__head {
+  touch-action: none;
+  cursor: grab;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-view-sheet__panel {
+    transition: none;
+  }
+}
+
+/* 에지에서 꺼낸 설정도 내용 높이만 사용한다 — 지도 쪽 빈 세로 공간 제거. */
+@media (max-height: 560px) {
+  .map-view-sheet__panel {
+    width: min(312px, calc(100vw - 8px));
+    padding: 6px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    gap: 3px;
+    border-radius: 8px 0 0 8px;
+  }
+  .map-view-sheet__group { gap: 4px; }
+  .map-view-sheet__label-title { flex: 0 0 28px; min-width: 28px; width: 28px; }
+  .map-view-sheet__row-body,
+  .map-view-sheet__chips--inline { gap: 2px; }
+  .map-view-sheet__chip,
+  .map-view-sheet__zoom-step,
+  .map-view-sheet__close,
+  .map-view-sheet__check { min-height: 28px; }
+  .map-view-sheet__group .map-view-sheet__chip { font-size: 11px; padding: 2px 3px; }
+  .map-view-sheet__close { width: 28px; height: 28px; }
+  .map-view-sheet__advanced-toggle { min-height: 32px; padding: 3px 6px; }
+  .map-view-sheet__advanced-sub { display: none; }
+}

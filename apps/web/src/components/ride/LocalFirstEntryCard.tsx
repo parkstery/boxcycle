@@ -170,7 +170,7 @@ export function LocalFirstEntryCard({
             <div className="local-first__head">
               <p className="local-first__title">
                 <span className="local-first__subtitle">
-                  첫 Ready Ride <span className="local-first__title-unit">(Km)</span>
+                  첫 Ready Ride <span className="local-first__title-unit">(km)</span>
                 </span>
                 <span className="local-first__place">{region.name}</span>
               </p>
@@ -179,6 +179,7 @@ export function LocalFirstEntryCard({
               </button>
             </div>
 
+            <p className="local-first__hint">거리를 고르면 경로를 찾습니다</p>
             <div className="local-first__chips" role="group" aria-label="Ready Ride 거리 km">
               {READY_RIDE_DISTANCE_KM_OPTIONS.map((km) => (
                 <button

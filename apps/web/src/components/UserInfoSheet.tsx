@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useDialogFocus } from "./ui/useDialogFocus";
 import { composePeriodStory } from "../lib/ride/rideStory";
 import type { User } from "firebase/auth";
 import { loadRideSessionsForStatsFromFirestore } from "../lib/ride/repo/firestoreRides";
@@ -214,6 +215,9 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   const [deletionBusy, setDeletionBusy] = useState(false);
   const [deletionNote, setDeletionNote] = useState<string | null>(null);
 
+  const panelRef = useRef<HTMLElement>(null);
+  useDialogFocus(props.open, panelRef);
+
   useEffect(() => {
     if (!props.open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -390,9 +394,6 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.isGuest, canCheckout, canManagePortal]);
 
-  const hasAssets =
-    (props.conquest?.totalMeters ?? 0) > 0 || (props.mileage?.totalMeters ?? 0) > 0;
-
   const initial = (() => {
     if (!props.user) return "?";
     if (props.user.isAnonymous) return "G";
@@ -402,7 +403,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   const nickname = props.user ? selfRiderDisplayName(props.user) : "";
   const subLine = props.user
     ? props.user.isAnonymous
-      ? props.user.uid.slice(0, 12) + "…"
+      ? "게스트로 이용 중"
       : props.user.email ?? props.user.uid
     : "";
 
@@ -434,6 +435,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
     <div
       className={`user-info-sheet-root${props.open ? " is-open" : ""}`}
       aria-hidden={!props.open}
+      {...(!props.open ? { inert: true } : {})}
     >
       <button
         type="button"
@@ -443,7 +445,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
         onClick={props.onClose}
         tabIndex={props.open ? 0 : -1}
       />
-      <aside className="user-info-sheet" role="dialog" aria-label="사용자 정보">
+      <aside ref={panelRef} className="user-info-sheet" role="dialog" aria-label="사용자 정보">
         <div className="user-info-sheet__head">
           <div className={`user-info-sheet__avatar ${props.isGuest ? "is-guest" : ""}`}>
             {initial}
@@ -469,7 +471,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
             aria-label="닫기"
             title="Close"
           >
-            ×
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
@@ -481,7 +483,14 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
             「유료 플랜 구독」 버튼이 같은 사실을 세 번 말했다(2026-09-15 Chief 지적).
             상태만 알리는 표시는 지우고 누를 수 있는 것만 남긴다.
           */}
-          {planAction ? (
+          {props.isGuest ? (
+            <div className="user-info-sheet__plan" aria-label="기록 보존">
+              <span className="user-info-sheet__plan-tier">게스트</span>
+              <span className="user-info-sheet__plan-status">
+                Google 연결로 기록을 지키세요
+              </span>
+            </div>
+          ) : planAction ? (
             <button
               type="button"
               className="user-info-sheet__plan is-actionable"
@@ -514,32 +523,38 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
             </p>
           ) : null}
 
-          {/* 자산 — 내 도로망·누적을 2열 한 행으로(종전 2블록) */}
-          {hasAssets ? (
-            <div className="user-info-sheet__assets">
-              {props.conquest && props.conquest.totalMeters > 0 ? (
-                <div className="user-info-sheet__asset is-conquest" aria-label="내 도로망">
-                  <span className="user-info-sheet__asset-k">🏴 내 도로망</span>
+          <div className="user-info-sheet__assets">
+            <div className="user-info-sheet__asset is-conquest" aria-label="내 도로망">
+              <span className="user-info-sheet__asset-k">내 도로망</span>
+              {props.conquest == null ? (
+                <strong className="user-info-sheet__asset-v">확인 중</strong>
+              ) : (
+                <>
                   <strong className="user-info-sheet__asset-v rtw-numeric">
                     {(props.conquest.totalMeters / 1000).toFixed(1)}
                     <span> km</span>
                   </strong>
-                </div>
-              ) : null}
-              {props.mileage && props.mileage.totalMeters > 0 ? (
-                <div className="user-info-sheet__asset" aria-label="누적">
-                  <span className="user-info-sheet__asset-k">누적</span>
-                  <strong className="user-info-sheet__asset-v rtw-numeric">
-                    {(props.mileage.totalMeters / 1000).toFixed(1)}
-                    <span> km</span>
-                  </strong>
-                  <span className="user-info-sheet__asset-sub rtw-numeric">
-                    {props.mileage.rideCount}회 · {formatMileageElapsedKo(props.mileage.totalSec)}
-                  </span>
-                </div>
-              ) : null}
+                  {props.conquest.totalMeters <= 0 ? (
+                    <span className="user-info-sheet__asset-sub">
+                      첫 라이딩으로 나만의 길을 남겨보세요.
+                    </span>
+                  ) : null}
+                </>
+              )}
             </div>
-          ) : null}
+            {props.mileage && props.mileage.totalMeters > 0 ? (
+              <div className="user-info-sheet__asset" aria-label="누적">
+                <span className="user-info-sheet__asset-k">누적</span>
+                <strong className="user-info-sheet__asset-v rtw-numeric">
+                  {(props.mileage.totalMeters / 1000).toFixed(1)}
+                  <span> km</span>
+                </strong>
+                <span className="user-info-sheet__asset-sub rtw-numeric">
+                  {props.mileage.rideCount}회 · {formatMileageElapsedKo(props.mileage.totalSec)}
+                </span>
+              </div>
+            ) : null}
+          </div>
 
           {/*
             마지막 주행 카드가 곧 「최근 주행」 목록의 입구다 — 종전에는 두 블록이 패널

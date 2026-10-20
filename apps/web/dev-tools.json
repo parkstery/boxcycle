@@ -9,6 +9,39 @@
   ],
   "tools": [
     {
+      "id": "prepare-pre-ui-release",
+      "kind": "script",
+      "path": "scripts/prepare-pre-ui-release.mjs",
+      "class": "temporary",
+      "purpose": "사전 생성한 분리 worktree에 UI 직전 baseline만 복사하는 일회성 릴리스 준비",
+      "enable": "이미 실행 완료. 재실행하지 않음: node scripts/prepare-pre-ui-release.mjs",
+      "bundle": "20261020-ui-800x360",
+      "added": "2026-10-20",
+      "expires": "2026-11-19"
+    },
+    {
+      "id": "ui-800-baseline",
+      "kind": "script",
+      "path": "scripts/ui-800-baseline.mjs",
+      "class": "temporary",
+      "purpose": "UI 개선 전 tracked src 소스·해시 보존 (.env/운영 자료 제외)",
+      "enable": "node scripts/ui-800-baseline.mjs (한 번만)",
+      "bundle": "20261020-ui-800x360",
+      "added": "2026-10-20",
+      "expires": "2026-11-19"
+    },
+    {
+      "id": "ui-800-preview",
+      "kind": "script",
+      "path": "apps/web/scripts/ui-800x360/preview.html",
+      "class": "temporary",
+      "purpose": "800×360 기준 실제 UI 컴포넌트의 서버 기록 없는 검수 fixture",
+      "enable": "Vite /scripts/ui-800x360/preview.html?state=ready (riding/paused/settings/map/sensor/routes/summary/intro/location)",
+      "bundle": "20261020-ui-800x360",
+      "added": "2026-10-20",
+      "expires": "2026-11-19"
+    },
+    {
       "id": "guest-demo-ready-ride-config",
       "kind": "script",
       "path": "apps/web/scripts/ride-verify/guest-demo-ready-ride.config.ts",

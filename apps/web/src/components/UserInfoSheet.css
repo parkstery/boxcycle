@@ -117,27 +117,16 @@
 .user-info-sheet__close {
   position: relative;
   appearance: none;
-  border: 1px solid #CBD5E1;
-  background: #F1F5F9;
-  color: #475569;
-  width: 1.9rem;
-  height: 1.9rem;
+  border: 1px solid var(--rtw-ui-border, #cbd5e1);
+  background: var(--rtw-ui-surface-mute, #f1f5f9);
+  color: var(--rtw-ui-muted, #475569);
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   cursor: pointer;
   font-size: 1rem;
   line-height: 1;
   flex: 0 0 auto;
-}
-
-/* 보이는 원은 그대로. 44px 히트는 오른쪽 패딩 쪽으로 치우쳐 프로필 수정과 겹치지 않는다. */
-.user-info-sheet__close::after {
-  content: "";
-  position: absolute;
-  width: 44px;
-  height: 44px;
-  right: -0.85rem;
-  top: 50%;
-  transform: translateY(-50%);
 }
 
 .user-info-sheet__edit {
@@ -148,21 +137,13 @@
   font-weight: 650;
   white-space: nowrap;
   flex: 0 0 auto;
+  min-height: 44px;
   padding: 0.3rem 0.6rem;
   border-radius: 999px;
-  border: 1px solid #CBD5E1;
-  background: #F1F5F9;
-  color: #475569;
+  border: 1px solid var(--rtw-ui-border, #cbd5e1);
+  background: var(--rtw-ui-surface-mute, #f1f5f9);
+  color: var(--rtw-ui-muted, #475569);
   cursor: pointer;
-}
-
-/* 보이는 크기는 작게, 누르는 영역은 44px */
-.user-info-sheet__edit::after {
-  content: "";
-  position: absolute;
-  inset: 50% 0 auto;
-  height: 44px;
-  transform: translateY(-50%);
 }
 
 .user-info-sheet__edit:hover {
