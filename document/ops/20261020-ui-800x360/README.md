@@ -4,7 +4,7 @@
 |---|---|
 | 문서 유형 | execution — UI 개선 지시·결과·감리 |
 | 최초 작성 | 2026-10-20 |
-| 상태 | DEPLOYED — main2 ae646df9 · Hosting 배포/파일 일치 확인 · Chief 실기기 검수 대기 |
+| 상태 | DEPLOYED — 후속08 main2 4aae5ed9 · Hosting 배포/파일 일치 확인 · Chief 실기기 검수 대기 |
 | 독자 | chief · AI |
 | 연결 문서 | [협업 계약](../../reference/operations/261009-RTW-개발에이전트-협업-감리.md) · [공간 밀도](../../reference/product/260924-RTW-UI-공간밀도-원칙.md) |
 
@@ -35,4 +35,4 @@ http://localhost:5000 — 브라우저 800×360, 강력 새로고침.
 
 [릴리스07](05-release-07.md): main2 커밋·푸시·Hosting 배포 완료. 운영 HTML/JS/CSS 4파일 SHA-256 일치, 800×360 인트로 확인. https://boxcycle-dc2df.web.app
 
-후속 [지시08](02-task-08.md)→[결과08](03-result-08.md)→[감리08](04-review-08.md): Chief가 지정한 Mapbox 지구본·나침반 상시 툴 제거. LOCAL_VERIFIED, 소규모 후속 배포 진행. 하단 축척/고도·로고/저작권 유지.
+후속 [지시08](02-task-08.md)→[결과08](03-result-08.md)→[감리08](04-review-08.md): Chief가 지정한 Mapbox 지구본·나침반 상시 툴 제거. DEPLOYED, main2 4aae5ed9·단위1321PASS·운영4파일일치·운영800×360 DOM검사PASS. 하단 축척/고도·로고/저작권 유지. https://boxcycle-dc2df.web.app
