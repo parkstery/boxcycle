@@ -53,6 +53,10 @@ describe("F2 · card vs Go — 0.97 cap + dual-length", () => {
     const routeDistanceMeters = 1000; // Directions API
     const progressRatio = 0.5;
 
+    // Dual-length fixture: geometry length differs from route distance
+    assert.ok(Math.abs(geoLen - 1200) < 100, `geometry ~1200m (got ${Math.round(geoLen)})`);
+    assert.notEqual(geoLen, routeDistanceMeters, "geometry length ≠ route distance");
+
     // Card path (production)
     const mockRoute: SavedRoute = {
       id: "test",

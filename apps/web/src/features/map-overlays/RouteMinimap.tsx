@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent, type TouchEvent } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type PointerEvent, type TouchEvent } from "react";
 import type { LineStringGeometry, LngLat } from "../../lib/geo/geo";
 import { ROUTE_LINE_COLOR } from "../../components/map/routeConquestLayers";
 import { ridePulseAnimationDelay } from "../../lib/ride/ridePulse";
@@ -41,9 +41,6 @@ type BoxState = {
   w: number;
   h: number;
   aspect: number;
-  /** viewport 하단에서 미니맵 bottom 까지 px. null = CSS 폴백 */
-  bottomPx: number | null;
-  leftPx: number | null;
 };
 
 function remToPx(rem: number): number {
@@ -110,8 +107,8 @@ function nearlySame(a: number, b: number, eps = 1): boolean {
 
 /**
  * 주행 중 좌측 미니맵 — Outdoors 정지 지도 한 장 + SVG 경로·현재 위치.
- * 위치는 RouteDock·좌상단 **실측**. 접힘/펼침 높이를 따라가며 dock 위에 붙인다(지시07).
- * 탭 없음 · 터치 지도 전파 차단.
+ * 좌하단 스택에서 RouteDock 아래에 놓는다. dock 높이·HUD를 실측해 상자 크기를 제한한다.
+ * 지도 터치 전파 차단. 접기·펼치기 버튼은 기본 터치·키보드 동작을 허용한다.
  */
 export function RouteMinimap({
   active,
@@ -122,6 +119,8 @@ export function RouteMinimap({
   routeMeters,
 }: RouteMinimapProps) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const contentId = useId();
+  const [expanded, setExpanded] = useState(true);
 
   // mapcut 측정 스위치 — `?mapcut=minimap` 이면 렌더 중지(DOM·정지 지도 요청·펄스 없음).
   const mapcutMinimapOff = isMapCutKeyActive("minimap");
@@ -149,8 +148,6 @@ export function RouteMinimap({
     w: 0,
     h: 0,
     aspect: 1,
-    bottomPx: null,
-    leftPx: null,
   });
 
   useLayoutEffect(() => {
@@ -159,20 +156,12 @@ export function RouteMinimap({
     const sync = () => {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      // 지시07: dock 상단과의 간격 ≥ 8px (rem 폴백이 그보다 작을 수 있음)
+      // 두 패널 간격 ≥ 8px. 스택 CSS와 같은 값이다.
       const gapPx = Math.max(remToPx(GAP_REM), 8);
 
       const dockEl = document.querySelector(".route-dock-anchor");
       const tlEl = document.querySelector(".map-hud__tl");
-
-      let dockTop: number | null = null;
-      let dockLeft: number | null = null;
-      if (dockEl instanceof HTMLElement) {
-        // 주행 중 dock 은 펼침이 기본(2026-09-28). 접힘 top 만 쓰면 CSS 폴백·과대 겹침이 난다.
-        const r = dockEl.getBoundingClientRect();
-        dockTop = r.top;
-        dockLeft = r.left;
-      }
+      const stackEl = rootRef.current?.parentElement;
 
       let tlBottom: number | null = null;
       if (tlEl instanceof HTMLElement) {
@@ -180,19 +169,14 @@ export function RouteMinimap({
       }
 
       let availH: number;
-      let bottomPx: number | null = null;
-      let leftPx: number | null = null;
-
-      if (dockTop != null && Number.isFinite(dockTop)) {
-        // bottom = innerHeight − dockTop + gap  → 미니맵 하단이 dock 상단 − gap
-        bottomPx = vh - dockTop + gapPx;
-        leftPx = dockLeft;
+      if (stackEl instanceof HTMLElement && dockEl instanceof HTMLElement) {
+        // 스택 하단은 미니맵 크기와 무관하게 고정되어 측정·크기 변경 순환을 만들지 않는다.
+        const stackBottom = stackEl.getBoundingClientRect().bottom;
+        const dockHeight = dockEl.getBoundingClientRect().height;
         const topLimit = tlBottom != null ? tlBottom + gapPx : remToPx(0.6 + 2.55 + 0.35);
-        availH = Math.max(0, dockTop - gapPx - topLimit);
+        availH = Math.max(0, stackBottom - dockHeight - gapPx - topLimit);
       } else {
-        // dock 미발견 — CSS 폴백. avail 은 대략치
-        bottomPx = null;
-        leftPx = null;
+        // 측정 대상 미발견 시에도 크기를 확보한다.
         availH = Math.max(40, vh * 0.35);
       }
 
@@ -202,11 +186,7 @@ export function RouteMinimap({
       setBox((prev) => {
         if (
           nearlySame(prev.w, next.width, 0.5) &&
-          nearlySame(prev.h, next.height, 0.5) &&
-          ((prev.bottomPx == null && bottomPx == null) ||
-            (prev.bottomPx != null && bottomPx != null && nearlySame(prev.bottomPx, bottomPx))) &&
-          ((prev.leftPx == null && leftPx == null) ||
-            (prev.leftPx != null && leftPx != null && nearlySame(prev.leftPx, leftPx)))
+          nearlySame(prev.h, next.height, 0.5)
         ) {
           return prev;
         }
@@ -214,8 +194,6 @@ export function RouteMinimap({
           w: next.width,
           h: next.height,
           aspect: next.aspect,
-          bottomPx,
-          leftPx,
         };
       });
     };
@@ -272,31 +250,30 @@ export function RouteMinimap({
 
   const blockMap = (e: PointerEvent | TouchEvent) => {
     e.stopPropagation();
+    if (e.target instanceof Element && e.target.closest("button")) return;
     e.preventDefault();
   };
-
-  const measured = box.bottomPx != null;
 
   return (
     <div
       ref={rootRef}
-      className={`route-minimap hud-glass${showMap ? " route-minimap--map" : ""}${measured ? "" : " route-minimap--css-fallback"}`}
-      role="img"
-      aria-hidden
+      className={`route-minimap hud-glass${showMap && expanded ? " route-minimap--map" : ""}${expanded ? "" : " route-minimap--collapsed"}`}
+      role="group"
       aria-label="경로 미니맵"
       style={{
-        width: box.w || undefined,
+        width: expanded ? box.w || undefined : 24,
         height: box.h || undefined,
-        ...(measured
-          ? {
-              left: box.leftPx ?? undefined,
-              bottom: box.bottomPx ?? undefined,
-            }
-          : {}),
       }}
       onPointerDown={blockMap}
       onTouchStart={blockMap}
     >
+      <div
+        id={contentId}
+        className="route-minimap__content"
+        hidden={!expanded}
+        role="img"
+        aria-label="전체 경로와 현재 위치"
+      >
       {showMap ? (
         <img
           className="route-minimap__map"
@@ -343,6 +320,22 @@ export function RouteMinimap({
           {RIDE_MILESTONE_TEXT[milestone.kind]}
         </div>
       ) : null}
+      </div>
+      <button
+        type="button"
+        className="route-minimap__toggle"
+        aria-label={expanded ? "미니맵 접기" : "미니맵 펼치기"}
+        aria-expanded={expanded}
+        aria-controls={contentId}
+        onClick={(e) => {
+          e.stopPropagation();
+          setExpanded((value) => !value);
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d={expanded ? "m10 4-4 4 4 4" : "m6 4 4 4-4 4"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
     </div>
   );
 }

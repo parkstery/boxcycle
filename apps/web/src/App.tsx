@@ -2972,21 +2972,19 @@ export default function App() {
           </DebugMapStage>
         ) : (
           <AppMapStage
-            minimap={
-              <RouteMinimap
-                active={stage === "riding" || stage === "paused"}
-                routeGeometry={routeGeometry}
-                liveLngLat={liveForMap}
-                mapboxAccessToken={MAPBOX_TOKEN}
-                traveledMeters={cumulativeDistanceMeters}
-                routeMeters={routeDistanceMeters}
-              />
-            }
             routeDock={
               <>
                 <MapBottomLeftStack>
                   {routeDockPanel}
                   {firstRideIntroCard}
+                  <RouteMinimap
+                    active={stage === "riding" || stage === "paused"}
+                    routeGeometry={routeGeometry}
+                    liveLngLat={liveForMap}
+                    mapboxAccessToken={MAPBOX_TOKEN}
+                    traveledMeters={cumulativeDistanceMeters}
+                    routeMeters={routeDistanceMeters}
+                  />
                 </MapBottomLeftStack>
                 {/*
                   「다음 주행」 카드는 좌하단 스택 밖 — **우하단**에 홀로 선다(2026-09-17 Chief).

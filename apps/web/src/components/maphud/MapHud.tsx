@@ -354,7 +354,7 @@ export function MapHud(props: MapHudProps) {
                 title="Trail menu"
               >
                 <span className="hud-brand__dot" aria-hidden />
-                Spinatlas
+                SPINATLAS
               </button>
             ) : null}
             {showMetrics && metrics ? (

@@ -35,6 +35,16 @@
   z-index: auto;
 }
 
+/* 주행 중에는 RouteDock 위 / 미니맵 아래. 간격과 위치를 한 스택에서 소유한다. */
+.map-bottom-left-stack:has(> .route-minimap) {
+  gap: max(0.35rem, 8px);
+}
+
+.map-bottom-left-stack > .route-minimap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
 /* 폰 가로 — 로고 여백 회수는 종전 dock 규칙과 같은 값 */
 @media (max-height: 560px) {
   .map-bottom-left-stack {

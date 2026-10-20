@@ -8,8 +8,25 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import type { Firestore, DocumentSnapshot } from "firebase/firestore";
 import { RideConquestSubscription } from "../../src/lib/ride/rideConquestSubscription.ts";
 import type { RideConquestResult } from "../../src/lib/ride/rideConquestResult.ts";
+
+function fakeFirestore(): Firestore {
+  return { type: "firestore", app: {} } as unknown as Firestore;
+}
+
+function fakeSnapshot(overrides?: {
+  existsValue?: boolean;
+  dataValue?: unknown;
+  id?: string;
+}): DocumentSnapshot {
+  return {
+    exists: () => overrides?.existsValue ?? true,
+    data: () => overrides?.dataValue,
+    id: overrides?.id ?? "s1",
+  } as unknown as DocumentSnapshot;
+}
 
 type FakeTimer = {
   callback: () => void;
@@ -65,7 +82,7 @@ describe("S1-3: Subscription Timers", () => {
 
     const subscription = new RideConquestSubscription(
       {
-        firestore: { type: "firestore", app: {} } as any,
+        firestore: fakeFirestore(),
         subscribe: () => {
           subscribeCount++;
           return () => {};
@@ -82,6 +99,9 @@ describe("S1-3: Subscription Timers", () => {
     // Initial empty result
     assert.equal(results.length, 1);
     assert.equal(results[0].status, "none");
+
+    // Verify subscribe was called exactly once on activation
+    assert.equal(subscribeCount, 1, "subscribe called once on activate");
 
     // Before 15s - no delayed status
     await clock.tickAsync(14000);
@@ -100,15 +120,13 @@ describe("S1-3: Subscription Timers", () => {
 
     const subscription = new RideConquestSubscription(
       {
-        firestore: { type: "firestore", app: {} } as any,
+        firestore: fakeFirestore(),
         subscribe: (_docRef, onSuccess) => {
           // Simulate result at 5s
           clock.setTimeout(() => {
-            onSuccess({
-              exists: () => true,
-              data: () => ({ userId: "u1", conquestResult: { status: "success", newMeters: 100 } }),
-              id: "s1",
-            } as any);
+            onSuccess(fakeSnapshot({
+              dataValue: { userId: "u1", conquestResult: { status: "success", newMeters: 100 } },
+            }));
           }, 5000);
           return () => {};
         },
@@ -143,7 +161,7 @@ describe("S1-3: Subscription Timers", () => {
 
     const subscription = new RideConquestSubscription(
       {
-        firestore: { type: "firestore", app: {} } as any,
+        firestore: fakeFirestore(),
         subscribe: () => {
           return () => { unsubscribeCalled = true; };
         },
@@ -152,11 +170,9 @@ describe("S1-3: Subscription Timers", () => {
         doc: () => ({ path: "rides/s1" }),
         getDoc: async () => {
           getDocCalled = true;
-          return {
-            exists: () => true,
-            data: () => ({ userId: "u1", conquestResult: { status: "success", newMeters: 200 } }),
-            id: "s1",
-          } as any;
+          return fakeSnapshot({
+            dataValue: { userId: "u1", conquestResult: { status: "success", newMeters: 200 } },
+          });
         },
       },
       { onResult: (r) => results.push(r) },
@@ -184,7 +200,7 @@ describe("S1-3: Subscription Timers", () => {
 
     const subscription = new RideConquestSubscription(
       {
-        firestore: { type: "firestore", app: {} } as any,
+        firestore: fakeFirestore(),
         subscribe: () => () => {},
         setTimeout: clock.setTimeout,
         clearTimeout: clock.clearTimeout,
@@ -220,7 +236,7 @@ describe("S1-3: Subscription Timers", () => {
 
     const subscription = new RideConquestSubscription(
       {
-        firestore: { type: "firestore", app: {} } as any,
+        firestore: fakeFirestore(),
         subscribe: () => () => {},
         setTimeout: clock.setTimeout,
         clearTimeout: clock.clearTimeout,
@@ -242,24 +258,19 @@ describe("S1-3: Subscription Timers", () => {
 
   it("S1-3: Re-query does NOT call Ride writer (read-only)", async () => {
     const clock = new FakeClock();
-    let rideWriterCalled = false;
-    const mockRideWriter = () => { rideWriterCalled = true; };
-
+    const rideWriterCalled = false;
     const subscription = new RideConquestSubscription(
       {
-        firestore: { type: "firestore", app: {} } as any,
+        firestore: fakeFirestore(),
         subscribe: () => () => {},
         setTimeout: clock.setTimeout,
         clearTimeout: clock.clearTimeout,
         doc: () => ({ path: "rides/s1" }),
         getDoc: async () => {
           // S1-3: Re-query is read-only, must NOT call writer
-          // Simulate that we check if writer is called
-          return {
-            exists: () => true,
-            data: () => ({ userId: "u1", conquestResult: { status: "success", newMeters: 50 } }),
-            id: "s1",
-          } as any;
+          return fakeSnapshot({
+            dataValue: { userId: "u1", conquestResult: { status: "success", newMeters: 50 } },
+          });
         },
       },
       { onResult: () => {} },
