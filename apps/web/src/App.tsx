@@ -2783,7 +2783,6 @@ export default function App() {
   const rideControlPanel = (
     <RideControlBar
       stage={stage}
-      profile={profile}
       routeLoading={routeLoading}
       routeSetupToken={routeSetupToken}
       canStartRide={canStartRideWithInput}

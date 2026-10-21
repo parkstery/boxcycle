@@ -1,13 +1,11 @@
 import { useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
-import type { RouteProfile } from "../../services/mapboxDirections";
 import { sensorChipSlot } from "../../lib/route/sensorChipSlot";
 import { CadenceHudChip, type CadenceChipBinding } from "../maphud/CadenceHudChip";
 import "./RideControlBar.css";
 
 export type RideControlBarProps = {
   stage: RideUiStage;
-  profile: RouteProfile;
   routeLoading: boolean;
   routeSetupToken?: object | null;
   canStartRide: boolean;
@@ -23,8 +21,6 @@ export type RideControlBarProps = {
   cadence?: CadenceChipBinding | null;
   nextRideVisible?: boolean;
 };
-const PROFILE_LABEL: Record<RouteProfile, string> = { driving: "자동차", cycling: "자전거", walking: "도보" };
-
 /** One fixed place for input preparation and transport; route addresses are independent. */
 export function RideControlBar(props: RideControlBarProps) {
   const { stage, routeLoading, routeSetupToken = null, resumeRatio = null, cadence = null } = props;
@@ -57,11 +53,8 @@ export function RideControlBar(props: RideControlBarProps) {
   return (
     <div className={`ride-control-anchor${props.nextRideVisible ? " ride-control-anchor--with-next" : ""}`}>
       <div className="ride-control-bar" role="group" aria-label="주행 제어">
-        {ready || active ? <span className="ride-control-bar__profile" aria-label={`경로 유형 ${PROFILE_LABEL[props.profile]}`} title="경로 생성에서 이동수단 변경">
-          {PROFILE_LABEL[props.profile]}
-        </span> : null}
         {sensorVisible && cadence ? <CadenceHudChip placement="dock" state={cadence.state} riding={active}
-          open={cadence.open} onOpen={cadence.onOpen} attention={props.sensorAttention && !active} /> : null}
+          open={cadence.open} onOpen={cadence.onOpen} attention={false} /> : null}
         {ready && resumeRatio != null ? <button type="button" className="ride-control-bar__resume-trigger"
           aria-label="이어 달리기 선택" aria-expanded={resumeOpen} onClick={() => setResumeOpen(v => !v)}>
           {restartFromZero ? "처음부터" : `${Math.round(resumeRatio * 100)}%부터`} ▴

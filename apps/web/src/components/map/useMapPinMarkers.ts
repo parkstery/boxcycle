@@ -15,7 +15,11 @@ import { useCallback, useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import type { MutableRefObject } from "react";
 import type { LngLat } from "../../lib/geo/geo";
-import { createRouteEndpointPinEl, createWaypointMarkerEl } from "./mapPopupElements";
+import {
+  createRouteEndpointPinEl,
+  createTemporaryRoutePinEl,
+  createWaypointMarkerEl,
+} from "./mapPopupElements";
 import { PIN_MARKER_VIEWPORT_ALIGNMENT } from "./riderDomMarkers";
 
 export type MapPinMarkersInput = {
@@ -36,12 +40,51 @@ export function useMapPinMarkers({
   placeSearchMarkerLngLat,
   resumeAnchor,
   routeWaypoints,
-}: MapPinMarkersInput): { clearOnMapTeardown: () => void } {
+}: MapPinMarkersInput): {
+  clearOnMapTeardown: () => void;
+  showTemporaryPick: (lngLat: LngLat) => void;
+  clearTemporaryPick: () => void;
+} {
   const startMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const endMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const placeSearchMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const resumeMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const waypointMarkersRef = useRef<mapboxgl.Marker[]>([]);
+  const temporaryPickMarkerRef = useRef<mapboxgl.Marker | null>(null);
+
+  const clearTemporaryPick = useCallback(() => {
+    temporaryPickMarkerRef.current?.remove();
+    temporaryPickMarkerRef.current = null;
+  }, []);
+
+  const showTemporaryPick = useCallback((lngLat: LngLat) => {
+    const map = mapRef.current;
+    if (
+      !map ||
+      !Array.isArray(lngLat) ||
+      lngLat.length < 2 ||
+      !Number.isFinite(lngLat[0]) ||
+      !Number.isFinite(lngLat[1])
+    ) {
+      return;
+    }
+    if (!temporaryPickMarkerRef.current) {
+      const el = createTemporaryRoutePinEl();
+      el.classList.add("map-view__temporary-pick-marker");
+      el.setAttribute("aria-label", "선택한 위치");
+      temporaryPickMarkerRef.current = new mapboxgl.Marker({
+        element: el,
+        anchor: "center",
+        className: "map-view__temporary-pick-marker-host",
+        ...PIN_MARKER_VIEWPORT_ALIGNMENT,
+      })
+        // Mapbox Marker는 좌표 없이 addTo() 할 수 없다. 먼저 좌표를 주입한다.
+        .setLngLat(lngLat)
+        .addTo(map);
+      return;
+    }
+    temporaryPickMarkerRef.current.setLngLat(lngLat);
+  }, [mapRef]);
 
   /** 출발/도착 마커 */
   useEffect(() => {
@@ -176,6 +219,7 @@ export function useMapPinMarkers({
    * 하던 것과 **같은 범위·같은 순서**다.
    */
   const clearOnMapTeardown = useCallback(() => {
+    clearTemporaryPick();
     startMarkerRef.current?.remove();
     endMarkerRef.current?.remove();
     placeSearchMarkerRef.current?.remove();
@@ -185,7 +229,7 @@ export function useMapPinMarkers({
     endMarkerRef.current = null;
     placeSearchMarkerRef.current = null;
     waypointMarkersRef.current = [];
-  }, []);
+  }, [clearTemporaryPick]);
 
-  return { clearOnMapTeardown };
+  return { clearOnMapTeardown, showTemporaryPick, clearTemporaryPick };
 }

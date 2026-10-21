@@ -998,6 +998,57 @@
   border-radius: 10px;
 }
 
+/* 출발·도착 확정 직후 이동수단 선택을 안내한다. 세 버튼이 왼쪽부터 차례로
+ * 두 번씩만 강조되어, 선택이 끝난 뒤에는 조용한 상태로 돌아온다. */
+.map-view__pick--awaiting-profile .map-view__pick-btn--profile {
+  animation-duration: 3.72s;
+  animation-iteration-count: 1;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: both;
+}
+
+.map-view__pick--awaiting-profile .map-view__pick-btn--profile:nth-of-type(1) {
+  animation-name: map-view-route-profile-attention-1;
+}
+
+.map-view__pick--awaiting-profile .map-view__pick-btn--profile:nth-of-type(2) {
+  animation-name: map-view-route-profile-attention-2;
+}
+
+.map-view__pick--awaiting-profile .map-view__pick-btn--profile:nth-of-type(3) {
+  animation-name: map-view-route-profile-attention-3;
+}
+
+@keyframes map-view-route-profile-attention-1 {
+  0%, 16.66%, 50%, 66.66%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+  8.33%, 58.33% { transform: scale(1.14); box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.24); }
+}
+
+@keyframes map-view-route-profile-attention-2 {
+  0%, 16.66%, 33.33%, 66.66%, 83.33%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+  25%, 75% { transform: scale(1.14); box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.24); }
+}
+
+@keyframes map-view-route-profile-attention-3 {
+  0%, 33.33%, 50%, 83.33%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+  41.66%, 91.66% { transform: scale(1.14); box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.24); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-view__pick--awaiting-profile .map-view__pick-btn--profile {
+    animation: none;
+  }
+}
+
+.map-view__temporary-pick-marker {
+  pointer-events: none;
+  filter: drop-shadow(0 1px 3px rgba(15, 23, 42, 0.45));
+}
+
+.map-view .mapboxgl-marker.map-view__temporary-pick-marker-host {
+  z-index: 2;
+}
+
 .map-view__waypoint-marker {
   width: 26px;
   height: 26px;

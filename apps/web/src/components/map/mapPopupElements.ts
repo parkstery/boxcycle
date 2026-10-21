@@ -90,12 +90,15 @@ export function createLiveRiderMarkerRoot(): {
 }
 
 /** Mapbox 기본 핀 형태 — 흰 원 없이 핀 머리에 큰 흰색 S/E */
-export function createRouteEndpointPinEl(kind: "start" | "end"): HTMLDivElement {
-  const color = kind === "start" ? "#16a34a" : "#dc2626";
-  const letter = kind === "start" ? "S" : "E";
+export function createRouteEndpointPinEl(
+  kind: "start" | "end",
+  options: { color?: string; letter?: string | null; title?: string } = {},
+): HTMLDivElement {
+  const color = options.color ?? (kind === "start" ? "#16a34a" : "#dc2626");
+  const letter = options.letter === undefined ? (kind === "start" ? "S" : "E") : options.letter;
   const root = document.createElement("div");
   root.className = `map-view__route-pin map-view__route-pin--${kind}`;
-  root.title = kind === "start" ? "출발 (Start)" : "도착 (End)";
+  root.title = options.title ?? (kind === "start" ? "출발 (Start)" : "도착 (End)");
   root.setAttribute("aria-label", root.title);
 
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -120,24 +123,36 @@ export function createRouteEndpointPinEl(kind: "start" | "end"): HTMLDivElement 
   fill.setAttribute("fill", color);
   fill.setAttribute("d", pinPath);
 
-  const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  text.setAttribute("x", "13.5");
-  text.setAttribute("y", "14.5");
-  text.setAttribute("text-anchor", "middle");
-  text.setAttribute("dominant-baseline", "middle");
-  text.setAttribute("fill", "#ffffff");
-  text.setAttribute("font-size", "13");
-  text.setAttribute("font-weight", "800");
-  text.setAttribute("font-family", "system-ui, -apple-system, Segoe UI, sans-serif");
-  text.setAttribute("paint-order", "stroke fill");
-  text.setAttribute("stroke", "rgba(0,0,0,0.35)");
-  text.setAttribute("stroke-width", "0.6");
-  text.textContent = letter;
-
-  g.append(shadow, fill, text);
+  if (letter) {
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", "13.5");
+    text.setAttribute("y", "14.5");
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("dominant-baseline", "middle");
+    text.setAttribute("fill", "#ffffff");
+    text.setAttribute("font-size", "13");
+    text.setAttribute("font-weight", "800");
+    text.setAttribute("font-family", "system-ui, -apple-system, Segoe UI, sans-serif");
+    text.setAttribute("paint-order", "stroke fill");
+    text.setAttribute("stroke", "rgba(0,0,0,0.35)");
+    text.setAttribute("stroke-width", "0.6");
+    text.textContent = letter;
+    g.append(shadow, fill, text);
+  } else {
+    g.append(shadow, fill);
+  }
   svg.append(g);
   root.append(svg);
   return root;
+}
+
+/** 지도 클릭 직후의 임시 지점 — 출발/도착 핀과 같은 실루엣을 흰색으로 표시한다. */
+export function createTemporaryRoutePinEl(): HTMLDivElement {
+  return createRouteEndpointPinEl("start", {
+    color: "#ffffff",
+    letter: null,
+    title: "선택한 위치",
+  });
 }
 
 export function createWaypointMarkerEl(order: number): HTMLDivElement {
@@ -322,6 +337,9 @@ export function buildPickPopup(deps: {
   const pins = { start: initialHasStart, end: initialHasEnd };
   let selectedStart = initialStart;
   let currentProfile = routeProfile;
+  // routeProfile은 기본 이동수단일 뿐이다. 사용자가 버튼을 누르기 전에는
+  // 어떤 수단도 선택된 것처럼 보이지 않게 한다.
+  let profileChosen = false;
   const mapBridge = getDistanceAutoRouteMapBridge();
   let autoSessionActive = autoRouteSessionActive || mapBridge?.sessionActive || false;
   let distanceDirectionChecked =
@@ -378,6 +396,7 @@ export function buildPickPopup(deps: {
     pins.start = true;
     selectedStart = lngLat;
     syncProfileUi();
+    restartProfileAttention();
     syncAutoRouteUi();
     syncTokenUi();
     onRoutePanelActivated?.();
@@ -452,6 +471,7 @@ export function buildPickPopup(deps: {
     if (!pins.start) closePopup();
     else {
       syncProfileUi();
+      restartProfileAttention();
       syncAutoRouteUi();
       syncTokenUi();
     }
@@ -497,7 +517,6 @@ export function buildPickPopup(deps: {
     const pb = document.createElement("button");
     pb.type = "button";
     pb.className = "map-view__pick-btn map-view__pick-btn--profile";
-    if (profile === currentProfile) pb.classList.add("is-active");
     pb.innerHTML = PICK_POPUP_PROFILE_ICON_SVG[profile];
     pb.title =
       profile === "driving" ? "Route by car" : profile === "walking" ? "Route on foot" : "Route by bike";
@@ -505,6 +524,7 @@ export function buildPickPopup(deps: {
     pb.onclick = () => {
       if (!pins.start) return;
       currentProfile = profile;
+      profileChosen = true;
       profileButtons.forEach((item, index) => {
         item.classList.toggle("is-active", profileSpecs[index]?.profile === currentProfile);
       });
@@ -558,7 +578,9 @@ export function buildPickPopup(deps: {
     const autoGenerateOnProfile =
       manualRouteReady && onLocationTab && !distanceDirectionChecked;
     profileSection.hidden = !hasStart && !clearRouteBtn;
-    rowProfile.hidden = !hasStart;
+    // 위치 선택 화면에서는 출발·도착을 모두 확정한 뒤에만 이동수단을 노출한다.
+    // 거리 화면은 출발점만으로 방향 탐색을 준비할 수 있으므로 기존 동작을 유지한다.
+    rowProfile.hidden = !hasStart || (!pins.end && onLocationTab);
     if (clearRouteBtn) clearRouteBtn.hidden = false;
     wrap.classList.toggle("map-view__pick--awaiting-profile", manualRouteReady && onLocationTab);
     profileLabel.textContent = manualRouteReady && onLocationTab ? "경로 탐색 유형 선택" : "이동수단";
@@ -566,7 +588,7 @@ export function buildPickPopup(deps: {
     profileSpecs.forEach((spec, i) => {
       const pb = profileButtons[i];
       if (!pb) return;
-      pb.classList.toggle("is-active", spec.profile === currentProfile);
+      pb.classList.toggle("is-active", profileChosen && spec.profile === currentProfile);
       const blockProfile = autoGenerateOnProfile && tokenInsufficient;
       pb.disabled = blockProfile;
       pb.classList.toggle("is-disabled", blockProfile);
@@ -578,6 +600,13 @@ export function buildPickPopup(deps: {
             ? "Route on foot"
             : "Route by bike";
     });
+  }
+
+  function restartProfileAttention() {
+    if (!pins.start || !pins.end || routePickView !== "location") return;
+    wrap.classList.remove("map-view__pick--awaiting-profile");
+    void wrap.offsetWidth;
+    wrap.classList.add("map-view__pick--awaiting-profile");
   }
 
   function syncTokenUi() {

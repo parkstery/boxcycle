@@ -51,7 +51,7 @@ export function cadenceChipView(state: CadenceHudState, riding: boolean): Cadenc
   if (!state.capable) {
     return {
       led: "white",
-      pulsing: false,
+      pulsing: true,
       text: CHIP_IDLE_TEXT,
       ariaLabel: `${ARIA_PREFIX}: 지원 안 됨`,
     };
@@ -102,7 +102,7 @@ export function cadenceChipView(state: CadenceHudState, riding: boolean): Cadenc
         : "연결 안 됨";
   return {
     led: "white",
-    pulsing: false,
+    pulsing: true,
     text: riding ? CHIP_NO_SAMPLE_TEXT : CHIP_IDLE_TEXT,
     ariaLabel: `${ARIA_PREFIX}: ${ariaSuffix}`,
   };

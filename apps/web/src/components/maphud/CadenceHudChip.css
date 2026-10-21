@@ -87,18 +87,36 @@
  * 면적을 늘리는 셈이 된다(2026-09-16 Chief 지적으로 되돌림).
  */
 .hud-cadence--dock {
-  /* Go·저장·삭제를 밀거나 줄바꿈시키지 않는다 */
-  flex: 0 0 auto;
-  align-self: center;
-  gap: 0.3rem;
-  padding: 0 0.5rem;
+  position: fixed;
+  left: 50%;
+  bottom: max(env(safe-area-inset-bottom, 0px), 0.35rem);
+  transform: translateX(-50%);
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
   height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  backdrop-filter: none;
 }
 
 .hud-cadence--dock:hover,
 .hud-cadence--dock.hud-cadence--open {
-  background: var(--rtw-ui-surface-primary-soft);
-  border-color: var(--rtw-ui-primary);
+  background: transparent;
+  border-color: transparent;
+}
+
+.hud-cadence--dock .hud-cadence__text {
+  display: none;
+}
+
+.hud-cadence--dock .hud-cadence__led {
+  width: 0.7rem;
+  height: 0.7rem;
 }
 
 /*
@@ -108,10 +126,8 @@
  */
 @media (max-height: 560px) {
   .hud-cadence--dock {
-    gap: 0.2rem;
-    padding: 0 0.38rem;
-    height: 28px;
-    font-size: 11px;
+    height: 44px;
+    width: 44px;
   }
 }
 

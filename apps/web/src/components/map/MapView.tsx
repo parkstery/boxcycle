@@ -786,7 +786,11 @@ export function MapView({
   const [mapLoaded, setMapLoaded] = useState(false);
 
   /** 핀 마커(출발·도착·장소 검색·재개점·경유지) 생명주기 — A-5b 에서 훅으로 뽑았다. */
-  const { clearOnMapTeardown: clearPinMarkers } = useMapPinMarkers({
+  const {
+    clearOnMapTeardown: clearPinMarkers,
+    showTemporaryPick,
+    clearTemporaryPick,
+  } = useMapPinMarkers({
     mapRef,
     mapLoaded,
     startLngLat,
@@ -1612,7 +1616,10 @@ export function MapView({
         getWaypointCount: () => routeWaypointsRef.current.length,
         accessToken: accessToken.trim(),
         signal: ac.signal,
-        onSelectPoint: (type, lngLat, slot) => onSelectPointRef.current(type, lngLat, slot),
+        onSelectPoint: (type, lngLat, slot) => {
+          clearTemporaryPick();
+          onSelectPointRef.current(type, lngLat, slot);
+        },
         initialStart: startLngLatRef.current,
         routeProfile: routeProfileRef.current,
         onRouteProfile: (p) => onRouteProfileRef.current(p),
@@ -1766,6 +1773,7 @@ export function MapView({
       if (autoRouteMapPickRef.current === "direction") {
         return;
       }
+      showTemporaryPick(picked);
       openPickSurface(picked, event);
     });
 

@@ -24,11 +24,11 @@ function readiness(over: Partial<RideInputReadinessInput> = {}): RideInputReadin
 }
 
 describe("HUD 센서 칩 표시", () => {
-  it("미연결: 흰 LED + CAD", () => {
+  it("미연결: 점멸하는 흰 LED + CAD", () => {
     const v = cadenceChipView(hud(), false);
     assert.equal(v.led, "white");
     assert.equal(v.text, "SENSOR");
-    assert.equal(v.pulsing, false);
+    assert.equal(v.pulsing, true);
   });
 
   it("검색·연결 중: 흰 LED pulse, 텍스트 폭은 CAD 로 유지", () => {
@@ -60,17 +60,19 @@ describe("HUD 센서 칩 표시", () => {
     assert.equal(cadenceChipView(hud({ uiState: "connected", crankRpm: 71.6 }), true).text, "72 rpm");
   });
 
-  it("주행 중 단절/오류: 흰 LED + '-- rpm'", () => {
+  it("주행 중 단절/오류: 점멸하는 흰 LED + '-- rpm'", () => {
     for (const uiState of ["disconnected", "error"] as const) {
       const v = cadenceChipView(hud({ uiState, crankRpm: 60 }), true);
       assert.equal(v.led, "white", uiState);
+      assert.equal(v.pulsing, true, uiState);
       assert.equal(v.text, "-- rpm", uiState);
     }
   });
 
-  it("Web Bluetooth 미지원: 흰 LED + CAD", () => {
+  it("Web Bluetooth 미지원: 점멸하는 흰 LED + CAD", () => {
     const v = cadenceChipView(hud({ capable: false }), true);
     assert.equal(v.led, "white");
+    assert.equal(v.pulsing, true);
     assert.equal(v.text, "SENSOR");
   });
 

@@ -35,10 +35,9 @@
   cursor: pointer;
 }
 .ride-control-bar button:disabled { opacity: .45; cursor: not-allowed; }
-.ride-control-bar__profile { padding: 0 5px; font-size: 11px; }
 .ride-control-bar .hud-cadence { min-width: 48px; width: auto; height: 28px; padding: 0 5px; font-size: 11px; }
 .ride-control-bar .ride-control-bar__primary { background: var(--rtw-ui-primary-strong, #2563eb); color: #fff; }
-.ride-control-bar__primary--cue { animation: ride-control-ready 1s ease-in-out 3; }
+.ride-control-bar__primary--cue { animation: ride-control-ready 1s ease-in-out 5; }
 .ride-control-bar .ride-control-bar__end { border-left: 1px solid var(--rtw-ui-border-soft); border-radius: 0 6px 6px 0; }
 .ride-control-bar button:focus-visible { outline: 2px solid var(--rtw-ui-primary-strong, #2563eb); outline-offset: 1px; }
 .ride-control-bar__resume {
