@@ -45,6 +45,24 @@
   flex: 0 0 auto;
 }
 
+/* 펼친 미니맵의 실제 너비에 주소창의 좌우 끝을 맞춘다. */
+.map-bottom-left-stack:has(> .route-minimap:not(.route-minimap--collapsed))
+  > .route-dock-anchor:has(.route-dock__panel:not([hidden])) {
+  /* 주소의 intrinsic 폭은 스택 계산에서 빼고, 미니맵이 정한 폭만 따른다. */
+  width: 0;
+  min-width: 100%;
+}
+
+.map-bottom-left-stack:has(> .route-minimap:not(.route-minimap--collapsed))
+  > .route-dock-anchor .route-dock__body {
+  flex: 1 1 0;
+}
+
+.map-bottom-left-stack:has(> .route-minimap:not(.route-minimap--collapsed))
+  > .route-dock-anchor .route-dock__panel {
+  width: 100%;
+}
+
 /* 폰 가로 — 로고 여백 회수는 종전 dock 규칙과 같은 값 */
 @media (max-height: 560px) {
   .map-bottom-left-stack {
