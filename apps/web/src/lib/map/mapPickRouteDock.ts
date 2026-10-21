@@ -234,6 +234,7 @@ export const ROUTE_PICK_DOCK_HUD_SLOT_SELECTORS = [
 export const ROUTE_PICK_DOCK_HUD_SELECTORS = [
   ...ROUTE_PICK_DOCK_HUD_SLOT_SELECTORS,
   ".route-dock-anchor",
+  ".ride-control-anchor",
   ".map-view__nav-control-wrap",
   ".elevation-overlay",
   "[data-route-pick-dock-reserved]",

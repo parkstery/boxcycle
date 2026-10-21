@@ -333,21 +333,7 @@ export function buildPickPopup(deps: {
    */
   let routePickView: "location" | "distance" =
     pins.start && (distanceDirectionChecked || autoSessionActive) ? "distance" : "location";
-  /*
-   * 지시38 — 중심 화면은 routePickView로 유지, 보조 영역 펼침 boolean 하나 추가.
-   * 초기 location이면 위치만, distance/재개이면 거리만. 이후 mode/토큰/status 갱신은
-   * 펼침을 리셋하지 않는다. 단 prerequisite(Start 없음)는 위치 필수 상태로 복귀.
-   */
-  let routePickAuxExpanded = false;
-
-  /* 지시62 — 얇은 단일 캐럿 SVG. 12×6px가 20×14 svg 중앙. 보이는 텍스트 0, stroke 파랑. */
-  const PICK_CARET_SVG_ATTRS =
-    `class="map-view__pick-caret-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 14" fill="none" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="20" height="14"`;
-  const PICK_CARET_DOWN_SVG =
-    `<svg ${PICK_CARET_SVG_ATTRS}><path d="M4 4 10 10 16 4"/></svg>`;
-  const PICK_CARET_UP_SVG =
-    `<svg ${PICK_CARET_SVG_ATTRS}><path d="M4 10 10 4 16 10"/></svg>`;
-
+  /** 지시09 — 탭으로 location/distance 상호배타. 탭 전환은 핀·거리·수단·경로를 유지한다. */
   function getRouteStart(): LngLat | null {
     const armed = getDistanceAutoRouteMapBridge()?.getArmedStart?.() ?? null;
     return armed ?? selectedStart ?? initialStart;
@@ -366,6 +352,12 @@ export function buildPickPopup(deps: {
   const metaEl = document.createElement("div");
   metaEl.className = "map-view__pick-meta";
   metaEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} · 고도 …`;
+  const metaDetails = document.createElement("details");
+  metaDetails.className = "map-view__pick-meta-details";
+  const metaSummary = document.createElement("summary");
+  metaSummary.className = "map-view__pick-meta-summary";
+  metaSummary.textContent = "자세히";
+  metaDetails.append(metaSummary, metaEl);
 
   const pinRow = document.createElement("div");
   pinRow.className = "map-view__pick-actions map-view__pick-actions--pin-row";
@@ -373,9 +365,9 @@ export function buildPickPopup(deps: {
   const startBtn = document.createElement("button");
   startBtn.type = "button";
   startBtn.className = "map-view__pick-btn map-view__pick-btn--start";
-  startBtn.textContent = "Start";
-  startBtn.title = "Set as start";
-  startBtn.setAttribute("aria-label", "Set start");
+  startBtn.textContent = "출발";
+  startBtn.title = "출발 지점으로 설정";
+  startBtn.setAttribute("aria-label", "출발 지점으로 설정");
   startBtn.onclick = () => {
     onClearAutoRouteClickDebugMarker?.();
     if (distanceDirectionChecked) {
@@ -391,36 +383,66 @@ export function buildPickPopup(deps: {
     onRoutePanelActivated?.();
   };
 
-  const wpSlots: (0 | 1 | 2)[] = [0, 1, 2];
-  const initialCount = getWaypointCount();
-  const wpButtons: HTMLButtonElement[] = [];
-  for (const slot of wpSlots) {
+  const wpSlotHost = document.createElement("div");
+  wpSlotHost.className = "map-view__pick-wp-slots";
+
+  const addWpBtn = document.createElement("button");
+  addWpBtn.type = "button";
+  addWpBtn.className = "map-view__pick-btn map-view__pick-btn--add-wp";
+  addWpBtn.textContent = "+경유지";
+  addWpBtn.setAttribute("aria-label", "경유지 추가");
+
+  function mountWaypointBtn(slot: 0 | 1 | 2): HTMLButtonElement {
+    const count = getWaypointCount();
     const wpBtn = document.createElement("button");
     wpBtn.type = "button";
     wpBtn.className = "map-view__pick-btn map-view__pick-btn--wp";
-    wpBtn.textContent = `WP${slot + 1}`;
-    const enabled = isWaypointSlotEnabled(initialCount, slot);
-    wpBtn.disabled = !enabled;
-    wpBtn.title = waypointSlotTitle(slot, initialCount);
-    wpBtn.setAttribute("aria-label", `Waypoint ${slot + 1} (WP${slot + 1})`);
+    wpBtn.textContent = `경유${slot + 1}`;
+    wpBtn.disabled = !isWaypointSlotEnabled(count, slot);
+    wpBtn.title = waypointSlotTitle(slot, count);
+    wpBtn.setAttribute("aria-label", `경유지 ${slot + 1}`);
     wpBtn.onclick = () => {
-      const count = getWaypointCount();
-      if (!isWaypointSlotEnabled(count, slot)) return;
+      const liveCount = getWaypointCount();
+      if (!isWaypointSlotEnabled(liveCount, slot)) return;
       if (distanceDirectionChecked) {
         applyDistanceDirectionMode(false);
       }
       onSelectPoint("waypoint", lngLat, slot);
       closePopup();
     };
-    wpButtons.push(wpBtn);
+    return wpBtn;
   }
+
+  function syncWaypointPinRow() {
+    const count = getWaypointCount();
+    wpSlotHost.replaceChildren();
+    for (let slot = 0; slot < count; slot++) {
+      wpSlotHost.appendChild(mountWaypointBtn(slot as 0 | 1 | 2));
+    }
+    if (count < MAX_ROUTE_WAYPOINTS) {
+      addWpBtn.disabled = false;
+      wpSlotHost.appendChild(addWpBtn);
+    }
+  }
+
+  addWpBtn.onclick = () => {
+    const count = getWaypointCount();
+    if (count >= MAX_ROUTE_WAYPOINTS) return;
+    const slot = count as 0 | 1 | 2;
+    if (!isWaypointSlotEnabled(count, slot)) return;
+    if (distanceDirectionChecked) {
+      applyDistanceDirectionMode(false);
+    }
+    onSelectPoint("waypoint", lngLat, slot);
+    closePopup();
+  };
 
   const endBtn = document.createElement("button");
   endBtn.type = "button";
   endBtn.className = "map-view__pick-btn map-view__pick-btn--end";
-  endBtn.textContent = "End";
-  endBtn.title = "Set as end";
-  endBtn.setAttribute("aria-label", "Set end");
+  endBtn.textContent = "도착";
+  endBtn.title = "도착 지점으로 설정";
+  endBtn.setAttribute("aria-label", "도착 지점으로 설정");
   endBtn.onclick = () => {
     if (distanceDirectionChecked) {
       applyDistanceDirectionMode(false);
@@ -435,13 +457,16 @@ export function buildPickPopup(deps: {
     }
   };
 
-  pinRow.append(startBtn, wpButtons[0]!, wpButtons[1]!, wpButtons[2]!, endBtn);
+  pinRow.append(startBtn, wpSlotHost, endBtn);
+  syncWaypointPinRow();
 
   /* 지시38 — 위치 화면. pinRow가 profileSection보다 앞(profileSection은 아래에서 붙는다). */
   const routeLocationView = document.createElement("div");
   routeLocationView.className =
     "map-view__pick-route-view map-view__pick-route-view--location";
   routeLocationView.id = "map-view-pick-location-view";
+  routeLocationView.setAttribute("role", "tabpanel");
+  routeLocationView.setAttribute("aria-labelledby", "map-view-pick-tab-location");
   routeLocationView.append(pinRow);
 
   const profileSection = document.createElement("div");
@@ -483,20 +508,28 @@ export function buildPickPopup(deps: {
       profileButtons.forEach((item, index) => {
         item.classList.toggle("is-active", profileSpecs[index]?.profile === currentProfile);
       });
-      /* 지시34 — 거리 화면 요약을 실제 수단과 동기화한다. */
       syncRoutePickView();
-      const manualRouteReady = pins.start && pins.end && !distanceDirectionChecked;
-      if (manualRouteReady) {
-        if (getRouteTokenInsufficient?.()) return;
-        tokenFeedback.setRoutePending(true);
-        onRouteProfile(profile);
-      } else {
-        onSetRouteProfileOnly?.(profile);
-      }
+      // A generated route keeps its actual profile until explicit regeneration.
+      if (!pins.end) onSetRouteProfileOnly?.(profile);
+      if (routePickView === "distance" && distanceDirectionChecked) tryArmDirectionPickIfChecked();
     };
     profileButtons.push(pb);
     rowProfile.appendChild(pb);
   }
+
+  const createRouteBtn = document.createElement("button");
+  createRouteBtn.type = "button";
+  createRouteBtn.className = "map-view__pick-btn map-view__pick-btn--create-route";
+  createRouteBtn.textContent = "경로 생성";
+  createRouteBtn.setAttribute("aria-label", "출발·도착 경로 생성");
+  createRouteBtn.onclick = () => {
+    const manualRouteReady = pins.start && pins.end && !distanceDirectionChecked;
+    if (!manualRouteReady) return;
+    if (getRouteTokenInsufficient?.()) return;
+    tokenFeedback.setRoutePending(true);
+    onRouteProfile(currentProfile);
+  };
+  createRouteBtn.addEventListener("pointerdown", (event) => event.stopPropagation());
 
   /*
    * 재지시35 — 공통 삭제. 전용 변수에 보관하고 DOM은 profile row에 두지 않는다.
@@ -539,28 +572,20 @@ export function buildPickPopup(deps: {
       const pb = profileButtons[i];
       if (!pb) return;
       pb.classList.toggle("is-active", spec.profile === currentProfile);
-      if (!manualRouteReady) {
-        pb.disabled = false;
-        pb.classList.remove("is-disabled");
-        pb.title =
-          spec.profile === "driving"
-            ? "Route by car"
-            : spec.profile === "walking"
-              ? "Route on foot"
-              : "Route by bike";
-        return;
-      }
-      const tokenInsufficient = Boolean(getRouteTokenInsufficient?.());
-      pb.disabled = tokenInsufficient;
-      pb.classList.toggle("is-disabled", tokenInsufficient);
-      pb.title = tokenInsufficient
-        ? ROUTE_TOKEN_INSUFFICIENT_HINT
-        : spec.profile === "driving"
+      pb.disabled = false;
+      pb.classList.remove("is-disabled");
+      pb.title =
+        spec.profile === "driving"
           ? "Route by car"
           : spec.profile === "walking"
             ? "Route on foot"
             : "Route by bike";
     });
+    const tokenInsufficient = Boolean(getRouteTokenInsufficient?.());
+    createRouteBtn.hidden = !manualRouteReady;
+    createRouteBtn.disabled = !manualRouteReady || tokenInsufficient;
+    createRouteBtn.classList.toggle("is-disabled", createRouteBtn.disabled);
+    createRouteBtn.title = tokenInsufficient ? ROUTE_TOKEN_INSUFFICIENT_HINT : "출발·도착으로 경로 탐색";
   }
 
   function syncTokenUi() {
@@ -571,23 +596,15 @@ export function buildPickPopup(deps: {
     tokenFeedback.setRouteStartPinned(pins.start);
   }
 
-  profileSection.append(rowProfile);
+  profileSection.append(rowProfile, createRouteBtn);
   syncProfileUi();
   syncTokenUi();
 
   const autoRouteSection = document.createElement("div");
   autoRouteSection.className = "map-view__pick-auto-route";
   autoRouteSection.id = "map-view-pick-distance-view";
-
-  /*
-   * 지시38 — 한 개의 캐럿 disclosure 행. 두 패널 사이 비drag 영역에 둔다.
-   * 보이는 텍스트 0, 현재 행 16.8px 투명 영역, Enter/Space 네이티브 button.
-   */
-  const routePickCaret = document.createElement("button");
-  routePickCaret.type = "button";
-  routePickCaret.className = "map-view__pick-caret";
-  routePickCaret.innerHTML = PICK_CARET_DOWN_SVG;
-  routePickCaret.setAttribute("aria-expanded", "false");
+  autoRouteSection.setAttribute("role", "tabpanel");
+  autoRouteSection.setAttribute("aria-labelledby", "map-view-pick-tab-distance");
 
   let targetKm = autoRouteTargetKm;
 
@@ -805,27 +822,26 @@ export function buildPickPopup(deps: {
     tryArmDirectionPickIfChecked();
   }
 
-  function setRoutePickAuxExpanded(next: boolean) {
-    if (routePickView === "location") {
-      if (next === routePickAuxExpanded && distanceDirectionChecked === next) {
-        syncRoutePickView();
-        return;
-      }
-      routePickAuxExpanded = next;
-      applyDistanceDirectionMode(next);
-      return;
-    }
-    if (routePickAuxExpanded === next) {
-      syncRoutePickView();
-      return;
-    }
-    routePickAuxExpanded = next;
-    syncRoutePickView();
+  function pauseDistancePickForTabSwitch() {
+    distanceDirectionChecked = false;
+    getDistanceAutoRouteMapBridge()?.setDistanceDirectionMode?.(false);
+    onClearDistanceAutoRouteCircle?.();
+    onClearAutoRouteClickDebugMarker?.();
+    syncDistanceModeUi();
   }
 
-  routePickCaret.onclick = () => {
-    setRoutePickAuxExpanded(!routePickAuxExpanded);
-  };
+  function setRoutePickTab(next: "location" | "distance") {
+    if (routePickView === next) return;
+    if (routePickView === "distance") {
+      pauseDistancePickForTabSwitch();
+    }
+    routePickView = next;
+    syncRoutePickView();
+    syncProfileUi();
+    if (routePickView === "distance" && pins.start) {
+      applyDistanceDirectionMode(true);
+    }
+  }
 
   function tryArmDirectionPickIfChecked() {
     if (!distanceDirectionChecked) return;
@@ -947,68 +963,94 @@ export function buildPickPopup(deps: {
    * 작은 출발 요약. 실제 currentProfile과 동기화하고, 클릭 지점 주소를
    * 출발 주소로 오표시하지 않는다(출발 설정 여부·수단만).
    */
+  const distanceStartHint = document.createElement("p");
+  distanceStartHint.className = "map-view__pick-route-distance-prereq";
+  distanceStartHint.textContent = "출발·도착 탭에서 출발을 지정하면 거리·방향을 설정할 수 있습니다.";
+
+  const distanceMapPickHint = document.createElement("p");
+  distanceMapPickHint.className = "map-view__pick-distance-map-hint";
+  distanceMapPickHint.textContent = "지도에서 방향을 탭하면 경로가 생성됩니다.";
+
   const routeDistanceSummary = document.createElement("p");
   routeDistanceSummary.className = "map-view__pick-route-distance-summary";
   routeDistanceSummary.setAttribute("aria-live", "polite");
-  autoRouteSection.append(routeDistanceSummary);
-  autoRouteSection.append(distanceRow, autoRouteStatusSlot);
+  autoRouteSection.append(
+    distanceStartHint,
+    distanceMapPickHint,
+    routeDistanceSummary,
+    distanceRow,
+    autoRouteStatusSlot,
+  );
 
-  /*
-   * 지시38 — 중심+펼침 동기화. 관련 hidden/캐럿/요약을 한 곳에서 갱신한다.
-   * 화면 전환·펼침은 값을 초기화하지 않는다(핀·목표거리·수단·토큰·검색/오류 상태 유지).
-   * DOM 순서: dragHandle, routeLocationView, 캐럿 행, autoRouteSection.
-   * location 기본 동반 거리 hidden, distance 기본 동반 위치 hidden. 펼침 시 둘 다 표시,
-   * 공통 header/삭제/주소/수단 중복 없음. 주소/meta는 위치 영역 표시 때만 표시.
-   * 함수 선언이라 호이스팅되고, 첫 호출은 아래 초기 동기화(모든 DOM 정의 뒤)다.
-   */
-  function syncPickCaretUi() {
-    const expanded = routePickAuxExpanded;
-    routePickCaret.setAttribute("aria-expanded", String(expanded));
-    if (routePickView === "location") {
-      routePickCaret.setAttribute(
-        "aria-label",
-        expanded ? "거리 선택 컨트롤 접기" : "거리 선택 컨트롤 펼치기",
-      );
-      routePickCaret.setAttribute("aria-controls", autoRouteSection.id);
-      routePickCaret.innerHTML = expanded ? PICK_CARET_UP_SVG : PICK_CARET_DOWN_SVG;
-    } else {
-      routePickCaret.setAttribute(
-        "aria-label",
-        expanded ? "위치 선택 컨트롤 접기" : "위치 선택 컨트롤 펼치기",
-      );
-      routePickCaret.setAttribute("aria-controls", routeLocationView.id);
-      routePickCaret.innerHTML = expanded ? PICK_CARET_DOWN_SVG : PICK_CARET_UP_SVG;
+  const routePickTabs = document.createElement("div");
+  routePickTabs.className = "map-view__pick-route-tabs";
+  routePickTabs.setAttribute("role", "tablist");
+  routePickTabs.setAttribute("aria-label", "경로 생성 방식");
+
+  const tabLocation = document.createElement("button");
+  tabLocation.type = "button";
+  tabLocation.className = "map-view__pick-route-tab";
+  tabLocation.id = "map-view-pick-tab-location";
+  tabLocation.setAttribute("role", "tab");
+  tabLocation.textContent = "출발·도착";
+  tabLocation.setAttribute("aria-controls", routeLocationView.id);
+
+  const tabDistance = document.createElement("button");
+  tabDistance.type = "button";
+  tabDistance.className = "map-view__pick-route-tab";
+  tabDistance.id = "map-view-pick-tab-distance";
+  tabDistance.setAttribute("role", "tab");
+  tabDistance.textContent = "거리·방향";
+  tabDistance.setAttribute("aria-controls", autoRouteSection.id);
+
+  tabLocation.onclick = () => setRoutePickTab("location");
+  tabDistance.onclick = () => setRoutePickTab("distance");
+  routePickTabs.addEventListener("keydown", (event) => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight" && event.key !== "Home" && event.key !== "End") {
+      return;
     }
-  }
+    event.preventDefault();
+    if (event.key === "Home" || event.key === "ArrowLeft") {
+      setRoutePickTab("location");
+      tabLocation.focus();
+      return;
+    }
+    setRoutePickTab("distance");
+    tabDistance.focus();
+  });
+  routePickTabs.append(tabLocation, tabDistance);
 
   function syncRoutePickView() {
-    const inDistance = routePickView === "distance";
-    const locationVisible = !inDistance || routePickAuxExpanded;
-    const distanceVisible = inDistance || routePickAuxExpanded;
-    routeLocationView.hidden = !locationVisible;
-    autoRouteSection.hidden = !distanceVisible;
-    addressEl.hidden = !locationVisible;
-    metaEl.hidden = !locationVisible;
-    const available = pins.start && typeof onArmDirectionPick === "function";
-    /* prerequisite 없으면 캐럿 자체를 숨긴다(위치 필수 상태). */
-    routePickCaret.hidden = !available;
-    routeDistanceSummary.textContent = `출발 설정됨 · ${ROUTE_PROFILE_KO[currentProfile]}`;
-    syncPickCaretUi();
+    const onLocation = routePickView === "location";
+    routeLocationView.hidden = !onLocation;
+    autoRouteSection.hidden = onLocation;
+    tabLocation.setAttribute("aria-selected", String(onLocation));
+    tabDistance.setAttribute("aria-selected", String(!onLocation));
+    tabLocation.tabIndex = onLocation ? 0 : -1;
+    tabDistance.tabIndex = onLocation ? -1 : 0;
+    tabLocation.classList.toggle("is-active", onLocation);
+    tabDistance.classList.toggle("is-active", !onLocation);
+    distanceStartHint.hidden = pins.start || onLocation;
+    distanceMapPickHint.hidden = !pins.start || onLocation;
+    distanceRow.hidden = !pins.start;
+    autoRouteStatusSlot.hidden = !pins.start;
+    routeDistanceSummary.hidden = !pins.start || onLocation;
+    routeDistanceSummary.textContent = pins.start
+      ? `출발 설정됨 · ${ROUTE_PROFILE_KO[currentProfile]}`
+      : "";
+    wrap.classList.toggle("map-view__pick--route-tab-distance", !onLocation);
   }
 
   function syncAutoRouteUi() {
     const available = pins.start && typeof onArmDirectionPick === "function";
-    /* 출발 전제 없으면 위치 필수 상태로 복귀 — 펼침도 정리, 상태만 idle 정리. */
     if (!available) {
       routePickView = "location";
-      routePickAuxExpanded = false;
       distanceDirectionChecked = false;
       getDistanceAutoRouteMapBridge()?.setDistanceDirectionMode?.(false);
       modeCheckbox.checked = false;
       setInlinePhase("idle");
       onClearDistanceAutoRouteCircle?.();
     }
-    /* 사용자 값(핀·목표거리·수단)은 리셋하지 않는다 — 전제 정리와 뷰 동기화만 다룬다. */
     syncRoutePickView();
   }
   syncAutoRouteUi();
@@ -1045,11 +1087,10 @@ export function buildPickPopup(deps: {
   headerRow.className = "map-view__pick-header-row";
   headerRow.append(tokenSection);
   if (clearRouteBtn) headerRow.append(clearRouteBtn);
-  dragHandle.append(headerRow, addressEl, metaEl);
+  dragHandle.append(headerRow, addressEl, metaDetails);
 
-  /* 지시38 — wrap 순서 dragHandle, routeLocationView(pinRow → profileSection), 캐럿 행, autoRouteSection. */
-  routeLocationView.append(profileSection);
-  wrap.append(dragHandle, routeLocationView, routePickCaret, autoRouteSection);
+  /* 지시09 — wrap: dragHandle, 탭, 한쪽 패널만, 공통 이동수단·경로 생성. */
+  wrap.append(dragHandle, routePickTabs, routeLocationView, autoRouteSection, profileSection);
 
   const token = accessToken.trim();
   if (token.length > 0) {
@@ -1108,7 +1149,6 @@ export function buildPickPopup(deps: {
     } else {
       routePickView = "location";
     }
-    routePickAuxExpanded = false;
     syncDistanceModeUi();
     syncAutoRouteUi();
     syncProfileUi();

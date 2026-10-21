@@ -18,6 +18,7 @@ import {
 import { AppMapStage, RouteMinimap, useAppMapOverlays } from "./features/map-overlays";
 import { resolveOpenTrailsListenerEnabled } from "./features/map-overlays/listenerScopePolicy";
 import { RouteDock, useRouteDockStops, type RouteDockStop, type RouteDockStopId } from "./components/route-dock";
+import { RideControlBar } from "./components/ride/RideControlBar";
 import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
 import type { MapViewportBounds } from "./lib/activity/activityWorldLod";
 import { armPostRideActivityWatch } from "./lib/activity/activityWorldPollSignals";
@@ -2004,10 +2005,11 @@ export default function App() {
   const handleSetRouteProfileOnly = useCallback(
     (p: RouteProfile) => {
       if (routeMenuLockedForProd) return;
-      setProfile(p);
+      // Selecting a draft must not relabel a route that has not been regenerated.
+      if (!routeGeometry) setProfile(p);
       setAutoRouteProfile(p);
     },
-    [routeMenuLockedForProd, setProfile, setAutoRouteProfile],
+    [routeMenuLockedForProd, routeGeometry, setProfile, setAutoRouteProfile],
   );
 
   const handleMapRouteProfile = useCallback(
@@ -2772,6 +2774,17 @@ export default function App() {
       stage={stage}
       stops={routeDockStops}
       routeLoading={routeLoading}
+      onRemoveStop={handleRemoveRouteDockStop}
+      onFocusStop={handleFocusRouteDockStop}
+      editLocked={routeMenuLockedForProd}
+    />
+  );
+
+  const rideControlPanel = (
+    <RideControlBar
+      stage={stage}
+      profile={profile}
+      routeLoading={routeLoading}
       routeSetupToken={routeSetupToken}
       canStartRide={canStartRideWithInput}
       sensorAttention={Boolean(routeGeometry) && !routeLoading && !rideInputReady}
@@ -2779,12 +2792,12 @@ export default function App() {
       onPauseRide={handlePause}
       onResumeRide={handleResume}
       onEndRide={handleEndRideWithTrailCleanup}
+      onModifyFromPause={handleModifyFromPause}
       resumeRatio={resumeRatio}
       onAbandonResume={resumeRatio != null ? rideResumeSlot.abandon : null}
-      onRemoveStop={handleRemoveRouteDockStop}
-      onFocusStop={handleFocusRouteDockStop}
       editLocked={routeMenuLockedForProd}
       cadence={cadenceHud}
+      nextRideVisible={Boolean(nextRideCardVisible && nextRideView)}
     />
   );
 
@@ -3074,6 +3087,7 @@ export default function App() {
                   (`.map-hud__br`)은 주행 중에만 뜨므로 우하단에서 부딪힐 상대가 없다.
                 */}
                 {nextRideCard}
+                {rideControlPanel}
               </>
             }
             mapView={{
@@ -3185,9 +3199,11 @@ export default function App() {
               onArmDirectionPick: (input) => {
                 const result = armDirectionPick(input);
                 if (result.ok) {
-                  setStartLngLat(input.start);
-                  setProfile(input.profile);
-                  setActiveOfficialCourseId(null);
+                  // Preparing a direction is not a generated route or a publication change.
+                  if (!routeGeometry) {
+                    setStartLngLat(input.start);
+                    setProfile(input.profile);
+                  }
                   setPlaceSearchMarkerLngLat(null);
                 }
                 return result;

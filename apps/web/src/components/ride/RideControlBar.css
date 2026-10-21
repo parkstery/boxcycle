@@ -1,0 +1,67 @@
+.ride-control-anchor {
+  position: absolute;
+  right: max(4px, env(safe-area-inset-right, 0px));
+  bottom: calc(max(clamp(.45rem, 1.4vw, .85rem), env(safe-area-inset-bottom, 0px)) + var(--br-clock-above-scale, 26px) + var(--br-clock-height, 16px) + 4px);
+  z-index: 7;
+  max-width: calc(100% - 8px);
+  pointer-events: none;
+}
+.ride-control-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  width: max-content;
+  max-width: 100%;
+  min-height: 32px;
+  box-sizing: border-box;
+  border: 1px solid var(--rtw-ui-border-soft);
+  border-radius: 9px;
+  background: var(--rtw-ui-surface, #fff);
+  color: var(--rtw-ui-ink, #172238);
+  box-shadow: 0 1px 5px #0002;
+  pointer-events: auto;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.ride-control-bar button {
+  height: 28px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.ride-control-bar button:disabled { opacity: .45; cursor: not-allowed; }
+.ride-control-bar__profile { padding: 0 5px; font-size: 11px; }
+.ride-control-bar .hud-cadence { min-width: 48px; width: auto; height: 28px; padding: 0 5px; font-size: 11px; }
+.ride-control-bar .ride-control-bar__primary { background: var(--rtw-ui-primary-strong, #2563eb); color: #fff; }
+.ride-control-bar__primary--cue { animation: ride-control-ready 1s ease-in-out 3; }
+.ride-control-bar .ride-control-bar__end { border-left: 1px solid var(--rtw-ui-border-soft); border-radius: 0 6px 6px 0; }
+.ride-control-bar button:focus-visible { outline: 2px solid var(--rtw-ui-primary-strong, #2563eb); outline-offset: 1px; }
+.ride-control-bar__resume {
+  pointer-events: auto;
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 4px);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px;
+  border: 1px solid var(--rtw-ui-border-soft);
+  border-radius: 8px;
+  background: var(--rtw-ui-surface, #fff);
+  color: var(--rtw-ui-ink, #172238);
+  font-size: 11px;
+}
+.ride-control-bar__resume label { display: flex; align-items: center; gap: 4px; min-height: 24px; }
+.ride-control-bar__resume button { font: inherit; padding: 4px 7px; }
+.ride-control-bar__resume-close { align-self: flex-end; }
+/* Next-ride is idle-only. Keep its card above the sensor-only bar, never behind it. */
+.app-shell--map-first:has(.ride-control-anchor--with-next) .next-ride-anchor {
+  bottom: calc(max(clamp(.45rem, 1.4vw, .85rem), env(safe-area-inset-bottom, 0px)) + var(--br-clock-above-scale, 26px) + var(--br-clock-height, 16px) + 42px);
+}
+@keyframes ride-control-ready { 50% { box-shadow: 0 0 0 2px #2563eb55; } }
+@media (prefers-reduced-motion: reduce) { .ride-control-bar__primary--cue { animation: none; } }

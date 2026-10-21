@@ -10,7 +10,7 @@ import type { EdgeSide } from "./EdgePanelHandle";
 export const EDGE_GESTURE_BAND_PX = 20;
 
 const YIELD_SELECTOR =
-  "button, a, input, select, textarea, [role='button'], .mapboxgl-control, .mapboxgl-ctrl, .mapboxgl-ctrl-group, .route-dock-anchor";
+  "button, a, input, select, textarea, [role='button'], .mapboxgl-control, .mapboxgl-ctrl, .mapboxgl-ctrl-group, .route-dock-anchor, .ride-control-anchor";
 
 type EdgeCallbacks = {
   openDir: number;
@@ -28,6 +28,8 @@ type ActiveSession = {
   reject: boolean;
   captureEl: Element;
   callbacks: EdgeCallbacks;
+  viewportWidth: number;
+  viewportHeight: number;
 };
 
 let session: ActiveSession | null = null;
@@ -107,14 +109,15 @@ function onDocumentPointerEnd(e: PointerEvent) {
   if (!session || session.pointerId !== e.pointerId) return;
   e.preventDefault();
   e.stopPropagation();
-  const { start, callbacks, dragged, reject } = session;
+  const { start, callbacks, dragged, reject, viewportWidth, viewportHeight } = session;
+  const viewportChanged = viewportWidth !== window.innerWidth || viewportHeight !== window.innerHeight;
   const along = (e.clientX - start.x) * callbacks.openDir;
   const dt = e.timeStamp - start.t;
   if (dragged) blockFollowupClick();
   clearSession();
 
   if (!dragged) return;
-  if (reject || along <= 0) return;
+  if (reject || viewportChanged || along <= 0) return;
   if (shouldCommitAxisGesture(along, dt)) callbacks.onOpen();
   else callbacks.onClose();
 }
@@ -188,6 +191,8 @@ export function tryStartEdgeGesture(
     reject: false,
     captureEl,
     callbacks,
+    viewportWidth: window.innerWidth,
+    viewportHeight: window.innerHeight,
   };
 
   try {

@@ -213,9 +213,6 @@ export function MapHud(props: MapHudProps) {
     metrics,
     onClearPins,
     routeError,
-    onResumeFromPause,
-    onEndFromPause,
-    onModifyFromPause,
     ridePresence,
     weatherHint,
     conquestLiveMeters,
@@ -309,7 +306,7 @@ export function MapHud(props: MapHudProps) {
     !isSummary &&
     (riding || paused || metrics.mode === "route-preview");
   const showCoach = coachLineEnabled && coachData !== null && (riding || paused);
-  const showMc = paused || (stage === "setup" && Boolean(routeError));
+  const showMc = stage === "setup" && Boolean(routeError);
 
   const companionCopy =
     ridePresence != null
@@ -334,7 +331,6 @@ export function MapHud(props: MapHudProps) {
       className={`map-hud${activeRide ? " map-hud--active-ride" : ""}`}
       aria-label="라이딩 HUD"
     >
-      {paused ? <div className="map-hud__scrim" aria-hidden /> : null}
 
       {showMenuTrigger ? (
         <button
@@ -685,37 +681,6 @@ export function MapHud(props: MapHudProps) {
             </div>
           ) : null}
 
-          {paused ? (
-            <div className="hud-action" role="region" aria-label="일시정지">
-              <p className="hud-action__title">일시정지</p>
-              <div className="hud-action__row">
-                <button
-                  type="button"
-                  className="hud-action__btn hud-action__btn--primary"
-                  title="Resume"
-                  onClick={onResumeFromPause}
-                >
-                  재개
-                </button>
-                <button
-                  type="button"
-                  className="hud-action__btn"
-                  title="Edit route"
-                  onClick={onModifyFromPause}
-                >
-                  변경
-                </button>
-                <button
-                  type="button"
-                  className="hud-action__btn hud-action__btn--danger"
-                  title="End ride"
-                  onClick={onEndFromPause}
-                >
-                  종료
-                </button>
-              </div>
-            </div>
-          ) : null}
         </div>
       ) : null}
 

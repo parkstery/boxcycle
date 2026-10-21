@@ -88,7 +88,10 @@ test('시작·센서·접기는 조작 가능하고 시작→정지→재개→�
     expect(r!.height).toBeGreaterThanOrEqual(26);
     expect(await locator.evaluate(el=>{const r=el.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit===el||el.contains(hit);})).toBeTruthy();
   }
-  expect((await page.locator('.route-dock__go-label').boundingBox())!.height).toBeLessThanOrEqual(18);
+  expect((await page.locator('.ride-control-bar').boundingBox())!.height).toBeLessThanOrEqual(36);
+  await page.getByRole('button',{name:'경로 패널 접기'}).click();
+  await expect(page.getByRole('button',{name:'주행 시작',exact:true})).toBeVisible();
+  await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
   await page.getByRole('button',{name:'주행 시작',exact:true}).click();
   await expect(page.locator('.audit-world')).toHaveAttribute('data-ui-stage','riding');
   await page.getByRole('button',{name:'일시정지',exact:true}).click();
@@ -97,6 +100,7 @@ test('시작·센서·접기는 조작 가능하고 시작→정지→재개→�
   await expect(page.locator('.audit-world')).toHaveAttribute('data-ui-stage','riding');
   await page.getByRole('button',{name:'주행 종료',exact:true}).click();
   await expect(page.getByRole('region',{name:'주행 결과'})).toBeVisible();
+  await expect(page.locator('.ride-control-bar')).toHaveCount(0);
 });
 
 test('맵과 주행 설정의 기본 표면은 사용자 언어와 명시적 닫기를 제공한다', async ({page}) => {
@@ -186,7 +190,7 @@ test('좌우 에지 띠는 20px·화면0에 붙고 안쪽 드래그로만 열린
     expect(r.width).toBeLessThanOrEqual(21);
     if(side==='left') expect(r.x).toBeLessThanOrEqual(0.5);
     else expect(r.x+r.width).toBeGreaterThanOrEqual(799);
-    const x=side==='left'?10:790,y=280,dir=side==='left'?1:-1;
+    const x=side==='left'?10:790,y=155,dir=side==='left'?1:-1;
     await page.mouse.move(x,y);await page.mouse.down();
     await page.mouse.move(x+dir*(side==='left'?36:80),y,{steps:8});
     const selector=side==='left'?'.menu-panel':'.map-view-sheet__panel';
@@ -214,7 +218,7 @@ test('포커스 대안·짧은/반대 드래그 취소가 동작한다',async({p
   await page.keyboard.press('Escape');
   for(const side of ['left','right'] as const){
     for(const movement of [{dx:24,dy:0},{dx:-24,dy:0},{dx:0,dy:24}]){
-      const x=side==='left'?10:790,y=280;
+      const x=side==='left'?10:790,y=155;
       await page.mouse.move(x,y);await page.mouse.down();
       await page.mouse.move(x+(side==='left'?1:-1)*movement.dx,y+movement.dy,{steps:5});
       await page.waitForTimeout(200);
@@ -233,7 +237,7 @@ test('드래그 취소·화면 크기 변경 후 복구되며 중앙 지도는 �
       }
     }, true);
   });
-  const x=790,y=280;
+  const x=790,y=155;
   await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x-30,y,{steps:5});
   const pointerId=Number(await page.evaluate(()=>document.body.getAttribute('data-audit-pointer')));
   await page.evaluate((id)=>{document.dispatchEvent(new PointerEvent('pointercancel',{pointerId:id,pointerType:'mouse',bubbles:true}));},pointerId);

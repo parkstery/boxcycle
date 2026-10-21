@@ -56,7 +56,8 @@ async function prepareManualRideInput(page: import('@playwright/test').Page) {
 
 /** Trail 메뉴 → '입문' → 코스 모달 */
 async function openBasicCourseModal(page: import('@playwright/test').Page) {
-  await page.getByRole('button', { name: 'Trail 메뉴' }).click()
+  await page.getByRole('button', { name: 'Trail 메뉴' }).focus()
+  await page.keyboard.press('Enter')
   await page.getByRole('button', { name: '입문' }).click()
   const modal = page.getByRole('dialog').filter({ has: page.locator('#oc-modal-title') })
   await expect(modal).toBeVisible()

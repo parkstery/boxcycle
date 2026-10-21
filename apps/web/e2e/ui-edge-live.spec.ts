@@ -41,6 +41,11 @@ test('실제 지도 800×360: 에지 열기·상단 지표·조밀한 도크·�
     await page.mouse.up();
   }
   await prepareManualRideInput(page);
+  await page.getByRole('button',{name:/^케이던스 센서:/}).click();
+  const inputSheet=page.getByRole('dialog',{name:'케이던스 센서',exact:true});
+  await inputSheet.getByRole('spinbutton',{name:'속도 km/h',exact:true}).fill('30');
+  await inputSheet.getByRole('spinbutton',{name:'속도 km/h',exact:true}).press('Enter');
+  await inputSheet.getByRole('button',{name:'센서 설정 닫기',exact:true}).click();
   await expect(page.locator('.edge-panel-handle--left')).toBeAttached();
   await edge('left');
   const menu = page.getByRole('dialog', { name: '메뉴', exact: true });
@@ -70,6 +75,11 @@ test('실제 지도 800×360: 에지 열기·상단 지표·조밀한 도크·�
     });
     expect(geometry.dock!.width).toBeLessThanOrEqual(220);
     expect(geometry.dock!.height).toBeLessThanOrEqual(100);
+    const rideBar = await page.locator('.ride-control-bar').boundingBox();
+    expect(rideBar!.height).toBeLessThanOrEqual(36);
+    expect(rideBar!.x).toBeGreaterThan(size.width / 2);
+    const clock = await page.locator('.hud-clock').boundingBox();
+    if(clock) expect(rideBar!.y + rideBar!.height).toBeLessThanOrEqual(clock.y + 1);
     const a = geometry.metrics!, b = geometry.controls!;
     expect(a.right <= b.left || a.bottom <= b.top || b.bottom <= a.top).toBeTruthy();
     rows.push({ size, geometry });
@@ -78,6 +88,13 @@ test('실제 지도 800×360: 에지 열기·상단 지표·조밀한 도크·�
   await page.setViewportSize({ width: 800, height: 360 });
   await page.getByRole('button', { name: '주행 시작', exact: true }).click();
   await expect(page.getByRole('button', { name: '주행 종료', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: '경로 패널 접기', exact: true }).click();
+  await expect(page.getByRole('button', { name: '주행 종료', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^케이던스 센서:/ })).toHaveCount(1);
+  await page.getByRole('button', { name: '일시정지', exact: true }).click();
+  await expect(page.getByRole('button', { name: '재개', exact: true })).toHaveCount(1);
+  await page.getByRole('button', { name: '재개', exact: true }).click();
+  await page.getByRole('button', { name: '경로 패널 펼치기', exact: true }).click();
   await page.waitForTimeout(700);
   for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }, { width: 844, height: 390 }]) {
     await page.setViewportSize(size);
@@ -131,5 +148,14 @@ test('실제 지도 800×360: 에지 열기·상단 지표·조밀한 도크·�
   await expect(canvas).toHaveAttribute('data-audit-central-pan', 'yes');
   await expect(page.getByRole('dialog', { name: '메뉴', exact: true })).toHaveCount(0);
   expect(forbidden).toEqual([]);
+  await expect.poll(async()=>Number.parseFloat(await page.getByLabel('주행 누적 거리',{exact:true}).innerText()),{timeout:25000}).toBeGreaterThan(0.11);
+  await page.getByRole('button', {name:'주행 종료',exact:true}).click();
+  await expect(page.getByRole('region',{name:'주행 결과',exact:true})).toBeVisible();
+  await expect(page.locator('.ride-control-bar')).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
+  await expect(page.getByRole('button',{name:'주행 시작',exact:true})).toHaveCount(0);
+  await expect(page.locator('.route-dock-anchor')).toHaveCount(0);
+  await page.screenshot({path:path.join(evidence,'actual-ended-idle-800.png'),animations:'disabled'});
   fs.writeFileSync(path.join(evidence, 'actual-geometry.json'), JSON.stringify(rows, null, 2));
 });

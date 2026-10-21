@@ -473,7 +473,7 @@ describe("distanceAutoRoute", () => {
   it("경로 탐색 화면 — 경로 삭제는 두 모드의 공통 제목 영역", () => {
     assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-btn--clear-route/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /headerRow\.append\(clearRouteBtn\)/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /dragHandle\.append\(headerRow, addressEl, metaEl\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /dragHandle\.append\(headerRow, addressEl, metaDetails\)/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /rowProfile\.appendChild\(clearRouteBtn\)/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /profileHeader/);
   });
@@ -545,7 +545,10 @@ describe("distanceAutoRoute", () => {
     // 조정 버튼 패널이 사라져 슬롯에는 상태 문구만 남는다(5A-R2 §3).
     assert.match(BUILD_PICK_POPUP_SOURCE, /autoRouteStatusSlot\.append\(autoRouteStatus\)/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /offeredPanel/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /autoRouteSection\.append\(distanceRow, autoRouteStatusSlot\)/);
+    assert.match(
+      BUILD_PICK_POPUP_SOURCE,
+      /autoRouteSection\.append\([\s\S]*distanceRow,[\s\S]*autoRouteStatusSlot/,
+    );
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /autoRouteError/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /inlineStatus/);
     assert.match(
@@ -732,5 +735,33 @@ describe("distanceAutoRoute", () => {
       height: panelHeight,
     };
     assert.ok(panelReservedOverlapArea(fallbackPanel, hugeReserved) >= 0);
+  });
+
+  it("지시09 — 탭 한쪽만·캐럿 제거·명시 경로 생성·경유지 +버튼", () => {
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /map-view__pick-caret/);
+    assert.doesNotMatch(MAP_VIEW_CSS, /map-view__pick-caret/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-route-tabs/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /setAttribute\("role", "tab"\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /aria-selected/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /setRoutePickTab/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /pauseDistancePickForTabSwitch/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-btn--create-route/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /textContent = "경로 생성"/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /\+경유지/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /textContent = "출발"/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /textContent = "도착"/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /지도에서 방향을 탭하면 경로가 생성됩니다/);
+    const profileClick = BUILD_PICK_POPUP_SOURCE.slice(
+      BUILD_PICK_POPUP_SOURCE.indexOf("pb.onclick = () =>"),
+      BUILD_PICK_POPUP_SOURCE.indexOf("profileButtons.push(pb)"),
+    );
+    assert.doesNotMatch(profileClick, /onRouteProfile\(profile\)/);
+    assert.match(profileClick, /onSetRouteProfileOnly\?\.\(profile\)/);
+    const tabSwitch = BUILD_PICK_POPUP_SOURCE.slice(
+      BUILD_PICK_POPUP_SOURCE.indexOf("function setRoutePickTab"),
+      BUILD_PICK_POPUP_SOURCE.indexOf("function tryArmDirectionPickIfChecked"),
+    );
+    assert.doesNotMatch(tabSwitch, /fetchDistanceAutoRoute|onAutoRouteMapPick|onRouteProfile/);
+    assert.match(tabSwitch, /pauseDistancePickForTabSwitch/);
   });
 });

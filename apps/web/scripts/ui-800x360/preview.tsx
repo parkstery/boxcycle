@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import '../../src/tokens.css';
 import '../../src/index.css';
 import { MapHud } from '../../src/components/maphud/MapHud';
+import { RideControlBar } from '../../src/components/ride/RideControlBar';
 import { RouteDock } from '../../src/components/route-dock/RouteDock';
 import { RideSummarySheet } from '../../src/components/ride/RideSummarySheet';
 import { RideSettingsSheet } from '../../src/components/ride/RideSettingsSheet';
@@ -48,6 +49,7 @@ const stops: RouteDockStop[] = [
 
 function Preview() {
   const [stage,setStage] = useState<RideUiStage>(initial==='riding'?'riding':initial==='paused'?'paused':initial==='idle'?'idle':initial==='setup'?'setup':'ready-to-start');
+  const [routeSetupToken,setRouteSetupToken] = useState<object>({});
   const [panel,setPanel] = useState(initial);
   const [manual,setManual] = useState(false);
   const [speed,setSpeed] = useState(18);
@@ -75,9 +77,13 @@ function Preview() {
     <EdgePanelHandle edge="right" open={modalOpen} panelId="map-view-sheet" label="맵 뷰 열기"
       onOpen={()=>setPanel('map')} onClose={()=>setPanel('ready')} onDragProgress={setMapReveal}/>
     <RouteDock key={hasRoute?'route':'empty'} stage={stage} stops={hasRoute?stops:stage==='setup'?[stops[0]]:[]} routeLoading={params.has('loading')}
+      onRemoveStop={noop} onFocusStop={noop} />
+    <RideControlBar stage={panel==='summary'?'summary':stage} profile="cycling" routeLoading={params.has('loading')}
+      routeSetupToken={routeSetupToken}
       canStartRide={!params.has('blocked')} onStartRide={()=>setStage('riding')} onPauseRide={()=>setStage('paused')} onResumeRide={()=>setStage('riding')}
-      onEndRide={()=>{setPanel('summary');setStage('ready-to-start');}} onRemoveStop={noop} onFocusStop={noop}
+      onEndRide={()=>{setPanel(params.has('short')?'ready':'summary');setStage(params.has('short')?'ready-to-start':'idle');}} resumeRatio={params.has('resume')?0.4:null}
       cadence={{state:sensorState,open:panel==='sensor',onOpen:()=>setPanel('sensor')}} />
+    {params.has('short') ? <button type="button" style={{position:'absolute',left:'45%',bottom:4,zIndex:9}} onClick={()=>setRouteSetupToken({})}>검수용 새 경로 확정</button> : null}
     <MapHud stage={stage} onOpenMenu={()=>setPanel('menu')} menuOpen={panel==='menu'}
       account={{initial:'G',isGuest:true,label:long?'아주긴닉네임라이더테스트':'게스트 라이더',mileageKm:null}}
       onOpenUserInfo={()=>setPanel('account')} userInfoOpen={panel==='account'} onOpenMapView={()=>setPanel('map')} mapViewOpen={panel==='map'}
