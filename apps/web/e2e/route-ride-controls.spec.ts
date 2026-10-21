@@ -4,7 +4,7 @@ import fs from 'node:fs';
 
 const preview='/scripts/ui-800x360/preview.html';
 const evidence=path.resolve('../..','.out','ui-route-ride-20261021');
-test.use({viewport:{width:800,height:360}});
+test.use({viewport:{width:800,height:360},hasTouch:true});
 test('분리된 주소/주행바: 세 크기·다섯 상태·지도정보와 겹침 없음',async({page})=>{
   fs.mkdirSync(evidence,{recursive:true});
   for(const size of [{width:800,height:360},{width:667,height:300},{width:844,height:390}]){
@@ -64,54 +64,132 @@ test('짧은 주행 종료도 시작버튼이 되살아나지 않고 새 경로 
   await expect(page.getByRole('button',{name:'주행 시작',exact:true})).toBeVisible();
 });
 
-for(const initial of ['empty','ready','waypoints'] as const){
-  test(`경로 생성 실제 DOM: ${initial} 모드배타·값보존·명시생성`,async({page})=>{
+for(const initial of ['empty','start-only','end-only','ready','waypoints'] as const){
+  test(`경로 생성 실제 DOM: ${initial} 모드배타·값보존·수단즉시생성`,async({page})=>{
+    const hasStart=initial!=='empty'&&initial!=='end-only';
+    const routeReady=initial==='ready'||initial==='waypoints';
     await page.goto(`${preview}?state=ready`);
     await page.evaluate(async(initial)=>{
       const css=document.createElement('link');css.rel='stylesheet';css.href='/src/components/map/MapView.css';document.head.append(css);
       const url='/src/components/map/mapPopupElements.ts';
       const {buildPickPopup}=await import(url);
+      const dragUrl='/src/lib/map/mapPickRouteDock.ts';
+      const {mountRoutePickDockDrag}=await import(dragUrl);
       const ac=new AbortController();
       const host=document.createElement('div');host.id='popup-audit';host.className='map-view';
       Object.assign(host.style,{position:'absolute',right:'4px',top:'44px',width:'215px',zIndex:'10',border:'0',background:'transparent',minHeight:'0'});
       let count=initial==='waypoints'?3:0;
-      let generated=0; let lastProfile='';
-      host.dataset.generated='0';
-      const popup=buildPickPopup({lngLat:[126.98,37.55],initialStart:initial==='empty'?null:[126.98,37.55],
-        initialHasStart:initial!=='empty',initialHasEnd:initial!=='empty',routeProfile:'cycling',
+      let generated=0; let cleared=0; let lastProfile='';
+      let tokenBlocked=false;
+      host.dataset.generated='0';host.dataset.cleared='0';host.dataset.drags='0';
+      const hasStart=initial!=='empty'&&initial!=='end-only';
+      const hasEnd=initial==='end-only'||initial==='ready'||initial==='waypoints';
+      const popup=buildPickPopup({lngLat:[126.98,37.55],initialStart:hasStart?[126.98,37.55]:null,
+        initialHasStart:hasStart,initialHasEnd:hasEnd,routeProfile:'cycling',
         getWaypointCount:()=>count,accessToken:'',signal:ac.signal,
         onSelectPoint:(kind:string)=>{if(kind==='waypoint')count++;host.dataset.count=String(count);},
         onSetRouteProfileOnly:()=>{},onRouteProfile:(p:string)=>{generated++;lastProfile=p;host.dataset.generated=String(generated);host.dataset.profile=lastProfile;},
-        onArmDirectionPick:()=>({ok:true}),onPreviewDistanceAutoRouteCircle:()=>{},closePopup:()=>{}});
+        getRouteTokenInsufficient:()=>tokenBlocked,
+        onClearRoute:()=>{cleared++;host.dataset.cleared=String(cleared);},
+        onArmDirectionPick:()=>({ok:true}),onPreviewDistanceAutoRouteCircle:()=>{},closePopup:()=>{host.dataset.closed='true';}});
+      (host as HTMLElement & {setTokenBlocked:(v:boolean)=>void}).setTokenBlocked=(v:boolean)=>{tokenBlocked=v;};
       const shell=document.createElement('div');shell.className='map-view__pick-popup';
       const surface=document.createElement('div');surface.className='mapboxgl-popup-content';
-      surface.append(popup);shell.append(surface);host.append(shell);document.body.append(host);
+      surface.style.position='relative';
+      const close=document.createElement('button');close.className='mapboxgl-popup-close-button';close.type='button';close.textContent='×';close.setAttribute('aria-label','팝업 닫기');
+      surface.append(popup,close);shell.append(surface);host.append(shell);document.body.append(host);
+      mountRoutePickDockDrag({handleEl:popup.querySelector('.map-view__pick-drag-handle')!,panelEl:host,mapCanvas:host,
+        getPosition:()=>({left:0,top:0}),onPositionChange:()=>{},
+        onDraggingChange:(dragging:boolean)=>{if(dragging)host.dataset.drags=String(Number(host.dataset.drags)+1);}});
     },initial);
     const popup=page.locator('#popup-audit');
+    await expect(popup.getByRole('button',{name:'출발·도착 경로 생성',exact:true})).toHaveCount(0);
+    await expect(popup.getByRole('button',{name:'경로 전체 삭제',exact:true})).toHaveCount(1);
+    const headerLine=await popup.evaluate(()=>{
+      const row=document.querySelector('.map-view__pick-header-row')!;
+      const token=row.querySelector('.map-view__pick-token')!.getBoundingClientRect();
+      const tabs=row.querySelector('.map-view__pick-route-tabs')!.getBoundingClientRect();
+      const close=document.querySelector('#popup-audit .mapboxgl-popup-close-button')!.getBoundingClientRect();
+      const clearInHeader=row.querySelector('.map-view__pick-btn--clear-route');
+      const bottomRow=document.querySelector('.map-view__pick-profile-bottom-row')!;
+      const profileRow=bottomRow.querySelector('.map-view__pick-actions--profile')!;
+      const clearRect=bottomRow.querySelector('.map-view__pick-btn--clear-route')!.getBoundingClientRect();
+      const profiles=[...profileRow.querySelectorAll('.map-view__pick-btn--profile')].map(e=>e.getBoundingClientRect());
+      const rightMost=profiles.length?Math.max(...profiles.map(b=>b.right)):0;
+      return {tokenTop:token.top,tabsTop:tabs.top,sameLine:Math.abs(token.top-tabs.top)<6,noTitleOverlap:token.right<=tabs.left,noCloseOverlap:tabs.right<=close.left,tabsHeight:tabs.height,clearInHeader:!!clearInHeader,clearRightOfProfiles:!profiles.length||clearRect.left>=rightMost-2,headerPadRight:parseFloat(getComputedStyle(row).paddingRight)};
+    });
+    expect(headerLine.sameLine).toBe(true);
+    expect(headerLine.noTitleOverlap).toBe(true);
+    expect(headerLine.noCloseOverlap).toBe(true);
+    expect(headerLine.tabsHeight).toBeLessThanOrEqual(22);
+    expect(headerLine.clearInHeader).toBe(false);
+    expect(headerLine.clearRightOfProfiles).toBe(true);
+    expect(headerLine.headerPadRight).toBeGreaterThanOrEqual(24);
     await expect(popup.getByRole('tab',{name:'출발·도착',exact:true})).toHaveAttribute('aria-selected','true');
     await popup.getByRole('tab',{name:'거리·방향',exact:true}).click();
     await expect(popup.locator('#map-view-pick-location-view')).toBeHidden();
     await expect(popup.locator('#map-view-pick-distance-view')).toBeVisible();
-    if(initial==='empty')await expect(popup.getByText(/출발.*설정/).first()).toBeVisible();
+    await expect(popup).toHaveAttribute('data-drags','0');
+    if(!hasStart)await expect(popup.getByText(/출발.*설정/).first()).toBeVisible();
     else{
       await popup.getByRole('button',{name:'목표 거리 5km',exact:true}).click();
       await expect(popup.getByRole('textbox',{name:'목표거리 km',exact:true})).toHaveValue('5.0');
-    }
-    await popup.getByRole('tab',{name:'출발·도착',exact:true}).click();
-    await expect(popup.locator('#map-view-pick-distance-view')).toBeHidden();
-    await expect(popup).toHaveAttribute('data-generated','0');
-    if(initial!=='empty'){
       await popup.getByRole('button',{name:'보행 경로',exact:true}).click();
       await expect(popup).toHaveAttribute('data-generated','0');
-      await popup.getByRole('button',{name:'출발·도착 경로 생성',exact:true}).click();
+    }
+    await popup.getByRole('tab',{name:'출발·도착',exact:true}).click();
+    const distanceTab=await popup.getByRole('tab',{name:'거리·방향',exact:true}).boundingBox();
+    await page.touchscreen.tap(distanceTab!.x+distanceTab!.width/2,distanceTab!.y+distanceTab!.height/2);
+    await expect(popup.getByRole('tab',{name:'거리·방향',exact:true})).toHaveAttribute('aria-selected','true');
+    await popup.getByRole('tab',{name:'출발·도착',exact:true}).click();
+    await expect(popup).toHaveAttribute('data-drags','0');
+    await expect(popup.locator('#map-view-pick-distance-view')).toBeHidden();
+    await popup.getByRole('tab',{name:'출발·도착',exact:true}).focus();
+    await page.keyboard.press('End');
+    await expect(popup.getByRole('tab',{name:'거리·방향',exact:true})).toHaveAttribute('aria-selected','true');
+    await page.keyboard.press('Home');
+    await expect(popup.getByRole('tab',{name:'출발·도착',exact:true})).toHaveAttribute('aria-selected','true');
+    await expect(popup).toHaveAttribute('data-generated','0');
+    if(routeReady){
+      await popup.getByRole('button',{name:'보행 경로',exact:true}).click();
       await expect(popup).toHaveAttribute('data-generated','1');
       await expect(popup).toHaveAttribute('data-profile','walking');
+      await popup.getByRole('button',{name:'자동차 경로',exact:true}).click();
+      await expect(popup).toHaveAttribute('data-generated','2');
+      await expect(popup).toHaveAttribute('data-profile','driving');
+      await popup.getByRole('button',{name:'자전거 경로',exact:true}).click();
+      await expect(popup).toHaveAttribute('data-generated','3');
+      await expect(popup).toHaveAttribute('data-profile','cycling');
+      await page.evaluate(()=>{(document.getElementById('popup-audit') as HTMLElement & {setTokenBlocked:(v:boolean)=>void}).setTokenBlocked(true);});
+      await popup.getByRole('button',{name:'자전거 경로',exact:true}).click();
+      await expect(popup).toHaveAttribute('data-generated','3');
+      await page.evaluate(()=>{(document.getElementById('popup-audit') as HTMLElement & {setTokenBlocked:(v:boolean)=>void}).setTokenBlocked(false);});
+    }else if(hasStart){
+      await popup.getByRole('button',{name:'자전거 경로',exact:true}).click();
+      await expect(popup).toHaveAttribute('data-generated','0');
     }
     if(initial==='waypoints'){
       await expect(popup.getByRole('button',{name:'경유지 추가',exact:true})).toHaveCount(0);
       await expect(popup.locator('.map-view__pick-btn--wp')).toHaveCount(3);
     }else await expect(popup.getByRole('button',{name:'경유지 추가',exact:true})).toHaveCount(1);
     await expect.poll(()=>popup.locator('.map-view__pick-route-tabs').evaluate(e=>getComputedStyle(e).display)).toBe('flex');
-    await page.screenshot({path:path.join(evidence,`popup-${initial}-800.png`),animations:'disabled'});
+    await page.screenshot({path:path.join(evidence,`popup-11-${initial}-800.png`),animations:'disabled'});
+    if(initial==='ready')for(const size of [{width:667,height:300},{width:844,height:390}]){
+      await page.setViewportSize(size);
+      const fit=await popup.evaluate(e=>{
+        const box=e.querySelector('.mapboxgl-popup-content')!.getBoundingClientRect();
+        const tabs=e.querySelector('.map-view__pick-route-tabs')!.getBoundingClientRect();
+        const close=e.querySelector('.mapboxgl-popup-close-button')!.getBoundingClientRect();
+        return box.right<=innerWidth&&box.bottom<=innerHeight&&tabs.right<=close.left;
+      });
+      expect(fit).toBe(true);
+      await page.screenshot({path:path.join(evidence,`popup-11-ready-${size.width}.png`),animations:'disabled'});
+    }
+    const handle=await popup.locator('.map-view__pick-address').boundingBox();
+    await page.mouse.move(handle!.x+2,handle!.y+2);await page.mouse.down();await page.mouse.move(handle!.x+8,handle!.y+2);await page.mouse.up();
+    await expect(popup).toHaveAttribute('data-drags','1');
+    await popup.getByRole('button',{name:'경로 전체 삭제',exact:true}).click();
+    await expect(popup).toHaveAttribute('data-cleared','1');
+    await expect(popup).toHaveAttribute('data-closed','true');
   });
 }

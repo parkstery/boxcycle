@@ -344,29 +344,31 @@
   border-color: #CBD5E1;
 }
 
-/* 지시09 — 경로 생성 방식 탭. 한쪽 패널만 표시, disclosure 캐럿 제거. */
+/* 지시09/11 — 경로 생성 방식 탭. 제목 행 오른쪽(compact). 한쪽 패널만 표시. */
 .map-view__pick-route-tabs {
   display: flex;
-  gap: 0.28rem;
-  margin-top: 0.12rem;
+  gap: 0.2rem;
+  margin-top: 0;
   min-width: 0;
+  flex: 0 0 auto;
 }
 
 .map-view__pick .map-view__pick-route-tab {
-  flex: 1 1 0;
+  flex: 0 0 auto;
   min-width: 0;
-  min-height: 28px;
-  padding: 0.22rem 0.36rem;
+  min-height: 21px;
+  padding: 0.14rem 0.3rem;
   appearance: none;
   border: 1px solid #CBD5E1;
-  border-radius: 6px;
+  border-radius: 5px;
   background: #F8FAFC;
   font: inherit;
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  line-height: 1.25;
+  line-height: 1.2;
   color: #334155;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .map-view__pick .map-view__pick-route-tab.is-active,
@@ -396,25 +398,6 @@
   background: #F8FAFC;
   border-color: #CBD5E1;
   color: #334155;
-}
-
-.map-view__pick .map-view__pick-btn--create-route {
-  width: auto;
-  margin-top: 0;
-  min-height: 28px;
-  background: #2563EB;
-  border-color: #1D4ED8;
-  color: #fff;
-}
-
-.map-view__pick .map-view__pick-btn--create-route:hover:not(:disabled) {
-  background: #1D4ED8;
-}
-
-.map-view__pick .map-view__pick-btn--create-route:disabled,
-.map-view__pick .map-view__pick-btn--create-route.is-disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
 }
 
 .map-view__pick-route-distance-prereq,
@@ -513,11 +496,15 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  min-width: 0;
+  width: 100%;
 }
 
 .map-view__pick-profile-section .map-view__pick-actions--profile {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-width: 0;
   gap: 3px;
+  width: 100%;
 }
 .map-view__pick-profile-section .map-view__pick-btn--profile {
   width: 28px;
@@ -573,13 +560,11 @@
   color: rgba(37, 99, 235, 0.9);
 }
 
-/* 재지시35 — 공통 headerRow: token + 경로 삭제 나란히, 두 모드 공통. 닫기 ✕ 자리(약1.7rem:
- * 1.65rem 버튼 + 0.2rem 오프셋)는 이 행이 확보하고, token 기존 우측 패딩은 이중이 되지 않게 0으로.
- * 구분선은 행 전체에 하나만. 삭제 버튼 라벨/폰트·크기는 기존 그대로, token 피드백은 flex로 전체 표시. */
+/* 지시11 — headerRow: 제목(token) + 탭. 닫기 ✕ 예약 padding. 긴 토큰 문구는 줄바꿈. */
 .map-view__pick-header-row {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  align-items: flex-start;
+  gap: 0.28rem;
   min-width: 0;
   max-width: 100%;
   margin: 0 0 0.2rem;
@@ -595,8 +580,32 @@
   border-bottom: 0;
 }
 
-.map-view__pick-header-row .map-view__pick-btn--clear-route {
-  margin-left: 0;
+.map-view__pick-header-row .map-view__pick-token-line {
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+  white-space: normal;
+}
+
+.map-view__pick-header-row .map-view__pick-route-tabs {
+  margin-top: 0.02rem;
+  flex-shrink: 0;
+}
+
+.map-view__pick-profile-bottom-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  width: 100%;
+}
+
+.map-view__pick-profile-bottom-row .map-view__pick-actions--profile {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.map-view__pick-profile-bottom-row .map-view__pick-btn--clear-route {
+  margin-left: auto;
   flex: 0 0 auto;
 }
 

@@ -509,7 +509,13 @@ export function buildPickPopup(deps: {
         item.classList.toggle("is-active", profileSpecs[index]?.profile === currentProfile);
       });
       syncRoutePickView();
-      // A generated route keeps its actual profile until explicit regeneration.
+      const manualRouteReady = pins.start && pins.end && !distanceDirectionChecked;
+      if (manualRouteReady && routePickView === "location") {
+        if (getRouteTokenInsufficient?.()) return;
+        tokenFeedback.setRoutePending(true);
+        onRouteProfile(profile);
+        return;
+      }
       if (!pins.end) onSetRouteProfileOnly?.(profile);
       if (routePickView === "distance" && distanceDirectionChecked) tryArmDirectionPickIfChecked();
     };
@@ -517,24 +523,8 @@ export function buildPickPopup(deps: {
     rowProfile.appendChild(pb);
   }
 
-  const createRouteBtn = document.createElement("button");
-  createRouteBtn.type = "button";
-  createRouteBtn.className = "map-view__pick-btn map-view__pick-btn--create-route";
-  createRouteBtn.textContent = "경로 생성";
-  createRouteBtn.setAttribute("aria-label", "출발·도착 경로 생성");
-  createRouteBtn.onclick = () => {
-    const manualRouteReady = pins.start && pins.end && !distanceDirectionChecked;
-    if (!manualRouteReady) return;
-    if (getRouteTokenInsufficient?.()) return;
-    tokenFeedback.setRoutePending(true);
-    onRouteProfile(currentProfile);
-  };
-  createRouteBtn.addEventListener("pointerdown", (event) => event.stopPropagation());
-
   /*
-   * 재지시35 — 공통 삭제. 전용 변수에 보관하고 DOM은 profile row에 두지 않는다.
-   * headerRow(아래 dragHandle 직전)에서 tokenSection과 나란히 붙여 두 모드 공통 노출.
-   * 라벨/aria/콜백/폰트·크기는 기존 그대로. profile행은 3수단+거리›만.
+   * 지시11 — 경로 삭제는 하단 이동수단 3개 오른쪽(공통 profile 행). header 제목행에는 두지 않는다.
    */
   let clearRouteBtn: HTMLButtonElement | null = null;
   if (typeof onClearRoute === "function") {
@@ -564,28 +554,30 @@ export function buildPickPopup(deps: {
   function syncProfileUi() {
     const hasStart = pins.start;
     const manualRouteReady = pins.start && pins.end && !distanceDirectionChecked;
-    profileSection.hidden = !hasStart;
+    const onLocationTab = routePickView === "location";
+    const autoGenerateOnProfile =
+      manualRouteReady && onLocationTab && !distanceDirectionChecked;
+    profileSection.hidden = !hasStart && !clearRouteBtn;
     rowProfile.hidden = !hasStart;
-    wrap.classList.toggle("map-view__pick--awaiting-profile", manualRouteReady);
-    profileLabel.textContent = manualRouteReady ? "경로 탐색 유형 선택" : "이동수단";
+    if (clearRouteBtn) clearRouteBtn.hidden = false;
+    wrap.classList.toggle("map-view__pick--awaiting-profile", manualRouteReady && onLocationTab);
+    profileLabel.textContent = manualRouteReady && onLocationTab ? "경로 탐색 유형 선택" : "이동수단";
+    const tokenInsufficient = Boolean(getRouteTokenInsufficient?.());
     profileSpecs.forEach((spec, i) => {
       const pb = profileButtons[i];
       if (!pb) return;
       pb.classList.toggle("is-active", spec.profile === currentProfile);
-      pb.disabled = false;
-      pb.classList.remove("is-disabled");
-      pb.title =
-        spec.profile === "driving"
+      const blockProfile = autoGenerateOnProfile && tokenInsufficient;
+      pb.disabled = blockProfile;
+      pb.classList.toggle("is-disabled", blockProfile);
+      pb.title = blockProfile
+        ? ROUTE_TOKEN_INSUFFICIENT_HINT
+        : spec.profile === "driving"
           ? "Route by car"
           : spec.profile === "walking"
             ? "Route on foot"
             : "Route by bike";
     });
-    const tokenInsufficient = Boolean(getRouteTokenInsufficient?.());
-    createRouteBtn.hidden = !manualRouteReady;
-    createRouteBtn.disabled = !manualRouteReady || tokenInsufficient;
-    createRouteBtn.classList.toggle("is-disabled", createRouteBtn.disabled);
-    createRouteBtn.title = tokenInsufficient ? ROUTE_TOKEN_INSUFFICIENT_HINT : "출발·도착으로 경로 탐색";
   }
 
   function syncTokenUi() {
@@ -596,7 +588,11 @@ export function buildPickPopup(deps: {
     tokenFeedback.setRouteStartPinned(pins.start);
   }
 
-  profileSection.append(rowProfile, createRouteBtn);
+  const profileBottomRow = document.createElement("div");
+  profileBottomRow.className = "map-view__pick-profile-bottom-row";
+  profileBottomRow.append(rowProfile);
+  if (clearRouteBtn) profileBottomRow.append(clearRouteBtn);
+  profileSection.append(profileBottomRow);
   syncProfileUi();
   syncTokenUi();
 
@@ -986,6 +982,8 @@ export function buildPickPopup(deps: {
   routePickTabs.className = "map-view__pick-route-tabs";
   routePickTabs.setAttribute("role", "tablist");
   routePickTabs.setAttribute("aria-label", "경로 생성 방식");
+  // The header is draggable, but its tabs must keep their native click/tap and focus.
+  routePickTabs.addEventListener("pointerdown", (event) => event.stopPropagation());
 
   const tabLocation = document.createElement("button");
   tabLocation.type = "button";
@@ -1080,17 +1078,15 @@ export function buildPickPopup(deps: {
   const dragHandle = document.createElement("div");
   dragHandle.className = "map-view__pick-drag-handle";
   /*
-   * 재지시35 — 공통 headerRow: tokenSection + 경로 삭제 나란히, 두 모드 공통(dragHandle이라 항상 노출).
-   * 첫 줄 = headerRow(제목+삭제), 둘째 = 주소, 셋째 = 좌표. 닫기 ✕ 자리는 headerRow가 확보.
+   * 지시11 — headerRow: 제목(token) + 출발·도착/거리·방향 탭 한 줄. 닫기 ✕ 예약은 headerRow padding.
+   * 경로 삭제는 하단 profileBottomRow의 수단 행 오른쪽.
    */
   const headerRow = document.createElement("div");
   headerRow.className = "map-view__pick-header-row";
-  headerRow.append(tokenSection);
-  if (clearRouteBtn) headerRow.append(clearRouteBtn);
+  headerRow.append(tokenSection, routePickTabs);
   dragHandle.append(headerRow, addressEl, metaDetails);
 
-  /* 지시09 — wrap: dragHandle, 탭, 한쪽 패널만, 공통 이동수단·경로 생성. */
-  wrap.append(dragHandle, routePickTabs, routeLocationView, autoRouteSection, profileSection);
+  wrap.append(dragHandle, routeLocationView, autoRouteSection, profileSection);
 
   const token = accessToken.trim();
   if (token.length > 0) {
