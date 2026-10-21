@@ -866,6 +866,11 @@
   margin: 0.12rem 0 0;
 }
 
+.map-view__pick-auto-route-status-slot:has(> [data-phase="idle"]),
+.map-view__pick-auto-route-status-slot:has(> [data-phase="direction"]) {
+  display: none;
+}
+
 .map-view__pick-auto-route-status {
   margin: 0;
   min-height: inherit;

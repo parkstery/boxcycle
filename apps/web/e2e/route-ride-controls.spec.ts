@@ -103,6 +103,7 @@ for(const initial of ['empty','start-only','end-only','ready','waypoints'] as co
         onDraggingChange:(dragging:boolean)=>{if(dragging)host.dataset.drags=String(Number(host.dataset.drags)+1);}});
     },initial);
     const popup=page.locator('#popup-audit');
+    await expect(popup.locator('.map-view__pick-meta-details,.map-view__pick-distance-eta,.map-view__pick-route-distance-summary,.map-view__pick-distance-map-hint')).toHaveCount(0);
     await expect(popup.getByRole('button',{name:'출발·도착 경로 생성',exact:true})).toHaveCount(0);
     await expect(popup.getByRole('button',{name:'경로 전체 삭제',exact:true})).toHaveCount(1);
     const headerLine=await popup.evaluate(()=>{

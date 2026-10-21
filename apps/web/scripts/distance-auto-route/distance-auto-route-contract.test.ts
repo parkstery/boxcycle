@@ -474,7 +474,7 @@ describe("distanceAutoRoute", () => {
     assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-btn--clear-route/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /profileBottomRow\.append\(clearRouteBtn\)/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /headerRow\.append\(tokenSection, routePickTabs\)/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /dragHandle\.append\(headerRow, addressEl, metaDetails\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /dragHandle\.append\(headerRow, addressEl\)/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /headerRow\.append\(clearRouteBtn\)/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /map-view__pick-btn--create-route/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /profileHeader/);
@@ -753,7 +753,7 @@ describe("distanceAutoRoute", () => {
     assert.match(BUILD_PICK_POPUP_SOURCE, /\+경유지/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /textContent = "출발"/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /textContent = "도착"/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /지도에서 방향을 탭하면 경로가 생성됩니다/);
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /지도에서 방향을 탭하면 경로가 생성됩니다/);
     const profileClick = BUILD_PICK_POPUP_SOURCE.slice(
       BUILD_PICK_POPUP_SOURCE.indexOf("pb.onclick = () =>"),
       BUILD_PICK_POPUP_SOURCE.indexOf("profileButtons.push(pb)"),

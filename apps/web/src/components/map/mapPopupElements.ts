@@ -9,7 +9,6 @@
  * ⚠️ 팝업 문구는 계약이다. 「경로 생성 잔여 토큰 N개」·`지점 팝업 제목 행`(2026-09-16)은
  * 계약 시험이 문자열째 겨눈다 — 표현을 바꾸려면 시험부터 고쳐라.
  */
-import { formatDistanceAutoRouteEta, resolveDistanceAutoRouteEta } from "../../lib/route/distanceAutoRouteEta";
 import mapboxgl from "mapbox-gl";
 import { formatDistanceAutoRouteDirectionClickHint, DISTANCE_AUTO_ROUTE_KM_MAX, DISTANCE_AUTO_ROUTE_KM_MIN, DISTANCE_AUTO_ROUTE_KM_STEP, DISTANCE_AUTO_ROUTE_REROUTE_HINT, DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA, DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL, validateDistanceAutoRouteTargetKm, DISTANCE_AUTO_ROUTE_CHIP_KM, DISTANCE_AUTO_ROUTE_DEFAULT_KM } from "../../lib/route/distanceAutoRouteErrors";
 import { getDistanceAutoRouteMapBridge } from "../../lib/map/distanceAutoRouteMapBridge";
@@ -35,13 +34,6 @@ const PICK_POPUP_PROFILE_ICON_SVG: Record<RouteProfile, string> = {
   driving: `<svg class="map-view__pick-profile-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 8-2 2-1.5-3.7A2 2 0 0 0 15.646 5H8.4a2 2 0 0 0-1.903 1.257L5 10 3 8"/><path d="M7 14h.01"/><path d="M17 14h.01"/><rect width="18" height="8" x="3" y="10" rx="2"/><path d="M5 18v2"/><path d="M19 18v2"/></svg>`,
   cycling: `<svg class="map-view__pick-profile-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>`,
   walking: `<svg class="map-view__pick-profile-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/></svg>`,
-};
-
-/** 지시34 — 거리 화면 요약용 이동수단 한글 표기(실제 currentProfile 동기화). */
-const ROUTE_PROFILE_KO: Record<RouteProfile, string> = {
-  driving: "자동차",
-  cycling: "자전거",
-  walking: "보행",
 };
 
 export function pickPickPopupAnchor(
@@ -181,16 +173,6 @@ function waypointSlotTitle(slot: 0 | 1 | 2, count: number): string {
   return "No more waypoints";
 }
 
-async function fetchPointElevationMeters(lngLat: LngLat, signal: AbortSignal): Promise<number | null> {
-  const [lng, lat] = lngLat;
-  const url = `https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lng}`;
-  const response = await fetch(url, { signal });
-  if (!response.ok) return null;
-  const data = (await response.json()) as { elevation?: number[] };
-  const v = data.elevation?.[0];
-  return typeof v === "number" && Number.isFinite(v) ? v : null;
-}
-
 function buildActivityWorldPopupElement(text: string, kind: "pulse" | "heat"): HTMLElement {
   const wrap = document.createElement("div");
   wrap.className = `map-view__activity-popup map-view__activity-popup--${kind}`;
@@ -312,7 +294,6 @@ export function buildPickPopup(deps: {
     onRouteProfile,
     onArmDirectionPick,
     onRegisterAutoRouteUi,
-    getUserMileage,
     onDirectionPickArmed,
     onRoutePanelActivated,
     onPreviewDistanceAutoRouteCircle,
@@ -328,7 +309,6 @@ export function buildPickPopup(deps: {
     autoRouteStatusMessage = null,
     closePopup,
   } = deps;
-  const [lng, lat] = lngLat;
 
   const wrap = document.createElement("div");
   wrap.className = "map-view__pick";
@@ -367,15 +347,6 @@ export function buildPickPopup(deps: {
   addressEl.className = "map-view__pick-address";
   addressEl.textContent = "주소를 불러오는 중…";
 
-  const metaEl = document.createElement("div");
-  metaEl.className = "map-view__pick-meta";
-  metaEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} · 고도 …`;
-  const metaDetails = document.createElement("details");
-  metaDetails.className = "map-view__pick-meta-details";
-  const metaSummary = document.createElement("summary");
-  metaSummary.className = "map-view__pick-meta-summary";
-  metaSummary.textContent = "자세히";
-  metaDetails.append(metaSummary, metaEl);
 
   const pinRow = document.createElement("div");
   pinRow.className = "map-view__pick-actions map-view__pick-actions--pin-row";
@@ -715,11 +686,6 @@ export function buildPickPopup(deps: {
     distanceChips.appendChild(chip);
   }
 
-  /** 예상 소요 시간 — 사용자의 누적 평균 속도로 계산한다(5A-R2 §4.3) */
-  const distanceEta = document.createElement("p");
-  distanceEta.className = "map-view__pick-distance-eta";
-  distanceEta.setAttribute("aria-live", "polite");
-
   distanceRow.append(modeField, distanceLabel, minusBtn, distanceSlider, plusBtn, distanceNumber);
   /*
    * 지시34 — 한행 '목표 거리 −/숫자/km/＋'. DOM 순서(계약 고정)는 그대로 두고
@@ -735,7 +701,7 @@ export function buildPickPopup(deps: {
   routeDistanceUnit.textContent = "km";
   routeDistanceUnit.setAttribute("aria-hidden", "true");
   distanceRow.append(routeDistanceCaption, routeDistanceUnit);
-  distanceRow.append(distanceChips, distanceEta);
+  distanceRow.append(distanceChips);
 
   const autoRouteStatusSlot = document.createElement("div");
   autoRouteStatusSlot.className = "map-view__pick-auto-route-status-slot";
@@ -755,13 +721,6 @@ export function buildPickPopup(deps: {
   function syncDistanceInputs(km: number) {
     targetKm = km;
     for (const c of chipButtons) c.el.classList.toggle("is-active", Math.abs(c.km - km) < 1e-9);
-    distanceEta.textContent = formatDistanceAutoRouteEta(
-      resolveDistanceAutoRouteEta({
-        targetKm: km,
-        mileageTotalMeters: getUserMileage?.().totalMeters ?? null,
-        mileageTotalSec: getUserMileage?.().totalSec ?? null,
-      }),
-    );
     distanceNumber.value = km.toFixed(1);
     /* 지시38 — 보이는 거리 컨트롤의 stepper/disabled는 Start/기능 전제·min/max로만 판정. */
     const available = pins.start && typeof onArmDirectionPick === "function";
@@ -774,7 +733,7 @@ export function buildPickPopup(deps: {
     }
     // 원과 함께 안내 `{N}` 즉시 갱신(검색/결과 문구는 덮지 않음)
     if (autoRouteStatus.dataset.phase === "direction") {
-      autoRouteStatus.textContent = formatDistanceAutoRouteDirectionClickHint(km);
+      autoRouteStatus.textContent = "";
     }
   }
 
@@ -798,7 +757,7 @@ export function buildPickPopup(deps: {
     minusBtn.disabled = targetKm <= DISTANCE_AUTO_ROUTE_KM_MIN;
     plusBtn.disabled = targetKm >= DISTANCE_AUTO_ROUTE_KM_MAX;
     if (autoRouteStatus.dataset.phase === "direction") {
-      autoRouteStatus.textContent = formatDistanceAutoRouteDirectionClickHint(targetKm);
+      autoRouteStatus.textContent = "";
     }
   }
 
@@ -893,14 +852,15 @@ export function buildPickPopup(deps: {
   ) {
     autoRouteStatus.className = "map-view__pick-auto-route-status";
     autoRouteStatus.dataset.phase = phase;
+    // 평상시 방향·반경 설명은 생략하고 실제 탐색/결과/오류만 알린다.
+    autoRouteStatus.hidden = phase === "idle" || phase === "direction";
     if (phase === "idle") {
       autoRouteStatus.textContent = "";
       autoRouteStatus.classList.add("map-view__pick-auto-route-status--idle");
       return;
     }
     if (phase === "direction") {
-      autoRouteStatus.textContent =
-        message ?? formatDistanceAutoRouteDirectionClickHint(targetKm);
+      autoRouteStatus.textContent = "";
       return;
     }
     if (phase === "searching") {
@@ -979,30 +939,13 @@ export function buildPickPopup(deps: {
     tryArmDirectionPickIfChecked();
   });
 
-  /*
-   * 지시38 — 거리 화면 head/뒤로가기/제목행 제거(이중 캐럿으로 대체).
-   * autoRouteSection이 거리 컨테이너(계약 append 유지). 작은 출발 요약만 남긴다.
-   */
-
-  /*
-   * 작은 출발 요약. 실제 currentProfile과 동기화하고, 클릭 지점 주소를
-   * 출발 주소로 오표시하지 않는다(출발 설정 여부·수단만).
-   */
+  // 출발점이 없는 상태에서만 필요한 조작 안내를 남긴다.
   const distanceStartHint = document.createElement("p");
   distanceStartHint.className = "map-view__pick-route-distance-prereq";
   distanceStartHint.textContent = "출발·도착 탭에서 출발을 지정하면 거리·방향을 설정할 수 있습니다.";
 
-  const distanceMapPickHint = document.createElement("p");
-  distanceMapPickHint.className = "map-view__pick-distance-map-hint";
-  distanceMapPickHint.textContent = "지도에서 방향을 탭하면 경로가 생성됩니다.";
-
-  const routeDistanceSummary = document.createElement("p");
-  routeDistanceSummary.className = "map-view__pick-route-distance-summary";
-  routeDistanceSummary.setAttribute("aria-live", "polite");
   autoRouteSection.append(
     distanceStartHint,
-    distanceMapPickHint,
-    routeDistanceSummary,
     distanceRow,
     autoRouteStatusSlot,
   );
@@ -1058,13 +1001,8 @@ export function buildPickPopup(deps: {
     tabLocation.classList.toggle("is-active", onLocation);
     tabDistance.classList.toggle("is-active", !onLocation);
     distanceStartHint.hidden = pins.start || onLocation;
-    distanceMapPickHint.hidden = !pins.start || onLocation;
     distanceRow.hidden = !pins.start;
     autoRouteStatusSlot.hidden = !pins.start;
-    routeDistanceSummary.hidden = !pins.start || onLocation;
-    routeDistanceSummary.textContent = pins.start
-      ? `출발 설정됨 · ${ROUTE_PROFILE_KO[currentProfile]}`
-      : "";
     wrap.classList.toggle("map-view__pick--route-tab-distance", !onLocation);
   }
 
@@ -1113,7 +1051,7 @@ export function buildPickPopup(deps: {
   const headerRow = document.createElement("div");
   headerRow.className = "map-view__pick-header-row";
   headerRow.append(tokenSection, routePickTabs);
-  dragHandle.append(headerRow, addressEl, metaDetails);
+  dragHandle.append(headerRow, addressEl);
 
   wrap.append(dragHandle, routeLocationView, autoRouteSection, profileSection);
 
@@ -1121,35 +1059,16 @@ export function buildPickPopup(deps: {
   if (token.length > 0) {
     void (async () => {
       try {
-        const [place, elevM] = await Promise.all([
-          fetchMapboxReverseGeocodePlaceName(lngLat, token, signal),
-          fetchPointElevationMeters(lngLat, signal),
-        ]);
+        const place = await fetchMapboxReverseGeocodePlaceName(lngLat, token, signal);
         if (signal.aborted) return;
         addressEl.textContent = place ?? "주소를 찾을 수 없습니다";
-        const elevLabel =
-          elevM != null && Number.isFinite(elevM) ? `${Math.round(elevM)}m` : "—";
-        metaEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} · 고도 ${elevLabel}`;
       } catch {
         if (signal.aborted) return;
         addressEl.textContent = "주소를 불러오지 못했습니다";
-        metaEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} · 고도 —`;
       }
     })();
   } else {
     addressEl.textContent = "지도 토큰이 없어 주소를 표시할 수 없습니다";
-    void (async () => {
-      try {
-        const elevM = await fetchPointElevationMeters(lngLat, signal);
-        if (signal.aborted) return;
-        const elevLabel =
-          elevM != null && Number.isFinite(elevM) ? `${Math.round(elevM)}m` : "—";
-        metaEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} · 고도 ${elevLabel}`;
-      } catch {
-        if (signal.aborted) return;
-        metaEl.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} · 고도 —`;
-      }
-    })();
   }
 
   // App 측 armDirectionPick(anchor extend) 이 popup DOM 보다 먼저 커밋되면 checkbox 가 한 틱 늦게 맞춰진다.
