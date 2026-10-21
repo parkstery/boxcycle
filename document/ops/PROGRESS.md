@@ -1,3 +1,5 @@
+2026-10-21 [경로 팝업 압축11](20261020-ui-800x360/04-review-11.md): DEPLOYED/Chief 실제폰검수대기. main2 cbe552b1·Hosting·운영4파일일치. 수단 즉시생성/삭제 하단/탭 제목오른쪽21px·드래그충돌교정. 단위1323/UI22/경로142 PASS. https://boxcycle-dc2df.web.app
+
 2026-10-21 [경로·주행 UI09~10](20261020-ui-800x360/04-review-10.md): DEPLOYED/Chief 실제폰검수대기. main2 2c982ccc·Hosting·운영4파일일치. 경로두탭/주소전용170×54/우하단34px센서·주행바. 단위1323/UI20/실지도2 PASS. https://boxcycle-dc2df.web.app
 
 2026-10-21 [Mapbox 툴 제거08](20261020-ui-800x360/04-review-08.md): DEPLOYED. main2 4aae5ed9·Hosting·운영4파일일치·800×360 버튼DOM0 PASS. 지구본/나침반제거, 하단지표/저작권유지. 단위1321PASS. https://boxcycle-dc2df.web.app

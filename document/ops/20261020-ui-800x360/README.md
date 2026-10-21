@@ -4,7 +4,7 @@
 |---|---|
 | 문서 유형 | execution — UI 개선 지시·결과·감리 |
 | 최초 작성 | 2026-10-20 |
-| 상태 | LOCAL_VERIFIED — 후속11 수단 즉시생성·삭제/탭 재배치 UI22/경로142 PASS. 기존09~10 배포 유지,11 릴리스 진행 |
+| 상태 | DEPLOYED — 후속11 main2 cbe552b1 · 단위1323/UI22/경로142 PASS · Hosting/4파일일치 · Chief 실제폰검수대기 |
 | 독자 | chief · AI |
 | 연결 문서 | [협업 계약](../../reference/operations/261009-RTW-개발에이전트-협업-감리.md) · [공간 밀도](../../reference/product/260924-RTW-UI-공간밀도-원칙.md) |
 
@@ -41,4 +41,4 @@ http://localhost:5000 — 브라우저 800×360, 강력 새로고침.
 
 현재09~10: OpenCode두모델조사지연중단→Cursor09구현완료·Codex10직접구현/통합. [결과10](03-result-10.md)·[감리10](04-review-10.md).주소170×54·바163×34로준비fixture총가림면적5.113%,단위1323/UI20/실지도2 PASS. main2 2c982ccc 병합/푸시·Hosting 배포·운영4파일SHA-256일치·운영인트로800×360 PASS. https://boxcycle-dc2df.web.app — 실제폰/BLE는Chief검수대기. 09/10허용파일을분리한병렬투입이었으며같은파일writer중복없음.
 
-후속11 Chief: 생성버튼 제거→수단 즉시생성,삭제는기존생성자리,두모드탭제목오른쪽소형화. [지시11](02-task-11.md)→Cursor [결과11](03-result-11.md)→Supervisor [감리11](04-review-11.md). 실제창drag와탭의충돌을추가검수/교정,UI22·경로142 PASS. 릴리스진행.
+후속11 Chief: 생성버튼 제거→수단 즉시생성,삭제는기존생성자리,두모드탭제목오른쪽소형화. [지시11](02-task-11.md)→Cursor [결과11](03-result-11.md)→Supervisor [감리11](04-review-11.md). 실제창drag와탭의충돌을추가검수/교정,UI22·경로142·단위1323 PASS. main2 cbe552b1 병합/푸시·Hosting배포·운영4파일일치·운영인트로800×360 PASS. https://boxcycle-dc2df.web.app — 실제폰검수대기.

@@ -1,4 +1,4 @@
-# 감리11 — 경로 팝업 3항목 / LOCAL_VERIFIED
+# 감리11 — 경로 팝업 3항목 / DEPLOYED
 
 2026-10-21 Codex Supervisor. Chief 요청 그대로 구현: 별도 생성버튼 제거·수단 클릭 즉시 생성, 삭제버튼 하단 수단 오른쪽 이동, 두 모드 탭 제목 오른쪽 21px/10.4px 한 줄. 모드·삭제·접근성/키보드 계약 유지. 서버/인증/데이터/토큰 정책/주행바 변경 없음.
 
@@ -36,3 +36,18 @@ node ../../node_modules/typescript/bin/tsc -b --pretty false
 증거 `.out/ui-route-ride-20261021/popup-11-{empty,start-only,end-only,ready,waypoints}-800.png`, `popup-11-ready-{667,844}.png`. 실제Galaxy·BLE·새 API 응답 자체는 이번에 시험하지 않았다(콜백/레이아웃 변경만). 배포전 제품범위4파일 외 변경없음.
 
 최종 `C:\20.HDev\boxcycle`의 `npm run build` exit0. index-Chn6MZ50.js / index-CqFpcJ0i.css. 기존 SADDLE/PELVIS export·대형번들 경고는 유지(이번범위아님), 무경고로 보고하지 않는다.
+
+## Git / 릴리스
+
+코드 `cbe552b1` 커밋(pre-commit eslint3파일 오류0)→main2 fast-forward→원격main2 push exit0. 정상권한 pre-push: 의존방향·순환0/개발부산물0경고/tsc/동행간격·전환·잔차/selector19 PASS. test:quick **1,323 PASS·0FAIL**(67.1초; 에뮬레이터·별도하네스3파일 제외). main 미변경. 기존 혼합dirty 제외, docs/지시/결과/감리 포함9파일만 커밋.
+
+`C:\20.HDev\boxcycle`에서 `firebase deploy --project boxcycle-dc2df --only hosting --non-interactive` exit0,46파일업로드/확정/릴리스성공. Functions/Rules/운영데이터변경없음. https://boxcycle-dc2df.web.app
+
+운영4파일 HTTP200·로컬빌드SHA-256일치:
+
+- index.html 632B: `1106c658389dd282e02560312fc1bb22b163175a0d42214215aea391c3d1b3fb`
+- assets/index-Chn6MZ50.js 3,732,915B: `88f301ae048e8df90bd4c966269a100aef166015542e76e533fb2f77e6d1f0d3`
+- assets/jsx-runtime-1YrJdh_0.js 8,446B: `0d12fda61ef6df75717ab89d9cb62feb5711275aa1279dcfe6ce18b3bd764522`
+- assets/index-CqFpcJ0i.css 226,517B: `b5f79c0b42f78c384ff0f6284422b9f50f5245dbba2560d5b7a9b092bc5e3411`
+
+독립새브라우저800×360 운영인트로: 새JS경로·canvas1·지구본/나침반0·인트로노출 PASS(exit0). 인증조작0·운영Firestore POST3차단. 운영경로생성은누르지않음. `.out/ui-route-ride-20261021/verify-hosting.mjs`, `production-intro-11-800.png`. Cursor종료/로컬검사서버5025중단. Chief는위로컬주소또는운영주소에서새로고침후확인. 실제폰검수대기.
