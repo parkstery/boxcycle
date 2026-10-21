@@ -418,7 +418,9 @@ describe("distanceAutoRoute click debug marker 3F-A-R1 §2.5", () => {
   });
 
   it("방향 클릭만 marker 생성·교체, 수동 End·세션 종료 시 제거", () => {
-    assert.match(MAP_VIEW_SOURCE, /autoRouteMapPickRef\.current === "direction"/);
+    // 방향 전용 콜백은 비방향 상태를 조기 반환한 뒤에만 마커를 놓는다.
+    assert.match(MAP_VIEW_SOURCE, /autoRouteMapPickRef\.current !== "direction"/);
+    assert.match(MAP_VIEW_SOURCE, /onDirectionShortTap: \(commit\) => runDirectionMapPick\(commit\.lngLat\)/);
     assert.match(MAP_VIEW_SOURCE, /onClearAutoRouteClickDebugMarker/);
     // MapView 가 지우기 콜백을 팝업에 넘기고, 팝업의 방향 모드 해제·Start 가 그것을 부른다
     assert.match(MAP_VIEW_SOURCE, /onClearAutoRouteClickDebugMarker: \(\) => clearAutoRouteClickDebugMarkerRef\.current\(\)/);
