@@ -1,3 +1,5 @@
+2026-10-22 [지도 길게누르기·UI 릴리스18](20261020-ui-800x360/04-review-18.md): LOCAL_VERIFIED/릴리스 진행. 일반 위치선택500ms·메뉴/이동/확대 차단·계기판/주소 포함. 제스처12/브라우저12+UI13 PASS. main2 병합·Hosting 배포 승인.
+
 2026-10-21 [운영 새로고침·재배포12](20261020-ui-800x360/04-review-12.md): DEPLOYED. Chief 새로고침미실행설명으로조사종료·추가UI수정0. 문서63630d67 main2병합/푸시·기존UI재배포/운영4파일일치. 이미열린운영화면새로고침필요. https://boxcycle-dc2df.web.app
 
 2026-10-21 [경로 팝업 압축11](20261020-ui-800x360/04-review-11.md): DEPLOYED/Chief 실제폰검수대기. main2 cbe552b1·Hosting·운영4파일일치. 수단 즉시생성/삭제 하단/탭 제목오른쪽21px·드래그충돌교정. 단위1323/UI22/경로142 PASS. https://boxcycle-dc2df.web.app

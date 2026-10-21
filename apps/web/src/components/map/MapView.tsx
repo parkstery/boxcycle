@@ -213,6 +213,10 @@ import {
   type PickPopupAutoRouteUi,
 } from "./mapPopupElements";
 import {
+  attachMapRoutePickGesture,
+  type MapRoutePickCommit,
+} from "./mapRoutePickGesture";
+import {
   addRouteLine,
   applyConquestEmphasis,
   CONQUEST_LIVE_GLOW_LAYER,
@@ -676,6 +680,7 @@ export function MapView({
   const routePickDockResizeHandlerRef = useRef<(() => void) | null>(null);
   const routePickDockDraggingRef = useRef(false);
   const routePickDockPanelRef = useRef<HTMLDivElement | null>(null);
+  const routePickHintRef = useRef<HTMLDivElement | null>(null);
   const openRoutePickAtRef = useRef<((lngLat: LngLat) => void) | null>(null);
   const routeGeometryRef = useRef<LineStringGeometry | null>(null);
   /**
@@ -1710,71 +1715,113 @@ export function MapView({
       openPickSurface(picked, fakeEvent);
     };
 
-    map.on("click", (event) => {
+    /**
+     * 자동 Route 결과를 popup 에 반영하는 **단일 경로**.
+     *
+     * 지도 클릭과 「거리 조정 재탐색」이 서로 다른 코드를 타서, 재탐색 쪽만 popup 갱신을
+     * 건너뛰었다 — 그래서 조정 성공 뒤에도 `offered` 문구가 남고(결함 ③) 슬라이더가 옛
+     * 값 그대로였다(결함 ②). 두 진입점이 이 함수를 함께 쓴다.
+     */
+    const applyAutoRoutePickResultToPopup = (
+      result: { status: "found" | "failed"; message: string } | null,
+    ): void => {
+      if (!result) return;
+      const ui = pickPopupAutoRouteUiRef.current;
+      if (result.status === "found") {
+        ui?.setInlinePhase("found", result.message);
+        return;
+      }
+      ui?.setInlinePhase("failed", result.message);
+      onRetryDistanceAutoRouteRef.current?.();
+    };
+
+    const mapMouseEventFromPickCommit = (commit: MapRoutePickCommit): mapboxgl.MapMouseEvent =>
+      ({
+        lngLat: { lng: commit.lngLat[0], lat: commit.lngLat[1] },
+        point: commit.point,
+      }) as mapboxgl.MapMouseEvent;
+
+    const runDirectionMapPick = (picked: LngLat) => {
+      if (autoRouteSearchBusyRef.current) return;
+      if (routePickDockDraggingRef.current) return;
+      if (autoRouteMapPickRef.current !== "direction" || !onAutoRouteMapPickRef.current) {
+        return;
+      }
+      placeAutoRouteClickDebugMarkerRef.current(picked);
+      const popup = popupRef.current;
+      if (popup) popup.options.closeOnClick = false;
+      autoRouteSearchBusyRef.current = true;
+      pickPopupAutoRouteUiRef.current?.setInlinePhase(
+        "searching",
+        "목표 거리에 맞는 도로 경로를 찾는 중입니다…",
+      );
+
+      void onAutoRouteMapPickRef.current(picked)
+        .then((result) => {
+          applyAutoRoutePickResultToPopup(result);
+        })
+        .catch(() => {
+          pickPopupAutoRouteUiRef.current?.setInlinePhase(
+            "failed",
+            "경로 탐색 중 오류가 발생했습니다. 방향을 다시 선택해 주세요.",
+          );
+          onRetryDistanceAutoRouteRef.current?.();
+        })
+        .finally(() => {
+          autoRouteSearchBusyRef.current = false;
+        });
+    };
+
+    const runLongPressRoutePick = (commit: MapRoutePickCommit) => {
       if (routePickDockDraggingRef.current) return;
       if (autoRouteSearchBusyRef.current) return;
-      const pinLabel = getActivityWorldPinLabelRef.current;
-      if (
-        pinLabel &&
-        tryOpenActivityWorldPinPopup(map, event, pinLabel, popupRef, pickPickPopupAnchor)
-      ) {
-        return;
-      }
-
-      /**
-       * 자동 Route 결과를 popup 에 반영하는 **단일 경로**.
-       *
-       * 지도 클릭과 「거리 조정 재탐색」이 서로 다른 코드를 타서, 재탐색 쪽만 popup 갱신을
-       * 건너뛰었다 — 그래서 조정 성공 뒤에도 `offered` 문구가 남고(결함 ③) 슬라이더가 옛
-       * 값 그대로였다(결함 ②). 두 진입점이 이 함수를 함께 쓴다.
-       */
-      function applyAutoRoutePickResultToPopup(
-        result: { status: "found" | "failed"; message: string } | null,
-      ): void {
-        if (!result) return;
-        const ui = pickPopupAutoRouteUiRef.current;
-        if (result.status === "found") {
-          ui?.setInlinePhase("found", result.message);
-          return;
-        }
-        ui?.setInlinePhase("failed", result.message);
-        onRetryDistanceAutoRouteRef.current?.();
-      }
-
-      const picked: LngLat = [event.lngLat.lng, event.lngLat.lat];
-      if (autoRouteMapPickRef.current === "direction" && onAutoRouteMapPickRef.current) {
-        if (autoRouteSearchBusyRef.current) return;
-        if (routePickDockDraggingRef.current) return;
-        placeAutoRouteClickDebugMarkerRef.current(picked);
-        const popup = popupRef.current;
-        if (popup) popup.options.closeOnClick = false;
-        autoRouteSearchBusyRef.current = true;
-        pickPopupAutoRouteUiRef.current?.setInlinePhase(
-          "searching",
-          "목표 거리에 맞는 도로 경로를 찾는 중입니다…",
-        );
-
-        void onAutoRouteMapPickRef.current(picked)
-          .then((result) => {
-            applyAutoRoutePickResultToPopup(result);
-          })
-          .catch(() => {
-            pickPopupAutoRouteUiRef.current?.setInlinePhase(
-              "failed",
-              "경로 탐색 중 오류가 발생했습니다. 방향을 다시 선택해 주세요.",
-            );
-            onRetryDistanceAutoRouteRef.current?.();
-          })
-          .finally(() => {
-            autoRouteSearchBusyRef.current = false;
-          });
-        return;
-      }
-      if (autoRouteMapPickRef.current === "direction") {
-        return;
-      }
+      const event = mapMouseEventFromPickCommit(commit);
+      const picked = commit.lngLat;
       showTemporaryPick(picked);
       openPickSurface(picked, event);
+    };
+
+    let routePickHintHideTimer: ReturnType<typeof setTimeout> | null = null;
+    const showRoutePickHint = () => {
+      const el = routePickHintRef.current;
+      if (!el) return;
+      el.hidden = false;
+      if (routePickHintHideTimer) clearTimeout(routePickHintHideTimer);
+      routePickHintHideTimer = setTimeout(() => {
+        if (routePickHintRef.current) routePickHintRef.current.hidden = true;
+      }, 2200);
+    };
+
+    const detachRoutePickGesture = attachMapRoutePickGesture({
+      map,
+      getAutoRouteMapPick: () => autoRouteMapPickRef.current,
+      // 경로창은 다음 위치/방향 선택을 위해 열어 두고, 별도 메뉴·설정만 차단한다.
+      isRoutePickOverlayOpen: () =>
+        Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"]')).some((el) => {
+          if (el.closest('[aria-hidden="true"], [inert], [hidden]')) return false;
+          const style = getComputedStyle(el);
+          if (style.visibility === "hidden" || style.display === "none") return false;
+          const rect = el.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0 && rect.right > 0 && rect.bottom > 0 &&
+            rect.left < window.innerWidth && rect.top < window.innerHeight;
+        }),
+      shouldBlockPick: () =>
+        routePickDockDraggingRef.current || autoRouteSearchBusyRef.current,
+      onLongPressPick: runLongPressRoutePick,
+      onDirectionShortTap: (commit) => runDirectionMapPick(commit.lngLat),
+      onActivityPinShortTap: (commit) => {
+        const pinLabel = getActivityWorldPinLabelRef.current;
+        if (!pinLabel) return false;
+        const event = mapMouseEventFromPickCommit(commit);
+        return tryOpenActivityWorldPinPopup(
+          map,
+          event,
+          pinLabel,
+          popupRef,
+          pickPickPopupAnchor,
+        );
+      },
+      onShortTapNoPick: showRoutePickHint,
     });
 
     /** `zoom` 은 제스처·네비 버튼 애니메이션 중 매 프레임 발생 → React 재동기화가 `zoomTo` 와 맞물려 떨림 유발. 완료 시점만 반영 */
@@ -1793,6 +1840,8 @@ export function MapView({
     requestAnimationFrame(onResize);
 
     return () => {
+      detachRoutePickGesture();
+      if (routePickHintHideTimer) clearTimeout(routePickHintHideTimer);
       detachFrameBreakdown();
       map.off("moveend", reportMapViewportAfterMove);
       map.off("zoomend", reportMapViewportAfterMove);
@@ -3357,6 +3406,14 @@ export function MapView({
   return (
     <div ref={mapShellRef} className="map-view-shell">
       <div ref={containerRef} className="map-view" role="presentation" />
+      <div
+        ref={routePickHintRef}
+        className="map-view__route-pick-hint"
+        hidden
+        aria-live="polite"
+      >
+        지도를 길게 눌러 위치 선택
+      </div>
       <div ref={routePickDockLayerRef} className="map-view__pick-dock-layer" />
       <RouteElevationOverlay
         routeGeometry={routeGeometry}

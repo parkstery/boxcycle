@@ -165,7 +165,8 @@ for(const initial of ['empty','start-only','end-only','ready','waypoints'] as co
       await expect(popup).toHaveAttribute('data-generated','3');
       await page.evaluate(()=>{(document.getElementById('popup-audit') as HTMLElement & {setTokenBlocked:(v:boolean)=>void}).setTokenBlocked(false);});
     }else if(hasStart){
-      await popup.getByRole('button',{name:'자전거 경로',exact:true}).click();
+      // 출발·도착 탭은 두 위치가 있어야 이동수단을 노출한다(현행 제품 계약).
+      await expect(popup.getByRole('button',{name:'자전거 경로',exact:true})).toBeHidden();
       await expect(popup).toHaveAttribute('data-generated','0');
     }
     if(initial==='waypoints'){

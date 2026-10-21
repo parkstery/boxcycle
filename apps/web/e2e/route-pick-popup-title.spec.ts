@@ -38,7 +38,7 @@ test.describe("지도 지점 팝업 — 제목 행", () => {
 
       const map = page.locator(".mapboxgl-canvas").first();
       await expect(map).toBeVisible({ timeout: 30_000 });
-      await map.click({ position: { x: Math.round(vp.width * 0.6), y: Math.round(vp.height / 2) } });
+      await map.click({ position: { x: Math.round(vp.width * 0.6), y: Math.round(vp.height / 2) }, delay: 650 });
 
       const pick = page.locator(".map-view__pick").last();
       await expect(pick, "지점 팝업").toBeVisible({ timeout: 20_000 });
@@ -56,7 +56,7 @@ test.describe("지도 지점 팝업 — 제목 행", () => {
       await pick.screenshot({ path: path.join(OUT_DIR, `01-${vp.name}-before-pin.png`) });
 
       // ── 핀 찍은 뒤: 제목 + 잔액 ─────────────────────────────────────────
-      await pick.getByRole("button", { name: "Set start" }).click();
+      await pick.getByRole("button", { name: "출발 지점으로 설정", exact: true }).click();
       await expect(titleLine, "핀 후 제목에 잔액이 붙는다").toHaveText(
         /^경로 생성 잔여 토큰 \d+개/,
         { timeout: 20_000 },
