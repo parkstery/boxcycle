@@ -1,3 +1,5 @@
+2026-10-21 [경로·주행 UI09~10](20261020-ui-800x360/04-review-10.md): DEPLOYED/Chief 실제폰검수대기. main2 2c982ccc·Hosting·운영4파일일치. 경로두탭/주소전용170×54/우하단34px센서·주행바. 단위1323/UI20/실지도2 PASS. https://boxcycle-dc2df.web.app
+
 2026-10-21 [Mapbox 툴 제거08](20261020-ui-800x360/04-review-08.md): DEPLOYED. main2 4aae5ed9·Hosting·운영4파일일치·800×360 버튼DOM0 PASS. 지구본/나침반제거, 하단지표/저작권유지. 단위1321PASS. https://boxcycle-dc2df.web.app
 
 2026-10-21 [지도 중심 UI 릴리스07](20261020-ui-800x360/05-release-07.md): DEPLOYED/Chief실기기검수대기. main2 ae646df9·Hosting성공·운영4파일일치. 주소단일면24px/두행85px/5행157px·비노출에지·상단계기. web1319/브라우저14+최종실지도1 PASS. https://boxcycle-dc2df.web.app

@@ -26,7 +26,7 @@
 - 최종변경후selector19·관련Node65/65·변경파일eslint·tsc PASS. 루트 npm run build PASS(index-7A29VczA.js/index-Cj3WzBDE.css). 기존SADDLE/PELVIS export·대형번들경고는별도이슈로보존.
 - 캡처 .out/ui-route-ride-20261021/bar-*.png, popup-*.png. 실지도 .out/ui-edge-20261021/actual-*.png/actual-geometry.json. 운영인증/주행쓰기없이로컬에뮬레이터에서만검증. 실제Galaxy/BLE/외부실센서미검증.
 
-현재기능브랜치 feat/route-ride-controls-20261021,미관련기존ops/evidence/cdbox/.out보존.커밋/푸시/배포성공은후속릴리스증거로구분한다.
+기능브랜치 feat/route-ride-controls-20261021→main2 병합/푸시·Hosting 배포완료(코드2c982ccc). 정상pre-push단위1323/0FAIL,운영4파일일치·800×360인트로PASS. [릴리스증거](04-review-10.md).미관련기존ops/evidence/cdbox/.out보존.실제폰/BLE검수대기.
 
 직접확인:
 ```powershell

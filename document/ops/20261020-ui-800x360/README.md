@@ -4,7 +4,7 @@
 |---|---|
 | 문서 유형 | execution — UI 개선 지시·결과·감리 |
 | 최초 작성 | 2026-10-20 |
-| 상태 | LOCAL_VERIFIED — 후속09~10 UI20·실지도2 PASS, 릴리스 진행. 기존08 배포 유지 |
+| 상태 | DEPLOYED — 후속09~10 main2 2c982ccc · 단위1323/UI20/실지도2 PASS · Hosting/4파일일치 · Chief 실제폰검수대기 |
 | 독자 | chief · AI |
 | 연결 문서 | [협업 계약](../../reference/operations/261009-RTW-개발에이전트-협업-감리.md) · [공간 밀도](../../reference/product/260924-RTW-UI-공간밀도-원칙.md) |
 
@@ -39,4 +39,4 @@ http://localhost:5000 — 브라우저 800×360, 강력 새로고침.
 
 2026-10-21 현재 Chief가 경로생성 두방법분리·주소보기전용·우하단센서+주행바 제안을구현승인. [지시09](02-task-09.md) DeepSeek v4.1 Flash → [지시10](02-task-10.md) GLM5.3 Flash 순차단일writer, Supervisor독립검수. 느림/품질미달이면Cursor/Codex교대승인. 서버/DB/인증/운동정책불변. 기존08배포상태와 신규09~10진행을구별한다.
 
-현재09~10: OpenCode두모델조사지연중단→Cursor09구현완료·Codex10직접구현/통합. [결과10](03-result-10.md)·[감리10](04-review-10.md).주소170×54·바163×34로준비fixture총가림면적5.113%,UI20PASS·실지도2PASS,릴리스진행. 09/10허용파일을분리한병렬투입이었으며같은파일writer중복없음.
+현재09~10: OpenCode두모델조사지연중단→Cursor09구현완료·Codex10직접구현/통합. [결과10](03-result-10.md)·[감리10](04-review-10.md).주소170×54·바163×34로준비fixture총가림면적5.113%,단위1323/UI20/실지도2 PASS. main2 2c982ccc 병합/푸시·Hosting 배포·운영4파일SHA-256일치·운영인트로800×360 PASS. https://boxcycle-dc2df.web.app — 실제폰/BLE는Chief검수대기. 09/10허용파일을분리한병렬투입이었으며같은파일writer중복없음.
