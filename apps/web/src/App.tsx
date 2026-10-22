@@ -19,16 +19,11 @@ import { AppMapStage, RouteMinimap, useAppMapOverlays } from "./features/map-ove
 import { resolveOpenTrailsListenerEnabled } from "./features/map-overlays/listenerScopePolicy";
 import { RouteDock, useRouteDockStops, type RouteDockStop, type RouteDockStopId } from "./components/route-dock";
 import { RideControlBar } from "./components/ride/RideControlBar";
-import type { MapViewportBounds } from "./lib/activity/activityWorldLod";
 import { armPostRideActivityWatch } from "./lib/activity/activityWorldPollSignals";
 import {
-  DEFAULT_FOLLOW_MODE,
-  DEFAULT_MAP_ENABLE_3D,
-  DEFAULT_MAP_ZOOM,
   MAP_GLOBE_MIN_ZOOM,
   MAP_ZOOM_SLIDER_MAX,
   RIDE_START_ZOOM,
-  RIDE_CAMERA_DISTANCE_DEFAULT_M,
   RIDE_CAMERA_DISTANCE_MAX_M,
   RIDE_CAMERA_DISTANCE_MIN_M,
 } from "./lib/map/mapGlobeView";
@@ -158,7 +153,7 @@ import {
   type RouteRideEntry,
 } from "./lib/route/routePublicationResolve";
 import type { SavedRoute } from "./lib/route/repo/firestoreSavedRoutes";
-import { SAVED_ROUTE_NAME_MAX, buildSuggestedRouteName } from "./lib/route/repo/firestoreSavedRoutes";
+import { SAVED_ROUTE_NAME_MAX } from "./lib/route/repo/firestoreSavedRoutes";
 import { useAppAuth } from "./hooks/useAppAuth";
 import { useRouteTokenBalance } from "./hooks/useRouteTokenBalance";
 import {
@@ -184,11 +179,7 @@ import {
   mapStyleHudShortLabel,
   nextOutdoorsSatelliteMapStyle,
 } from "./lib/map/rtwMapConfig";
-import { formatElapsedFromMs } from "./lib/ride/rideFormat";
-import { formatRideDistanceKmNumber } from "./lib/ride/rideDistanceFormat";
-import { useBleCrankRpm } from "./hooks/useBleCrankRpm";
-import { resolveRideTargetSpeedKmh, type RideInputMode } from "./lib/sensor/cadenceRideInput";
-import { isRideInputReady, resolveRideInputReadiness } from "./lib/sensor/cadenceSensorUi";
+import { isRideInputReady } from "./lib/sensor/cadenceSensorUi";
 import { CadenceSensorSheet } from "./components/sensor";
 import { useConquest } from "./hooks/useConquest";
 import { useLiveConquestPaint, shouldShowAlreadyOwnedHint } from "./hooks/useLiveConquestPaint";
@@ -197,6 +188,9 @@ import type { CoverageOverlayMode } from "./lib/activity/coverageOverlayMode";
 import { type RouteProfile } from "./services/mapboxDirections";
 import { FUNCTIONS_REGION, MAPBOX_TOKEN } from "./app/env";
 import { useAppSheetNavigation } from "./app/useAppSheetNavigation";
+import { useAppMapCameraState } from "./app/useAppMapCameraState";
+import { useAppRideInputReadiness } from "./app/useAppRideInputReadiness";
+import { computeAppHudValues } from "./app/appHudValues";
 import { getMapDebugPhase } from "./lib/debug/mapDebugPhase";
 import {
   type Camera1Mode,
@@ -266,125 +260,57 @@ export default function App() {
     recentNewRoad,
   } = useConquest(user, configured);
 
-  /** 첫 지도는 저장 지역이 아니라 콜로세움. 실제 목적지는 위치 선택이 정한다. */
-  const [mapStyle, setMapStyle] = useState(MAP_STYLE_SATELLITE);
-  const [showRtwPoi, setShowRtwPoi] = useState(false);
-  const [mapZoom, setMapZoom] = useState(MAP_FALLBACK_ZOOM);
-  /** 주행 카메라 라이더~카메라 거리(m) — 개발용 거리 슬라이더, 최적값 확정 후 제거 예정 */
-  const [rideCameraDistanceM, setRideCameraDistanceM] = useState(RIDE_CAMERA_DISTANCE_DEFAULT_M);
-  const [rideFollowCameraNonce, setRideFollowCameraNonce] = useState(0);
-  const [rideJoinBurstNonce, setRideJoinBurstNonce] = useState(0);
-  const [mapViewportSpanKm, setMapViewportSpanKm] = useState<number | null>(null);
-  /** 전역 livePresence publish — idle 시 지도 중심(주행 중에는 liveForMap 우선) */
-  const [mapViewportCenterLngLat, setMapViewportCenterLngLat] = useState<LngLat>([
-    MAP_FALLBACK_CENTER[0],
-    MAP_FALLBACK_CENTER[1],
-  ]);
-  /** Activity World LOD — 제스처 중 실제 줌·span (HUD `mapZoom` 과 분리) */
-  const [mapLodZoom, setMapLodZoom] = useState(DEFAULT_MAP_ZOOM);
-  const [mapLodSpanKm, setMapLodSpanKm] = useState<number | null>(null);
-
-  const onMapViewport = useCallback((viewport: MapViewportBounds, spanKm: number) => {
-    setMapViewportSpanKm(spanKm);
-    const centerLng = (viewport.west + viewport.east) / 2;
-    const centerLat = (viewport.south + viewport.north) / 2;
-    if (Number.isFinite(centerLng) && Number.isFinite(centerLat)) {
-      setMapViewportCenterLngLat([centerLng, centerLat]);
-    }
-  }, []);
-  const onMapLodViewport = useCallback((spanKm: number, zoom: number) => {
-    setMapLodSpanKm(spanKm);
-    setMapLodZoom(zoom);
-  }, []);
-  const [followMode, setFollowMode] = useState<FollowMode>(DEFAULT_FOLLOW_MODE);
-  /** Quick Camera 1~6 — 주행 HUD. null = 미선택 */
-  const [activeQuickCamera, setActiveQuickCamera] = useState<1 | 2 | 3 | 4 | 5 | 6 | null>(null);
-  /** Quick Camera 1: routeFit → aerial500 → aerial20 → … (지시11) */
-  const [camera1Mode, setCamera1Mode] = useState<Camera1Mode>("routeFit");
-  /** 1번 진입 직전 맵 스타일 — 이탈 시 복원(사용자가 1번 안 토글하면 복원 안 함) */
-  const camera1StyleBeforeEnterRef = useRef<string | null>(null);
-  const camera1UserToggledStyleRef = useRef(false);
-  /** Quick Camera 6: baseHeading 고정(북=0) */
-  const [lockBaseHeading, setLockBaseHeading] = useState<number | null>(null);
-  /** 지시06 B1 — preset 거리 vs 사용자 줌 역산 */
-  const [rideCameraSpanFloorMode, setRideCameraSpanFloorMode] = useState<"preset" | "userZoom">(
-    "preset",
-  );
-  /** HUD mapZoom 모드 ± — MapView 실측 zoom 기준 1회 스텝 */
-  const [mapZoomStepRequest, setMapZoomStepRequest] = useState<{
-    requestId: number;
-    delta: number;
-  } | null>(null);
-  const mapZoomStepSeqRef = useRef(0);
-  const [enable3D, setEnable3D] = useState(DEFAULT_MAP_ENABLE_3D);
-  const followModeSnapshotRef = useRef(followMode);
-  const mapZoomSnapshotRef = useRef(mapZoom);
-  followModeSnapshotRef.current = followMode;
-  mapZoomSnapshotRef.current = mapZoom;
-  const rideCameraRestoreRef = useRef<{ follow: FollowMode; zoom: number } | null>(null);
-  /** 체험(T0) 입력 — 슬라이더가 정한 값. cadence 모드에서는 목표 속도에 쓰이지 않는다. */
-  const [manualSpeedKmh, setManualSpeedKmh] = useState(5);
-  /**
-   * 주행 입력 모드. 센서 연결 성공은 `cadence` 로 전환하지만, 단절·정지는
-   * 절대 `manual` 로 자동 복귀시키지 않는다 — 페달링 없이 전진하는 실패를 막는다.
-   */
-  const [rideInputMode, setRideInputMode] = useState<RideInputMode>("manual");
-  const bleCrankRpm = useBleCrankRpm();
-  const bleSensorConnected = bleCrankRpm.uiState === "connected";
-  /**
-   * 「센서 없음」(체험 속도)로 시작할 준비가 됐는가. 이게 false 면 Go 가 잠긴다.
-   *
-   * 2026-09-28 Chief: **기본값을 「센서 없음」으로 둔다.** 종전에는 false 로 시작해
-   * 센서 시트를 한 번 열어 고르기 전에는 Go 가 잠겼는데(「선택하지 않은 체험 주행 금지」),
-   * 주행 시험마다 그 한 바퀴를 도느라 시간이 샜다. 센서를 연결하면 `cadence` 로 올라가고,
-   * 단절·정지에서 `manual` 로 자동 복귀하지 않는 보호는 그대로다.
-   */
-  const [manualInputChosen, setManualInputChosen] = useState(true);
-  /** 이번 연결에서 유효 크랭크 샘플을 한 번이라도 받았는가(이후 0rpm 이어도 유지) */
-  const [cadenceSampleSeen, setCadenceSampleSeen] = useState(false);
-  const switchRideInputToManual = useCallback(() => {
-    setManualInputChosen(true);
-    setRideInputMode("manual");
-  }, []);
-  const switchRideInputToCadence = useCallback(() => setRideInputMode("cadence"), []);
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    (window as unknown as { __rtwSetRideInputMode?: (m: RideInputMode) => void }).__rtwSetRideInputMode =
-      setRideInputMode;
-    return () => {
-      delete (window as unknown as { __rtwSetRideInputMode?: (m: RideInputMode) => void }).__rtwSetRideInputMode;
-    };
-  }, []);
-  // 센서 연결 성공 = cadence 전환. effect 대신 이전값 비교(React 권장) — set-state-in-effect 회피.
-  const [prevBleUiState, setPrevBleUiState] = useState(bleCrankRpm.uiState);
-  if (bleCrankRpm.uiState !== prevBleUiState) {
-    setPrevBleUiState(bleCrankRpm.uiState);
-    if (bleCrankRpm.uiState === "connected") setRideInputMode("cadence");
-    // 연결이 아닌 상태로 나가면 「이번 연결의 샘플 확인」은 무효 — 준비 완료도 풀린다.
-    if (bleCrankRpm.uiState !== "connected") setCadenceSampleSeen(false);
-  }
-  // 유효 샘플 1회 = cadence 준비 완료. 0rpm(정지)도 crankRpm !== null 이라 유지된다.
-  if (bleSensorConnected && bleCrankRpm.crankRpm != null && !cadenceSampleSeen) {
-    setCadenceSampleSeen(true);
-  }
-  const rideInputReadiness = resolveRideInputReadiness({
-    mode: rideInputMode,
-    manualChosen: manualInputChosen,
-    uiState: bleCrankRpm.uiState,
-    cadenceSampleSeen,
-  });
+  const {
+    mapStyle,
+    setMapStyle,
+    showRtwPoi,
+    setShowRtwPoi,
+    mapZoom,
+    setMapZoom,
+    rideCameraDistanceM,
+    setRideCameraDistanceM,
+    rideFollowCameraNonce,
+    setRideFollowCameraNonce,
+    rideJoinBurstNonce,
+    setRideJoinBurstNonce,
+    mapViewportSpanKm,
+    mapViewportCenterLngLat,
+    mapLodZoom,
+    mapLodSpanKm,
+    onMapViewport,
+    onMapLodViewport,
+    followMode,
+    setFollowMode,
+    activeQuickCamera,
+    setActiveQuickCamera,
+    camera1Mode,
+    setCamera1Mode,
+    camera1StyleBeforeEnterRef,
+    camera1UserToggledStyleRef,
+    lockBaseHeading,
+    setLockBaseHeading,
+    rideCameraSpanFloorMode,
+    setRideCameraSpanFloorMode,
+    mapZoomStepRequest,
+    setMapZoomStepRequest,
+    mapZoomStepSeqRef,
+    enable3D,
+    setEnable3D,
+    followModeSnapshotRef,
+    mapZoomSnapshotRef,
+    rideCameraRestoreRef,
+  } = useAppMapCameraState();
+  const {
+    manualSpeedKmh,
+    setManualSpeedKmh,
+    rideInputMode,
+    bleCrankRpm,
+    switchRideInputToManual,
+    switchRideInputToCadence,
+    rideInputReadiness,
+    rideTargetSpeedKmh,
+  } = useAppRideInputReadiness();
   const rideInputReady = isRideInputReady(rideInputReadiness);
-  /** 현재 입력 모드가 만든 목표 속도 — 실제 적용 속도는 램핑 후 `rideMetrics.appliedSpeedKmh` */
-  const rideTargetSpeedKmh = useMemo(
-    () =>
-      resolveRideTargetSpeedKmh({
-        mode: rideInputMode,
-        manualSpeedKmh,
-        crankRpm: bleCrankRpm.crankRpm,
-        sensorConnected: bleSensorConnected,
-      }),
-    [rideInputMode, manualSpeedKmh, bleCrankRpm.crankRpm, bleSensorConnected],
-  );
   const {
     rideTtsEnabled,
     setRideTtsEnabled,
@@ -664,7 +590,7 @@ export default function App() {
       }
       setActiveQuickCamera(null);
     }
-  }, [rideStatus]);
+  }, [rideStatus, camera1StyleBeforeEnterRef, camera1UserToggledStyleRef, followModeSnapshotRef, mapZoomSnapshotRef, rideCameraRestoreRef, setActiveQuickCamera, setCamera1Mode, setEnable3D, setFollowMode, setLockBaseHeading, setMapStyle, setMapZoom, setRideCameraDistanceM, setRideCameraSpanFloorMode, setRideFollowCameraNonce, setRideJoinBurstNonce]);
 
   const { recentSessions, setRecentSessions, reloadRecentSessionsFromLocalStorage } =
     useRecentRideSessions({
@@ -1259,7 +1185,7 @@ export default function App() {
         requestId: cameraJumpSeqRef.current,
       });
     },
-    [conquestTraceGeometries, recentNewRoadGeometry],
+    [conquestTraceGeometries, recentNewRoadGeometry, setActiveQuickCamera, setFollowMode, setLockBaseHeading],
   );
 
   useEffect(() => {
@@ -2069,7 +1995,7 @@ export default function App() {
         requestId: cameraJumpSeqRef.current,
       });
     },
-    [mapZoom],
+    [mapZoom, setActiveQuickCamera, setFollowMode, setLockBaseHeading],
   );
 
   /**
@@ -2169,7 +2095,7 @@ export default function App() {
       });
       setPlaceSearchMarkerLngLat(lngLat);
     },
-    [mapZoom],
+    [mapZoom, setActiveQuickCamera, setFollowMode, setLockBaseHeading],
   );
 
   /**
@@ -2491,7 +2417,7 @@ export default function App() {
         requestId: cameraJumpSeqRef.current,
       });
     },
-    [],
+    [setActiveQuickCamera, setFollowMode, setLockBaseHeading],
   );
 
   const handleOpenLocalFirstRegionSearch = useCallback(() => {
@@ -2593,7 +2519,7 @@ export default function App() {
       zoom: localFirstRegion.zoom,
       requestId: cameraJumpSeqRef.current,
     });
-  }, [firstRideIntroVisible, localFirstRegion]);
+  }, [firstRideIntroVisible, localFirstRegion, setActiveQuickCamera, setFollowMode, setLockBaseHeading]);
 
   const handleGenerateReadyRide = useCallback(
     (targetDistanceKm: number) => {
@@ -2740,18 +2666,27 @@ export default function App() {
       routeGeometry,
       liveForMap,
       startLngLat,
+      setActiveQuickCamera,
+      setCamera1Mode,
+      setFollowMode,
+      setLockBaseHeading,
+      setMapStyle,
+      setRideCameraDistanceM,
+      setRideCameraSpanFloorMode,
+      camera1StyleBeforeEnterRef,
+      camera1UserToggledStyleRef,
     ],
   );
 
   const handleRideCameraDistanceFromUserZoom = useCallback((distanceM: number) => {
     setRideCameraDistanceM(distanceM);
     setRideCameraSpanFloorMode("userZoom");
-  }, []);
+  }, [setRideCameraDistanceM, setRideCameraSpanFloorMode]);
 
   const handleRideCameraDistancePreset = useCallback((distanceM: number) => {
     setRideCameraDistanceM(distanceM);
     setRideCameraSpanFloorMode("preset");
-  }, []);
+  }, [setRideCameraDistanceM, setRideCameraSpanFloorMode]);
 
   /**
    * Go 사전조건 = 경로 준비 **+ 주행 입력 준비**.
@@ -2877,54 +2812,23 @@ export default function App() {
     openMenuPanel();
   }
 
-  /** HUD 거리·종료 요약·기록용 — 이번 세션 실주행 거리(오늘 N km, 재개 시 offset 차감) */
-  const sessionDistanceMeters = Math.max(
-    0,
-    rideMetrics.virtualDistanceMeters - sessionStartOffsetMeters,
-  );
-  const elapsedLabel = formatElapsedFromMs(rideMetrics.accumulatedMs);
-  const sessionDistanceKmLabel = formatRideDistanceKmNumber(sessionDistanceMeters);
-  /** HUD 누적 위치 — 경로상 virtualDistance(재개 시 offset 시드 포함) */
-  const cumulativeDistanceMeters = Math.max(0, rideMetrics.virtualDistanceMeters);
-  const cumulativeDistanceKmLabel = formatRideDistanceKmNumber(cumulativeDistanceMeters);
-  // 저장 폼 기본 이름 제안 — "출발지 → 도착지 · 거리"(역지오코딩된 지명 + 저장될 경로 거리).
-  // 거리는 세션 주행 거리가 아니라 저장 대상 경로 거리를 써서 이름이 경로를 안정적으로 식별하게 한다.
-  const suggestedRouteName = buildSuggestedRouteName({
+  const {
+    elapsedLabel,
+    cumulativeDistanceMeters,
+    suggestedRouteName,
+    hudMetrics,
+  } = computeAppHudValues({
+    rideMetrics,
+    sessionStartOffsetMeters,
     startPlaceLabel,
     endPlaceLabel,
-    distanceMeters: lastEndedWasAdhoc?.distanceMeters ?? routeDistanceMeters,
+    lastEndedWasAdhoc,
+    routeDistanceMeters,
+    rideStatus,
+    routeGeometry,
+    summaryVisible,
+    avgSpeedLabel,
   });
-  const hudRoutePreview =
-    rideStatus === "idle" &&
-    Boolean(routeGeometry) &&
-    routeDistanceMeters > 0 &&
-    !summaryVisible;
-
-  const hudMetrics =
-    rideStatus !== "idle"
-      ? {
-          mode: "ride" as const,
-          elapsed: elapsedLabel,
-          /** 오늘(이번 세션) 실주행 km — 운동·칼로리와 동일 축 */
-          distanceKm: sessionDistanceKmLabel,
-          /** 경로상 누적 위치 km — 재개 시 offset 시드 반영 */
-          cumulativeKm: cumulativeDistanceKmLabel,
-          avgKmh: avgSpeedLabel,
-          /* 램핑 적용속도는 소수 꼬리가 길다 — HUD 칩엔 정수만 */
-          speedKmh: Math.round(rideMetrics.appliedSpeedKmh),
-          /* 주행경로 전체거리 — 경로 확정 시에만(0=미확정 → 누적/전체 병기 생략) */
-          routeTotalKm:
-            routeDistanceMeters > 0 ? (routeDistanceMeters / 1000).toFixed(2) : null,
-        }
-      : hudRoutePreview
-        ? {
-            mode: "route-preview" as const,
-            elapsed: "00:00",
-            distanceKm: (routeDistanceMeters / 1000).toFixed(2),
-            avgKmh: "0",
-            speedKmh: 0,
-          }
-        : null;
   const accountInitial = (() => {
     if (!user) return null;
     if (user.isAnonymous) return "G";
