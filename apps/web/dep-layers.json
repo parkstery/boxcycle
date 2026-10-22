@@ -406,6 +406,7 @@
       "map/appIntroMapView.ts",
       "map/disableMapboxTelemetry.ts",
       "map/distanceAutoRouteMapBridge.ts",
+      "map/distanceCircleAttention.ts",
       "map/layerOrder.ts",
       "map/mapBootCenter.ts",
       "map/mapGlobeView.ts",
