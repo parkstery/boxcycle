@@ -388,6 +388,7 @@
     "camera": [
       "camera/camera1Mode.ts",
       "camera/cameraFollowTrace.ts",
+      "camera/cameraProbeMath.ts",
       "camera/cameraRenderPhase.ts",
       "camera/quickCameraProductTune.ts",
       "camera/rideCameraFraming.ts"

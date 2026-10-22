@@ -418,31 +418,24 @@ export function useSavedRoutesWorkspace(options: UseSavedRoutesWorkspaceOptions)
   const handleRenameSavedRoute = useCallback(
     async (route: SavedRoute, newName: string) => {
       const isFirestore = !route.id.startsWith("local-");
+      let name: string;
       if (isFirestore) {
         if (!configured || !user) {
           throw new Error("이 경로를 수정하려면 로그인이 필요합니다.");
         }
-        const name = await renameSavedRouteInFirestore(user.uid, route.id, newName);
-        setSavedRoutes((prev) =>
-          prev.map((r) =>
-            r.id === route.id ? { ...r, name, updatedAtIso: new Date().toISOString() } : r,
-          ),
-        );
-        if (loadedSavedRouteIdRef.current === route.id) {
-          loadedSavedRouteNameRef.current = name;
-        }
+        name = await renameSavedRouteInFirestore(user.uid, route.id, newName);
       } else if (!canPersistAppData(user)) {
         throw new Error("이 경로를 수정하려면 로그인이 필요합니다.");
       } else {
-        const name = renameSavedRouteInLocal(route.id, newName);
-        setSavedRoutes((prev) =>
-          prev.map((r) =>
-            r.id === route.id ? { ...r, name, updatedAtIso: new Date().toISOString() } : r,
-          ),
-        );
-        if (loadedSavedRouteIdRef.current === route.id) {
-          loadedSavedRouteNameRef.current = name;
-        }
+        name = renameSavedRouteInLocal(route.id, newName);
+      }
+      setSavedRoutes((prev) =>
+        prev.map((r) =>
+          r.id === route.id ? { ...r, name, updatedAtIso: new Date().toISOString() } : r,
+        ),
+      );
+      if (loadedSavedRouteIdRef.current === route.id) {
+        loadedSavedRouteNameRef.current = name;
       }
     },
     [configured, user],

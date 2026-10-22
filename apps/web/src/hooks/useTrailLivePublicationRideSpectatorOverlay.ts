@@ -1,11 +1,6 @@
 /* eslint-disable react-hooks/refs, react-hooks/set-state-in-effect, react-hooks/purity */
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "firebase/auth";
-import {
-  BASIC_SHARED_HUB_IDS,
-  fetchCourseRoutePayload,
-  getBasicHubCoursePayload,
-} from "../lib/route/repo/firestoreCourses";
 import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../lib/geo/geoDecimate";
 import { acquireTrailLivePublicationRidesSubscription } from "../lib/trail/repo/livePublicationRidesSubscriptionHub";
@@ -17,6 +12,7 @@ import {
 } from "../lib/trail/repo/firestoreTrailLivePublicationRides";
 import { spectatorPointOnRoute } from "../lib/peerMotion/spectatorRideExtrap";
 import { presenceRiderDisplayName } from "../lib/identity/riderName";
+import { loadMissingPublicationGeometries, type PublicationGeomState } from "./loadPublicationGeometries";
 
 export type TrailSpectatorDot = { id: string; lngLat: LngLat; label: string };
 
@@ -28,11 +24,6 @@ type UseTrailLivePublicationRideSpectatorOverlayOpts = {
   mapZoom: number;
   excludePeerIds: ReadonlySet<string>;
 };
-
-type PublicationGeomState =
-  | { status: "ready"; geometry: LineStringGeometry }
-  | { status: "loading" }
-  | { status: "missing" };
 
 /**
  * 같은 Trail `livePublicationRides` → 동행 라이더 dot + 노선(line).
@@ -107,39 +98,11 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
     if (activeRows.length === 0) return;
 
     const publicationIds = [...new Set(activeRows.map((r) => r.publicationId))];
-    const map = geomByPublicationRef.current;
-    let scheduled = false;
-
-    for (const pid of publicationIds) {
-      if (map.has(pid)) continue;
-      map.set(pid, { status: "loading" });
-      scheduled = true;
-
-      const isBasicHub = (BASIC_SHARED_HUB_IDS as readonly string[]).includes(pid);
-      void (async () => {
-        try {
-          const geometry: LineStringGeometry | null = isBasicHub
-            ? getBasicHubCoursePayload(pid).geometry
-            : (await fetchCourseRoutePayload(pid))?.geometry ?? null;
-          const cur = geomByPublicationRef.current;
-          if (!geometry?.coordinates?.length) {
-            cur.set(pid, { status: "missing" });
-          } else {
-            cur.set(pid, { status: "ready", geometry });
-          }
-        } catch {
-          geomByPublicationRef.current.set(pid, { status: "missing" });
-        }
-        setGeomEpoch((n) => n + 1);
-      })();
-    }
-
-    const keep = new Set(publicationIds);
-    for (const key of [...map.keys()]) {
-      if (!keep.has(key)) map.delete(key);
-    }
-
-    if (scheduled) setGeomEpoch((n) => n + 1);
+    loadMissingPublicationGeometries({
+      publicationIds,
+      geomByPublication: geomByPublicationRef.current,
+      bumpGeomEpoch: () => setGeomEpoch((n) => n + 1),
+    });
   }, [enabled, activeRowsKey]);
 
   useEffect(() => {

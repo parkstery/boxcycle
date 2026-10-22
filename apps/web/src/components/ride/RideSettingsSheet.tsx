@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import type { CalorieIntensityId } from "../../lib/ride/caloriesEstimate";
 import { useDialogFocus } from "../ui/useDialogFocus";
+import { useEscapeKeyClose } from "../ui/useEscapeKeyClose";
 import { RideSettingsPanel } from "./RideSettingsPanel";
 import "./RideSettingsSheet.css";
 
@@ -28,14 +29,7 @@ export function RideSettingsSheet(props: RideSettingsSheetProps) {
   const { onClose } = props;
   const panelRef = useRef<HTMLDivElement>(null);
   useDialogFocus(props.open, panelRef);
-  useEffect(() => {
-    if (!props.open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [props.open, onClose]);
+  useEscapeKeyClose(props.open, onClose);
 
   if (!props.open) return null;
 

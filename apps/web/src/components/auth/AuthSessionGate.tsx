@@ -13,6 +13,30 @@ export type AuthSessionGateProps = {
   onRetryAuth?: () => void;
 };
 
+function GateChoiceActions({
+  busy,
+  onStartGuest,
+  onGoogleSignIn,
+}: Pick<AuthSessionGateProps, "busy" | "onStartGuest" | "onGoogleSignIn">) {
+  return (
+    <div className="auth-actions auth-actions--gate">
+      <button
+        type="button"
+        className="btn auth-gate-google"
+        disabled={busy}
+        title="Sign in with Google"
+        onClick={onGoogleSignIn}
+      >
+        <AuthGoogleMark />
+        로그인
+      </button>
+      <button type="button" className="btn secondary" disabled={busy} onClick={onStartGuest}>
+        {busy ? "…" : "게스트로 시작"}
+      </button>
+    </div>
+  );
+}
+
 /**
  * `stage === "gate" && !needsGuestEntry` 전용 표현.
  * 설정 없음 → 부트·서명·busy 대기 → 복원 전 오프라인 재시도 → 오류 설명 + 로그인/게스트로 시작 → 같은 두 버튼의 idle.
@@ -54,40 +78,12 @@ export function AuthSessionGate({
         <>
           <p className="meta tight">서비스에 연결할 수 없습니다.</p>
           <p className="error tight">{error}</p>
-          <div className="auth-actions auth-actions--gate">
-            <button
-              type="button"
-              className="btn auth-gate-google"
-              disabled={busy}
-              title="Sign in with Google"
-              onClick={onGoogleSignIn}
-            >
-              <AuthGoogleMark />
-              로그인
-            </button>
-            <button type="button" className="btn secondary" disabled={busy} onClick={onStartGuest}>
-              {busy ? "…" : "게스트로 시작"}
-            </button>
-          </div>
+          <GateChoiceActions busy={busy} onStartGuest={onStartGuest} onGoogleSignIn={onGoogleSignIn} />
         </>
       ) : (
         <>
           <p className="meta tight">시작 방법을 선택해 주세요.</p>
-          <div className="auth-actions auth-actions--gate">
-            <button
-              type="button"
-              className="btn auth-gate-google"
-              disabled={busy}
-              title="Sign in with Google"
-              onClick={onGoogleSignIn}
-            >
-              <AuthGoogleMark />
-              로그인
-            </button>
-            <button type="button" className="btn secondary" disabled={busy} onClick={onStartGuest}>
-              {busy ? "…" : "게스트로 시작"}
-            </button>
-          </div>
+          <GateChoiceActions busy={busy} onStartGuest={onStartGuest} onGoogleSignIn={onGoogleSignIn} />
         </>
       )}
       {!pending && error && (userSignedOut || !configured) ? (

@@ -91,6 +91,24 @@ function toOpResult(r: SlotTxResult | LocalSlotResult): SlotOpResult {
   return r.ok ? { ok: true, slot: r.slot } : { ok: false, reason: r.reason, slot: r.slot };
 }
 
+/** ensureAcquired·switchTo 공통 선행 검사(uid 확인 이후) — 막히면 실패 결과, 통과면 null */
+function guardReadySlotOp(
+  ownerMatches: boolean,
+  status: UseRideResumeSlotStatus,
+  safeSlot: RideResumeSlot,
+): SlotOpResult | null {
+  if (!ownerMatches) {
+    return { ok: false, reason: "uid_mismatch", slot: emptyRideResumeSlot() };
+  }
+  if (status !== "ready") {
+    return { ok: false, reason: "not_ready", slot: safeSlot };
+  }
+  if (!safeSlot.initialized) {
+    return { ok: false, reason: "not_initialized", slot: safeSlot };
+  }
+  return null;
+}
+
 export function useRideResumeSlot(props: UseRideResumeSlotProps): UseRideResumeSlotReturn {
   const {
     configured,
@@ -466,15 +484,8 @@ export function useRideResumeSlot(props: UseRideResumeSlotProps): UseRideResumeS
       if (!uid) {
         return { ok: false, reason: "no_uid", slot: emptyRideResumeSlot() };
       }
-      if (!ownerMatches) {
-        return { ok: false, reason: "uid_mismatch", slot: emptyRideResumeSlot() };
-      }
-      if (status !== "ready") {
-        return { ok: false, reason: "not_ready", slot: safeSlot };
-      }
-      if (!safeSlot.initialized) {
-        return { ok: false, reason: "not_initialized", slot: safeSlot };
-      }
+      const blocked = guardReadySlotOp(ownerMatches, status, safeSlot);
+      if (blocked) return blocked;
       if (safeSlot.activeRouteId === routeId) {
         return { ok: true, slot: safeSlot };
       }
@@ -535,15 +546,8 @@ export function useRideResumeSlot(props: UseRideResumeSlotProps): UseRideResumeS
       if (!uid) {
         return { ok: false, reason: "no_uid", slot: emptyRideResumeSlot() };
       }
-      if (!ownerMatches) {
-        return { ok: false, reason: "uid_mismatch", slot: emptyRideResumeSlot() };
-      }
-      if (status !== "ready") {
-        return { ok: false, reason: "not_ready", slot: safeSlot };
-      }
-      if (!safeSlot.initialized) {
-        return { ok: false, reason: "not_initialized", slot: safeSlot };
-      }
+      const blocked = guardReadySlotOp(ownerMatches, status, safeSlot);
+      if (blocked) return blocked;
 
       const decision = resolveResumeSlotSwitchAction(safeSlot.activeRouteId, routeId);
       if (decision === "none") {

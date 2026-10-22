@@ -4,6 +4,7 @@
  */
 import type { User } from "firebase/auth";
 import { canPersistAppData } from "../../storage/clientPersistencePolicy";
+import { subscribeStorageEntry } from "../../storage/storageEntrySubscription";
 import {
   parseCalorieIntensityId,
   parseWeightKg,
@@ -87,23 +88,9 @@ export function subscribeCalorieProfile(
 ): () => void {
   if (!uid) return () => {};
   const entry = ensureEntry(uid);
-  entry.listeners.add(onStoreChange);
-  if (typeof window === "undefined") {
-    return () => {
-      entry.listeners.delete(onStoreChange);
-    };
-  }
-  const key = profileKey(uid);
-  const onStorage = (ev: StorageEvent) => {
-    if (ev.key !== key) return;
+  return subscribeStorageEntry(entry.listeners, onStoreChange, profileKey(uid), () => {
     entry.profile = readCalorieProfileFromStorage(uid);
-    notify(entry);
-  };
-  window.addEventListener("storage", onStorage);
-  return () => {
-    entry.listeners.delete(onStoreChange);
-    window.removeEventListener("storage", onStorage);
-  };
+  });
 }
 
 /** 시험·리셋용 — 캐시를 저장소에서 다시 읽거나 비운다. */

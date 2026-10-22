@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useDialogFocus } from "../ui/useDialogFocus";
+import { useEscapeKeyClose } from "../ui/useEscapeKeyClose";
 import { usePanelHeaderCloseDrag } from "../ui/usePanelHeaderCloseDrag";
 import type { CoverageOverlayMode } from "../../lib/activity/coverageOverlayMode";
 import { COVERAGE_OVERLAY_OPTIONS } from "../../lib/activity/coverageOverlayMode";
@@ -97,14 +98,7 @@ export function MapViewSheet(props: MapViewSheetProps) {
     onClose,
   });
 
-  useEffect(() => {
-    if (!props.open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [props.open, onClose]);
+  useEscapeKeyClose(props.open, onClose);
 
   const revealing = props.revealProgress != null;
   if (!props.open && !revealing) return null;

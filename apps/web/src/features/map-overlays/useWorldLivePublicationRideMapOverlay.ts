@@ -3,11 +3,6 @@ import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import type { ActivityWorldMapRoute } from "../../lib/activity/activityWorldLod";
 import { ACTIVITY_TRACE_LIVE_STRENGTH } from "../../lib/activity/activityWorldTraceStyle";
 import {
-  BASIC_SHARED_HUB_IDS,
-  fetchCourseRoutePayload,
-  getBasicHubCoursePayload,
-} from "../../lib/route/repo/firestoreCourses";
-import {
   isTrailLivePublicationRideRowFresh,
   isTrailLivePublicationRideRowPeerVisible,
   type TrailLivePublicationRideRow,
@@ -20,11 +15,10 @@ import type { TrailSpectatorDot } from "../../hooks/useTrailLivePublicationRideS
 import { decimateLineStringVertices, maxLineStringVerticesForMapZoom } from "../../lib/geo/geoDecimate";
 import type { RouteActivityMapOverlay } from "../../hooks/useRouteActivityMapOverlay";
 import { presenceRiderDisplayName } from "../../lib/identity/riderName";
-
-type PublicationGeomState =
-  | { status: "ready"; geometry: LineStringGeometry }
-  | { status: "loading" }
-  | { status: "missing" };
+import {
+  loadMissingPublicationGeometries,
+  type PublicationGeomState,
+} from "../../hooks/loadPublicationGeometries";
 
 type LivePublicationAggregate = {
   publicationId: string;
@@ -159,42 +153,16 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
     }
 
     const publicationIds = aggregates.map((a) => a.publicationId);
-    const map = geomByPublicationRef.current;
-    let scheduled = false;
-
-    for (const pid of publicationIds) {
-      if (map.has(pid)) continue;
-      map.set(pid, { status: "loading" });
-      scheduled = true;
-
-      const isBasicHub = (BASIC_SHARED_HUB_IDS as readonly string[]).includes(pid);
-      void (async () => {
-        try {
-          const geometry: LineStringGeometry | null = isBasicHub
-            ? getBasicHubCoursePayload(pid).geometry
-            : (await fetchCourseRoutePayload(pid))?.geometry ?? null;
-          const cur = geomByPublicationRef.current;
-          if (!geometry?.coordinates?.length) {
-            cur.set(pid, { status: "missing" });
-            if (import.meta.env.DEV) {
-              console.warn("[WorldLivePublicationRide] geometry missing", pid);
-            }
-          } else {
-            cur.set(pid, { status: "ready", geometry });
-          }
-        } catch {
-          geomByPublicationRef.current.set(pid, { status: "missing" });
+    loadMissingPublicationGeometries({
+      publicationIds,
+      geomByPublication: geomByPublicationRef.current,
+      bumpGeomEpoch: () => setGeomEpoch((n) => n + 1),
+      onGeometryMissing: (pid) => {
+        if (import.meta.env.DEV) {
+          console.warn("[WorldLivePublicationRide] geometry missing", pid);
         }
-        setGeomEpoch((n) => n + 1);
-      })();
-    }
-
-    const keep = new Set(publicationIds);
-    for (const key of [...map.keys()]) {
-      if (!keep.has(key)) map.delete(key);
-    }
-
-    if (scheduled) setGeomEpoch((n) => n + 1);
+      },
+    });
   }, [enabled, aggregates]);
 
   const trailheadActiveRowsKey = useMemo(() => {

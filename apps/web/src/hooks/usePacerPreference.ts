@@ -1,5 +1,6 @@
 import type { User } from "firebase/auth";
 import { useCallback, useSyncExternalStore } from "react";
+import { subscribeStorageEntry } from "../lib/storage/storageEntrySubscription";
 
 /**
  * uid 별 페이서 표시. 기본은 켜짐.
@@ -54,23 +55,9 @@ function subscribePacerEnabled(
 ): () => void {
   if (!uid) return () => {};
   const entry = ensureEntry(uid);
-  entry.listeners.add(onStoreChange);
-  if (typeof window === "undefined") {
-    return () => {
-      entry.listeners.delete(onStoreChange);
-    };
-  }
-  const key = storageKey(uid);
-  const onStorage = (ev: StorageEvent) => {
-    if (ev.key !== key) return;
+  return subscribeStorageEntry(entry.listeners, onStoreChange, storageKey(uid), () => {
     entry.enabled = readEnabled(uid);
-    notify(entry);
-  };
-  window.addEventListener("storage", onStorage);
-  return () => {
-    entry.listeners.delete(onStoreChange);
-    window.removeEventListener("storage", onStorage);
-  };
+  });
 }
 
 function writePacerEnabled(user: User | null, enabled: boolean): boolean {
