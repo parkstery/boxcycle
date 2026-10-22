@@ -91,7 +91,7 @@ function formatPublicRouteFirestoreError(err: unknown): Error {
   if (err instanceof FirebaseError) {
     if (err.code === "permission-denied") {
       return new Error(
-        "퍼블릭 신청 권한이 없습니다. Google 로그인·닉네임 설정·경로 클라우드 저장 상태를 확인한 뒤 새로고침해 보세요.",
+        "퍼블릭 신청 권한이 없습니다. 회원 등록·닉네임 설정·경로 클라우드 저장 상태를 확인한 뒤 새로고침해 보세요.",
       );
     }
     if (err.code === "failed-precondition" && err.message.includes("index")) {

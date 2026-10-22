@@ -1,7 +1,17 @@
+/*
+ * 계정 패널 — 리더보드와 같은 두 칸 판(화면 가운데 740×324).
+ * 규칙(document/ops/20261023-leaderboard/design-system): 판 하나에 주인공 숫자 하나, 강조색은 #2457D6 하나,
+ * 선은 줄 사이에만·판 안에 상자 없음, hover 는 @media (hover: hover) 안에만.
+ * 폰트: 본문 Gothic A1, 숫자 Saira Condensed(index.html 에서 로드).
+ */
+
 .user-info-sheet-root {
   position: fixed;
   inset: 0;
   z-index: 55;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   pointer-events: none;
 }
 
@@ -12,7 +22,7 @@
 .user-info-sheet__scrim {
   position: absolute;
   inset: 0;
-  background: rgba(2, 6, 23, 0.42);
+  background: rgba(2, 6, 23, 0.32);
   opacity: 0;
   transition: opacity 0.18s ease-out;
   border: none;
@@ -25,70 +35,253 @@
   opacity: 1;
 }
 
+/* 판 — 폰 가로 800×360 에서 가운데, 더 작은 화면에서는 여백 0.5rem 만 남기고 줄어든다 */
 .user-info-sheet {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: min(460px, calc(100vw - 16px));
-  max-height: 100vh;
-  max-height: 100dvh;
-  background: #FFFFFF;
-  color: #1F2937;
-  border-left: 1px solid #CBD5E1;
-  border-bottom-left-radius: 12px;
-  box-shadow: -6px 0 28px rgba(0, 0, 0, 0.32);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  transform: translateX(105%);
-  transition: transform 0.22s ease-out;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding: 0.55rem 0.85rem 0.28rem;
-  gap: 0.55rem;
-  overflow: hidden;
+  position: relative;
+  z-index: 1;
   box-sizing: border-box;
+  width: 740px;
+  max-width: calc(100vw - 1rem);
+  height: 324px;
+  max-height: calc(100vh - 1rem);
+  max-height: calc(100dvh - 1rem);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 268px minmax(0, 1fr);
+  border-radius: 18px;
+  background: #FFFFFF;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+  font-family: 'Gothic A1', system-ui, sans-serif;
+  color: #121417;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.18s ease-out, transform 0.18s ease-out;
 }
 
 .user-info-sheet-root.is-open .user-info-sheet {
-  transform: translateX(0);
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── 왼쪽 요약판 ───────────────────────────────────────────── */
+.user-info-sheet__left {
+  background: #EEF3FC;
+  padding: 16px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.user-info-sheet__stats-head {
+  display: flex;
+  gap: 4px;
+  background: #FFFFFF;
+  border-radius: 10px;
+  padding: 3px;
+  align-self: flex-start;
+}
+
+.user-info-sheet__stats-tab {
+  appearance: none;
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: #4B5160;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.user-info-sheet__stats-tab.is-active {
+  background: #2457D6;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+.user-info-sheet__summary {
+  flex-grow: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* 이름표 — 작은 글자, 자간 0.12em */
+.user-info-sheet__stats-meta {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 14px;
+  letter-spacing: 0.12em;
+  color: #5E6472;
+}
+
+.user-info-sheet__stats-hero {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+  color: #2457D6;
+}
+
+.user-info-sheet__stats-hero strong {
+  font-family: 'Saira Condensed', sans-serif;
+  font-size: 72px;
+  font-weight: 700;
+  line-height: 0.95;
+}
+
+.user-info-sheet__stats-hero strong.is-long {
+  font-size: 54px;
+}
+
+.user-info-sheet__stats-hero span {
+  font-family: 'Saira Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* 주행이 없을 때·불러오는 중 — 큰 숫자 대신 한 문장 */
+.user-info-sheet__stats-hero.is-empty span {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 20px;
+  text-transform: none;
+  color: #121417;
+}
+
+.user-info-sheet__empty-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: #4B5160;
+}
+
+/* 시간 · 평균 속도 한 줄, 칼로리는 다음 줄 */
+.user-info-sheet__stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 0;
+  row-gap: 2px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #2A2E37;
+}
+
+.user-info-sheet__stats > div + div:not(.user-info-sheet__stats-cal)::before {
+  content: "·";
+  margin: 0 6px;
+  color: #5E6472;
+}
+
+.user-info-sheet__stats > .user-info-sheet__stats-cal {
+  flex: 0 0 100%;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 15px;
+  color: #5E6472;
+}
+
+/* 숫자는 숫자 글꼴, 단위는 그 뒤에 작게 */
+.user-info-sheet__num {
+  font-family: 'Saira Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.user-info-sheet__unit {
+  margin-left: 2px;
+  font-family: 'Saira Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.user-info-sheet__stats-cal .user-info-sheet__num {
+  font-size: 13px;
+}
+
+.user-info-sheet__stats-cal .user-info-sheet__unit {
+  font-size: 10px;
+}
+
+.user-info-sheet__left-foot {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-info-sheet__left-foot:empty {
+  display: none;
+}
+
+/* 스토리 한 줄(M4, 주행 스토리 원칙 §5) */
+.user-info-sheet__stats-story {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 15px;
+  color: #4B5160;
+  word-break: keep-all;
+}
+
+.user-info-sheet__stats-note {
+  margin: 0;
+  font-size: 11px;
+  line-height: 15px;
+  color: #5E6472;
+}
+
+/* 글자 버튼(체중 입력·업그레이드) — 강조색 글자 */
+.user-info-sheet__link {
+  appearance: none;
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  color: #2457D6;
+  cursor: pointer;
+}
+
+.user-info-sheet__link:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── 오른쪽: 이름·닫기 + 줄 + 버튼 ─────────────────────────────── */
+.user-info-sheet__right {
+  padding: 12px 16px 12px 18px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .user-info-sheet__head {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 8px;
+  padding-bottom: 4px;
   flex-shrink: 0;
-}
-
-.user-info-sheet__scroll-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  display: flex;
-  flex-direction: column;
-  gap: 0.24rem;
-  padding-right: 0.1rem;
-}
-
-.user-info-sheet__avatar {
-  width: 2.4rem;
-  height: 2.4rem;
-  border-radius: 50%;
-  background: #F1F5F9;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.95rem;
-  flex: 0 0 auto;
-}
-
-.user-info-sheet__avatar.is-guest {
-  background: #E2E8F0;
 }
 
 .user-info-sheet__id {
@@ -96,695 +289,156 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
 }
 
 .user-info-sheet__id strong {
-  font-size: 0.86rem;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 20px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .user-info-sheet__id span {
-  font-size: 0.66rem;
-  opacity: 0.7;
+  font-size: 11px;
+  line-height: 15px;
+  color: #5E6472;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .user-info-sheet__close {
-  position: relative;
   appearance: none;
-  border: 1px solid var(--rtw-ui-border, #cbd5e1);
-  background: var(--rtw-ui-surface-mute, #f1f5f9);
-  color: var(--rtw-ui-muted, #475569);
-  width: 44px;
-  height: 44px;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  background: #F2F3F5;
   border-radius: 50%;
-  cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
-  flex: 0 0 auto;
-}
-
-.user-info-sheet__edit {
-  position: relative;
-  appearance: none;
-  font: inherit;
-  font-size: 0.7rem;
-  font-weight: 650;
-  white-space: nowrap;
-  flex: 0 0 auto;
-  min-height: 44px;
-  padding: 0.3rem 0.6rem;
-  border-radius: 999px;
-  border: 1px solid var(--rtw-ui-border, #cbd5e1);
-  background: var(--rtw-ui-surface-mute, #f1f5f9);
-  color: var(--rtw-ui-muted, #475569);
-  cursor: pointer;
-}
-
-.user-info-sheet__edit:hover {
-  background: #EFF6FF;
-  border-color: #2563EB;
-  color: #1F2937;
-}
-
-.user-info-sheet__close:hover {
-  background: #EFF6FF;
-  border-color: #2563EB;
-  color: #1F2937;
-}
-
-.user-info-sheet__plan {
   display: flex;
   align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.user-info-sheet__rows {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 줄 — 줄 사이에만 가는 선 */
+.user-info-sheet__row {
+  appearance: none;
+  display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 0.4rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 8px;
-  background: #EFF6FF;
-  border: 1px solid #CBD5E1;
-}
-
-.user-info-sheet__plan-tier {
-  font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-}
-
-.user-info-sheet__plan-status {
-  font-size: 0.64rem;
-  opacity: 0.85;
-}
-
-.user-info-sheet__subscription {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.user-info-sheet__subscription-note {
+  gap: 12px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 34px;
   margin: 0;
-  font-size: 0.6rem;
-  line-height: 1.35;
-  color: #B45309;
-}
-
-.user-info-sheet__subscription-note.is-ok {
-  color: #16A34A;
-}
-
-.user-info-sheet__stats-head {
-  display: flex;
-  gap: 0.25rem;
-  margin-top: 0;
-}
-
-.user-info-sheet__stats-tab {
-  flex: 1;
-  appearance: none;
-  border: 1px solid #CBD5E1;
-  background: #F1F5F9;
-  color: #475569;
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 700;
-  /* 폰 터치 기준 — 종전 0.35rem 패딩은 높이 약 24px 이라 손가락으로 집기 어려웠다 */
-  min-height: 44px;
-  padding: 0.35rem 0.25rem;
-  border-radius: 10px;
-  cursor: pointer;
-  letter-spacing: 0.02em;
-}
-
-.user-info-sheet__stats-tab:hover {
-  background: #EFF6FF;
-}
-
-.user-info-sheet__stats-tab.is-active {
-  background: #2563EB;
-  border-color: #2563EB;
-  color: #FFFFFF;
-}
-
-.user-info-sheet__stats-note {
-  margin: 0;
-  font-size: 0.58rem;
-  line-height: 1.35;
-  opacity: 0.72;
-  color: #B45309;
-}
-
-.user-info-sheet__stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.22rem;
-}
-
-.user-info-sheet__stats > div {
+  padding: 7px 0;
+  border: 0;
+  border-bottom: 1px solid #EEF0F3;
   background: transparent;
-  border: none;
-  border-radius: 0;
-  padding: 0.16rem 0.35rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.04rem;
-}
-
-.user-info-sheet__stats > div + div {
-  border-left: 1px solid #E2E8F0;
-}
-
-.user-info-sheet__stats span {
-  font-size: 0.62rem;
-  opacity: 0.72;
-}
-
-.user-info-sheet__stat-note {
-  display: block;
-  font-size: 0.62rem;
-  font-weight: 600;
-  color: #64748B;
-  line-height: 1.2;
-}
-
-.user-info-sheet__stats strong {
-  font-size: 0.82rem;
-}
-
-.user-info-sheet__h {
-  margin: 0.16rem 0 0;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  opacity: 0.85;
-}
-
-.user-info-sheet__h-toggle {
-  appearance: none;
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin: 0.16rem 0 0;
-  padding: 0.2rem 0.5rem;
-  border-radius: 8px;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  color: #1F2937;
+  color: inherit;
   font: inherit;
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  cursor: pointer;
   text-align: left;
 }
 
-.user-info-sheet__h-toggle:hover {
-  background: #EFF6FF;
-  border-color: #2563EB;
+.user-info-sheet__row:last-child {
+  border-bottom: 0;
 }
 
-.user-info-sheet__h-toggle > span:first-child {
-  flex: 1;
-}
-
-.user-info-sheet__h-chevron {
-  flex: 0 0 auto;
-  font-size: 0.7rem;
-  opacity: 0.75;
-}
-
-.user-info-sheet__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.user-info-sheet__row-k {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-}
-
-.user-info-sheet__item {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.14rem;
-  padding: 0.28rem 0.45rem;
-  border-radius: 8px;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  font-size: 0.74rem;
+  flex: 0 1 auto;
   min-width: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: #4B5160;
 }
 
-.user-info-sheet__item-summary {
-  display: flex;
-  flex-wrap: nowrap;
+.user-info-sheet__last-ride .user-info-sheet__row-k {
+  flex-direction: row;
   align-items: baseline;
-  gap: 0.4rem;
-  min-width: 0;
-  font-size: 0.68rem;
-  line-height: 1.35;
+  gap: 8px;
 }
 
-.user-info-sheet__item-summary .user-info-sheet__item-km {
-  flex: 0 0 auto;
-  font-size: 0.72rem;
-  font-weight: 700;
+.user-info-sheet__row-sub,
+.user-info-sheet__last-ride-when {
+  font-size: 11px;
+  line-height: 15px;
+  color: #5E6472;
 }
 
-.user-info-sheet__item-summary .user-info-sheet__item-when {
+.user-info-sheet__row-v {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   flex: 1 1 auto;
   min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: right;
+}
+
+.user-info-sheet__row-v.is-accent {
+  color: #2457D6;
+}
+
+.user-info-sheet__row-v.is-accent .user-info-sheet__num {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.user-info-sheet__row-v.is-text {
   font-weight: 500;
-  opacity: 0.88;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: #2A2E37;
 }
 
-.user-info-sheet__item-summary .user-info-sheet__item-completion {
-  flex: 0 0 auto;
-  font-size: 0.64rem;
-  font-weight: 650;
-  letter-spacing: 0.02em;
+.user-info-sheet__row-v .is-quiet,
+.user-info-sheet__row-v.is-quiet {
+  font-weight: 500;
+  color: #5E6472;
 }
 
-.user-info-sheet__item-completion.is-unknown {
-  opacity: 0.65;
-  color: #64748B;
-}
-
-.user-info-sheet__item-completion.is-completed {
-  color: #16A34A;
-}
-
-.user-info-sheet__item-completion.is-partial {
-  color: #B45309;
-}
-
-.user-info-sheet__item-route {
-  font-size: 0.62rem;
-  line-height: 1.35;
-  opacity: 0.82;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
-}
-
-.user-info-sheet__empty {
-  font-size: 0.74rem;
-  opacity: 0.62;
-  padding: 0.2rem 0.4rem;
-}
-
-.user-info-sheet__actions {
-  margin-top: 0;
-  display: flex;
-  flex-flow: row wrap;
-  align-items: center;
-  gap: 0.28rem 0.35rem;
-}
-
-.user-info-sheet__btn {
-  appearance: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  border: 1px solid #CBD5E1;
-  background: #F1F5F9;
-  color: #1F2937;
-  font: inherit;
-  font-size: 0.78rem;
-  min-height: 44px;
-  padding: 0.35rem 0.7rem;
-  border-radius: 8px;
-  cursor: pointer;
-  text-align: left;
-}
-
-.user-info-sheet__actions > .user-info-sheet__btn {
-  flex: 0 0 auto;
-  width: auto;
-}
-
-.user-info-sheet__btn--google {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  justify-content: flex-start;
-  font-weight: 650;
-  background: #FFFFFF;
-  border-color: #CBD5E1;
-  color: #1F2937;
-}
-
-.user-info-sheet__google-mark {
-  flex-shrink: 0;
-  display: block;
-}
-
-.user-info-sheet__btn:hover:not(:disabled) {
-  background: #EFF6FF;
-  border-color: #2563EB;
-}
-
-.user-info-sheet__btn.user-info-sheet__btn--google:hover:not(:disabled) {
-  background: #EFF6FF;
-  border-color: #2563EB;
-}
-
-.user-info-sheet__btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.user-info-sheet__btn--danger {
-  background: rgba(220, 38, 38, 0.08);
-  border-color: rgba(220, 38, 38, 0.3);
-  color: #DC2626;
-}
-
-.user-info-sheet__btn--danger:hover {
-  background: rgba(220, 38, 38, 0.14);
-  border-color: #DC2626;
-}
-
-.user-info-sheet__logout-confirm {
-  display: flex;
-  flex: 1 0 100%;
-  flex-direction: column;
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  gap: 0.28rem;
-  padding: 0.35rem 0.5rem;
-  border-radius: 8px;
-  background: rgba(220, 38, 38, 0.08);
-  border: 1px solid rgba(220, 38, 38, 0.3);
-}
-
-.user-info-sheet__logout-confirm-copy {
-  margin: 0;
-  font-size: 0.76rem;
-  font-weight: 650;
-  color: #1F2937;
-}
-
-/* 계정 탈퇴 확인 문구 입력(2026-10-06) */
-.user-info-sheet__confirm-input {
-  display: block;
-  box-sizing: border-box;
-  width: 100%;
-  margin-top: 0.16rem;
-  padding: 0.35rem 0.5rem;
-  border-radius: 0.4rem;
-  border: 1px solid rgba(220, 38, 38, 0.55);
-  background: #FFFFFF;
-  color: #1F2937;
-  font: inherit;
-  font-size: 0.85rem;
-}
-
-.user-info-sheet__logout-confirm-row {
-  display: flex;
-  gap: 0.4rem;
-}
-
-.user-info-sheet__logout-confirm-row .user-info-sheet__btn {
-  flex: 1 1 0;
-  min-width: 0;
-  justify-content: center;
-  text-align: center;
-}
-
-@media (max-width: 480px) {
-  .user-info-sheet__stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/*
- * 최근 주행 행 액션(§3.6) — 요약 자체가 「지도에서 보기」 버튼이 되고, 재개·새 경로는 형제 버튼이다.
- * 중첩 button 을 만들지 않기 위한 구조이므로 버튼을 서로 감싸지 말 것.
- */
-.user-info-sheet__item-summary--action {
-  width: 100%;
-  text-align: left;
-  border: none;
-  background: transparent;
-  color: inherit;
-  padding: 0;
-  cursor: pointer;
-  font: inherit;
-}
-
-.user-info-sheet__item-summary--action:hover .user-info-sheet__item-when {
-  opacity: 1;
-  text-decoration: underline;
-}
-
-.user-info-sheet__item-summary--action:focus-visible {
-  outline: 2px solid #2563EB;
-  outline-offset: 2px;
-  border-radius: 6px;
-}
-
-.user-info-sheet__item-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.28rem;
-  margin-top: 0.1rem;
-}
-
-.user-info-sheet__item-action {
-  padding: 0.22rem 0.45rem;
-  border-radius: 7px;
-  border: 1px solid #CBD5E1;
-  background: #F1F5F9;
-  color: inherit;
-  font-size: 0.62rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.user-info-sheet__item-action:hover {
-  background: #EFF6FF;
-  border-color: #2563EB;
-}
-
-.user-info-sheet__item-action:focus-visible {
-  outline: 2px solid #2563EB;
-  outline-offset: 2px;
-}
-
-
-/* ── 2026-09-15 계정 패널 정비 ─────────────────────────────────────────
-   접는 것과 지우는 것을 분리하고, 같은 사실을 한 번만 말한다.
-   블록 12개 → 7개. 정보는 그대로 두고 중복·이중 기간축만 걷어냈다.
-   ------------------------------------------------------------------ */
-
-/* 플랜 — 상태 + 행동 한 줄(버튼 형태) */
-.user-info-sheet__plan.is-actionable {
-  appearance: none;
-  width: 100%;
-  min-height: 44px;
-  box-sizing: border-box;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-  text-align: left;
-}
-
-.user-info-sheet__plan.is-actionable:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-
-.user-info-sheet__plan-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.74rem;
-  font-weight: 700;
-  color: #2563EB;
-}
-
-/* 자산 — 내 도로망 · 누적을 2열 한 행으로 */
-.user-info-sheet__assets {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.24rem;
-}
-
-.user-info-sheet__asset {
-  display: flex;
-  flex-direction: column;
-  gap: 0.06rem;
-  min-width: 0;
-  padding: 0.28rem 0.45rem;
-  border-radius: 10px;
-  border: 1px solid #CBD5E1;
-  background: #F8FAFC;
-}
-
-.user-info-sheet__asset.is-conquest {
-  border-color: rgba(37, 99, 235, 0.4);
-  background: rgba(37, 99, 235, 0.08);
-}
-
-.user-info-sheet__asset-k {
-  font-size: 0.64rem;
-  font-weight: 700;
-  opacity: 0.8;
-}
-
-.user-info-sheet__asset-v {
-  font-size: 1.06rem;
-  font-weight: 800;
-  line-height: 1.15;
-}
-
-.user-info-sheet__asset-v span {
-  font-size: 0.68rem;
-  font-weight: 700;
-}
-
-.user-info-sheet__asset.is-conquest .user-info-sheet__asset-v {
-  color: #2563EB;
-}
-
-.user-info-sheet__asset-sub {
-  font-size: 0.6rem;
-  opacity: 0.62;
-}
-
-/* 통계 — 기간 하나, 거리 히어로 + 보조 3 */
-.user-info-sheet__stats-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.16rem;
-  padding: 0.26rem 0.5rem 0.2rem;
-  border-radius: 12px;
-  border: 1px solid #E2E8F0;
-  background: #F8FAFC;
-}
-
-.user-info-sheet__stats-meta {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.45rem;
-  min-width: 0;
-  font-size: 0.62rem;
-  opacity: 0.72;
-}
-
-.user-info-sheet__stats-meta span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* 스토리 한 줄(M4) — 바로 아래 거리 숫자가 파랑이라, 문장은 본문색으로 숫자를 받쳐 준다 */
-.user-info-sheet__stats-story {
-  margin: 0;
-  font-size: 0.72rem;
-  font-weight: 650;
-  line-height: 1.35;
-  color: #1F2937;
-}
-
-.user-info-sheet__stats-hero {
-  display: flex;
-  align-items: baseline;
-  gap: 0.22rem;
-  margin: 0;
-  color: #2563EB;
-}
-
-.user-info-sheet__stats-hero strong {
-  font-size: 1.85rem;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.user-info-sheet__stats-hero span {
-  font-size: 0.78rem;
-  font-weight: 700;
-  opacity: 0.85;
+.user-info-sheet__dot {
+  margin: 0 6px;
+  font-weight: 500;
+  color: #5E6472;
 }
 
 /* 마지막 주행 = 최근 주행 목록 입구 */
 .user-info-sheet__last-ride {
-  appearance: none;
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  width: 100%;
-  min-height: 44px;
-  box-sizing: border-box;
-  padding: 0.2rem 0.55rem;
-  border-radius: 12px;
-  border: 1px solid #CBD5E1;
-  background: #F8FAFC;
-  color: inherit;
-  font: inherit;
-  text-align: left;
   cursor: pointer;
 }
 
-.user-info-sheet__last-ride:hover {
-  background: #EFF6FF;
-  border-color: #2563EB;
-}
-
-.user-info-sheet__last-ride-body {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.04rem;
-}
-
-.user-info-sheet__last-ride-head {
-  display: flex;
-  align-items: baseline;
-  gap: 0.35rem;
-}
-
-.user-info-sheet__last-ride-k {
-  font-size: 0.68rem;
-  font-weight: 700;
-}
-
-.user-info-sheet__last-ride-when {
-  font-size: 0.6rem;
-  opacity: 0.66;
-}
-
-.user-info-sheet__last-ride-v {
-  font-size: 0.64rem;
-  line-height: 1.35;
-  opacity: 0.9;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.user-info-sheet__last-ride-v.is-empty {
-  opacity: 0.6;
+.user-info-sheet__last-ride:focus-visible,
+.user-info-sheet__stats-tab:focus-visible,
+.user-info-sheet__btn:focus-visible,
+.user-info-sheet__close:focus-visible,
+.user-info-sheet__link:focus-visible,
+.user-info-sheet__scrim:focus-visible {
+  outline: 2px solid #2457D6;
+  outline-offset: 2px;
 }
 
 .user-info-sheet__h-chevron {
   flex: 0 0 auto;
+  align-self: center;
   display: inline-flex;
   align-items: center;
-  opacity: 0.66;
+  margin-left: 6px;
+  color: #5E6472;
   transition: transform 0.16s ease-out;
 }
 
@@ -792,110 +446,289 @@
   transform: rotate(90deg);
 }
 
-/* ── 2026-10-14 지시20 계정창 compact 2컬럼 (참고 mobile-ui-redesign columns 역할만 작게) ──
-   지시09 row합체 grid는 새 columns wrapper에 맞춰 제거 — 본문은 기존 flex column 흐름으로 복귀.
-   헤더 전체폭 유지. 左 플랜·구독안내·자산·마지막주행 / 右 기간탭·통계카드, 열 독립 세로흐름.
-   펼침목록·계정행동/확인은 본문 직계 전체폭. 탭 내용폭·확인행 내용폭·확인패널 여백은 아래 유지. */
-.user-info-sheet__columns {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 0.35rem;
-  align-items: start;
-  min-width: 0;
-}
-
-.user-info-sheet__col {
-  min-width: 0;
+/* 최근 주행 목록 — 줄로만 나눈다 */
+.user-info-sheet__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
-  gap: 0.24rem;
 }
 
-/* 기간 탭 내용폭 — 균등 전폭(flex:1) 대신 내용 기준 + 축소 허용. 44px 유지 */
-.user-info-sheet__stats-tab {
-  flex: 0 1 auto;
-  width: auto;
-  min-width: 0;
-}
-
-/* 확인 버튼 내용폭 — 전폭 확장(flex:1 1 0) 제거. 44px 유지 */
-.user-info-sheet__logout-confirm-row {
-  gap: 0.3rem;
-  flex-wrap: wrap;
-}
-
-.user-info-sheet__logout-confirm-row .user-info-sheet__btn {
-  flex: 0 0 auto;
-  width: auto;
-}
-
-/* 확인 패널 중첩 여백 절제 — 경고 문구·입력·스크롤은 유지 */
-.user-info-sheet__logout-confirm {
-  gap: 0.2rem;
-  padding: 0.25rem 0.4rem;
-}
-
-.user-info-sheet__confirm-input {
-  margin-top: 0.1rem;
-  min-height: 44px;
-}
-
-/* ── 2026-10-13 지시13 계정창 컨트롤 44→22px (UserInfoSheet scoped, 폰트·색·폭·TSX 불변) ──
-   대상: 플랜행(액션/비액션 동일행)·기간탭4·마지막주행입구·일반btn(Google/로그아웃/탈퇴·확인행 확인취소실행)·탈퇴확인input.
-   height/min-height/box-sizing/padding-block만 조절해 실제 rect 22px. 헤더 수정/닫기·목록내 작은액션·통계카드·자산 손대지 않음. pseudo44 추가 없음. row合체 grid 유지. */
-.user-info-sheet__plan,
-.user-info-sheet__plan.is-actionable,
-.user-info-sheet__stats-tab,
-.user-info-sheet__last-ride,
-.user-info-sheet__btn,
-.user-info-sheet__confirm-input {
-  min-height: 22px;
-  height: 22px;
-  box-sizing: border-box;
-  padding-top: 0;
-  padding-bottom: 0;
-}
-
-/* 마지막주행 두줄→한줄 최소조정 (font-size·line-height 불변, ellipsis 유지) */
-.user-info-sheet__last-ride-body {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.user-info-sheet__last-ride-head {
-  flex: 0 0 auto;
-  min-width: 0;
-}
-
-.user-info-sheet__last-ride-v {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-/* ── 2026-10-14 지시20 마지막주행 2줄 허용 (이 버튼만 내용높이, font·색·aria 불변) ──
-   왼쪽 좁은 폭에 단위/정보를 우겨넣지 않음 — header+summary 세로 쌓기, summary 줄바꿈 허용.
-   row 전체클릭·aria-controls/expanded는 TSX 그대로. */
-.user-info-sheet__col--account .user-info-sheet__last-ride {
-  height: auto;
-  min-height: 22px;
-}
-
-.user-info-sheet__col--account .user-info-sheet__last-ride-body {
+.user-info-sheet__item {
+  display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 0.04rem;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 0;
+  border-bottom: 1px solid #EEF0F3;
 }
 
-.user-info-sheet__col--account .user-info-sheet__last-ride-v {
-  white-space: normal;
-  overflow: visible;
+.user-info-sheet__item:last-child {
+  border-bottom: 0;
 }
 
-/* ── 2026-10-14 지시20 480px 미만 fallback: 기존 단열 ──
-   667x300/740x300/800x360/844x390·PC는 2열 유지. 세로폰은 별도 대응 전까지 단열. */
-@media (max-width: 480px) {
-  .user-info-sheet__columns {
-    grid-template-columns: minmax(0, 1fr);
+.user-info-sheet__item-summary {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.user-info-sheet__item-km {
+  flex: 0 0 auto;
+  font-family: 'Saira Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.user-info-sheet__item-when {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 500;
+  color: #4B5160;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-info-sheet__item-completion {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.user-info-sheet__item-completion.is-completed {
+  color: #121417;
+}
+
+.user-info-sheet__item-completion.is-partial {
+  font-weight: 500;
+  color: #4B5160;
+}
+
+.user-info-sheet__item-route {
+  font-size: 11px;
+  line-height: 15px;
+  color: #5E6472;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/*
+ * 최근 주행 행 액션(§3.6) — 요약 자체가 「지도에서 보기」 버튼이 되고, 재개·새 경로는 형제 버튼이다.
+ * 중첩 button 을 만들지 않기 위한 구조이므로 버튼을 서로 감싸지 말 것.
+ */
+.user-info-sheet__item-summary--action {
+  appearance: none;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.user-info-sheet__item-summary--action:focus-visible,
+.user-info-sheet__item-action:focus-visible {
+  outline: 2px solid #2457D6;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.user-info-sheet__item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+/* 보조 버튼(작은 알약) — 흰 바탕 + 연한 파랑 테두리 */
+.user-info-sheet__item-action {
+  appearance: none;
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid #C9D6EE;
+  border-radius: 12px;
+  background: #FFFFFF;
+  color: #2A2E37;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.user-info-sheet__item-action--blocked {
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  padding: 0;
+  font-weight: 500;
+  color: #5E6472;
+  cursor: default;
+}
+
+.user-info-sheet__empty {
+  padding: 10px 0;
+  font-size: 13px;
+  color: #4B5160;
+}
+
+.user-info-sheet__subscription-note {
+  flex: 0 0 auto;
+  margin: 0;
+  padding-top: 4px;
+  font-size: 11px;
+  line-height: 15px;
+  color: #4B5160;
+}
+
+.user-info-sheet__subscription-note.is-ok {
+  color: #1E7A46;
+}
+
+/* ── 하단 버튼 ──────────────────────────────────────────────── */
+.user-info-sheet__actions {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+/* 보조 버튼 — 흰 바탕, line-control 테두리, 알약 */
+.user-info-sheet__btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 14px;
+  border: 1px solid #C9D6EE;
+  border-radius: 999px;
+  background: #FFFFFF;
+  color: #2A2E37;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* 주 버튼 — 한 판에 하나(회원 등록·로그아웃 확인) */
+.user-info-sheet__btn--primary {
+  height: 40px;
+  padding: 0 18px;
+  border-color: #2457D6;
+  border-radius: 10px;
+  background: #2457D6;
+  color: #FFFFFF;
+  font-size: 13px;
+}
+
+/* 글자 버튼 — 로그아웃 */
+.user-info-sheet__btn--text {
+  padding: 0 8px;
+  border-color: transparent;
+  background: transparent;
+  color: #5E6472;
+  font-weight: 500;
+}
+
+.user-info-sheet__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 로그아웃 확인 — 같은 자리에서 문장 + 버튼 두 개 */
+.user-info-sheet__logout-confirm {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.user-info-sheet__logout-confirm-copy {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 18px;
+  color: #121417;
+}
+
+/* hover 는 hover 가 있는 기기에서만 — 폰은 :active */
+.user-info-sheet__stats-tab:active:not(.is-active),
+.user-info-sheet__close:active {
+  background: #E2E8F0;
+}
+
+.user-info-sheet__btn:active:not(:disabled),
+.user-info-sheet__item-action:active {
+  background: #EFF6FF;
+}
+
+.user-info-sheet__btn--primary:active:not(:disabled) {
+  background: #163E9E;
+}
+
+@media (hover: hover) {
+  .user-info-sheet__stats-tab:not(.is-active):hover {
+    background: #EFF6FF;
+    color: #2457D6;
+  }
+
+  .user-info-sheet__close:hover {
+    background: #E2E8F0;
+  }
+
+  .user-info-sheet__btn:hover:not(:disabled),
+  .user-info-sheet__item-action:hover {
+    background: #EFF6FF;
+    border-color: #2457D6;
+  }
+
+  .user-info-sheet__btn--primary:hover:not(:disabled) {
+    background: #163E9E;
+    border-color: #163E9E;
+  }
+
+  .user-info-sheet__btn--text:hover:not(:disabled) {
+    background: transparent;
+    border-color: transparent;
+    color: #121417;
+  }
+
+  .user-info-sheet__last-ride:hover .user-info-sheet__row-k {
+    color: #121417;
+  }
+
+  .user-info-sheet__link:hover:not(:disabled) {
+    text-decoration: underline;
+  }
+
+  .user-info-sheet__item-summary--action:hover .user-info-sheet__item-when {
+    color: #121417;
+    text-decoration: underline;
   }
 }

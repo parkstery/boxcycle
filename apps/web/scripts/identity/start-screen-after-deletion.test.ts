@@ -57,7 +57,7 @@ test("로그아웃 표시 키는 게스트 초기화가 지우는 앱 키에 속
 });
 
 test("탈퇴 성공 → 정리 → 새로고침 순서", () => {
-  const sheet = read("../../src/components/UserInfoSheet.tsx");
+  const sheet = read("../../src/components/ProfileEditSheet.tsx"); // 10-23: 탈퇴는 프로필 수정 안으로 옮겼다
   assert.match(sheet, /await deleteMyAccount\([^)]*\);\s*prepareStartScreen\("account-deleted"\);\s*location\.reload\(\);/);
 });
 
@@ -92,7 +92,7 @@ test("Google 성공만 종료 표시를 풀고 팝업은 서버 확인보다 먼
 test("이용 종료 버튼은 같은 Guest 포기를 말하지 않는다", () => {
   const sheet = read("../../src/components/UserInfoSheet.tsx");
   const code = sheet.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
-  assert.ok(code.includes(">종료<") || code.includes("종료"));
+  assert.ok(code.includes("로그아웃")); // 10-23 Chief: 「종료」 → 「로그아웃」
   assert.ok(code.includes("진행 중인 주행이 여기서 끝납니다"));
   assert.ok(!code.includes("같은 게스트로 돌아오지 못할 수 있습니다"));
   assert.ok(!code.includes("모든 데이터가 삭제됩니다"));

@@ -8,6 +8,7 @@ export type AppSheetNavigation = {
   rideSettingsSheetOpen: boolean;
   cadenceSensorSheetOpen: boolean;
   adminDashboardSheetOpen: boolean;
+  leaderboardSheetOpen: boolean;
   setMenuOpen: Dispatch<SetStateAction<boolean>>;
   setPlaceSearchOpen: Dispatch<SetStateAction<boolean>>;
   setMapViewSheetOpen: Dispatch<SetStateAction<boolean>>;
@@ -15,6 +16,7 @@ export type AppSheetNavigation = {
   setRideSettingsSheetOpen: Dispatch<SetStateAction<boolean>>;
   setCadenceSensorSheetOpen: Dispatch<SetStateAction<boolean>>;
   setAdminDashboardSheetOpen: Dispatch<SetStateAction<boolean>>;
+  setLeaderboardSheetOpen: Dispatch<SetStateAction<boolean>>;
   openMenuPanel: () => void;
   openPlaceSearchPanel: () => void;
   openMapViewPanel: () => void;
@@ -22,6 +24,7 @@ export type AppSheetNavigation = {
   openRideSettingsPanel: () => void;
   openCadenceSensorPanel: () => void;
   openAdminDashboardPanel: () => void;
+  openLeaderboardPanel: () => void;
 };
 
 /** MENU·지도·프로필·주행 설정·센서·관리자 시트 — 한 번에 하나만 열리도록 상호 배타 */
@@ -33,6 +36,7 @@ export function useAppSheetNavigation(): AppSheetNavigation {
   const [rideSettingsSheetOpen, setRideSettingsSheetOpen] = useState(false);
   const [cadenceSensorSheetOpen, setCadenceSensorSheetOpen] = useState(false);
   const [adminDashboardSheetOpen, setAdminDashboardSheetOpen] = useState(false);
+  const [leaderboardSheetOpen, setLeaderboardSheetOpen] = useState(false);
 
   const openMenuPanel = useCallback(() => {
     setPlaceSearchOpen(false);
@@ -41,6 +45,7 @@ export function useAppSheetNavigation(): AppSheetNavigation {
     setRideSettingsSheetOpen(false);
     setCadenceSensorSheetOpen(false);
     setAdminDashboardSheetOpen(false);
+    setLeaderboardSheetOpen(false);
     setMenuOpen(true);
   }, []);
 
@@ -51,6 +56,7 @@ export function useAppSheetNavigation(): AppSheetNavigation {
     setRideSettingsSheetOpen(false);
     setCadenceSensorSheetOpen(false);
     setAdminDashboardSheetOpen(false);
+    setLeaderboardSheetOpen(false);
     setPlaceSearchOpen((v) => !v);
   }, []);
 
@@ -61,6 +67,7 @@ export function useAppSheetNavigation(): AppSheetNavigation {
     setRideSettingsSheetOpen(false);
     setCadenceSensorSheetOpen(false);
     setAdminDashboardSheetOpen(false);
+    setLeaderboardSheetOpen(false);
     setMapViewSheetOpen((v) => !v);
   }, []);
 
@@ -71,6 +78,7 @@ export function useAppSheetNavigation(): AppSheetNavigation {
     setRideSettingsSheetOpen(false);
     setCadenceSensorSheetOpen(false);
     setAdminDashboardSheetOpen(false);
+    setLeaderboardSheetOpen(false);
     setUserInfoSheetOpen((v) => !v);
   }, []);
 
@@ -81,6 +89,7 @@ export function useAppSheetNavigation(): AppSheetNavigation {
     setUserInfoSheetOpen(false);
     setCadenceSensorSheetOpen(false);
     setAdminDashboardSheetOpen(false);
+    setLeaderboardSheetOpen(false);
     setRideSettingsSheetOpen(true);
   }, []);
 
@@ -92,6 +101,7 @@ export function useAppSheetNavigation(): AppSheetNavigation {
     setUserInfoSheetOpen(false);
     setRideSettingsSheetOpen(false);
     setAdminDashboardSheetOpen(false);
+    setLeaderboardSheetOpen(false);
     setCadenceSensorSheetOpen((v) => !v);
   }, []);
 
@@ -103,7 +113,20 @@ export function useAppSheetNavigation(): AppSheetNavigation {
     setUserInfoSheetOpen(false);
     setRideSettingsSheetOpen(false);
     setCadenceSensorSheetOpen(false);
+    setLeaderboardSheetOpen(false);
     setAdminDashboardSheetOpen(true);
+  }, []);
+
+  /** MENU 패널의 「순위」 — 리더보드 시트 */
+  const openLeaderboardPanel = useCallback(() => {
+    setMenuOpen(false);
+    setPlaceSearchOpen(false);
+    setMapViewSheetOpen(false);
+    setUserInfoSheetOpen(false);
+    setRideSettingsSheetOpen(false);
+    setCadenceSensorSheetOpen(false);
+    setAdminDashboardSheetOpen(false);
+    setLeaderboardSheetOpen(true);
   }, []);
 
   return {
@@ -114,6 +137,7 @@ export function useAppSheetNavigation(): AppSheetNavigation {
     rideSettingsSheetOpen,
     cadenceSensorSheetOpen,
     adminDashboardSheetOpen,
+    leaderboardSheetOpen,
     setMenuOpen,
     setPlaceSearchOpen,
     setMapViewSheetOpen,
@@ -121,6 +145,7 @@ export function useAppSheetNavigation(): AppSheetNavigation {
     setRideSettingsSheetOpen,
     setCadenceSensorSheetOpen,
     setAdminDashboardSheetOpen,
+    setLeaderboardSheetOpen,
     openMenuPanel,
     openPlaceSearchPanel,
     openMapViewPanel,
@@ -128,5 +153,6 @@ export function useAppSheetNavigation(): AppSheetNavigation {
     openRideSettingsPanel,
     openCadenceSensorPanel,
     openAdminDashboardPanel,
+    openLeaderboardPanel,
   };
 }

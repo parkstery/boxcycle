@@ -106,6 +106,7 @@ import { MapViewSheet } from "./components/map/MapViewSheet";
 import { EdgePanelHandle } from "./components/ui/EdgePanelHandle";
 import { UserInfoSheet } from "./components/UserInfoSheet";
 import { AdminDashboardSheet } from "./components/admin/AdminDashboardSheet";
+import { LeaderboardSheet } from "./components/leaderboard/LeaderboardSheet";
 import { RideSettingsSheet } from "./components/ride/RideSettingsSheet";
 import { useCalorieProfile } from "./hooks/useCalorieProfile";
 import { usePacerPreference } from "./hooks/usePacerPreference";
@@ -329,6 +330,7 @@ export default function App() {
     rideSettingsSheetOpen,
     cadenceSensorSheetOpen,
     adminDashboardSheetOpen,
+    leaderboardSheetOpen,
     setMenuOpen,
     setPlaceSearchOpen,
     setMapViewSheetOpen,
@@ -336,6 +338,7 @@ export default function App() {
     setRideSettingsSheetOpen,
     setCadenceSensorSheetOpen,
     setAdminDashboardSheetOpen,
+    setLeaderboardSheetOpen,
     openMenuPanel,
     openPlaceSearchPanel,
     openMapViewPanel,
@@ -343,6 +346,7 @@ export default function App() {
     openRideSettingsPanel,
     openCadenceSensorPanel,
     openAdminDashboardPanel,
+    openLeaderboardPanel,
   } = useAppSheetNavigation();
   const [menuReveal, setMenuReveal] = useState<number | null>(null);
   const [mapViewReveal, setMapViewReveal] = useState<number | null>(null);
@@ -3328,6 +3332,7 @@ export default function App() {
           placeSearchIntentRef.current = "menu";
           openPlaceSearchPanel();
         }}
+        onOpenLeaderboard={openLeaderboardPanel}
       >
         <RideRoutePanel
           routeSummary={routeSummary}
@@ -3555,6 +3560,17 @@ export default function App() {
         open={adminDashboardSheetOpen}
         onClose={() => setAdminDashboardSheetOpen(false)}
         user={user}
+      />
+
+      <LeaderboardSheet
+        open={leaderboardSheetOpen}
+        onClose={() => setLeaderboardSheetOpen(false)}
+        user={user}
+        onRegister={() => void handleGoogleSignIn()}
+        onJoinTrail={(trailId) => {
+          setLeaderboardSheetOpen(false);
+          joinTrailAndCloseMenu(trailId);
+        }}
       />
 
       <RideSummarySheet

@@ -9,6 +9,7 @@ import {
 import { useDialogFocus } from "../ui/useDialogFocus";
 import { useEscapeKeyClose } from "../ui/useEscapeKeyClose";
 import "./AdminDashboardSheet.css";
+import { settleUnlessCancelled } from "../ui/settleUnlessCancelled";
 
 type AdminDashboardSheetProps = {
   open: boolean;
@@ -90,20 +91,7 @@ function AdminDashboardPanel({ onClose, user }: { onClose: () => void; user: Use
 
   useEffect(() => {
     if (!user) return;
-    let cancelled = false;
-    fetchAdminDashboard(user).then(
-      (data) => {
-        if (!cancelled) setState({ kind: "ready", data });
-      },
-      (e: unknown) => {
-        if (!cancelled) {
-          setState({ kind: "error", message: e instanceof Error ? e.message : String(e) });
-        }
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
+    return settleUnlessCancelled(fetchAdminDashboard(user), setState);
   }, [user, reloadTick]);
 
   const view: LoadState = user

@@ -87,7 +87,7 @@ export function RideHistoryPanel(props: RideHistoryPanelProps) {
 
       {props.guestNotice ? (
         <p className="ride-history__notice">
-          Google 로그인 시 모든 기기의 기록이 유지됩니다
+          회원 등록하면 모든 기기에서 기록이 유지됩니다
         </p>
       ) : null}
 

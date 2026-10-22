@@ -13,6 +13,8 @@ import {
   NICKNAME_CHANGE_COOLDOWN_DAYS,
   NICKNAME_RULES_SUMMARY_KO,
 } from "../lib/identity/nickname";
+import { ACCOUNT_DELETION_CONFIRM_PHRASE, deleteMyAccount, isDeletionConfirmPhrase } from "../lib/account/accountDeletion";
+import { prepareStartScreen } from "../lib/storage/appSessionKeys";
 import "./ride/RideSettingsSheet.css";
 import "./ProfileEditSheet.css";
 
@@ -33,6 +35,7 @@ type ProfileEditSheetProps = {
 /**
  * 프로필 수정 — 닉네임(정식 계정만)·체중·강도. 2026-10-08 Chief.
  * 체중·강도는 본인 전용 서버 문서로 기기 간 동기화된다(useCalorieProfile).
+ * 하단에 「계정 탈퇴」 작은 글자 버튼 추가(지시03).
  */
 export function ProfileEditSheet(props: ProfileEditSheetProps) {
   if (!props.open || !props.user) return null;
@@ -54,13 +57,19 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
     nicknameChangeBlockedUntilMs(props.nicknameChangedAtMs, Date.now()),
   );
 
+  // 계정 탈퇴 확인 상태
+  const [confirmingDeletion, setConfirmingDeletion] = useState(false);
+  const [deletionPhrase, setDeletionPhrase] = useState("");
+  const [deletionBusy, setDeletionBusy] = useState(false);
+  const [deletionNote, setDeletionNote] = useState<string | null>(null);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !saving) onClose();
+      if (e.key === "Escape" && !saving && !confirmingDeletion) onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, saving]);
+  }, [onClose, saving, confirmingDeletion]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -89,6 +98,21 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
     }
   }
 
+  const runAccountDeletion = async () => {
+    if (!props.user || props.user.isAnonymous || deletionBusy) return;
+    if (!isDeletionConfirmPhrase(deletionPhrase)) return;
+    setDeletionBusy(true);
+    setDeletionNote(null);
+    try {
+      await deleteMyAccount(props.user, deletionPhrase);
+      prepareStartScreen("account-deleted");
+      location.reload();
+    } catch (e) {
+      setDeletionBusy(false);
+      setDeletionNote(e instanceof Error ? e.message : String(e));
+    }
+  };
+
   return (
     <div className="ride-settings-sheet profile-edit-sheet" role="dialog" aria-label="프로필 수정">
       <button
@@ -96,7 +120,7 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
         className="ride-settings-sheet__scrim"
         aria-label="닫기"
         title="Close"
-        disabled={saving}
+        disabled={saving || deletionBusy}
         onClick={onClose}
       />
       <form className="ride-settings-sheet__panel" noValidate onSubmit={(ev) => void handleSubmit(ev)}>
@@ -214,6 +238,71 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
             {saving ? "저장 중…" : "저장"}
           </button>
         </div>
+
+        {/* 계정 탈퇴 — 하단 작은 글자 버튼 (지시03) */}
+        {!isGuest && (
+          <div className="profile-edit-sheet__deletion-section">
+            {confirmingDeletion ? (
+              <div className="profile-edit-sheet__deletion-confirm" role="group" aria-label="계정 탈퇴 확인">
+                <p className="profile-edit-sheet__deletion-copy">
+                  계정과 내 경로·주행 기록·정복 기록·토큰이 즉시 삭제되며 되돌릴 수 없습니다.
+                  구독 중이면 해지됩니다. 내가 등록한 퍼블릭 경로는 「탈퇴한 라이더」 이름으로
+                  남습니다.
+                </p>
+                <label className="profile-edit-sheet__deletion-copy">
+                  계속하려면 「{ACCOUNT_DELETION_CONFIRM_PHRASE}」를 입력하세요
+                  <input
+                    type="text"
+                    className="profile-edit-sheet__deletion-input"
+                    value={deletionPhrase}
+                    disabled={deletionBusy}
+                    aria-label="탈퇴 확인 문구"
+                    onChange={(e) => setDeletionPhrase(e.target.value)}
+                  />
+                </label>
+                {deletionNote ? (
+                  <p className="profile-edit-sheet__deletion-copy" role="alert">
+                    {deletionNote}
+                  </p>
+                ) : null}
+                <div className="profile-edit-sheet__deletion-row">
+                  <button
+                    type="button"
+                    className="ride-settings-sheet__btn"
+                    disabled={deletionBusy}
+                    onClick={() => {
+                      setConfirmingDeletion(false);
+                      setDeletionPhrase("");
+                      setDeletionNote(null);
+                    }}
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="button"
+                    className="ride-settings-sheet__btn ride-settings-sheet__btn--danger"
+                    disabled={
+                      deletionBusy || !isDeletionConfirmPhrase(deletionPhrase)
+                    }
+                    title="Delete account"
+                    onClick={() => void runAccountDeletion()}
+                  >
+                    {deletionBusy ? "탈퇴 처리 중…" : "탈퇴"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="profile-edit-sheet__deletion-btn"
+                disabled={deletionBusy}
+                onClick={() => setConfirmingDeletion(true)}
+              >
+                계정 탈퇴
+              </button>
+            )}
+          </div>
+        )}
       </form>
     </div>
   );

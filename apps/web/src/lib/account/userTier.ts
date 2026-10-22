@@ -44,4 +44,4 @@ export function isPaidTier(tier: UserTier | null): boolean {
 }
 
 export const GUEST_PUBLIC_ROUTE_MSG =
-  "퍼블릭 경로 공개 신청은 Google 로그인 후 닉네임을 설정한 계정에서만 할 수 있습니다.";
+  "회원 등록하면 모든 기기에서 기록이 유지됩니다.";

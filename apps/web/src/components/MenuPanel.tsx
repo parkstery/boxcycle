@@ -12,6 +12,8 @@ type MenuPanelProps = {
   onOpenSettings?: () => void;
   /** 지명 검색 패널 — 헤더 행에 칩으로 산다(전폭 행은 한 줄을 통째로 낭비했다) */
   onOpenPlaceSearch?: () => void;
+  /** 리더보드 시트 열기 */
+  onOpenLeaderboard?: () => void;
   children: ReactNode;
   revealProgress?: number | null;
 };
@@ -25,6 +27,7 @@ export function MenuPanel({
   locked: _locked,
   onOpenSettings,
   onOpenPlaceSearch,
+  onOpenLeaderboard,
   children,
   revealProgress = null,
 }: MenuPanelProps) {
@@ -114,6 +117,17 @@ export function MenuPanel({
                   ⌕
                 </span>
                 지명
+              </button>
+            ) : null}
+            {onOpenLeaderboard ? (
+              <button
+                type="button"
+                className="menu-panel__leaderboard"
+                onClick={onOpenLeaderboard}
+                aria-label="리더보드"
+                title="순위 보기"
+              >
+                순위
               </button>
             ) : null}
             {onOpenSettings ? (

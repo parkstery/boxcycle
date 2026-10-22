@@ -25,15 +25,8 @@ import {
   tierPlanLabel,
   type SubscriptionStatus,
 } from "../lib/account/repo/subscription";
-import { AuthGoogleMark } from "./auth/AuthGateCard";
-import {
-  ACCOUNT_DELETION_CONFIRM_PHRASE,
-  deleteMyAccount,
-  isDeletionConfirmPhrase,
-} from "../lib/account/accountDeletion";
 import "./UserInfoSheet.css";
 import { selfRiderDisplayName } from "../lib/identity/riderName";
-import { prepareStartScreen } from "../lib/storage/appSessionKeys";
 import { isRouteReviewer } from "../lib/route/repo/publicRouteRequests";
 
 type UserInfoSheetProps = {
@@ -91,19 +84,40 @@ function ChevronRight() {
   );
 }
 
-function formatElapsedFromSec(sec: number): string {
+/** 닫기 아이콘 — 선 굵기 1.7·둥근 끝, 색은 ink-2(디자인 규칙 「아이콘」) */
+function CloseGlyph() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M3 3l10 10M13 3L3 13" stroke="#2A2E37" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** 숫자는 숫자 글꼴, 단위는 그 뒤에 작게(디자인 규칙: 단위를 끝까지 적는다) */
+function Num({ v, unit }: { v: string | number; unit: string }) {
+  return (
+    <>
+      <span className="user-info-sheet__num">{v}</span>
+      <span className="user-info-sheet__unit">{unit}</span>
+    </>
+  );
+}
+
+/** 「40시간 6분」 — 숫자·단위를 나눠 그린다. 1시간 미만이면 분만 */
+function ElapsedNum({ sec }: { sec: number }) {
   const totalMin = Math.floor(sec / 60);
   const h = Math.floor(totalMin / 60);
   const m = totalMin % 60;
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
-}
-
-/** 마일리지 블록 전용 — 한국어 "H시간 M분" 포맷(formatElapsedFromSec 은 영문 "Xh Ym" 이라 별도 함수) */
-function formatMileageElapsedKo(sec: number): string {
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  return `${h}시간 ${m}분`;
+  return (
+    <>
+      {h > 0 ? (
+        <>
+          <Num v={h} unit="시간" />{" "}
+        </>
+      ) : null}
+      <Num v={m} unit="분" />
+    </>
+  );
 }
 
 /**
@@ -121,7 +135,7 @@ function rideSessionPlacesCaption(s: StoredRideSession): string {
 
 function formatRideEndedAtKo(iso: string): string {
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleString("ko-KR", {
     year: "numeric",
     month: "numeric",
@@ -140,27 +154,17 @@ function formatSessionAvgSpeedKmh(s: StoredRideSession): string {
   return "0.0";
 }
 
-function formatSessionCaloriesEstimate(s: StoredRideSession): string {
-  if (s.caloriesEstimate == null) return "—";
+/** 칼로리 미산정이면 null — 빈 값은 「—」 대신 줄에서 뺀다 */
+function sessionCaloriesEstimate(s: StoredRideSession): { n: number; legacy: boolean } | null {
+  if (s.caloriesEstimate == null) return null;
   const v = Number(s.caloriesEstimate);
-  if (!Number.isFinite(v) || v < 0) return "—";
-  const n = Math.round(v);
-  return isLegacyDistanceCalories(s) ? `${n} kcal(옛)` : `${n} kcal`;
-}
-
-/** 전부 미산정이면 합계 0을 「운동 소모 0」으로 읽지 않게 — 표시 */
-function formatPeriodCaloriesTotal(stats: {
-  rides: number;
-  caloriesEstimate: number;
-  caloriesUnknownCount: number;
-}): string {
-  if (stats.rides > 0 && stats.caloriesUnknownCount >= stats.rides) return "—";
-  return String(Math.round(stats.caloriesEstimate));
+  if (!Number.isFinite(v) || v < 0) return null;
+  return { n: Math.round(v), legacy: isLegacyDistanceCalories(s) };
 }
 
 function formatLastRideWhenKo(iso: string, now: Date = new Date()): string {
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "";
   const diffMs = now.getTime() - d.getTime();
   if (diffMs < 0) return formatRideEndedAtKo(iso);
   const diffMin = Math.floor(diffMs / 60_000);
@@ -173,19 +177,45 @@ function formatLastRideWhenKo(iso: string, now: Date = new Date()): string {
   return formatRideEndedAtKo(iso);
 }
 
+/** 기간 탭 위 이름표 — 오늘 「10월 23일」, 주간 「10월 19일 ~ 25일」, 월간 「10월」, 연간 「2026년」 */
+function periodRangeLabelKo(
+  period: RideStatsPeriod,
+  range: { start: Date; endExclusive: Date },
+): string {
+  const start = range.start;
+  const last = new Date(range.endExclusive.getTime() - 1);
+  if (period === "day") return `${start.getMonth() + 1}월 ${start.getDate()}일`;
+  if (period === "week") {
+    const head = `${start.getMonth() + 1}월 ${start.getDate()}일`;
+    return start.getMonth() === last.getMonth()
+      ? `${head} ~ ${last.getDate()}일`
+      : `${head} ~ ${last.getMonth() + 1}월 ${last.getDate()}일`;
+  }
+  if (period === "month") return `${start.getMonth() + 1}월`;
+  return `${start.getFullYear()}년`;
+}
+
+const PERIOD_WORD_KO: Record<RideStatsPeriod, string> = {
+  day: "오늘",
+  week: "이번 주",
+  month: "이번 달",
+  year: "올해",
+};
+
 /**
  * 완주 표시는 **전 UI 단일 정책**(`isRouteCompletion` = 98%)을 쓴다(§2.6).
  * 반올림 백분율 95% 로 판정하던 표시는 95~97% Ride 를 「완주」로 보여 주면서
  * SavedRoute 는 미완주로 남는 불일치를 만들었다.
+ * 완주율이 없는 옛 기록은 label=null — 화면에서 뺀다(「—」 자리 표시 금지).
  */
 function rideCompletionDisplay(s: StoredRideSession): {
-  label: string;
+  label: string | null;
   isCompleted: boolean;
   title: string;
 } {
   const r = s.completionRatio;
   if (typeof r !== "number" || !Number.isFinite(r)) {
-    return { label: "—", isCompleted: false, title: "완주율 없음" };
+    return { label: null, isCompleted: false, title: "완주율 없음" };
   }
   const clamped = Math.max(0, Math.min(1, r));
   const pct = Math.round(clamped * 100);
@@ -199,8 +229,9 @@ function rideCompletionDisplay(s: StoredRideSession): {
 }
 
 /**
- * TR 슬롯에서 우측으로 슬라이드 인 하는 사용자 패널.
- * - 계정 식별 + 주간·월간·연간 통계 + 최근 주행 + 핵심 액션.
+ * 화면 가운데 뜨는 두 칸 판(리더보드와 같은 틀).
+ * - 왼쪽 요약판: 기간 탭 + 고른 기간의 거리(주인공 숫자) + 시간·평균 속도 한 줄.
+ * - 오른쪽: 이름·닫기, 내 도로망·누적·마지막 주행·플랜 줄, 하단 버튼.
  */
 export function UserInfoSheet(props: UserInfoSheetProps) {
   // 관리자 확인은 시트를 열 때 한 번 — 메뉴 노출용일 뿐, 숫자는 서버가 다시 권한을 확인한다
@@ -227,10 +258,6 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   const [canCheckout, setCanCheckout] = useState(false);
   const [canManagePortal, setCanManagePortal] = useState(false);
   const [confirmingLogout, setConfirmingLogout] = useState(false);
-  const [confirmingDeletion, setConfirmingDeletion] = useState(false);
-  const [deletionPhrase, setDeletionPhrase] = useState("");
-  const [deletionBusy, setDeletionBusy] = useState(false);
-  const [deletionNote, setDeletionNote] = useState<string | null>(null);
 
   const panelRef = useRef<HTMLElement>(null);
   useDialogFocus(props.open, panelRef);
@@ -251,9 +278,6 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
     if (!props.open) {
       setHistoryOpen(false);
       setConfirmingLogout(false);
-      setConfirmingDeletion(false);
-      setDeletionPhrase("");
-      setDeletionNote(null);
     }
   }
 
@@ -274,13 +298,13 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
         setCanCheckout(me.canCheckout);
         setCanManagePortal(me.canManagePortal);
         setSubscriptionNote(null);
-      } catch (e) {
+      } catch {
+        // 구독 상태를 못 읽어도 사용자가 할 일은 없다 — 서버 오류 문구를 화면에 내지 않고
+        // 업그레이드·구독 관리 행동만 숨긴다(플랜 줄은 「Free 플랜」으로 남는다).
         if (!cancelled) {
           setCanCheckout(false);
           setCanManagePortal(false);
-          setSubscriptionNote(
-            e instanceof Error ? e.message : "구독 정보를 불러오지 못했습니다.",
-          );
+          setSubscriptionNote(null);
         }
       }
     })();
@@ -342,7 +366,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
         if (!cancelled) {
           setStatsSessions(props.recentSessions);
           setStatsLoading(false);
-          setStatsLoadNote("클라우드 미설정: 이 기기에 캐시된 최근 기록만 집계합니다.");
+          setStatsLoadNote("이 기기에 저장된 최근 기록만 집계했어요.");
         }
         return;
       }
@@ -354,16 +378,12 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
         const rows = await loadRideSessionsForStatsFromFirestore(props.user.uid, 400);
         if (!cancelled) {
           setStatsSessions(rows);
-          setStatsLoadNote(
-            rows.length >= 400
-              ? "최근 400건 기준"
-              : null,
-          );
+          setStatsLoadNote(null);
         }
       } catch {
         if (!cancelled) {
           setStatsSessions(props.recentSessions);
-          setStatsLoadNote("통계 전용 불러오기 실패: 화면에 보이는 최근 기록으로 집계합니다.");
+          setStatsLoadNote("화면에 보이는 최근 기록만 집계했어요.");
         }
       } finally {
         if (!cancelled) setStatsLoading(false);
@@ -394,7 +414,6 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
     });
   }, [statsSessions, periodStats.range.start, periodStats.range.endExclusive]);
 
-
   const lastRide = useMemo(() => pickLastRide(statsSessions), [statsSessions]);
 
   /**
@@ -411,42 +430,34 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.isGuest, canCheckout, canManagePortal]);
 
-  const initial = (() => {
-    if (!props.user) return "?";
-    if (props.user.isAnonymous) return "G";
-    return selfRiderDisplayName(props.user).slice(0, 1).toUpperCase();
-  })();
   // 다른 라이더에게 보이는 이름과 같은 규칙(riderName). 이메일은 아래 줄에만 — 이 시트는 본인만 본다
   const nickname = props.user ? selfRiderDisplayName(props.user) : "";
   const subLine = props.user
     ? props.user.isAnonymous
       ? "게스트로 이용 중"
-      : props.user.email ?? props.user.uid
+      : props.user.email ?? ""
     : "";
 
   const showGoogleLink = Boolean(props.isGuest && props.onLinkGoogle);
   const showLogout = props.user != null;
-  /**
-   * 계정 탈퇴 — Google 등 정식 계정만. 게스트 로그아웃은 세션만 종료한다(2026-10-19).
-   * 「이 기기 데이터 지우기」 버튼은 없다.
-   */
-  const showAccountDeletion = Boolean(props.user && !props.user.isAnonymous);
-  const showActionsFooter = showGoogleLink || showLogout || showAccountDeletion;
 
-  const runAccountDeletion = async () => {
-    if (!props.user || props.user.isAnonymous || props.rideActive || deletionBusy) return;
-    if (!isDeletionConfirmPhrase(deletionPhrase)) return;
-    setDeletionBusy(true);
-    setDeletionNote(null);
-    try {
-      await deleteMyAccount(props.user, deletionPhrase);
-      prepareStartScreen("account-deleted");
-      location.reload();
-    } catch (e) {
-      setDeletionBusy(false);
-      setDeletionNote(e instanceof Error ? e.message : String(e));
-    }
-  };
+  const stats = periodStats.stats;
+  const hasRides = stats.rides > 0;
+  const caloriesAllUnknown = hasRides && stats.caloriesUnknownCount >= stats.rides;
+  const caloriesApprox = stats.caloriesUnknownCount > 0 || periodHasLegacyCalories;
+  const heroText = (stats.distanceMeters / 1000).toFixed(2);
+  const periodWord = PERIOD_WORD_KO[statsPeriod];
+  const metaLabel =
+    periodRangeLabelKo(statsPeriod, periodStats.range) + (hasRides ? ` · 주행 ${stats.rides}회` : "");
+
+  // 플랜 줄 문구 — 「Free 플랜 · 업그레이드」. 개발용 상태어(미구독 등)는 쓰지 않는다
+  const planName = props.tier == null ? null : tierPlanLabel(props.tier);
+  const planStatus =
+    !props.isGuest && props.subscriptionStatus !== "none"
+      ? subscriptionStatusLabelKo(props.subscriptionStatus)
+      : null;
+
+  const lastRideCalories = lastRide ? sessionCaloriesEstimate(lastRide) : null;
 
   return (
     <div
@@ -458,87 +469,331 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
         type="button"
         className="user-info-sheet__scrim"
         aria-label="닫기"
-        title="Close"
         onClick={props.onClose}
         tabIndex={props.open ? 0 : -1}
       />
       <aside ref={panelRef} className="user-info-sheet" role="dialog" aria-label="사용자 정보">
-        <div className="user-info-sheet__head">
-          <div className={`user-info-sheet__avatar ${props.isGuest ? "is-guest" : ""}`}>
-            {initial}
+        {/* 왼쪽 요약판: 기간 탭 + 거리(주인공) + 시간·평균 속도 */}
+        <div className="user-info-sheet__left">
+          <div className="user-info-sheet__stats-head" role="tablist" aria-label="통계 기간">
+            {([
+              { id: "day" as const, label: "오늘" },
+              { id: "week" as const, label: "주간" },
+              { id: "month" as const, label: "월간" },
+              { id: "year" as const, label: "연간" },
+            ] satisfies { id: RideStatsPeriod; label: string }[]).map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={statsPeriod === t.id}
+                className={`user-info-sheet__stats-tab ${statsPeriod === t.id ? "is-active" : ""}`}
+                onClick={() => setStatsPeriod(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
-          <div className="user-info-sheet__id">
-            <strong>{nickname}</strong>
-            <span>{subLine}</span>
+
+          <div className="user-info-sheet__summary">
+            <span className="user-info-sheet__stats-meta">{metaLabel}</span>
+            <p
+              className={`user-info-sheet__stats-hero${statsLoading || !hasRides ? " is-empty" : ""}`}
+              aria-busy={statsLoading}
+            >
+              {statsLoading ? (
+                <span>통계를 불러오는 중이에요</span>
+              ) : hasRides ? (
+                <>
+                  <strong
+                    className={`rtw-numeric${heroText.length > 6 ? " is-long" : ""}`}
+                  >
+                    {heroText}
+                  </strong>
+                  <span>km</span>
+                </>
+              ) : (
+                <span>{periodWord} 주행이 없어요</span>
+              )}
+            </p>
+            {!statsLoading && hasRides ? (
+              <div className="user-info-sheet__stats">
+                <div>
+                  <ElapsedNum sec={stats.elapsedSec} />
+                </div>
+                <div>
+                  평균 <Num v={stats.avgSpeedKmh.toFixed(1)} unit="km/h" />
+                </div>
+                <div className="user-info-sheet__stats-cal">
+                  {caloriesAllUnknown ? (
+                    <>
+                      칼로리는{" "}
+                      {props.onEditProfile ? (
+                        <button
+                          type="button"
+                          className="user-info-sheet__link"
+                          onClick={props.onEditProfile}
+                        >
+                          체중 입력
+                        </button>
+                      ) : (
+                        "체중 입력"
+                      )}{" "}
+                      후 표시
+                    </>
+                  ) : (
+                    <>
+                      {caloriesApprox ? "추정 칼로리 " : "칼로리 "}
+                      <Num v={Math.round(stats.caloriesEstimate)} unit="kcal" />
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : null}
+            {!statsLoading && !hasRides ? (
+              <p className="user-info-sheet__empty-hint">달리면 여기에 거리가 쌓여요</p>
+            ) : null}
           </div>
-          {props.onEditProfile ? (
-            <button
-              type="button"
-              className="user-info-sheet__edit"
-              onClick={props.onEditProfile}
-              title="Edit profile"
-            >
-              프로필 수정
-            </button>
-          ) : null}
-          {showAdminEntry ? (
-            <button
-              type="button"
-              className="user-info-sheet__edit"
-              onClick={props.onOpenAdmin}
-              title="Admin dashboard"
-            >
-              관리
-            </button>
-          ) : null}
-          <button
-            type="button"
-            className="user-info-sheet__close"
-            onClick={props.onClose}
-            aria-label="닫기"
-            title="Close"
-          >
-            <span aria-hidden="true">✕</span>
-          </button>
+
+          <div className="user-info-sheet__left-foot">
+            {!statsLoading && periodStory ? (
+              <p className="user-info-sheet__stats-story">{periodStory}</p>
+            ) : null}
+            {statsLoadNote ? (
+              <p className="user-info-sheet__stats-note" role="status">
+                {statsLoadNote}
+              </p>
+            ) : null}
+          </div>
         </div>
 
-        <div className="user-info-sheet__scroll-body">
-          <div className="user-info-sheet__columns">
-            <div className="user-info-sheet__col user-info-sheet__col--account">
-          {/*
-            플랜 — 상태와 행동을 **한 줄**로. 종전에는 「Free/미구독」 행 · 「Free 플랜」 라벨 ·
-            「유료 플랜 구독」 버튼이 같은 사실을 세 번 말했다(2026-09-15 Chief 지적).
-            상태만 알리는 표시는 지우고 누를 수 있는 것만 남긴다.
-          */}
-          {props.isGuest ? (
-            <div className="user-info-sheet__plan" aria-label="기록 보존">
-              <span className="user-info-sheet__plan-tier">게스트</span>
-              <span className="user-info-sheet__plan-status">
-                Google 연결로 기록을 지키세요
-              </span>
+        {/* 오른쪽: 이름·닫기 + 줄 목록 + 하단 버튼 */}
+        <div className="user-info-sheet__right">
+          <header className="user-info-sheet__head">
+            <div className="user-info-sheet__id">
+              <strong>{nickname}</strong>
+              {subLine ? <span>{subLine}</span> : null}
             </div>
-          ) : planAction ? (
             <button
               type="button"
-              className="user-info-sheet__plan is-actionable"
-              aria-label={`플랜 ${tierPlanLabel(props.tier)} — ${planAction.label}`}
-              disabled={props.busy || subscriptionBusy}
-              onClick={planAction.onClick}
+              className="user-info-sheet__close"
+              onClick={props.onClose}
+              aria-label="닫기"
             >
-              <span className="user-info-sheet__plan-tier">{tierPlanLabel(props.tier)}</span>
-              <span className="user-info-sheet__plan-cta">
-                {planAction.label}
-                <ChevronRight />
+              <CloseGlyph />
+            </button>
+          </header>
+
+          <div className="user-info-sheet__rows">
+            {!historyOpen ? (
+              <div className="user-info-sheet__row" role="group" aria-label="내 도로망">
+                <span className="user-info-sheet__row-k">
+                  내 도로망
+                  {props.conquest != null && props.conquest.totalMeters <= 0 ? (
+                    <span className="user-info-sheet__row-sub">첫 라이딩으로 나만의 길을 남겨보세요.</span>
+                  ) : null}
+                </span>
+                {props.conquest == null ? (
+                  <span className="user-info-sheet__row-v is-quiet">확인 중</span>
+                ) : (
+                  <span className="user-info-sheet__row-v is-accent">
+                    <Num v={(props.conquest.totalMeters / 1000).toFixed(1)} unit="km" />
+                  </span>
+                )}
+              </div>
+            ) : null}
+
+            {!historyOpen && props.mileage && props.mileage.totalMeters > 0 ? (
+              <div className="user-info-sheet__row" role="group" aria-label="누적">
+                <span className="user-info-sheet__row-k">누적</span>
+                <span className="user-info-sheet__row-v">
+                  <Num v={(props.mileage.totalMeters / 1000).toFixed(1)} unit="km" />
+                  <span className="user-info-sheet__dot">·</span>
+                  <Num v={props.mileage.rideCount} unit="회" />
+                  <span className="user-info-sheet__dot">·</span>
+                  <ElapsedNum sec={props.mileage.totalSec} />
+                </span>
+              </div>
+            ) : null}
+
+            {/* 마지막 주행 = 최근 주행 목록 입구 */}
+            <button
+              type="button"
+              className="user-info-sheet__row user-info-sheet__last-ride"
+              aria-expanded={historyOpen}
+              aria-controls="user-info-sheet-history-list"
+              onClick={() => setHistoryOpen((v) => !v)}
+            >
+              <span className="user-info-sheet__row-k">
+                마지막 주행
+                {lastRide ? (
+                  <span className="user-info-sheet__last-ride-when">
+                    {formatLastRideWhenKo(lastRide.endedAt)}
+                  </span>
+                ) : null}
+              </span>
+              <span className="user-info-sheet__row-v" title={lastRide ? formatRideEndedAtKo(lastRide.endedAt) : undefined}>
+                {lastRide ? (
+                  <>
+                    <Num v={formatRideDistanceKmNumber(lastRide.distanceMeters)} unit="km" />
+                    <span className="user-info-sheet__dot">·</span>
+                    <ElapsedNum sec={lastRide.elapsedSec} />
+                    <span className="user-info-sheet__dot">·</span>
+                    <Num v={formatSessionAvgSpeedKmh(lastRide)} unit="km/h" />
+                    {lastRideCalories ? (
+                      <>
+                        <span className="user-info-sheet__dot">·</span>
+                        <Num v={lastRideCalories.n} unit={lastRideCalories.legacy ? "kcal(옛)" : "kcal"} />
+                      </>
+                    ) : null}
+                  </>
+                ) : (
+                  <span className="is-quiet">아직 주행이 없어요</span>
+                )}
+                <span className={`user-info-sheet__h-chevron ${historyOpen ? "is-open" : ""}`} aria-hidden>
+                  <ChevronRight />
+                </span>
               </span>
             </button>
-          ) : (
-            <div className="user-info-sheet__plan" aria-label="플랜">
-              <span className="user-info-sheet__plan-tier">{tierPlanLabel(props.tier)}</span>
-              <span className="user-info-sheet__plan-status">
-                {subscriptionStatusLabelKo(props.subscriptionStatus)}
-              </span>
-            </div>
-          )}
+
+            {historyOpen ? (
+              <ul id="user-info-sheet-history-list" className="user-info-sheet__list">
+                {props.recentSessions.length === 0 ? (
+                  <li className="user-info-sheet__empty">최근 주행이 없어요</li>
+                ) : (
+                  props.recentSessions.map((s) => {
+                    const routeCaption = rideSessionPlacesCaption(s);
+                    const whenLabel = formatRideEndedAtKo(s.endedAt);
+                    const completion = rideCompletionDisplay(s);
+                    const kmLabel = `${(s.distanceMeters / 1000).toFixed(2)} km`;
+                    const summaryTitle = `${kmLabel}  ${whenLabel}  ${completion.label ?? ""}`.trim();
+                    /**
+                     * 행 액션(§3.6) — 실제 종료점이 없는 legacy Ride 는 기록만 표시한다.
+                     * 중첩 button 을 만들지 않기 위해 요약 자체가 「지도에서 보기」 버튼이고,
+                     * 재개·새 경로는 형제 버튼으로 둔다.
+                     */
+                    const actions = resolveRecentRideActions(s, props.savedRoutes ?? [], {
+                      activeRouteId: props.activeRouteId,
+                    });
+                    const summaryInner = (
+                      <>
+                        <strong className="user-info-sheet__item-km">{kmLabel}</strong>
+                        <span className="user-info-sheet__item-when">{whenLabel}</span>
+                        {completion.label ? (
+                          <span
+                            className={`user-info-sheet__item-completion ${
+                              completion.isCompleted ? "is-completed" : "is-partial"
+                            }`}
+                            title={completion.title}
+                          >
+                            {completion.label}
+                          </span>
+                        ) : null}
+                      </>
+                    );
+                    const showOnMap = actions.canShowOnMap && props.onShowRideOnMap;
+                    return (
+                      <li key={s.id} className="user-info-sheet__item">
+                        {showOnMap ? (
+                          <button
+                            type="button"
+                            className="user-info-sheet__item-summary user-info-sheet__item-summary--action"
+                            title={`${summaryTitle} — 지도에서 보기`}
+                            aria-label={`${kmLabel} ${whenLabel} 주행 지도에서 보기`}
+                            onClick={() => props.onShowRideOnMap?.(s)}
+                          >
+                            {summaryInner}
+                          </button>
+                        ) : (
+                          <div className="user-info-sheet__item-summary" title={summaryTitle}>
+                            {summaryInner}
+                          </div>
+                        )}
+                        <span className="user-info-sheet__item-route" title={routeCaption}>
+                          {routeCaption}
+                        </span>
+                        {actions.resumeRouteId || actions.extendAnchor || actions.resumeBlocked ? (
+                          <div className="user-info-sheet__item-actions">
+                            {actions.resumeRouteId && props.onResumeRideRoute ? (
+                              <button
+                                type="button"
+                                className="user-info-sheet__item-action"
+                                onClick={() => props.onResumeRideRoute?.(actions.resumeRouteId!)}
+                              >
+                                이어 달리기
+                              </button>
+                            ) : null}
+                            {actions.resumeBlocked ? (
+                              <>
+                                <span className="user-info-sheet__item-action user-info-sheet__item-action--blocked">
+                                  이어달리기 한 경로만
+                                </span>
+                                {props.activeRouteId && props.onFocusActiveRoute ? (
+                                  <button
+                                    type="button"
+                                    className="user-info-sheet__item-action"
+                                    onClick={() => props.onFocusActiveRoute?.(props.activeRouteId!)}
+                                  >
+                                    활성 경로 확인
+                                  </button>
+                                ) : null}
+                              </>
+                            ) : null}
+                            {actions.extendAnchor && props.onExtendFromRide ? (
+                              <button
+                                type="button"
+                                className="user-info-sheet__item-action"
+                                onClick={() => props.onExtendFromRide?.(actions.extendAnchor!)}
+                              >
+                                여기서 새 경로
+                              </button>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </li>
+                    );
+                  })
+                )}
+              </ul>
+            ) : null}
+
+            {/* 플랜 — 상태와 행동을 한 줄로 */}
+            {!historyOpen ? (
+              <div className="user-info-sheet__row" role="group" aria-label="플랜">
+                <span className="user-info-sheet__row-k">플랜</span>
+                {props.isGuest ? (
+                  <span className="user-info-sheet__row-v is-text">
+                    게스트 · 회원 등록하면 어느 기기에서나 이어져요
+                  </span>
+                ) : (
+                  <span className="user-info-sheet__row-v is-text">
+                    {planName ? (
+                      <>
+                        {planName} 플랜{planStatus ? ` · ${planStatus}` : ""}
+                      </>
+                    ) : (
+                      <span className="is-quiet">확인 중</span>
+                    )}
+                    {planAction ? (
+                      <>
+                        <span className="user-info-sheet__dot">·</span>
+                        <button
+                          type="button"
+                          className="user-info-sheet__link"
+                          aria-label={`플랜 ${planName ?? ""} — ${planAction.label}`}
+                          disabled={props.busy || subscriptionBusy}
+                          onClick={planAction.onClick}
+                        >
+                          {planAction.label}
+                        </button>
+                      </>
+                    ) : null}
+                  </span>
+                )}
+              </div>
+            ) : null}
+          </div>
+
           {props.subscriptionFlash ? (
             <p className="user-info-sheet__subscription-note is-ok" role="status">
               {props.subscriptionFlash}
@@ -550,393 +805,72 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
             </p>
           ) : null}
 
-          <div className="user-info-sheet__assets">
-            <div className="user-info-sheet__asset is-conquest" aria-label="내 도로망">
-              <span className="user-info-sheet__asset-k">내 도로망</span>
-              {props.conquest == null ? (
-                <strong className="user-info-sheet__asset-v">확인 중</strong>
-              ) : (
-                <>
-                  <strong className="user-info-sheet__asset-v rtw-numeric">
-                    {(props.conquest.totalMeters / 1000).toFixed(1)}
-                    <span> km</span>
-                  </strong>
-                  {props.conquest.totalMeters <= 0 ? (
-                    <span className="user-info-sheet__asset-sub">
-                      첫 라이딩으로 나만의 길을 남겨보세요.
-                    </span>
-                  ) : null}
-                </>
-              )}
-            </div>
-            {props.mileage && props.mileage.totalMeters > 0 ? (
-              <div className="user-info-sheet__asset" aria-label="누적">
-                <span className="user-info-sheet__asset-k">누적</span>
-                <strong className="user-info-sheet__asset-v rtw-numeric">
-                  {(props.mileage.totalMeters / 1000).toFixed(1)}
-                  <span> km</span>
-                </strong>
-                <span className="user-info-sheet__asset-sub rtw-numeric">
-                  {props.mileage.rideCount}회 · {formatMileageElapsedKo(props.mileage.totalSec)}
-                </span>
-              </div>
-            ) : null}
-          </div>
-
-          {/*
-            마지막 주행 카드가 곧 「최근 주행」 목록의 입구다 — 종전에는 두 블록이 패널
-            위아래로 갈라져 있어 스크롤해서 다른 행을 찾아 눌러야 했다.
-          */}
-          <button
-            type="button"
-            className="user-info-sheet__last-ride"
-            aria-expanded={historyOpen}
-            aria-controls="user-info-sheet-history-list"
-            title="Recent rides"
-            onClick={() => setHistoryOpen((v) => !v)}
-          >
-            <span className="user-info-sheet__last-ride-body">
-              <span className="user-info-sheet__last-ride-head">
-                <span className="user-info-sheet__last-ride-k">마지막 주행</span>
-                {lastRide ? (
-                  <span className="user-info-sheet__last-ride-when">
-                    {formatLastRideWhenKo(lastRide.endedAt)}
-                  </span>
-                ) : null}
-              </span>
-              {lastRide ? (
-                <span
-                  className="user-info-sheet__last-ride-v rtw-numeric"
-                  title={formatRideEndedAtKo(lastRide.endedAt)}
-                >
-                  {formatRideDistanceKmNumber(lastRide.distanceMeters)} km ·{" "}
-                  {formatElapsedFromSec(lastRide.elapsedSec)} ·{" "}
-                  {formatSessionAvgSpeedKmh(lastRide)} km/h ·{" "}
-                  {formatSessionCaloriesEstimate(lastRide)}
-                </span>
-              ) : (
-                <span className="user-info-sheet__last-ride-v is-empty">없음</span>
-              )}
-            </span>
-            <span className={`user-info-sheet__h-chevron ${historyOpen ? "is-open" : ""}`} aria-hidden>
-              <ChevronRight />
-            </span>
-          </button>
-            </div>
-            <div className="user-info-sheet__col user-info-sheet__col--stats">
-          {/*
-            기간 축 하나 — 종전에는 「일일 주행」이 탭 밖 별도 블록이라 주행·거리·시간·평속 +
-            칼로리 타일이 **두 벌** 쌓였다. 오늘을 탭으로 흡수해 숫자 묶음을 하나로 만든다.
-          */}
-          <div className="user-info-sheet__stats-head" role="tablist" aria-label="통계 기간">
-            {(
-              [
-                { id: "day" as const, label: "오늘", title: "Today" },
-                { id: "week" as const, label: "주간", title: "This week" },
-                { id: "month" as const, label: "월간", title: "This month" },
-                { id: "year" as const, label: "연간", title: "This year" },
-              ] satisfies { id: RideStatsPeriod; label: string; title: string }[]
-            ).map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={statsPeriod === t.id}
-                className={`user-info-sheet__stats-tab ${statsPeriod === t.id ? "is-active" : ""}`}
-                title={t.title}
-                onClick={() => setStatsPeriod(t.id)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          {/* 거리를 히어로로 — 같은 크기 타일 4개는 눈이 훑을 곳을 정하지 못한다 */}
-          <div className="user-info-sheet__stats-card">
-            <div className="user-info-sheet__stats-meta">
-              <span className="rtw-numeric" title="Local calendar on this device">
-                {statsLoading ? "통계 불러오는 중…" : periodStats.range.labelKo}
-              </span>
-              <span className="rtw-numeric">주행 {periodStats.stats.rides}회</span>
-            </div>
-            {statsLoadNote ? (
-              <p className="user-info-sheet__stats-note" role="status">
-                {statsLoadNote}
-              </p>
-            ) : null}
-            {!statsLoading && periodStory ? (
-              <p className="user-info-sheet__stats-story">{periodStory}</p>
-            ) : null}
-            <p className="user-info-sheet__stats-hero">
-              <strong className="rtw-numeric">
-                {(periodStats.stats.distanceMeters / 1000).toFixed(2)}
-              </strong>
-              <span>km</span>
-            </p>
-            <div className="user-info-sheet__stats">
-              <div>
-                <span>시간</span>
-                <strong className="rtw-numeric">
-                  {formatElapsedFromSec(periodStats.stats.elapsedSec)}
-                </strong>
-              </div>
-              <div>
-                <span>평속</span>
-                <strong className="rtw-numeric">
-                  {periodStats.stats.avgSpeedKmh.toFixed(1)}
-                </strong>
-              </div>
-              <div>
-                <span>
-                  {periodStats.stats.caloriesUnknownCount > 0 || periodHasLegacyCalories
-                    ? "추정 kcal"
-                    : "칼로리"}
-                </span>
-                <strong className="rtw-numeric">
-                  {formatPeriodCaloriesTotal(periodStats.stats)}
-                </strong>
-                {periodStats.stats.caloriesUnknownCount > 0 ? (
-                  <span className="user-info-sheet__stat-note">
-                    미산정 {periodStats.stats.caloriesUnknownCount}회
-                  </span>
-                ) : null}
-                {periodHasLegacyCalories ? (
-                  <span className="user-info-sheet__stat-note">
-                    옛=거리환산 · 새=페달·체중
-                  </span>
-                ) : null}
-              </div>
-            </div>
-          </div>
-            </div>
-          </div>
-
-        {historyOpen ? (
-          <ul id="user-info-sheet-history-list" className="user-info-sheet__list">
-            {props.recentSessions.length === 0 ? (
-              <li className="user-info-sheet__empty">기록 없음</li>
-            ) : (
-              props.recentSessions.map((s) => {
-                const routeCaption = rideSessionPlacesCaption(s);
-                const whenLabel = formatRideEndedAtKo(s.endedAt);
-                const completion = rideCompletionDisplay(s);
-                const kmLabel = `${(s.distanceMeters / 1000).toFixed(2)} km`;
-                const summaryTitle = `${kmLabel}  ${whenLabel}  ${completion.label}`;
-                /**
-                 * 행 액션(§3.6) — 실제 종료점이 없는 legacy Ride 는 기록만 표시한다.
-                 * 중첩 button 을 만들지 않기 위해 요약 자체가 「지도에서 보기」 버튼이고,
-                 * 재개·새 경로는 형제 버튼으로 둔다.
-                 */
-                const actions = resolveRecentRideActions(s, props.savedRoutes ?? [], {
-                  activeRouteId: props.activeRouteId,
-                });
-                const summaryInner = (
-                  <>
-                    <strong className="user-info-sheet__item-km">{kmLabel}</strong>
-                    <span className="user-info-sheet__item-when">{whenLabel}</span>
-                    <span
-                      className={`user-info-sheet__item-completion ${
-                        completion.label === "—"
-                          ? "is-unknown"
-                          : completion.isCompleted
-                            ? "is-completed"
-                            : "is-partial"
-                      }`}
-                      title={completion.title}
-                    >
-                      {completion.label}
-                    </span>
-                  </>
-                );
-                const showOnMap = actions.canShowOnMap && props.onShowRideOnMap;
-                return (
-                  <li key={s.id} className="user-info-sheet__item">
-                    {showOnMap ? (
-                      <button
-                        type="button"
-                        className="user-info-sheet__item-summary user-info-sheet__item-summary--action"
-                        title={`${summaryTitle} — 지도에서 보기`}
-                        aria-label={`${kmLabel} ${whenLabel} 주행 지도에서 보기`}
-                        onClick={() => props.onShowRideOnMap?.(s)}
-                      >
-                        {summaryInner}
-                      </button>
-                    ) : (
-                      <div className="user-info-sheet__item-summary" title={summaryTitle}>
-                        {summaryInner}
-                      </div>
-                    )}
-                    <span className="user-info-sheet__item-route" title={routeCaption}>
-                      {routeCaption}
-                    </span>
-                    {actions.resumeRouteId || actions.extendAnchor || actions.resumeBlocked ? (
-                      <div className="user-info-sheet__item-actions">
-                        {actions.resumeRouteId && props.onResumeRideRoute ? (
-                          <button
-                            type="button"
-                            className="user-info-sheet__item-action"
-                            title="Resume this route"
-                            onClick={() => props.onResumeRideRoute?.(actions.resumeRouteId!)}
-                          >
-                            이어 달리기
-                          </button>
-                        ) : null}
-                        {actions.resumeBlocked ? (
-                          <>
-                            <span className="user-info-sheet__item-action user-info-sheet__item-action--blocked">
-                              이어달리기 한 경로만
-                            </span>
-                            {props.activeRouteId && props.onFocusActiveRoute ? (
-                              <button
-                                type="button"
-                                className="user-info-sheet__item-action"
-                                title="활성 경로 확인"
-                                onClick={() => props.onFocusActiveRoute?.(props.activeRouteId!)}
-                              >
-                                활성 경로 확인
-                              </button>
-                            ) : null}
-                          </>
-                        ) : null}
-                        {actions.extendAnchor && props.onExtendFromRide ? (
-                          <button
-                            type="button"
-                            className="user-info-sheet__item-action"
-                            title="New route from here"
-                            onClick={() => props.onExtendFromRide?.(actions.extendAnchor!)}
-                          >
-                            여기서 새 경로
-                          </button>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </li>
-                );
-              })
-            )}
-          </ul>
-        ) : null}
-
-        {showActionsFooter ? (
           <div className="user-info-sheet__actions">
-            {showGoogleLink && !confirmingLogout ? (
-              <button
-                type="button"
-                className="user-info-sheet__btn user-info-sheet__btn--google"
-                disabled={props.busy}
-                title="Link Google account"
-                onClick={props.onLinkGoogle}
-              >
-                <AuthGoogleMark className="user-info-sheet__google-mark" />
-                Google 연결
-              </button>
-            ) : null}
-            {showLogout ? (
-              confirmingLogout ? (
-                <div className="user-info-sheet__logout-confirm" role="group" aria-label="종료 확인">
-                  <p className="user-info-sheet__logout-confirm-copy">
-                    진행 중인 주행이 여기서 끝납니다.
-                  </p>
-                  <div className="user-info-sheet__logout-confirm-row">
-                    <button
-                      type="button"
-                      className="user-info-sheet__btn"
-                      disabled={props.busy}
-                      onClick={() => setConfirmingLogout(false)}
-                    >
-                      취소
-                    </button>
-                    <button
-                      type="button"
-                      className="user-info-sheet__btn user-info-sheet__btn--danger"
-                      disabled={props.busy}
-                      title="End session"
-                      onClick={props.onServiceExit}
-                    >
-                      종료
-                    </button>
-                  </div>
-                </div>
-              ) : (
+            {confirmingLogout ? (
+              <div className="user-info-sheet__logout-confirm" role="group" aria-label="로그아웃 확인">
+                <p className="user-info-sheet__logout-confirm-copy">
+                  진행 중인 주행이 여기서 끝납니다.
+                </p>
                 <button
                   type="button"
-                  className="user-info-sheet__btn user-info-sheet__btn--danger"
+                  className="user-info-sheet__btn"
                   disabled={props.busy}
-                  title="End session"
-                  onClick={() => (props.rideActive ? setConfirmingLogout(true) : props.onServiceExit())}
+                  onClick={() => setConfirmingLogout(false)}
                 >
-                  종료
+                  취소
                 </button>
-              )
-            ) : null}
-            {showAccountDeletion ? (
-              confirmingDeletion ? (
-                <div
-                  className="user-info-sheet__logout-confirm"
-                  role="group"
-                  aria-label="계정 탈퇴 확인"
-                >
-                  <p className="user-info-sheet__logout-confirm-copy">
-                    계정과 내 경로·주행 기록·정복 기록·토큰이 즉시 삭제되며 되돌릴 수 없습니다.
-                    구독 중이면 해지됩니다. 내가 등록한 퍼블릭 경로는 「탈퇴한 라이더」 이름으로
-                    남습니다.
-                  </p>
-                  <label className="user-info-sheet__logout-confirm-copy">
-                    계속하려면 「{ACCOUNT_DELETION_CONFIRM_PHRASE}」를 입력하세요
-                    <input
-                      type="text"
-                      className="user-info-sheet__confirm-input"
-                      value={deletionPhrase}
-                      disabled={deletionBusy}
-                      aria-label="탈퇴 확인 문구"
-                      onChange={(e) => setDeletionPhrase(e.target.value)}
-                    />
-                  </label>
-                  {deletionNote ? (
-                    <p className="user-info-sheet__logout-confirm-copy" role="alert">
-                      {deletionNote}
-                    </p>
-                  ) : null}
-                  <div className="user-info-sheet__logout-confirm-row">
-                    <button
-                      type="button"
-                      className="user-info-sheet__btn"
-                      disabled={deletionBusy}
-                      onClick={() => {
-                        setConfirmingDeletion(false);
-                        setDeletionPhrase("");
-                        setDeletionNote(null);
-                      }}
-                    >
-                      취소
-                    </button>
-                    <button
-                      type="button"
-                      className="user-info-sheet__btn user-info-sheet__btn--danger"
-                      disabled={
-                        deletionBusy || props.rideActive || !isDeletionConfirmPhrase(deletionPhrase)
-                      }
-                      title="Delete account"
-                      onClick={() => void runAccountDeletion()}
-                    >
-                      {deletionBusy ? "탈퇴 처리 중…" : "탈퇴"}
-                    </button>
-                  </div>
-                </div>
-              ) : (
                 <button
                   type="button"
-                  className="user-info-sheet__btn user-info-sheet__btn--danger"
-                  disabled={props.busy || props.rideActive || deletionBusy}
-                  title={props.rideActive ? "주행 중에는 탈퇴할 수 없습니다" : "Delete account"}
-                  onClick={() => setConfirmingDeletion(true)}
+                  className="user-info-sheet__btn user-info-sheet__btn--primary"
+                  disabled={props.busy}
+                  onClick={props.onServiceExit}
                 >
-                  계정 탈퇴
+                  로그아웃
                 </button>
-              )
-            ) : null}
+              </div>
+            ) : (
+              <>
+                {props.onEditProfile ? (
+                  <button
+                    type="button"
+                    className="user-info-sheet__btn"
+                    onClick={props.onEditProfile}
+                  >
+                    프로필 수정
+                  </button>
+                ) : null}
+                {showAdminEntry ? (
+                  <button
+                    type="button"
+                    className="user-info-sheet__btn"
+                    onClick={props.onOpenAdmin}
+                  >
+                    관리
+                  </button>
+                ) : null}
+                {showGoogleLink ? (
+                  <button
+                    type="button"
+                    className="user-info-sheet__btn user-info-sheet__btn--primary"
+                    disabled={props.busy}
+                    onClick={props.onLinkGoogle}
+                  >
+                    회원 등록
+                  </button>
+                ) : null}
+                {showLogout ? (
+                  <button
+                    type="button"
+                    className="user-info-sheet__btn user-info-sheet__btn--text"
+                    disabled={props.busy}
+                    onClick={() => (props.rideActive ? setConfirmingLogout(true) : props.onServiceExit())}
+                  >
+                    로그아웃
+                  </button>
+                ) : null}
+              </>
+            )}
           </div>
-        ) : null}
         </div>
       </aside>
     </div>

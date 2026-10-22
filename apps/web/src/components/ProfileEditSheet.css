@@ -198,3 +198,79 @@
 .profile-edit-sheet__nickname .ride-settings-sheet__help {
   grid-column: 1 / -1;
 }
+
+/* ── 2026-10-23 지시03: 계정 탈퇴 섹션 (ProfileEditSheet 하단) ─────────────────
+   작은 글자 버튼, 확인 단계는 기존 탈퇴 흐름 그대로 유지
+   ------------------------------------------------------------------ */
+
+.profile-edit-sheet__deletion-section {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #E2E8F0;
+}
+
+.profile-edit-sheet__deletion-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #DC2626;
+  font: inherit;
+  font-size: 0.64rem;
+  font-weight: 600;
+  padding: 0.2rem 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.profile-edit-sheet__deletion-btn:hover {
+  color: #B91C1C;
+}
+
+.profile-edit-sheet__deletion-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.profile-edit-sheet__deletion-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem 0;
+}
+
+.profile-edit-sheet__deletion-copy {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: #1F2937;
+}
+
+.profile-edit-sheet__deletion-input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 0.2rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(220, 38, 38, 0.55);
+  background: #FFFFFF;
+  color: #1F2937;
+  font: inherit;
+  font-size: 0.85rem;
+  min-height: 44px;
+}
+
+.profile-edit-sheet__deletion-row {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+  margin-top: 0.2rem;
+}
+
+.profile-edit-sheet__deletion-row .ride-settings-sheet__btn {
+  flex: 0 0 auto;
+  width: auto;
+  min-height: 44px;
+  padding: 0.35rem 0.7rem;
+}

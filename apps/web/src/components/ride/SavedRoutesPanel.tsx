@@ -335,7 +335,7 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
 
       {props.guestNotice ? (
         <p className="saved-routes__notice">
-          Google 로그인 시 다른 기기에서도 사용할 수 있습니다
+          회원 등록하면 모든 기기에서 기록이 유지됩니다
         </p>
       ) : null}
 
