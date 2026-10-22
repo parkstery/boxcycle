@@ -1,4 +1,4 @@
-2026-10-22 [코드 정련](20261022-code-tidy/README.md): IN_PROGRESS. P1·P3 APPROVED — export 446→192·반복 549→8줄·번들 −3.3kB, tsc/lint/단위1341/e2e7 PASS. 다음 P5 CSS(MiniMax).
+2026-10-22 [코드 정련](20261022-code-tidy/README.md): APPROVED. 안쓰는 export 446→186·반복 549→18줄·CSS −1,345줄·큰파일 3개 축소, pre-push 「코드 정련 래칫」 게이트 추가(생존 4/4). tsc/lint/단위1341/e2e7 PASS. 배포.
 
 2026-10-22 [적용수단·한행·두줄30](20261020-ui-800x360/04-review-30.md): DEPLOYED(main2 0ec14853·Hosting·운영 번들 문구 확인). 자동탐색 적용수단 파랑·두모드 수단/재생/삭제 한행·offered 두줄·팝업폭 고정. 브라우저17/거리146/selector19/타입/build/lint PASS. 기존5002·커밋/푸시/배포없음·Chief확인대기.
 

@@ -1,6 +1,6 @@
 # 20261022-code-tidy — 코드 정련
 
-**상태:** IN_PROGRESS · P1 진행 (Chief 2026-10-22 「권장대로」 승인)
+**상태:** APPROVED · P0~P7 완료 (Chief 2026-10-22 「권장대로」 승인)
 
 반복 코드·안 쓰이는 코드·비대 파일을 동작 변경 없이 정리한다. 실행은 opencode GLM-5.3-Flash·MiniMax M3.1 Flash(기계적)·Cursor(구조), 계획·검증·감리는 Claude. opencode 가 토큰 한도에 걸리면 Cursor·Claude 가 이어받는다.
 
@@ -16,4 +16,6 @@
 
 - **P3 APPROVED** [감리](04-review-p3.md): 반복 33쌍·549줄 → 1쌍·8줄, 번들 −3.3 kB, e2e 7/7. 실행 Claude impl-standard(opencode 한도·Cursor 권한 거부).
 
-**지금 할 일:** P3 배포 → P5 CSS 죽은 선택자(MiniMax).
+- **P4·P5·P6·P7 APPROVED** [감리](04-review-p4-p7.md): CSS −1,345줄(번들 CSS −8.1%) · 디버그 화면 lazy · MapView 3,589→3,403 · mapPopupElements 1,176→1,007 · App 3,752→3,656 · pre-push 10번째 게이트 「코드 정련 래칫」(규칙 지문 포함, 생존 4/4)
+
+**지금 할 일:** 없음 — 배포 후 종료 대기. 더 줄이려면 App·MapView 의 남은 덩어리(계약 시험이 겨누는 곳 포함)를 별도 묶음으로.

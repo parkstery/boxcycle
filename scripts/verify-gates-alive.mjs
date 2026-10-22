@@ -230,10 +230,14 @@ const CASES = [
   {
     name: "코드 정련 — 반복 코드 복사",
     tamper: () => {
-      const src = "apps/web/src/lib/ride/repo/rideResumeSlotLocal.ts";
-      const rel = "apps/web/src/lib/ride/repo/__tidyDupProbe.ts";
-      write(rel, read(src));
-      return () => fs.rmSync(file(rel), { force: true });
+      // 같은 파일 안에 이름만 바꾼 함수 덩어리를 붙인다 — 안 쓰는 파일·export 가 아니라 반복으로만 걸리게
+      const rel = "apps/web/src/lib/ride/repo/rideResumeSlotLocal.ts";
+      const before = read(rel);
+      const s = before.indexOf("async function runLockedSlotOp");
+      const e = before.indexOf("export function readLocalRideResumeSlot");
+      const copy = before.slice(s, e).replace(/(runLockedSlotOp|restoreExpiryUnlessCompleted|casWriteSlotResult)/g, "$1Probe");
+      write(rel, before + "\n" + copy);
+      return () => write(rel, before);
     },
     cmd: "node scripts/check-code-tidy.mjs --check",
   },
