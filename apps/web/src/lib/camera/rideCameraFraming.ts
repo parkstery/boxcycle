@@ -53,21 +53,20 @@ export function resolveRideFitPadding(
   };
 }
 
+/** 거리 원 맞추기의 최대 줌 — 1 km 원도 화면 높이를 채울 만큼 확대한다(예전 14 는 작은 원을 묶었다) */
+export const DISTANCE_CIRCLE_FIT_MAX_ZOOM = 17;
+
 /**
- * 거리 원 `fitBounds` padding — 경로창·HUD 몫을 더한 값을 뷰포트에 맞춰 줄인다.
- * 고정값의 세로 합(420 px)이 폰 가로(360 px)보다 커 Mapbox 가 맞추기를 포기했고, 그 앞의
- * `map.stop()` 이 「여기에서 계속」 비행을 끊어 카메라가 클릭 전 위치에 남았다(2026-10-22).
+ * 거리 원 `fitBounds` padding — 원이 화면 위아래에 거의 닿게 하고, 오른쪽은 경로창 자리를 비운다.
+ * 사용자가 길을 고르려고 다시 확대하는 수고를 덜기 위해서다(2026-10-23 Chief).
+ * 예전 고정값은 세로 합(420 px)이 폰 가로(360 px)보다 커 Mapbox 가 맞추기를 포기했고,
+ * 그 앞의 `map.stop()` 이 「여기에서 계속」 비행을 끊었다(2026-10-22).
  */
 export function resolveDistanceCircleFitPadding(
   viewportWidthPx: number,
-  viewportHeightPx: number,
 ): { top: number; bottom: number; left: number; right: number } {
-  return resolveRideFitPadding(viewportWidthPx, viewportHeightPx, {
-    top: RIDE_HUD_SAFE_PADDING.top + 48,
-    bottom: RIDE_HUD_SAFE_PADDING.bottom + 200,
-    left: RIDE_HUD_SAFE_PADDING.left + 72,
-    right: RIDE_HUD_SAFE_PADDING.right + 72,
-  });
+  const edge = 6;
+  return { top: edge, bottom: edge, left: edge, right: Math.min(300, Math.round(viewportWidthPx * 0.4)) };
 }
 
 /**

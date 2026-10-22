@@ -140,6 +140,7 @@ import {
   publishRiderScreenDiag,
   RIDE_HUD_SAFE_PADDING,
   viewportPxFromMap,
+  DISTANCE_CIRCLE_FIT_MAX_ZOOM,
   resolveDistanceCircleFitPadding,
   resolveRideFitPadding,
 } from "../../lib/camera/rideCameraFraming";
@@ -2092,17 +2093,16 @@ export function MapView({
       distanceTargetCircle.coordinates,
     );
     const bounds = new mapboxgl.LngLatBounds([minLng, minLat], [maxLng, maxLat]);
-    const { clientWidth, clientHeight } = map.getContainer();
-    const padding = resolveDistanceCircleFitPadding(clientWidth, clientHeight);
+    const padding = resolveDistanceCircleFitPadding(map.getContainer().clientWidth);
     // 맞출 수 없으면 「여기에서 계속」 의 끝 지점 비행을 stop() 으로 끊지 않는다(10-22 신고)
-    if (!map.cameraForBounds(bounds, { padding, maxZoom: 14 })) return;
+    if (!map.cameraForBounds(bounds, { padding, maxZoom: DISTANCE_CIRCLE_FIT_MAX_ZOOM })) return;
 
     map.stop();
     suppressCameraFollowUntilRef.current = performance.now() + (prefersReducedMotion ? 120 : 1700);
 
     map.fitBounds(bounds, {
       padding,
-      maxZoom: 14,
+      maxZoom: DISTANCE_CIRCLE_FIT_MAX_ZOOM,
       duration: prefersReducedMotion ? 0 : 850,
       essential: true,
     });
