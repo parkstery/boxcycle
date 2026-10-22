@@ -321,19 +321,6 @@
   -webkit-text-fill-color: #FFFFFF;
 }
 
-.saved-routes__btn--accent {
-  background: #2563EB;
-  border-color: #2563EB;
-  color: #FFFFFF;
-  -webkit-text-fill-color: #FFFFFF;
-}
-
-.saved-routes__btn--danger {
-  color: #DC2626;
-  -webkit-text-fill-color: #DC2626;
-  border-color: rgba(220, 38, 38, 0.45);
-}
-
 .saved-routes__rename {
   display: flex;
   flex-direction: column;

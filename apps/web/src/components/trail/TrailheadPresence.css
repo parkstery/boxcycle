@@ -7,14 +7,6 @@
   line-height: 1.45;
 }
 
-.trailhead-presence--paused {
-  opacity: 0.92;
-}
-
-.trailhead-presence__rejoin {
-  margin-top: 0.35rem;
-}
-
 .trailhead-presence__head {
   display: flex;
   flex-wrap: wrap;
@@ -67,18 +59,6 @@
   color: #DC2626;
   font-size: 0.78rem;
   overflow-wrap: anywhere;
-}
-
-.trailhead-presence__err-hint {
-  display: block;
-  margin-top: 0.35rem;
-  font-size: 0.72rem;
-  opacity: 0.95;
-  color: #7f1d1d;
-}
-
-.trailhead-presence__err-hint code {
-  font-size: 0.85em;
 }
 
 .trailhead-presence__live-dot {

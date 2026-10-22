@@ -98,19 +98,6 @@
   color: #64748B;
 }
 
-.pr-modal__hint {
-  margin: -0.35rem 0 0;
-  font-size: 0.78rem;
-  color: #B45309;
-}
-
-.pr-modal__name-note {
-  margin: -0.35rem 0 0;
-  font-size: 0.78rem;
-  line-height: 1.4;
-  color: #64748B;
-}
-
 .pr-modal__ack {
   display: flex;
   align-items: center;

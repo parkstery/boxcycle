@@ -84,15 +84,12 @@ body {
 }
 
 .hud-glass,
-.hud-chip,
 .hud-brand,
 .hud-bc-trigger,
-.hud-idle-hint,
 .hud-account,
 .hud-signin-pill,
 /* .hud-clock 은 2026-10-06 상자를 버리고 halo 글자만(MapHud.css) */
-.hud-icon-btn,
-.hud-metrics__chip {
+.hud-icon-btn {
   background: #FFFFFF;
   border-color: #CBD5E1;
   -webkit-backdrop-filter: blur(var(--rtw-glass-blur));
@@ -113,11 +110,6 @@ body {
   letter-spacing: 0.10em;
 }
 
-.hud-brand__dot {
-  background: #2563EB;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
-}
-
 /* =====================================================================
    4) TR — 사용자 아바타 / 로그인
    ===================================================================== */
@@ -135,18 +127,6 @@ body {
    5) TC — 라이딩 지표 칩 (수치 강조 = Barlow Semi Condensed)
    작은 칩을 유지하되 수치 가독성을 키워 "맵 포워드" HUD 느낌을 줍니다.
    ===================================================================== */
-/* 지표 캡슐·셀 스타일은 MapHud.css 가 소유(참조 TopHud 구조).
-   여기서는 Trail 배지 칩 폰트만 수치 서체로 통일. */
-.hud-metrics__chip {
-  font-family: var(--rtw-font-num);
-  font-weight: 700;
-  font-size: 0.82rem;
-  line-height: 1;
-  letter-spacing: 0.01em;
-  font-variant-numeric: tabular-nums;
-  padding: 0.26rem 0.62rem;
-  color: #1F2937;
-}
 
 .hud-metrics__value {
   font-family: var(--rtw-font-num);
@@ -189,71 +169,12 @@ body {
   opacity: 0.7;
 }
 
-.hud-action__btn--primary {
-  background: #2563EB;
-  border-color: #2563EB;
-  color: #FFFFFF;
-}
-.hud-action__btn--primary:hover {
-  background: #1D4ED8;
-  border-color: #1D4ED8;
-}
-
-.hud-action__btn--danger {
-  background: rgba(220, 38, 38, 0.08);
-  border-color: rgba(220, 38, 38, 0.3);
-  color: #DC2626;
-}
-
 /* =====================================================================
    8) BR — 메인 FAB (시작 / 일시정지)
    ===================================================================== */
-.hud-icon-btn--primary {
-  background: #2563EB;
-  border-color: #2563EB;
-  color: #FFFFFF;
-}
-.hud-icon-btn--primary:hover {
-  background: #1D4ED8;
-  border-color: #1D4ED8;
-}
-
-.hud-icon-btn--danger {
-  background: rgba(220, 38, 38, 0.08);
-  border-color: rgba(220, 38, 38, 0.3);
-  color: #DC2626;
-}
 
 .hud-icon-btn:focus-visible {
   outline-color: #2563EB;
-}
-
-.hud-main-fab {
-  /* 행동 유도는 항상 파랑 — 솔리드 파랑 + 흰 글자 */
-  background: #2563EB;
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #FFFFFF;
-  font-family: var(--rtw-font-num);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.42), 0 0 16px rgba(37, 99, 235, 0.35);
-}
-.hud-main-fab:hover {
-  background: #1D4ED8;
-}
-
-.hud-main-fab--pause {
-  background: #FFFFFF;
-  border-color: #CBD5E1;
-  color: #475569;
-}
-.hud-main-fab--pause:hover {
-  background: #EFF6FF;
-  border-color: #2563EB;
-}
-
-.hud-main-fab__caption {
-  font-family: var(--rtw-font);
-  letter-spacing: 0.10em;
-  font-weight: 700;
 }
 
 /* =====================================================================
@@ -278,7 +199,6 @@ body {
 /* =====================================================================
    11) 토스트 / 힌트
    ===================================================================== */
-.hud-idle-hint,
 .hud-world-hint {
   font-family: var(--rtw-font);
 }

@@ -54,34 +54,6 @@
   -webkit-backdrop-filter: blur(10px);
 }
 
-.hud-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  height: 1.8rem;
-  padding: 0 0.6rem;
-  border-radius: 999px;
-  font-size: 0.74rem;
-  font-weight: 650;
-  letter-spacing: 0.02em;
-  background: var(--rtw-ui-surface);
-  border: 1px solid var(--rtw-ui-border);
-  color: var(--rtw-ui-ink);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.hud-chip--mute {
-  font-weight: 500;
-  opacity: 0.9;
-}
-
-.hud-chip--accent {
-  background: var(--rtw-ui-primary);
-  border-color: var(--rtw-ui-primary);
-  color: var(--rtw-ui-surface);
-}
-
 .hud-icon-btn {
   width: 2.4rem;
   height: 2.4rem;
@@ -115,40 +87,6 @@
 .hud-icon-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-}
-
-.hud-icon-btn--lg {
-  width: 3rem;
-  height: 3rem;
-  font-size: 1.2rem;
-}
-
-.hud-icon-btn--xl {
-  width: 3.6rem;
-  height: 3.6rem;
-  font-size: 1.5rem;
-  border-width: 1.5px;
-}
-
-.hud-icon-btn--primary {
-  background: var(--rtw-ui-primary);
-  border-color: var(--rtw-ui-primary);
-  color: var(--rtw-ui-surface);
-}
-
-.hud-icon-btn--primary:hover {
-  background: var(--rtw-ui-primary-strong);
-  border-color: var(--rtw-ui-primary-strong);
-}
-
-.hud-icon-btn--danger {
-  background: rgba(220, 38, 38, 0.12);
-  border-color: rgba(220, 38, 38, 0.5);
-  color: #DC2626;
-}
-
-.hud-icon-btn--danger:hover {
-  background: rgba(220, 38, 38, 0.2);
 }
 
 /* ---------- 슬롯 ---------- */
@@ -402,16 +340,6 @@
   gap: 0.35rem;
 }
 
-/* 주행 종료는 DOM 상 뒤지만 column-reverse 로 일시정지·재생 아래에 두지 않고 위에 배치 → 플레이/일시정지 위치·축척과의 관계 유지 */
-.map-hud__br-main {
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: flex-end;
-  gap: 0.35rem;
-  /* 주행 시작 FAB 높이의 약 1/2 만큼 위로 (맵 하단·축척과 간격) */
-  transform: translateY(calc(-0.7 * var(--hud-main-fab-size)));
-}
-
 .map-hud__mc {
   position: absolute;
   top: 50%;
@@ -423,17 +351,6 @@
   flex-direction: column;
   align-items: stretch;
   gap: 0.55rem;
-}
-
-/* 일시정지 딤 레이어 — z-index 를 올리면 형제 슬롯(MC 재개·종료 등) 전부 아래로 깔려 클릭이 막힌다. */
-.map-hud__scrim {
-  position: absolute;
-  inset: 0;
-  background: rgba(2, 6, 23, 0.42);
-  border: none;
-  margin: 0;
-  padding: 0;
-  cursor: default;
 }
 
 /* ---------- TL: BrandMark ---------- */
@@ -453,18 +370,6 @@
   cursor: pointer;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-}
-
-.hud-brand__dot {
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  background: var(--rtw-ui-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
-}
-
-.hud-brand--muted {
-  opacity: 0.62;
 }
 
 .hud-world-hint {
@@ -1045,34 +950,6 @@
   width: 3.65rem;
 }
 
-/* Trail 배지 칩(캡슐 밖 컨텍스트 배지) */
-.hud-metrics__chip {
-  min-width: 3.4rem;
-  text-align: center;
-  display: inline-flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 0.2rem;
-  padding: 0.18rem 0.55rem;
-  border-radius: var(--rtw-radius-pill);
-  background: var(--rtw-ui-surface);
-  border: 1px solid var(--rtw-ui-border);
-  color: var(--rtw-ui-ink);
-  backdrop-filter: var(--rtw-blur-panel);
-  -webkit-backdrop-filter: var(--rtw-blur-panel);
-  font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.02em;
-}
-
-.hud-metrics__chip--trail {
-  background: rgba(220, 38, 38, 0.08);
-  border-color: rgba(220, 38, 38, 0.3);
-  color: #DC2626;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-}
-
 /* Conquest — 주행 중 실시간 새 도로 카운터(도파민 지점): 파랑(UI 강조) */
 
 /*
@@ -1240,93 +1117,6 @@
   cursor: not-allowed;
 }
 
-.hud-action__btn--primary {
-  background: var(--rtw-ui-primary);
-  border-color: var(--rtw-ui-primary);
-  color: var(--rtw-ui-surface);
-}
-
-.hud-action__btn--primary:hover {
-  background: var(--rtw-ui-primary-strong);
-  border-color: var(--rtw-ui-primary-strong);
-}
-
-.hud-action__btn--danger {
-  background: rgba(220, 38, 38, 0.08);
-  border-color: rgba(220, 38, 38, 0.4);
-  color: #DC2626;
-}
-
-.hud-action__btn--danger:hover {
-  background: rgba(220, 38, 38, 0.16);
-  border-color: #DC2626;
-}
-
-/* ---------- BR: 큰 메인 FAB ---------- */
-.hud-main-fab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--hud-main-fab-size);
-  height: var(--hud-main-fab-size);
-  border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.35);
-  background: var(--rtw-ui-primary);
-  color: var(--rtw-ui-surface);
-  font-size: 1.55rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.hud-main-fab:hover {
-  background: var(--rtw-ui-primary-strong);
-}
-
-.hud-main-fab:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.hud-main-fab--pause {
-  background: var(--rtw-ui-surface);
-  border-color: var(--rtw-ui-border);
-  color: var(--rtw-ui-muted);
-}
-
-.hud-main-fab--pause:hover {
-  background: var(--rtw-ui-surface-primary-soft);
-  border-color: var(--rtw-ui-primary);
-}
-
-.hud-main-fab__caption {
-  display: block;
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-align: center;
-  margin-top: 0.2rem;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
-}
-
-/* ---------- 첫 진입 안내 토스트 ---------- */
-.hud-idle-hint {
-  margin-bottom: 0.4rem;
-  padding: 0.45rem 0.75rem;
-  border-radius: 999px;
-  background: var(--rtw-ui-surface);
-  border: 1px solid var(--rtw-ui-border);
-  color: var(--rtw-ui-ink);
-  font-size: 0.74rem;
-  text-align: center;
-  max-width: min(17.5rem, calc(100vw - 6rem));
-  line-height: 1.35;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
 /* ---------- BC 트리거(맵 뷰 시트 진입) ---------- */
 .hud-bc-trigger {
   display: inline-flex;
@@ -1357,39 +1147,10 @@
   color: var(--rtw-ui-surface);
 }
 
-.hud-bc-trigger__icon {
-  display: inline-block;
-  font-size: 0.9rem;
-  line-height: 1;
-  transform: translateY(-1px);
-}
-
-.hud-bc-trigger__label {
-  font-size: 0.72rem;
-}
-
 /* ---------- 반응형 ---------- */
 @media (max-width: 640px) {
   .map-hud {
     --hud-main-fab-size: 3.3rem;
-  }
-
-  .hud-icon-btn--xl {
-    width: 3rem;
-    height: 3rem;
-    font-size: 1.25rem;
-  }
-
-  .hud-main-fab {
-    width: var(--hud-main-fab-size);
-    height: var(--hud-main-fab-size);
-    font-size: 1.35rem;
-  }
-
-  .hud-metrics__chip {
-    min-width: 2.8rem;
-    font-size: 0.72rem;
-    padding: 0.16rem 0.45rem;
   }
 
   .hud-metrics__cell {
@@ -1407,12 +1168,6 @@
 
   .hud-action {
     padding: 0.55rem 0.65rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .hud-aux__panel {
-    width: min(15rem, 78vw);
   }
 }
 
@@ -1501,27 +1256,6 @@
   /* 주행 FAB — 지도 컨트롤과 세로로 부딪히지 않게 축소하고 위로 밀던 보정 제거 */
   .map-hud {
     --hud-main-fab-size: 2.9rem;
-  }
-
-  .map-hud__br-main {
-    transform: none;
-    gap: 0.25rem;
-  }
-
-  .hud-main-fab__caption {
-    font-size: 0.55rem;
-    margin-top: 0.1rem;
-  }
-
-  .hud-icon-btn--xl {
-    width: 2.4rem;
-    height: 2.4rem;
-    font-size: 1rem;
-  }
-
-  /* Trail 번호 배지 — MENU 의 TRAIL 행과 중복이고 주행 중 조작할 것도 아니다 */
-  .hud-metrics__chip--trail {
-    display: none;
   }
 
   /* 주행 지표 — 지시01 §1(2026-10-20): 폰 가로에서도 라벨 11px·값 18px·히어로(거리/속도)

@@ -109,11 +109,6 @@
   line-height: 1.35;
 }
 
-.ride-settings-sheet__device {
-  margin: 0;
-  font-size: 0.78rem;
-}
-
 .ride-settings-sheet__row {
   display: flex;
   align-items: center;

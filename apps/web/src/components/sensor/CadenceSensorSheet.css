@@ -116,12 +116,6 @@
   }
 }
 
-.cadence-sheet__status {
-  margin: 0;
-  font-size: 0.8rem;
-  font-weight: 650;
-}
-
 /* 전체 장치명은 오직 여기 — 메인 칩에는 절대 넣지 않는다 */
 .cadence-sheet__device {
   margin: 0;
@@ -136,16 +130,6 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: #2563EB;
-}
-
-.cadence-sheet__mode {
-  margin: 0;
-  font-size: 0.74rem;
-  color: #64748B;
-}
-
-.cadence-sheet__mode strong {
-  color: #1F2937;
 }
 
 .cadence-sheet__help {

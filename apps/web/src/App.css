@@ -26,15 +26,6 @@
   height: 100%;
 }
 
-.app-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 1rem 1.5rem;
-  padding: 1rem 1.25rem 0.75rem;
-  border-bottom: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
-}
-
 .brand {
   flex: 1 1 12rem;
   min-width: 0;
@@ -61,42 +52,6 @@
   background: color-mix(in srgb, Canvas 96%, CanvasText 4%);
 }
 
-.card--compact {
-  flex: 2 1 18rem;
-  padding: 0.85rem 1rem;
-}
-
-.auth-card {
-  max-width: 32rem;
-}
-
-.auth-card--wide {
-  max-width: 36rem;
-}
-
-.auth-row--signup-nickname {
-  flex-direction: column;
-  align-items: stretch;
-  width: 100%;
-}
-
-.auth-info--signup {
-  flex: 1 1 auto;
-  max-width: 28rem;
-}
-
-.auth-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem 1rem;
-}
-
-.auth-info {
-  flex: 1 1 12rem;
-  min-width: 0;
-}
-
 .auth-actions {
   display: flex;
   flex-wrap: wrap;
@@ -104,17 +59,8 @@
   gap: 0.5rem;
 }
 
-.auth-row--gate {
-  flex-direction: column;
-  align-items: stretch;
-}
-
 .auth-actions--gate {
   width: 100%;
-}
-
-.auth-gate-hint {
-  line-height: 1.45;
 }
 
 .lead {
@@ -135,23 +81,6 @@
 
 .meta.tight {
   margin: 0;
-}
-
-.fs-hint,
-.fs-ok,
-.fs-err {
-  margin: 0.35rem 0 0;
-  font-size: 0.78rem;
-  line-height: 1.35;
-}
-
-.fs-ok {
-  color: #15803d;
-}
-
-.fs-err {
-  color: #DC2626;
-  overflow-wrap: anywhere;
 }
 
 .btn {
@@ -205,41 +134,6 @@
   background: color-mix(in srgb, CanvasText 8%, transparent);
 }
 
-.pre-ride-strip {
-  padding: 0 1.25rem;
-}
-
-.pre-ride-strip__card {
-  margin-bottom: 0.25rem;
-}
-
-.route-main {
-  flex: 1;
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  min-height: 0;
-  min-height: min(78vh, 800px);
-}
-
-.route-main--gate {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem 1.25rem;
-}
-
-.gate-placeholder {
-  max-width: 28rem;
-}
-
-.map-stage--in-route {
-  flex: 1;
-  min-width: 0;
-  min-height: min(78vh, 800px);
-  padding: 0.75rem 1.25rem 1rem 0;
-}
-
 .map-stage {
   flex: 1;
   min-height: min(70vh, 720px);
@@ -259,77 +153,6 @@
 .map-stage > .map-view.map-view--placeholder {
   flex: 1;
   min-height: 12rem;
-}
-
-.map-stage.map-stage--in-route {
-  position: relative;
-}
-
-.ride-panel-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 59;
-  margin: 0;
-  padding: 0;
-  border: none;
-  cursor: pointer;
-  background: rgba(2, 6, 23, 0.42);
-}
-
-.ride-panel-host--desktop {
-  flex: 0 0 min(22rem, 40vw);
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.ride-panel-host--mobile {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: min(22rem, 92vw);
-  z-index: 60;
-  transform: translateX(-105%);
-  transition: transform 0.22s ease-out;
-  box-sizing: border-box;
-  box-shadow: 6px 0 32px rgba(0, 0, 0, 0.22);
-}
-
-.ride-panel-host--mobile.is-open {
-  transform: translateX(0);
-}
-
-.ride-panel-host--mobile .ride-panel {
-  max-height: none;
-  height: 100%;
-  min-height: 100dvh;
-  border-right: none;
-  border-bottom: none;
-}
-
-@media (max-width: 720px) {
-  .route-main--mobile-map {
-    flex-direction: column;
-    position: relative;
-    min-height: min(82dvh, 760px);
-  }
-
-  .route-main--mobile-map .map-stage--in-route {
-    flex: 1;
-    min-height: min(70dvh, 680px);
-    padding: 0.5rem 0.5rem 0.65rem;
-    min-width: 0;
-  }
-
-}
-
-.footer {
-  padding: 0.75rem 1.25rem 1rem;
-  font-size: 0.82rem;
-  opacity: 0.72;
-  line-height: 1.5;
-  border-top: 1px solid color-mix(in srgb, CanvasText 10%, transparent);
 }
 
 .activity-world-lod-debug {
