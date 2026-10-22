@@ -208,11 +208,11 @@ export function buildPickPopup(deps: {
   };
   startBtn.onclick = () => selectStart(lngLat);
 
-  /* 10-23 Chief: W1~W3 칸 대신 「+경유」 하나 — 누를 때마다 다음 빈 경유지 칸에 넣는다(최대 3) */
+  /* 10-23 Chief: W1~W3 칸 대신 「+WP」 하나 — 누를 때마다 다음 빈 경유지 칸에 넣는다(최대 3) */
   const wpBtn = document.createElement("button");
   wpBtn.type = "button";
   wpBtn.className = "map-view__pick-btn map-view__pick-btn--wp";
-  wpBtn.textContent = "+경유";
+  wpBtn.textContent = "+WP";
   wpBtn.setAttribute("aria-label", "경유지 추가");
   const waypointCount = getWaypointCount();
   wpBtn.disabled = waypointCount >= MAX_ROUTE_WAYPOINTS;

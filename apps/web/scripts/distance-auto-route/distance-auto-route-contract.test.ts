@@ -804,8 +804,8 @@ describe("distanceAutoRoute", () => {
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /textContent = "경로 생성"/);
     assert.doesNotMatch(MAP_VIEW_CSS, /map-view__pick-btn--create-route/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /\+경유지/);
-    // 10-23 Chief: W1~W3 칸 대신 「+경유」 하나, 최대 3개
-    assert.match(BUILD_PICK_POPUP_SOURCE, /wpBtn\.textContent = "\+경유"/);
+    // 10-23 Chief: W1~W3 칸 대신 「+WP」 하나, 최대 3개
+    assert.match(BUILD_PICK_POPUP_SOURCE, /wpBtn\.textContent = "\+WP"/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /slot >= MAX_ROUTE_WAYPOINTS/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /textContent = "출발"/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /textContent = "도착"/);

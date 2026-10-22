@@ -336,7 +336,7 @@
   outline-offset: 1px;
 }
 
-/* 10-23 Chief: 출발·+경유·도착 3개. 글자에 맞는 둥근 모서리 사각형(원형 44px 은 글자보다 너무 컸다) */
+/* 10-23 Chief: 출발·+WP·도착 3개. 글자에 맞는 둥근 모서리 사각형(원형 44px 은 글자보다 너무 컸다) */
 .map-view__pick-route-view--location .map-view__pick-actions--pin-row .map-view__pick-btn {
   flex: 1 1 0;
   width: auto;
