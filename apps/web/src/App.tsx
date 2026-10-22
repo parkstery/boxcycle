@@ -3110,6 +3110,11 @@ export default function App() {
               distanceTargetCircleFitToken: circleFitToken,
               autoRouteOfferedState,
               autoRouteMapPick: mapPickMode,
+              // 경로창은 지도(자식) 효과에서 만들어져 App 효과가 갱신하는 bridge 보다 먼저 읽는다.
+              // 세션 값을 직접 넘기지 않으면 「여기에서 계속」 직후 거리가 미확정으로 잡혀 탭이 무시된다(10-23).
+              autoRouteSessionActive: distanceAutoRoute.sessionActive,
+              autoRouteTargetKm: distanceAutoRoute.targetKm,
+              autoRouteStatusMessage: distanceAutoRoute.statusMessage,
               onPreviewDistanceAutoRouteCircle: previewCircleAt,
               onClearDistanceAutoRouteCircle: clearCirclePreview,
               onSetRouteProfileOnly: handleSetRouteProfileOnly,
