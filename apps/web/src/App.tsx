@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, startTransition, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PublicationSharedPresence } from "./components/PublicationSharedPresence";
 import { peerHudLabels, type PeerHudEntry } from "./lib/peerMotion/peerHud";
 import { SignUpNicknameCard } from "./components/auth/SignUpNicknameCard";
@@ -19,7 +19,6 @@ import { AppMapStage, RouteMinimap, useAppMapOverlays } from "./features/map-ove
 import { resolveOpenTrailsListenerEnabled } from "./features/map-overlays/listenerScopePolicy";
 import { RouteDock, useRouteDockStops, type RouteDockStop, type RouteDockStopId } from "./components/route-dock";
 import { RideControlBar } from "./components/ride/RideControlBar";
-import { DebugMapStage } from "./features/map-overlays/DebugMapStage";
 import type { MapViewportBounds } from "./lib/activity/activityWorldLod";
 import { armPostRideActivityWatch } from "./lib/activity/activityWorldPollSignals";
 import {
@@ -212,6 +211,16 @@ import {
 } from "./lib/camera/quickCameraProductTune";
 import "./App.css";
 import { memberNeedsNickname, presenceRiderDisplayName, selfRiderDisplayName } from "./lib/identity/riderName";
+
+/**
+ * WO-260528 디버그 지도 스테이지 — 주소 스위치(map debug phase A/B/C)로 켜질 때만 불러온다.
+ * 정적 import 를 쓰면 운영 기본 청크에 debug 화면이 함께 들어간다 → 동적 import 로 분리.
+ */
+const DebugMapStage = lazy(() =>
+  import(/* webpackChunkName: "debug-map-stage" */ "./features/map-overlays/DebugMapStage").then((m) => ({
+    default: m.DebugMapStage,
+  })),
+);
 
 export default function App() {
   const {
@@ -3032,38 +3041,40 @@ export default function App() {
 
       <div className="app-map-stage">
         {debugMapIsolationActive ? (
-          <DebugMapStage
-            accessToken={MAPBOX_TOKEN || undefined}
-            mapStyle={mapStyle}
-            mapZoom={mapZoom}
-            onMapZoom={setMapZoom}
-            onMapViewport={onMapViewport}
-            mapHud={{
-              visible: authInitialized && Boolean(user),
-              stage,
-              onOpenMenu: openMenuPanel,
-              menuOpen,
-              account: accountChip,
-              onOpenUserInfo: openUserInfoPanel,
-              userInfoOpen: userInfoSheetOpen,
-              authGateVisualDismissed: needsAuthCard,
-              onOpenMapView: openMapViewPanel,
-              mapViewOpen: mapViewSheetOpen,
-              coachData,
-              coachLineEnabled: rideCoachingBannerVisible,
-              metrics: hudMetrics,
-              onClearPins: handleClearPins,
-              routeError: null,
-              onResumeFromPause: handleResume,
-              onEndFromPause: handleEndRideWithTrailCleanup,
-              onModifyFromPause: handleModifyFromPause,
-              ridePresence: mapHudRidePresence,
-              onGoTrailhead: goTrailheadAndCloseMenu,
-              conquestLiveMeters,
-              conquestAllOwnedHint,
-            }}
-          >
-          </DebugMapStage>
+          <Suspense fallback={null}>
+            <DebugMapStage
+              accessToken={MAPBOX_TOKEN || undefined}
+              mapStyle={mapStyle}
+              mapZoom={mapZoom}
+              onMapZoom={setMapZoom}
+              onMapViewport={onMapViewport}
+              mapHud={{
+                visible: authInitialized && Boolean(user),
+                stage,
+                onOpenMenu: openMenuPanel,
+                menuOpen,
+                account: accountChip,
+                onOpenUserInfo: openUserInfoPanel,
+                userInfoOpen: userInfoSheetOpen,
+                authGateVisualDismissed: needsAuthCard,
+                onOpenMapView: openMapViewPanel,
+                mapViewOpen: mapViewSheetOpen,
+                coachData,
+                coachLineEnabled: rideCoachingBannerVisible,
+                metrics: hudMetrics,
+                onClearPins: handleClearPins,
+                routeError: null,
+                onResumeFromPause: handleResume,
+                onEndFromPause: handleEndRideWithTrailCleanup,
+                onModifyFromPause: handleModifyFromPause,
+                ridePresence: mapHudRidePresence,
+                onGoTrailhead: goTrailheadAndCloseMenu,
+                conquestLiveMeters,
+                conquestAllOwnedHint,
+              }}
+            >
+            </DebugMapStage>
+          </Suspense>
         ) : (
           <AppMapStage
             routeDock={

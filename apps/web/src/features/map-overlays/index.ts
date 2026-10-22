@@ -4,7 +4,6 @@ export { useAppMapOverlays } from "./useAppMapOverlays";
 export type { AppMapOverlaysResult, UseAppMapOverlaysOpts } from "./useAppMapOverlays";
 export { AppMapStage } from "./AppMapStage";
 export type { AppMapStageProps } from "./AppMapStage";
-export { ActivityWorldLodDebugPanel } from "./ActivityWorldLodDebugPanel";
 export { RouteMinimap } from "./RouteMinimap";
 export type { RouteMinimapProps } from "./RouteMinimap";
 export { projectRouteMinimap, computeRouteMinimapSize, MINIMAP_WIDTH_RATIO } from "./routeMinimapProjection";

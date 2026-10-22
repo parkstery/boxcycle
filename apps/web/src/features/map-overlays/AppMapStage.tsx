@@ -1,10 +1,16 @@
-import type { ReactNode } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import { MapView, type MapViewProps } from "../../components/map/MapView";
 import { MapHud, type MapHudProps } from "../../components/maphud/MapHud";
-import {
-  ActivityWorldLodDebugPanel,
-  type ActivityWorldLodDebugPanelProps,
-} from "./ActivityWorldLodDebugPanel";
+import type { ActivityWorldLodDebugPanelProps } from "./ActivityWorldLodDebugPanel";
+
+/**
+ * LOD debug 패널은 주소 스위치로 켜질 때만 쓰는 화면 — 운영 기본 청크에서 빼고 동적으로 불러온다.
+ */
+const ActivityWorldLodDebugPanel = lazy(() =>
+  import(/* webpackChunkName: "activity-world-lod-debug-panel" */ "./ActivityWorldLodDebugPanel").then((m) => ({
+    default: m.ActivityWorldLodDebugPanel,
+  })),
+);
 
 export type AppMapStageProps = {
   mapView: MapViewProps;
@@ -33,7 +39,11 @@ export function AppMapStage({
   return (
     <>
       <MapView {...mapView} />
-      {lodDebug ? <ActivityWorldLodDebugPanel {...lodDebug} /> : null}
+      {lodDebug ? (
+        <Suspense fallback={null}>
+          <ActivityWorldLodDebugPanel {...lodDebug} />
+        </Suspense>
+      ) : null}
       {weatherOverlay}
       {children}
       {minimap}
