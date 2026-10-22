@@ -102,7 +102,13 @@ apps/web/src/lib/peerMotion/trailLiveRidePort.ts            UNEXPORT 1 (type)
 TSC_EXIT=0
 ```
 
-오류 0. (작업 시작 시점에는 동시 진행 중인 지시01 에서 `src/lib/geo/geo.ts(248,10): error TS6133: 'buildVertexCumulativeMeters' …` 가 떠 있었으나, 그 에이전트가 해당 항목을 정리하며 해소되었다. **내가 고친 파일과 무관**한 오류였다.)
+오류 0.
+
+> 참고 — 작업 중 두 차례 다른 에이전트의 **진행 중** 편집이 잠깐 오류를 냈다(내 파일 아님):
+> ① 시작 시점 `src/lib/geo/geo.ts(248,10): error TS6133: 'buildVertexCumulativeMeters' …` → 지시01 목록 파일(`geo.ts` 22·25행) — 그 에이전트가 정리하며 해소.
+> ② 중간 시점 `src/lib/map/mapGlobeView.ts(89,56): error TS2304: Cannot find name 'RIDER_GLB_MODEL_BASE_SCALE'.` → 지시04 목록 파일(`mapGlobeView.ts` 5행) — 그 에이전트가 import 를 고치며 해소.
+>
+> **최종 확인(모든 에이전트 편집이 정리된 시점) `npx tsc -b --noEmit` → 출력 없음, exit 0.**
 
 ### 5-2. lint (고친 39개 파일)
 
@@ -167,3 +173,29 @@ OK: all 67 items applied, no leftover export / no leftover declaration
 2. ※A(`cadenceSensorStatusLine` DELETE 전환)는 목록 분류가 UNEXPORT 였던 것과 실제 처리가 다르므로 **승인 여부**를 확인해 주십시오. 되돌리려면 같은 파일에 `export function cadenceSensorStatusLine(…)` 를 되돌리면 되지만, 그러면 그 파일의 `tsc`/`eslint` 가 다시 오류를 냅니다(tsconfig `noUnusedLocals` + eslint `no-unused-vars`). 되돌리려면 「목록에 없는 이름 수정」 금지에 해당하므로 감리 판단이 필요합니다.
 3. ※B 의 `registerPeerSyncDistanceSamplers` 옵션 `sampleRouteLens?` 필드 잔존은 **다른 지시에서 `useVirtualRideSession.ts` 를 함께 손보는 경우** 지울 수 있습니다(그 지시가 그 파일을 소유하면 그쪽에서 정리).
 4. `PeerMotionStepContext`(types.ts)·`countCourseActivityLiveInBatch`(activityWorldPollPolicy.ts) 삭제는 각각 「같은 것 두 이름」/폐기 별칭 후보에도 걸린다. 감리 몫(README 「감리 몫」)과 겹치므로 **여기서는 목록에 적힌 것만** 지웠다.
+
+## 8. 직접 재현하는 법 (절대 경로 · 복사해 실행)
+
+- 실행 폴더(전체 절대 경로): `C:\20.HDev\boxcycle`
+- 작업 대상 폴더: `C:\20.HDev\boxcycle\apps\web`
+- 이 지시는 **실행 서버·접속 주소가 없다**(소스 정리 전용). 화면 확인이 필요 없으며 아래 3개 명령만 재현하면 된다.
+
+```powershell
+# 1) 타입 검사 (오류 0 이어야 한다)
+cd C:\20.HDev\boxcycle\apps\web
+npx tsc -b --noEmit
+
+# 2) lint — 고친 39개 파일 (오류 0 · 경고 0)
+cd C:\20.HDev\boxcycle\apps\web
+npx eslint src/lib/peerMotion/repo/rtdbTrailMotion.ts src/lib/trail/repo/firestoreTrailLivePublicationRides.ts src/lib/peerMotion/integrator.ts src/lib/sensor/bleCscCadence.ts src/lib/sensor/cadenceRideInput.ts src/lib/account/accountDeletion.ts src/lib/identity/authRestore.ts src/lib/identity/uidLocalCache.ts src/lib/identity/guestActivity.ts src/lib/identity/nickname.ts src/lib/identity/riderName.ts src/lib/storage/appSessionKeys.ts src/lib/identity/guestAccountReset.ts src/lib/sensor/bleAutoReconnect.ts src/lib/sensor/cadenceSensorUi.ts src/lib/activity/activityWorldTraceStyle.ts src/lib/peerMotion/commonDisplayClock.ts src/lib/peerMotion/selfDisplayBuffer.ts src/lib/sensor/crankRpm.ts src/lib/peerMotion/peerSyncChainLog.ts src/lib/peerMotion/motionWireQuantize.ts src/lib/activity/repo/firestoreRouteActivity.ts src/lib/activity/activityWorldPollSignals.ts src/lib/trail/trailDisplayNumberCache.ts src/lib/trail/trailAccessPolicy.ts src/lib/account/routeTokenSpendBridge.ts src/lib/firebase/functionsEmulatorUrl.ts src/lib/account/repo/firestoreRouteTokenEconomy.ts src/lib/storage/clientPersistencePolicy.ts src/lib/peerMotion/repo/serverClockOffset.ts src/lib/peerMotion/peerSyncDistanceSamplers.ts src/lib/peerMotion/routePublishFlight.ts src/lib/activity/activityWorldPollPolicy.ts src/lib/account/userTier.ts src/lib/peerMotion/syncFromPresence.ts src/lib/peerMotion/spectatorRideExtrap.ts src/lib/peerMotion/types.ts src/lib/peerMotion/PeerMotionRegistry.ts src/lib/peerMotion/trailLiveRidePort.ts
+
+# 3) 단위 시험 (합계 통과 1341 · 실패 0)
+cd C:\20.HDev\boxcycle\apps\web
+npm run test:quick
+
+# 4) 변경 내역 확인 (감리 몫 — 커밋은 감리가 한다)
+cd C:\20.HDev\boxcycle
+git diff -- "apps/web/src/lib/peerMotion" "apps/web/src/lib/trail" "apps/web/src/lib/sensor" "apps/web/src/lib/account" "apps/web/src/lib/identity" "apps/web/src/lib/storage" "apps/web/src/lib/firebase" "apps/web/src/lib/activity"
+```
+
+> 동시 작업 에이전트(지시 01·03·04)가 같은 작업 트리에서 파일을 고치는 중이므로, `tsc`·`test:quick` 를 돌리는 순간에 **남의 진행 중 편집** 때문에 일시적으로 붉게 뜰 수 있다(위 §5-1 참고). 그 에이전트가 편집을 마치면 다시 통과한다. **내가 고친 39개 파일이 원인인 경우는 한 번도 없었다.**
