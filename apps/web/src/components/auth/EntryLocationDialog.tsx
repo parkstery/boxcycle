@@ -15,20 +15,25 @@ export type EntryLocationDialogProps = {
 };
 function keepMapStill(event: PointerEvent<HTMLDivElement> | TouchEvent<HTMLDivElement>) { event.stopPropagation(); }
 
+/** 한 칸 판(디자인 규칙): 이름표 → 제목 → 한 줄 설명 → 주 버튼 + 보조 버튼 */
 export function EntryLocationDialog({ phase, permission, onChooseRome, onChooseCurrent }: EntryLocationDialogProps) {
   if (phase === "idle" || phase === "ready") return null;
+  const note =
+    phase === "checking" ? "위치 권한을 확인하고 있어요." :
+    phase === "locating" ? "현재 위치를 찾고 있어요." :
+    "고른 곳 주변의 실제 도로가 지도에 펼쳐져요.";
   return <div className="entry-location" role="dialog" aria-label={TITLE}>
     <div className="entry-location__card" onPointerDown={keepMapStill} onTouchStart={keepMapStill}>
-      <h2 className="entry-location__title"><span aria-hidden="true">🧭</span>{TITLE}</h2>
-      {phase === "checking" ? <p className="entry-location__body">위치 권한을 확인하고 있습니다.</p> : null}
-      {phase === "locating" ? <p className="entry-location__body">현재 위치를 확인하고 있습니다.</p> : null}
+      <span className="entry-location__label">출발 위치</span>
+      <h2 className="entry-location__title">{TITLE}</h2>
+      <p className="entry-location__body" role={phase === "choice" ? undefined : "status"}>{note}</p>
       <div className="entry-location__actions">
         {phase === "choice" ? <button type="button" className="entry-location__button entry-location__button--primary" aria-label={CURRENT_LABEL} onClick={onChooseCurrent}>
-            <svg className="entry-location__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s7-6.1 7-12A7 7 0 0 0 5 9c0 5.9 7 12 7 12Z" fill="currentColor"/><circle cx="12" cy="9" r="2.5" fill="#2563eb"/></svg>{CURRENT_LABEL}
+            <svg className="entry-location__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/></svg>{CURRENT_LABEL}
           </button> : null}
-        <button type="button" className="entry-location__button" onClick={onChooseRome}><svg className="entry-location__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.8"/><path d="M4 12h16M12 4c4 4.5 4 11.5 0 16-4-4.5-4-11.5 0-16Z" stroke="currentColor" strokeWidth="1.5"/></svg>{ROME_LABEL}</button>
+        <button type="button" className="entry-location__button" aria-label={ROME_LABEL} data-place="로마" onClick={onChooseRome}>{ROME_LABEL}</button>
       </div>
-      {phase === "choice" && permission === "denied" ? <p role="status" className="entry-location__status">위치가 차단되어 있습니다. 브라우저 사이트 설정에서 위치를 허용한 뒤 다시 시도해 주세요.</p> : null}
+      {phase === "choice" && permission === "denied" ? <p role="status" className="entry-location__status">위치가 막혀 있어요. 브라우저 사이트 설정에서 위치를 허용해 주세요.</p> : null}
     </div>
   </div>;
 }

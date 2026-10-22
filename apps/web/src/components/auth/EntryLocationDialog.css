@@ -1,12 +1,12 @@
-/* Compact location choice over the map; keep attribution and HUD accessible. */
+/* 지도 위 한 칸 판(디자인 규칙). 지도·HUD 는 그대로 만질 수 있고, 시트(z 55~)가 열리면 그 아래로 간다. */
 .entry-location {
   position: fixed;
-  z-index: 70;
+  z-index: 50;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 12px;
+  padding: 16px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -17,79 +17,88 @@
 .entry-location__card {
   pointer-events: auto;
   box-sizing: border-box;
-  /* 186px button × 80% + 16px padding on each side + 2px border. */
-  width: 182.8px;
+  width: 320px;
   max-width: 100%;
   max-height: 100%;
   overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
+  padding: 20px 20px 16px;
+  border-radius: 18px;
   background: #ffffff;
-  color: #183153;
-  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.18);
+  color: #121417;
+  font-family: "Gothic A1", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+}
+.entry-location__label {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 14px;
+  letter-spacing: 0.12em;
+  color: #5e6472;
 }
 .entry-location__title {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  white-space: nowrap;
-  font-size: 13px;
+  margin: 4px 0 0;
+  font-size: 17px;
   font-weight: 700;
-  line-height: 20px;
-  letter-spacing: -0.025em;
-  text-align: center;
+  line-height: 22px;
+  letter-spacing: -0.01em;
 }
+.entry-location__body,
+.entry-location__status {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 15px;
+  word-break: keep-all;
+}
+.entry-location__body { color: #4b5160; }
+.entry-location__status { margin-top: 12px; color: #b4231b; }
 .entry-location__actions {
   display: flex;
-  flex-direction: column;
   gap: 8px;
-  width: 100%;
+  margin-top: 16px;
 }
 .entry-location__button {
   box-sizing: border-box;
-  display: flex;
+  flex: 1 1 0;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  flex-shrink: 0;
-  width: 100%;
+  gap: 6px;
   min-height: 44px;
   margin: 0;
-  padding: 10px 14px;
-  border: 1px solid #2563eb;
-  border-radius: 12px;
+  padding: 0 14px;
+  border: 1px solid #c9d6ee;
+  border-radius: 999px;
   background: #ffffff;
-  color: #1d4ed8;
+  color: #2a2e37;
   font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  white-space: nowrap;
   cursor: pointer;
-  transition: background-color 120ms ease;
 }
 .entry-location__button--primary {
-  background: #2563eb;
+  border-color: #2457d6;
+  border-radius: 10px;
+  background: #2457d6;
   color: #ffffff;
 }
-.entry-location__button:active { background: #eff6ff; }
-.entry-location__button--primary:active { background: #1d4ed8; }
+/* 기본 위치가 어디인지 — 버튼 이름(「기본 위치」)은 그대로 두고 장소만 덧붙인다 */
+.entry-location__button[data-place]::after {
+  content: "· " attr(data-place);
+  font-weight: 500;
+  color: #5e6472;
+}
+.entry-location__icon { width: 16px; height: 16px; flex: 0 0 16px; }
+.entry-location__button:active { background: #eef3fc; }
+.entry-location__button--primary:active { background: #163e9e; }
+@media (hover: hover) {
+  .entry-location__button:hover { background: #eef3fc; }
+  .entry-location__button--primary:hover { background: #163e9e; }
+}
 .entry-location__button:focus-visible {
-  outline: 2px solid #2563eb;
-  outline-offset: 3px;
+  outline: 2px solid #2457d6;
+  outline-offset: 2px;
 }
-.entry-location__icon { width: 18px; height: 18px; flex: 0 0 18px; }
-.entry-location__body, .entry-location__status {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
-  text-align: center;
-  overflow-wrap: anywhere;
-}
-.entry-location__body { color: #64748b; }
-.entry-location__status { color: #9f1239; }
