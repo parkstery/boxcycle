@@ -1,0 +1,26 @@
+{
+  "pass": true,
+  "appBindings": 2,
+  "rows": [
+    {
+      "label": "restore",
+      "controlCount": 0
+    },
+    {
+      "label": "signed-out",
+      "controlCount": 0
+    },
+    {
+      "label": "guest",
+      "controlCount": 1
+    },
+    {
+      "label": "member",
+      "controlCount": 1
+    },
+    {
+      "label": "logout",
+      "controlCount": 0
+    }
+  ]
+}

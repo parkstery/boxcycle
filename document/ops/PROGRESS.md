@@ -1,10 +1,28 @@
+2026-10-22 [적용수단·한행·두줄30](20261020-ui-800x360/04-review-30.md): LOCAL_VERIFIED. 자동탐색 적용수단 파랑·두모드 수단/재생/삭제 한행·offered 두줄·팝업폭 고정. 브라우저17/거리146/selector19/타입/build/lint PASS. 기존5002·커밋/푸시/배포없음·Chief확인대기.
+
 2026-10-22 [다섯위치·미디어버튼29](20261020-ui-800x360/04-review-29.md): LOCAL_VERIFIED/커밋푸시완료. main2 c7ee09ba. 출발/W1/W2/W3/도착 복원·하단왼쪽재생·우하단독립원형버튼. 브라우저14/거리145/selector19/타입/build/lint PASS. 배포없음·기존5002·실제폰Chief확인대기.
 
 2026-10-22 [거리·방향 즉시출발28](20261020-ui-800x360/04-review-28.md): DEPLOYED. main2 a55fb50a·Hosting·운영4파일SHA일치. 출발미지정 긴누름 즉시지정/임시마커·출발버튼제거/요청안내반영. 단위1340·거리145·브라우저4·타입/build/lint PASS. 실제폰Chief확인대기.
 
+2026-10-22 [연속 방향 재탐색25](20261020-ui-800x360/04-review-25.md): LOCAL_VERIFIED/Chief 재확인 대기. direction 긴 누름도 기존 방향탐색 함수를 사용. 실제API adapter/잔액·일반모션·연속생성, 거리144/브라우저3/타입/lint/build PASS. 실제 신고 누름길이 미확정,5002 유지. 커밋·푸시·배포 없음.
+
+2026-10-22 [거리 자동생성·재시작24](20261020-ui-800x360/04-review-24.md): LOCAL_VERIFIED. 방향 클릭 자동탐색·삭제 후 거리 탭 출발 재지정. 실제hook API/결과 동일profile·옛응답 무효화·거리144/브라우저14종 분할/타입/lint/build PASS. 기존5002 유지·검수5000종료, 실제폰/API 확인 대기. 커밋·푸시·배포 없음.
+
+2026-10-22 [거리·방향 유도23](20261020-ui-800x360/04-review-23.md): LOCAL_VERIFIED. 거리 확정 원/화살표2펄스→방향→기존 수단 표시/순차2사이클→수단 클릭 탐색. 거리144/브라우저13종 분할/타입/lint/build PASS. localhost5000 새로고침·실제폰 확인 대기, 커밋·푸시·배포 없음. 기존 서버/dirty 보존.
+
+2026-10-22 [방사 화살표·중단 인계22](20261020-ui-800x360/04-review-22.md): LOCAL_VERIFIED. Cursor12화살표 구현 검수·스타일 차분전환 소실 교정·좌표 재사용. 거리143/실제MapView3/타입/lint/build PASS. 실제폰 외관 확인 대기, 커밋·푸시·배포 없음. 기존 서버/dirty 보존.
+
 2026-10-22 [경로 설명 제거19](20261020-ui-800x360/04-review-19.md): LOCAL_VERIFIED. Chief 파선 보조설명 제거·상태여백 회수. 계약142/브라우저9/build/lint PASS. 배포 없음·검수서버 종료·3000 유지.
 
 2026-10-22 [지도 길게누르기·UI 릴리스18](20261020-ui-800x360/05-release-18.md): DEPLOYED. main2 e7fd5acf·Hosting·운영4파일 일치. 일반 위치선택500ms·메뉴/이동/확대 차단·계기판/주소 포함. 단위1335 PASS. 개발서버 종료·3000 유지. 실제폰 확인 대기.
+
+2026-10-22 [주소창 교정16](20261020-ui-800x360/04-review-16.md):15 실화면 반려, 긴 주소가 부모 폭을 늘리는 문제 교정. 긴 주소2행·9너비 조합 좌우차0 PASS. localhost5002·실화면 확인 대기, 배포 없음.
+
+2026-10-22 [주소창 너비15](20261020-ui-800x360/04-review-15.md): LOCAL_VERIFIED/Chief 외관 확인 대기. 펼친 미니맵과 주소창 좌우 끝 일치, 3너비·접힘 복귀 PASS. localhost5002, 배포 없음.
+
+2026-10-22 [계기판 지명 대비14](20261020-ui-800x360/04-review-14.md): LOCAL_VERIFIED/Chief 외관 확인 대기. 검정 숫자 키라인4px·국소 그림자 보강·박스 배경 없음. 지명 중첩 캡처·3폭/3상태 시험 PASS. 실제폰/위성지도 미검증, 배포 없음. localhost5002.
+
+2026-10-22 [계기판 외곽선13](20261020-ui-800x360/04-review-13.md): LOCAL_VERIFIED/Chief 외관 확인 대기. 박스 마스크 제거·하늘색/초록 글자·검정 키라인. 3폭/3상태 기존 시험1 PASS·800×360 캡처 확인. 실제폰/위성지도 미검증, 배포 없음. localhost5002.
 
 2026-10-21 [운영 새로고침·재배포12](20261020-ui-800x360/04-review-12.md): DEPLOYED. Chief 새로고침미실행설명으로조사종료·추가UI수정0. 문서63630d67 main2병합/푸시·기존UI재배포/운영4파일일치. 이미열린운영화면새로고침필요. https://boxcycle-dc2df.web.app
 
@@ -16,11 +34,46 @@
 
 2026-10-21 [지도 중심 UI 릴리스07](20261020-ui-800x360/05-release-07.md): DEPLOYED/Chief실기기검수대기. main2 ae646df9·Hosting성공·운영4파일일치. 주소단일면24px/두행85px/5행157px·비노출에지·상단계기. web1319/브라우저14+최종실지도1 PASS. https://boxcycle-dc2df.web.app
 
+2026-10-20 [UI 이전 우선 릴리스](20261020-pre-ui-release/04-review-01.md): DEPLOYED. 코드5f012a52·검수문서8706ae91 원격main2반영. Hosting/Rules/함수4성공,web1319/서버132/Rules1/운영bundle3바이트일치PASS. 새UI제외.
+
+2026-10-20 [800×360 UI 개선](20261020-ui-800x360/README.md): IN_PROGRESS. GLM 구현01·정적PASS 후 실화면 겹침/줄바꿈/삭제폭 재작업 판정. GLM종료→Cursor 지시02 순차 진행. 기존 dirty 보존·배포 없음.
+2026-10-20 [미니맵 좌상단 캐럿](20261020-minimap-dock-swap/04-review-03.md): LOCAL_VERIFIED/Chief화면확인대기. 24px/‹접기·›펼치기/캐럿·RouteDock위치고정,터치·키보드/폰가로3종·타입·lint PASS. Cursor ENOMEM→Codex직접,localhost5000/배포없음.
+
 2026-10-20 [신규 도로 릴리스](20261020-new-road-display/02-task-02-release.md): IN_PROGRESS. Chief커밋·푸시·병합·배포승인. 날짜형식/긴선분/새기록삭제경로보완, Functions132·Rules실제에뮬레이터PASS. 분리소스빌드·main2병합·선택배포진행.
 
 2026-10-20 [신규 도로 표시 복구](20261020-new-road-display/04-review-01.md): LOCAL_VERIFIED/Chief 실제계정확인대기. 종료시빈서버값덮어쓰기·positive미반영·최근범위이동누락교정, 기존취득일+trace복원. Node94/React시트1(2폭)/build/lint오류0·기존40경고/diff PASS. localhost5000강력새로고침, 배포·커밋·푸시없음.
 
 2026-10-19 [Guest·위치·Ready Ride 배포26](20261019-guest-lifecycle/04-review-26-release.md): DEPLOYED/Chief사용확인대기. main2 d22c0492원격반영·Functions12/Rules/Hosting성공. web1295/서버127/독립32 PASS,운영인트로·API204/401·Google4/문서2227보존. 매일03:15KST Guest정리활성. https://boxcycle-dc2df.web.app
+
+2026-10-19 [위치 선택 디자인25](20261019-guest-lifecycle/04-review-25.md): LOCAL_VERIFIED/Chief디자인확인대기. 내위치·기본위치/아이콘/파랑·아웃라인/220×162카드·44px버튼. 단위26/DOM1/selector19/lint/build·12상태PASS. 주소추적중지·redirect초안제거. localhost5004확인,배포없음.
+
+2026-10-19 [Ready Ride 복구23](20261019-guest-lifecycle/04-review-23.md): LOCAL_VERIFIED. demo5004자동경로API누락·최초거리선택만하던UI·잔액미확인0경합교정. 실제SDK/Mapbox2/3/5/10km4 PASS(16.8s),잔액1/selector19/lint/build/diff PASS. 5004강력새로고침후확인. Cursor CLI ENOMEM→Codex직접. 운영변경·배포없음.
+
+2026-10-19 [Guest localhost5000 실패22](20261019-guest-lifecycle/04-review-22-localhost5000.md): 원인확인. 운영Firebase를사용하는5000이 미배포guestActivityHttp(OPTIONS404)를호출. 시험주소127.0.0.1:5004에서 실제SDK최초진입/새로고침동일UID1 PASS·selector19 PASS. 우회변경·운영배포없음.
+
+2026-10-19 [Guest 재개·환경복구21](20261019-guest-lifecycle/04-review-21-resume.md): LOCAL_VERIFIED/TEST_READY 유지. 기존채팅 최종완료 확인·회귀29 PASS·diff exit0, demo localhost5004 복구/GET200·Auth/Firestore/RTDB 확인. 제품변경·운영재삭제·배포·커밋/푸시없음. Chief직접확인·운영범위검수/배포 잔여.
+
+2026-10-19 [Guest 최종 감리20·직접 시험](20261019-guest-lifecycle/04-review-20.md): LOCAL_VERIFIED/TEST_READY. Cursor17·20 제품구현, GLM18·19 SDK spec, Codex 감리보완·운영정리. 로그인/게스트로시작2메뉴, 종료는Auth세션보존, 기존Guest서버확인재사용. HTTP·Rules14/실제SDK4(종료3회동일UID·개인기록유지·계정증가0·종료heartbeat0·삭제/오프라인복귀)/주행1/인증·종료17/identity33/selector19/viewport PASS. build·lint exit0(기존warning40). 운영Guest5명 명시재삭제완료, 현재Auth4=Google4/Guest0. Google4상태동일·검사문서2227누락0/값변경0·Guest자료재생성0. demo앱 localhost5004실행중. Functions/Rules/Hosting미배포·커밋/푸시없음.
+
+2026-10-19 [Guest 수명·고아 정리](20261019-guest-lifecycle/03-result-19.md): GLM19 GLM18 감리 재작업 — motionNodeAbsent RTDB JSON 실검사, offline 기댓값을 생성 후 snapshot(afterCreated) 기준 증가0으로 교정, heartbeat 정지를 실제 요청 카운터(fetch 래핑)+page.clock fastForward(5분×2칸)로 증명하고 8s soak 삭제, runQuery URL documents:runQuery 교정, 오류문구·assert 궤적에서 uid 노출 제거. 정적6·list4·build·lint PASS, 타깃tsc 소유2파일 오류0(공용 readGuestUid.ts 기존 타입오류 1건은 소유 밖 보고). 실제e2e는 Supervisor 실행. 배포 없음.
+
+2026-10-19 [Guest 수명·고아 정리](20261019-guest-lifecycle/03-result-18.md): GLM18 실제SDK 종료/동일Guest 복귀 E2E spec 완성 — 4동작(최초진입·종료3회반복 같은UID+Auth1+presence/핑정지 REST soak·삭제Guest 만료+명시시작만신규·offline시작 0생성+복구동일UID). UserInfoSheet 「종료」exact·시작메뉴 로그인/게스트로시작 selector계약을 Cursor에 전달, 제품 미반영시 spec이 계약으로 실패. 정적6·playwright--list4·lint0 PASS, 실제에뮬레이터e2e는 Supervisor 미실행. 배포 없음.
+
+2026-10-19 [Guest 통합 감리16](20261019-guest-lifecycle/04-review-16.md): LOCAL_VERIFIED / 운영 미배포. GLM12 서버·Cursor15 캐시, Codex 후보연결 보완·감리. 서버127/실제HTTP·Rules14/SDK재접속3/주행1 PASS. demo앱 localhost5004 실행중. Google4 Auth·소유1976문서 존재 보존, 현재Auth8 전원보호. 누적고아FS213/RTDB2정리, 보호cache248해시동일. 최신스냅샷비교는 우리삭제대상밖 Guest Trail members1개부재로exit1(원인미확정), Google문서삭제0. 다음운영범위검수·배포.
+
+2026-10-19 [Guest 수명·고아 정리](20261019-guest-lifecycle/03-result-12.md): Admin12 감리잔여 마감 — HTTP 4종(index 2종·onboarding·quota) mergeUserAuthMeta 오류삼킴·Guest hint fallback 제거(삭제경합 getUser user-not-found→401·온보딩 중단·외부비용·원장생성 금지), transientStoreHttpsError에 numeric gRPC 4/10/14→503, 후보목록에 openTrailListings.hostUid 추가(최상위 경로만 인정·trails.hostUid 제외 유지). functions build·lint·npm test 127 PASS(httpGate 신규7 등록), Supervisor gate 7 PASS 재실행. 에뮬레이터 실패주입 재실행은 Supervisor 대기. 배포 없음.
+
+2026-10-19 [Guest 수명·고아 정리](20261019-guest-lifecycle/03-result-09.md): Admin09 서버 재작업 완료 — Admin 개인자료 writer(users·routeTokenLedger·conquest)에 guestLifecycle{uid} marker 같은 transaction 선읽기 guard 신설, HTTP 4종 verifyIdToken(token,true)+tombstone 403/일시 503 게이트, listProfileUids에 ledger-only·nickname·applicantUid·conquest 고아경로 발견 추가. functions build·lint·npm test 116 PASS, Supervisor gate 7 PASS, emulator 룰은 Supervisor 미실행 대기. 배포 없음. 남은것: routeAutoRouteCache 취급표 누락(새 Task 후보), internal 코드는 일시로 삼지 않음.
+
+2026-10-19 [Guest 수명·고아 정리](20261019-guest-lifecycle/README.md): IN_PROGRESS. 수행 Cursor(SDK E2E11)·GLM-5.3(Admin09) 병렬, Codex감리05. 클라이언트10 훅8·폰2크기·selector19·실제ride1 PASS/JS371정리. 서버07 단위98·실제Rules7 PASS/Admin2·고아1 FAIL 재작업중. 운영Google4·원래Auth5전원보존/Guest2추가(Auth7), 2176문서삭제0·값변경4/motion2동일. 고아FS17/RTDB2최초정리완료. 배포없음.
+
+2026-10-18 [위치18](20261017-entry-location/04-review-18.md): Chief요구로17의세번째위치사용버튼삭제. 두줄첫버튼+blue기본위치만유지, 재시도/카메라교정유지. 36시험·실앱button2·한국도착·selector19·타입/lint PASS, 커밋·배포없음.
+
+2026-10-18 [위치17](20261017-entry-location/04-review-17.md): Chief첨부 localhost5000 denied확인. 두줄화과정 native복구삭제·2D초기화easeTo위치비행취소 교정. 로컬PASS/실기기확인대기, 단위35/Edge·Chrome/selector19/lint/build, 커밋·배포없음.
+
+2026-10-18 [위치16](20261017-entry-location/04-review-16.md): 운영 신고 조사, 실패후 재시도복구 로컬PASS·운영반영대기. 개인기기실패원인미확정, 단위33/브라우저1/selector19/lint/build PASS. 커밋·배포없음.
+
+2026-10-18 위치 선택15b: 두 줄 버튼·외부 중복 제거·기본 위치 파란 테두리 로컬 APPROVED/Chief 화면 확인 대기. Cursor 구현·Codex 보완 검수, 단위24/Edge1/4크기/selector19/lint/build PASS. 배포 없음. [검수](20261017-entry-location/04-review-15b.md).
 
 2026-10-17 개발 부산물 묶음 CLOSED: T1 삭제(Muse→Supervisor), T2 패널 분리(Cursor, 기본 청크 3,731→3,692 kB), T3 dev-tools.json 등록부 59항목 + pre-push 게이트 + scripts/perf/run-real-gpu.mjs (Cursor). main2 5cc0c26 운영 배포. temporary 8건 만료 2026-11-17.
 
@@ -118,7 +171,31 @@
 
 # ops 전체 상태판
 
-2026-10-20 [UI 이전 수정 릴리스](20261020-pre-ui-release/README.md): IN_PROGRESS. fix/pre-ui-release-20261020→main2. 분리소스 build/서버132/웹관련17/selector19 PASS. 새UI 제외·운영 삭제 수동실행 없음.
+2026-10-20 [800×360 UI 개선](20261020-ui-800x360/README.md): IN_PROGRESS. GLM-5.3-Flash 지시01 진행 → Cursor 지시02 예정. Supervisor Codex. 기존 변경 보존·배포 없음.
+
+2026-10-18 [인트로 후속03](20261018-intro-blend/04-review-03.md): APPROVED/Chief확인대기. LongCat HTTP5002회후 Chief승인 Cursor적용·Codex독립감리. 좌상단브랜드/곡선로고1회회전/인증전2버튼·인증후HUD,3화면·상태전환·build/lint/selector19 PASS, 기존106파일해시동일. 커밋·push·배포없음.
+
+2026-10-18 [인트로 두 레퍼런스 결합](20261018-intro-blend/README.md): APPROVED/Chief 디자인 확인 대기. LongCat초안·실제interrupt후Codex마감/검증. 실지도6크기·키보드콜백3·selector19·build·lint오류0/경고40 PASS. 인트로2파일만 제품변경, 기존81파일해시동일. [최종감리02](20261018-intro-blend/04-review-02.md), 로컬5000·배포없음.
+
+2026-10-18 [기존 lint16 정리](20261018-lint16/README.md): APPROVED. LongCat 구현·Codex [감리01](20261018-lint16/04-review-01.md). 전체lint 오류0/기존경고40·관련17시험·build·문서·diff검사 PASS. 기존72파일 해시 동일, 제품소스/설정/의존성 변경 없음. 커밋·push·배포 없음.
+
+2026-10-18 [Spinatlas 브랜드·A안 인트로](20261018-spinatlas-brand/README.md): APPROVED/Chief 화면 확인 대기. 별도 OpenCode LongCat 구현·제목계약 재작업→Codex [최종감리02](20261018-spinatlas-brand/04-review-02.md). build·변경소스lint·selector19·실앱4크기/fixture콜백 PASS. 전체lint 기존시험4파일16오류는 FAIL로 별도기록. 위치관련기존diff보존, 로컬5000실행, 실기기/온라인지도미검증, 커밋·push·배포없음.
+
+2026-10-17 현재위치2초비행 [검수14](20261017-entry-location/04-review-14.md) 로컬PASS. 실측2008.9ms·서울도착/카메라회귀6/lint/build PASS. Chief체감대기·배포없음.
+
+2026-10-17 현재위치1초비행 [검수13](20261017-entry-location/04-review-13.md) 로컬 PASS / Chief체감 대기. 실제Mapbox1006.8ms·zoom15→2.0299→15·서울도착 PASS. 회귀36/selector19/lint오류0/build PASS. GLM2회호출제한 후Codex직접교정, 배포 없음.
+
+2026-10-17 초기 콜로세움 [검수12](20261017-entry-location/04-review-12.md) 로컬 PASS. 최초 지구본 폐기·콜로세움zoom15 즉시 표시·위치결과 직접 이동. 회귀33/Edge카메라/selector19/lint오류0/build PASS, 5180실앱초기좌표 확인. Chief 화면 확인 대기, 배포 없음.
+
+2026-10-17 직접 위치 허용 [검수11](20261017-entry-location/04-review-11.md) 로컬 PASS / Chief 화면·폰 확인 대기. 중간 확인 제거·최초 native컨트롤→브라우저 허용→지도 이동. 회귀32/Edge 실제위치결과·Mapbox카메라/selector19/lint/build PASS. 배포 없음.
+
+2026-10-17 위치 공유 동의 흐름 [지시10](20261017-entry-location/02-task-10.md) IN_PROGRESS. Chief가 설정 alert를 요구 위반으로 지적, 지시09 승인 철회. 지원 브라우저 native 공유 허용/차단 복구 및 레거시 권한 요청 연결. OpenCode GLM-5.3 구현·Codex 검수, 배포 없음.
+
+2026-10-17 현재 위치 버튼 `(위치공유 필요)`·클릭 안내: [검수09](20261017-entry-location/04-review-09.md) APPROVED / Chief 화면 확인 대기. GLM-5.3 구현, Codex 독립 시험22/selector19 PASS, lint/build PASS. 로컬만 반영, 배포 없음.
+
+2026-10-17 위치 차단 두 선택지: [검수08](20261017-entry-location/04-review-08.md) APPROVED / Chief 화면 확인 대기. OpenCode GLM-5.3 구현·Codex 독립 시험29/selector19 PASS, lint/build PASS. 차단에도 내 위치 근처/앱 기본 위치 선택·허용 후 재시도. 커밋·푸시·배포 없음.
+
+2026-10-17 첫 진입 위치 승인 후 미이동: [검수07](20261017-entry-location/04-review-07.md) 로컬 PASS / Chief 실기기 확인·운영 반영 대기. 지연 승인 조기 timeout 교정, 위치·카메라27/selector18/lint/build PASS. Cursor 무진전 중지 후 Codex 직접 교정. 커밋·푸시·배포 없음.
 
 2026-10-17 첫 진입 인증·위치 호스팅 배포: main2 5cb0679, https://boxcycle-dc2df.web.app (index-CzaDkCRY.js). 인트로에서 게스트·로그인 후 지구본, 권한에 따라 현재 위치 또는 콜로세움. 권한별·폰 화면 검수는 아직.
 
@@ -190,3 +267,10 @@
 
 
 
+# 2026-10-18 위치 선택 버튼15a
+
+기본 위치 파란 테두리 Cursor 구현·Codex 3크기 PASS. 첫 버튼 두 줄은 native 문구 제약과 기존 차단 복구 요구 충돌로 Chief 답변 대기. [검수](20261017-entry-location/04-review-15a.md). 기존 변경 보존, 배포 없음.
+
+# 2026-10-20 800×360 UI 개선 — LOCAL_VERIFIED
+
+이전 자잘한 수정은 먼저 main2에 병합·푸시·배포 완료(코드 `5f012a52`, 문서 `8706ae91`, Hosting·Rules·Functions 4개 성공). 이후 GLM-5.3-Flash → Cursor 순서로 UI를 구현했다. 800×360·667×300·844×390 전용 Playwright 11/11 PASS, selector19/19 PASS, `tsc` PASS, lint 0 errors/37 existing warnings, build PASS, `git diff --check` PASS. 좌우 가장자리 핸들은 44px 터치 영역과 탭/키보드 대안을 유지하며 안쪽 드래그로 메뉴·맵뷰를 열고, 패널 헤더 바깥 드래그로 닫는다. UI 변경은 아직 커밋·푸시·배포하지 않았다. 상세: `document/ops/20261020-ui-800x360/04-review-04.md`.

@@ -1,0 +1,38 @@
+{
+  "buttons": [
+    {
+      "text": "Spinatlas",
+      "label": "Trail 메뉴"
+    },
+    {
+      "text": "위성",
+      "label": "맵 스타일 위성, 클릭 시 야외"
+    },
+    {
+      "text": "+",
+      "label": "줌 확대"
+    },
+    {
+      "text": "−",
+      "label": "줌 축소"
+    },
+    {
+      "text": "◰맵",
+      "label": "맵 뷰 설정"
+    },
+    {
+      "text": "게스트로 시작→",
+      "label": null
+    },
+    {
+      "text": "로그인",
+      "label": null
+    }
+  ],
+  "brand": {
+    "x": 26.671875,
+    "y": 37.1875,
+    "width": 173.984375,
+    "height": 28
+  }
+}

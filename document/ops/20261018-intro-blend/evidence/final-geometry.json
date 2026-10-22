@@ -1,0 +1,1111 @@
+{
+  "pass": true,
+  "map": {
+    "responses": 109,
+    "ok": 109
+  },
+  "rows": [
+    {
+      "width": 667,
+      "height": 275,
+      "brand": {
+        "x": 26.671875,
+        "y": 37.1875,
+        "width": 167.984375,
+        "height": 28,
+        "top": 37.1875,
+        "right": 194.65625,
+        "bottom": 65.1875,
+        "left": 26.671875
+      },
+      "headline": {
+        "x": 26.671875,
+        "y": 90.65625,
+        "width": 166.40625,
+        "height": 55.1875,
+        "top": 90.65625,
+        "right": 193.078125,
+        "bottom": 145.84375,
+        "left": 26.671875
+      },
+      "content": {
+        "x": 0,
+        "y": 30.4375,
+        "width": 346.828125,
+        "height": 214.125,
+        "top": 30.4375,
+        "right": 346.828125,
+        "bottom": 244.5625,
+        "left": 0
+      },
+      "guest": {
+        "x": 26.671875,
+        "y": 193.8125,
+        "width": 114.390625,
+        "height": 44,
+        "top": 193.8125,
+        "right": 141.0625,
+        "bottom": 237.8125,
+        "left": 26.671875
+      },
+      "login": {
+        "x": 146.453125,
+        "y": 193.8125,
+        "width": 62,
+        "height": 44,
+        "top": 193.8125,
+        "right": 208.453125,
+        "bottom": 237.8125,
+        "left": 146.453125
+      },
+      "support": {
+        "x": 26.671875,
+        "y": 151.234375,
+        "width": 169,
+        "height": 37.1875,
+        "top": 151.234375,
+        "right": 195.671875,
+        "bottom": 188.421875,
+        "left": 26.671875
+      },
+      "supportText": "실내 자전거로 실제 도로를 달리면, 달린 길이 내 지도에 남습니다.",
+      "headlineLines": [
+        {
+          "rect": {
+            "x": 26.671875,
+            "y": 90.65625,
+            "width": 166.40625,
+            "height": 27.59375,
+            "top": 90.65625,
+            "right": 193.078125,
+            "bottom": 118.25,
+            "left": 26.671875
+          },
+          "lineHeight": 27.6
+        },
+        {
+          "rect": {
+            "x": 26.671875,
+            "y": 118.25,
+            "width": 166.40625,
+            "height": 27.59375,
+            "top": 118.25,
+            "right": 193.078125,
+            "bottom": 145.84375,
+            "left": 26.671875
+          },
+          "lineHeight": 27.6
+        }
+      ],
+      "supportLines": [
+        {
+          "rect": {
+            "x": 26.671875,
+            "y": 151.234375,
+            "width": 169,
+            "height": 18.59375,
+            "top": 151.234375,
+            "right": 195.671875,
+            "bottom": 169.828125,
+            "left": 26.671875
+          },
+          "lineHeight": 18.5963
+        },
+        {
+          "rect": {
+            "x": 26.671875,
+            "y": 169.828125,
+            "width": 169,
+            "height": 18.59375,
+            "top": 169.828125,
+            "right": 195.671875,
+            "bottom": 188.421875,
+            "left": 26.671875
+          },
+          "lineHeight": 18.5963
+        }
+      ],
+      "overflow": false,
+      "scrollOverflow": false,
+      "stepsDisplay": "none",
+      "steps": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      ],
+      "titleSize": "24px",
+      "brandSize": "22px",
+      "logoReachable": true,
+      "logoRect": {
+        "x": 419.53125,
+        "y": 224,
+        "width": 88,
+        "height": 23,
+        "top": 224,
+        "right": 507.53125,
+        "bottom": 247,
+        "left": 419.53125
+      },
+      "buttonColor": "rgb(255, 255, 255)",
+      "buttonBackground": "rgb(217, 54, 43)",
+      "mapBlocked": true,
+      "attributionRect": {
+        "x": 151.96875,
+        "y": 255,
+        "width": 515.03125,
+        "height": 20,
+        "top": 255,
+        "right": 667,
+        "bottom": 275,
+        "left": 151.96875
+      },
+      "noAttributionOverlap": true
+    },
+    {
+      "width": 667,
+      "height": 300,
+      "brand": {
+        "x": 26.671875,
+        "y": 49.6875,
+        "width": 167.984375,
+        "height": 28,
+        "top": 49.6875,
+        "right": 194.65625,
+        "bottom": 77.6875,
+        "left": 26.671875
+      },
+      "headline": {
+        "x": 26.671875,
+        "y": 103.15625,
+        "width": 166.40625,
+        "height": 55.1875,
+        "top": 103.15625,
+        "right": 193.078125,
+        "bottom": 158.34375,
+        "left": 26.671875
+      },
+      "content": {
+        "x": 0,
+        "y": 42.9375,
+        "width": 346.828125,
+        "height": 214.125,
+        "top": 42.9375,
+        "right": 346.828125,
+        "bottom": 257.0625,
+        "left": 0
+      },
+      "guest": {
+        "x": 26.671875,
+        "y": 206.3125,
+        "width": 114.390625,
+        "height": 44,
+        "top": 206.3125,
+        "right": 141.0625,
+        "bottom": 250.3125,
+        "left": 26.671875
+      },
+      "login": {
+        "x": 146.453125,
+        "y": 206.3125,
+        "width": 62,
+        "height": 44,
+        "top": 206.3125,
+        "right": 208.453125,
+        "bottom": 250.3125,
+        "left": 146.453125
+      },
+      "support": {
+        "x": 26.671875,
+        "y": 163.734375,
+        "width": 169,
+        "height": 37.1875,
+        "top": 163.734375,
+        "right": 195.671875,
+        "bottom": 200.921875,
+        "left": 26.671875
+      },
+      "supportText": "실내 자전거로 실제 도로를 달리면, 달린 길이 내 지도에 남습니다.",
+      "headlineLines": [
+        {
+          "rect": {
+            "x": 26.671875,
+            "y": 103.15625,
+            "width": 166.40625,
+            "height": 27.59375,
+            "top": 103.15625,
+            "right": 193.078125,
+            "bottom": 130.75,
+            "left": 26.671875
+          },
+          "lineHeight": 27.6
+        },
+        {
+          "rect": {
+            "x": 26.671875,
+            "y": 130.75,
+            "width": 166.40625,
+            "height": 27.59375,
+            "top": 130.75,
+            "right": 193.078125,
+            "bottom": 158.34375,
+            "left": 26.671875
+          },
+          "lineHeight": 27.6
+        }
+      ],
+      "supportLines": [
+        {
+          "rect": {
+            "x": 26.671875,
+            "y": 163.734375,
+            "width": 169,
+            "height": 18.59375,
+            "top": 163.734375,
+            "right": 195.671875,
+            "bottom": 182.328125,
+            "left": 26.671875
+          },
+          "lineHeight": 18.5963
+        },
+        {
+          "rect": {
+            "x": 26.671875,
+            "y": 182.328125,
+            "width": 169,
+            "height": 18.59375,
+            "top": 182.328125,
+            "right": 195.671875,
+            "bottom": 200.921875,
+            "left": 26.671875
+          },
+          "lineHeight": 18.5963
+        }
+      ],
+      "overflow": false,
+      "scrollOverflow": false,
+      "stepsDisplay": "none",
+      "steps": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      ],
+      "titleSize": "24px",
+      "brandSize": "22px",
+      "logoReachable": true,
+      "logoRect": {
+        "x": 419.53125,
+        "y": 249,
+        "width": 88,
+        "height": 23,
+        "top": 249,
+        "right": 507.53125,
+        "bottom": 272,
+        "left": 419.53125
+      },
+      "buttonColor": "rgb(255, 255, 255)",
+      "buttonBackground": "rgb(217, 54, 43)",
+      "mapBlocked": true,
+      "attributionRect": {
+        "x": 151.96875,
+        "y": 280,
+        "width": 515.03125,
+        "height": 20,
+        "top": 280,
+        "right": 667,
+        "bottom": 300,
+        "left": 151.96875
+      },
+      "noAttributionOverlap": true
+    },
+    {
+      "width": 740,
+      "height": 300,
+      "brand": {
+        "x": 29.59375,
+        "y": 49.6875,
+        "width": 167.984375,
+        "height": 28,
+        "top": 49.6875,
+        "right": 197.578125,
+        "bottom": 77.6875,
+        "left": 29.59375
+      },
+      "headline": {
+        "x": 29.59375,
+        "y": 103.15625,
+        "width": 166.40625,
+        "height": 55.1875,
+        "top": 103.15625,
+        "right": 196,
+        "bottom": 158.34375,
+        "left": 29.59375
+      },
+      "content": {
+        "x": 0,
+        "y": 42.9375,
+        "width": 384.796875,
+        "height": 214.125,
+        "top": 42.9375,
+        "right": 384.796875,
+        "bottom": 257.0625,
+        "left": 0
+      },
+      "guest": {
+        "x": 29.59375,
+        "y": 206.3125,
+        "width": 114.390625,
+        "height": 44,
+        "top": 206.3125,
+        "right": 143.984375,
+        "bottom": 250.3125,
+        "left": 29.59375
+      },
+      "login": {
+        "x": 149.375,
+        "y": 206.3125,
+        "width": 62,
+        "height": 44,
+        "top": 206.3125,
+        "right": 211.375,
+        "bottom": 250.3125,
+        "left": 149.375
+      },
+      "support": {
+        "x": 29.59375,
+        "y": 163.734375,
+        "width": 169,
+        "height": 37.1875,
+        "top": 163.734375,
+        "right": 198.59375,
+        "bottom": 200.921875,
+        "left": 29.59375
+      },
+      "supportText": "실내 자전거로 실제 도로를 달리면, 달린 길이 내 지도에 남습니다.",
+      "headlineLines": [
+        {
+          "rect": {
+            "x": 29.59375,
+            "y": 103.15625,
+            "width": 166.40625,
+            "height": 27.59375,
+            "top": 103.15625,
+            "right": 196,
+            "bottom": 130.75,
+            "left": 29.59375
+          },
+          "lineHeight": 27.6
+        },
+        {
+          "rect": {
+            "x": 29.59375,
+            "y": 130.75,
+            "width": 166.40625,
+            "height": 27.59375,
+            "top": 130.75,
+            "right": 196,
+            "bottom": 158.34375,
+            "left": 29.59375
+          },
+          "lineHeight": 27.6
+        }
+      ],
+      "supportLines": [
+        {
+          "rect": {
+            "x": 29.59375,
+            "y": 163.734375,
+            "width": 169,
+            "height": 18.59375,
+            "top": 163.734375,
+            "right": 198.59375,
+            "bottom": 182.328125,
+            "left": 29.59375
+          },
+          "lineHeight": 18.5963
+        },
+        {
+          "rect": {
+            "x": 29.59375,
+            "y": 182.328125,
+            "width": 169,
+            "height": 18.59375,
+            "top": 182.328125,
+            "right": 198.59375,
+            "bottom": 200.921875,
+            "left": 29.59375
+          },
+          "lineHeight": 18.5963
+        }
+      ],
+      "overflow": false,
+      "scrollOverflow": false,
+      "stepsDisplay": "none",
+      "steps": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      ],
+      "titleSize": "24px",
+      "brandSize": "22px",
+      "logoReachable": true,
+      "logoRect": {
+        "x": 464.796875,
+        "y": 249,
+        "width": 88,
+        "height": 23,
+        "top": 249,
+        "right": 552.796875,
+        "bottom": 272,
+        "left": 464.796875
+      },
+      "buttonColor": "rgb(255, 255, 255)",
+      "buttonBackground": "rgb(217, 54, 43)",
+      "mapBlocked": true,
+      "attributionRect": {
+        "x": 224.96875,
+        "y": 280,
+        "width": 515.03125,
+        "height": 20,
+        "top": 280,
+        "right": 740,
+        "bottom": 300,
+        "left": 224.96875
+      },
+      "noAttributionOverlap": true
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "brand": {
+        "x": 33.75,
+        "y": 94.6875,
+        "width": 167.984375,
+        "height": 28,
+        "top": 94.6875,
+        "right": 201.734375,
+        "bottom": 122.6875,
+        "left": 33.75
+      },
+      "headline": {
+        "x": 33.75,
+        "y": 148.15625,
+        "width": 166.40625,
+        "height": 55.1875,
+        "top": 148.15625,
+        "right": 200.15625,
+        "bottom": 203.34375,
+        "left": 33.75
+      },
+      "content": {
+        "x": 0,
+        "y": 87.9375,
+        "width": 438.875,
+        "height": 214.125,
+        "top": 87.9375,
+        "right": 438.875,
+        "bottom": 302.0625,
+        "left": 0
+      },
+      "guest": {
+        "x": 33.75,
+        "y": 251.3125,
+        "width": 114.390625,
+        "height": 44,
+        "top": 251.3125,
+        "right": 148.140625,
+        "bottom": 295.3125,
+        "left": 33.75
+      },
+      "login": {
+        "x": 153.53125,
+        "y": 251.3125,
+        "width": 62,
+        "height": 44,
+        "top": 251.3125,
+        "right": 215.53125,
+        "bottom": 295.3125,
+        "left": 153.53125
+      },
+      "support": {
+        "x": 33.75,
+        "y": 208.734375,
+        "width": 169,
+        "height": 37.1875,
+        "top": 208.734375,
+        "right": 202.75,
+        "bottom": 245.921875,
+        "left": 33.75
+      },
+      "supportText": "실내 자전거로 실제 도로를 달리면, 달린 길이 내 지도에 남습니다.",
+      "headlineLines": [
+        {
+          "rect": {
+            "x": 33.75,
+            "y": 148.15625,
+            "width": 166.40625,
+            "height": 27.59375,
+            "top": 148.15625,
+            "right": 200.15625,
+            "bottom": 175.75,
+            "left": 33.75
+          },
+          "lineHeight": 27.6
+        },
+        {
+          "rect": {
+            "x": 33.75,
+            "y": 175.75,
+            "width": 166.40625,
+            "height": 27.59375,
+            "top": 175.75,
+            "right": 200.15625,
+            "bottom": 203.34375,
+            "left": 33.75
+          },
+          "lineHeight": 27.6
+        }
+      ],
+      "supportLines": [
+        {
+          "rect": {
+            "x": 33.75,
+            "y": 208.734375,
+            "width": 169,
+            "height": 18.59375,
+            "top": 208.734375,
+            "right": 202.75,
+            "bottom": 227.328125,
+            "left": 33.75
+          },
+          "lineHeight": 18.5963
+        },
+        {
+          "rect": {
+            "x": 33.75,
+            "y": 227.328125,
+            "width": 169,
+            "height": 18.59375,
+            "top": 227.328125,
+            "right": 202.75,
+            "bottom": 245.921875,
+            "left": 33.75
+          },
+          "lineHeight": 18.5963
+        }
+      ],
+      "overflow": false,
+      "scrollOverflow": false,
+      "stepsDisplay": "none",
+      "steps": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      ],
+      "titleSize": "24px",
+      "brandSize": "22px",
+      "logoReachable": true,
+      "logoRect": {
+        "x": 529.265625,
+        "y": 339,
+        "width": 88,
+        "height": 23,
+        "top": 339,
+        "right": 617.265625,
+        "bottom": 362,
+        "left": 529.265625
+      },
+      "buttonColor": "rgb(255, 255, 255)",
+      "buttonBackground": "rgb(217, 54, 43)",
+      "mapBlocked": true,
+      "attributionRect": {
+        "x": 328.96875,
+        "y": 370,
+        "width": 515.03125,
+        "height": 20,
+        "top": 370,
+        "right": 844,
+        "bottom": 390,
+        "left": 328.96875
+      },
+      "noAttributionOverlap": true
+    },
+    {
+      "width": 1366,
+      "height": 768,
+      "brand": {
+        "x": 81.953125,
+        "y": 187.25,
+        "width": 254.75,
+        "height": 42,
+        "top": 187.25,
+        "right": 336.703125,
+        "bottom": 229.25,
+        "left": 81.953125
+      },
+      "headline": {
+        "x": 81.953125,
+        "y": 268.25,
+        "width": 383.609375,
+        "height": 128.78125,
+        "top": 268.25,
+        "right": 465.5625,
+        "bottom": 397.03125,
+        "left": 81.953125
+      },
+      "content": {
+        "x": 0,
+        "y": 176.859375,
+        "width": 601.03125,
+        "height": 344.0625,
+        "top": 176.859375,
+        "right": 601.03125,
+        "bottom": 520.921875,
+        "left": 0
+      },
+      "guest": {
+        "x": 81.953125,
+        "y": 466.53125,
+        "width": 134.390625,
+        "height": 44,
+        "top": 466.53125,
+        "right": 216.34375,
+        "bottom": 510.53125,
+        "left": 81.953125
+      },
+      "login": {
+        "x": 225.9375,
+        "y": 466.53125,
+        "width": 73,
+        "height": 44,
+        "top": 466.53125,
+        "right": 298.9375,
+        "bottom": 510.53125,
+        "left": 225.9375
+      },
+      "support": {
+        "x": 81.953125,
+        "y": 408.21875,
+        "width": 202,
+        "height": 47.125,
+        "top": 408.21875,
+        "right": 283.953125,
+        "bottom": 455.34375,
+        "left": 81.953125
+      },
+      "supportText": "실내 자전거로 실제 도로를 달리면, 달린 길이 내 지도에 남습니다.",
+      "headlineLines": [
+        {
+          "rect": {
+            "x": 81.953125,
+            "y": 268.25,
+            "width": 383.609375,
+            "height": 64.390625,
+            "top": 268.25,
+            "right": 465.5625,
+            "bottom": 332.640625,
+            "left": 81.953125
+          },
+          "lineHeight": 64.4
+        },
+        {
+          "rect": {
+            "x": 81.953125,
+            "y": 332.640625,
+            "width": 383.609375,
+            "height": 64.390625,
+            "top": 332.640625,
+            "right": 465.5625,
+            "bottom": 397.03125,
+            "left": 81.953125
+          },
+          "lineHeight": 64.4
+        }
+      ],
+      "supportLines": [
+        {
+          "rect": {
+            "x": 81.953125,
+            "y": 408.21875,
+            "width": 202,
+            "height": 23.5625,
+            "top": 408.21875,
+            "right": 283.953125,
+            "bottom": 431.78125,
+            "left": 81.953125
+          },
+          "lineHeight": 23.56
+        },
+        {
+          "rect": {
+            "x": 81.953125,
+            "y": 431.78125,
+            "width": 202,
+            "height": 23.5625,
+            "top": 431.78125,
+            "right": 283.953125,
+            "bottom": 455.34375,
+            "left": 81.953125
+          },
+          "lineHeight": 23.56
+        }
+      ],
+      "overflow": false,
+      "scrollOverflow": false,
+      "stepsDisplay": "grid",
+      "steps": [
+        {
+          "x": 81.953125,
+          "y": 713.15625,
+          "width": 159.6875,
+          "height": 38.84375,
+          "top": 713.15625,
+          "right": 241.640625,
+          "bottom": 752,
+          "left": 81.953125
+        },
+        {
+          "x": 253.640625,
+          "y": 713.15625,
+          "width": 159.6875,
+          "height": 38.84375,
+          "top": 713.15625,
+          "right": 413.328125,
+          "bottom": 752,
+          "left": 253.640625
+        },
+        {
+          "x": 425.328125,
+          "y": 713.15625,
+          "width": 159.6875,
+          "height": 38.84375,
+          "top": 713.15625,
+          "right": 585.015625,
+          "bottom": 752,
+          "left": 425.328125
+        }
+      ],
+      "titleSize": "56px",
+      "brandSize": "33.6px",
+      "logoReachable": true,
+      "logoRect": {
+        "x": 852.90625,
+        "y": 717,
+        "width": 88,
+        "height": 23,
+        "top": 717,
+        "right": 940.90625,
+        "bottom": 740,
+        "left": 852.90625
+      },
+      "buttonColor": "rgb(255, 255, 255)",
+      "buttonBackground": "rgb(217, 54, 43)",
+      "mapBlocked": true,
+      "attributionRect": {
+        "x": 849.21875,
+        "y": 748,
+        "width": 516.78125,
+        "height": 20,
+        "top": 748,
+        "right": 1366,
+        "bottom": 768,
+        "left": 849.21875
+      },
+      "noAttributionOverlap": true
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "brand": {
+        "x": 86.390625,
+        "y": 253.25,
+        "width": 254.75,
+        "height": 42,
+        "top": 253.25,
+        "right": 341.140625,
+        "bottom": 295.25,
+        "left": 86.390625
+      },
+      "headline": {
+        "x": 86.390625,
+        "y": 334.25,
+        "width": 383.609375,
+        "height": 128.78125,
+        "top": 334.25,
+        "right": 470,
+        "bottom": 463.03125,
+        "left": 86.390625
+      },
+      "content": {
+        "x": 0,
+        "y": 242.859375,
+        "width": 633.59375,
+        "height": 344.0625,
+        "top": 242.859375,
+        "right": 633.59375,
+        "bottom": 586.921875,
+        "left": 0
+      },
+      "guest": {
+        "x": 86.390625,
+        "y": 532.53125,
+        "width": 134.390625,
+        "height": 44,
+        "top": 532.53125,
+        "right": 220.78125,
+        "bottom": 576.53125,
+        "left": 86.390625
+      },
+      "login": {
+        "x": 230.375,
+        "y": 532.53125,
+        "width": 73,
+        "height": 44,
+        "top": 532.53125,
+        "right": 303.375,
+        "bottom": 576.53125,
+        "left": 230.375
+      },
+      "support": {
+        "x": 86.390625,
+        "y": 474.21875,
+        "width": 202,
+        "height": 47.125,
+        "top": 474.21875,
+        "right": 288.390625,
+        "bottom": 521.34375,
+        "left": 86.390625
+      },
+      "supportText": "실내 자전거로 실제 도로를 달리면, 달린 길이 내 지도에 남습니다.",
+      "headlineLines": [
+        {
+          "rect": {
+            "x": 86.390625,
+            "y": 334.25,
+            "width": 383.609375,
+            "height": 64.390625,
+            "top": 334.25,
+            "right": 470,
+            "bottom": 398.640625,
+            "left": 86.390625
+          },
+          "lineHeight": 64.4
+        },
+        {
+          "rect": {
+            "x": 86.390625,
+            "y": 398.640625,
+            "width": 383.609375,
+            "height": 64.390625,
+            "top": 398.640625,
+            "right": 470,
+            "bottom": 463.03125,
+            "left": 86.390625
+          },
+          "lineHeight": 64.4
+        }
+      ],
+      "supportLines": [
+        {
+          "rect": {
+            "x": 86.390625,
+            "y": 474.21875,
+            "width": 202,
+            "height": 23.5625,
+            "top": 474.21875,
+            "right": 288.390625,
+            "bottom": 497.78125,
+            "left": 86.390625
+          },
+          "lineHeight": 23.56
+        },
+        {
+          "rect": {
+            "x": 86.390625,
+            "y": 497.78125,
+            "width": 202,
+            "height": 23.5625,
+            "top": 497.78125,
+            "right": 288.390625,
+            "bottom": 521.34375,
+            "left": 86.390625
+          },
+          "lineHeight": 23.56
+        }
+      ],
+      "overflow": false,
+      "scrollOverflow": false,
+      "stepsDisplay": "grid",
+      "steps": [
+        {
+          "x": 86.390625,
+          "y": 845.15625,
+          "width": 169.0625,
+          "height": 38.84375,
+          "top": 845.15625,
+          "right": 255.453125,
+          "bottom": 884,
+          "left": 86.390625
+        },
+        {
+          "x": 267.453125,
+          "y": 845.15625,
+          "width": 169.0625,
+          "height": 38.84375,
+          "top": 845.15625,
+          "right": 436.515625,
+          "bottom": 884,
+          "left": 267.453125
+        },
+        {
+          "x": 448.515625,
+          "y": 845.15625,
+          "width": 169.0625,
+          "height": 38.84375,
+          "top": 845.15625,
+          "right": 617.578125,
+          "bottom": 884,
+          "left": 448.515625
+        }
+      ],
+      "titleSize": "56px",
+      "brandSize": "33.6px",
+      "logoReachable": true,
+      "logoRect": {
+        "x": 898.796875,
+        "y": 849,
+        "width": 88,
+        "height": 23,
+        "top": 849,
+        "right": 986.796875,
+        "bottom": 872,
+        "left": 898.796875
+      },
+      "buttonColor": "rgb(255, 255, 255)",
+      "buttonBackground": "rgb(217, 54, 43)",
+      "mapBlocked": true,
+      "attributionRect": {
+        "x": 923.21875,
+        "y": 880,
+        "width": 516.78125,
+        "height": 20,
+        "top": 880,
+        "right": 1440,
+        "bottom": 900,
+        "left": 923.21875
+      },
+      "noAttributionOverlap": true
+    }
+  ],
+  "attributionRetestMap": {
+    "responses": 112,
+    "ok": 112
+  }
+}

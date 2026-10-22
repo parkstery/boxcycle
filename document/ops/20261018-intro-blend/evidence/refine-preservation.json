@@ -1,0 +1,14 @@
+{
+  "checked": 106,
+  "preserved": 106,
+  "changed": [],
+  "excluded": [
+    "apps/web/src/App.tsx",
+    "apps/web/src/components/maphud/MapHud.tsx",
+    "apps/web/src/components/auth/AppIntroScreen.tsx",
+    "apps/web/src/components/auth/AppIntroScreen.css",
+    "document/ops/README.md",
+    "document/ops/PROGRESS.md",
+    "document/ops/20261018-intro-blend/README.md"
+  ]
+}

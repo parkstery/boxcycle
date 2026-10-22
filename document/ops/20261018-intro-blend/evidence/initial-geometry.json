@@ -1,0 +1,614 @@
+{
+  "map": {
+    "responses": 110,
+    "ok": 110
+  },
+  "rows": [
+    {
+      "width": 667,
+      "height": 275,
+      "brand": {
+        "x": 26.671875,
+        "y": 42.984375,
+        "width": 155.671875,
+        "height": 27,
+        "top": 42.984375,
+        "right": 182.34375,
+        "bottom": 69.984375,
+        "left": 26.671875
+      },
+      "headline": {
+        "x": 26.671875,
+        "y": 93.5,
+        "width": 137.03125,
+        "height": 46.5625,
+        "top": 93.5,
+        "right": 163.703125,
+        "bottom": 140.0625,
+        "left": 26.671875
+      },
+      "lines": [
+        {
+          "text": "땀으로 그리는,",
+          "rect": {
+            "x": 26.671875,
+            "y": 93.5,
+            "width": 137.03125,
+            "height": 23.28125,
+            "top": 93.5,
+            "right": 163.703125,
+            "bottom": 116.78125,
+            "left": 26.671875
+          },
+          "lineHeight": "23.2875px"
+        },
+        {
+          "text": "나만의 지구 지도.",
+          "rect": {
+            "x": 26.671875,
+            "y": 116.78125,
+            "width": 137.03125,
+            "height": 23.28125,
+            "top": 116.78125,
+            "right": 163.703125,
+            "bottom": 140.0625,
+            "left": 26.671875
+          },
+          "lineHeight": "23.2875px"
+        }
+      ],
+      "content": {
+        "x": 0,
+        "y": 36.234375,
+        "width": 346.828125,
+        "height": 202.546875,
+        "top": 36.234375,
+        "right": 346.828125,
+        "bottom": 238.78125,
+        "left": 0
+      },
+      "guest": {
+        "x": 26.671875,
+        "y": 188.03125,
+        "width": 114.390625,
+        "height": 44,
+        "top": 188.03125,
+        "right": 141.0625,
+        "bottom": 232.03125,
+        "left": 26.671875
+      },
+      "login": {
+        "x": 146.453125,
+        "y": 188.03125,
+        "width": 62,
+        "height": 44,
+        "top": 188.03125,
+        "right": 208.453125,
+        "bottom": 232.03125,
+        "left": 146.453125
+      },
+      "overflow": false,
+      "scrollOverflow": false,
+      "stepsDisplay": "none",
+      "titleSize": "20.25px",
+      "brandSize": "19.575px",
+      "supportSize": "12.825px",
+      "logoReachable": false,
+      "logoRect": {
+        "x": 419.53125,
+        "y": 246,
+        "width": 88,
+        "height": 23,
+        "top": 246,
+        "right": 507.53125,
+        "bottom": 269,
+        "left": 419.53125
+      }
+    },
+    {
+      "width": 667,
+      "height": 300,
+      "brand": {
+        "x": 26.671875,
+        "y": 55.484375,
+        "width": 155.671875,
+        "height": 27,
+        "top": 55.484375,
+        "right": 182.34375,
+        "bottom": 82.484375,
+        "left": 26.671875
+      },
+      "headline": {
+        "x": 26.671875,
+        "y": 106,
+        "width": 137.03125,
+        "height": 46.5625,
+        "top": 106,
+        "right": 163.703125,
+        "bottom": 152.5625,
+        "left": 26.671875
+      },
+      "lines": [
+        {
+          "text": "땀으로 그리는,",
+          "rect": {
+            "x": 26.671875,
+            "y": 106,
+            "width": 137.03125,
+            "height": 23.28125,
+            "top": 106,
+            "right": 163.703125,
+            "bottom": 129.28125,
+            "left": 26.671875
+          },
+          "lineHeight": "23.2875px"
+        },
+        {
+          "text": "나만의 지구 지도.",
+          "rect": {
+            "x": 26.671875,
+            "y": 129.28125,
+            "width": 137.03125,
+            "height": 23.28125,
+            "top": 129.28125,
+            "right": 163.703125,
+            "bottom": 152.5625,
+            "left": 26.671875
+          },
+          "lineHeight": "23.2875px"
+        }
+      ],
+      "content": {
+        "x": 0,
+        "y": 48.734375,
+        "width": 346.828125,
+        "height": 202.546875,
+        "top": 48.734375,
+        "right": 346.828125,
+        "bottom": 251.28125,
+        "left": 0
+      },
+      "guest": {
+        "x": 26.671875,
+        "y": 200.53125,
+        "width": 114.390625,
+        "height": 44,
+        "top": 200.53125,
+        "right": 141.0625,
+        "bottom": 244.53125,
+        "left": 26.671875
+      },
+      "login": {
+        "x": 146.453125,
+        "y": 200.53125,
+        "width": 62,
+        "height": 44,
+        "top": 200.53125,
+        "right": 208.453125,
+        "bottom": 244.53125,
+        "left": 146.453125
+      },
+      "overflow": false,
+      "scrollOverflow": false,
+      "stepsDisplay": "none",
+      "titleSize": "20.25px",
+      "brandSize": "19.575px",
+      "supportSize": "12.825px",
+      "logoReachable": false,
+      "logoRect": {
+        "x": 419.53125,
+        "y": 271,
+        "width": 88,
+        "height": 23,
+        "top": 271,
+        "right": 507.53125,
+        "bottom": 294,
+        "left": 419.53125
+      }
+    },
+    {
+      "width": 740,
+      "height": 300,
+      "brand": {
+        "x": 29.59375,
+        "y": 64.78125,
+        "width": 155.671875,
+        "height": 27,
+        "top": 64.78125,
+        "right": 185.265625,
+        "bottom": 91.78125,
+        "left": 29.59375
+      },
+      "headline": {
+        "x": 29.59375,
+        "y": 115.296875,
+        "width": 137.03125,
+        "height": 46.5625,
+        "top": 115.296875,
+        "right": 166.625,
+        "bottom": 161.859375,
+        "left": 29.59375
+      },
+      "lines": [
+        {
+          "text": "땀으로 그리는,",
+          "rect": {
+            "x": 29.59375,
+            "y": 115.296875,
+            "width": 137.03125,
+            "height": 23.28125,
+            "top": 115.296875,
+            "right": 166.625,
+            "bottom": 138.578125,
+            "left": 29.59375
+          },
+          "lineHeight": "23.2875px"
+        },
+        {
+          "text": "나만의 지구 지도.",
+          "rect": {
+            "x": 29.59375,
+            "y": 138.578125,
+            "width": 137.03125,
+            "height": 23.28125,
+            "top": 138.578125,
+            "right": 166.625,
+            "bottom": 161.859375,
+            "left": 29.59375
+          },
+          "lineHeight": "23.2875px"
+        }
+      ],
+      "content": {
+        "x": 0,
+        "y": 58.03125,
+        "width": 384.796875,
+        "height": 183.953125,
+        "top": 58.03125,
+        "right": 384.796875,
+        "bottom": 241.984375,
+        "left": 0
+      },
+      "guest": {
+        "x": 29.59375,
+        "y": 191.234375,
+        "width": 114.390625,
+        "height": 44,
+        "top": 191.234375,
+        "right": 143.984375,
+        "bottom": 235.234375,
+        "left": 29.59375
+      },
+      "login": {
+        "x": 149.375,
+        "y": 191.234375,
+        "width": 62,
+        "height": 44,
+        "top": 191.234375,
+        "right": 211.375,
+        "bottom": 235.234375,
+        "left": 149.375
+      },
+      "overflow": false,
+      "scrollOverflow": false,
+      "stepsDisplay": "none",
+      "titleSize": "20.25px",
+      "brandSize": "19.575px",
+      "supportSize": "12.825px",
+      "logoReachable": false,
+      "logoRect": {
+        "x": 464.796875,
+        "y": 271,
+        "width": 88,
+        "height": 23,
+        "top": 271,
+        "right": 552.796875,
+        "bottom": 294,
+        "left": 464.796875
+      }
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "brand": {
+        "x": 33.75,
+        "y": 109.78125,
+        "width": 155.671875,
+        "height": 27,
+        "top": 109.78125,
+        "right": 189.421875,
+        "bottom": 136.78125,
+        "left": 33.75
+      },
+      "headline": {
+        "x": 33.75,
+        "y": 160.296875,
+        "width": 137.03125,
+        "height": 46.5625,
+        "top": 160.296875,
+        "right": 170.78125,
+        "bottom": 206.859375,
+        "left": 33.75
+      },
+      "lines": [
+        {
+          "text": "땀으로 그리는,",
+          "rect": {
+            "x": 33.75,
+            "y": 160.296875,
+            "width": 137.03125,
+            "height": 23.28125,
+            "top": 160.296875,
+            "right": 170.78125,
+            "bottom": 183.578125,
+            "left": 33.75
+          },
+          "lineHeight": "23.2875px"
+        },
+        {
+          "text": "나만의 지구 지도.",
+          "rect": {
+            "x": 33.75,
+            "y": 183.578125,
+            "width": 137.03125,
+            "height": 23.28125,
+            "top": 183.578125,
+            "right": 170.78125,
+            "bottom": 206.859375,
+            "left": 33.75
+          },
+          "lineHeight": "23.2875px"
+        }
+      ],
+      "content": {
+        "x": 0,
+        "y": 103.03125,
+        "width": 438.875,
+        "height": 183.953125,
+        "top": 103.03125,
+        "right": 438.875,
+        "bottom": 286.984375,
+        "left": 0
+      },
+      "guest": {
+        "x": 33.75,
+        "y": 236.234375,
+        "width": 114.390625,
+        "height": 44,
+        "top": 236.234375,
+        "right": 148.140625,
+        "bottom": 280.234375,
+        "left": 33.75
+      },
+      "login": {
+        "x": 153.53125,
+        "y": 236.234375,
+        "width": 62,
+        "height": 44,
+        "top": 236.234375,
+        "right": 215.53125,
+        "bottom": 280.234375,
+        "left": 153.53125
+      },
+      "overflow": false,
+      "scrollOverflow": false,
+      "stepsDisplay": "none",
+      "titleSize": "20.25px",
+      "brandSize": "19.575px",
+      "supportSize": "12.825px",
+      "logoReachable": false,
+      "logoRect": {
+        "x": 529.265625,
+        "y": 361,
+        "width": 88,
+        "height": 23,
+        "top": 361,
+        "right": 617.265625,
+        "bottom": 384,
+        "left": 529.265625
+      }
+    },
+    {
+      "width": 1366,
+      "height": 768,
+      "brand": {
+        "x": 81.953125,
+        "y": 181.515625,
+        "width": 254.75,
+        "height": 42,
+        "top": 181.515625,
+        "right": 336.703125,
+        "bottom": 223.515625,
+        "left": 81.953125
+      },
+      "headline": {
+        "x": 81.953125,
+        "y": 262.515625,
+        "width": 383.609375,
+        "height": 128.78125,
+        "top": 262.515625,
+        "right": 465.5625,
+        "bottom": 391.296875,
+        "left": 81.953125
+      },
+      "lines": [
+        {
+          "text": "땀으로 그리는,",
+          "rect": {
+            "x": 81.953125,
+            "y": 262.515625,
+            "width": 383.609375,
+            "height": 64.390625,
+            "top": 262.515625,
+            "right": 465.5625,
+            "bottom": 326.90625,
+            "left": 81.953125
+          },
+          "lineHeight": "64.4px"
+        },
+        {
+          "text": "나만의 지구 지도.",
+          "rect": {
+            "x": 81.953125,
+            "y": 326.90625,
+            "width": 383.609375,
+            "height": 64.390625,
+            "top": 326.90625,
+            "right": 465.5625,
+            "bottom": 391.296875,
+            "left": 81.953125
+          },
+          "lineHeight": "64.4px"
+        }
+      ],
+      "content": {
+        "x": 0,
+        "y": 171.125,
+        "width": 601.03125,
+        "height": 320.5,
+        "top": 171.125,
+        "right": 601.03125,
+        "bottom": 491.625,
+        "left": 0
+      },
+      "guest": {
+        "x": 81.953125,
+        "y": 437.234375,
+        "width": 134.390625,
+        "height": 44,
+        "top": 437.234375,
+        "right": 216.34375,
+        "bottom": 481.234375,
+        "left": 81.953125
+      },
+      "login": {
+        "x": 225.9375,
+        "y": 437.234375,
+        "width": 73,
+        "height": 44,
+        "top": 437.234375,
+        "right": 298.9375,
+        "bottom": 481.234375,
+        "left": 225.9375
+      },
+      "overflow": false,
+      "scrollOverflow": false,
+      "stepsDisplay": "flex",
+      "titleSize": "56px",
+      "brandSize": "33.6px",
+      "supportSize": "15.2px",
+      "logoReachable": false,
+      "logoRect": {
+        "x": 852.90625,
+        "y": 739,
+        "width": 88,
+        "height": 23,
+        "top": 739,
+        "right": 940.90625,
+        "bottom": 762,
+        "left": 852.90625
+      }
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "brand": {
+        "x": 86.390625,
+        "y": 247.515625,
+        "width": 254.75,
+        "height": 42,
+        "top": 247.515625,
+        "right": 341.140625,
+        "bottom": 289.515625,
+        "left": 86.390625
+      },
+      "headline": {
+        "x": 86.390625,
+        "y": 328.515625,
+        "width": 383.609375,
+        "height": 128.78125,
+        "top": 328.515625,
+        "right": 470,
+        "bottom": 457.296875,
+        "left": 86.390625
+      },
+      "lines": [
+        {
+          "text": "땀으로 그리는,",
+          "rect": {
+            "x": 86.390625,
+            "y": 328.515625,
+            "width": 383.609375,
+            "height": 64.390625,
+            "top": 328.515625,
+            "right": 470,
+            "bottom": 392.90625,
+            "left": 86.390625
+          },
+          "lineHeight": "64.4px"
+        },
+        {
+          "text": "나만의 지구 지도.",
+          "rect": {
+            "x": 86.390625,
+            "y": 392.90625,
+            "width": 383.609375,
+            "height": 64.390625,
+            "top": 392.90625,
+            "right": 470,
+            "bottom": 457.296875,
+            "left": 86.390625
+          },
+          "lineHeight": "64.4px"
+        }
+      ],
+      "content": {
+        "x": 0,
+        "y": 237.125,
+        "width": 633.59375,
+        "height": 320.5,
+        "top": 237.125,
+        "right": 633.59375,
+        "bottom": 557.625,
+        "left": 0
+      },
+      "guest": {
+        "x": 86.390625,
+        "y": 503.234375,
+        "width": 134.390625,
+        "height": 44,
+        "top": 503.234375,
+        "right": 220.78125,
+        "bottom": 547.234375,
+        "left": 86.390625
+      },
+      "login": {
+        "x": 230.375,
+        "y": 503.234375,
+        "width": 73,
+        "height": 44,
+        "top": 503.234375,
+        "right": 303.375,
+        "bottom": 547.234375,
+        "left": 230.375
+      },
+      "overflow": false,
+      "scrollOverflow": false,
+      "stepsDisplay": "flex",
+      "titleSize": "56px",
+      "brandSize": "33.6px",
+      "supportSize": "15.2px",
+      "logoReachable": false,
+      "logoRect": {
+        "x": 898.796875,
+        "y": 871,
+        "width": 88,
+        "height": 23,
+        "top": 871,
+        "right": 986.796875,
+        "bottom": 894,
+        "left": 898.796875
+      }
+    }
+  ]
+}

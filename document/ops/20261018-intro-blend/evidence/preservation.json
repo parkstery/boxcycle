@@ -1,0 +1,13 @@
+{
+  "beforeFiles": 85,
+  "excluded": [
+    "document/ops/README.md",
+    "document/ops/PROGRESS.md",
+    "apps/web/src/components/auth/AppIntroScreen.tsx",
+    "apps/web/src/components/auth/AppIntroScreen.css"
+  ],
+  "checked": 81,
+  "preserved": 81,
+  "changedExisting": [],
+  "unexpectedTrackedChanges": []
+}

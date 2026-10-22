@@ -1,0 +1,277 @@
+{
+  "pass": true,
+  "rows": [
+    {
+      "type": "actual-intro",
+      "width": 667,
+      "height": 300,
+      "headline": "땀으로 그리는,\n나만의 지구 지도.",
+      "brand": {
+        "x": 54.859375,
+        "y": 58.4375,
+        "width": 88.5625,
+        "height": 20.03125,
+        "top": 58.4375,
+        "right": 143.421875,
+        "bottom": 78.46875,
+        "left": 54.859375
+      },
+      "support": {
+        "x": 40.015625,
+        "y": 151.0625,
+        "width": 253.296875,
+        "height": 39.75,
+        "top": 151.0625,
+        "right": 293.3125,
+        "bottom": 190.8125,
+        "left": 40.015625
+      },
+      "guest": {
+        "x": 40.015625,
+        "y": 197.5625,
+        "width": 104.25,
+        "height": 44,
+        "top": 197.5625,
+        "right": 144.265625,
+        "bottom": 241.5625,
+        "left": 40.015625
+      },
+      "login": {
+        "x": 149.65625,
+        "y": 197.5625,
+        "width": 61.25,
+        "height": 44,
+        "top": 197.5625,
+        "right": 210.90625,
+        "bottom": 241.5625,
+        "left": 149.65625
+      },
+      "overflow": false
+    },
+    {
+      "type": "actual-intro",
+      "width": 740,
+      "height": 300,
+      "headline": "땀으로 그리는,\n나만의 지구 지도.",
+      "brand": {
+        "x": 59.234375,
+        "y": 58.4375,
+        "width": 88.5625,
+        "height": 20.03125,
+        "top": 58.4375,
+        "right": 147.796875,
+        "bottom": 78.46875,
+        "left": 59.234375
+      },
+      "support": {
+        "x": 44.390625,
+        "y": 151.0625,
+        "width": 282.5,
+        "height": 39.75,
+        "top": 151.0625,
+        "right": 326.890625,
+        "bottom": 190.8125,
+        "left": 44.390625
+      },
+      "guest": {
+        "x": 44.390625,
+        "y": 197.5625,
+        "width": 104.25,
+        "height": 44,
+        "top": 197.5625,
+        "right": 148.640625,
+        "bottom": 241.5625,
+        "left": 44.390625
+      },
+      "login": {
+        "x": 154.03125,
+        "y": 197.5625,
+        "width": 61.25,
+        "height": 44,
+        "top": 197.5625,
+        "right": 215.28125,
+        "bottom": 241.5625,
+        "left": 154.03125
+      },
+      "overflow": false
+    },
+    {
+      "type": "actual-intro",
+      "width": 844,
+      "height": 390,
+      "headline": "땀으로 그리는,\n나만의 지구 지도.",
+      "brand": {
+        "x": 65.46875,
+        "y": 103.4375,
+        "width": 88.5625,
+        "height": 20.03125,
+        "top": 103.4375,
+        "right": 154.03125,
+        "bottom": 123.46875,
+        "left": 65.46875
+      },
+      "support": {
+        "x": 50.625,
+        "y": 196.0625,
+        "width": 286.875,
+        "height": 39.75,
+        "top": 196.0625,
+        "right": 337.5,
+        "bottom": 235.8125,
+        "left": 50.625
+      },
+      "guest": {
+        "x": 50.625,
+        "y": 242.5625,
+        "width": 104.25,
+        "height": 44,
+        "top": 242.5625,
+        "right": 154.875,
+        "bottom": 286.5625,
+        "left": 50.625
+      },
+      "login": {
+        "x": 160.265625,
+        "y": 242.5625,
+        "width": 61.25,
+        "height": 44,
+        "top": 242.5625,
+        "right": 221.515625,
+        "bottom": 286.5625,
+        "left": 160.265625
+      },
+      "overflow": false
+    },
+    {
+      "type": "actual-intro",
+      "width": 1366,
+      "height": 768,
+      "headline": "땀으로 그리는,\n나만의 지구 지도.",
+      "brand": {
+        "x": 99.546875,
+        "y": 266.328125,
+        "width": 127.21875,
+        "height": 28.140625,
+        "top": 266.328125,
+        "right": 226.765625,
+        "bottom": 294.46875,
+        "left": 99.546875
+      },
+      "support": {
+        "x": 81.953125,
+        "y": 399.375,
+        "width": 318.046875,
+        "height": 47.125,
+        "top": 399.375,
+        "right": 400,
+        "bottom": 446.5,
+        "left": 81.953125
+      },
+      "guest": {
+        "x": 81.953125,
+        "y": 457.6875,
+        "width": 120,
+        "height": 44,
+        "top": 457.6875,
+        "right": 201.953125,
+        "bottom": 501.6875,
+        "left": 81.953125
+      },
+      "login": {
+        "x": 209.953125,
+        "y": 457.6875,
+        "width": 71,
+        "height": 44,
+        "top": 457.6875,
+        "right": 280.953125,
+        "bottom": 501.6875,
+        "left": 209.953125
+      },
+      "overflow": false
+    },
+    {
+      "type": "hud-fixture",
+      "stage": "idle",
+      "brand": {
+        "x": 9.328125,
+        "y": 9.328125,
+        "width": 85.59375,
+        "height": 28.34375,
+        "top": 9.328125,
+        "right": 94.921875,
+        "bottom": 37.671875,
+        "left": 9.328125
+      },
+      "text": "Spinatlas",
+      "overflow": false
+    },
+    {
+      "type": "hud-fixture",
+      "stage": "ready-to-start",
+      "brand": {
+        "x": 9.328125,
+        "y": 9.328125,
+        "width": 85.59375,
+        "height": 28.34375,
+        "top": 9.328125,
+        "right": 94.921875,
+        "bottom": 37.671875,
+        "left": 9.328125
+      },
+      "text": "Spinatlas",
+      "overflow": false
+    },
+    {
+      "type": "hud-fixture",
+      "stage": "riding",
+      "brand": {
+        "x": 9.328125,
+        "y": 13.984375,
+        "width": 85.59375,
+        "height": 28.34375,
+        "top": 13.984375,
+        "right": 94.921875,
+        "bottom": 42.328125,
+        "left": 9.328125
+      },
+      "metrics": {
+        "x": 99.640625,
+        "y": 9.328125,
+        "width": 226.71875,
+        "height": 37.65625,
+        "top": 9.328125,
+        "right": 326.359375,
+        "bottom": 46.984375,
+        "left": 99.640625
+      },
+      "text": "Spinatlas",
+      "overflow": false
+    },
+    {
+      "type": "hud-fixture",
+      "stage": "paused",
+      "brand": {
+        "x": 9.328125,
+        "y": 13.984375,
+        "width": 85.59375,
+        "height": 28.34375,
+        "top": 13.984375,
+        "right": 94.921875,
+        "bottom": 42.328125,
+        "left": 9.328125
+      },
+      "metrics": {
+        "x": 99.640625,
+        "y": 9.328125,
+        "width": 226.71875,
+        "height": 37.65625,
+        "top": 9.328125,
+        "right": 326.359375,
+        "bottom": 46.984375,
+        "left": 99.640625
+      },
+      "text": "Spinatlas",
+      "overflow": false
+    }
+  ]
+}

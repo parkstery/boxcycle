@@ -1,0 +1,56 @@
+{
+  "pass": true,
+  "rows": [
+    {
+      "width": 667,
+      "height": 275,
+      "calls": {
+        "guest": 1,
+        "login": 1
+      },
+      "focus": {
+        "outlineStyle": "solid",
+        "outlineWidth": "2px"
+      },
+      "reduced": {
+        "animation": "none",
+        "transition": "0s"
+      },
+      "buttonWidthRatio": 1.2977699342210813
+    },
+    {
+      "width": 740,
+      "height": 300,
+      "calls": {
+        "guest": 1,
+        "login": 1
+      },
+      "focus": {
+        "outlineStyle": "solid",
+        "outlineWidth": "2px"
+      },
+      "reduced": {
+        "animation": "none",
+        "transition": "0s"
+      },
+      "buttonWidthRatio": 1.2977699342210813
+    },
+    {
+      "width": 1366,
+      "height": 768,
+      "calls": {
+        "guest": 1,
+        "login": 1
+      },
+      "focus": {
+        "outlineStyle": "solid",
+        "outlineWidth": "2px"
+      },
+      "reduced": {
+        "animation": "none",
+        "transition": "0s"
+      },
+      "buttonWidthRatio": 1.3025163353260114
+    }
+  ]
+}
