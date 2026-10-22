@@ -3,6 +3,7 @@ import type { RideUiStage } from "../../hooks/useRideUiStage";
 import { sensorChipSlot } from "../../lib/route/sensorChipSlot";
 import { CadenceHudChip, type CadenceChipBinding } from "../maphud/CadenceHudChip";
 import "./RideControlBar.css";
+import "./RideMediaButton.css";
 
 export type RideControlBarProps = {
   stage: RideUiStage;
@@ -59,18 +60,18 @@ export function RideControlBar(props: RideControlBarProps) {
           aria-label="이어 달리기 선택" aria-expanded={resumeOpen} onClick={() => setResumeOpen(v => !v)}>
           {restartFromZero ? "처음부터" : `${Math.round(resumeRatio * 100)}%부터`} ▴
         </button> : null}
-        {ready || paused ? <button type="button" className={`ride-control-bar__primary${cue.active && ready ? " ride-control-bar__primary--cue" : ""}`}
+        {ready || paused ? <button type="button" className={`ride-media-button ride-media-button--play ride-control-bar__primary${cue.active && ready ? " ride-control-bar__primary--cue" : ""}`}
           disabled={ready && startDisabled} aria-label={paused ? "재개" : "주행 시작"}
           onClick={() => { setResumeOpen(false); setPauseOptionsOpen(false); setCue(c => ({...c, active: false})); if (paused) props.onResumeRide(); else props.onStartRide(restartFromZero); }}>
-          <span aria-hidden>▶</span> {paused ? "재개" : "시작"}
+          <span className="ride-media-button__icon" aria-hidden="true" />
         </button> : null}
-        {riding ? <button type="button" aria-label="일시정지" onClick={props.onPauseRide}><span aria-hidden>Ⅱ</span> 일시정지</button> : null}
-        {active ? <button type="button" className="ride-control-bar__end" aria-label="주행 종료" onClick={() => {
+        {riding ? <button type="button" className="ride-media-button ride-media-button--pause" aria-label="일시정지" onClick={props.onPauseRide}><span className="ride-media-button__icon" aria-hidden="true" /></button> : null}
+        {active ? <button type="button" className="ride-media-button ride-media-button--stop ride-control-bar__end" aria-label="주행 종료" onClick={() => {
           setEndedRoute({token: routeSetupToken});
           setResumeOpen(false);
           setPauseOptionsOpen(false);
           props.onEndRide();
-        }}><span aria-hidden>■</span> 종료</button> : null}
+        }}><span className="ride-media-button__icon" aria-hidden="true" /></button> : null}
         {paused && props.onModifyFromPause ? <button type="button" aria-label="일시정지 옵션" aria-expanded={pauseOptionsOpen} onClick={() => setPauseOptionsOpen(v=>!v)}>⋯</button> : null}
       </div>
       {paused && pauseOptionsOpen && props.onModifyFromPause ? <div className="ride-control-bar__resume">

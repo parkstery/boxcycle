@@ -9,22 +9,22 @@
 .ride-control-bar {
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 2px;
+  gap: 6px;
+  padding: 0;
   width: max-content;
   max-width: 100%;
   min-height: 32px;
   box-sizing: border-box;
-  border: 1px solid var(--rtw-ui-border-soft);
-  border-radius: 9px;
-  background: var(--rtw-ui-surface, #fff);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--rtw-ui-ink, #172238);
-  box-shadow: 0 1px 5px #0002;
+  box-shadow: none;
   pointer-events: auto;
   font-size: 11px;
   white-space: nowrap;
 }
-.ride-control-bar button {
+.ride-control-bar button:not(.ride-media-button) {
   height: 28px;
   padding: 0 7px;
   border: 0;
@@ -36,9 +36,7 @@
 }
 .ride-control-bar button:disabled { opacity: .45; cursor: not-allowed; }
 .ride-control-bar .hud-cadence { min-width: 48px; width: auto; height: 28px; padding: 0 5px; font-size: 11px; }
-.ride-control-bar .ride-control-bar__primary { background: var(--rtw-ui-primary-strong, #2563eb); color: #fff; }
 .ride-control-bar__primary--cue { animation: ride-control-ready 1s ease-in-out 5; }
-.ride-control-bar .ride-control-bar__end { border-left: 1px solid var(--rtw-ui-border-soft); border-radius: 0 6px 6px 0; }
 .ride-control-bar button:focus-visible { outline: 2px solid var(--rtw-ui-primary-strong, #2563eb); outline-offset: 1px; }
 .ride-control-bar__resume {
   pointer-events: auto;

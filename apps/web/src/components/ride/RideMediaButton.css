@@ -1,0 +1,30 @@
+.ride-media-button {
+  --media-top: #23d65c;
+  --media-bottom: #009627;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid #ffffff55;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 30% 12%, #ffffff60, transparent 48%), linear-gradient(145deg, var(--media-top), var(--media-bottom));
+  box-shadow: inset 0 1px 2px #ffffff80, inset 0 -2px 3px #0002, 0 1px 3px #0003;
+  color: #fff;
+  cursor: pointer;
+  appearance: none;
+  touch-action: manipulation;
+}
+.ride-media-button--pause { --media-top: #269bff; --media-bottom: #0056ef; }
+.ride-media-button--stop { --media-top: #ff4848; --media-bottom: #e90707; }
+.ride-media-button:disabled { opacity: .4; cursor: not-allowed; }
+.ride-media-button:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+.ride-media-button:not(:disabled):active { transform: scale(.95); }
+.ride-media-button__icon { display: block; width: 18px; height: 20px; background: #fff; pointer-events: none; }
+.ride-media-button--play .ride-media-button__icon { clip-path: polygon(12% 0, 100% 50%, 12% 100%); margin-left: 3px; }
+.ride-media-button--pause .ride-media-button__icon { width: 17px; border-radius: 2px; background: linear-gradient(to right, #fff 0 35%, transparent 35% 65%, #fff 65%); }
+.ride-media-button--stop .ride-media-button__icon { width: 18px; height: 18px; border-radius: 3px; }

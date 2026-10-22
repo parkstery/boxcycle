@@ -78,7 +78,7 @@ test.describe('실주행 진입 시퀀스', () => {
     await modal.locator('button.oc-modal__item').first().click()
 
     // 주행 시작 (RouteDock 'Go' = aria '주행 시작')
-    const start = page.getByRole('button', { name: '주행 시작' })
+    const start = page.getByRole('group', { name: '주행 제어' }).getByRole('button', { name: '주행 시작' })
     await expect(start).toBeVisible()
     await start.click()
 
@@ -145,7 +145,7 @@ test.describe('실주행 진입 시퀀스', () => {
       const modal = await openBasicCourseModal(page)
       await modal.locator('button.oc-modal__item').nth(index).click()
 
-      const start = page.getByRole('button', { name: '주행 시작' })
+      const start = page.getByRole('group', { name: '주행 제어' }).getByRole('button', { name: '주행 시작' })
       await expect(start).toBeVisible()
       await start.click()
 

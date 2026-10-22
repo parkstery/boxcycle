@@ -10,6 +10,7 @@
  * 계약 시험이 문자열째 겨눈다 — 표현을 바꾸려면 시험부터 고쳐라.
  */
 import mapboxgl from "mapbox-gl";
+import "../ride/RideMediaButton.css";
 import { formatDistanceAutoRouteDirectionClickHint, DISTANCE_AUTO_ROUTE_KM_MAX, DISTANCE_AUTO_ROUTE_KM_MIN, DISTANCE_AUTO_ROUTE_KM_STEP, DISTANCE_AUTO_ROUTE_REROUTE_HINT, DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA, DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL, validateDistanceAutoRouteTargetKm, DISTANCE_AUTO_ROUTE_CHIP_KM, DISTANCE_AUTO_ROUTE_DEFAULT_KM } from "../../lib/route/distanceAutoRouteErrors";
 import { getDistanceAutoRouteMapBridge } from "../../lib/map/distanceAutoRouteMapBridge";
 import type { LngLat } from "../../lib/geo/geo";
@@ -244,9 +245,12 @@ export type PickPopupAutoRouteUi = {
   stageDirectionPick: (point: LngLat) => boolean;
   getRoutePickView: () => "location" | "distance";
   selectDistanceStart: (point: LngLat) => boolean;
+  syncRideStart: () => void;
 };
 
 export function buildPickPopup(deps: {
+  onStartRide?: () => void;
+  getCanStartRide?: () => boolean;
   lngLat: LngLat;
   getWaypointCount: () => number;
   accessToken: string;
@@ -393,18 +397,12 @@ export function buildPickPopup(deps: {
   const wpSlotHost = document.createElement("div");
   wpSlotHost.className = "map-view__pick-wp-slots";
 
-  const addWpBtn = document.createElement("button");
-  addWpBtn.type = "button";
-  addWpBtn.className = "map-view__pick-btn map-view__pick-btn--add-wp";
-  addWpBtn.textContent = "+경유지";
-  addWpBtn.setAttribute("aria-label", "경유지 추가");
-
   function mountWaypointBtn(slot: 0 | 1 | 2): HTMLButtonElement {
     const count = getWaypointCount();
     const wpBtn = document.createElement("button");
     wpBtn.type = "button";
     wpBtn.className = "map-view__pick-btn map-view__pick-btn--wp";
-    wpBtn.textContent = `경유${slot + 1}`;
+    wpBtn.textContent = `W${slot + 1}`;
     wpBtn.disabled = !isWaypointSlotEnabled(count, slot);
     wpBtn.title = waypointSlotTitle(slot, count);
     wpBtn.setAttribute("aria-label", `경유지 ${slot + 1}`);
@@ -421,28 +419,11 @@ export function buildPickPopup(deps: {
   }
 
   function syncWaypointPinRow() {
-    const count = getWaypointCount();
     wpSlotHost.replaceChildren();
-    for (let slot = 0; slot < count; slot++) {
+    for (let slot = 0; slot < MAX_ROUTE_WAYPOINTS; slot++) {
       wpSlotHost.appendChild(mountWaypointBtn(slot as 0 | 1 | 2));
     }
-    if (count < MAX_ROUTE_WAYPOINTS) {
-      addWpBtn.disabled = false;
-      wpSlotHost.appendChild(addWpBtn);
-    }
   }
-
-  addWpBtn.onclick = () => {
-    const count = getWaypointCount();
-    if (count >= MAX_ROUTE_WAYPOINTS) return;
-    const slot = count as 0 | 1 | 2;
-    if (!isWaypointSlotEnabled(count, slot)) return;
-    if (distanceDirectionChecked) {
-      applyDistanceDirectionMode(false);
-    }
-    onSelectPoint("waypoint", lngLat, slot);
-    closePopup();
-  };
 
   const endBtn = document.createElement("button");
   endBtn.type = "button";
@@ -619,9 +600,27 @@ export function buildPickPopup(deps: {
 
   const profileBottomRow = document.createElement("div");
   profileBottomRow.className = "map-view__pick-profile-bottom-row";
-  profileBottomRow.append(rowProfile);
+  const startRideBtn = document.createElement("button");
+  startRideBtn.type = "button";
+  startRideBtn.className = "ride-media-button ride-media-button--play map-view__pick-start-ride";
+  startRideBtn.setAttribute("aria-label", "주행 시작");
+  startRideBtn.title = "주행 시작";
+  const playIcon = document.createElement("span");
+  playIcon.className = "ride-media-button__icon";
+  playIcon.setAttribute("aria-hidden", "true");
+  startRideBtn.append(playIcon);
+  const syncRideStart = () => {
+    startRideBtn.hidden = typeof deps.onStartRide !== "function";
+    startRideBtn.disabled = !deps.getCanStartRide?.();
+  };
+  startRideBtn.onclick = () => {
+    if (!deps.getCanStartRide?.()) return;
+    deps.onStartRide?.();
+  };
+  syncRideStart();
+  profileBottomRow.append(startRideBtn);
   if (clearRouteBtn) profileBottomRow.append(clearRouteBtn);
-  profileSection.append(profileBottomRow);
+  profileSection.append(rowProfile, profileBottomRow);
   syncProfileUi();
   syncTokenUi();
 
@@ -967,6 +966,7 @@ export function buildPickPopup(deps: {
     tryArmDirectionPick: tryArmDirectionPickIfChecked,
     syncDistanceInputs,
     getRoutePickView: () => routePickView,
+    syncRideStart,
     selectDistanceStart: (point) => {
       if (routePickView !== "distance" || pins.start) return false;
       selectStart(point);

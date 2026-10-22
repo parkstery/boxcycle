@@ -12,8 +12,11 @@ test('분리된 주소/주행바: 세 크기·다섯 상태·지도정보와 겹
     for(const state of ['idle','setup','ready','riding','paused']){
       await page.goto(`${preview}?state=${state}`);
       const bar=page.locator('.ride-control-bar');
-      await expect(bar).toBeVisible();
+      // 센서만 있는 단계는 센서가 독립 고정 배치되고 투명 주행바 자체는 폭이 없다.
+      if(state==='idle'||state==='setup')await expect(bar).toBeAttached();
+      else await expect(bar).toBeVisible();
       await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
+      await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toBeVisible();
       if(state==='idle')await expect(page.locator('.route-dock-anchor')).toHaveCount(0);
       const geom=await page.evaluate(()=>{
         const bar=document.querySelector('.ride-control-bar')!.getBoundingClientRect();
@@ -21,7 +24,15 @@ test('분리된 주소/주행바: 세 크기·다섯 상태·지도정보와 겹
         const collide=others.filter(b=>b.width>0&&b.height>0&&bar.left<b.right&&bar.right>b.left&&bar.top<b.bottom&&bar.bottom>b.top);
         return {bar:bar.toJSON(),collide:collide.map(b=>b.toJSON())};
       });
-      expect(geom.bar.height).toBeLessThanOrEqual(36);
+      expect(geom.bar.height).toBeLessThanOrEqual(44);
+      await expect(bar).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+      const media=bar.locator('.ride-media-button');
+      for(const button of await media.all()){
+        expect((await button.textContent())?.trim()).toBe('');
+        await expect(button).toHaveCSS('border-radius','50%');
+        const box=await button.boundingBox();
+        expect(box!.width).toBe(44);expect(box!.height).toBe(44);
+      }
       expect(geom.bar.right).toBeLessThanOrEqual(size.width);
       expect(geom.collide).toEqual([]);
       if(size.width===800)await page.screenshot({path:path.join(evidence,`bar-${state}-800.png`),animations:'disabled'});
@@ -77,7 +88,7 @@ for(const initial of ['empty','start-only','end-only','ready','waypoints'] as co
       const {mountRoutePickDockDrag}=await import(dragUrl);
       const ac=new AbortController();
       const host=document.createElement('div');host.id='popup-audit';host.className='map-view';
-      Object.assign(host.style,{position:'absolute',right:'4px',top:'44px',width:'215px',zIndex:'10',border:'0',background:'transparent',minHeight:'0'});
+      Object.assign(host.style,{position:'absolute',right:'4px',top:'44px',width:'260px',zIndex:'10',border:'0',background:'transparent',minHeight:'0'});
       let count=initial==='waypoints'?3:0;
       let generated=0; let cleared=0; let lastProfile='';
       let tokenBlocked=false;
@@ -113,7 +124,7 @@ for(const initial of ['empty','start-only','end-only','ready','waypoints'] as co
       const close=document.querySelector('#popup-audit .mapboxgl-popup-close-button')!.getBoundingClientRect();
       const clearInHeader=row.querySelector('.map-view__pick-btn--clear-route');
       const bottomRow=document.querySelector('.map-view__pick-profile-bottom-row')!;
-      const profileRow=bottomRow.querySelector('.map-view__pick-actions--profile')!;
+      const profileRow=document.querySelector('#popup-audit .map-view__pick-actions--profile')!;
       const clearRect=bottomRow.querySelector('.map-view__pick-btn--clear-route')!.getBoundingClientRect();
       const profiles=[...profileRow.querySelectorAll('.map-view__pick-btn--profile')].map(e=>e.getBoundingClientRect());
       const rightMost=profiles.length?Math.max(...profiles.map(b=>b.right)):0;
@@ -131,7 +142,7 @@ for(const initial of ['empty','start-only','end-only','ready','waypoints'] as co
     await expect(popup.locator('#map-view-pick-location-view')).toBeHidden();
     await expect(popup.locator('#map-view-pick-distance-view')).toBeVisible();
     await expect(popup).toHaveAttribute('data-drags','0');
-    if(!hasStart)await expect(popup.getByRole('button',{name:'출발 지점으로 설정',exact:true})).toBeVisible();
+    if(!hasStart)await expect(popup.getByRole('button',{name:'출발 지점으로 설정',exact:true})).toBeHidden();
     else{
       await popup.getByRole('button',{name:'목표 거리 5km',exact:true}).click();
       await expect(popup.getByRole('textbox',{name:'목표거리 km',exact:true})).toHaveValue('5.0');
@@ -170,10 +181,9 @@ for(const initial of ['empty','start-only','end-only','ready','waypoints'] as co
       await expect(popup.getByRole('button',{name:'자전거 경로',exact:true})).toBeHidden();
       await expect(popup).toHaveAttribute('data-generated','0');
     }
-    if(initial==='waypoints'){
-      await expect(popup.getByRole('button',{name:'경유지 추가',exact:true})).toHaveCount(0);
-      await expect(popup.locator('.map-view__pick-btn--wp')).toHaveCount(3);
-    }else await expect(popup.getByRole('button',{name:'경유지 추가',exact:true})).toHaveCount(1);
+    await expect(popup.getByRole('button',{name:'경유지 추가',exact:true})).toHaveCount(0);
+    await expect(popup.locator('.map-view__pick-btn--wp')).toHaveText(['W1','W2','W3']);
+    await expect(popup.locator('.map-view__pick-actions--pin-row button')).toHaveCount(5);
     await expect.poll(()=>popup.locator('.map-view__pick-route-tabs').evaluate(e=>getComputedStyle(e).display)).toBe('flex');
     await page.screenshot({path:path.join(evidence,`popup-11-${initial}-800.png`),animations:'disabled'});
     if(initial==='ready')for(const size of [{width:667,height:300},{width:844,height:390}]){

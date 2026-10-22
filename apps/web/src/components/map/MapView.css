@@ -207,7 +207,7 @@
 
 .map-view__pick {
   padding: 0.45rem 0.55rem 0.5rem;
-  min-width: 13.5rem;
+  min-width: 16rem;
   max-width: 20rem;
   box-sizing: border-box;
   color: #1F2937;
@@ -400,11 +400,12 @@
 }
 
 .map-view__pick-wp-slots {
-  display: flex;
-  flex: 1 1 auto;
-  gap: 0.2rem;
-  min-width: 0;
-  flex-wrap: wrap;
+  display: contents;
+}
+
+.map-view__pick-route-view--location .map-view__pick-actions--pin-row .map-view__pick-btn {
+  min-width: 44px;
+  min-height: 44px;
 }
 
 .map-view__pick .map-view__pick-btn--add-wp {
@@ -510,7 +511,8 @@
 .map-view__pick-profile-section {
   margin-top: 0.14rem;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 4px;
   min-width: 0;
   width: 100%;

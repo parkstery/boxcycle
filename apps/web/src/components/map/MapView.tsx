@@ -407,6 +407,8 @@ export type MapViewProps = {
   conquestRecentNewRoad?: readonly LineStringGeometry[] | null;
   /** 지도 지점 선택 팝업에서 출발·도착·경유·계산 경로 전체 초기화 */
   onClearRoute?: () => void;
+  onStartRide?: () => void;
+  canStartRide?: boolean;
   /** OSRM(Mapbox Streets) 도로 커버리지 */
   coverageOverlayMode: CoverageOverlayMode;
   /** 메뉴 지명 검색 등 — `requestId`가 바뀔 때마다 한 번 카메라 이동 (`bbox` 있으면 도시 단위 fitBounds) */
@@ -588,6 +590,8 @@ export function MapView({
   conquestLiveTraveledMeters = null,
   conquestRecentNewRoad = null,
   onClearRoute,
+  onStartRide,
+  canStartRide = false,
   coverageOverlayMode,
   externalCameraJump = null,
   openRoutePickRequest = null,
@@ -744,6 +748,11 @@ export function MapView({
   const onClearRouteRef = useRef(onClearRoute);
   const onArmDirectionPickRef = useRef(onArmDirectionPick);
   const pickPopupAutoRouteUiRef = useRef<PickPopupAutoRouteUi | null>(null);
+  const rideStartRef = useRef({onStartRide, canStartRide});
+  useEffect(() => {
+    rideStartRef.current = {onStartRide, canStartRide};
+    pickPopupAutoRouteUiRef.current?.syncRideStart();
+  }, [onStartRide, canStartRide]);
   const userMileageRef = useRef({
     totalMeters: userMileageTotalMeters,
     totalSec: userMileageTotalSec,
@@ -1634,6 +1643,8 @@ export function MapView({
       const closePopup = () => finalizePickClose(ac);
       const initialHasStart = Boolean(startLngLatRef.current);
       const pickContent = buildPickPopup({
+        onStartRide: rideStartRef.current.onStartRide ? () => rideStartRef.current.onStartRide?.() : undefined,
+        getCanStartRide: () => rideStartRef.current.canStartRide,
         lngLat: picked,
         getWaypointCount: () => routeWaypointsRef.current.length,
         accessToken: accessToken.trim(),

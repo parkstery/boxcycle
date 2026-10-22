@@ -3091,6 +3091,8 @@ export default function App() {
               </>
             }
             mapView={{
+              onStartRide: () => handleStartRide(),
+              canStartRide: stage === "ready-to-start" && canStartRideWithInput && !routeMenuLockedForProd,
               accessToken: MAPBOX_TOKEN || undefined,
               routeElevationProfile: rideElevationProfile,
               routeGeometry,

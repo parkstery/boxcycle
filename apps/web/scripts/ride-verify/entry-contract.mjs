@@ -253,7 +253,7 @@ export const ENTRY_STEPS = [
   },
   {
     step: "start-ride",
-    desc: "우하단 주행바 — 준비된 경로의 주행 시작",
+    desc: "우하단 주행바·경로창 재생 — 동일한 준비 조건과 콜백으로 주행 시작",
     file: "src/components/ride/RideControlBar.tsx",
     anchors: [
       // 2026-09-28: 일시정지 후 같은 버튼이 「재개」로 바뀐다 — 고정 문자열 앵커는 실종로 오탐.
@@ -263,7 +263,20 @@ export const ENTRY_STEPS = [
       { name: "ready-to-start 게이트", re: /stage === "ready-to-start"/ },
       { name: "주행 제어 그룹", re: /aria-label="주행 제어"/ },
     ],
-    selector: `getByRole('button',{name:'주행 시작'})`,
+    also: [
+      { file: "src/components/map/mapPopupElements.ts", anchors: [
+        { name: "경로창 시작 접근성 이름", re: /startRideBtn\.setAttribute\("aria-label", "주행 시작"\)/ },
+        { name: "경로창 시작 준비 확인", re: /if \(!deps\.getCanStartRide\?\.\(\)\) return/ },
+      ] },
+      { file: "src/components/map/MapView.tsx", anchors: [
+        { name: "열린 창 준비상태 동기화", re: /pickPopupAutoRouteUiRef\.current\?\.syncRideStart\(\)/ },
+      ] },
+      { file: "src/App.tsx", anchors: [
+        { name: "경로창 시작 게이트", re: /canStartRide: stage === "ready-to-start" && canStartRideWithInput && !routeMenuLockedForProd/ },
+        { name: "경로창 시작 콜백", re: /onStartRide: \(\) => handleStartRide\(\)/ },
+      ] },
+    ],
+    selector: `getByRole('group',{name:'주행 제어'}).getByRole('button',{name:'주행 시작'}) or .map-view__pick.getByRole('button',{name:'주행 시작'})`,
   },
   {
     step: "next-ride-card",
