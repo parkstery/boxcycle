@@ -181,9 +181,9 @@ for(const initial of ['empty','start-only','end-only','ready','waypoints'] as co
       await expect(popup.getByRole('button',{name:'자전거 경로',exact:true})).toBeHidden();
       await expect(popup).toHaveAttribute('data-generated','0');
     }
-    await expect(popup.getByRole('button',{name:'경유지 추가',exact:true})).toHaveCount(0);
-    await expect(popup.locator('.map-view__pick-btn--wp')).toHaveText(['W1','W2','W3']);
-    await expect(popup.locator('.map-view__pick-actions--pin-row button')).toHaveCount(5);
+    await expect(popup.getByRole('button',{name:'경유지 추가',exact:true})).toHaveCount(1);
+    await expect(popup.locator('.map-view__pick-btn--wp')).toHaveText(['+경유']);
+    await expect(popup.locator('.map-view__pick-actions--pin-row button')).toHaveCount(3);
     await expect.poll(()=>popup.locator('.map-view__pick-route-tabs').evaluate(e=>getComputedStyle(e).display)).toBe('flex');
     await page.screenshot({path:path.join(evidence,`popup-11-${initial}-800.png`),animations:'disabled'});
     if(initial==='ready')for(const size of [{width:667,height:300},{width:844,height:390}]){

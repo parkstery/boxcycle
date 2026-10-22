@@ -41,23 +41,6 @@ const PICK_POPUP_PROFILE_ICON_SVG: Record<RouteProfile, string> = {
 };
 
 
-function isWaypointSlotEnabled(currentCount: number, slot: 0 | 1 | 2): boolean {
-  if (slot < currentCount) return true;
-  if (slot === currentCount && currentCount < MAX_ROUTE_WAYPOINTS) return true;
-  return false;
-}
-
-function waypointSlotTitle(slot: 0 | 1 | 2, count: number): string {
-  if (isWaypointSlotEnabled(count, slot)) {
-    return slot < count
-      ? `Move waypoint ${slot + 1} here`
-      : `Add waypoint ${slot + 1} here`;
-  }
-  if (slot > count) {
-    return `Set WP${count + 1} before WP${slot + 1}`;
-  }
-  return "No more waypoints";
-}
 
 
 export type PickPopupAutoRouteUi = {
@@ -225,36 +208,24 @@ export function buildPickPopup(deps: {
   };
   startBtn.onclick = () => selectStart(lngLat);
 
-  const wpSlotHost = document.createElement("div");
-  wpSlotHost.className = "map-view__pick-wp-slots";
-
-  function mountWaypointBtn(slot: 0 | 1 | 2): HTMLButtonElement {
-    const count = getWaypointCount();
-    const wpBtn = document.createElement("button");
-    wpBtn.type = "button";
-    wpBtn.className = "map-view__pick-btn map-view__pick-btn--wp";
-    wpBtn.textContent = `W${slot + 1}`;
-    wpBtn.disabled = !isWaypointSlotEnabled(count, slot);
-    wpBtn.title = waypointSlotTitle(slot, count);
-    wpBtn.setAttribute("aria-label", `경유지 ${slot + 1}`);
-    wpBtn.onclick = () => {
-      const liveCount = getWaypointCount();
-      if (!isWaypointSlotEnabled(liveCount, slot)) return;
-      if (distanceDirectionChecked) {
-        applyDistanceDirectionMode(false);
-      }
-      onSelectPoint("waypoint", lngLat, slot);
-      closePopup();
-    };
-    return wpBtn;
-  }
-
-  function syncWaypointPinRow() {
-    wpSlotHost.replaceChildren();
-    for (let slot = 0; slot < MAX_ROUTE_WAYPOINTS; slot++) {
-      wpSlotHost.appendChild(mountWaypointBtn(slot as 0 | 1 | 2));
+  /* 10-23 Chief: W1~W3 칸 대신 「+경유」 하나 — 누를 때마다 다음 빈 경유지 칸에 넣는다(최대 3) */
+  const wpBtn = document.createElement("button");
+  wpBtn.type = "button";
+  wpBtn.className = "map-view__pick-btn map-view__pick-btn--wp";
+  wpBtn.textContent = "+경유";
+  wpBtn.setAttribute("aria-label", "경유지 추가");
+  const waypointCount = getWaypointCount();
+  wpBtn.disabled = waypointCount >= MAX_ROUTE_WAYPOINTS;
+  wpBtn.title = wpBtn.disabled ? `경유지는 최대 ${MAX_ROUTE_WAYPOINTS}개` : `경유지 ${waypointCount + 1} 추가`;
+  wpBtn.onclick = () => {
+    const slot = getWaypointCount();
+    if (slot >= MAX_ROUTE_WAYPOINTS) return;
+    if (distanceDirectionChecked) {
+      applyDistanceDirectionMode(false);
     }
-  }
+    onSelectPoint("waypoint", lngLat, slot as 0 | 1 | 2);
+    closePopup();
+  };
 
   const endBtn = document.createElement("button");
   endBtn.type = "button";
@@ -278,8 +249,7 @@ export function buildPickPopup(deps: {
     }
   };
 
-  pinRow.append(startBtn, wpSlotHost, endBtn);
-  syncWaypointPinRow();
+  pinRow.append(startBtn, wpBtn, endBtn);
 
   /* 지시38 — 위치 화면. pinRow가 profileSection보다 앞(profileSection은 아래에서 붙는다). */
   const routeLocationView = document.createElement("div");

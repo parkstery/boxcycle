@@ -17,7 +17,7 @@ test('다섯 위치의 추가·교체 및 열린 경로창의 시작 준비상�
   };
   const readState=async()=>JSON.parse((await state.textContent())!) as {waypoints:number[][];starts:number};
   await hold(400,170);
-  await expect(popup.locator('.map-view__pick-actions--pin-row button')).toHaveText(['출발','W1','W2','W3','도착']);
+  await expect(popup.locator('.map-view__pick-actions--pin-row button')).toHaveText(['출발','+경유','도착']);
   const play=popup.getByRole('button',{name:'주행 시작',exact:true});
   await expect(play).toBeDisabled();
   await popup.getByRole('button',{name:'출발 지점으로 설정',exact:true}).click();
@@ -31,17 +31,15 @@ test('다섯 위치의 추가·교체 및 열린 경로창의 시작 준비상�
   await expect(state).toContainText('"starts":1');
   await page.getByRole('button',{name:'검수 입력 준비',exact:true}).click();
   await expect(play).toBeDisabled();
+  // 10-23 Chief: 「+경유」 하나 — 누를 때마다 다음 칸에 추가, 3개가 차면 비활성
   for(const [slot,y] of [100,170,240].entries()){
     await hold(400,y);
-    await popup.getByRole('button',{name:`경유지 ${slot+1}`,exact:true}).click();
+    await popup.getByRole('button',{name:'경유지 추가',exact:true}).click();
     await expect.poll(async()=>(await readState()).waypoints.length).toBe(slot+1);
   }
-  const before=(await readState()).waypoints;
-  await hold(350,260);
-  await popup.getByRole('button',{name:'경유지 2',exact:true}).click();
-  const after=(await readState()).waypoints;
-  expect(after).toHaveLength(3);expect(after[0]).toEqual(before[0]);expect(after[2]).toEqual(before[2]);expect(after[1]).not.toEqual(before[1]);
-  await hold(400,170);
+  await hold(250,120);
+  await expect(popup.getByRole('button',{name:'경유지 추가',exact:true})).toBeDisabled();
+  await hold(520,150);
   for(const size of [{width:800,height:360},{width:667,height:300},{width:844,height:390}]){
     await page.setViewportSize(size);
     const geometry=await popup.evaluate(el=>{
@@ -52,8 +50,8 @@ test('다섯 위치의 추가·교체 및 열린 경로창의 시작 준비상�
       const panel=el.getBoundingClientRect();
       return {buttons:buttons.map(b=>({width:b.width,height:b.height,top:b.top,right:b.right})),profiles,play:play.toJSON(),clear:clear.toJSON(),panel:panel.toJSON()};
     });
-    expect(geometry.buttons).toHaveLength(5);
-    expect(geometry.buttons.every(b=>b.width>=44&&b.height>=44)).toBe(true);
+    expect(geometry.buttons).toHaveLength(3);
+    expect(geometry.buttons.every(b=>b.width>=44&&b.height>=28&&b.height<=30)).toBe(true);
     expect(new Set(geometry.buttons.map(b=>b.top)).size).toBe(1);
     expect(geometry.play.right).toBeLessThan(geometry.clear.left);
     expect(geometry.profiles).toHaveLength(3);
