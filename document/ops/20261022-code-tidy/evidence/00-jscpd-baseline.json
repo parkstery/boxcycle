@@ -1,0 +1,181 @@
+{
+ "statistics": {
+  "lines": 73521,
+  "tokens": 707925,
+  "sources": 468,
+  "clones": 33,
+  "duplicatedLines": 549,
+  "duplicatedTokens": 6515,
+  "percentage": 0.75,
+  "percentageTokens": 0.92,
+  "newDuplicatedLines": 0,
+  "newClones": 0
+ },
+ "duplicates": [
+  {
+   "lines": 11,
+   "a": "src\\lib\\trail\\repo\\firestoreOpenTrailListings.ts:106-116",
+   "b": "src\\lib\\trail\\repo\\firestoreTrailInstance.ts:66-80"
+  },
+  {
+   "lines": 16,
+   "a": "src\\lib\\trail\\repo\\firestoreOpenTrailListings.ts:141-156",
+   "b": "src\\lib\\trail\\repo\\firestoreOpenTrailListings.ts:100-111"
+  },
+  {
+   "lines": 17,
+   "a": "src\\lib\\trail\\repo\\firestoreOpenTrailListings.ts:164-180",
+   "b": "src\\lib\\trail\\repo\\firestoreTrailInstance.ts:46-58"
+  },
+  {
+   "lines": 9,
+   "a": "src\\lib\\ride\\repo\\rideResumeSlotLocal.ts:178-186",
+   "b": "src\\lib\\ride\\repo\\rideResumeSlotLocal.ts:147-155"
+  },
+  {
+   "lines": 15,
+   "a": "src\\lib\\ride\\repo\\rideResumeSlotLocal.ts:287-301",
+   "b": "src\\lib\\ride\\repo\\rideResumeSlotLocal.ts:242-256"
+  },
+  {
+   "lines": 15,
+   "a": "src\\lib\\peerMotion\\repo\\rtdbMotionSubscriptionHub.ts:10-24",
+   "b": "src\\lib\\trail\\repo\\livePublicationRidesSubscriptionHub.ts:14-28"
+  },
+  {
+   "lines": 24,
+   "a": "src\\lib\\peerMotion\\repo\\rtdbMotionSubscriptionHub.ts:24-47",
+   "b": "src\\lib\\trail\\repo\\livePublicationRidesSubscriptionHub.ts:28-51"
+  },
+  {
+   "lines": 21,
+   "a": "src\\lib\\peerMotion\\repo\\rtdbMotionSubscriptionHub.ts:52-72",
+   "b": "src\\lib\\trail\\repo\\livePublicationRidesSubscriptionHub.ts:56-79"
+  },
+  {
+   "lines": 13,
+   "a": "src\\lib\\peerMotion\\repo\\rtdbMotionSubscriptionHub.ts:84-96",
+   "b": "src\\lib\\trail\\repo\\livePublicationRidesSubscriptionHub.ts:91-103"
+  },
+  {
+   "lines": 26,
+   "a": "src\\lib\\peerMotion\\repo\\rtdbMotionSubscriptionHub.ts:96-121",
+   "b": "src\\lib\\trail\\repo\\livePublicationRidesSubscriptionHub.ts:108-133"
+  },
+  {
+   "lines": 14,
+   "a": "src\\lib\\identity\\repo\\firestoreUser.ts:273-286",
+   "b": "src\\lib\\identity\\repo\\firestoreUser.ts:204-217"
+  },
+  {
+   "lines": 10,
+   "a": "src\\lib\\account\\repo\\accountDeletionApi.ts:53-62",
+   "b": "src\\lib\\identity\\repo\\guestResetApi.ts:12-21"
+  },
+  {
+   "lines": 32,
+   "a": "src\\lib\\riderPrototype\\preservedRiderRig.ts:517-548",
+   "b": "src\\lib\\riderPrototype\\preservedRiderStatic.ts:44-74"
+  },
+  {
+   "lines": 10,
+   "a": "src\\lib\\riderPrototype\\preservedRiderRig.ts:616-625",
+   "b": "src\\lib\\riderPrototype\\riderGpuSkin.ts:40-61"
+  },
+  {
+   "lines": 9,
+   "a": "src\\lib\\riderPrototype\\preservedRiderRig.ts:634-642",
+   "b": "src\\lib\\riderPrototype\\riderGpuSkin.ts:73-81"
+  },
+  {
+   "lines": 15,
+   "a": "src\\lib\\ride\\rideConquestResult.ts:52-66",
+   "b": "src\\lib\\conquest\\repo\\firestoreConquest.ts:43-57"
+  },
+  {
+   "lines": 10,
+   "a": "src\\lib\\ride\\nextRideTarget.ts:42-51",
+   "b": "src\\lib\\ride\\repo\\firestoreRides.ts:81-90"
+  },
+  {
+   "lines": 20,
+   "a": "src\\lib\\peerMotion\\motionPublishFlight.ts:120-139",
+   "b": "src\\lib\\peerMotion\\routePublishFlight.ts:138-157"
+  },
+  {
+   "lines": 26,
+   "a": "src\\lib\\peerMotion\\motionPublishFlight.ts:152-177",
+   "b": "src\\lib\\peerMotion\\routePublishFlight.ts:170-195"
+  },
+  {
+   "lines": 14,
+   "a": "src\\lib\\peerMotion\\motionPublishFlight.ts:177-190",
+   "b": "src\\lib\\peerMotion\\routePublishFlight.ts:195-208"
+  },
+  {
+   "lines": 19,
+   "a": "src\\lib\\geo\\lineStringCoordsJson.ts:4-22",
+   "b": "src\\lib\\route\\repo\\firestoreSavedRoutes.ts:228-246"
+  },
+  {
+   "lines": 14,
+   "a": "src\\lib\\camera\\cameraFollowTrace.ts:43-56",
+   "b": "src\\lib\\camera\\cameraRenderPhase.ts:50-63"
+  },
+  {
+   "lines": 12,
+   "a": "src\\lib\\account\\tierQuota.ts:56-67",
+   "b": "src\\lib\\account\\repo\\subscription.ts:16-24"
+  },
+  {
+   "lines": 60,
+   "a": "src\\components\\rideCameraLab\\RideCameraLabPanel.tsx:134-193",
+   "b": "src\\components\\riderLightLab\\RiderLightLabPanel.tsx:89-133"
+  },
+  {
+   "lines": 20,
+   "a": "src\\components\\rideCameraLab\\RideCameraLabPanel.css:12-31",
+   "b": "src\\components\\riderLightLab\\RiderLightLabPanel.css:14-33"
+  },
+  {
+   "lines": 12,
+   "a": "src\\components\\map\\MapViewSheet.tsx:98-109",
+   "b": "src\\components\\ride\\RideSettingsSheet.tsx:30-40"
+  },
+  {
+   "lines": 18,
+   "a": "src\\components\\auth\\AuthSessionGate.tsx:75-92",
+   "b": "src\\components\\auth\\AuthSessionGate.tsx:56-73"
+  },
+  {
+   "lines": 24,
+   "a": "src\\services\\distanceAutoRouteApi.ts:45-68",
+   "b": "src\\services\\mapboxDirections.ts:51-74"
+  },
+  {
+   "lines": 19,
+   "a": "src\\hooks\\useTrailLivePublicationRideSpectatorOverlay.ts:109-127",
+   "b": "src\\features\\map-overlays\\useWorldLivePublicationRideMapOverlay.ts:161-179"
+  },
+  {
+   "lines": 17,
+   "a": "src\\hooks\\useTrailLivePublicationRideSpectatorOverlay.ts:127-143",
+   "b": "src\\features\\map-overlays\\useWorldLivePublicationRideMapOverlay.ts:182-198"
+  },
+  {
+   "lines": 11,
+   "a": "src\\hooks\\useSavedRoutesWorkspace.ts:437-447",
+   "b": "src\\hooks\\useSavedRoutesWorkspace.ts:425-434"
+  },
+  {
+   "lines": 16,
+   "a": "src\\hooks\\useRideResumeSlot.ts:533-548",
+   "b": "src\\hooks\\useRideResumeSlot.ts:464-478"
+  },
+  {
+   "lines": 13,
+   "a": "src\\hooks\\usePacerPreference.ts:51-63",
+   "b": "src\\lib\\ride\\repo\\calorieProfileLocal.ts:84-96"
+  }
+ ]
+}

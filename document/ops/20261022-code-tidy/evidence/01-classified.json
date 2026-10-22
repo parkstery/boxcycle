@@ -1,0 +1,4187 @@
+[
+ {
+  "file": "scripts/route-token/port-guard.mjs",
+  "name": "findListeningPorts",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.geometry.mjs",
+  "name": "SEAT_TUBE_JUNCTION_Y_MM",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.geometry.mjs",
+  "name": "HOOD_HALF_Z",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.geometry.mjs",
+  "name": "ANKLE_BACK",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs",
+   "blender/rider-cycle-fit/align-ankle-mesh.py"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.geometry.mjs",
+  "name": "ANKLE_UP",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs",
+   "apps/web/src/lib/riderPrototype/geometry.json",
+   "blender/rider-cycle-fit/align-ankle-mesh.py"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.geometry.mjs",
+  "name": "HIP_GROUND",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.geometry.mjs",
+  "name": "HIP_TO_ISCHIAL_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.geometry.mjs",
+  "name": "ISCHIAL_Y_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.geometry.mjs",
+  "name": "SADDLE_HEIGHT_DERIVED_MM",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.geometry.mjs",
+  "name": "SEATPOST_EXPOSED_MM",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.geometry.mjs",
+  "name": "TORSO_ANGLE_DEG",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.geometry.mjs",
+  "name": "RIDER_RIG",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/rider/riderGlbPedalPose.pose.mjs",
+  "name": "_poles",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/rider/riderGlbPedalPose.pose.mjs",
+  "name": "sampleRiderMetrics",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/calorieProfileSync.ts",
+  "name": "sameCalorieProfile",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/calorieProfileSync.ts",
+  "name": "isEmptyCalorieProfile",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/pacer/pacerMotion.ts",
+  "name": "PACER_MIN_TARGET_ABS_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/pacer/pacerMotion.ts",
+  "name": "PACER_RETARGET_SEC",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/pacer/pacerMotion.ts",
+  "name": "PACER_CROSS_PROB",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/pacer/pacerMotion.ts",
+  "name": "PACER_GAIN_PER_SEC",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/pacer/pacerMotion.ts",
+  "name": "PACER_BRAKE_MARGIN",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/pacer/pacerMotion.ts",
+  "name": "PACER_REL_V_FLOOR_MPS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/pacer/pacerMotion.ts",
+  "name": "PACER_REL_V_SPEED_FACTOR",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/pacer/pacerMotion.ts",
+  "name": "PACER_STOP_SELF_MPS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/pacer/pacerMotion.ts",
+  "name": "PACER_PHASE_HOLD_KMH",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/pacer/pacerMotion.ts",
+  "name": "PACER_HEADING_HALF_SPAN_M",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/pacer/pacerMotion.ts",
+  "name": "PACER_LANE_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/pacer/pacerMotion.ts",
+  "name": "PACER_INITIAL_GAP_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/pacer/pacerMotion.ts",
+  "name": "PACER_ENTRY_GAP_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/pacer/pacerMotion.ts",
+  "name": "pacerMaxRelVMps",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/pacer/pacerMotion.ts",
+  "name": "pacerApproachSpeedMps",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/traffic/phaseAlignedMeasurement.ts",
+  "name": "parseIsoMs",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/traffic/phaseAlignedMeasurement.ts",
+  "name": "floorToMinuteMs",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/traffic/phaseAlignedMeasurement.ts",
+  "name": "minuteEndMs",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/traffic/phaseAlignedMeasurement.ts",
+  "name": "EvidenceClass",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/traffic/phaseAlignedMeasurement.ts",
+  "name": "MetricName",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/traffic/phaseAlignedMeasurement.ts",
+  "name": "IsoInterval",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/traffic/phaseAlignedMeasurement.ts",
+  "name": "RiderPhaseIntervals",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/traffic/phaseAlignedMeasurement.ts",
+  "name": "MinuteBin",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/traffic/phaseAlignedMeasurement.ts",
+  "name": "ContainedBin",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/traffic/phaseAlignedMeasurement.ts",
+  "name": "WindowAttribution",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/traffic/phaseAlignedMeasurement.ts",
+  "name": "DirectionalCompare",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/traffic/phaseAlignedMeasurement.ts",
+  "name": "InsufficientResult",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/peer-sync/s1-metrics.mjs",
+  "name": "alignSeries",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "scripts/peer-sync/s1-metrics.mjs",
+  "name": "interpolateSelf",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/peer-sync/relay-paths.mjs",
+  "name": "RELAY_COMMITTED_DIR",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/peer-sync/relay-paths.mjs",
+  "name": "RELAY_SCRATCH_DIR",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/peer-sync/relay-paths.mjs",
+  "name": "EVIDENCE_MODE",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/repo/rtdbTrailMotion.ts",
+  "name": "RTDB_TRAIL_MOTION_SEGMENT",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/repo/rtdbTrailMotion.ts",
+  "name": "decodeTrailMotionPayload",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/peer-sync/common-display-product-harness.mjs",
+   "apps/web/scripts/peer-sync/real-paired-quantize-beat-harness.mjs",
+   "apps/web/scripts/peer-sync/residual-peer-jitter-harness.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/trail/repo/firestoreTrailLivePublicationRides.ts",
+  "name": "TRAIL_LIVE_PUBLICATION_RIDE_WRITE_INTERVAL_MS",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/trail/repo/firestoreTrailLivePublicationRides.ts",
+  "name": "countTrailLiveRiders",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/hooks/useOpenTrails.ts",
+   "apps/web/src/lib/trail/repo/firestoreOpenTrailListings.ts"
+  ]
+ },
+ {
+  "file": "src/lib/trail/repo/firestoreTrailLivePublicationRides.ts",
+  "name": "fetchTrailIdsWithActiveLiveRides",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/integrator.ts",
+  "name": "capSpeedMps",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/sensor/bleCscCadence.ts",
+  "name": "FLAG_WHEEL_REV",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/sensor/bleCscCadence.ts",
+  "name": "FLAG_CRANK_REV",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/sensor/bleCscCadence.ts",
+  "name": "RPM_EMA_ALPHA",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/sensor/bleCscCadence.ts",
+  "name": "CRANK_RPM_MAX",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/sensor/crankRpm.ts"
+  ]
+ },
+ {
+  "file": "src/lib/sensor/bleCscCadence.ts",
+  "name": "MIN_EVENT_DT_SEC",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/sensor/bleCscCadence.ts",
+  "name": "MAX_EVENT_DT_SEC",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/sensor/cadenceRideInput.ts",
+  "name": "CADENCE_DEADZONE_RPM",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/sensor/cadenceRideInput.ts",
+  "name": "CADENCE_TO_KMH",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/fetchRouteElevations.ts",
+  "name": "ROUTE_ELEVATION_SAMPLE_COUNT",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/e2e/open-meteo-stub.ts"
+  ]
+ },
+ {
+  "file": "src/lib/route/fetchRouteElevations.ts",
+  "name": "sampleRouteCoordinatesByArcLength",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/fetchRouteElevations.ts",
+  "name": "sampleRouteCoordinatesForElevation",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/geo/geo.ts",
+  "name": "parseLngLat",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/geo/geo.ts",
+  "name": "buildVertexCumulativeMeters",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/geo/geo.ts",
+  "name": "densifyLineStringByIntervalM",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/geo/geo.ts",
+  "name": "distanceMetersToVertexIndexAtOrBefore",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/geo/geo.ts",
+  "name": "driveHeadingAtDistanceMeters",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/geo/geo.ts",
+  "name": "pathPointAheadAlongLineString",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/conquest/conquestTiles.ts",
+  "name": "CONQUEST_CELL_APPROX_METERS",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/rideCameraFraming.ts",
+  "name": "RIDE_FIT_PADDING_MAX_VIEWPORT_RATIO",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/rideCameraFraming.ts",
+  "name": "RIDER_LOOK_AT_HEIGHT_M",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/ride-camera-framing/ride-camera-framing-contract.test.ts"
+  ]
+ },
+ {
+  "file": "src/lib/camera/rideCameraFraming.ts",
+  "name": "rideRiderAnchorBiasMAtZoom",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/rideCameraFraming.ts",
+  "name": "projectLngLatAltitude",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/mapGlobeView.ts",
+  "name": "MAP_GLOBE_FIT_MAX_ZOOM",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/mapGlobeView.ts",
+  "name": "RIDE_FOLLOW_CAMERA_ZOOM",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/mapGlobeView.ts",
+  "name": "applyMapGlobeView",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/mapPickRouteDock.ts",
+  "name": "panelFocusOverlapArea",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/mapPickRouteDock.ts",
+  "name": "ROUTE_PICK_DOCK_HUD_SLOT_SELECTORS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/mapPickRouteDock.ts",
+  "name": "rectsOverlapAny",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "scripts/distance-auto-route/click-intent-replay-core.ts",
+  "name": "BASELINE_ALGORITHM_VERSION",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "scripts/distance-auto-route/click-intent-replay-core.ts",
+  "name": "buildStraightRouteGeometry",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/distance-auto-route/click-intent-replay-core.ts",
+  "name": "buildLShapedRouteGeometry",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "scripts/distance-auto-route/click-intent-replay-core.ts",
+  "name": "buildParallelOffsetRouteGeometry",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "scripts/distance-auto-route/click-intent-replay-core.ts",
+  "name": "createFixtureFetchDirections",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/distance-auto-route/click-intent-replay-core.ts",
+  "name": "formatMetric",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/distance-auto-route/click-intent-replay-core.ts",
+  "name": "AUTO_ROUTE_ALGORITHM_VERSION",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/distance-auto-route/distance-auto-route-click-intent-replay.mjs",
+   "apps/web/scripts/distance-auto-route/distance-auto-route-click-intent.test.ts",
+   "apps/web/scripts/distance-auto-route/reach-offer-replay-core.ts"
+  ]
+ },
+ {
+  "file": "scripts/distance-auto-route/click-intent-replay-core.ts",
+  "name": "FixtureProviderOverride",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/distance-auto-route/click-intent-replay-core.ts",
+  "name": "ClickIntentFixtureExpected",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/trail/repo/firestoreOpenTrailListings.ts",
+  "name": "OPEN_TRAIL_LISTINGS_COLLECTION",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "functions/src/openTrailListingCore.ts",
+   "functions/src/trailInstanceLifecycle.ts"
+  ]
+ },
+ {
+  "file": "src/lib/trail/repo/firestoreOpenTrailListings.ts",
+  "name": "OPEN_TRAIL_LISTING_STALE_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "functions/src/openTrailListingCore.ts"
+  ]
+ },
+ {
+  "file": "src/lib/trail/repo/firestoreTrailInstance.ts",
+  "name": "closeTrailInstance",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/App.tsx",
+   "apps/web/scripts/ride-hierarchy/trail-lifecycle-contract.test.ts"
+  ]
+ },
+ {
+  "file": "src/lib/trail/repo/firestoreTrailInstance.ts",
+  "name": "TrailStatus",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/trail/trailTypes.ts"
+  ]
+ },
+ {
+  "file": "src/lib/trail/repo/firestoreTrail.ts",
+  "name": "isMemberRecentlySeen",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/ride/repo/firestorePublicationSessionPresence.ts",
+   "apps/web/src/lib/trail/repo/firestoreTrailLivePublicationRides.ts",
+   "apps/web/src/lib/trail/trailLivePolicy.ts"
+  ]
+ },
+ {
+  "file": "src/lib/trail/repo/firestoreTrail.ts",
+  "name": "PRESENCE_HEARTBEAT_INTERVAL_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/trail/trailLivePolicy.ts"
+  ]
+ },
+ {
+  "file": "src/lib/trail/repo/firestoreTrail.ts",
+  "name": "TRAIL_PRESENCE_STALE_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/PublicationSharedPresence.tsx",
+   "apps/web/src/lib/ride/repo/firestoreGlobalLivePresence.ts",
+   "apps/web/src/lib/trail/repo/firestoreOpenTrailListings.ts"
+  ]
+ },
+ {
+  "file": "src/lib/trail/repo/firestoreTrail.ts",
+  "name": "lastSeenAtToMillis",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/activity/repo/firestoreRouteActivity.ts",
+   "apps/web/src/lib/activity/repo/firestoreWorldActivity.ts",
+   "apps/web/src/lib/firebase/converters.ts"
+  ]
+ },
+ {
+  "file": "scripts/route-token/nodeRuntime.mjs",
+  "name": "requiredNodeMajor",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/route-token/run-route-token-harness.mjs"
+  ]
+ },
+ {
+  "file": "scripts/route-token/nodeRuntime.mjs",
+  "name": "assertNodeMajor",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/route-token/run-route-token-harness.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/ride/rideRecordPolicy.ts",
+  "name": "MIN_MEANINGFUL_RIDE_DISTANCE_METERS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/e2e/ride-continuation.spec.ts",
+   "functions/src/cliRideMetrics.ts",
+   "functions/src/rideRecordPolicy.ts"
+  ]
+ },
+ {
+  "file": "src/lib/ride/rideRecordPolicy.ts",
+  "name": "MIN_MEANINGFUL_RIDE_DURATION_SEC",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/e2e/public-trail-functional-1-2.spec.ts",
+   "functions/src/cliRideMetrics.ts",
+   "functions/src/rideRecordPolicy.ts"
+  ]
+ },
+ {
+  "file": "e2e/open-meteo-stub.ts",
+  "name": "syntheticElevations",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "e2e/open-meteo-stub.ts",
+  "name": "countRequestedCoords",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "e2e/rideEntryHelpers.ts",
+  "name": "openCadenceSheet",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "e2e/rideEntryHelpers.ts",
+  "name": "closeCadenceSheet",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "e2e/rideEntryHelpers.ts",
+  "name": "ensureRideInputReady",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/features/map-overlays/routeMinimapProjection.ts",
+  "name": "ROUTE_MINIMAP_MAX_COORDS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/features/map-overlays/routeMinimapProjection.ts",
+  "name": "ROUTE_MINIMAP_MAX_ZOOM",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/features/map-overlays/routeMinimapProjection.ts",
+  "name": "mercatorXY",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/features/map-overlays/routeMinimapProjection.ts",
+  "name": "ROUTE_MINIMAP_STATIC_STYLE",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/features/map-overlays/routeMinimapProjection.ts",
+  "name": "distancePointToPolylinePx",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/features/map-overlays/routeMinimapProjection.ts",
+  "name": "MINIMAP_WIDTH_RATIO",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/features/map-overlays/index.ts"
+  ]
+ },
+ {
+  "file": "src/features/map-overlays/routeMinimapProjection.ts",
+  "name": "MinimapPoint",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/account/accountDeletion.ts",
+  "name": "AccountDeletionError",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/distance-auto-route/denseLine.ts",
+  "name": "DENSE_LINE_STEP_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/distanceAutoRouteEta.ts",
+  "name": "DISTANCE_AUTO_ROUTE_MIN_PLAUSIBLE_KMH",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/distanceAutoRouteEta.ts",
+  "name": "DISTANCE_AUTO_ROUTE_MAX_PLAUSIBLE_KMH",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/distance-auto-route/reach-offer-replay-core.ts",
+  "name": "SESSION_6_START",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/distance-auto-route/reach-offer-replay-core.ts",
+  "name": "SESSION_6_PROFILE",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/distance-auto-route/reach-offer-replay-core.ts",
+  "name": "createSession6MockFetch",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/distance-auto-route/reach-offer-replay-core.ts",
+  "name": "AUTO_ROUTE_ALGORITHM_VERSION",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/distance-auto-route/click-intent-replay-core.ts",
+   "apps/web/scripts/distance-auto-route/distance-auto-route-click-intent-replay.mjs",
+   "apps/web/scripts/distance-auto-route/distance-auto-route-click-intent.test.ts"
+  ]
+ },
+ {
+  "file": "src/lib/route/basicIntroHubRouteGeometries.ts",
+  "name": "BASIC_INTRO_MAX_DISTANCE_METERS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "scripts/gen-basic-intro-routes.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/route/basicIntroHubRouteGeometries.ts",
+  "name": "BASIC_INTRO_SEOUL_NAMSAN_ROUTE",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "scripts/gen-basic-intro-routes.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/route/basicIntroHubRouteGeometries.ts",
+  "name": "BASIC_INTRO_PARIS_PONT_NEUF_ROUTE",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "scripts/gen-basic-intro-routes.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/route/basicIntroHubRouteGeometries.ts",
+  "name": "BASIC_INTRO_NYC_CENTRAL_PARK_ROUTE",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "scripts/gen-basic-intro-routes.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/ride/companionHudCount.ts",
+  "name": "stripCompanionLiveCountClause",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/jitter/raf-beat-replay.mjs",
+  "name": "REPLAY_HZ",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/jitter/raf-beat-replay.mjs",
+  "name": "statsOf",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/jitter/raf-beat-replay.mjs",
+  "name": "replay",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/distance-auto-route/click-intent-replay-core.ts",
+   "apps/web/scripts/distance-auto-route/distance-auto-route-click-intent-replay.mjs",
+   "apps/web/scripts/distance-auto-route/distance-auto-route-reach-offer-session.test.ts"
+  ]
+ },
+ {
+  "file": "scripts/jitter/raf-beat-replay.mjs",
+  "name": "replayFrames",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/jitter/raf-beat-replay.mjs",
+  "name": "replayPeerFrames",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/mapBootCenter.ts",
+  "name": "ENTRY_LOCATION_FLIGHT_MAX_MS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/mapBootCenter.ts",
+  "name": "ENTRY_LOCATION_FLIGHT_MIN_MS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/mapBootCenter.ts",
+  "name": "MapBootCenterSource",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/geo/entryLocation.ts",
+  "name": "isUsableLngLat",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/identity/authRestore.ts",
+  "name": "AUTH_EXPIRED_CODES",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/identity/authRestore.ts",
+  "name": "authErrorCode",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/account/accountDeletion.ts",
+   "apps/web/src/lib/account/repo/accountDeletionApi.ts"
+  ]
+ },
+ {
+  "file": "src/lib/identity/authRestore.ts",
+  "name": "classifyAuthVerificationFailure",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/identity/authRestore.ts",
+  "name": "AuthVerifyKind",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/identity/authRestore.ts",
+  "name": "AuthExposurePhase",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/identity/uidLocalCache.ts",
+  "name": "uidLocalCacheKeys",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/identity/guestActivity.ts",
+  "name": "runGuestActivityTick",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/identity/nickname.ts",
+  "name": "NICKNAME_REGEX",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/identity/riderName.ts",
+  "name": "GUEST_NAME_PREFIX",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/identity/riderName.ts",
+  "name": "UNNAMED_RIDER_PREFIX",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/identity/riderName.ts",
+  "name": "riderShortCode",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/storage/appSessionKeys.ts",
+  "name": "APP_USE_ENDED_KEY",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/storage/appSessionKeys.ts",
+  "name": "GUEST_ENTRY_ACCEPTED_SESSION_KEY",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/storage/appSessionKeys.ts",
+  "name": "START_SCREEN_NOTICE_SESSION_KEY",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/identity/guestAccountReset.ts",
+  "name": "resetGuestAccount",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/identity/start-screen-after-deletion.test.ts",
+   "scripts/guest-logout-supervisor.test.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/identity/guestAccountReset.ts",
+  "name": "GuestResetResult",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/layerOrder.ts",
+  "name": "conquestRankOffset",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/mapCut.ts",
+  "name": "MAP_CUT_QUERY_KEY",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/tools/check-dev-tools.test.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/map/mapCut.ts",
+  "name": "isMapCutActive",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/mapCut.ts",
+  "name": "MAP_CUT_BUILDING_LAYER_ID",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/components/map/mapRoutePickGesture.ts",
+  "name": "MAP_ROUTE_PICK_SHORT_TAP_MAX_MS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rideLabels.ts",
+  "name": "RIDE_LABELS_HIDE_ZOOM",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rideLabels.ts",
+  "name": "RIDE_LABELS_SHOW_ZOOM",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rideLabels.ts",
+  "name": "RIDE_LABELS_QUERY_KEY",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rideLabels.ts",
+  "name": "RIDE_LABEL_MODE_QUERY_KEY",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rideLabels.ts",
+  "name": "RIDE_LABEL_DIST_QUERY_KEY",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rideLabels.ts",
+  "name": "RIDE_LABEL_MODE_DEFAULT",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rideLabels.ts",
+  "name": "RIDE_LABEL_DIST_DEFAULT",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rideLabels.ts",
+  "name": "RIDE_LABEL_DIST_MIN",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rideLabels.ts",
+  "name": "RIDE_LABEL_DIST_MAX",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rideLabels.ts",
+  "name": "isRideLabelsForceShown",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rideLabels.ts",
+  "name": "resetRideLabelsControllerForTests",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rtwMapConfig.ts",
+  "name": "RTW_POI_LAYER_KEYWORDS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rtwMapConfig.ts",
+  "name": "RTW_BUILDING_LAYER_KEYWORDS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rtwMapConfig.ts",
+  "name": "RTW_ROAD_PAINT",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rtwMapConfig.ts",
+  "name": "RTW_TRACE_COLOR",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rtwMapConfig.ts",
+  "name": "RTW_TRACE_OWNED_COLOR",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rtwMapConfig.ts",
+  "name": "RTW_TRACE_LIVE_COLOR",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rtwMapConfig.ts",
+  "name": "MAP_STYLE_OUTDOORS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rtwMapConfig.ts",
+  "name": "RIDER_MAP_MAX_DPR_QUERY_KEY",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rtwMapConfig.ts",
+  "name": "RIDER_MAP_MAX_DPR_MIN",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rtwMapConfig.ts",
+  "name": "RIDER_MAP_MAX_DPR_MAX",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/rtwMapConfig.ts",
+  "name": "readRiderMapAppliedPixelRatio",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/nextRideTarget.ts",
+  "name": "sortValidRidesNewestFirst",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/firestoreSavedRoutes.ts",
+  "name": "SAVED_ROUTE_NAME_MIN",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/firestoreSavedRoutes.ts",
+  "name": "SavedRouteDuplicateError",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/account/tierQuota.ts"
+  ]
+ },
+ {
+  "file": "src/lib/route/repo/firestoreSavedRoutes.ts",
+  "name": "normalizeSavedRouteName",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideResumeSlotPolicy.ts",
+  "name": "RIDE_RESUME_SLOT_VERSION",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideResumeSlotPolicy.ts",
+  "name": "RESUME_SLOT_BLOCKED_MSG",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/rider/riderTurn.ts",
+  "name": "RIDER_LEAN_MAX_DEG",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/rider/riderTurn.ts",
+  "name": "RIDER_LEAN_TAU_S",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/rider/riderTurn.ts",
+  "name": "wrapHeadingDeg",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/rider/riderTurn.ts",
+  "name": "approachHeadingDeg",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/rider/riderTurn.ts",
+  "name": "physicalLeanDeg",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/motionPublishFlight.ts",
+  "name": "MOTION_FLIGHT_DRAIN_TIMEOUT_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/hooks/useLiveLocationPublishSession.ts",
+   "apps/web/src/lib/peerMotion/peerSyncPolicy.ts",
+   "apps/web/scripts/ride-hierarchy/sync-policy-constants-contract.test.ts"
+  ]
+ },
+ {
+  "file": "src/lib/ride/caloriesEstimate.ts",
+  "name": "CALORIES_METHOD_VERSION",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideStatsAggregate.ts",
+  "name": "filterValidRideSessions",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideStatsAggregate.ts",
+  "name": "getLocalDayRange",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/repo/calorieProfileLocal.ts",
+  "name": "readCalorieProfile",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/camera1Mode.ts",
+  "name": "isCamera1Mode",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/camera1Mode.ts",
+  "name": "Camera1LegacyMode",
+  "kind": "types",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/liveLocationSnapshot.ts",
+  "name": "computeRouteProgressRatio",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/geo/routeProgressMath.ts",
+   "apps/web/src/lib/ride/rideSessionAnchors.ts"
+  ]
+ },
+ {
+  "file": "src/lib/ride/liveLocationSnapshot.ts",
+  "name": "progressRatioToRouteDistanceMeters",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/geo/routeProgressMath.ts",
+   "apps/web/src/lib/peerMotion/rowToPacket.ts",
+   "apps/web/src/lib/peerMotion/spectatorRideExtrap.ts"
+  ]
+ },
+ {
+  "file": "src/hooks/useRideUiStage.ts",
+  "name": "isRideStageLocked",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideStory.ts",
+  "name": "RIDE_STORY_COMEBACK_DAYS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideStory.ts",
+  "name": "RIDE_STORY_TYPICAL_MIN_SAMPLES",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideStory.ts",
+  "name": "RIDE_MILESTONE_LAST_KM_MIN_ROUTE_METERS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideSessionPreview.ts",
+  "name": "SESSION_PREVIEW_PADDING",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/rider-preserve/rider-glb-test-loader.ts",
+  "name": "stripGlbTextures",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/iso2dMarker.ts",
+  "name": "resolveIso2dSprite",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/riderSway.ts",
+  "name": "RIDER_SWAY_REF_KMH",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/riderSway.ts",
+  "name": "RIDER_SWAY_MIN_FACTOR",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/riderSway.ts",
+  "name": "RIDER_SWAY_MAX_FACTOR",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/riderSway.ts",
+  "name": "RIDER_SWAY_SPEED_TAU_S",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/account/routeTokenSpendState.mjs",
+  "name": "convergeResponse",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/account/routeTokenSpendState.d.mts"
+  ]
+ },
+ {
+  "file": "src/lib/sensor/bleAutoReconnect.ts",
+  "name": "BLE_RECONNECT_BASE_MS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/sensor/cadenceSensorUi.ts",
+  "name": "cadenceSensorStatusLine",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/peer-sync/s3b2r-analyze.mjs",
+  "name": "INTERP_DELAY_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/integrator.ts",
+   "apps/web/src/lib/peerMotion/peerSyncPolicy.ts",
+   "apps/web/scripts/peer-sync/interp-smoothness-contract.test.ts"
+  ]
+ },
+ {
+  "file": "scripts/peer-sync/s3b2r-analyze.mjs",
+  "name": "DISCARD_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/peer-sync/s3av-summarize.mjs",
+   "apps/web/scripts/peer-sync/s3b1-summarize.mjs",
+   "apps/web/scripts/peer-sync/s3b2-summarize.mjs"
+  ]
+ },
+ {
+  "file": "scripts/peer-sync/s3b2r-analyze.mjs",
+  "name": "MAX_DELAY_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/peer-sync/s3av-summarize.mjs",
+   "apps/web/scripts/peer-sync/s3avr-summarize.mjs",
+   "apps/web/scripts/peer-sync/s3b1-summarize.mjs"
+  ]
+ },
+ {
+  "file": "scripts/peer-sync/s3b2r-analyze.mjs",
+  "name": "MIN_OVERLAP",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/peer-sync/s3av-summarize.mjs",
+   "apps/web/scripts/peer-sync/s3avr-summarize.mjs",
+   "apps/web/scripts/peer-sync/s3b1-summarize.mjs"
+  ]
+ },
+ {
+  "file": "scripts/peer-sync/s3b2r-analyze.mjs",
+  "name": "FIT_D_MIN",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/peer-sync/s3b2r-analyze.mjs",
+  "name": "FIT_D_MAX",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/peer-sync/s3b2r-analyze.mjs",
+  "name": "SPOTLIGHT_D",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/peer-sync/s3b2r-analyze.mjs",
+  "name": "num",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/App.tsx",
+   "apps/web/src/components/auth/EntryLocationDialog.tsx",
+   "apps/web/src/components/auth/SignUpNicknameCard.tsx"
+  ]
+ },
+ {
+  "file": "scripts/peer-sync/s3b2r-analyze.mjs",
+  "name": "stats",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/perfLab/PerfLabPanel.tsx",
+   "apps/web/src/components/ride/RideSummarySheet.tsx",
+   "apps/web/src/components/UserInfoSheet.tsx"
+  ]
+ },
+ {
+  "file": "scripts/peer-sync/s3b2r-analyze.mjs",
+  "name": "windowOf",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/peer-sync/s3b1-summarize.mjs",
+   "apps/web/scripts/peer-sync/s3b2-summarize.mjs",
+   "apps/web/scripts/peer-sync/s3b3-summarize.mjs"
+  ]
+ },
+ {
+  "file": "scripts/peer-sync/s3b2r-analyze.mjs",
+  "name": "extractDepartSeries",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/peer-sync/s3b2r-analyze.mjs",
+  "name": "departMechanics",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "scripts/peer-sync/s3b2r-analyze.mjs",
+  "name": "analyzeRun",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/peer-sync/s41-summarize.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/activity/activityWorldTraceStyle.ts",
+  "name": "ACTIVITY_TRACE_HEAT_WINDOW_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/ride/repo/firestorePublicationPresence.ts"
+  ]
+ },
+ {
+  "file": "src/lib/activity/activityWorldTraceStyle.ts",
+  "name": "ACTIVITY_TRACE_LIVE_OPACITY",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/activity/activityWorldTraceStyle.ts",
+  "name": "ACTIVITY_TRACE_COMPLETED_OPACITY",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/repo/firestorePublicationPresence.ts",
+  "name": "PUBLICATION_PRESENCE_COLLECTION",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "functions/src/publicationPresenceCore.ts"
+  ]
+ },
+ {
+  "file": "src/lib/ride/repo/firestorePublicationPresence.ts",
+  "name": "parseRepresentativePoint",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/repo/firestorePublicationPresence.ts",
+  "name": "resolvePublicationRepresentativePointClient",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/repo/firestorePublicationPresence.ts",
+  "name": "enrichPublicationPresencePoints",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/repo/firestorePublicationPresence.ts",
+  "name": "fetchPublicPublicationPresences",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/map/DebugWorldLightMap.tsx",
+   "apps/web/src/hooks/useWorldPublicationPresenceOverlay.ts",
+   "apps/web/src/lib/debug/mapDebugPhase.ts"
+  ]
+ },
+ {
+  "file": "src/lib/ride/repo/firestorePublicationPresence.ts",
+  "name": "PublicationPresenceStatus",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/repo/firestorePublicationPresence.ts",
+  "name": "PublicationVisibility",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "functions/src/publicationPresenceCore.ts",
+   "functions/src/seedBasicIntroPublicationsCore.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/commonDisplayClock.ts",
+  "name": "peekServerTimeOffsetMs",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts",
+   "apps/web/src/lib/peerMotion/repo/serverClockOffset.ts",
+   "apps/web/scripts/peer-sync/common-display-product-harness.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/commonDisplayClock.ts",
+  "name": "estimateServerNowMs",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts",
+   "apps/web/src/lib/peerMotion/repo/serverClockOffset.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/commonDisplayClock.ts",
+  "name": "COMMON_COMPANION_DISPLAY_DELAY_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts",
+   "apps/web/src/lib/peerMotion/peerSyncPolicy.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/commonDisplayClock.ts",
+  "name": "subscribeCommonDisplayAxisReset",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/commonDisplayClock.ts",
+  "name": "notifyCommonDisplayAxisReset",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/commonDisplayClock.ts",
+  "name": "getCommonDisplayDebugState",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/selfDisplayBuffer.ts",
+  "name": "selfDisplaySampleCount",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/selfDisplayBuffer.ts",
+  "name": "peekSelfDisplayNewest",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/quickCameraProductTune.ts",
+  "name": "QUICK_CAMERA_PRODUCT_TUNE",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/sensor/crankRpm.ts",
+  "name": "CRANK_RPM_MIN",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/sensor/crankRpm.ts",
+  "name": "CRANK_RPM_MAX",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/sensor/bleCscCadence.ts"
+  ]
+ },
+ {
+  "file": "src/lib/sensor/crankRpm.ts",
+  "name": "SENSOR_PEDALING_RPM_THRESHOLD",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/peerSyncChainLog.ts",
+  "name": "peerSyncChainLogMs",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/peerSyncChainLog.ts",
+  "name": "peekMotionInFlight",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/repo/rtdbTrailMotion.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/motionWireQuantize.ts",
+  "name": "MOTION_WIRE_DIST_QUANTUM_M",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/peer-sync/real-paired-quantize-beat-harness.mjs",
+   "apps/web/scripts/peer-sync/real-paired-quantize-beat-mutation-failcheck.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/motionWireQuantize.ts",
+  "name": "MOTION_WIRE_SPEED_QUANTUM_MPS",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/motionWireQuantize.ts",
+  "name": "__setMotionWireDistQuantumForTests",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/peer-sync/real-paired-quantize-beat-harness.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.ts",
+  "name": "BB",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/auth/AuthGateCard.tsx",
+   "apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs",
+   "apps/web/src/lib/riderPrototype/config.ts"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.ts",
+  "name": "SADDLE",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/riderPrototype/riderRig.geometry.mjs",
+   "apps/web/scripts/generate-rider-prototype-glb.mjs",
+   "blender/rider-cycle-fit/inspect-saddle-geometry.py"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.ts",
+  "name": "SEAT_TOP",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/riderPrototype/riderRig.geometry.mjs",
+   "apps/web/scripts/generate-rider-prototype-glb.mjs",
+   "blender/rider-cycle-fit/render-frame-compare.py"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.ts",
+  "name": "BAR_HOOD",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/riderPrototype/riderRig.geometry.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.ts",
+  "name": "PELVIS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/camera/rideCameraFraming.ts",
+   "apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs",
+   "apps/web/src/lib/riderPrototype/geometry.json"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.ts",
+  "name": "SHOULDER",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/camera/rideCameraFraming.ts",
+   "apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs",
+   "apps/web/src/lib/riderPrototype/riderAnthropometry.json"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.ts",
+  "name": "CRANK_ARM_M",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs",
+   "apps/web/src/lib/riderPrototype/riderRig.geometry.mjs",
+   "blender/rider-cycle-fit/decompose-natural-joint-skin.py"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.ts",
+  "name": "THIGH_LEN",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs",
+   "apps/web/src/lib/riderPrototype/riderBody.mjs",
+   "apps/web/src/lib/riderPrototype/riderRig.geometry.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.ts",
+  "name": "SHIN_LEN",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs",
+   "apps/web/src/lib/riderPrototype/riderRig.geometry.mjs",
+   "apps/web/scripts/generate-rider-prototype-glb.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.ts",
+  "name": "UPPER_ARM_LEN",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs",
+   "apps/web/src/lib/riderPrototype/riderBody.mjs",
+   "apps/web/src/lib/riderPrototype/riderRig.geometry.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.ts",
+  "name": "FOREARM_LEN",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs",
+   "apps/web/src/lib/riderPrototype/riderBody.mjs",
+   "apps/web/src/lib/riderPrototype/riderRig.geometry.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/riderRig.ts",
+  "name": "pedalWorld",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs",
+   "apps/web/src/lib/riderPrototype/riderRig.geometry.mjs",
+   "apps/web/scripts/generate-rider-prototype-glb.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/config.ts",
+  "name": "PRESERVED_RIDER_ACTIVE_MODEL",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/rider-preserve/preserved-layer-contract.test.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/riderPrototype/config.ts",
+  "name": "PRESERVED_RIDER_CANDIDATE_ID",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/config.ts",
+  "name": "RIDER_GIANT_SCALE_FACTOR",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/activity/repo/firestoreRouteActivity.ts",
+  "name": "isRouteActivityCacheFresh",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/activity/repo/firestoreRouteActivity.ts",
+  "name": "routeActivityHeatAnchorMs",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/focus-read-spike/visibility-gate-contract.test.ts"
+  ]
+ },
+ {
+  "file": "src/features/map-overlays/index.ts",
+  "name": "resolveWorldMapOverlay",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/features/map-overlays/useAppMapOverlays.ts",
+   "apps/web/src/features/map-overlays/worldMapOverlayCore.ts"
+  ]
+ },
+ {
+  "file": "src/features/map-overlays/index.ts",
+  "name": "ActivityWorldLodDebugPanel",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/features/map-overlays/ActivityWorldLodDebugPanel.tsx",
+   "apps/web/src/features/map-overlays/AppMapStage.tsx",
+   "apps/web/src/features/map-overlays/useAppMapOverlays.ts"
+  ]
+ },
+ {
+  "file": "src/features/map-overlays/index.ts",
+  "name": "projectRouteMinimap",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/features/map-overlays/RouteMinimap.tsx",
+   "apps/web/src/features/map-overlays/routeMinimapProjection.ts",
+   "apps/web/e2e/minimap-map-shots.spec.ts"
+  ]
+ },
+ {
+  "file": "src/features/map-overlays/index.ts",
+  "name": "computeRouteMinimapSize",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/features/map-overlays/RouteMinimap.tsx",
+   "apps/web/src/features/map-overlays/routeMinimapProjection.ts"
+  ]
+ },
+ {
+  "file": "src/features/map-overlays/index.ts",
+  "name": "MINIMAP_WIDTH_RATIO",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/features/map-overlays/routeMinimapProjection.ts"
+  ]
+ },
+ {
+  "file": "src/features/map-overlays/index.ts",
+  "name": "ResolveWorldMapOverlayInput",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/features/map-overlays/worldMapOverlayCore.ts"
+  ]
+ },
+ {
+  "file": "src/features/map-overlays/index.ts",
+  "name": "WorldMapOverlaySlice",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/features/map-overlays/worldMapOverlayCore.ts"
+  ]
+ },
+ {
+  "file": "src/features/map-overlays/index.ts",
+  "name": "AppMapOverlaysResult",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/features/map-overlays/useAppMapOverlays.ts"
+  ]
+ },
+ {
+  "file": "src/features/map-overlays/index.ts",
+  "name": "UseAppMapOverlaysOpts",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/features/map-overlays/useAppMapOverlays.ts"
+  ]
+ },
+ {
+  "file": "src/features/map-overlays/index.ts",
+  "name": "AppMapStageProps",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/features/map-overlays/AppMapStage.tsx"
+  ]
+ },
+ {
+  "file": "src/features/map-overlays/index.ts",
+  "name": "RouteMinimapProps",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/features/map-overlays/RouteMinimap.tsx"
+  ]
+ },
+ {
+  "file": "src/lib/activity/activityWorldPollSignals.ts",
+  "name": "resetActivityWorldPollSignals",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/components/ride/index.ts",
+  "name": "RideRoutePanel",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/App.tsx",
+   "apps/web/src/components/ride/RideRoutePanel.tsx",
+   "apps/web/src/lib/map/mapGlobeView.ts"
+  ]
+ },
+ {
+  "file": "src/components/ride/index.ts",
+  "name": "RideSummarySheet",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/App.tsx",
+   "apps/web/src/components/ride/RideSummarySheet.tsx",
+   "apps/web/src/lib/ride/rideStatusCopy.ts"
+  ]
+ },
+ {
+  "file": "src/components/ride/index.ts",
+  "name": "RideSettingsSheet",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/app/useAppSheetNavigation.ts",
+   "apps/web/src/App.tsx",
+   "apps/web/src/components/ProfileEditSheet.tsx"
+  ]
+ },
+ {
+  "file": "src/components/ride/index.ts",
+  "name": "RideSettingsPanel",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/app/useAppSheetNavigation.ts",
+   "apps/web/src/App.tsx",
+   "apps/web/src/components/ride/RideSettingsPanel.tsx"
+  ]
+ },
+ {
+  "file": "src/components/ride/index.ts",
+  "name": "SavedRoutesPanel",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/ride/RideRoutePanel.tsx",
+   "apps/web/src/components/ride/SavedRoutesModal.tsx",
+   "apps/web/src/components/ride/SavedRoutesPanel.tsx"
+  ]
+ },
+ {
+  "file": "src/components/ride/index.ts",
+  "name": "RideHistoryPanel",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/ride/RideHistoryPanel.tsx"
+  ]
+ },
+ {
+  "file": "src/components/ride/index.ts",
+  "name": "FirstRideIntroCard",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/auth/AppIntroScreen.tsx",
+   "apps/web/src/components/ride/FirstRideIntroCard.tsx"
+  ]
+ },
+ {
+  "file": "src/components/ride/index.ts",
+  "name": "FollowMode",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/App.tsx",
+   "apps/web/src/components/map/MapView.tsx",
+   "apps/web/src/components/map/MapViewSheet.tsx"
+  ]
+ },
+ {
+  "file": "src/components/ride/index.ts",
+  "name": "NextRideCardProps",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/ride/NextRideCard.tsx"
+  ]
+ },
+ {
+  "file": "src/components/ride/index.ts",
+  "name": "FirstRideIntroCardProps",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/ride/FirstRideIntroCard.tsx"
+  ]
+ },
+ {
+  "file": "src/components/ride/index.ts",
+  "name": "LocalFirstEntryCardProps",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/ride/LocalFirstEntryCard.tsx"
+  ]
+ },
+ {
+  "file": "src/lib/trail/trailDisplayNumberCache.ts",
+  "name": "forgetTrailDisplayNumber",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/trail/trailDisplayNumberCache.ts",
+  "name": "clearTrailDisplayNumberCache",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/hooks/usePacerPreference.ts",
+  "name": "getPacerEnabledSnapshot",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/hooks/usePacerPreference.ts",
+  "name": "subscribePacerEnabled",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/hooks/usePacerPreference.ts",
+  "name": "writePacerEnabled",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/firestoreCourses.ts",
+  "name": "getBasicStartCourseStatic",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/firestoreCourses.ts",
+  "name": "isGeometryBasicStartHub",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/firestoreCourses.ts",
+  "name": "getBasicSharedHubSummaries",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/ui-800x360/preview.tsx"
+  ]
+ },
+ {
+  "file": "src/lib/route/repo/firestoreCourses.ts",
+  "name": "ensureBasicSharedHubPresenceFlagsMerged",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/firestoreCourses.ts",
+  "name": "ensureCoursePresenceFlagsMerged",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/firestoreCourses.ts",
+  "name": "CourseCategory",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/firestoreCourses.ts",
+  "name": "CourseProfile",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/firestoreCourses.ts",
+  "name": "CourseDoc",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/geo/bounds.ts"
+  ]
+ },
+ {
+  "file": "src/lib/route/repo/firestoreCourses.ts",
+  "name": "BasicSharedHubCourseId",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/hooks/usePublicationCatalogHub.ts"
+  ]
+ },
+ {
+  "file": "src/lib/ride/repo/firestorePublicationSessionPresence.ts",
+  "name": "PUBLICATION_SESSIONS_COLLECTION",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/repo/firestorePublicationSessionPresence.ts",
+  "name": "PUBLICATION_SESSION_MEMBERS_SUBCOLLECTION",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/repo/firestorePublicationSessionPresence.ts",
+  "name": "PUBLICATION_SESSION_LIVE_SHARE_INTERVAL_MS",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/repo/firestorePublicationSessionPresence.ts",
+  "name": "mergePublicationSessionMemberLiveLocation",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/repo/firestoreGlobalLivePresence.ts",
+  "name": "GLOBAL_LIVE_PRESENCE_COLLECTION",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/repo/firestoreGlobalLivePresence.ts",
+  "name": "isGlobalLivePresenceFresh",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/trail/trailAccessPolicy.ts",
+  "name": "isPublicTrail",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/components/map/routeConquestLayers.ts",
+  "name": "ROUTE_LINE_WIDTH",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/ride-hierarchy/conquest-emphasis-contract.test.ts"
+  ]
+ },
+ {
+  "file": "src/components/map/routeConquestLayers.ts",
+  "name": "CONQUEST_RECENT_NEW_COLOR",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideDistanceFormat.ts",
+  "name": "RIDE_DISTANCE_KM_FRACTION_DIGITS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/components/sensor/index.ts",
+  "name": "SessionSpeedControl",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/sensor/CadenceSensorSheet.tsx",
+   "apps/web/src/components/sensor/SessionSpeedControl.tsx",
+   "apps/web/scripts/ride-verify/entry-contract.mjs"
+  ]
+ },
+ {
+  "file": "src/components/sensor/index.ts",
+  "name": "CadenceSensorSheetProps",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/sensor/CadenceSensorSheet.tsx"
+  ]
+ },
+ {
+  "file": "src/lib/map/disableMapboxTelemetry.ts",
+  "name": "ensureMapboxTelemetryDisabled",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/cameraRenderPhase.ts",
+  "name": "startCameraRenderPhaseProbe",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/cameraRenderPhase.ts",
+  "name": "stopCameraRenderPhaseProbe",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/cameraRenderPhase.ts",
+  "name": "snapshotCameraRenderPhaseProbe",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/cameraRenderPhase.ts",
+  "name": "noteCameraRenderFromMap",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/cameraRenderPhase.ts",
+  "name": "CameraWriteSample",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/cameraRenderPhase.ts",
+  "name": "CameraRenderSample",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/cameraRenderPhase.ts",
+  "name": "CameraRenderPhaseSnapshot",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/account/routeTokenSpendBridge.ts",
+  "name": "formatRouteTokenHoldingMessage",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/account/mountRouteTokenPopupFeedback.ts",
+   "apps/web/src/lib/account/routeTokenUiCopy.ts"
+  ]
+ },
+ {
+  "file": "src/lib/account/routeTokenSpendBridge.ts",
+  "name": "ROUTE_TOKEN_COST_HINT",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/account/routeTokenUiCopy.ts"
+  ]
+ },
+ {
+  "file": "src/lib/account/routeTokenSpendBridge.ts",
+  "name": "ROUTE_TOKEN_INSUFFICIENT_HINT",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/map/mapPopupElements.ts",
+   "apps/web/src/lib/account/routeTokenUiCopy.ts",
+   "apps/web/src/services/distanceAutoRouteApi.ts"
+  ]
+ },
+ {
+  "file": "src/lib/account/routeTokenSpendBridge.ts",
+  "name": "getActiveRouteTokenUserId",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/account/routeTokenSpendBridge.ts",
+  "name": "getEffectiveRouteTokenBalance",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/account/routeTokenSpendBridge.ts",
+  "name": "__testRouteTokenSpendSession",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/account/routeTokenSpendBridge.ts",
+  "name": "__testResetRouteTokenSpendSession",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/rider/riderGlbPedalPose.ts",
+  "name": "sampleKneeAnglesForPhase",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/rider/riderGlbPedalPose.ts",
+  "name": "sampleElbowAngleForPhase",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/rider/riderGlbPedalPose.ts",
+  "name": "RIDER_GLB_LEG_IK",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/rider/riderGlbPedalPose.pose.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/rider/riderGlbPedalPose.ts",
+  "name": "GlbNodeRotationDeg",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "mergePeerMotionPackets",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/mergePackets.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "pickFresherPeerMotionPacket",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/mergePackets.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "selectPeerMotionPacketForIngest",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/syncFromPresence.ts",
+   "apps/web/scripts/peer-sync/peer-spacing-jitter-harness.mjs",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-harness.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "noteRtdbContentObservation",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/syncFromPresence.ts",
+   "apps/web/scripts/peer-sync/peer-spacing-jitter-harness.mjs",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-harness.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "resetPeerMotionRtdbContentObservations",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/syncFromPresence.ts",
+   "apps/web/scripts/peer-sync/common-display-product-harness.mjs",
+   "apps/web/scripts/peer-sync/peer-spacing-jitter-harness.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "stampDualSourceIngestPacket",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/syncFromPresence.ts",
+   "apps/web/scripts/peer-sync/peer-spacing-jitter-harness.mjs",
+   "apps/web/scripts/peer-sync/peer-spacing-mutation-failcheck.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "bridgeFsPacketToServerTimeline",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/syncFromPresence.ts",
+   "apps/web/scripts/peer-sync/residual-peer-jitter-mutation-failcheck.mjs",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-source-select.test.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "peekServerCaptureAnchorForTests",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/syncFromPresence.ts",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-source-select.test.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "peekDisplayTimelineTipForTests",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/syncFromPresence.ts",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-source-select.test.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "PEER_MOTION_RTDB_SOURCE_STALE_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/syncFromPresence.ts",
+   "apps/web/scripts/peer-sync/peer-spacing-jitter-harness.mjs",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-source-select.test.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "ESTIMATED_TSRV_MAX_ADVANCE_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/syncFromPresence.ts",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-source-select.test.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "trailLiveRowToPeerMotionPacket",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/rowToPacket.ts",
+   "apps/web/src/lib/peerMotion/syncFromPresence.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "rtdbMotionRowToPeerMotionPacket",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/rtdbToPacket.ts",
+   "apps/web/src/lib/peerMotion/syncFromPresence.ts",
+   "apps/web/scripts/peer-sync/real-paired-quantize-beat-harness.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "COMMON_COMPANION_DISPLAY_DELAY_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/commonDisplayClock.ts",
+   "apps/web/src/lib/peerMotion/peerSyncPolicy.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "ensureFrameDisplayRenderTimeMs",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/commonDisplayClock.ts",
+   "apps/web/src/lib/peerMotion/PeerMotionRegistry.ts",
+   "apps/web/scripts/jitter/raf-beat-replay.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "sharedDisplayCommonNowMs",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/commonDisplayClock.ts",
+   "apps/web/src/lib/peerMotion/PeerMotionRegistry.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "captureEstimatedServerNowMs",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/commonDisplayClock.ts",
+   "apps/web/src/lib/ride/liveLocationSnapshot.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "peekSelfDisplayRenderTimeMs",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/debug/peerIngestDiag.ts",
+   "apps/web/src/lib/peerMotion/commonDisplayClock.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "peekFrameDisplayRenderTimeMs",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/debug/peerIngestDiag.ts",
+   "apps/web/src/lib/peerMotion/commonDisplayClock.ts",
+   "apps/web/scripts/peer-sync/real-paired-quantize-beat-harness.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "isCompanionDisplayActive",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/commonDisplayClock.ts",
+   "apps/web/src/lib/peerMotion/PeerMotionRegistry.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "notifyCommonDisplayAxisReset",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/commonDisplayClock.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "subscribeCommonDisplayAxisReset",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/commonDisplayClock.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "pushSelfDisplaySample",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/selfDisplayBuffer.ts",
+   "apps/web/src/lib/ride/publishLiveLocationFanout.ts",
+   "apps/web/src/lib/ride/rideJoinPresenceBurst.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "peekServerTimeOffsetMs",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/commonDisplayClock.ts",
+   "apps/web/src/lib/peerMotion/repo/serverClockOffset.ts",
+   "apps/web/scripts/peer-sync/common-display-product-harness.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "estimateServerNowMs",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/commonDisplayClock.ts",
+   "apps/web/src/lib/peerMotion/repo/serverClockOffset.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "isServerClockReady",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/commonDisplayClock.ts",
+   "apps/web/src/lib/peerMotion/repo/serverClockOffset.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "isServerClockUncertain",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/commonDisplayClock.ts",
+   "apps/web/src/lib/peerMotion/PeerMotionRegistry.ts",
+   "apps/web/src/lib/peerMotion/repo/serverClockOffset.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "PeerMotionEntity",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/integrator.ts",
+   "apps/web/src/lib/peerMotion/PeerMotionRegistry.ts",
+   "apps/web/src/lib/peerMotion/types.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "PeerMotionPacket",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/integrator.ts",
+   "apps/web/src/lib/peerMotion/mergePackets.ts",
+   "apps/web/src/lib/peerMotion/PeerMotionRegistry.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "PeerMotionPhase",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/types.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "PeerMotionTimeQuality",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/syncFromPresence.ts",
+   "apps/web/src/lib/peerMotion/types.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "PeerMotionRenderFeature",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/PeerMotionRegistry.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "SyncPeerMotionFromPresenceInput",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/syncFromPresence.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/index.ts",
+  "name": "ServerCaptureAnchor",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/syncFromPresence.ts",
+   "apps/web/scripts/peer-sync/residual-peer-jitter-mutation-failcheck.mjs",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-source-select.test.mjs"
+  ]
+ },
+ {
+  "file": "src/services/coverageOverlaySync.ts",
+  "name": "BOXCYCLE_ROUTE_LAYER_ID",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/coverageOverlaySync.ts",
+  "name": "restackCoverageBelowRouteLine",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/glbModelLayer.ts",
+  "name": "syncRiderGlbPedalFeatureState",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/map/riderPreservedLayer.ts",
+  "name": "getRiderPreservedDebugState",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/rider-preserve/preserved-app-validator.ts",
+   "apps/web/scripts/rider-preserve/rider-perf-bench.ts"
+  ]
+ },
+ {
+  "file": "src/components/map/MapCameraAltitudeControl.ts",
+  "name": "formatCameraAltitudeLabel",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/directionsDirectGuard.ts",
+  "name": "isDirectionsDirectBypassConfigured",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/route/directionsDirectGuard.core.d.mts",
+   "apps/web/src/lib/route/directionsDirectGuard.core.mjs",
+   "apps/web/scripts/route-token/directions-direct-guard.test.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/firebase/functionsEmulatorUrl.ts",
+  "name": "resolveFunctionsHttpUrl",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/firebase/functionsEmulatorUrl.ts",
+  "name": "functionsHttpOrigin",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/account/repo/firestoreRouteTokenEconomy.ts",
+  "name": "normalizeGenerateCostBase",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/route-token/harness-config.mjs",
+  "name": "HARNESS_PROJECT_ID",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/route-token/harness-active.test.mjs",
+   "functions/src/harnessActive.ts"
+  ]
+ },
+ {
+  "file": "scripts/route-token/harness-config.mjs",
+  "name": "functionUrl",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "scripts/route-token/harness-config.mjs",
+  "name": "SAMPLE_ROUTE",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/route-token/route-token-contract.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/camera/cameraFollowTrace.ts",
+  "name": "startCameraFollowTrace",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/cameraFollowTrace.ts",
+  "name": "stopCameraFollowTrace",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/cameraFollowTrace.ts",
+  "name": "snapshotCameraFollowTrace",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/cameraFollowTrace.ts",
+  "name": "assertCameraTraceP0",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/cameraFollowTrace.ts",
+  "name": "CameraTraceFrame",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/camera/cameraFollowTrace.ts",
+  "name": "CameraTraceSnapshot",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/storage/clientPersistencePolicy.ts",
+  "name": "PERSISTENCE_REQUIRES_AUTH_MSG",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/savedRoutesLocal.ts",
+  "name": "saveRouteToLocal",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/savedRoutesLocal.ts",
+  "name": "purgeExpiredLocalRoutes",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/repo/serverClockOffset.ts",
+  "name": "SERVER_CLOCK_DISCONTINUITY_MS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/repo/serverClockOffset.ts",
+  "name": "getServerClockDebugState",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/repo/serverClockOffset.ts",
+  "name": "__setServerTimeOffsetForTests",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/jitter/raf-beat-replay.mjs",
+   "apps/web/scripts/peer-sync/common-display-product-harness.mjs",
+   "apps/web/scripts/peer-sync/real-paired-quantize-beat-harness.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/repo/serverClockOffset.ts",
+  "name": "__resetServerClockOffsetForTests",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/scripts/jitter/raf-beat-replay.mjs",
+   "apps/web/scripts/peer-sync/real-paired-quantize-beat-harness.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/peerSyncDistanceSamplers.ts",
+  "name": "peekSampleRouteLens",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/routeGeometryMidpoint.ts",
+  "name": "lngLatAlongPolyline",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "functions/src/courseGeometryAnchor.ts",
+   "functions/src/routeGeometryMidpoint.ts"
+  ]
+ },
+ {
+  "file": "src/lib/ride/liveRideHudSignal.ts",
+  "name": "publishHasOtherLiveRiders",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/liveRideHudSignal.ts",
+  "name": "subscribeOtherLiveRiderCount",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/liveRideHudSignal.ts",
+  "name": "getHasOtherLiveRiders",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/publicRouteRequests.ts",
+  "name": "PUBLIC_ROUTE_REQUESTS_COLLECTION",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/route/publicRouteAutoReview.ts",
+   "functions/src/autoReviewPublicRouteRequest.ts"
+  ]
+ },
+ {
+  "file": "src/lib/route/repo/publicRouteRequests.ts",
+  "name": "ROUTE_REVIEWERS_DOC_PATH",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/publicRouteRequests.ts",
+  "name": "validateExperienceTags",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/publicRouteRequests.ts",
+  "name": "isRouteReviewer",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/route/repo/firestoreCourses.ts",
+   "functions/src/adminPromoteSavedRoute.ts",
+   "functions/src/backfillRouteActivityLastCompletedRideAt.ts"
+  ]
+ },
+ {
+  "file": "src/lib/route/repo/publicRouteRequests.ts",
+  "name": "loadPendingPublicRouteRequests",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/publicRouteRequests.ts",
+  "name": "withdrawPublicRouteRequest",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/publicRouteRequests.ts",
+  "name": "approvePublicRouteRequest",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/publicRouteRequests.ts",
+  "name": "rejectPublicRouteRequest",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/publicRouteRequests.ts",
+  "name": "PublicRouteRequestStatus",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/publicRouteRequests.ts",
+  "name": "PublicRouteRequest",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/App.tsx",
+   "apps/web/src/components/PublicRouteRequestModal.tsx",
+   "apps/web/src/hooks/usePublicRouteReviewMeta.ts"
+  ]
+ },
+ {
+  "file": "src/hooks/useVisibilityListenGrace.ts",
+  "name": "LISTENER_VISIBILITY_GRACE_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/hooks/useTrailSession.ts",
+   "apps/web/src/lib/trail/listenerVisibilityGracePolicy.ts",
+   "apps/web/scripts/focus-read-spike/listener-grace-policy.test.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/routePublishFlight.ts",
+  "name": "ROUTE_FLIGHT_DRAIN_TIMEOUT_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/hooks/useLiveLocationPublishSession.ts",
+   "apps/web/src/lib/peerMotion/peerSyncPolicy.ts",
+   "apps/web/e2e/peer-sync-s41r.spec.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/routePublishFlight.ts",
+  "name": "peekRouteSlotDiscardCount",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/routePublishFlight.ts",
+  "name": "peekRouteEpochDiscardCount",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/routePublishFlight.ts",
+  "name": "peekRoutePublishEpoch",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/routePublishFlight.ts",
+  "name": "peekRouteDeferredCleanupCounts",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/activity/activityWorldPollPolicy.ts",
+  "name": "countCourseActivityLiveInBatch",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/account/userTier.ts",
+  "name": "isRegisteredTier",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/components/ride/RideHistoryPanel.tsx",
+  "name": "RideHistoryPanel",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/ride/index.ts"
+  ]
+ },
+ {
+  "file": "src/components/ride/RideHistoryPanel.tsx",
+  "name": "RideHistoryPanelProps",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/components/ride/FirstRideIntroCard.tsx",
+  "name": "FirstRideIntroCard",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/auth/AppIntroScreen.tsx",
+   "apps/web/src/components/ride/index.ts"
+  ]
+ },
+ {
+  "file": "src/components/ride/FirstRideIntroCard.tsx",
+  "name": "FirstRideIntroCardProps",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/ride/index.ts"
+  ]
+ },
+ {
+  "file": "src/components/ui/usePanelHeaderCloseDrag.ts",
+  "name": "EDGE_DRAG_THRESHOLD_PX",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/components/ui/usePanelHeaderCloseDrag.ts",
+  "name": "EDGE_DRAG_MIN_INTENT_PX",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/components/ui/usePanelHeaderCloseDrag.ts",
+  "name": "EDGE_DRAG_VELOCITY_PX_MS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/components/ui/usePanelHeaderCloseDrag.ts",
+  "name": "pointerTravelPx",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/services/mapboxForwardGeocode.ts",
+  "name": "fetchMapboxPlaceFeatureCenter",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/components/ui/edgePanelDocumentGesture.ts",
+  "name": "EDGE_GESTURE_BAND_PX",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/components/ui/edgePanelDocumentGesture.ts",
+  "name": "tryStartEdgeGesture",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/repo/calorieProfileCloud.ts",
+  "name": "USER_PRIVATE_COLLECTION",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/firestoreRoutePublications.ts",
+  "name": "findPublishedRoutePublicationByCourseId",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/firestoreRoutePublications.ts",
+  "name": "RoutePublicationStatus",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/repo/firestoreRoutePublications.ts",
+  "name": "RoutePublicationDoc",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/routeLimits.ts",
+  "name": "MAX_ROUTE_DISTANCE_METERS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideSpeech.ts",
+  "name": "getRideTtsEnabled",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/readyRide.ts",
+  "name": "formatReadyRideDistanceLabel",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/conquest/repo/firestoreConquest.ts",
+  "name": "loadConquestCellIds",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/services/roadElevationCoach.ts",
+  "name": "ROAD_SMOOTH_WINDOW_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/roadElevationCoach.ts",
+  "name": "ROAD_SMOOTH_WINDOW_MAX_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/roadElevationCoach.ts",
+  "name": "ROAD_SLOPE_LOW_PASS_ALPHA",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/roadElevationCoach.ts",
+  "name": "ROAD_SLOPE_DELTA_LIMIT_PER_50M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/roadElevationCoach.ts",
+  "name": "ROAD_SLOPE_DELTA_LIMIT_PER_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/roadElevationCoach.ts",
+  "name": "ROAD_SHORT_WINDOW_HALF_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/roadElevationCoach.ts",
+  "name": "BRIDGE_PATTERN_DISTANCE_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/roadElevationCoach.ts",
+  "name": "BRIDGE_PATTERN_ENDPOINT_DIFF_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/roadElevationCoach.ts",
+  "name": "BRIDGE_PATTERN_MID_DIP_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/roadElevationCoach.ts",
+  "name": "BRIDGE_PATTERN_VARIATION_GUARD_RATIO",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/roadElevationCoach.ts",
+  "name": "BRIDGE_PATTERN_ATTENUATION",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/roadElevationCoach.ts",
+  "name": "LOCAL_BRIDGE_MIN_WIDTH_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/roadElevationCoach.ts",
+  "name": "LOCAL_BRIDGE_MAX_WIDTH_M",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/roadElevationCoach.ts",
+  "name": "LOCAL_BRIDGE_MAX_ENDPOINT_GRADE",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/routeElevationStore.ts",
+  "name": "isStorableElevationValues",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/mergePackets.ts",
+  "name": "mergePeerMotionPackets",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/mergePackets.ts",
+  "name": "pickFresherPeerMotionPacket",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/syncFromPresence.ts",
+  "name": "PEER_MOTION_RTDB_SOURCE_STALE_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts",
+   "apps/web/scripts/peer-sync/peer-spacing-jitter-harness.mjs",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-source-select.test.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/syncFromPresence.ts",
+  "name": "ESTIMATED_TSRV_MAX_ADVANCE_MS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-source-select.test.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/syncFromPresence.ts",
+  "name": "resetPeerMotionRtdbContentObservations",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts",
+   "apps/web/scripts/peer-sync/common-display-product-harness.mjs",
+   "apps/web/scripts/peer-sync/peer-spacing-jitter-harness.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/syncFromPresence.ts",
+  "name": "peekServerCaptureAnchorForTests",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-source-select.test.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/syncFromPresence.ts",
+  "name": "peekDisplayTimelineTipForTests",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-source-select.test.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/syncFromPresence.ts",
+  "name": "bridgeFsPacketToServerTimeline",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts",
+   "apps/web/scripts/peer-sync/residual-peer-jitter-mutation-failcheck.mjs",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-source-select.test.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/syncFromPresence.ts",
+  "name": "noteRtdbContentObservation",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts",
+   "apps/web/scripts/peer-sync/peer-spacing-jitter-harness.mjs",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-harness.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/syncFromPresence.ts",
+  "name": "selectPeerMotionPacketForIngest",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts",
+   "apps/web/scripts/peer-sync/peer-spacing-jitter-harness.mjs",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-harness.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/syncFromPresence.ts",
+  "name": "stampDualSourceIngestPacket",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts",
+   "apps/web/scripts/peer-sync/peer-spacing-jitter-harness.mjs",
+   "apps/web/scripts/peer-sync/peer-spacing-mutation-failcheck.mjs"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/syncFromPresence.ts",
+  "name": "PeerNametagMember",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/syncFromPresence.ts",
+  "name": "ServerCaptureAnchor",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts",
+   "apps/web/scripts/peer-sync/residual-peer-jitter-mutation-failcheck.mjs",
+   "apps/web/scripts/peer-sync/rtdb-fs-fallback-source-select.test.mjs"
+  ]
+ },
+ {
+  "file": "src/services/osrmRoadCoverage.ts",
+  "name": "ROUTABLE_ROAD_TILESET_URL",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/osrmRoadCoverage.ts",
+  "name": "ROUTABLE_ROAD_SOURCE_ID",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/spectatorRideExtrap.ts",
+  "name": "anchorDistOnRoute",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/spectatorRideExtrap.ts",
+  "name": "spectatorSpeedMps",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/spectatorRideExtrap.ts",
+  "name": "spectatorElapsedLocalMs",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/spectatorRideExtrap.ts",
+  "name": "extrapSpectatorDistM",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideSpeedRamp.ts",
+  "name": "RIDE_SPEED_ACCEL_KMH_PER_SEC",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideSpeedRamp.ts",
+  "name": "RIDE_SPEED_DECEL_KMH_PER_SEC",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/route/publicRouteAutoReview.ts",
+  "name": "PUBLIC_ROUTE_MIN_LENGTH_METERS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "functions/src/cliDiagPublicRouteRequest.ts",
+   "functions/src/publicRouteAutoReviewCore.ts"
+  ]
+ },
+ {
+  "file": "src/lib/route/publicRouteAutoReview.ts",
+  "name": "PUBLIC_ROUTE_MAX_LENGTH_METERS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "functions/src/cliDiagPublicRouteRequest.ts",
+   "functions/src/publicRouteAutoReviewCore.ts"
+  ]
+ },
+ {
+  "file": "src/lib/route/publicRouteAutoReview.ts",
+  "name": "PUBLIC_ROUTE_MIN_COORDS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "functions/src/cliDiagPublicRouteRequest.ts",
+   "functions/src/publicRouteAutoReviewCore.ts"
+  ]
+ },
+ {
+  "file": "src/lib/route/publicRouteAutoReview.ts",
+  "name": "PUBLIC_ROUTE_MAX_COORDS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "functions/src/cliDiagPublicRouteRequest.ts",
+   "functions/src/publicRouteAutoReviewCore.ts"
+  ]
+ },
+ {
+  "file": "src/lib/route/publicRouteAutoReview.ts",
+  "name": "PUBLIC_ROUTE_MIN_BBOX_DIAGONAL_METERS",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "functions/src/cliDiagPublicRouteRequest.ts",
+   "functions/src/publicRouteAutoReviewCore.ts"
+  ]
+ },
+ {
+  "file": "src/lib/route/publicRouteAutoReview.ts",
+  "name": "bboxDiagonalMeters",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "functions/src/cliDiagPublicRouteRequest.ts",
+   "functions/src/publicRouteAutoReviewCore.ts"
+  ]
+ },
+ {
+  "file": "src/lib/route/publicRouteAutoReview.ts",
+  "name": "PUBLIC_ROUTE_SIMILARITY_BLOCK",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "functions/src/autoReviewPublicRouteRequest.ts",
+   "functions/src/publicRouteAutoReviewCore.ts"
+  ]
+ },
+ {
+  "file": "src/lib/route/publicRouteAutoReview.ts",
+  "name": "polylineLengthMeters",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/route/repo/firestoreCourses.ts",
+   "apps/web/scripts/basic-routes-verify/verify-basic-routes.mjs",
+   "functions/src/autoReviewPublicRouteRequest.ts"
+  ]
+ },
+ {
+  "file": "src/lib/route/publicRouteAutoReview.ts",
+  "name": "routePolylineSimilaritySymmetric",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "functions/src/autoReviewPublicRouteRequest.ts",
+   "functions/src/publicRouteAutoReviewCore.ts"
+  ]
+ },
+ {
+  "file": "src/features/map-overlays/worldPublicationMapDots.ts",
+  "name": "buildBasicHubWorldPulseDots",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/features/map-overlays/worldPublicationMapDots.ts",
+  "name": "buildLocalRidePublicationPulseDot",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/features/map-overlays/worldPublicationMapDots.ts",
+  "name": "ensureWorldActivityMinimumDots",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/riderLightLab.ts",
+  "name": "sanitizeRiderLightLabState",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideDocFields.ts",
+  "name": "resolveRideTrailId",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideDocFields.ts",
+  "name": "resolveRidePublicationId",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideBgmConstants.ts",
+  "name": "RIDE_BGM_BUILTIN_PLAYLIST",
+  "kind": "exports",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/hooks/useRideBgm.ts"
+  ]
+ },
+ {
+  "file": "src/hooks/useActivityWorldAdaptivePoll.ts",
+  "name": "triggerActivityWorldPollImmediate",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/repo/firestoreWorldPresence.ts",
+  "name": "WORLD_PRESENCE_DEFAULT_REGIONS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/aiCoach.ts",
+  "name": "getAdvancedCoaching",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/phraseManifest.ts",
+  "name": "FALLBACK_TIPS",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/phraseManifest.ts",
+  "name": "TIP_TO_RESISTANCE_BAND",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/phraseManifest.ts",
+  "name": "RESISTANCE_PHRASES",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/phraseManifest.ts",
+  "name": "getResistancePhrases",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/services/phraseManifest.ts",
+  "name": "getTipIndicesByTerrain",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/services/phraseManifest.ts",
+  "name": "getAllPhrases",
+  "kind": "exports",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/services/phraseManifest.ts",
+  "name": "textToPhraseKey",
+  "kind": "exports",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/services/phraseManifest.ts",
+  "name": "Terrain",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/map/rideCameraFollow.ts",
+   "apps/web/src/lib/map/mapCut.ts",
+   "apps/web/src/lib/map/riderPreservedLayer.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/types.ts",
+  "name": "PeerMotionPhase",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/peerMotion/index.ts"
+  ]
+ },
+ {
+  "file": "src/lib/peerMotion/types.ts",
+  "name": "PeerMotionStepContext",
+  "kind": "types",
+  "action": "DELETE",
+  "outside": []
+ },
+ {
+  "file": "src/lib/riderPrototype/riderVisualKit.ts",
+  "name": "PaletteSlot",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/lib/riderPrototype/riderPaletteKit.ts",
+   "apps/web/scripts/rider-preserve/rider-palette-kit.test.ts"
+  ]
+ },
+ {
+  "file": "src/lib/ride/repo/firestoreRideResumeSlot.ts",
+  "name": "SlotTxOperation",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/PeerMotionRegistry.ts",
+  "name": "PeerStepDiag",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/ride/rideConquestResult.ts",
+  "name": "ConquestResultStatus",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/components/auth/SignUpNicknameCard.tsx",
+  "name": "SignUpCalorieInput",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/components/route-dock/index.ts",
+  "name": "RouteDockProps",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/route-dock/RouteDock.tsx"
+  ]
+ },
+ {
+  "file": "src/hooks/useRideResumeSlot.ts",
+  "name": "UseRideResumeSlotStatus",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/hooks/useRideResumeSlot.ts",
+  "name": "SlotOpResult",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/hooks/useBleCrankRpm.ts",
+  "name": "BleCrankRpmUiState",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/components/sensor/CadenceSensorSheet.tsx",
+   "apps/web/src/lib/sensor/cadenceSensorUi.ts"
+  ]
+ },
+ {
+  "file": "src/features/map-overlays/worldMapOverlayCore.ts",
+  "name": "WorldMapOverlaySlice",
+  "kind": "types",
+  "action": "KEEP",
+  "outside": [
+   "apps/web/src/features/map-overlays/index.ts"
+  ]
+ },
+ {
+  "file": "src/components/maphud/MapHud.tsx",
+  "name": "AccountChipState",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/components/maphud/MapHud.tsx",
+  "name": "MapHudRidePresence",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/peerMotion/trailLiveRidePort.ts",
+  "name": "TrailLiveRidePublishInput",
+  "kind": "types",
+  "action": "UNEXPORT",
+  "outside": []
+ },
+ {
+  "file": "src/lib/coach/coachTypes.ts",
+  "name": "CachedCoachingByDistance",
+  "kind": "types",
+  "action": "DELETE",
+  "outside": []
+ }
+]
