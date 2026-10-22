@@ -54,6 +54,23 @@ export function resolveRideFitPadding(
 }
 
 /**
+ * 거리 원 `fitBounds` padding — 경로창·HUD 몫을 더한 값을 뷰포트에 맞춰 줄인다.
+ * 고정값의 세로 합(420 px)이 폰 가로(360 px)보다 커 Mapbox 가 맞추기를 포기했고, 그 앞의
+ * `map.stop()` 이 「여기에서 계속」 비행을 끊어 카메라가 클릭 전 위치에 남았다(2026-10-22).
+ */
+export function resolveDistanceCircleFitPadding(
+  viewportWidthPx: number,
+  viewportHeightPx: number,
+): { top: number; bottom: number; left: number; right: number } {
+  return resolveRideFitPadding(viewportWidthPx, viewportHeightPx, {
+    top: RIDE_HUD_SAFE_PADDING.top + 48,
+    bottom: RIDE_HUD_SAFE_PADDING.bottom + 200,
+    left: RIDE_HUD_SAFE_PADDING.left + 72,
+    right: RIDE_HUD_SAFE_PADDING.right + 72,
+  });
+}
+
+/**
  * 생성기 SoT = `riderRig.geometry.mjs` ← `geometry.json` 파생.
  * 전고 = 머리 중심 world y (`HEAD_C[1]`). 헬멧 반구·여유는 비율만 곱한다.
  */
