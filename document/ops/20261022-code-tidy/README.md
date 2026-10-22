@@ -14,4 +14,6 @@
 - **P1 APPROVED** [감리](04-review-p1.md): export 446→192 · 타입 73→44 · −715줄 · e2e 7/7. P2 는 삭제 없음(전부 실사용), knip 진입점 보정.
 - P3 지시: [규칙](02-task-p3-rules.md) · [05](02-task-05.md) · [06](02-task-06.md) · [07](02-task-07.md) · [08](02-task-08.md) — opencode 무료 한도로 전부 Cursor
 
-**지금 할 일:** P1 배포 → P3 Cursor 실행.
+- **P3 APPROVED** [감리](04-review-p3.md): 반복 33쌍·549줄 → 1쌍·8줄, 번들 −3.3 kB, e2e 7/7. 실행 Claude impl-standard(opencode 한도·Cursor 권한 거부).
+
+**지금 할 일:** P3 배포 → P5 CSS 죽은 선택자(MiniMax).
