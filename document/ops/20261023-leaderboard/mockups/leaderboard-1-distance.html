@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>리더보드 주행 거리</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700&amp;family=Saira+Condensed:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2457D6}a:hover{color:#163E9E}
+</style>
+</helmet>
+<div style="width: 1600px; height: 720px; overflow: hidden; background: #2E3A2F; font-family: 'Gothic A1', system-ui, sans-serif; color: #121417">
+<div style="zoom: 2; width: 800px; height: 360px; display: flex; align-items: center; justify-content: center">
+<section aria-label="리더보드" style="width: 740px; height: 324px; box-sizing: border-box; background: #FFFFFF; border-radius: 18px; display: grid; grid-template-columns: 268px minmax(0, 1fr); overflow: hidden; box-shadow: 0 6px 24px rgba(0,0,0,0.28)">
+<div style="background: #EEF3FC; padding: 16px 20px 14px; display: flex; flex-direction: column; gap: 10px">
+<nav aria-label="순위 종류" style="display: flex; gap: 4px; background: #FFFFFF; border-radius: 10px; padding: 3px; align-self: flex-start">
+<button type="button" aria-pressed="true" style="height: 30px; padding: 0 14px; border: 0; background: #2457D6; font: inherit; font-size: 12px; font-weight: 700; color: #FFFFFF; border-radius: 8px">주행 거리</button>
+<button type="button" style="height: 30px; padding: 0 14px; border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 600; color: #4B5160; border-radius: 8px">개척</button>
+</nav>
+<div style="display: flex; gap: 8px; align-items: center; font-size: 12px; font-weight: 600; color: #2A2E37">
+<button type="button" style="height: 28px; padding: 0 10px; border: 1px solid #C9D6EE; background: #FFFFFF; font: inherit; font-size: 12px; font-weight: 600; color: #2A2E37; border-radius: 14px">이번 주 ▾</button>
+<span style="color: #5E6472">세계 › <span style="color: #121417">대한민국</span></span>
+</div>
+<div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 2px">
+<span style="font-size: 10px; font-weight: 700; letter-spacing: 0.12em; color: #5E6472">내 순위</span>
+<div style="display: flex; align-items: baseline; gap: 6px">
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 72px; font-weight: 700; line-height: 0.95; color: #2457D6">14</span>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 22px; font-weight: 600; color: #2457D6">위</span>
+<span style="font-size: 12px; font-weight: 700; color: #1E7A46; margin-left: 6px">▲2</span>
+</div>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 26px; font-weight: 600; line-height: 1.1">38.4 <span style="font-size: 13px; color: #4B5160">KM</span></span>
+<span style="font-size: 12px; color: #4B5160">13위까지 <b style="color: #121417">4.2 km</b> 남았어요</span>
+</div>
+<div style="font-size: 10px; color: #5E6472">케이던스 센서로 달린 주행만 · 월요일 0시 초기화</div>
+</div>
+<div style="padding: 12px 16px 10px 18px; display: flex; flex-direction: column; min-width: 0">
+<header style="display: flex; align-items: center; gap: 8px; padding-bottom: 4px">
+<span style="font-size: 15px; font-weight: 700; flex-grow: 1">순위</span>
+<button type="button" aria-label="닫기" style="width: 34px; height: 34px; border: 0; background: #F2F3F5; border-radius: 50%; display: flex; align-items: center; justify-content: center">
+<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#2A2E37" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"></path></svg>
+</button>
+</header>
+<ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+<li style="display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; height: 30px; border-bottom: 1px solid #EEF0F3">
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 700; color: #2457D6">1</span>
+<span style="font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">바람개비</span>
+<button type="button" style="height: 24px; padding: 0 9px 0 7px; border: 0; background: #E6F4EC; font: inherit; font-size: 11px; font-weight: 700; color: #1E7A46; border-radius: 12px; display: flex; align-items: center; gap: 5px"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #1E9A55"></span>같이 달리기</button>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 600; text-align: right; min-width: 64px">182.0 <span style="font-size: 11px; color: #5E6472">KM</span></span>
+</li>
+<li style="display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; height: 30px; border-bottom: 1px solid #EEF0F3">
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 700; color: #2457D6">2</span>
+<span style="font-size: 13px; font-weight: 600">산책자</span>
+<span></span>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 600; text-align: right; min-width: 64px">140.3 <span style="font-size: 11px; color: #5E6472">KM</span></span>
+</li>
+<li style="display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; height: 30px; border-bottom: 1px solid #EEF0F3">
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 700; color: #2457D6">3</span>
+<span style="font-size: 13px; font-weight: 600">한강라이더</span>
+<span></span>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 600; text-align: right; min-width: 64px">121.7 <span style="font-size: 11px; color: #5E6472">KM</span></span>
+</li>
+<li style="display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; height: 30px; border-bottom: 1px solid #EEF0F3">
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 600; color: #4B5160">4</span>
+<span style="font-size: 13px">새벽페달</span>
+<button type="button" style="height: 24px; padding: 0 9px 0 7px; border: 0; background: #E6F4EC; font: inherit; font-size: 11px; font-weight: 700; color: #1E7A46; border-radius: 12px; display: flex; align-items: center; gap: 5px"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #1E9A55"></span>같이 달리기</button>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 600; text-align: right; min-width: 64px">98.2 <span style="font-size: 11px; color: #5E6472">KM</span></span>
+</li>
+<li style="display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; height: 30px; border-bottom: 1px solid #EEF0F3">
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 600; color: #4B5160">5</span>
+<span style="font-size: 13px">원주토박이</span>
+<span></span>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 600; text-align: right; min-width: 64px">87.5 <span style="font-size: 11px; color: #5E6472">KM</span></span>
+</li>
+<li aria-hidden="true" style="height: 16px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #8A909C">⋯</li>
+<li style="display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; height: 30px; border-bottom: 1px solid #EEF0F3">
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 600; color: #4B5160">13</span>
+<span style="font-size: 13px">달빛라이딩</span>
+<span></span>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 600; text-align: right; min-width: 64px">42.6 <span style="font-size: 11px; color: #5E6472">KM</span></span>
+</li>
+<li aria-current="true" style="display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; height: 32px; background: #EEF3FC; border-radius: 8px; padding: 0 6px; margin: 0 -6px">
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 700; color: #2457D6">14</span>
+<span style="font-size: 13px; font-weight: 700">Ridingman12 <span style="font-size: 11px; font-weight: 600; color: #2457D6">나</span></span>
+<span></span>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 700; color: #2457D6; text-align: right; min-width: 64px">38.4 <span style="font-size: 11px">KM</span></span>
+</li>
+<li style="display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; height: 30px">
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 600; color: #4B5160">15</span>
+<span style="font-size: 13px">초보페달러</span>
+<span></span>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 600; text-align: right; min-width: 64px">35.0 <span style="font-size: 11px; color: #5E6472">KM</span></span>
+</li>
+</ol>
+</div>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

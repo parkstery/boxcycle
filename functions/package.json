@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint src",
-    "test": "tsc && node --test lib/distanceAutoRouteCore.test.js lib/conquestClaimContract.test.js lib/conquestOnRideCreated.test.js lib/trailLifecycleCore.test.js lib/openTrailListingProjection.test.js lib/savedRouteFingerprintMatch.test.js lib/accountDeletionCore.test.js lib/routeAutoRouteCacheDeletion.test.js lib/guestLifecycleCore.test.js lib/guestLifecycleHandlers.test.js lib/guestLifecycleDelete.test.js lib/guestLifecycleGuard.test.js lib/guestLifecycleTriggersGuard.test.js lib/guestLifecycleHttpGate.test.js lib/rideMetricsCore.test.js",
+    "test": "tsc && node --test lib/distanceAutoRouteCore.test.js lib/conquestClaimContract.test.js lib/conquestOnRideCreated.test.js lib/trailLifecycleCore.test.js lib/openTrailListingProjection.test.js lib/savedRouteFingerprintMatch.test.js lib/accountDeletionCore.test.js lib/routeAutoRouteCacheDeletion.test.js lib/guestLifecycleCore.test.js lib/guestLifecycleHandlers.test.js lib/guestLifecycleDelete.test.js lib/guestLifecycleGuard.test.js lib/guestLifecycleTriggersGuard.test.js lib/guestLifecycleHttpGate.test.js lib/rideMetricsCore.test.js lib/leaderboardCore.test.js",
     "serve": "npm run build && firebase emulators:start --only functions",
     "admin:promote-saved-route": "npm run build && node lib/cliPromoteSavedRoute.js",
     "admin:migrate-rooms-to-trails": "npm run build && node lib/cliMigrateRoomsToTrails.js",

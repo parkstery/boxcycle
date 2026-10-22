@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>시안 C 숫자 하나</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2457D6}a:hover{color:#163E9E}
+</style>
+</helmet>
+<div style="width: 1600px; height: 720px; overflow: hidden; background: #2E3A2F; font-family: 'Gothic A1', system-ui, sans-serif; color: #121417">
+<div style="zoom: 2; width: 800px; height: 360px; position: relative; display: flex; align-items: center; justify-content: center">
+<section aria-label="사용자 정보" style="width: 728px; height: 316px; box-sizing: border-box; background: #FFFFFF; border-radius: 18px; display: grid; grid-template-columns: 300px minmax(0, 1fr); overflow: hidden; box-shadow: 0 6px 24px rgba(0,0,0,0.28)">
+<div style="background: #EEF3FC; padding: 20px 22px 16px; display: flex; flex-direction: column; gap: 10px">
+<nav aria-label="기간" style="display: flex; gap: 4px; background: #FFFFFF; border-radius: 10px; padding: 3px; align-self: flex-start">
+<button type="button" aria-pressed="true" style="height: 30px; padding: 0 12px; border: 0; background: #2457D6; font: inherit; font-size: 12px; font-weight: 700; color: #FFFFFF; border-radius: 8px">오늘</button>
+<button type="button" style="height: 30px; padding: 0 12px; border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 500; color: #4B5160; border-radius: 8px">주간</button>
+<button type="button" style="height: 30px; padding: 0 12px; border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 500; color: #4B5160; border-radius: 8px">월간</button>
+<button type="button" style="height: 30px; padding: 0 12px; border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 500; color: #4B5160; border-radius: 8px">연간</button>
+</nav>
+<div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 4px">
+<div style="font-size: 12px; font-weight: 600; color: #4B5160">10월 23일 · 주행 2회</div>
+<div style="display: flex; align-items: baseline; gap: 6px">
+<span style="font-family: 'Space Grotesk', sans-serif; font-size: 76px; font-weight: 700; line-height: 0.95; letter-spacing: -0.04em; color: #2457D6">0.99</span>
+<span style="font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 600; color: #2457D6">km</span>
+</div>
+<div style="font-size: 13px; font-weight: 500; color: #2A2E37">11분 · 평균 5.0 km/h</div>
+<div style="font-size: 11px; color: #5E6472">칼로리는 <a href="#">체중 입력</a> 후 표시</div>
+</div>
+</div>
+<div style="padding: 16px 18px 12px 22px; display: flex; flex-direction: column; gap: 6px">
+<header style="display: flex; align-items: center; gap: 10px; padding-bottom: 6px">
+<div style="display: flex; flex-direction: column; flex-grow: 1">
+<span style="font-size: 16px; font-weight: 700">Ridingman12</span>
+<span style="font-size: 11px; color: #5E6472">googiden@gmail.com</span>
+</div>
+<button type="button" aria-label="닫기" style="width: 36px; height: 36px; border: 0; background: #F2F3F5; border-radius: 50%; display: flex; align-items: center; justify-content: center">
+<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#2A2E37" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"></path></svg>
+</button>
+</header>
+<div style="display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid #EEF0F3">
+<span style="font-size: 13px; color: #4B5160">내 도로망</span>
+<span style="font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 700; color: #2457D6">175.2 <span style="font-size: 12px">km</span></span>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid #EEF0F3">
+<span style="font-size: 13px; color: #4B5160">누적</span>
+<span style="font-size: 13px; font-weight: 600"><span style="font-family: 'Space Grotesk', sans-serif; font-size: 16px">477.0</span> km · 544회 · 40시간 6분</span>
+</div>
+<a href="#" style="display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid #EEF0F3; text-decoration: none; color: inherit">
+<span style="font-size: 13px; color: #4B5160">마지막 주행 <span style="font-size: 11px; color: #8A909C">2시간 전</span></span>
+<span style="font-size: 13px; font-weight: 600">0.19 km · 2분 · 5.0 km/h ›</span>
+</a>
+<div style="display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0">
+<span style="font-size: 13px; color: #4B5160">플랜</span>
+<span style="font-size: 13px; font-weight: 600">Free · <a href="#">업그레이드</a></span>
+</div>
+<div style="flex-grow: 1"></div>
+<div style="display: flex; gap: 6px; justify-content: flex-end">
+<button type="button" style="height: 32px; padding: 0 12px; border: 1px solid #DDE1E7; background: #FFFFFF; font: inherit; font-size: 12px; font-weight: 600; color: #2A2E37; border-radius: 8px">프로필 수정</button>
+<button type="button" style="height: 32px; padding: 0 12px; border: 1px solid #DDE1E7; background: #FFFFFF; font: inherit; font-size: 12px; font-weight: 600; color: #2A2E37; border-radius: 8px">관리</button>
+<button type="button" style="height: 32px; padding: 0 12px; border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 500; color: #5E6472; border-radius: 8px">로그아웃</button>
+</div>
+</div>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

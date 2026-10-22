@@ -529,6 +529,7 @@ export const getDistanceAutoRoute = onRequest(
 
 export { adminPromoteSavedRoute };
 export { getAdminDashboard } from "./adminDashboard.js";
+export { getLeaderboard } from "./leaderboard.js";
 export { autoReviewPublicRouteRequest };
 export { routeActivityOnRideCreated } from "./routeActivityOnRideCreated.js";
 export { routeActivityOnLivePublicationRideWritten } from "./routeActivityOnLivePublicationRideWritten.js";
