@@ -240,6 +240,9 @@ export type PickPopupAutoRouteUi = {
    * 명시적으로 부른다(`queueMicrotask` 타이밍 맞추기를 늘리지 않는다).
    */
   syncDistanceInputs: (km: number) => void;
+  /** 거리 화면에서 방향을 선택하고 자동 탐색까지 진행한다. */
+  stageDirectionPick: (point: LngLat) => boolean;
+  getRoutePickView: () => "location" | "distance";
 };
 
 export function buildPickPopup(deps: {
@@ -253,6 +256,7 @@ export function buildPickPopup(deps: {
     waypointSlot?: 0 | 1 | 2,
   ) => void;
   initialStart: LngLat | null;
+  initialRoutePickView?: "location" | "distance";
   routeProfile: RouteProfile;
   onRouteProfile: (p: RouteProfile) => void;
   onArmDirectionPick?: (input: {
@@ -264,6 +268,9 @@ export function buildPickPopup(deps: {
   /** 예상 시간 계산용 누적 주행 — 없으면 폴백 속도를 쓴다(5A-R2 §4.3) */
   getUserMileage?: () => { totalMeters: number | null; totalSec: number | null };
   onDirectionPickArmed?: () => void;
+  onGenerateDistanceRoute?: (point: LngLat) => void;
+  onPulseDistanceCircle?: () => void;
+  onStopDistanceCirclePulse?: () => void;
   onRoutePanelActivated?: () => void;
   onPreviewDistanceAutoRouteCircle?: (input: {
     start: LngLat;
@@ -295,6 +302,9 @@ export function buildPickPopup(deps: {
     onArmDirectionPick,
     onRegisterAutoRouteUi,
     onDirectionPickArmed,
+    onGenerateDistanceRoute,
+    onPulseDistanceCircle,
+    onStopDistanceCirclePulse,
     onRoutePanelActivated,
     onPreviewDistanceAutoRouteCircle,
     onClearDistanceAutoRouteCircle,
@@ -320,6 +330,9 @@ export function buildPickPopup(deps: {
   // routeProfile은 기본 이동수단일 뿐이다. 사용자가 버튼을 누르기 전에는
   // 어떤 수단도 선택된 것처럼 보이지 않게 한다.
   let profileChosen = false;
+  let distanceConfirmed = Boolean(deps.autoRouteSessionActive || getDistanceAutoRouteMapBridge()?.sessionActive);
+  let selectedDirection: LngLat | null = null;
+  let distanceSearchPending = false;
   const mapBridge = getDistanceAutoRouteMapBridge();
   let autoSessionActive = autoRouteSessionActive || mapBridge?.sessionActive || false;
   let distanceDirectionChecked =
@@ -330,7 +343,7 @@ export function buildPickPopup(deps: {
    * 초기 bridge 거리모드/거리세션 + Start면 distance뷰.
    */
   let routePickView: "location" | "distance" =
-    pins.start && (distanceDirectionChecked || autoSessionActive) ? "distance" : "location";
+    deps.initialRoutePickView ?? (pins.start && (distanceDirectionChecked || autoSessionActive) ? "distance" : "location");
   /** 지시09 — 탭으로 location/distance 상호배타. 탭 전환은 핀·거리·수단·경로를 유지한다. */
   function getRouteStart(): LngLat | null {
     const armed = getDistanceAutoRouteMapBridge()?.getArmedStart?.() ?? null;
@@ -365,11 +378,13 @@ export function buildPickPopup(deps: {
     getDistanceAutoRouteMapBridge()?.disarm?.();
     onSelectPoint("start", lngLat);
     pins.start = true;
+    profileChosen = false;
     selectedStart = lngLat;
     syncProfileUi();
     restartProfileAttention();
     syncAutoRouteUi();
     syncTokenUi();
+    if (routePickView === "distance") applyDistanceDirectionMode(true);
     onRoutePanelActivated?.();
   };
 
@@ -439,6 +454,7 @@ export function buildPickPopup(deps: {
     }
     onSelectPoint("end", lngLat);
     pins.end = true;
+    profileChosen = false;
     if (!pins.start) closePopup();
     else {
       syncProfileUi();
@@ -494,6 +510,8 @@ export function buildPickPopup(deps: {
     pb.setAttribute("aria-label", ariaLabelKo);
     pb.onclick = () => {
       if (!pins.start) return;
+      if (routePickView === "distance" && (!distanceConfirmed || !selectedDirection || distanceSearchPending)) return;
+      if (getRouteTokenInsufficient?.()) return;
       currentProfile = profile;
       profileChosen = true;
       profileButtons.forEach((item, index) => {
@@ -508,7 +526,9 @@ export function buildPickPopup(deps: {
         return;
       }
       if (!pins.end) onSetRouteProfileOnly?.(profile);
-      if (routePickView === "distance" && distanceDirectionChecked) tryArmDirectionPickIfChecked();
+      if (routePickView === "distance" && selectedDirection && tryArmDirectionPick()) {
+        onGenerateDistanceRoute?.(selectedDirection);
+      }
     };
     profileButtons.push(pb);
     rowProfile.appendChild(pb);
@@ -531,7 +551,14 @@ export function buildPickPopup(deps: {
       pins.start = false;
       pins.end = false;
       selectedStart = null;
-      closePopup();
+      if (routePickView === "distance") {
+        distanceDirectionChecked = false;
+        resetDistanceSelection();
+        syncDistanceModeUi();
+        syncAutoRouteUi();
+        syncTokenUi();
+        setInlinePhase("idle");
+      } else closePopup();
     };
     /* 재지시37 — dragHandle pointerdown이 자손 삭제 버튼의 click을 삼키지 않게 차단. preventDefault 금지. */
     clearRouteBtn.addEventListener("pointerdown", (event) => event.stopPropagation());
@@ -549,21 +576,21 @@ export function buildPickPopup(deps: {
     const autoGenerateOnProfile =
       manualRouteReady && onLocationTab && !distanceDirectionChecked;
     profileSection.hidden = !hasStart && !clearRouteBtn;
-    // 위치 선택 화면에서는 출발·도착을 모두 확정한 뒤에만 이동수단을 노출한다.
-    // 거리 화면은 출발점만으로 방향 탐색을 준비할 수 있으므로 기존 동작을 유지한다.
-    rowProfile.hidden = !hasStart || (!pins.end && onLocationTab);
+    const readyForProfile = onLocationTab ? manualRouteReady : distanceConfirmed && Boolean(selectedDirection);
+    rowProfile.hidden = !hasStart || !readyForProfile;
     if (clearRouteBtn) clearRouteBtn.hidden = false;
-    wrap.classList.toggle("map-view__pick--awaiting-profile", manualRouteReady && onLocationTab);
-    profileLabel.textContent = manualRouteReady && onLocationTab ? "경로 탐색 유형 선택" : "이동수단";
+    wrap.classList.toggle("map-view__pick--awaiting-profile", readyForProfile && !profileChosen && !distanceSearchPending);
+    profileLabel.textContent = readyForProfile ? "경로 탐색 유형 선택" : "이동수단";
     const tokenInsufficient = Boolean(getRouteTokenInsufficient?.());
     profileSpecs.forEach((spec, i) => {
       const pb = profileButtons[i];
       if (!pb) return;
       pb.classList.toggle("is-active", profileChosen && spec.profile === currentProfile);
-      const blockProfile = autoGenerateOnProfile && tokenInsufficient;
+      const blockProfile = (autoGenerateOnProfile || !onLocationTab) && tokenInsufficient || distanceSearchPending;
       pb.disabled = blockProfile;
       pb.classList.toggle("is-disabled", blockProfile);
-      pb.title = blockProfile
+      pb.title = distanceSearchPending ? "경로 탐색 중입니다."
+        : blockProfile
         ? ROUTE_TOKEN_INSUFFICIENT_HINT
         : spec.profile === "driving"
           ? "Route by car"
@@ -574,7 +601,7 @@ export function buildPickPopup(deps: {
   }
 
   function restartProfileAttention() {
-    if (!pins.start || !pins.end || routePickView !== "location") return;
+    if (rowProfile.hidden || profileChosen || distanceSearchPending) return;
     wrap.classList.remove("map-view__pick--awaiting-profile");
     void wrap.offsetWidth;
     wrap.classList.add("map-view__pick--awaiting-profile");
@@ -601,6 +628,8 @@ export function buildPickPopup(deps: {
   autoRouteSection.id = "map-view-pick-distance-view";
   autoRouteSection.setAttribute("role", "tabpanel");
   autoRouteSection.setAttribute("aria-labelledby", "map-view-pick-tab-distance");
+  const distanceStartActions = document.createElement("div");
+  distanceStartActions.className = "map-view__pick-actions map-view__pick-distance-start-actions";
 
   let targetKm = autoRouteTargetKm;
 
@@ -679,8 +708,7 @@ export function buildPickPopup(deps: {
       /* 지시38 — mode=false라는 이유만으로 보이는 거리 컨트롤을 먹통으로 하지 않는다. */
       if (!ensureDistanceDirectionForInput()) return;
       syncDistanceInputs(km);
-      previewCircleForTargetKm(km);
-      tryArmDirectionPickIfChecked();
+      commitDistanceInput();
     };
     chipButtons.push({ km, el: chip });
     distanceChips.appendChild(chip);
@@ -807,6 +835,7 @@ export function buildPickPopup(deps: {
   }
 
   function pauseDistancePickForTabSwitch() {
+    resetDistanceSelection();
     distanceDirectionChecked = false;
     getDistanceAutoRouteMapBridge()?.setDistanceDirectionMode?.(false);
     onClearDistanceAutoRouteCircle?.();
@@ -842,14 +871,32 @@ export function buildPickPopup(deps: {
       ),
     );
     syncDistanceInputs(next);
-    previewCircleForTargetKm(next);
-    tryArmDirectionPickIfChecked();
+    commitDistanceInput();
+  }
+
+  function resetDistanceSelection() {
+    distanceConfirmed = false;
+    selectedDirection = null;
+    profileChosen = false;
+    onStopDistanceCirclePulse?.();
+    onClearAutoRouteClickDebugMarker?.();
+    syncProfileUi();
+  }
+
+  function commitDistanceInput() {
+    resetDistanceSelection();
+    if (!ensureDistanceDirectionForInput() || !tryArmDirectionPick()) return;
+    distanceConfirmed = true;
+    syncProfileUi();
+    onPulseDistanceCircle?.();
   }
 
   function setInlinePhase(
     phase: "idle" | "direction" | "searching" | "found" | "failed",
     message?: string,
   ) {
+    distanceSearchPending = phase === "searching";
+    syncProfileUi();
     autoRouteStatus.className = "map-view__pick-auto-route-status";
     autoRouteStatus.dataset.phase = phase;
     // 평상시 방향·반경 설명은 생략하고 실제 탐색/결과/오류만 알린다.
@@ -878,19 +925,19 @@ export function buildPickPopup(deps: {
     autoRouteStatus.textContent = message ?? "경로를 찾았습니다.";
   }
 
-  function tryArmDirectionPick() {
-    if (!distanceDirectionChecked) return;
+  function tryArmDirectionPick(): boolean {
+    if (!distanceDirectionChecked) return false;
     const start = getRouteStart();
-    if (!start || typeof onArmDirectionPick !== "function") return;
+    if (!start || typeof onArmDirectionPick !== "function") return false;
     if (getRouteTokenInsufficient?.()) {
       setInlinePhase("failed", ROUTE_TOKEN_INSUFFICIENT_HINT);
-      return;
+      return false;
     }
     const parsed = Number.parseFloat(distanceNumber.value);
     const validated = validateDistanceAutoRouteTargetKm(parsed);
     if (!validated.ok) {
       setInlinePhase("failed", validated.message);
-      return;
+      return false;
     }
     syncDistanceInputs(validated.km);
     previewCircleForTargetKm(validated.km);
@@ -901,7 +948,7 @@ export function buildPickPopup(deps: {
     });
     if (!result.ok) {
       setInlinePhase("failed", result.message);
-      return;
+      return false;
     }
     autoSessionActive = true;
     const rerouteReady = autoRouteStatus.dataset.phase === "found";
@@ -912,12 +959,25 @@ export function buildPickPopup(deps: {
         : formatDistanceAutoRouteDirectionClickHint(validated.km),
     );
     onDirectionPickArmed?.();
+    return true;
   }
 
   onRegisterAutoRouteUi?.({
     setInlinePhase,
     tryArmDirectionPick: tryArmDirectionPickIfChecked,
     syncDistanceInputs,
+    getRoutePickView: () => routePickView,
+    stageDirectionPick: (point) => {
+      if (routePickView !== "distance") return false;
+      if (!distanceConfirmed || distanceSearchPending) return true;
+      selectedDirection = point;
+      profileChosen = false;
+      onStopDistanceCirclePulse?.();
+      syncProfileUi();
+      restartProfileAttention();
+      onGenerateDistanceRoute?.(point);
+      return true;
+    },
   });
 
   modeCheckbox.addEventListener("change", () => {
@@ -935,17 +995,24 @@ export function buildPickPopup(deps: {
   });
 
   distanceNumber.addEventListener("change", () => {
-    if (!ensureDistanceDirectionForInput()) return;
-    tryArmDirectionPickIfChecked();
+    // Enter로 이미 확정했다면 이후 blur가 같은 펄스를 다시 시작하지 않는다.
+    if (!distanceConfirmed) commitDistanceInput();
+  });
+  distanceNumber.addEventListener("input", resetDistanceSelection);
+  distanceNumber.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    commitDistanceInput();
   });
 
   // 출발점이 없는 상태에서만 필요한 조작 안내를 남긴다.
   const distanceStartHint = document.createElement("p");
   distanceStartHint.className = "map-view__pick-route-distance-prereq";
-  distanceStartHint.textContent = "출발·도착 탭에서 출발을 지정하면 거리·방향을 설정할 수 있습니다.";
+  distanceStartHint.textContent = "지도에서 시작할 위치를 길게 누른 뒤 출발을 선택하세요.";
 
   autoRouteSection.append(
     distanceStartHint,
+    distanceStartActions,
     distanceRow,
     autoRouteStatusSlot,
   );
@@ -1001,6 +1068,9 @@ export function buildPickPopup(deps: {
     tabLocation.classList.toggle("is-active", onLocation);
     tabDistance.classList.toggle("is-active", !onLocation);
     distanceStartHint.hidden = pins.start || onLocation;
+    distanceStartActions.hidden = pins.start || onLocation;
+    if (!pins.start && !onLocation) distanceStartActions.append(startBtn);
+    else if (startBtn.parentElement !== pinRow) pinRow.prepend(startBtn);
     distanceRow.hidden = !pins.start;
     autoRouteStatusSlot.hidden = !pins.start;
     wrap.classList.toggle("map-view__pick--route-tab-distance", !onLocation);
@@ -1009,7 +1079,6 @@ export function buildPickPopup(deps: {
   function syncAutoRouteUi() {
     const available = pins.start && typeof onArmDirectionPick === "function";
     if (!available) {
-      routePickView = "location";
       distanceDirectionChecked = false;
       getDistanceAutoRouteMapBridge()?.setDistanceDirectionMode?.(false);
       modeCheckbox.checked = false;
@@ -1037,6 +1106,7 @@ export function buildPickPopup(deps: {
     "abort",
     () => {
       unsubTokenForProfile();
+      onStopDistanceCirclePulse?.();
       onClearDistanceAutoRouteCircle?.();
     },
     { once: true },

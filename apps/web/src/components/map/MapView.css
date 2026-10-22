@@ -1056,7 +1056,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .map-view__pick--awaiting-profile .map-view__pick-btn--profile {
+  .map-view__pick--awaiting-profile .map-view__pick-btn--profile:nth-of-type(n) {
     animation: none;
   }
 }

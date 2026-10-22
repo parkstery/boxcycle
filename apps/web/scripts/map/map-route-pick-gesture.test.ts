@@ -52,6 +52,7 @@ describe("mapRoutePickGesture pure", () => {
 type Listener = (event: MockPointerEvent) => void;
 
 class MockPointerEvent {
+  preventDefault() {}
   type: string;
   pointerId: number;
   clientX: number;
@@ -268,6 +269,41 @@ describe("mapRoutePickGesture attach harness", () => {
     h.advance(80);
     h.canvas.dispatch("pointerup", { clientX: 40, clientY: 40 });
     assert.deepEqual(h.events, ["direction"]);
+  });
+
+  it("긴 touch의 메뉴→cancel 뒤 다음 첫 touch를 억제하지 않고 각1회 확정", () => {
+    let busy=false;
+    const h=installHarness({getAutoRouteMapPick:()=>"direction",shouldBlockPick:()=>busy});
+    // 앱 timer가 먼저 실행되고 탐색 중에 native 메뉴/cancel이 도착하는 순서.
+    h.canvas.dispatch("pointerdown",{clientX:40,clientY:40,pointerType:"touch"});
+    h.advance(500);busy=true;
+    h.canvas.dispatch("contextmenu",{clientX:40,clientY:40,pointerType:"touch"});
+    h.canvas.dispatch("pointercancel",{clientX:40,clientY:40,pointerType:"touch"});
+    busy=false;
+    // 별도 대기/두 번째 탭 없이 다음 첫 press가 들어간다.
+    h.canvas.dispatch("pointerdown",{clientX:80,clientY:40,pointerType:"touch"});
+    h.advance(500);
+    h.canvas.dispatch("contextmenu",{clientX:80,clientY:40,pointerType:"touch"});
+    h.canvas.dispatch("pointercancel",{clientX:80,clientY:40,pointerType:"touch"});
+    assert.deepEqual(h.events,["long","long"]);
+    h.advance(1000);assert.equal(h.events.length,2);
+  });
+
+  it("native 메뉴가 timer보다 먼저 도착해도 touch 한 번만 확정, 이동/우클릭은 취소",()=>{
+    const h=installHarness();
+    h.canvas.dispatch("pointerdown",{clientX:40,clientY:40,pointerType:"touch"});
+    h.advance(400);
+    h.canvas.dispatch("contextmenu",{clientX:40,clientY:40,pointerType:"touch"});
+    h.canvas.dispatch("pointercancel",{clientX:40,clientY:40,pointerType:"touch"});
+    h.advance(1000);assert.deepEqual(h.events,["long"]);
+    h.canvas.dispatch("pointerdown",{clientX:40,clientY:40,pointerType:"touch"});
+    h.canvas.dispatch("pointermove",{clientX:60,clientY:40,pointerType:"touch"});
+    h.canvas.dispatch("contextmenu",{pointerType:"touch"});
+    h.canvas.dispatch("pointercancel",{pointerType:"touch"});
+    h.advance(1000);assert.deepEqual(h.events,["long"]);
+    h.canvas.dispatch("pointerdown",{clientX:40,clientY:40,pointerType:"mouse"});
+    h.canvas.dispatch("contextmenu",{pointerType:"mouse"});
+    h.advance(1000);assert.deepEqual(h.events,["long"]);
   });
 
   it("사용자 drag 직후 suppress", () => {

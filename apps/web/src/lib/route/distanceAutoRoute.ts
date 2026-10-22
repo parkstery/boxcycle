@@ -45,6 +45,114 @@ export function circleLineString(
   return { type: "LineString", coordinates: coords };
 }
 
+/** 거리 안내 원 위 방사 화살표 개수(30° 간격) */
+export const CIRCLE_RADIAL_ARROW_COUNT = 12;
+
+const CIRCLE_RADIAL_ARROW_BEARING_STEP_DEG = 360 / CIRCLE_RADIAL_ARROW_COUNT;
+/** 몸통 시작·끝 — 원 둘레 바로 안쪽에서 바깥(둘레) 방향 */
+const ARROW_SHAFT_INNER_RADIUS_RATIO = 0.88;
+const ARROW_SHAFT_OUTER_RADIUS_RATIO = 1;
+/** 거리와 무관하게 원에 맞춰 표시되도록 날개도 반경 비율을 쓴다. */
+const ARROW_WING_LENGTH_RADIUS_RATIO = 0.055;
+const ARROW_WING_SPREAD_DEG = 32;
+
+export type CircleLineMetrics = { center: LngLat; radiusMeters: number };
+
+/** 참고 원 LineString 에서 중심·평균 반경 추정(출발·반경 변경 시에만 호출). */
+export function inferCircleLineMetrics(circle: {
+  coordinates: [number, number][];
+}): CircleLineMetrics | null {
+  const coords = circle.coordinates;
+  if (coords.length < 3) return null;
+  // 닫힘점 중복은 북쪽 편향을 만든다. 경도 평균 대신 구면 벡터를 평균해 날짜변경선도 처리.
+  const first = coords[0]!;
+  const last = coords[coords.length - 1]!;
+  const unique = Math.abs(first[0] - last[0]) < 1e-8 && Math.abs(first[1] - last[1]) < 1e-8
+    ? coords.slice(0, -1) : coords;
+  let x = 0, y = 0, z = 0;
+  for (const [lng, lat] of unique) {
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null;
+    const longitude = lng * Math.PI / 180;
+    const latitude = lat * Math.PI / 180;
+    x += Math.cos(latitude) * Math.cos(longitude);
+    y += Math.cos(latitude) * Math.sin(longitude);
+    z += Math.sin(latitude);
+  }
+  const center: LngLat = [Math.atan2(y, x) * 180 / Math.PI,
+    Math.atan2(z, Math.hypot(x, y)) * 180 / Math.PI];
+  let radiusSum = 0;
+  for (const c of coords) {
+    radiusSum += getDistanceMeters(center, c);
+  }
+  const radiusMeters = radiusSum / coords.length;
+  if (!Number.isFinite(radiusMeters) || radiusMeters <= 0) return null;
+  return { center, radiusMeters };
+}
+
+export type CircleRadialArrowFeatureCollection = {
+  type: "FeatureCollection";
+  features: Array<{
+    type: "Feature";
+    properties: Record<string, never>;
+    geometry: {
+      type: "MultiLineString";
+      coordinates: [number, number][][];
+    };
+  }>;
+};
+
+/** 중심·반경으로 12개 방사 화살표(몸통+날개 2) GeoJSON */
+export function buildCircleRadialArrowFeatureCollection(
+  center: LngLat,
+  radiusMeters: number,
+): CircleRadialArrowFeatureCollection {
+  const wingLen = radiusMeters * ARROW_WING_LENGTH_RADIUS_RATIO;
+  const features: CircleRadialArrowFeatureCollection["features"] = [];
+
+  for (let i = 0; i < CIRCLE_RADIAL_ARROW_COUNT; i += 1) {
+    const bearing = i * CIRCLE_RADIAL_ARROW_BEARING_STEP_DEG;
+    const inner = offsetLngLatByBearingMeters(
+      center,
+      bearing,
+      radiusMeters * ARROW_SHAFT_INNER_RADIUS_RATIO,
+    );
+    const tip = offsetLngLatByBearingMeters(
+      center,
+      bearing,
+      radiusMeters * ARROW_SHAFT_OUTER_RADIUS_RATIO,
+    );
+    const back = (bearing + 180) % 360;
+    const wingLeft = offsetLngLatByBearingMeters(
+      tip,
+      (back - ARROW_WING_SPREAD_DEG + 360) % 360,
+      wingLen,
+    );
+    const wingRight = offsetLngLatByBearingMeters(
+      tip,
+      (back + ARROW_WING_SPREAD_DEG) % 360,
+      wingLen,
+    );
+    features.push({
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "MultiLineString",
+        coordinates: [[inner, tip], [tip, wingLeft], [tip, wingRight]],
+      },
+    });
+  }
+  return { type: "FeatureCollection", features };
+}
+
+export function buildCircleRadialArrowsFromLineString(circle: {
+  type: "LineString";
+  coordinates: [number, number][];
+}): CircleRadialArrowFeatureCollection | null {
+  const metrics = inferCircleLineMetrics(circle);
+  if (!metrics) return null;
+  return buildCircleRadialArrowFeatureCollection(metrics.center, metrics.radiusMeters);
+}
+
 export type AutoRouteCandidate = {
   end: LngLat;
   bearingDeg: number;

@@ -1,8 +1,9 @@
 import type { LngLat } from "../geo/geo";
 
-/** 개발·harness 전용 raw 클릭 marker — production build에서는 비활성 */
+/** 명시적으로 켠 개발·harness에서만 raw 클릭 위치 표시. 일반 개발 화면에도 숨긴다. */
 export function isDistanceAutoRouteClickDebugEnabled(): boolean {
-  return import.meta.env.DEV;
+  return import.meta.env.DEV && typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("distanceRouteDebug") === "1";
 }
 
 export function formatDistanceAutoRouteClickDebugCoords(lngLat: LngLat): string {

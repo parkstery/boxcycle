@@ -9,7 +9,11 @@ import {
   type ActivityWorldRawOverlay,
   type MapViewportBounds,
 } from "../../lib/activity/activityWorldLod";
-import { DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT } from "../../lib/route/distanceAutoRoute";
+import {
+  DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT,
+  buildCircleRadialArrowsFromLineString,
+} from "../../lib/route/distanceAutoRoute";
+import { pulseDistanceCircle } from "../../lib/map/distanceCircleAttention";
 import { DISTANCE_AUTO_ROUTE_DEFAULT_KM } from "../../lib/route/distanceAutoRouteErrors";
 import {
   getDistanceAutoRouteMapBridge,
@@ -1166,6 +1170,11 @@ export function MapView({
     map.addControl(createFixedScaleBoxControl(), "bottom-right");
     map.addControl(new MapCameraAltitudeControl(), "bottom-right");
     mapRef.current = map;
+    let stopCircleAttention: (() => void) | undefined;
+    const stopDistanceCircleAttention = () => {
+      stopCircleAttention?.();
+      stopCircleAttention = undefined;
+    };
     if (typeof window !== "undefined") {
       (window as Window & { __RTW_MAP__?: mapboxgl.Map }).__RTW_MAP__ = map;
     }
@@ -1420,6 +1429,8 @@ export function MapView({
     };
 
     let pickPopupCloseHandler: (() => void) | null = null;
+    let activePickController: AbortController | null = null;
+    let directionSearchSequence = 0;
 
     const detachPickPopup = () => {
       const popup = popupRef.current;
@@ -1434,6 +1445,8 @@ export function MapView({
 
     const finalizePickClose = (ac?: AbortController) => {
       ac?.abort();
+      activePickController?.abort();
+      activePickController = null;
       const suspendPick =
         onSuspendAutoRoutePopupPickRef.current ??
         getDistanceAutoRouteMapBridge()?.suspendPopupPick;
@@ -1498,6 +1511,8 @@ export function MapView({
       });
       panel.style.left = `${offsetLeft + clamped.left}px`;
       panel.style.top = `${offsetTop + clamped.top}px`;
+      // 결과/토큰 문구의 높이 변화마다 초점 점수를 다시 매겨 창이 이동하지 않게 한다.
+      routePickDockPositionRef.current = clamped;
     };
 
     const mountDockedRoutePanel = (
@@ -1610,10 +1625,12 @@ export function MapView({
       mountDockedRoutePanel(wrap, click, ac);
     };
 
-    const openPickSurface = (picked: LngLat, event: mapboxgl.MapMouseEvent) => {
+    const openPickSurface = (picked: LngLat, event: mapboxgl.MapMouseEvent, preferredView?: "location" | "distance") => {
       if (routePickDockDraggingRef.current) return;
+      const initialRoutePickView = preferredView ?? pickPopupAutoRouteUiRef.current?.getRoutePickView();
       finalizePickClose();
       const ac = new AbortController();
+      activePickController = ac;
       const closePopup = () => finalizePickClose(ac);
       const initialHasStart = Boolean(startLngLatRef.current);
       const pickContent = buildPickPopup({
@@ -1626,6 +1643,7 @@ export function MapView({
           onSelectPointRef.current(type, lngLat, slot);
         },
         initialStart: startLngLatRef.current,
+        initialRoutePickView,
         routeProfile: routeProfileRef.current,
         onRouteProfile: (p) => onRouteProfileRef.current(p),
         onArmDirectionPick: (input) => onArmDirectionPickRef.current?.(input) ?? {
@@ -1644,6 +1662,12 @@ export function MapView({
           if (popup) popup.options.closeOnClick = false;
         },
         onRoutePanelActivated: () => promotePointPopupToDock(picked, ac),
+        onPulseDistanceCircle: () => {
+          stopDistanceCircleAttention();
+          stopCircleAttention = pulseDistanceCircle(map);
+        },
+        onStopDistanceCirclePulse: stopDistanceCircleAttention,
+        onGenerateDistanceRoute: (point) => runDirectionRouteSearch(point),
         onPreviewDistanceAutoRouteCircle: (input) =>
           onPreviewDistanceAutoRouteCircleRef.current?.(input),
         onClearDistanceAutoRouteCircle: () =>
@@ -1654,6 +1678,8 @@ export function MapView({
         onClearRoute:
           typeof onClearRouteRef.current === "function"
             ? () => {
+                directionSearchSequence += 1;
+                autoRouteSearchBusyRef.current = false;
                 clearAutoRouteClickDebugMarkerRef.current();
                 onClearRouteRef.current?.();
               }
@@ -1712,7 +1738,7 @@ export function MapView({
         lngLat: { lng: picked[0], lat: picked[1] },
         point,
       } as mapboxgl.MapMouseEvent;
-      openPickSurface(picked, fakeEvent);
+      openPickSurface(picked, fakeEvent, "distance");
     };
 
     /**
@@ -1741,7 +1767,7 @@ export function MapView({
         point: commit.point,
       }) as mapboxgl.MapMouseEvent;
 
-    const runDirectionMapPick = (picked: LngLat) => {
+    const runDirectionRouteSearch = (picked: LngLat) => {
       if (autoRouteSearchBusyRef.current) return;
       if (routePickDockDraggingRef.current) return;
       if (autoRouteMapPickRef.current !== "direction" || !onAutoRouteMapPickRef.current) {
@@ -1751,6 +1777,7 @@ export function MapView({
       const popup = popupRef.current;
       if (popup) popup.options.closeOnClick = false;
       autoRouteSearchBusyRef.current = true;
+      const searchSequence = ++directionSearchSequence;
       pickPopupAutoRouteUiRef.current?.setInlinePhase(
         "searching",
         "목표 거리에 맞는 도로 경로를 찾는 중입니다…",
@@ -1758,9 +1785,11 @@ export function MapView({
 
       void onAutoRouteMapPickRef.current(picked)
         .then((result) => {
+          if (searchSequence !== directionSearchSequence) return;
           applyAutoRoutePickResultToPopup(result);
         })
         .catch(() => {
+          if (searchSequence !== directionSearchSequence) return;
           pickPopupAutoRouteUiRef.current?.setInlinePhase(
             "failed",
             "경로 탐색 중 오류가 발생했습니다. 방향을 다시 선택해 주세요.",
@@ -1768,13 +1797,25 @@ export function MapView({
           onRetryDistanceAutoRouteRef.current?.();
         })
         .finally(() => {
+          if (searchSequence !== directionSearchSequence) return;
           autoRouteSearchBusyRef.current = false;
         });
+    };
+
+    const runDirectionMapPick = (picked: LngLat) => {
+      if (autoRouteSearchBusyRef.current || routePickDockDraggingRef.current) return;
+      if (pickPopupAutoRouteUiRef.current?.stageDirectionPick(picked)) return;
+      runDirectionRouteSearch(picked);
     };
 
     const runLongPressRoutePick = (commit: MapRoutePickCommit) => {
       if (routePickDockDraggingRef.current) return;
       if (autoRouteSearchBusyRef.current) return;
+      // 거리·방향 선택 중에는 누른 길이와 관계없이 같은 방향 탐색 경로를 쓴다.
+      if (autoRouteMapPickRef.current === "direction") {
+        runDirectionMapPick(commit.lngLat);
+        return;
+      }
       const event = mapMouseEventFromPickCommit(commit);
       const picked = commit.lngLat;
       showTemporaryPick(picked);
@@ -1841,6 +1882,8 @@ export function MapView({
 
     return () => {
       detachRoutePickGesture();
+      activePickController?.abort();
+      stopDistanceCircleAttention();
       if (routePickHintHideTimer) clearTimeout(routePickHintHideTimer);
       detachFrameBreakdown();
       map.off("moveend", reportMapViewportAfterMove);
@@ -2042,68 +2085,172 @@ export function MapView({
   }, [routeGeometry, mapLoaded, prefersReducedMotion]);
 
   const DISTANCE_TARGET_CIRCLE_SRC = "distance-target-circle";
+  const DISTANCE_TARGET_CIRCLE_ARROWS_SRC = "distance-target-circle-arrows";
   const lastAppliedCircleFitTokenRef = useRef(0);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
 
-    if (!distanceTargetCircle?.coordinates?.length) {
+    let disposed = false;
+    // 스타일 재적용 때는 좌표를 다시 계산하지 않고 같은 데이터로 복원한다.
+    const arrowData = distanceTargetCircle?.coordinates?.length
+      ? buildCircleRadialArrowsFromLineString(distanceTargetCircle)
+      : null;
+
+    const removeCircleLayers = () => {
+      if (map.getLayer("distance-target-circle-arrows-line")) {
+        map.removeLayer("distance-target-circle-arrows-line");
+      }
+      if (map.getLayer("distance-target-circle-arrows-casing")) {
+        map.removeLayer("distance-target-circle-arrows-casing");
+      }
       if (map.getLayer("distance-target-circle-line")) map.removeLayer("distance-target-circle-line");
       if (map.getLayer("distance-target-circle-casing")) {
         map.removeLayer("distance-target-circle-casing");
       }
+      if (map.getSource(DISTANCE_TARGET_CIRCLE_ARROWS_SRC)) {
+        map.removeSource(DISTANCE_TARGET_CIRCLE_ARROWS_SRC);
+      }
       if (map.getSource(DISTANCE_TARGET_CIRCLE_SRC)) map.removeSource(DISTANCE_TARGET_CIRCLE_SRC);
-      return;
-    }
-
-    /** 안내 원 하나 = D (5A-R2c §2). 파선. 도넛(두 번째 링·채움) 없음. */
-    const feature = {
-      type: "FeatureCollection" as const,
-      features: [
-        {
-          type: "Feature" as const,
-          properties: {},
-          geometry: distanceTargetCircle,
-        },
-      ],
     };
 
-    const circleBeforeLayer = map.getLayer("route") ? "route" : undefined;
+    const apply = () => {
+      if (disposed) return;
+      try {
+        if (!map.getStyle()) return;
+      } catch {
+        return;
+      }
 
-    if (map.getSource(DISTANCE_TARGET_CIRCLE_SRC)) {
-      (map.getSource(DISTANCE_TARGET_CIRCLE_SRC) as mapboxgl.GeoJSONSource).setData(feature);
-    } else {
-      map.addSource(DISTANCE_TARGET_CIRCLE_SRC, { type: "geojson", data: feature });
-      map.addLayer(
-        {
-          id: "distance-target-circle-casing",
-          type: "line",
-          source: DISTANCE_TARGET_CIRCLE_SRC,
-          paint: {
-            "line-color": "#111827",
-            "line-width": 4,
-            "line-dasharray": [2, 2],
-            "line-opacity": 0.2,
+      if (!distanceTargetCircle?.coordinates?.length) {
+        removeCircleLayers();
+        return;
+      }
+
+      /** 안내 원 하나 = D (5A-R2c §2). 파선. 도넛(두 번째 링·채움) 없음. */
+      const feature = {
+        type: "FeatureCollection" as const,
+        features: [
+          {
+            type: "Feature" as const,
+            properties: {},
+            geometry: distanceTargetCircle,
           },
-        },
-        circleBeforeLayer,
-      );
-      map.addLayer(
-        {
-          id: "distance-target-circle-line",
-          type: "line",
-          source: DISTANCE_TARGET_CIRCLE_SRC,
-          paint: {
-            "line-color": ROUTE_LINE_COLOR,
-            "line-width": 3,
-            "line-opacity": 0.95,
-            "line-dasharray": [2, 2],
+        ],
+      };
+
+      const circleBeforeLayer = map.getLayer("route") ? "route" : undefined;
+
+      if (map.getSource(DISTANCE_TARGET_CIRCLE_SRC)) {
+        (map.getSource(DISTANCE_TARGET_CIRCLE_SRC) as mapboxgl.GeoJSONSource).setData(feature);
+      } else {
+        map.addSource(DISTANCE_TARGET_CIRCLE_SRC, { type: "geojson", data: feature });
+        map.addLayer(
+          {
+            id: "distance-target-circle-casing",
+            type: "line",
+            source: DISTANCE_TARGET_CIRCLE_SRC,
+            paint: {
+              "line-color": "#111827",
+              "line-width": 4,
+              "line-dasharray": [2, 2],
+              "line-opacity": 0.2,
+            },
           },
-        },
-        circleBeforeLayer,
-      );
-    }
+          circleBeforeLayer,
+        );
+        map.addLayer(
+          {
+            id: "distance-target-circle-line",
+            type: "line",
+            source: DISTANCE_TARGET_CIRCLE_SRC,
+            paint: {
+              "line-color": ROUTE_LINE_COLOR,
+              "line-width": 3,
+              "line-opacity": 0.95,
+              "line-dasharray": [2, 2],
+            },
+          },
+          circleBeforeLayer,
+        );
+      }
+
+      if (arrowData) {
+        if (map.getSource(DISTANCE_TARGET_CIRCLE_ARROWS_SRC)) {
+          (map.getSource(DISTANCE_TARGET_CIRCLE_ARROWS_SRC) as mapboxgl.GeoJSONSource).setData(
+            arrowData,
+          );
+        } else {
+          map.addSource(DISTANCE_TARGET_CIRCLE_ARROWS_SRC, { type: "geojson", data: arrowData });
+          map.addLayer(
+            {
+              id: "distance-target-circle-arrows-casing",
+              type: "line",
+              source: DISTANCE_TARGET_CIRCLE_ARROWS_SRC,
+              paint: {
+                "line-color": "#111827",
+                "line-width": 4,
+                "line-opacity": 0.2,
+              },
+            },
+            circleBeforeLayer,
+          );
+          map.addLayer(
+            {
+              id: "distance-target-circle-arrows-line",
+              type: "line",
+              source: DISTANCE_TARGET_CIRCLE_ARROWS_SRC,
+              paint: {
+                "line-color": ROUTE_LINE_COLOR,
+                "line-width": 3,
+                "line-opacity": 0.95,
+              },
+            },
+            circleBeforeLayer,
+          );
+        }
+      } else if (map.getSource(DISTANCE_TARGET_CIRCLE_ARROWS_SRC)) {
+        if (map.getLayer("distance-target-circle-arrows-line")) {
+          map.removeLayer("distance-target-circle-arrows-line");
+        }
+        if (map.getLayer("distance-target-circle-arrows-casing")) {
+          map.removeLayer("distance-target-circle-arrows-casing");
+        }
+        map.removeSource(DISTANCE_TARGET_CIRCLE_ARROWS_SRC);
+      }
+    };
+
+    let restoring = false;
+    const restoreMissingCircle = () => {
+      if (disposed || restoring || !distanceTargetCircle?.coordinates?.length) return;
+      if (map.getSource(DISTANCE_TARGET_CIRCLE_SRC) &&
+          (!arrowData || map.getSource(DISTANCE_TARGET_CIRCLE_ARROWS_SRC))) return;
+      restoring = true;
+      try {
+        apply();
+      } finally {
+        restoring = false;
+      }
+    };
+
+    apply();
+    if (!map.isStyleLoaded()) map.once("idle", apply);
+    map.on("style.load", apply);
+    // setStyle의 차분 적용은 style.load를 발생시키지 않을 수 있다.
+    map.on("styledata", restoreMissingCircle);
+    return () => {
+      disposed = true;
+      map.off("style.load", apply);
+      map.off("styledata", restoreMissingCircle);
+      map.off("idle", apply);
+    };
+  }, [mapLoaded, distanceTargetCircle]);
+
+  useLayoutEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    if (!distanceTargetCircle?.coordinates?.length) return;
 
     if (distanceTargetCircleFitToken <= 0) return;
     if (distanceTargetCircleFitToken <= lastAppliedCircleFitTokenRef.current) return;

@@ -1997,6 +1997,7 @@ export default function App() {
   } = distanceAutoRoute;
 
   const handleClearPins = useCallback(() => {
+    anchorFixedStartRef.current = null;
     clearRoutePins(routeMenuLockedForProd);
     clearCirclePreview();
     dismissResult();

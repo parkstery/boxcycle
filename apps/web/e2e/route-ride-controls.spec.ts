@@ -131,11 +131,11 @@ for(const initial of ['empty','start-only','end-only','ready','waypoints'] as co
     await expect(popup.locator('#map-view-pick-location-view')).toBeHidden();
     await expect(popup.locator('#map-view-pick-distance-view')).toBeVisible();
     await expect(popup).toHaveAttribute('data-drags','0');
-    if(!hasStart)await expect(popup.getByText(/출발.*설정/).first()).toBeVisible();
+    if(!hasStart)await expect(popup.getByRole('button',{name:'출발 지점으로 설정',exact:true})).toBeVisible();
     else{
       await popup.getByRole('button',{name:'목표 거리 5km',exact:true}).click();
       await expect(popup.getByRole('textbox',{name:'목표거리 km',exact:true})).toHaveValue('5.0');
-      await popup.getByRole('button',{name:'보행 경로',exact:true}).click();
+      await expect(popup.getByRole('button',{name:'보행 경로',exact:true})).toBeHidden();
       await expect(popup).toHaveAttribute('data-generated','0');
     }
     await popup.getByRole('tab',{name:'출발·도착',exact:true}).click();

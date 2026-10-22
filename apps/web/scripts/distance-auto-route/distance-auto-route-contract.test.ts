@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
+import { pulseDistanceCircle } from "../../src/lib/map/distanceCircleAttention.ts";
 import {
   AUTO_ROUTE_BEARING_OFFSETS_DEG,
   AUTO_ROUTE_DISTANCE_FACTORS,
@@ -9,7 +10,11 @@ import {
   angularBearingDiffDeg,
   bearingFromOriginToPoint,
   buildAutoRouteCandidates,
+  buildCircleRadialArrowFeatureCollection,
+  buildCircleRadialArrowsFromLineString,
+  CIRCLE_RADIAL_ARROW_COUNT,
   circleLineString,
+  inferCircleLineMetrics,
   isDistanceErrorWithinMax,
   isValidAutoRouteEnd,
   pickBestAutoRoute,
@@ -109,6 +114,33 @@ describe("distanceAutoRoute", () => {
     const sample = circle.coordinates[9]!;
     const d = getDistanceMeters(ORIGIN, sample);
     assert.ok(Math.abs(d - 1000) < 50, `radius error ${d}`);
+  });
+
+  it("buildCircleRadialArrows — 12개·좌표 유한·30° 간격", () => {
+    const circle = circleLineString(ORIGIN, 5000, 72);
+    const metrics = inferCircleLineMetrics(circle);
+    assert.ok(metrics);
+    assert.ok(getDistanceMeters(ORIGIN, metrics.center) < 0.1);
+    const fc = buildCircleRadialArrowsFromLineString(circle);
+    assert.ok(fc);
+    assert.equal(fc.features.length, CIRCLE_RADIAL_ARROW_COUNT);
+    for (const f of fc.features) {
+      assert.equal(f.geometry.type, "MultiLineString");
+      assert.equal(f.geometry.coordinates.length, 3);
+      for (const line of f.geometry.coordinates) {
+        for (const [lng, lat] of line) {
+          assert.ok(Number.isFinite(lng) && Number.isFinite(lat));
+        }
+      }
+    }
+    const direct = buildCircleRadialArrowFeatureCollection(ORIGIN, 5000);
+    assert.equal(direct.features.length, CIRCLE_RADIAL_ARROW_COUNT);
+    for (const radius of [1000, 120000]) {
+      const arrows = buildCircleRadialArrowFeatureCollection(ORIGIN, radius);
+      const [shaft, wing] = arrows.features[0]!.geometry.coordinates;
+      assert.ok(Math.abs(getDistanceMeters(shaft![0]!, shaft![1]!) / radius - 0.12) < 0.001);
+      assert.ok(Math.abs(getDistanceMeters(wing![0]!, wing![1]!) / radius - 0.055) < 0.001);
+    }
   });
 
   it("buildAutoRouteCandidates — 계획서 거리·방향 계수로 35개 이하", () => {
@@ -249,6 +281,12 @@ describe("distanceAutoRoute", () => {
     assert.doesNotMatch(MAP_VIEW_SOURCE, /distance-target-click-zone-fill/);
     // 참고 원 단일 레이어
     assert.match(MAP_VIEW_SOURCE, /distance-target-circle-line/);
+    assert.match(MAP_VIEW_SOURCE, /distance-target-circle-arrows-line/);
+    assert.match(MAP_VIEW_SOURCE, /buildCircleRadialArrowsFromLineString/);
+    assert.match(
+      MAP_VIEW_SOURCE,
+      /DISTANCE_TARGET_CIRCLE_ARROWS_SRC[\s\S]{0,800}map\.on\("style\.load", apply\)/,
+    );
     // Route 선 스타일 유지
     assert.match(MAP_VIEW_SOURCE, /"line-color": ROUTE_LINE_COLOR/);
     assert.doesNotMatch(MAP_VIEW_SOURCE, /#E8A33D/);
@@ -494,7 +532,8 @@ describe("distanceAutoRoute", () => {
     );
     assert.doesNotMatch(stepBlock, /fetchDistanceAutoRoute/);
     assert.doesNotMatch(stepBlock, /onAutoRouteMapPick/);
-    assert.match(stepBlock, /tryArmDirectionPickIfChecked/);
+    assert.match(stepBlock, /commitDistanceInput/);
+    assert.match(stepBlock, /tryArmDirectionPick\(\)/);
     assert.match(stepBlock, /if \(!ensureDistanceDirectionForInput\(\)\) return/);
     const activationBlock = BUILD_PICK_POPUP_SOURCE.slice(
       BUILD_PICK_POPUP_SOURCE.indexOf("function ensureDistanceDirectionForInput"),
@@ -655,6 +694,15 @@ describe("distanceAutoRoute", () => {
     assert.ok(overflow.top < 500);
   });
 
+  it("좌우 여유가 있으면 중심 상하 대신 좌우 가장자리 선택",()=>{
+    const pos=pickRoutePickDockPosition({
+      viewport:{left:0,top:0,right:800,bottom:360,width:800,height:360},
+      panelWidth:220,panelHeight:130,reservedRects:[],
+      focus:{routePoints:[{x:70,y:180},{x:730,y:180}]},
+    });
+    assert.ok(pos.left===8 || pos.left===572);
+  });
+
   it("3D-2-R2-R1 — collision-free 후보 우선·HUD slot selector", () => {
     assert.doesNotMatch(
       JSON.stringify(ROUTE_PICK_DOCK_HUD_SELECTORS),
@@ -769,5 +817,47 @@ describe("distanceAutoRoute", () => {
     assert.doesNotMatch(tabSwitch, /fetchDistanceAutoRoute|onAutoRouteMapPick|onRouteProfile/);
     assert.match(tabSwitch, /pauseDistancePickForTabSwitch/);
     assert.match(MAP_VIEW_CSS, /map-view__pick-header-row[\s\S]*?map-view__pick-route-tabs/);
+  });
+});
+
+describe("거리 안내 원 유한 펄스", () => {
+  it("두 봉우리 후 기본 paint 복원·프레임 종료·취소·reduced motion", (t) => {
+    const names = ["window", "requestAnimationFrame", "cancelAnimationFrame"] as const;
+    const descriptors = names.map(name => Object.getOwnPropertyDescriptor(globalThis,name));
+    let reduced = false;
+    let nextId = 0;
+    const frames = new Map<number,FrameRequestCallback>();
+    t.mock.method(performance,"now",()=>0);
+    Object.assign(globalThis,{
+      window:{matchMedia:()=>({matches:reduced})},
+      requestAnimationFrame:(callback:FrameRequestCallback)=>{frames.set(++nextId,callback);return nextId;},
+      cancelAnimationFrame:(id:number)=>frames.delete(id),
+    });
+    const values = new Map<string,unknown>();
+    const map = {
+      getLayer:()=>true,
+      setPaintProperty:(id:string,key:string,value:unknown)=>values.set(`${id}:${key}`,value),
+    };
+    const tick=(now:number)=>{const entry=frames.entries().next().value!;frames.delete(entry[0]);entry[1](now);};
+    const width=()=>Number(values.get("distance-target-circle-arrows-line:line-width"));
+    try {
+      pulseDistanceCircle(map as unknown as Parameters<typeof pulseDistanceCircle>[0]);
+      tick(0);assert.equal(width(),3);
+      tick(350);assert.equal(width(),6);
+      tick(700);assert.equal(width(),3);
+      tick(1050);assert.equal(width(),6);
+      tick(1400);assert.equal(width(),3);assert.equal(frames.size,0);
+      const stop=pulseDistanceCircle(map as unknown as Parameters<typeof pulseDistanceCircle>[0]);
+      tick(350);stop();assert.equal(width(),3);assert.equal(frames.size,0);
+      reduced=true;
+      pulseDistanceCircle(map as unknown as Parameters<typeof pulseDistanceCircle>[0]);
+      assert.equal(frames.size,0);
+    } finally {
+      names.forEach((name,index)=>{
+        const descriptor=descriptors[index];
+        if(descriptor)Object.defineProperty(globalThis,name,descriptor);
+        else Reflect.deleteProperty(globalThis,name);
+      });
+    }
   });
 });

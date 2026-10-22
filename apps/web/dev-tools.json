@@ -97,7 +97,7 @@
       "path": "apps/web/src/lib/debug/distanceAutoRouteClickDebugMarker.ts",
       "class": "permanent",
       "purpose": "DEV 자동 경로 클릭 좌표. distance-auto-route-click-intent.test.ts",
-      "enable": "DEV 빌드. 시험이 직접 import",
+      "enable": "DEV 빌드 + ?distanceRouteDebug=1. 시험이 직접 import",
       "bundle": "20261017-dev-byproducts",
       "added": "2026-10-17"
     },
@@ -330,6 +330,16 @@
       "enable": "상시 계측. 시험이 직접 import",
       "bundle": "20261017-dev-byproducts",
       "added": "2026-10-17"
+    },
+    {
+      "id": "q-distance-route-debug",
+      "kind": "query",
+      "key": "distanceRouteDebug",
+      "class": "permanent",
+      "purpose": "거리 방향 클릭 raw 좌표 마커를 명시적으로 활성화. 일반 개발 UI에서는 숨김",
+      "enable": "DEV에서만 ?distanceRouteDebug=1",
+      "bundle": "20261020-ui-800x360",
+      "added": "2026-10-22"
     },
     {
       "id": "q-subscription",

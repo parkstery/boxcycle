@@ -58,6 +58,7 @@ export type MapRoutePickGestureAttachOptions = {
 
 type ActivePointer = {
   id: number;
+  pointerType: string;
   startClient: { x: number; y: number };
   startAt: number;
   startedOnCanvas: boolean;
@@ -130,7 +131,7 @@ export function attachMapRoutePickGesture(
     return true;
   };
 
-  const fireLongPress = (session: ActivePointer, event: PointerEvent) => {
+  const fireLongPress = (session: ActivePointer, event: { clientX: number; clientY: number }) => {
     if (session.canceled || session.longPressFired) return;
     if (!canBeginPick()) return;
     const commit = lngLatFromClient(event.clientX, event.clientY);
@@ -158,6 +159,7 @@ export function attachMapRoutePickGesture(
 
     const session: ActivePointer = {
       id: event.pointerId,
+      pointerType: event.pointerType,
       startClient: { x: event.clientX, y: event.clientY },
       startAt: now(),
       startedOnCanvas: true,
@@ -236,13 +238,22 @@ export function attachMapRoutePickGesture(
 
   const onPointerCancel = (event: PointerEvent) => {
     const session = activePointers.get(event.pointerId);
-    if (session) cancelSession(session);
+    // native longpress 뒤의 cancel은 이미 확정한 선택의 취소가 아니다.
+    if (session && !session.longPressFired) cancelSession(session);
     finishPointer(event);
     taintedPointerIds.delete(event.pointerId);
   };
 
   const onContextMenu = (event: Event) => {
     event.preventDefault();
+    const session = activePointers.size === 1 ? activePointers.values().next().value : undefined;
+    if (session?.pointerType === "touch" && !session.canceled && session.longPressFired) return;
+    if (session?.pointerType === "touch" && !session.canceled && canBeginPick()) {
+      // 모바일 자체 longpress가 앱 timer보다 먼저/나중에 와도 동일 선택을 한 번만 확정한다.
+      clearTimer(session);
+      fireLongPress(session, { clientX: session.startClient.x, clientY: session.startClient.y });
+      return;
+    }
     cancelAllSessions();
   };
 

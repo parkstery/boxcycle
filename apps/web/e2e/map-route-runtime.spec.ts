@@ -60,3 +60,23 @@ test('실제 MapView: 터치 길게누르기·핀치 취소·열린 경로창에
   await expect(surface).toHaveCount(0);
   await expect(page.locator('#runtime-state')).toContainText('"picks":1');
 });
+
+test('방향 긴 터치 한 번: native contextmenu와 pointercancel이 겹쳐도 요청은 정확히 한 번', async ({page})=>{
+  await stubMapboxStyle(page);
+  await page.route(/https:\/\/api\.mapbox\.com\/(?!styles)/,r=>r.fulfill({status:200,contentType:'application/json',body:'{}'}));
+  await page.goto('/scripts/ui-800x360/map-route-runtime.html');
+  const canvas=page.locator('.mapboxgl-canvas');
+  await expect(canvas).toBeVisible();
+  await page.getByRole('button',{name:'방향 선택 준비',exact:true}).click();
+  const cdp=await page.context().newCDPSession(page);
+  for(const [index,point] of [[650,210],[450,80]].entries()){
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:point[0]!,y:point[1]!,id:1}]});
+    await page.waitForTimeout(400);
+    // 모바일 브라우저가 자체 longpress를 인식해 앱 timer보다 먼저 메뉴/cancel을 보낼 수 있다.
+    await canvas.dispatchEvent('contextmenu',{pointerType:'touch',button:0,clientX:point[0]!,clientY:point[1]!});
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});
+    await expect(page.locator('#runtime-state')).toContainText(`"picks":${index+1}`);
+    await page.waitForTimeout(600);
+    await expect(page.locator('#runtime-state')).toContainText(`"picks":${index+1}`);
+  }
+});

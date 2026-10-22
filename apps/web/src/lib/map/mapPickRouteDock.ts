@@ -203,7 +203,10 @@ export function pickRoutePickDockPosition(input: {
     const panel = panelRectAt(candidate.left, candidate.top, input.panelWidth, input.panelHeight);
     return panelReservedOverlapArea(panel, input.reservedRects) === 0;
   });
-  const pool = collisionFree.length > 0 ? collisionFree : candidates;
+  // 지도 중앙의 경로/방향 클릭 영역을 확보한다. HUD와 겹치지 않는 좌우 후보 우선.
+  const lateral = candidates.filter(candidate => candidate.edge === "left" || candidate.edge === "right");
+  const lateralFree = collisionFree.filter(candidate => candidate.edge === "left" || candidate.edge === "right");
+  const pool = lateralFree.length > 0 ? lateralFree : collisionFree.length > 0 ? collisionFree : lateral;
   const best = pickBestRoutePickDockCandidate({
     candidates: pool,
     panelWidth: input.panelWidth,

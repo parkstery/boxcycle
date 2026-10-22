@@ -277,7 +277,8 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
           return { status: "failed", message };
         }
 
-        const effectiveTargetKm = overrideTargetKmRef.current ?? targetKm;
+        const effectiveTargetKm = overrideTargetKmRef.current ?? lastSessionPrefsRef.current?.targetKm ?? targetKm;
+        const effectiveProfile = lastSessionPrefsRef.current?.profile ?? profile;
         const effectiveTargetMeters = effectiveTargetKm * 1000;
         overrideTargetKmRef.current = null;
 
@@ -297,12 +298,14 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
           const response = await fetchDistanceAutoRoute(functions, user!, {
             start: effectiveStart,
             targetRoadPoint: lngLat,
-            profile,
+            // 수단 클릭에서 arm 직후 탐색해도 React 커밋 전 기본값으로 요청하지 않는다.
+            profile: effectiveProfile,
             targetDistanceMeters: effectiveTargetMeters,
             bearingDeg: bearing,
             requestId,
           });
 
+          if (activeRequestIdRef.current !== requestId) return null;
           activeRequestIdRef.current = null;
 
           if (response.status === "failed") {
@@ -330,7 +333,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
           onApplyRoute({
             start: effectiveStart,
             end: response.end,
-            profile,
+            profile: effectiveProfile,
             distanceMeters: response.distance,
             durationSec: response.duration,
             geometry: response.geometry,
@@ -373,6 +376,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
           setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
           return { status: "found", message: DISTANCE_AUTO_ROUTE_REROUTE_HINT };
         } catch (e) {
+          if (activeRequestIdRef.current !== requestId) return null;
           activeRequestIdRef.current = null;
           const message = formatDistanceAutoRouteClientError(e);
           setStatusMessage(
