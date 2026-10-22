@@ -459,6 +459,22 @@
   color: #334155;
 }
 
+/* 10-23 Chief: 파란 hover 바탕에 회색 글자가 묻혔다. 탭(거리·방향)처럼 연한 파랑+파란 테두리·글자로.
+   폰은 탭 뒤 hover 가 남으므로 hover 는 마우스 기기에서만, 폰은 누르는 순간(:active)만 같은 모양 */
+@media (hover: hover) {
+  .map-view__pick .map-view__pick-actions--pin-row .map-view__pick-btn:hover:not(:disabled) {
+    background: #EFF6FF;
+    border-color: #2563EB;
+    color: #1D4ED8;
+  }
+}
+
+.map-view__pick .map-view__pick-actions--pin-row .map-view__pick-btn:active:not(:disabled) {
+  background: #EFF6FF;
+  border-color: #2563EB;
+  color: #1D4ED8;
+}
+
 /*
  * 팝업 제목 행(2026-09-16 Chief). 주소보다 **위**에 온다.
  * 짧은 문구라 오른쪽 끝 닫기 ✕ 와 부딪히지 않고, 긴 주소는 둘째 줄로 내려가 ✕ 를 덮지 않는다.
