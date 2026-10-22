@@ -197,6 +197,46 @@ const CASES = [
     cmd: "npm run test:next-ride --silent",
     cwd: path.join(ROOT, "apps/web"),
   },
+  {
+    name: "코드 정련 — 아무도 안 쓰는 export 추가",
+    tamper: () => {
+      const rel = "apps/web/src/lib/geo/geo.ts";
+      const before = read(rel);
+      write(rel, before + "\nexport const __TIDY_PROBE_UNUSED = 1;\n");
+      return () => write(rel, before);
+    },
+    cmd: "node scripts/check-code-tidy.mjs --check",
+  },
+  {
+    name: "코드 정련 — 측정 규칙을 넓혀 우회",
+    tamper: () => {
+      const rel = "apps/web/knip.config.mjs";
+      const before = read(rel);
+      write(rel, before.replace('ignore: ["**/*.d.mts"]', 'ignore: ["**/*.d.mts", "src/lib/**"]'));
+      return () => write(rel, before);
+    },
+    cmd: "node scripts/check-code-tidy.mjs --check",
+  },
+  {
+    name: "코드 정련 — 큰 파일이 더 커짐",
+    tamper: () => {
+      const rel = "apps/web/src/App.tsx";
+      const before = read(rel);
+      write(rel, before + "\n// probe\n".repeat(5));
+      return () => write(rel, before);
+    },
+    cmd: "node scripts/check-code-tidy.mjs --check",
+  },
+  {
+    name: "코드 정련 — 반복 코드 복사",
+    tamper: () => {
+      const src = "apps/web/src/lib/ride/repo/rideResumeSlotLocal.ts";
+      const rel = "apps/web/src/lib/ride/repo/__tidyDupProbe.ts";
+      write(rel, read(src));
+      return () => fs.rmSync(file(rel), { force: true });
+    },
+    cmd: "node scripts/check-code-tidy.mjs --check",
+  },
 ];
 
 /**

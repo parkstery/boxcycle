@@ -1,5 +1,5 @@
 #!/bin/sh
-# RTW pre-push 게이트 9종 (2026-10-17 기준).
+# RTW pre-push 게이트 10종 (2026-10-22 기준).
 #
 #   lock 동기 · harness 설정 동기 · lib 의존 방향/순환 · 개발 부산물 등록부 ·
 #   web 타입체크 · web 단위 시험 전체(test:quick) · **진입 셀렉터 계약** ·
@@ -97,6 +97,11 @@ if [ -n "$touch_web" ]; then
   ( cd apps/web && npm run test:entry-selectors --silent ) || fail=1
 fi
 
+touch_tidy=$(echo "$changed" | grep -E 'apps/web/(knip[.]config[.]mjs|code-tidy[.]baseline[.]json)|scripts/check-code-tidy' || true)
+if [ -n "$touch_web" ] || [ -n "$touch_tidy" ]; then
+  echo "[pre-push] 코드 정련 래칫 (안 쓰는 export·반복·큰 파일)…"
+  node scripts/check-code-tidy.mjs --check || fail=1
+fi
 if [ -n "$touch_fn" ]; then
   # `npm test` 가 tsc(emit) 를 먼저 돌리므로 타입체크를 겸한다. lib/ 는 gitignore.
   # 계약 시험(G3)을 여기 두는 이유: Claim ↔ 경로 순위가 어긋나도 **에러가 나지 않는다**
@@ -127,7 +132,7 @@ fi
 if [ "$fail" -ne 0 ]; then
   echo ""
   echo "[pre-push] 게이트 실패 — 원격에 올리기 전에 고치세요."
-  echo "           게이트 9종: lock 동기 · harness 설정 동기 · lib 의존 방향/순환 ·"
+  echo "           게이트 10종: lock 동기 · harness 설정 동기 · lib 의존 방향/순환 · 코드 정련 래칫 ·"
   echo "                      개발 부산물 등록부 · web 타입체크 · web 단위 시험(test:quick) ·"
   echo "                      진입 셀렉터 계약 · functions 타입체크+계약 ·"
   echo "                      Claim 셀 ID 벡터(클라↔서버)"
