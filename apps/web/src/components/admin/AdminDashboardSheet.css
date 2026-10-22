@@ -1,0 +1,197 @@
+.admin-dashboard-sheet {
+  /* 메뉴 드로어(z-50)·주행 설정(z-56) 과 같은 층 — 한 번에 하나만 열린다 */
+  position: fixed;
+  inset: 0;
+  z-index: 56;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.admin-dashboard-sheet__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.32);
+  border: none;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.admin-dashboard-sheet__panel {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  width: min(44rem, calc(100vw - 1rem));
+  max-height: calc(100vh - 1rem);
+  max-height: calc(100dvh - 1rem);
+  overflow: auto;
+  padding: 0.35rem 0.7rem 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  border-radius: 12px;
+  border: 1px solid var(--rtw-ui-border, #cbd5e1);
+  background: var(--rtw-ui-surface, #ffffff);
+  color: var(--rtw-ui-ink, #1f2937);
+  font-size: 12px;
+  pointer-events: auto;
+  box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.35);
+}
+
+.admin-dashboard-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.admin-dashboard-sheet__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.admin-dashboard-sheet__close {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid var(--rtw-ui-border, #cbd5e1);
+  background: var(--rtw-ui-surface-mute, #f1f5f9);
+  color: var(--rtw-ui-muted, #475569);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.admin-dashboard-sheet__note {
+  margin: 0;
+  padding: 0.3rem 0;
+  font-size: 12px;
+  color: var(--rtw-ui-muted, #475569);
+}
+
+.admin-dashboard-sheet__note--error {
+  color: #dc2626;
+}
+
+/* 폰 가로: 지표 표 | (최근 + 점검) 두 칸. 좁으면 한 칸. */
+.admin-dashboard-sheet__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 0.3rem 0.8rem;
+  align-items: start;
+}
+
+.admin-dashboard-sheet__side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+@media (max-width: 520px) {
+  .admin-dashboard-sheet__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.admin-dashboard-sheet__block {
+  min-width: 0;
+}
+
+.admin-dashboard-sheet__kicker {
+  margin: 0 0 0.15rem;
+  font-size: 11px;
+  font-weight: 750;
+  color: var(--rtw-ui-muted, #64748b);
+}
+
+.admin-dashboard-sheet__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-dashboard-sheet__table th,
+.admin-dashboard-sheet__table td {
+  padding: 2px 4px;
+  border-bottom: 1px solid var(--rtw-ui-border, #e2e8f0);
+  line-height: 1.25;
+}
+
+.admin-dashboard-sheet__table thead th {
+  font-size: 11px;
+  font-weight: 650;
+  text-align: right;
+  color: var(--rtw-ui-muted, #64748b);
+}
+
+.admin-dashboard-sheet__table tbody th {
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.admin-dashboard-sheet__table td {
+  text-align: right;
+  font-weight: 650;
+}
+
+.admin-dashboard-sheet__health {
+  margin: 0;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: var(--rtw-ui-surface-mute, #f1f5f9);
+}
+
+.admin-dashboard-sheet__health.is-warn {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.admin-dashboard-sheet__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.admin-dashboard-sheet__foot-text {
+  margin: 0;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--rtw-ui-muted, #64748b);
+}
+
+.admin-dashboard-sheet__refresh {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--rtw-ui-border, #cbd5e1);
+  background: var(--rtw-ui-surface-mute, #f1f5f9);
+  color: var(--rtw-ui-muted, #475569);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.admin-dashboard-sheet__refresh:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .admin-dashboard-sheet__close:hover,
+  .admin-dashboard-sheet__refresh:hover:not(:disabled) {
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #1f2937;
+  }
+}

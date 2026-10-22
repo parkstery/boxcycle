@@ -34,12 +34,15 @@ import {
 import "./UserInfoSheet.css";
 import { selfRiderDisplayName } from "../lib/identity/riderName";
 import { prepareStartScreen } from "../lib/storage/appSessionKeys";
+import { isRouteReviewer } from "../lib/route/repo/publicRouteRequests";
 
 type UserInfoSheetProps = {
   open: boolean;
   onClose: () => void;
   /** 프로필 수정(닉네임·체중·강도) 열기 */
   onEditProfile?: () => void;
+  /** 관리자 지표 시트 열기 — 관리자(isRouteReviewer)에게만 「관리」 버튼으로 노출 */
+  onOpenAdmin?: () => void;
   user: User | null;
   recentSessions: StoredRideSession[];
   isGuest: boolean;
@@ -200,6 +203,20 @@ function rideCompletionDisplay(s: StoredRideSession): {
  * - 계정 식별 + 주간·월간·연간 통계 + 최근 주행 + 핵심 액션.
  */
 export function UserInfoSheet(props: UserInfoSheetProps) {
+  // 관리자 확인은 시트를 열 때 한 번 — 메뉴 노출용일 뿐, 숫자는 서버가 다시 권한을 확인한다
+  const [adminUid, setAdminUid] = useState<string | null>(null);
+  const adminCheckUser = props.open && props.onOpenAdmin ? props.user : null;
+  useEffect(() => {
+    if (!adminCheckUser) return;
+    let cancelled = false;
+    void isRouteReviewer(adminCheckUser).then((ok) => {
+      if (!cancelled) setAdminUid(ok ? adminCheckUser.uid : null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [adminCheckUser]);
+  const showAdminEntry = Boolean(props.onOpenAdmin && props.user && adminUid === props.user.uid);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [statsPeriod, setStatsPeriod] = useState<RideStatsPeriod>("day");
   const [statsSessions, setStatsSessions] = useState<StoredRideSession[]>([]);
@@ -462,6 +479,16 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
               title="Edit profile"
             >
               프로필 수정
+            </button>
+          ) : null}
+          {showAdminEntry ? (
+            <button
+              type="button"
+              className="user-info-sheet__edit"
+              onClick={props.onOpenAdmin}
+              title="Admin dashboard"
+            >
+              관리
             </button>
           ) : null}
           <button

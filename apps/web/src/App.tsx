@@ -105,6 +105,7 @@ import { DevLabPanels } from "./components/devLabs/DevLabPanels";
 import { MapViewSheet } from "./components/map/MapViewSheet";
 import { EdgePanelHandle } from "./components/ui/EdgePanelHandle";
 import { UserInfoSheet } from "./components/UserInfoSheet";
+import { AdminDashboardSheet } from "./components/admin/AdminDashboardSheet";
 import { RideSettingsSheet } from "./components/ride/RideSettingsSheet";
 import { useCalorieProfile } from "./hooks/useCalorieProfile";
 import { usePacerPreference } from "./hooks/usePacerPreference";
@@ -327,18 +328,21 @@ export default function App() {
     userInfoSheetOpen,
     rideSettingsSheetOpen,
     cadenceSensorSheetOpen,
+    adminDashboardSheetOpen,
     setMenuOpen,
     setPlaceSearchOpen,
     setMapViewSheetOpen,
     setUserInfoSheetOpen,
     setRideSettingsSheetOpen,
     setCadenceSensorSheetOpen,
+    setAdminDashboardSheetOpen,
     openMenuPanel,
     openPlaceSearchPanel,
     openMapViewPanel,
     openUserInfoPanel,
     openRideSettingsPanel,
     openCadenceSensorPanel,
+    openAdminDashboardPanel,
   } = useAppSheetNavigation();
   const [menuReveal, setMenuReveal] = useState<number | null>(null);
   const [mapViewReveal, setMapViewReveal] = useState<number | null>(null);
@@ -3503,6 +3507,7 @@ export default function App() {
       <UserInfoSheet
         open={userInfoSheetOpen}
         onEditProfile={user ? () => setProfileEditOpen(true) : undefined}
+        onOpenAdmin={user ? openAdminDashboardPanel : undefined}
         onClose={() => {
           setUserInfoSheetOpen(false);
           setSubscriptionFlash(null);
@@ -3544,6 +3549,12 @@ export default function App() {
           setUserInfoSheetOpen(false);
           handleResumeSavedRouteById(routeId);
         }}
+      />
+
+      <AdminDashboardSheet
+        open={adminDashboardSheetOpen}
+        onClose={() => setAdminDashboardSheetOpen(false)}
+        user={user}
       />
 
       <RideSummarySheet
