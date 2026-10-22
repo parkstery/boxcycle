@@ -77,7 +77,7 @@ function Preview() {
     <EdgePanelHandle edge="right" open={modalOpen} panelId="map-view-sheet" label="맵 뷰 열기"
       onOpen={()=>setPanel('map')} onClose={()=>setPanel('ready')} onDragProgress={setMapReveal}/>
     <RouteDock key={hasRoute?'route':'empty'} stage={stage} stops={hasRoute?stops:stage==='setup'?[stops[0]]:[]} routeLoading={params.has('loading')}
-      onRemoveStop={noop} onFocusStop={noop} />
+      onRemoveStop={noop} onFocusStop={noop} onSwapEndpoints={noop} />
     <RideControlBar stage={panel==='summary'?'summary':stage} profile="cycling" routeLoading={params.has('loading')}
       routeSetupToken={routeSetupToken}
       canStartRide={!params.has('blocked')} onStartRide={()=>setStage('riding')} onPauseRide={()=>setStage('paused')} onResumeRide={()=>setStage('riding')}

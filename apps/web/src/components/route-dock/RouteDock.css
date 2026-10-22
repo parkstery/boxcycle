@@ -43,6 +43,29 @@
 }
 .route-dock__panel[hidden] { display: none; }
 .route-dock__stops { list-style: none; margin: 0; padding: 0; overflow: visible; max-height: none; }
+.route-dock__panel { position: relative; }
+/* 10-23 Chief: 출발↔도착 바꾸기 — 목록 오른쪽 가운데, ✕ 열 바로 왼쪽에 뜬 원 */
+.route-dock__swap {
+  position: absolute;
+  top: 50%;
+  right: 24px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--rtw-ui-border-soft);
+  border-radius: 50%;
+  background: var(--rtw-ui-surface);
+  color: var(--rtw-ui-ink);
+  font-size: 13px;
+  line-height: 1;
+  box-shadow: 0 1px 3px #0002;
+  cursor: pointer;
+}
+.route-dock__swap:active { background: #EFF6FF; border-color: #2563EB; color: #1D4ED8; }
 .route-dock__stops > li {
   display: flex;
   align-items: stretch;

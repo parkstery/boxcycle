@@ -10,15 +10,19 @@ export type RouteDockProps = {
   routeLoading: boolean;
   onRemoveStop: (id: RouteDockStopId) => void;
   onFocusStop: (stop: RouteDockStop) => void;
+  /** 출발↔도착을 바꾸고 경유지 순서를 뒤집는다. 출발·도착이 모두 있을 때만 보인다 */
+  onSwapEndpoints?: () => void;
   editLocked?: boolean;
 };
 const STOP_KIND_LABEL: Record<RouteDockStop["kind"], string> = { start: "S", waypoint: "·", end: "E" };
 
 /** Addresses only: collapsing the route never hides ride controls or the sensor. */
-export function RouteDock({stage, stops, routeLoading, onRemoveStop, onFocusStop, editLocked = false}: RouteDockProps) {
+export function RouteDock({stage, stops, routeLoading, onRemoveStop, onFocusStop, onSwapEndpoints, editLocked = false}: RouteDockProps) {
   const [expanded, setExpanded] = useState(true);
   const { lockStopEditing, isActiveRide } = routeDockUiPolicy(stage, editLocked);
   if (!isRouteDockVisible(stage) || stops.length === 0) return null;
+  const canSwap = Boolean(onSwapEndpoints) && !lockStopEditing &&
+    stops.some(s => s.kind === "start") && stops.some(s => s.kind === "end");
   return (
     <div className={`route-dock-anchor${expanded ? " route-dock-anchor--open" : ""}`} aria-label="경로 보기" aria-busy={routeLoading}>
       <div className="route-dock__shell">
@@ -71,6 +75,12 @@ export function RouteDock({stage, stops, routeLoading, onRemoveStop, onFocusStop
               ))
             )}
           </ul>
+          {canSwap ? (
+            <button type="button" className="route-dock__swap" aria-label="출발·도착 바꾸기"
+              title="출발·도착 바꾸기" onClick={onSwapEndpoints}>
+              <span aria-hidden>⇅</span>
+            </button>
+          ) : null}
           </div>
         </div>
       </div>

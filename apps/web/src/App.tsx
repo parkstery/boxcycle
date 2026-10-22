@@ -1983,6 +1983,24 @@ export default function App() {
     [routeMenuLockedForProd, setStartLngLat, setEndLngLat, setRouteWaypoints],
   );
 
+  /** 출발↔도착 바꾸기(10-23 Chief) — 경유지 순서도 뒤집는다. 경로가 있었으면 바뀐 위치로 같은 수단을 다시 만든다 */
+  const swapRegenerateProfileRef = useRef<RouteProfile | null>(null);
+  const handleSwapRouteEndpoints = useCallback(() => {
+    if (routeMenuLockedForProd || !startLngLat || !endLngLat) return;
+    anchorFixedStartRef.current = null;
+    swapRegenerateProfileRef.current = routeGeometry ? profile : null;
+    setStartLngLat(endLngLat);
+    setEndLngLat(startLngLat);
+    setRouteWaypoints((prev) => [...prev].reverse());
+  }, [routeMenuLockedForProd, startLngLat, endLngLat, routeGeometry, profile, setStartLngLat, setEndLngLat, setRouteWaypoints]);
+  // 경로 생성은 현재 상태를 읽으므로, 바뀐 위치가 반영된 다음 렌더에서 부른다
+  useEffect(() => {
+    const p = swapRegenerateProfileRef.current;
+    if (!p) return;
+    swapRegenerateProfileRef.current = null;
+    applyRouteProfileForMapLocked(routeMenuLockedForProd, p);
+  }, [startLngLat, endLngLat, routeWaypoints, applyRouteProfileForMapLocked, routeMenuLockedForProd]);
+
   const handleFocusRouteDockStop = useCallback(
     (stop: RouteDockStop) => {
       setFollowMode("free");
@@ -2721,6 +2739,7 @@ export default function App() {
       routeLoading={routeLoading}
       onRemoveStop={handleRemoveRouteDockStop}
       onFocusStop={handleFocusRouteDockStop}
+      onSwapEndpoints={handleSwapRouteEndpoints}
       editLocked={routeMenuLockedForProd}
     />
   );
