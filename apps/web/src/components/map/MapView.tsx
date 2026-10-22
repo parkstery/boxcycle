@@ -2093,7 +2093,11 @@ export function MapView({
       distanceTargetCircle.coordinates,
     );
     const bounds = new mapboxgl.LngLatBounds([minLng, minLat], [maxLng, maxLat]);
-    const padding = resolveDistanceCircleFitPadding(map.getContainer().clientWidth);
+    // 경로창이 이미 열려 있으면 그 쪽을 비운다(창 위치는 열릴 때 정해져 좌우가 바뀐다)
+    const container = map.getContainer().getBoundingClientRect();
+    const dock = routePickDockLayerRef.current?.querySelector(".map-view__pick-dock-panel")?.getBoundingClientRect();
+    const padding = resolveDistanceCircleFitPadding(container.width, dock && dock.width > 0
+      ? { left: dock.left - container.left, right: dock.right - container.left } : null);
     // 맞출 수 없으면 「여기에서 계속」 의 끝 지점 비행을 stop() 으로 끊지 않는다(10-22 신고)
     if (!map.cameraForBounds(bounds, { padding, maxZoom: DISTANCE_CIRCLE_FIT_MAX_ZOOM })) return;
 

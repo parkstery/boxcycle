@@ -57,16 +57,22 @@ export function resolveRideFitPadding(
 export const DISTANCE_CIRCLE_FIT_MAX_ZOOM = 17;
 
 /**
- * 거리 원 `fitBounds` padding — 원이 화면 위아래에 거의 닿게 하고, 오른쪽은 경로창 자리를 비운다.
+ * 거리 원 `fitBounds` padding — 원이 화면 위아래에 거의 닿게 하고, 경로창이 있는 쪽은 비운다.
  * 사용자가 길을 고르려고 다시 확대하는 수고를 덜기 위해서다(2026-10-23 Chief).
+ * 경로창 위치(`dock`, 지도 기준 x)를 모르면 오른쪽을 비운다. 창은 열릴 때 좌우가 정해진다.
  * 예전 고정값은 세로 합(420 px)이 폰 가로(360 px)보다 커 Mapbox 가 맞추기를 포기했고,
  * 그 앞의 `map.stop()` 이 「여기에서 계속」 비행을 끊었다(2026-10-22).
  */
 export function resolveDistanceCircleFitPadding(
   viewportWidthPx: number,
+  dock: { left: number; right: number } | null = null,
 ): { top: number; bottom: number; left: number; right: number } {
   const edge = 6;
-  return { top: edge, bottom: edge, left: edge, right: Math.min(300, Math.round(viewportWidthPx * 0.4)) };
+  if (!dock) return { top: edge, bottom: edge, left: edge, right: Math.min(300, Math.round(viewportWidthPx * 0.4)) };
+  const dockOnLeft = (dock.left + dock.right) / 2 < viewportWidthPx / 2;
+  return dockOnLeft
+    ? { top: edge, bottom: edge, left: Math.max(edge, Math.round(dock.right) + edge), right: edge }
+    : { top: edge, bottom: edge, left: edge, right: Math.max(edge, Math.round(viewportWidthPx - dock.left) + edge) };
 }
 
 /**

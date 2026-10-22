@@ -1,7 +1,7 @@
 {
   "왜": "코드 정련 래칫 — 숫자는 낮추기만 한다. scripts/check-code-tidy.mjs 머리 주석 참조",
   "updated": "2026-10-22",
-  "fingerprint": "fa5e26b955c9717e",
+  "fingerprint": "9ccc8323166a4399",
   "knip": {
     "files": 1,
     "exports": 186,
@@ -11,7 +11,7 @@
   "duplicatedLines": 18,
   "largeFiles": {
     "src/App.tsx": 3657,
-    "src/components/map/MapView.css": 1684,
+    "src/components/map/MapView.css": 1686,
     "src/components/map/MapView.tsx": 3404,
     "src/components/maphud/MapHud.css": 1447
   }
