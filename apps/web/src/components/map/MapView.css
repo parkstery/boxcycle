@@ -244,6 +244,25 @@
   margin-top: 0.22rem;
 }
 
+/* 10-23: 출발·도착 탭은 위치 버튼 5개(44px)가 한 줄에 들어가야 해 창을 넓힌다. 거리·방향 탭은 220px */
+.map-view__pick:has(.map-view__pick-route-view--location:not([hidden])) {
+  width: min(256px, calc(100vw - 1.5rem));
+}
+
+/* 10-23 Chief: 경로창 안 재생 버튼은 수단 버튼(28px)과 같은 크기. 우하단 주행 버튼(44px)은 그대로 */
+.map-view__pick .map-view__pick-start-ride {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+}
+
+.map-view__pick .map-view__pick-start-ride .ride-media-button__icon {
+  width: 11px;
+  height: 12px;
+  margin-left: 2px;
+}
+
 .map-view__pick-actions--pin-row {
   position: sticky;
   top: 0;
