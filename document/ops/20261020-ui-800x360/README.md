@@ -1,3 +1,5 @@
+2026-10-22 [다섯위치·미디어버튼29](04-review-29.md): LOCAL_VERIFIED/커밋푸시완료. main2 c7ee09ba. 출발/W1/W2/W3/도착 복원·하단왼쪽재생·우하단독립원형버튼. 브라우저14/거리145/selector19/타입/build/lint PASS. 배포없음·기존5002·실제폰Chief확인대기.
+
 2026-10-22 [거리·방향 즉시출발28](04-review-28.md): DEPLOYED. main2 a55fb50a·Hosting·운영4파일SHA일치. 출발미지정 긴누름 즉시지정/임시마커·출발버튼제거/요청안내반영. 단위1340·거리145·브라우저4·타입/build/lint PASS. 실제폰Chief확인대기.
 
 # 800×360 모바일 UI 개선

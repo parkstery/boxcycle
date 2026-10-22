@@ -18,3 +18,9 @@ npm run dev:localhost -- --port 5002 --strictPort
 이미 실행 중이면 서버를 추가 실행하지 않고 주소만 새로고침한다. 서버 필요 없이 UI 검수만 할 경우 같은 서버의 http://localhost:5002/scripts/ui-800x360/preview.html?state=riding 및 `/scripts/ui-800x360/map-route-runtime.html`은 서버 쓰기 없는 시험 화면이다.
 
 Git 선별 커밋·푸시 최종 결과는 아래에 추가한다. 기존 공용 ops dirty·out/evidence/cdbox는 보존하며 이번 요약만 선별 stage한다.
+
+## Git 완료
+
+제품·관련 시험/기록 `c7ee09ba` (`feat(ui): restore waypoint slots and circular ride controls`) origin/main2 푸시 exit0. pre-commit lint 오류0/기존15경고. pre-push 전체 단위1340 PASS/실패0/77.2s, 타입·의존성·개발부산물·동행재생·진입19단계 PASS. `.out/step29-push.log`. Git Bash 프로세스에 시스템 Node/npm PATH 우선·ENTRY_LOCATION_TEST_BROWSER=chromium 지정, 훅 우회 없음.
+
+이번 변경은 커밋·푸시까지만 완료했으며 Hosting 배포는 하지 않았다. 운영은 이전28 상태다. 기존 서버5002·미커밋 공용 ops 내용 및 관련 없는 출력은 보존. 이번 상태 요약만 선별 stage하여 별도 문서 커밋·푸시한다.
