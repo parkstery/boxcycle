@@ -25,8 +25,6 @@ import {
   updateDistanceAutoRouteClickDebugMarkerElement,
 } from "../../lib/debug/distanceAutoRouteClickDebugMarker";
 import {
-  SELF_LOCATION_MARKER_CLASS,
-  createSelfLocationMarkerRoot,
   updateSelfLocationMarkerViewportBearing,
 } from "../../lib/map/mapSelfLocationMarker";
 import {
@@ -88,7 +86,7 @@ import {
 } from "../../lib/account/routeTokenSpendBridge";
 import type { CoverageOverlayMode } from "../../lib/activity/coverageOverlayMode";
 import type { RouteProfile } from "../../services/mapboxDirections";
-import { estimateCrankRpmFromSpeedKmh, resolvePedalCrankRpm } from "../../lib/sensor/crankRpm";
+import { resolvePedalCrankRpm } from "../../lib/sensor/crankRpm";
 import { resolveGlbPedalPose } from "../../lib/rider/riderGlbPedalPose";
 import {
   RIDER_CURVE_HALF_SPAN_M,
@@ -115,7 +113,6 @@ import {
   isRiderPrototype3dMode,
 } from "../../lib/riderPrototype/config";
 import {
-  applyIso2dRiderBearing,
   createIso2dRiderMarkerRoot,
   type RiderGlbModelSpec,
 } from "../../lib/riderPrototype/iso2dMarker";
@@ -126,30 +123,15 @@ import {
   syncRiderPreservedModels,
 } from "../../lib/map/riderPreservedLayer";
 import { MapCameraAltitudeControl } from "./MapCameraAltitudeControl";
+import { createFixedScaleBoxControl, isMapAttachedToContainer } from "./mapViewControls";
+import {
+  getReducedMotionServerSnapshot,
+  getReducedMotionSnapshot,
+  subscribeReducedMotion,
+} from "./mapViewReducedMotion";
+import { mountSelfLocationMarker, syncLiveSelfRiderVisual } from "./mapViewSelfRider";
+import { useAssignRef } from "./useAssignRef";
 
-/**
- * 축척 막대는 Mapbox 가 계산한 폭을 그대로 쓴다(줌에 따라 늘고 준다). 래퍼는 배치용 클래스만 단다.
- * ScaleControl 루트에 width 를 강제하면 막대 길이가 고정돼 축척이 거짓이 된다.
- */
-function createFixedScaleBoxControl(): mapboxgl.IControl {
-  const inner = new mapboxgl.ScaleControl({ maxWidth: 120, unit: "metric" });
-  let wrap: HTMLDivElement | undefined;
-  return {
-    onAdd(map: mapboxgl.Map) {
-      const scaleEl = inner.onAdd(map);
-      scaleEl.classList.remove("mapboxgl-ctrl");
-      wrap = document.createElement("div");
-      wrap.className = "mapboxgl-ctrl map-ctrl-scale-box";
-      wrap.appendChild(scaleEl);
-      return wrap;
-    },
-    onRemove() {
-      inner.onRemove();
-      wrap?.remove();
-      wrap = undefined;
-    },
-  };
-}
 import {
   computeRideFollowFraming,
   RIDE_FOLLOW_NO_PADDING,
@@ -240,16 +222,6 @@ import {
 import { RouteElevationOverlay } from "./RouteElevationOverlay";
 import { useMapPinMarkers } from "./useMapPinMarkers";
 
-function isMapAttachedToContainer(map: mapboxgl.Map, container: HTMLElement | null): boolean {
-  if (!container) return false;
-  try {
-    const el = map.getContainer();
-    return el.parentNode === container;
-  } catch {
-    return false;
-  }
-}
-
 
 
 const EMPTY_ACTIVITY_WORLD_RAW: ActivityWorldRawOverlay = {
@@ -264,22 +236,6 @@ const EMPTY_ACTIVITY_WORLD_RAW: ActivityWorldRawOverlay = {
 const DEFAULT_CENTER: [number, number] = [MAP_FALLBACK_CENTER[0], MAP_FALLBACK_CENTER[1]];
 const DEFAULT_ZOOM = MAP_FALLBACK_ZOOM;
 
-function mountSelfLocationMarker(
-  map: mapboxgl.Map,
-  lngLat: LngLat,
-): { marker: mapboxgl.Marker; bearingEl: HTMLDivElement } {
-  const { root, bearingEl } = createSelfLocationMarkerRoot();
-  const marker = new mapboxgl.Marker({
-    element: root,
-    className: SELF_LOCATION_MARKER_CLASS,
-    anchor: "center",
-    ...PIN_MARKER_VIEWPORT_ALIGNMENT,
-  })
-    .setLngLat(lngLat)
-    .addTo(map);
-  return { marker, bearingEl };
-}
-
 import {
   PIN_MARKER_VIEWPORT_ALIGNMENT,
   RIDER_ROUTE_MARKER_OFFSET_PX,
@@ -290,69 +246,7 @@ import {
   type PeerDomGJFeature,
 } from "./riderDomMarkers";
 
-function subscribeReducedMotion(callback: () => void): () => void {
-  if (typeof window === "undefined" || !window.matchMedia) return () => {};
-  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const handler = () => callback();
-  mq.addEventListener("change", handler);
-  return () => mq.removeEventListener("change", handler);
-}
-
-function getReducedMotionSnapshot(): boolean {
-  if (typeof window === "undefined" || !window.matchMedia) return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
-function getReducedMotionServerSnapshot(): boolean {
-  return false;
-}
-
-
 export type { LiveRiderMotion } from "./mapViewTypes";
-
-/** rAF tick — 본인 라이더 마커 방향·페달 (동행과 동일 프레임) */
-function syncLiveSelfRiderVisual(
-  pos: LngLat,
-  motion: LiveRiderMotion | null | undefined,
-  routeGeometry: LineStringGeometry | null,
-  prevLiveForBearingRef: { current: LngLat | null },
-  flipRef: { current: HTMLDivElement | null },
-  imgRef: { current: HTMLImageElement | null },
-  spriteRef: { current: HTMLDivElement | null },
-  prefersReducedMotion: boolean,
-): void {
-  const prev = prevLiveForBearingRef.current;
-  const b = resolveRiderBearingDeg(routeGeometry, pos, prev);
-  prevLiveForBearingRef.current = pos;
-
-  if (RIDER_PROTOTYPE_MODE === "iso2d") {
-    const flip = flipRef.current;
-    const img = imgRef.current;
-    if (flip && img) applyIso2dRiderBearing(flip, img, "self", b);
-    return;
-  }
-  if (RIDER_PROTOTYPE_IS_3D) return;
-
-  const flip = flipRef.current;
-  const sprite = spriteRef.current;
-  if (!flip || !sprite) return;
-
-  flip.style.transform = b > 90 && b < 270 ? "scaleX(-1)" : "scaleX(1)";
-
-  const speedNow = motion?.speedKmh ?? 0;
-  const pedalingRunning = motion != null && motion.sessionStatus === "running" && speedNow > 0.35;
-  const rpm = motion
-    ? resolvePedalCrankRpm({
-        speedKmh: motion.speedKmh,
-        crankRpmFromSensor: motion.crankRpmFromSensor,
-      })
-    : estimateCrankRpmFromSpeedKmh(0);
-  let pedalLoopSec = 60 / rpm;
-  pedalLoopSec = Math.min(5.5, Math.max(0.22, pedalLoopSec));
-  sprite.style.animationDuration = `${pedalLoopSec}s`;
-  const allowPedalAnim = !prefersReducedMotion && pedalingRunning;
-  sprite.style.animationPlayState = allowPedalAnim ? "running" : "paused";
-}
 
 export type MapViewProps = {
   accessToken: string | undefined;
@@ -819,9 +713,7 @@ export function MapView({
   });
   /** 지도 초기화 effect 의 정리 구간에서 부른다 — 그 effect 의 의존성을 늘리지 않으려고 ref 로 받는다. */
   const clearPinMarkersRef = useRef(clearPinMarkers);
-  useEffect(() => {
-    clearPinMarkersRef.current = clearPinMarkers;
-  }, [clearPinMarkers]);
+  useAssignRef(clearPinMarkersRef, clearPinMarkers);
   const prefersReducedMotion = useSyncExternalStore(
     subscribeReducedMotion,
     getReducedMotionSnapshot,
@@ -830,33 +722,19 @@ export function MapView({
   const BUILDING_LAYER_ID = "boxcycle-3d-buildings";
   const TERRAIN_SOURCE_ID = "boxcycle-dem";
 
-  useEffect(() => {
-    liveRiderNametagRef.current = liveRiderNametag;
-  }, [liveRiderNametag]);
+  useAssignRef(liveRiderNametagRef, liveRiderNametag);
 
-  useEffect(() => {
-    routeGeometryRef.current = routeGeometry;
-  }, [routeGeometry]);
+  useAssignRef(routeGeometryRef, routeGeometry);
 
-  useEffect(() => {
-    routeDistanceMetersRef.current = routeDistanceMeters;
-  }, [routeDistanceMeters]);
+  useAssignRef(routeDistanceMetersRef, routeDistanceMeters);
 
-  useEffect(() => {
-    liveLngLatRef.current = liveLngLat;
-  }, [liveLngLat]);
+  useAssignRef(liveLngLatRef, liveLngLat);
 
-  useEffect(() => {
-    sampleLiveLngLatRef.current = sampleLiveLngLat;
-  }, [sampleLiveLngLat]);
+  useAssignRef(sampleLiveLngLatRef, sampleLiveLngLat);
 
-  useEffect(() => {
-    sampleLiveDistMRef.current = sampleLiveDistM;
-  }, [sampleLiveDistM]);
+  useAssignRef(sampleLiveDistMRef, sampleLiveDistM);
 
-  useEffect(() => {
-    pacerEnabledRef.current = pacerEnabled;
-  }, [pacerEnabled]);
+  useAssignRef(pacerEnabledRef, pacerEnabled);
 
   useEffect(() => {
     if (!import.meta.env.DEV || typeof window === "undefined") return;
@@ -881,13 +759,9 @@ export function MapView({
     };
   }, []);
 
-  useEffect(() => {
-    liveRiderMotionRef.current = liveRiderMotion;
-  }, [liveRiderMotion]);
+  useAssignRef(liveRiderMotionRef, liveRiderMotion);
 
-  useEffect(() => {
-    followModeRef.current = followMode;
-  }, [followMode]);
+  useAssignRef(followModeRef, followMode);
 
   useEffect(() => {
     // 종료 hold 중에는 App idle 줌 복원이 ref 를 덮지 않게 — follow tick fallback 이 옛 줌으로 뛰지 않음.
@@ -904,108 +778,56 @@ export function MapView({
     rideCameraDistanceMRef.current = fromQuery ?? rideCameraDistanceM;
   }, [rideCameraDistanceM]);
 
-  useEffect(() => {
-    lockBaseHeadingRef.current = lockBaseHeading;
-  }, [lockBaseHeading]);
-  useEffect(() => {
-    activeQuickCameraRef.current = activeQuickCamera;
-  }, [activeQuickCamera]);
+  useAssignRef(lockBaseHeadingRef, lockBaseHeading);
+  useAssignRef(activeQuickCameraRef, activeQuickCamera);
 
-  useEffect(() => {
-    rideCameraSpanFloorModeRef.current = rideCameraSpanFloorMode;
-  }, [rideCameraSpanFloorMode]);
+  useAssignRef(rideCameraSpanFloorModeRef, rideCameraSpanFloorMode);
 
-  useEffect(() => {
-    onRideCameraDistanceFromUserZoomRef.current = onRideCameraDistanceFromUserZoom;
-  }, [onRideCameraDistanceFromUserZoom]);
+  useAssignRef(onRideCameraDistanceFromUserZoomRef, onRideCameraDistanceFromUserZoom);
 
-  useEffect(() => {
-    prefersReducedMotionRef.current = prefersReducedMotion;
-  }, [prefersReducedMotion]);
+  useAssignRef(prefersReducedMotionRef, prefersReducedMotion);
 
-  useEffect(() => {
-    enable3DRef.current = enable3D;
-  }, [enable3D]);
+  useAssignRef(enable3DRef, enable3D);
 
-  useEffect(() => {
-    onSelectPointRef.current = onSelectPoint;
-  }, [onSelectPoint]);
+  useAssignRef(onSelectPointRef, onSelectPoint);
 
-  useEffect(() => {
-    routeWaypointsRef.current = routeWaypoints;
-  }, [routeWaypoints]);
+  useAssignRef(routeWaypointsRef, routeWaypoints);
 
-  useEffect(() => {
-    startLngLatRef.current = startLngLat;
-  }, [startLngLat]);
+  useAssignRef(startLngLatRef, startLngLat);
 
-  useEffect(() => {
-    endLngLatRef.current = endLngLat;
-  }, [endLngLat]);
+  useAssignRef(endLngLatRef, endLngLat);
 
-  useEffect(() => {
-    routeProfileRef.current = routeProfile;
-  }, [routeProfile]);
+  useAssignRef(routeProfileRef, routeProfile);
 
-  useEffect(() => {
-    routeTokenInsufficientRef.current = routeTokenInsufficient;
-  }, [routeTokenInsufficient]);
+  useAssignRef(routeTokenInsufficientRef, routeTokenInsufficient);
 
-  useEffect(() => {
-    onRouteProfileRef.current = onRouteProfile;
-  }, [onRouteProfile]);
+  useAssignRef(onRouteProfileRef, onRouteProfile);
 
-  useEffect(() => {
-    onClearRouteRef.current = onClearRoute;
-  }, [onClearRoute]);
+  useAssignRef(onClearRouteRef, onClearRoute);
 
-  useEffect(() => {
-    onArmDirectionPickRef.current = onArmDirectionPick;
-  }, [onArmDirectionPick]);
+  useAssignRef(onArmDirectionPickRef, onArmDirectionPick);
 
-  useEffect(() => {
-    onPreviewDistanceAutoRouteCircleRef.current = onPreviewDistanceAutoRouteCircle;
-  }, [onPreviewDistanceAutoRouteCircle]);
+  useAssignRef(onPreviewDistanceAutoRouteCircleRef, onPreviewDistanceAutoRouteCircle);
 
-  useEffect(() => {
-    onClearDistanceAutoRouteCircleRef.current = onClearDistanceAutoRouteCircle;
-  }, [onClearDistanceAutoRouteCircle]);
+  useAssignRef(onClearDistanceAutoRouteCircleRef, onClearDistanceAutoRouteCircle);
 
-  useEffect(() => {
-    onSetRouteProfileOnlyRef.current = onSetRouteProfileOnly;
-  }, [onSetRouteProfileOnly]);
+  useAssignRef(onSetRouteProfileOnlyRef, onSetRouteProfileOnly);
 
-  useEffect(() => {
-    onAutoRouteMapPickRef.current = onAutoRouteMapPick;
-  }, [onAutoRouteMapPick]);
+  useAssignRef(onAutoRouteMapPickRef, onAutoRouteMapPick);
 
-  useEffect(() => {
-    onRetryDistanceAutoRouteRef.current = onRetryDistanceAutoRoute;
-  }, [onRetryDistanceAutoRoute]);
+  useAssignRef(onRetryDistanceAutoRouteRef, onRetryDistanceAutoRoute);
 
-  useEffect(() => {
-    onDismissDistanceAutoRouteRef.current = onDismissDistanceAutoRoute;
-  }, [onDismissDistanceAutoRoute]);
+  useAssignRef(onDismissDistanceAutoRouteRef, onDismissDistanceAutoRoute);
 
-  useEffect(() => {
-    autoRouteMapPickRef.current = autoRouteMapPick;
-  }, [autoRouteMapPick]);
+  useAssignRef(autoRouteMapPickRef, autoRouteMapPick);
 
-  useEffect(() => {
-    autoRouteSessionActiveRef.current = autoRouteSessionActive;
-  }, [autoRouteSessionActive]);
+  useAssignRef(autoRouteSessionActiveRef, autoRouteSessionActive);
 
-  useEffect(() => {
-    autoRouteTargetKmRef.current = autoRouteTargetKm;
-  }, [autoRouteTargetKm]);
+  useAssignRef(autoRouteTargetKmRef, autoRouteTargetKm);
 
-  useEffect(() => {
-    autoRouteStatusMessageRef.current = autoRouteStatusMessage;
-  }, [autoRouteStatusMessage]);
+  useAssignRef(autoRouteStatusMessageRef, autoRouteStatusMessage);
 
-  useEffect(() => {
-    onSuspendAutoRoutePopupPickRef.current = onSuspendAutoRoutePopupPick;
-  }, [onSuspendAutoRoutePopupPick]);
+  useAssignRef(onSuspendAutoRoutePopupPickRef, onSuspendAutoRoutePopupPick);
 
   useEffect(() => {
     placeAutoRouteClickDebugMarkerRef.current = (lngLat) => {
@@ -1090,20 +912,12 @@ export function MapView({
   const coverageOverlayModeRef = useRef(coverageOverlayMode);
   coverageOverlayModeRef.current = coverageOverlayMode;
 
-  useEffect(() => {
-    onMapZoomRef.current = onMapZoom;
-  }, [onMapZoom]);
+  useAssignRef(onMapZoomRef, onMapZoom);
 
-  useEffect(() => {
-    onMapViewportRef.current = onMapViewport;
-  }, [onMapViewport]);
-  useEffect(() => {
-    onMapLodViewportRef.current = onMapLodViewport;
-  }, [onMapLodViewport]);
+  useAssignRef(onMapViewportRef, onMapViewport);
+  useAssignRef(onMapLodViewportRef, onMapLodViewport);
 
-  useEffect(() => {
-    getActivityWorldPinLabelRef.current = getActivityWorldPinLabel;
-  }, [getActivityWorldPinLabel]);
+  useAssignRef(getActivityWorldPinLabelRef, getActivityWorldPinLabel);
 
   useEffect(() => {
     const map = mapRef.current;
