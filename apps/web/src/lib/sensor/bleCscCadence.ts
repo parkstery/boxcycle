@@ -10,21 +10,21 @@ export const CSC_SERVICE_UUID = "00001816-0000-1000-8000-00805f9b34fb";
 export const CSC_MEASUREMENT_UUID = "00002a5b-0000-1000-8000-00805f9b34fb";
 
 /** CSC Measurement flags bit0 — Wheel Revolution Data Present(6바이트) */
-export const FLAG_WHEEL_REV = 1;
+const FLAG_WHEEL_REV = 1;
 /** CSC Measurement flags bit1 — Crank Revolution Data Present(4바이트) */
-export const FLAG_CRANK_REV = 2;
+const FLAG_CRANK_REV = 2;
 
 /** EMA 평활 계수 — 클수록 즉응, 작을수록 안정 */
-export const RPM_EMA_ALPHA = 0.35;
+const RPM_EMA_ALPHA = 0.35;
 /** 물리적으로 불가능한 케이던스는 파싱 오류로 보고 버린다 */
 export const CRANK_RPM_MAX = 220;
 /** 이보다 짧은 이벤트 간격은 분해능 부족 — 계산에 쓰지 않는다 */
-export const MIN_EVENT_DT_SEC = 0.08;
+const MIN_EVENT_DT_SEC = 0.08;
 /**
  * 이보다 긴 간격은 「정지 후 재개」로 본다. 크랭크 이벤트 시간이 1/1024초 uint16
  * (약 64초 wrap)이므로 긴 공백의 delta 는 신뢰할 수 없다 — 재기준점만 잡는다.
  */
-export const MAX_EVENT_DT_SEC = 4;
+const MAX_EVENT_DT_SEC = 4;
 /** 마지막 크랭크 회전 후 이 시간이 지나면 「페달 정지(0rpm)」로 확정한다 */
 export const CRANK_STALL_MS = 2500;
 

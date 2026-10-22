@@ -99,7 +99,7 @@ type RouteActivityCacheEntry = {
 const memoryCache = new Map<string, RouteActivityCacheEntry>();
 const inflight = new Map<string, Promise<RouteActivitySnapshot | null>>();
 
-export function isRouteActivityCacheFresh(atMs: number, nowMs = Date.now()): boolean {
+function isRouteActivityCacheFresh(atMs: number, nowMs = Date.now()): boolean {
   return nowMs - atMs < ROUTE_ACTIVITY_CACHE_TTL_MS;
 }
 

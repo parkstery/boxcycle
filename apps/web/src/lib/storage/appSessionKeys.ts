@@ -10,7 +10,7 @@
 export const USER_SIGNED_OUT_SESSION_KEY = "boxcycle_user_signed_out_v1";
 
 /** 이용 종료. Firebase 세션은 남기고 앱만 시작 메뉴로 돌린다. 새 탭도 같은 표시를 본다. */
-export const APP_USE_ENDED_KEY = "boxcycle_app_use_ended_v1";
+const APP_USE_ENDED_KEY = "boxcycle_app_use_ended_v1";
 
 export function readAppUseEnded(): boolean {
   try {
@@ -37,7 +37,7 @@ export function clearAppUseEnded(): void {
 }
 
 /** 최초 1회 Guest(익명) 진입 안내 수락 — [tier 정책 §3.2](document/reference/product/260519-사용자-tier-및-진입-정책.md) */
-export const GUEST_ENTRY_ACCEPTED_SESSION_KEY = "boxcycle_guest_entry_v1";
+const GUEST_ENTRY_ACCEPTED_SESSION_KEY = "boxcycle_guest_entry_v1";
 
 export function readGuestEntryAccepted(): boolean {
   if (typeof sessionStorage === "undefined") return false;
@@ -104,7 +104,7 @@ export function clearUserSignedOutSessionFlag(): void {
 }
 
 /** 시작 화면에 한 번 보여 줄 안내(같은 탭) — 탈퇴·게스트 초기화 직후 */
-export const START_SCREEN_NOTICE_SESSION_KEY = "boxcycle_start_notice_v1";
+const START_SCREEN_NOTICE_SESSION_KEY = "boxcycle_start_notice_v1";
 
 export type StartScreenNotice = "account-deleted" | "guest-expired" | "account-unavailable";
 

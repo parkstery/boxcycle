@@ -46,10 +46,6 @@ export function pushSelfDisplaySample(sample: SelfDisplaySample): void {
   while (buffer.length > PEER_INTERP_BUFFER_MAX) buffer.shift();
 }
 
-export function selfDisplaySampleCount(): number {
-  return buffer.length;
-}
-
 /**
  * renderTime(서버축)에서 거리 보간. peer integrator 와 같은 구간 규칙.
  * 표본 없으면 null — 호출부는 즉시 거리로 폴백.
@@ -77,8 +73,4 @@ export function sampleSelfDisplayDistM(renderTimeMs: number): number | null {
   const span = s1.tSrv - s0.tSrv;
   const t = span > 0 ? (renderTimeMs - s0.tSrv) / span : 0;
   return s0.distM + (s1.distM - s0.distM) * t;
-}
-
-export function peekSelfDisplayNewest(): SelfDisplaySample | null {
-  return buffer.length ? buffer[buffer.length - 1]! : null;
 }

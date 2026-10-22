@@ -7,10 +7,10 @@
  * 전송 계층(`peerMotion`)이 페달을 돌리려고 라이더 도메인을 열어야 했다. 계산을 맨
  * 아래층인 `sensor` 로 내려 그 의존을 없앤다 — 소비자는 라이더 마커·동행 마커 둘 다다.
  */
-export const CRANK_RPM_MIN = 14;
+const CRANK_RPM_MIN = 14;
 export const CRANK_RPM_MAX = 128;
 /** 이 값 미만이면 “페달링 아님”으로 보고 속도 기반 추정으로 넘긴다 */
-export const SENSOR_PEDALING_RPM_THRESHOLD = 8;
+const SENSOR_PEDALING_RPM_THRESHOLD = 8;
 
 export function estimateCrankRpmFromSpeedKmh(speedKmh: number): number {
   const speed = Math.min(95, Math.max(0, speedKmh));

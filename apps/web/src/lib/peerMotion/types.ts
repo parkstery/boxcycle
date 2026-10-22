@@ -99,10 +99,6 @@ export type PeerMotionEntity = {
   pedalSpeedKmh: number;
 };
 
-export type PeerMotionStepContext = {
-  routeLenM: number;
-};
-
 /*
  * 2026-09-26 (Phase 6-D): `ride/liveLocationSnapshot` 에서 **그대로** 옮겨 왔다.
  * 발행 쪽 페이로드 계약이라 두 publish flight(motion·route)가 읽는데, 전송이 주행을

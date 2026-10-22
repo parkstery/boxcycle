@@ -12,7 +12,7 @@
 import type { User } from "firebase/auth";
 import type { TrailLiveRidePhase } from "../trail/trailTypes";
 
-export type TrailLiveRidePublishInput = {
+type TrailLiveRidePublishInput = {
   publicationId: string;
   progressRatio: number;
   distMeters: number;

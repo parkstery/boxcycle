@@ -1,6 +1,6 @@
 /** Web Bluetooth 자동 재연결의 순수 정책. React·GATT 호출은 훅이 담당한다. */
 
-export const BLE_RECONNECT_BASE_MS = 500;
+const BLE_RECONNECT_BASE_MS = 500;
 export const BLE_RECONNECT_MAX_MS = 10_000;
 
 /** 0.5s → 1s → 2s → 4s → 8s → 최대 10s 지수 백오프. */

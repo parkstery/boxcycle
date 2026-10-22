@@ -13,9 +13,9 @@ import { SESSION_SPEED_MAX_KMH, SESSION_SPEED_MIN_KMH } from "./sessionSpeedKmh"
 export type RideInputMode = "cadence" | "manual";
 
 /** 이 미만은 「페달을 돌리지 않음」 — 센서 노이즈로 전진하지 않게 한다 */
-export const CADENCE_DEADZONE_RPM = 8;
+const CADENCE_DEADZONE_RPM = 8;
 /** 고정 가상 기어비. 파워·저항·기어 정보가 없으므로 현실 속도가 아니다 */
-export const CADENCE_TO_KMH = 0.32;
+const CADENCE_TO_KMH = 0.32;
 /** 현행 T1 정복 인정 상한과 맞춘 초기값 */
 export const CADENCE_SPEED_MAX_KMH = 30;
 

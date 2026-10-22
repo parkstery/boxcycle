@@ -12,12 +12,3 @@ export function rememberTrailDisplayNumber(trailId: string, displayNumber: numbe
 export function readTrailDisplayNumberCache(trailId: string): number | undefined {
   return displayNumberByTrailId.get(sanitizeTrailId(trailId));
 }
-
-export function forgetTrailDisplayNumber(trailId: string): void {
-  displayNumberByTrailId.delete(sanitizeTrailId(trailId));
-}
-
-/** 테스트·Trailhead 복귀 */
-export function clearTrailDisplayNumberCache(): void {
-  displayNumberByTrailId.clear();
-}

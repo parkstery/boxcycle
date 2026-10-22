@@ -8,9 +8,6 @@
  */
 export const MOTION_WIRE_DIST_QUANTUM_M = 0.01;
 
-/** 속도 양자(m/s). */
-export const MOTION_WIRE_SPEED_QUANTUM_MPS = 0.01;
-
 let distQuantumM = MOTION_WIRE_DIST_QUANTUM_M;
 
 export function quantizeMotionWireDistM(distM: number): number {

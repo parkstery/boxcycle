@@ -2,7 +2,7 @@
  * 복원된 인증을 앱에 넘기기 전에 서버에서 확인한다.
  * 확정된 만료만 세션을 지우고, 네트워크 오류는 쓰기를 막은 채 재시도한다.
  */
-export const AUTH_EXPIRED_CODES = new Set([
+const AUTH_EXPIRED_CODES = new Set([
   "auth/user-not-found",
   "auth/user-disabled",
   "auth/user-token-expired",
@@ -12,7 +12,7 @@ export const AUTH_EXPIRED_CODES = new Set([
   "auth/id-token-revoked",
 ]);
 
-export type AuthVerifyKind = "ready" | "expired" | "offline";
+type AuthVerifyKind = "ready" | "expired" | "offline";
 
 export type RestoredAuthUser = {
   reload: () => Promise<void>;
@@ -24,7 +24,7 @@ export function authErrorCode(error: unknown): string | null {
   return typeof code === "string" ? code : null;
 }
 
-export function classifyAuthVerificationFailure(error: unknown): Exclude<AuthVerifyKind, "ready"> {
+function classifyAuthVerificationFailure(error: unknown): Exclude<AuthVerifyKind, "ready"> {
   const code = authErrorCode(error);
   if (code && AUTH_EXPIRED_CODES.has(code)) return "expired";
   return "offline";
@@ -62,7 +62,7 @@ export function authExpiryNoticeText(kind: AuthExpiryKind): string {
 
 export type AuthExpiryKind = "guest-expired" | "account-unavailable";
 
-export type AuthExposurePhase = "booting" | "verifying" | "ready" | "offline" | "expired";
+type AuthExposurePhase = "booting" | "verifying" | "ready" | "offline" | "expired";
 
 export type AuthExposure = {
   phase: AuthExposurePhase;

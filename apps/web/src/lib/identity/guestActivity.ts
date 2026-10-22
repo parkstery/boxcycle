@@ -14,7 +14,7 @@ export function shouldSendGuestActivity(
 
 export type GuestActivityPostResult = "ok" | "stop" | "retry";
 
-export async function runGuestActivityTick(
+async function runGuestActivityTick(
   state: { lastPingMs: number | null; stopped: boolean },
   env: { nowMs: number; visible: boolean; post: () => Promise<GuestActivityPostResult> },
 ): Promise<{ lastPingMs: number | null; stopped: boolean }> {

@@ -41,9 +41,6 @@ export function countRouteActivityLiveInBatch(
   return count;
 }
 
-/** @deprecated {@link countRouteActivityLiveInBatch} */
-export const countCourseActivityLiveInBatch = countRouteActivityLiveInBatch;
-
 /** P0 — mode·interval 결정 */
 export function runActivityWorldPollPolicyChecks(): void {
   if (resolveActivityWorldPollMode({ selfRideActive: true, worldLivePulseCount: 0, lastBatchLiveCount: 0 }) !== "active") {

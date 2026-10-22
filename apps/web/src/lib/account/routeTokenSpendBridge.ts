@@ -38,10 +38,6 @@ function notifyMessage() {
   }
 }
 
-export function getActiveRouteTokenUserId(): string | null {
-  return session.uid;
-}
-
 export function bindRouteTokenUser(uid: string | null): void {
   session = bindUser(session, uid);
   notifyBalance();
@@ -66,11 +62,6 @@ export function getRouteTokenInsufficient(uid?: string | null): boolean {
   return isInsufficient(session);
 }
 
-export function getEffectiveRouteTokenBalance(uid?: string | null): number | null {
-  if (uid != null && uid !== session.uid) return null;
-  return computeEffectiveBalance(session);
-}
-
 export function subscribeRouteTokenEffective(listener: BalanceListener): () => void {
   balanceListeners.add(listener);
   listener(computeEffectiveBalance(session), isInsufficient(session));
@@ -85,16 +76,4 @@ export function subscribeRouteTokenSpendMessage(listener: MessageListener): () =
   return () => {
     messageListeners.delete(listener);
   };
-}
-
-/** @internal harness·단위 시험용 */
-export function __testRouteTokenSpendSession(): SpendSession {
-  return session;
-}
-
-/** @internal harness·단위 시험용 */
-export function __testResetRouteTokenSpendSession(next: SpendSession = createEmptySession()): void {
-  session = next;
-  notifyBalance();
-  notifyMessage();
 }

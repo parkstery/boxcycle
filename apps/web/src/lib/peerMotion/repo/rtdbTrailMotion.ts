@@ -29,7 +29,7 @@ import {
 } from "../motionWireQuantize";
 
 /** RTDB `/trails/{trailId}/motion/{uid}` */
-export const RTDB_TRAIL_MOTION_SEGMENT = "motion";
+const RTDB_TRAIL_MOTION_SEGMENT = "motion";
 
 /**
  * 동행 motion 전송이 가능한 환경인가.

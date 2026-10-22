@@ -56,7 +56,7 @@ export function clampRouteDist(distM: number, routeLenM: number): number {
   return Math.max(0, Math.min(routeLenM, distM));
 }
 
-export function capSpeedMps(v: number): number {
+function capSpeedMps(v: number): number {
   if (!Number.isFinite(v)) return 0;
   return Math.max(0, Math.min(MAX_SPEED_MPS, v));
 }

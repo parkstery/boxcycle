@@ -8,7 +8,7 @@ import { onValue, ref, type Unsubscribe } from "firebase/database";
 import { getFirebaseDatabase, isFirebaseDatabaseConfigured } from "../../firebase/app";
 
 /** 이 이상 점프하면 버퍼를 섞지 말고 불확실만 표시한다(ms). */
-export const SERVER_CLOCK_DISCONTINUITY_MS = 5_000;
+const SERVER_CLOCK_DISCONTINUITY_MS = 5_000;
 
 type ServerClockState = {
   offsetMs: number | null;
@@ -126,16 +126,6 @@ export function estimateServerNowMs(localNowMs: number = Date.now()): number | n
   const off = peekServerTimeOffsetMs();
   if (off == null) return null;
   return localNowMs + off;
-}
-
-export function getServerClockDebugState(): Readonly<ServerClockState & { refCount: number }> {
-  return {
-    offsetMs: peekServerTimeOffsetMs(),
-    ready: isServerClockReady(),
-    uncertain: isServerClockUncertain(),
-    lastJumpAbsMs: state.lastJumpAbsMs,
-    refCount,
-  };
 }
 
 /** 하네스·단위시험 전용 */

@@ -30,7 +30,7 @@ export function isGuestTier(tier: UserTier | null, user: User | null): boolean {
   return Boolean(user?.isAnonymous);
 }
 
-export function isRegisteredTier(tier: UserTier | null): boolean {
+function isRegisteredTier(tier: UserTier | null): boolean {
   return tier != null && (REGISTERED_TIERS as readonly string[]).includes(tier);
 }
 

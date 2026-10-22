@@ -12,7 +12,7 @@ function requireFunctionsEmulatorHostWhenEmulatorMode(): string | null {
   return host;
 }
 
-export function resolveFunctionsHttpUrl(functionName: string): string | null {
+function resolveFunctionsHttpUrl(functionName: string): string | null {
   const host = requireFunctionsEmulatorHostWhenEmulatorMode();
   if (!host) return null;
   const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID?.trim();
@@ -32,11 +32,6 @@ function resolveFunctionsHttpOrigin(): string {
     return `http://${host}/${projectId}/${region}`;
   }
   return `https://${region}-${projectId}.cloudfunctions.net`;
-}
-
-/** Functions HTTP base origin (no trailing function path). */
-export function functionsHttpOrigin(): string {
-  return resolveFunctionsHttpOrigin();
 }
 
 /** Functions HTTP 엔드포인트 URL — Emulator 모드면 자동으로 로컬을 가리킨다. */

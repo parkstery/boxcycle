@@ -14,14 +14,14 @@
  */
 import { isValidNickname } from "./nickname";
 
-export const GUEST_NAME_PREFIX = "게스트-";
-export const UNNAMED_RIDER_PREFIX = "라이더-";
+const GUEST_NAME_PREFIX = "게스트-";
+const UNNAMED_RIDER_PREFIX = "라이더-";
 const SHORT_CODE_LEN = 4;
 
 /** 옛 클라이언트가 presence 에 써 둔 게스트 표시명 접두 — 읽을 때 게스트로 판정 */
 const LEGACY_GUEST_NAME = /^(guest-|guest\d*$|게스트-)/;
 
-export function riderShortCode(uid: string): string {
+function riderShortCode(uid: string): string {
   return uid.slice(0, SHORT_CODE_LEN);
 }
 

@@ -42,12 +42,6 @@ import {
   noteLivePublicationRideWriteOk,
 } from "../../debug/trafficPublishMeters";
 
-/**
- * Legacy alias — steady publish gate SoT 는 `rideSyncPolicy.TRAIL_LIVE_PROGRESS_HEARTBEAT_MS`.
- * publication 진행률만 주기적으로 올림 (좌표·geometry 미전송).
- */
-export const TRAIL_LIVE_PUBLICATION_RIDE_WRITE_INTERVAL_MS = 4_000;
-
 // 타입 정의는 도메인 층이 갖는다 — 저장소끼리 타입을 주고받으면 순환이 된다(Phase 5 D1).
 import type { TrailLiveRidePhase, TrailLivePublicationRideRow } from "../trailTypes";
 export type { TrailLivePublicationRideRow };
@@ -227,21 +221,6 @@ function parseActiveLiveRideTrailIds(docs: readonly QueryDocumentSnapshot[]): st
     ids.push(trailId);
   }
   return ids;
-}
-
-/**
- * 지금 주행 중인 Trail ID — `livePublicationRides` collection group 기준(최근 lastSeenAt).
- */
-export async function fetchTrailIdsWithActiveLiveRides(): Promise<string[]> {
-  const db = getFirebaseFirestore();
-  const q = query(
-    collectionGroup(db, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION),
-    where("lastSeenAt", ">", liveRideFreshnessCutoff()),
-    orderBy("lastSeenAt", "desc"),
-    limit(ACTIVE_LIVE_RIDE_TRAIL_SCAN_LIMIT),
-  );
-  const snap = await getDocs(q);
-  return parseActiveLiveRideTrailIds(snap.docs);
 }
 
 /** realtime — Trailhead·월드 맵이 주행 중 Trail 을 구독할 때 사용 */

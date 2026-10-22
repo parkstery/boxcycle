@@ -71,7 +71,7 @@ export async function clearFirebaseAuthIndexedDb(): Promise<void> {
   }
 }
 
-export type GuestResetResult = {
+type GuestResetResult = {
   deletedAuth: boolean;
   deleteError: string | null;
   clearedKeys: string[];

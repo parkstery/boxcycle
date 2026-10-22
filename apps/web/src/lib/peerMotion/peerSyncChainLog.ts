@@ -12,7 +12,7 @@ export function nextPeerSyncChainSeq(): number {
   return chainSeq;
 }
 
-export function peerSyncChainLogMs(): number {
+function peerSyncChainLogMs(): number {
   if (typeof location === "undefined") return 1_000;
   const raw = Number(new URLSearchParams(location.search).get("peerSyncLogMs"));
   return Number.isFinite(raw) && raw > 0 ? raw : 1_000;

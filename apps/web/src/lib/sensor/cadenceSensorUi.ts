@@ -158,24 +158,6 @@ export function rideInputBlockedReason(readiness: RideInputReadiness): string | 
   }
 }
 
-/** 상세 설정 헤더의 현재 상태 한 줄 */
-export function cadenceSensorStatusLine(state: CadenceHudState): string {
-  if (!state.capable) return "지원 안 됨";
-  switch (state.uiState) {
-    case "connecting":
-      return "검색·연결 중";
-    case "connected":
-      if (state.crankRpm == null) return "연결됨 · 페달을 돌려 센서를 확인하세요";
-      return state.crankRpm <= 0 ? "연결됨 · 페달 정지" : "연결됨";
-    case "disconnected":
-      return "연결 끊김";
-    case "error":
-      return "오류";
-    default:
-      return "미연결";
-  }
-}
-
 /**
  * 시트 제목 옆에 붙는 **짧은** 연결 상태(2026-09-18 Chief: 「케이던스 센서 [연결됨 / 연결 안됨]」
  * 을 한 줄로). 긴 안내(`cadenceSensorStatusLine`)는 줄이 길어져 제목 옆에 못 붙는다.

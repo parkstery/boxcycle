@@ -5,13 +5,13 @@ export const ACTIVITY_TRACE_RED = "#dc2626";
 export const ACTIVITY_TRACE_HEAT_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 /** 주행 중 — 투명 0% (opacity 100%) */
-export const ACTIVITY_TRACE_LIVE_OPACITY = 1;
+const ACTIVITY_TRACE_LIVE_OPACITY = 1;
 
 /** @deprecated {@link ACTIVITY_TRACE_LIVE_OPACITY} */
 export const ACTIVITY_TRACE_LIVE_STRENGTH = ACTIVITY_TRACE_LIVE_OPACITY;
 
 /** 주행 완료 — 투명 30% (opacity 70%) */
-export const ACTIVITY_TRACE_COMPLETED_OPACITY = 0.7;
+const ACTIVITY_TRACE_COMPLETED_OPACITY = 0.7;
 
 export function isWithinActivityTraceHeatWindow(
   activityAtMs: number | null,

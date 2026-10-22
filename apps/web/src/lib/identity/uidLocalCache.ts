@@ -6,7 +6,7 @@ const UID_LOCAL_KEYS = [
   "boxcycle_calorie_profile_v1_",
 ] as const;
 
-export function uidLocalCacheKeys(uid: string): string[] {
+function uidLocalCacheKeys(uid: string): string[] {
   return UID_LOCAL_KEYS.map((prefix) => `${prefix}${uid}`);
 }
 

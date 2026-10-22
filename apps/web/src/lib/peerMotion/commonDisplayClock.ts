@@ -207,17 +207,3 @@ export function isDisplayRenderCatchingUp(localNowMs: number = Date.now()): bool
   if (selfClock.targetDelayMs === 0 && !selfClock.modeTransitionCatchUp) return false;
   return true;
 }
-
-export function getCommonDisplayDebugState(): Readonly<{
-  companionActive: boolean;
-  targetDelayMs: number;
-  renderClockMs: number | null;
-  frameRenderTimeMs: number | null;
-}> {
-  return {
-    companionActive: selfClock.companionActive,
-    targetDelayMs: selfClock.targetDelayMs,
-    renderClockMs: selfClock.renderClockMs,
-    frameRenderTimeMs: selfClock.frameRenderTimeMs,
-  };
-}

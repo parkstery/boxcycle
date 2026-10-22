@@ -20,7 +20,7 @@ import { notePeerIngestDiag } from "../debug/peerIngestDiag";
  * 전송 계층이 주행 **저장소**를 올려다봤다(D6). 필요한 모양만 적으면 호출자는
  * 종전 그대로 행을 넘길 수 있다 — 더 넓은 객체는 구조적으로 이 모양을 만족한다.
  */
-export type PeerNametagMember = {
+type PeerNametagMember = {
   uid: string;
   displayName: string | null;
   memberType: PresenceMemberType | null;

@@ -72,18 +72,6 @@ let deferredCleanupSkipCount = 0;
 
 export { ROUTE_FLIGHT_DRAIN_TIMEOUT_MS };
 
-export function peekRouteSlotDiscardCount(): number {
-  return slotDiscardCount;
-}
-
-export function peekRouteEpochDiscardCount(): number {
-  return epochDiscardCount;
-}
-
-export function peekRoutePublishEpoch(): number {
-  return currentEpoch;
-}
-
 /** 새 발행 세션 epoch. user/trail/publication 전환 시 호출. */
 export function nextRoutePublishEpoch(sessionKey = ""): number {
   currentEpoch += 1;
@@ -102,10 +90,6 @@ export function isRouteSessionLive(sessionKey: string): boolean {
   if (!sessionKey) return false;
   if (cancelledEpochs.has(currentEpoch)) return false;
   return sessionKeyByEpoch.get(currentEpoch) === sessionKey;
-}
-
-export function peekRouteDeferredCleanupCounts(): { run: number; skipped: number; pending: number } {
-  return { run: deferredCleanupRunCount, skipped: deferredCleanupSkipCount, pending: deferredCleanups.length };
 }
 
 /**

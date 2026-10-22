@@ -6,7 +6,6 @@
 let sampleVirtualDistanceM: (() => number) | null = null;
 let sampleAppliedSpeedKmh: (() => number) | null = null;
 let sampleTargetSpeedKmh: (() => number) | null = null;
-let sampleRouteLens: (() => { routeLen: number; geoLen: number }) | null = null;
 
 export function registerPeerSyncDistanceSamplers(opts: {
   sampleVirtualDistanceM: (() => number) | null;
@@ -17,7 +16,6 @@ export function registerPeerSyncDistanceSamplers(opts: {
   sampleVirtualDistanceM = opts.sampleVirtualDistanceM;
   sampleAppliedSpeedKmh = opts.sampleAppliedSpeedKmh;
   sampleTargetSpeedKmh = opts.sampleTargetSpeedKmh ?? null;
-  sampleRouteLens = opts.sampleRouteLens ?? null;
 }
 
 export function peekSampleVirtualDistanceM(): number {
@@ -30,8 +28,4 @@ export function peekSampleAppliedSpeedKmh(): number {
 
 export function peekSampleTargetSpeedKmh(): number {
   return sampleTargetSpeedKmh?.() ?? Number.NaN;
-}
-
-export function peekSampleRouteLens(): { routeLen: number; geoLen: number } {
-  return sampleRouteLens?.() ?? { routeLen: Number.NaN, geoLen: Number.NaN };
 }

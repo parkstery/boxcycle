@@ -22,7 +22,7 @@ export function isDeletionConfirmPhrase(typed: string): boolean {
   return typed.trim() === ACCOUNT_DELETION_CONFIRM_PHRASE;
 }
 
-export class AccountDeletionError extends Error {}
+class AccountDeletionError extends Error {}
 
 /**
  * 서버 허용 창(accountDeletionCore ACCOUNT_DELETION_MAX_AUTH_AGE_SEC = 5분)보다 짧게 잡는다 —

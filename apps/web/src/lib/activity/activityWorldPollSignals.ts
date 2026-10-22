@@ -34,13 +34,3 @@ export function getActivityWorldPollSignals(): Readonly<ActivityWorldPollModeInp
     postRideWatchActive: isPostRideActivityWatchActive(),
   };
 }
-
-export function resetActivityWorldPollSignals(): void {
-  postRideWatchUntilMs = 0;
-  signals = {
-    selfRideActive: false,
-    worldLivePulseCount: 0,
-    lastBatchLiveCount: 0,
-    postRideWatchActive: false,
-  };
-}

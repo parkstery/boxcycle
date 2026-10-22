@@ -1,5 +1,5 @@
 /** 서비스 닉네임: 영문으로 시작, 영문·숫자만, 총 4~12자 */
-export const NICKNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9]{3,11}$/;
+const NICKNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9]{3,11}$/;
 
 export const NICKNAME_RULES_SUMMARY_KO =
   "영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.";

@@ -17,7 +17,7 @@ import { trackVisibilityListener } from "../../debug/visibilityReadMeters";
 export const ROUTE_TOKEN_ECONOMY_DEFAULT_GENERATE_COST_BASE = 0;
 
 /** 문서가 없거나 값이 이상하면 기본값. 음수·소수는 잘라 낸다 */
-export function normalizeGenerateCostBase(raw: unknown): number {
+function normalizeGenerateCostBase(raw: unknown): number {
   return typeof raw === "number" && Number.isFinite(raw)
     ? Math.max(0, Math.floor(raw))
     : ROUTE_TOKEN_ECONOMY_DEFAULT_GENERATE_COST_BASE;

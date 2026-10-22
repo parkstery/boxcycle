@@ -10,10 +10,6 @@ export function trailHasConfiguredRoute(trail: Pick<TrailInstance, "publicationI
   return typeof trail.publicationId === "string" && trail.publicationId.trim().length > 0;
 }
 
-export function isPublicTrail(trail: Pick<TrailInstance, "visibility">): boolean {
-  return trail.visibility === "open";
-}
-
 /** 공개 전환·공개 Trail 생성 시 경로 필수 */
 export function assertPublicTrailHasRoute(
   publicationId: string | null | undefined,

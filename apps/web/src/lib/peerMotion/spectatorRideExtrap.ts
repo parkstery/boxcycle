@@ -5,20 +5,20 @@ import { progressRatioToRouteDistanceMeters } from "../geo/routeProgressMath";
 import { peerSyncChainLog } from "./peerSyncChainLog";
 import { SPECTATOR_MAX_EXTRAP_MS } from "./peerSyncPolicy";
 
-export function anchorDistOnRoute(row: TrailLivePublicationRideRow, routeLen: number): number {
+function anchorDistOnRoute(row: TrailLivePublicationRideRow, routeLen: number): number {
   if (typeof row.distMeters === "number" && Number.isFinite(row.distMeters)) {
     return Math.max(0, Math.min(routeLen, row.distMeters));
   }
   return progressRatioToRouteDistanceMeters(row.progressRatio, routeLen);
 }
 
-export function spectatorSpeedMps(row: TrailLivePublicationRideRow): number {
+function spectatorSpeedMps(row: TrailLivePublicationRideRow): number {
   if (row.ridePhase === "paused" || row.ridePhase === "completed") return 0;
   if (typeof row.speedMps === "number" && Number.isFinite(row.speedMps)) return Math.max(0, row.speedMps);
   return 0;
 }
 
-export function spectatorElapsedLocalMs(row: TrailLivePublicationRideRow, nowMs: number): number {
+function spectatorElapsedLocalMs(row: TrailLivePublicationRideRow, nowMs: number): number {
   const recv = row.receivedAtLocalMs;
   if (typeof recv !== "number" || !Number.isFinite(recv)) return 0;
   return Math.max(0, nowMs - recv);
@@ -33,7 +33,7 @@ export type SpectatorExtrapResult = {
   speedMps: number;
 };
 
-export function extrapSpectatorDistM(
+function extrapSpectatorDistM(
   row: TrailLivePublicationRideRow,
   geometry: LineStringGeometry,
   nowMs: number,

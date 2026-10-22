@@ -54,7 +54,7 @@ export type PeerMotionRenderFeature = {
 };
 
 /** DEV — 라벨에서 뺀 ▸d·n·s·gap·b·a */
-export type PeerStepDiag = {
+type PeerStepDiag = {
   uid: string;
   d: number;
   n: number;
