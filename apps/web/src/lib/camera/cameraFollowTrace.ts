@@ -5,6 +5,7 @@
 
 import type { LngLat } from "../geo/geo";
 import { getDistanceMeters } from "../geo/geo";
+import { finite, shortestAngleDelta } from "./cameraProbeMath";
 
 type CameraTraceFrame = {
   t: number;
@@ -41,17 +42,6 @@ type Trace = {
 };
 
 let trace: Trace | null = null;
-
-function finite(n: number): boolean {
-  return Number.isFinite(n) && Math.abs(n) < 1e12;
-}
-
-function shortestAngleDelta(from: number, to: number): number {
-  let n = (to - from) % 360;
-  if (n > 180) n -= 360;
-  if (n < -180) n += 360;
-  return n;
-}
 
 function metersPerPixel(latDeg: number, zoom: number): number {
   const latRad = (latDeg * Math.PI) / 180;

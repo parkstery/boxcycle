@@ -5,6 +5,7 @@
 
 import type { LngLat } from "../geo/geo";
 import { getDistanceMeters } from "../geo/geo";
+import { finite, shortestAngleDelta } from "./cameraProbeMath";
 
 type CameraWriteSample = {
   seq: number;
@@ -48,17 +49,6 @@ type Probe = {
 
 let probe: Probe | null = null;
 const hooked = new WeakSet<mapboxgl.Map>();
-
-function finite(n: number): boolean {
-  return Number.isFinite(n) && Math.abs(n) < 1e12;
-}
-
-function shortestAngleDelta(from: number, to: number): number {
-  let n = (to - from) % 360;
-  if (n > 180) n -= 360;
-  if (n < -180) n += 360;
-  return n;
-}
 
 function camerasMatch(
   write: CameraWriteSample,

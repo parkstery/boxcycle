@@ -5,7 +5,7 @@
 import { Group, Mesh, type Object3D } from "three";
 import type { RiderVisualKind } from "./iso2dMarker";
 import type { RiderModelProfile, RiderVisualKit } from "./riderModelProfile";
-import { bakeFloat32Attributes } from "./preservedRiderRig";
+import { bakeFloat32Attributes, disposeRiderObject } from "./preservedRiderRig";
 
 function authoredMeshName(object: Object3D): string {
   const authored = object.userData.name;
@@ -40,35 +40,8 @@ export class PreservedRiderStatic {
     this.visualKit.apply(kind);
   }
 
-  /** 키트 → 지오메트리 → 머티리얼 → 텍스처. 리그 `dispose` 와 같은 순서. */
+  /** 키트 → 지오메트리 → 머티리얼 → 텍스처. 리그 `dispose` 와 같은 순서(공통 `disposeRiderObject`). */
   dispose(): void {
-    this.visualKit.dispose();
-    const materials = new Set<unknown>();
-    const textures = new Set<{ dispose: () => void }>();
-    this.object.traverse((item) => {
-      if (!(item instanceof Mesh)) return;
-      item.geometry.dispose();
-      const list = Array.isArray(item.material) ? item.material : [item.material];
-      for (const material of list) materials.add(material);
-    });
-    for (const material of materials) {
-      if (material && typeof material === "object") {
-        for (const value of Object.values(material)) {
-          if (
-            value &&
-            typeof value === "object" &&
-            "isTexture" in value &&
-            (value as { isTexture: unknown }).isTexture === true &&
-            "dispose" in value
-          ) {
-            textures.add(value as { dispose: () => void });
-          }
-        }
-        if ("dispose" in material) {
-          (material as { dispose: () => void }).dispose();
-        }
-      }
-    }
-    for (const texture of textures) texture.dispose();
+    disposeRiderObject(this.object, this.visualKit);
   }
 }

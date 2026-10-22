@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent, type TouchEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Camera1Mode } from "../../lib/camera/camera1Mode";
 import {
   formatRideCameraLabCodePaste,
@@ -11,6 +11,8 @@ import {
   type RideCameraLabQc,
   type RideCameraLabState,
 } from "../../lib/debug/rideCameraLab";
+import { LabCodeCopy, LabPanelShell, LabSliders, type LabSliderMeta } from "../labPanel/LabPanelShell";
+import { useLabCopy } from "../labPanel/useLabCopy";
 import "./RideCameraLabPanel.css";
 
 type Props = {
@@ -36,12 +38,7 @@ export function RideCameraLabPanel(props: Props) {
   return <RideCameraLabPanelInner key={slotKey} {...props} />;
 }
 
-const SLIDER_META: readonly {
-  key: keyof RideCameraLabState;
-  label: string;
-  unit: string;
-  decimals: number;
-}[] = [
+const SLIDER_META: readonly LabSliderMeta<keyof RideCameraLabState>[] = [
   { key: "distanceM", label: "거리", unit: "m", decimals: 1 },
   { key: "pitchDeg", label: "피치", unit: "°", decimals: 1 },
   { key: "bearingOffsetDeg", label: "방위Δ", unit: "°", decimals: 1 },
@@ -49,20 +46,13 @@ const SLIDER_META: readonly {
   { key: "screenAnchor", label: "앵커", unit: "", decimals: 2 },
 ];
 
-function blockMapPropagation(e: PointerEvent<HTMLElement> | TouchEvent<HTMLElement>): void {
-  e.stopPropagation();
-}
-
 function RideCameraLabPanelInner(props: Props) {
   const { activeQuickCamera, camera1Mode, onDistanceM } = props;
-  const [collapsed, setCollapsed] = useState(true);
   const [state, setState] = useState<RideCameraLabState>(() =>
     activeQuickCamera != null
       ? loadRideCameraLabSlot(activeQuickCamera, camera1Mode)
       : productDefaultsForQc(2, camera1Mode),
   );
-  const [copied, setCopied] = useState(false);
-  const copiedTimerRef = useRef<number | null>(null);
   const onDistanceMRef = useRef(onDistanceM);
 
   useEffect(() => {
@@ -90,13 +80,6 @@ function RideCameraLabPanelInner(props: Props) {
     saveRideCameraLabSlot(activeQuickCamera, camera1Mode, state);
   }, [state, activeQuickCamera, camera1Mode]);
 
-  useEffect(
-    () => () => {
-      if (copiedTimerRef.current != null) window.clearTimeout(copiedTimerRef.current);
-    },
-    [],
-  );
-
   const updateField = (key: keyof RideCameraLabState, value: number) => {
     setState((prev) => {
       const next = { ...prev, [key]: value };
@@ -117,94 +100,43 @@ function RideCameraLabPanelInner(props: Props) {
   const codePaste =
     activeQuickCamera != null ? formatRideCameraLabCodePaste(activeQuickCamera, camera1Mode, state) : "";
 
-  const copyValue = async () => {
-    if (!codePaste) return;
-    try {
-      await navigator.clipboard.writeText(codePaste);
-      setCopied(true);
-      if (copiedTimerRef.current != null) window.clearTimeout(copiedTimerRef.current);
-      copiedTimerRef.current = window.setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* pre 블록을 손으로 복사 */
-    }
-  };
+  const { copied, copyValue } = useLabCopy(codePaste);
 
   return (
-    <div
-      className={`cam-lab${collapsed ? " cam-lab--collapsed" : ""}`}
-      onPointerDown={blockMapPropagation}
-      onTouchStart={blockMapPropagation}
-    >
-      <div className="cam-lab__head">
-        <span className="cam-lab__title">캠 조절</span>
-        <button
-          type="button"
-          className="cam-lab__collapse"
-          onClick={() => setCollapsed((v) => !v)}
-          aria-label={collapsed ? "조절판 펼치기" : "조절판 접기"}
-        >
-          {collapsed ? "▸" : "▾"}
-        </button>
+    <LabPanelShell prefix="cam-lab" title="캠 조절">
+      <div className="cam-lab__meta">
+        {noQc
+          ? "QC 선택"
+          : routeFitLocked
+            ? "QC1 R · fitBounds"
+            : `QC${activeQuickCamera}${activeQuickCamera === 1 ? ` ${camera1Mode}` : ""}`}
       </div>
 
-      {!collapsed ? (
+      {noQc || routeFitLocked ? (
+        <p className="cam-lab__hint">
+          {noQc
+            ? "우상단 1–6 을 고른 뒤 조정한다."
+            : "routeFit 은 free(1회 fitBounds). aerial 단계로 순환하면 거리·프레이밍을 조절한다."}
+        </p>
+      ) : (
         <>
-          <div className="cam-lab__meta">
-            {noQc
-              ? "QC 선택"
-              : routeFitLocked
-                ? "QC1 R · fitBounds"
-                : `QC${activeQuickCamera}${activeQuickCamera === 1 ? ` ${camera1Mode}` : ""}`}
+          <LabSliders
+            prefix="cam-lab"
+            meta={SLIDER_META}
+            ranges={RIDE_CAMERA_LAB_RANGES}
+            state={state}
+            onChange={updateField}
+          />
+
+          <div className="cam-lab__actions">
+            <button type="button" className="cam-lab__chip cam-lab__chip--reset" onClick={resetToProduct}>
+              초기화
+            </button>
           </div>
 
-          {noQc || routeFitLocked ? (
-            <p className="cam-lab__hint">
-              {noQc
-                ? "우상단 1–6 을 고른 뒤 조정한다."
-                : "routeFit 은 free(1회 fitBounds). aerial 단계로 순환하면 거리·프레이밍을 조절한다."}
-            </p>
-          ) : (
-            <>
-              <div className="cam-lab__sliders">
-                {SLIDER_META.map(({ key, label, unit, decimals }) => {
-                  const range = RIDE_CAMERA_LAB_RANGES[key];
-                  const value = state[key];
-                  return (
-                    <label className="cam-lab__row" key={key}>
-                      <span className="cam-lab__label">{label}</span>
-                      <input
-                        type="range"
-                        min={range.min}
-                        max={range.max}
-                        step={range.step}
-                        value={value}
-                        onChange={(e) => updateField(key, Number(e.target.value))}
-                      />
-                      <span className="cam-lab__value rtw-numeric">
-                        {value.toFixed(decimals)}
-                        {unit}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-
-              <div className="cam-lab__actions">
-                <button type="button" className="cam-lab__chip cam-lab__chip--reset" onClick={resetToProduct}>
-                  초기화
-                </button>
-              </div>
-
-              <div className="cam-lab__copy">
-                <pre className="cam-lab__code">{codePaste}</pre>
-                <button type="button" className="cam-lab__copy-btn" onClick={() => void copyValue()}>
-                  {copied ? "복사됨" : "값 복사"}
-                </button>
-              </div>
-            </>
-          )}
+          <LabCodeCopy prefix="cam-lab" codePaste={codePaste} copied={copied} onCopy={() => void copyValue()} />
         </>
-      ) : null}
-    </div>
+      )}
+    </LabPanelShell>
   );
 }

@@ -17,6 +17,7 @@ import {
   RIDER_SKIN_COMMON_GLSL,
   RIDER_SKIN_NORMAL_CHUNK,
   RIDER_SKIN_VERTEX_CHUNK,
+  skinVertexDQInto,
 } from "./riderGpuSkin";
 import {
   isGpuSkinCapable,
@@ -25,6 +26,9 @@ import {
   type RiderSkinMode,
 } from "./riderSkinMode";
 import { RIDER_SWAY_DEFAULTS } from "./riderSway";
+
+/** CPU 스키닝 정점 1개 결과(위치 xyz, 법선 xyz) 임시 버퍼 — 정점 루프가 할당하지 않게. */
+const skinScratch = new Float64Array(6);
 
 type Side = "R" | "L";
 type Vec3 = [number, number, number];
@@ -156,6 +160,40 @@ function matrixToDualQuaternion(matrix: Matrix4, out: Float64Array): void {
 function meshName(object: Object3D): string {
   const authored = object.userData.name;
   return typeof authored === "string" && authored ? authored : object.name;
+}
+
+/**
+ * 키트 → 지오메트리 → 머티리얼 → 텍스처 순서로 해제한다. 리그와 LOD2 정적 메시가 같이 쓴다.
+ */
+export function disposeRiderObject(object: Object3D, visualKit: RiderVisualKit): void {
+  visualKit.dispose();
+  const materials = new Set<unknown>();
+  const textures = new Set<{ dispose: () => void }>();
+  object.traverse((item) => {
+    if (!(item instanceof Mesh)) return;
+    item.geometry.dispose();
+    const list = Array.isArray(item.material) ? item.material : [item.material];
+    for (const material of list) materials.add(material);
+  });
+  for (const material of materials) {
+    if (material && typeof material === "object") {
+      for (const value of Object.values(material)) {
+        if (
+          value &&
+          typeof value === "object" &&
+          "isTexture" in value &&
+          (value as { isTexture: unknown }).isTexture === true &&
+          "dispose" in value
+        ) {
+          textures.add(value as { dispose: () => void });
+        }
+      }
+      if ("dispose" in material) {
+        (material as { dispose: () => void }).dispose();
+      }
+    }
+  }
+  for (const texture of textures) texture.dispose();
 }
 
 /**
@@ -515,34 +553,7 @@ export class PreservedRiderRig {
   }
 
   dispose(): void {
-    this.visualKit.dispose();
-    const materials = new Set<unknown>();
-    const textures = new Set<{ dispose: () => void }>();
-    this.object.traverse((item) => {
-      if (!(item instanceof Mesh)) return;
-      item.geometry.dispose();
-      const list = Array.isArray(item.material) ? item.material : [item.material];
-      for (const material of list) materials.add(material);
-    });
-    for (const material of materials) {
-      if (material && typeof material === "object") {
-        for (const value of Object.values(material)) {
-          if (
-            value &&
-            typeof value === "object" &&
-            "isTexture" in value &&
-            (value as { isTexture: unknown }).isTexture === true &&
-            "dispose" in value
-          ) {
-            textures.add(value as { dispose: () => void });
-          }
-        }
-        if ("dispose" in material) {
-          (material as { dispose: () => void }).dispose();
-        }
-      }
-    }
-    for (const texture of textures) texture.dispose();
+    disposeRiderObject(this.object, this.visualKit);
   }
 
   private buildArc(side: Side, positions: Float32Array): Float32Array {
@@ -610,36 +621,9 @@ export class PreservedRiderRig {
     }
     for (const draw of this.legs[side]) {
       for (let i = 0; i < draw.arc.length; i++) {
-        let qx = 0; let qy = 0; let qz = 0; let qw = 0;
-        let ex = 0; let ey = 0; let ez = 0; let ew = 0;
-        for (let bone = 0; bone < 4; bone++) {
-          const weight = draw.weights[i * 4 + bone]!;
-          if (weight < 1e-6) continue;
-          const q = dq[bone]!;
-          qx += weight * q[0]!; qy += weight * q[1]!; qz += weight * q[2]!; qw += weight * q[3]!;
-          ex += weight * q[4]!; ey += weight * q[5]!; ez += weight * q[6]!; ew += weight * q[7]!;
-        }
-        const inverse = 1 / (Math.hypot(qx, qy, qz, qw) || 1);
-        qx *= inverse; qy *= inverse; qz *= inverse; qw *= inverse;
-        ex *= inverse; ey *= inverse; ez *= inverse; ew *= inverse;
-        const vx = draw.restPosition[i * 3]!; const vy = draw.restPosition[i * 3 + 1]!; const vz = draw.restPosition[i * 3 + 2]!;
-        const cx = qy * vz - qz * vy + qw * vx;
-        const cy = qz * vx - qx * vz + qw * vy;
-        const cz = qx * vy - qy * vx + qw * vz;
-        const x = vx + 2 * (qy * cz - qz * cy) + 2 * (qw * ex - ew * qx + qy * ez - qz * ey);
-        const y = vy + 2 * (qz * cx - qx * cz) + 2 * (qw * ey - ew * qy + qz * ex - qx * ez);
-        const z = vz + 2 * (qx * cy - qy * cx) + 2 * (qw * ez - ew * qz + qx * ey - qy * ex);
-        draw.position.setXYZ(i, x, y, z);
-
-        const nx0 = draw.restNormal[i * 3]!; const ny0 = draw.restNormal[i * 3 + 1]!; const nz0 = draw.restNormal[i * 3 + 2]!;
-        const dx = qy * nz0 - qz * ny0 + qw * nx0;
-        const dy = qz * nx0 - qx * nz0 + qw * ny0;
-        const dz = qx * ny0 - qy * nx0 + qw * nz0;
-        const nx = nx0 + 2 * (qy * dz - qz * dy);
-        const ny = ny0 + 2 * (qz * dx - qx * dz);
-        const nz = nz0 + 2 * (qx * dy - qy * dx);
-        const length = Math.hypot(nx, ny, nz) || 1;
-        draw.normal.setXYZ(i, nx / length, ny / length, nz / length);
+        skinVertexDQInto(draw.restPosition, draw.restNormal, draw.weights, i, dq, skinScratch);
+        draw.position.setXYZ(i, skinScratch[0]!, skinScratch[1]!, skinScratch[2]!);
+        draw.normal.setXYZ(i, skinScratch[3]!, skinScratch[4]!, skinScratch[5]!);
       }
       draw.position.needsUpdate = true;
       draw.normal.needsUpdate = true;

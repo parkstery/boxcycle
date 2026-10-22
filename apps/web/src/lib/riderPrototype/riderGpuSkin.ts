@@ -19,15 +19,18 @@ export type SkinVertexResult = {
 };
 
 /**
- * 휴지 정점 1개를 4 본 DQ 로 스킨한다.
- * `updateSkin` 정점 루프와 같은 연산 순서·같은 임계값(`1e-6`)·같은 가드(`|| 1`).
+ * 평면 배열의 `index` 번째 휴지 정점 1개를 4 본 DQ 로 스킨해 `out[0..5]`(위치 xyz, 법선 xyz)에 쓴다.
+ * `rest`·`normal` 은 정점당 3개, `weights` 는 정점당 4개. 리그 CPU 정점 루프가 할당 없이 쓰는 본체이고,
+ * `updateSkin` 정점 루프와 같은 연산 순서·같은 임계값(`1e-6`)·같은 가드(`|| 1`)다.
  */
-export function skinVertexDQ(
+export function skinVertexDQInto(
   rest: ArrayLike<number>,
   normal: ArrayLike<number>,
   weights: ArrayLike<number>,
+  index: number,
   dq: SkinBoneDQ,
-): SkinVertexResult {
+  out: number[] | Float64Array,
+): void {
   let qx = 0;
   let qy = 0;
   let qz = 0;
@@ -37,7 +40,7 @@ export function skinVertexDQ(
   let ez = 0;
   let ew = 0;
   for (let bone = 0; bone < 4; bone++) {
-    const weight = weights[bone]!;
+    const weight = weights[index * 4 + bone]!;
     if (weight < 1e-6) continue;
     const q = dq[bone]!;
     qx += weight * q[0]!;
@@ -58,9 +61,9 @@ export function skinVertexDQ(
   ey *= inverse;
   ez *= inverse;
   ew *= inverse;
-  const vx = rest[0]!;
-  const vy = rest[1]!;
-  const vz = rest[2]!;
+  const vx = rest[index * 3]!;
+  const vy = rest[index * 3 + 1]!;
+  const vz = rest[index * 3 + 2]!;
   const cx = qy * vz - qz * vy + qw * vx;
   const cy = qz * vx - qx * vz + qw * vy;
   const cz = qx * vy - qy * vx + qw * vz;
@@ -68,9 +71,9 @@ export function skinVertexDQ(
   const y = vy + 2 * (qz * cx - qx * cz) + 2 * (qw * ey - ew * qy + qz * ex - qx * ez);
   const z = vz + 2 * (qx * cy - qy * cx) + 2 * (qw * ez - ew * qz + qx * ey - qy * ex);
 
-  const nx0 = normal[0]!;
-  const ny0 = normal[1]!;
-  const nz0 = normal[2]!;
+  const nx0 = normal[index * 3]!;
+  const ny0 = normal[index * 3 + 1]!;
+  const nz0 = normal[index * 3 + 2]!;
   const dx = qy * nz0 - qz * ny0 + qw * nx0;
   const dy = qz * nx0 - qx * nz0 + qw * ny0;
   const dz = qx * ny0 - qy * nx0 + qw * nz0;
@@ -78,7 +81,26 @@ export function skinVertexDQ(
   const ny = ny0 + 2 * (qz * dx - qx * dz);
   const nz = nz0 + 2 * (qx * dy - qy * dx);
   const length = Math.hypot(nx, ny, nz) || 1;
-  return { position: [x, y, z], normal: [nx / length, ny / length, nz / length] };
+  out[0] = x;
+  out[1] = y;
+  out[2] = z;
+  out[3] = nx / length;
+  out[4] = ny / length;
+  out[5] = nz / length;
+}
+
+/**
+ * 휴지 정점 1개를 4 본 DQ 로 스킨한다. 본체는 `skinVertexDQInto`.
+ */
+export function skinVertexDQ(
+  rest: ArrayLike<number>,
+  normal: ArrayLike<number>,
+  weights: ArrayLike<number>,
+  dq: SkinBoneDQ,
+): SkinVertexResult {
+  const out = [0, 0, 0, 0, 0, 0];
+  skinVertexDQInto(rest, normal, weights, 0, dq, out);
+  return { position: [out[0]!, out[1]!, out[2]!], normal: [out[3]!, out[4]!, out[5]!] };
 }
 
 /**
