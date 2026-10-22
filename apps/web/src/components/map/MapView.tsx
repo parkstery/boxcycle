@@ -2091,17 +2091,24 @@ export function MapView({
       distanceTargetCircle.coordinates,
     );
     const bounds = new mapboxgl.LngLatBounds([minLng, minLat], [maxLng, maxLat]);
+    // 폰 가로(높이 360)에서는 고정 여백의 세로 합(420)이 화면보다 커 Mapbox 가 맞추기를
+    // 포기한다. 그런데 앞의 map.stop() 이 「여기에서 계속」 의 끝 지점 비행을 이미 멈춰,
+    // 카메라가 클릭 전 위치에 남았다(2026-10-22 Chief 신고). 경로 맞추기처럼 화면에 맞춰
+    // 여백을 줄이고, 그래도 맞출 수 없으면 진행 중인 이동을 멈추지 않는다.
+    const container = map.getContainer();
+    const padding = resolveRideFitPadding(container.clientWidth, container.clientHeight, {
+      top: RIDE_HUD_SAFE_PADDING.top + 48,
+      bottom: RIDE_HUD_SAFE_PADDING.bottom + 200,
+      left: RIDE_HUD_SAFE_PADDING.left + 72,
+      right: RIDE_HUD_SAFE_PADDING.right + 72,
+    });
+    if (!map.cameraForBounds(bounds, { padding, maxZoom: 14 })) return;
 
     map.stop();
     suppressCameraFollowUntilRef.current = performance.now() + (prefersReducedMotion ? 120 : 1700);
 
     map.fitBounds(bounds, {
-      padding: {
-        top: RIDE_HUD_SAFE_PADDING.top + 48,
-        bottom: RIDE_HUD_SAFE_PADDING.bottom + 200,
-        left: RIDE_HUD_SAFE_PADDING.left + 72,
-        right: RIDE_HUD_SAFE_PADDING.right + 72,
-      },
+      padding,
       maxZoom: 14,
       duration: prefersReducedMotion ? 0 : 850,
       essential: true,
