@@ -39,8 +39,6 @@ export function isRiderSwayDisabledByQuery(): boolean {
   return false;
 }
 
-export const PRESERVED_RIDER_CANDIDATE_ID: string =
-  PRESERVED_RIDER_MODELS[PRESERVED_RIDER_ACTIVE_MODEL].candidateId;
 export const PRESERVED_RIDER_CUSTOM_LAYER_ID = "boxcycle-rider-preserved-layer";
 
 export function preservedRiderAssetUrl(
@@ -114,7 +112,7 @@ export const RIDER_GLB_MODEL_BASE_SCALE = 1.15;
  * 카메라 유도는 남겨 두어 다른 캐릭터(작은 동물·큰 동물)에 재사용한다.
  * 이 계수는 라이더 GLB 모델에만 곱해진다 — 네임태그·HUD·경로선·지도 UI 는 읽지 않는다.
  */
-export const RIDER_GIANT_SCALE_FACTOR = 1;
+const RIDER_GIANT_SCALE_FACTOR = 1;
 
 export const RIDER_GLB_MODEL_SCALE = RIDER_GLB_MODEL_BASE_SCALE * RIDER_GIANT_SCALE_FACTOR;
 

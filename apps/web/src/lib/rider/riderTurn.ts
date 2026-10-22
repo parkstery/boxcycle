@@ -11,12 +11,12 @@ export const RIDER_CURVE_HALF_SPAN_M = 4;
 export const RIDER_TURN_HEADING_TAU_S = 0.15;
 /** 경로 거리로 이미 매끄러운 방향(본인·페이서·동행). */
 export const RIDER_TURN_HEADING_TAU_ROUTE_S = 0.03;
-export const RIDER_LEAN_MAX_DEG = 20;
-export const RIDER_LEAN_TAU_S = 0.25;
+const RIDER_LEAN_MAX_DEG = 20;
+const RIDER_LEAN_TAU_S = 0.25;
 
 const GRAVITY_MPS2 = 9.81;
 
-export function wrapHeadingDeg(deg: number): number {
+function wrapHeadingDeg(deg: number): number {
   if (!Number.isFinite(deg)) return 0;
   return ((deg % 360) + 360) % 360;
 }
@@ -28,7 +28,7 @@ export function shortestAngleDeltaDeg(from: number, to: number): number {
 }
 
 /** 현재 방향을 목표 쪽으로 τ 지수 추종. 한 프레임에 목표까지 점프하지 않는다. */
-export function approachHeadingDeg(cur: number, target: number, dt: number, tau: number): number {
+function approachHeadingDeg(cur: number, target: number, dt: number, tau: number): number {
   if (!Number.isFinite(cur)) return wrapHeadingDeg(target);
   if (!(dt > 0) || !(tau > 0)) return wrapHeadingDeg(cur);
   const delta = shortestAngleDeltaDeg(cur, target);
@@ -40,7 +40,7 @@ export function approachHeadingDeg(cur: number, target: number, dt: number, tau:
  * 자전거 물리 기울기(도). ω 는 시계방향이 양수.
  * 오른쪽으로 돌면 양수. 상한은 `RIDER_LEAN_MAX_DEG`.
  */
-export function physicalLeanDeg(speedMps: number, yawRateRadPerS: number): number {
+function physicalLeanDeg(speedMps: number, yawRateRadPerS: number): number {
   const v = Number.isFinite(speedMps) ? speedMps : 0;
   const w = Number.isFinite(yawRateRadPerS) ? yawRateRadPerS : 0;
   const raw = (Math.atan((v * w) / GRAVITY_MPS2) * 180) / Math.PI;

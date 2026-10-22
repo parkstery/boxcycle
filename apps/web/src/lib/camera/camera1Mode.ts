@@ -17,7 +17,6 @@ export type Camera1Mode = "routeFit" | "aerial500" | "aerial20";
 
 /** 지시11 이전 식별자 — localStorage·옛 세션에 남으면 routeFit 으로 이관 */
 export const CAMERA1_LEGACY_MODES = ["aerial200", "aerial60", "aerial5"] as const;
-export type Camera1LegacyMode = (typeof CAMERA1_LEGACY_MODES)[number];
 
 export const CAMERA1_MODE_CYCLE: readonly Camera1Mode[] = [
   "routeFit",
@@ -25,7 +24,7 @@ export const CAMERA1_MODE_CYCLE: readonly Camera1Mode[] = [
   "aerial20",
 ];
 
-export function isCamera1Mode(raw: unknown): raw is Camera1Mode {
+function isCamera1Mode(raw: unknown): raw is Camera1Mode {
   return raw === "routeFit" || raw === "aerial500" || raw === "aerial20";
 }
 

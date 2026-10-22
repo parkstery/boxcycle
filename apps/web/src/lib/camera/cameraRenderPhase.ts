@@ -6,7 +6,7 @@
 import type { LngLat } from "../geo/geo";
 import { getDistanceMeters } from "../geo/geo";
 
-export type CameraWriteSample = {
+type CameraWriteSample = {
   seq: number;
   t: number;
   lng: number;
@@ -15,7 +15,7 @@ export type CameraWriteSample = {
   bearing: number;
 };
 
-export type CameraRenderSample = {
+type CameraRenderSample = {
   t: number;
   lng: number;
   lat: number;
@@ -26,7 +26,7 @@ export type CameraRenderSample = {
   writeZoom: number | null;
 };
 
-export type CameraRenderPhaseSnapshot = {
+type CameraRenderPhaseSnapshot = {
   startedAt: number;
   endedAt: number;
   durationMs: number;
@@ -70,7 +70,7 @@ function camerasMatch(
   return Math.abs(shortestAngleDelta(write.bearing, bearing)) < 0.05;
 }
 
-export function startCameraRenderPhaseProbe(): void {
+function startCameraRenderPhaseProbe(): void {
   if (!import.meta.env.DEV) return;
   probe = {
     active: true,
@@ -83,7 +83,7 @@ export function startCameraRenderPhaseProbe(): void {
   publish(null);
 }
 
-export function stopCameraRenderPhaseProbe(): CameraRenderPhaseSnapshot | null {
+function stopCameraRenderPhaseProbe(): CameraRenderPhaseSnapshot | null {
   if (!import.meta.env.DEV || !probe) return null;
   const snap = snapshotCameraRenderPhaseProbe();
   probe.active = false;
@@ -91,7 +91,7 @@ export function stopCameraRenderPhaseProbe(): CameraRenderPhaseSnapshot | null {
   return snap;
 }
 
-export function snapshotCameraRenderPhaseProbe(): CameraRenderPhaseSnapshot | null {
+function snapshotCameraRenderPhaseProbe(): CameraRenderPhaseSnapshot | null {
   if (!probe) return null;
   const endedAt = performance.now();
   return {
@@ -131,7 +131,7 @@ export function noteCameraWrite(input: {
   publishCount();
 }
 
-export function noteCameraRenderFromMap(map: mapboxgl.Map): void {
+function noteCameraRenderFromMap(map: mapboxgl.Map): void {
   if (!import.meta.env.DEV || !probe?.active) return;
   const c = map.getCenter();
   const zoom = map.getZoom();

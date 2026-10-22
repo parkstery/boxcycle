@@ -9,7 +9,7 @@ function prototypeBaseUrl(): string {
 }
 
 /** 4방향(동·남) + 좌우 반전으로 8방향 근사 */
-export function resolveIso2dSprite(kind: RiderVisualKind, bearingDeg: number): {
+function resolveIso2dSprite(kind: RiderVisualKind, bearingDeg: number): {
   url: string;
   flipX: boolean;
 } {

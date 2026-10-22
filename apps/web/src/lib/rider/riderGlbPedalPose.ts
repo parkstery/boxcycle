@@ -7,7 +7,7 @@
 import * as pose from "./riderGlbPedalPose.pose.mjs";
 
 /** Mapbox model-rotation — [pitch, roll, yaw] degrees */
-export type GlbNodeRotationDeg = [number, number, number];
+type GlbNodeRotationDeg = [number, number, number];
 
 export type RiderGlbPedalPose = {
   crankRotationDeg: number;

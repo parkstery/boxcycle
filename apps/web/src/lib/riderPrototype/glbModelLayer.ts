@@ -104,7 +104,7 @@ export function ensureRiderGlbLayer(map: MapboxMap): boolean {
   }
 }
 
-export function syncRiderGlbPedalFeatureState(
+function syncRiderGlbPedalFeatureState(
   map: MapboxMap,
   modelId: string,
   pose: RiderGlbPedalPose,

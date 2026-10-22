@@ -44,7 +44,7 @@ export const BB = [...coordM("bb"), 0]; // [0, 0.2705, 0]
 export const SEAT_TOP = coordM("seatTop");
 /** 시트튜브가 **실제로 끝나는** 지점(BB 원점 y, mm). 탑튜브·시트스테이 접합부.
  *  단축량 150 은 감리 확정값(F4-2). 이 위로 노출된 것이 시트포스트다. */
-export const SEAT_TUBE_JUNCTION_Y_MM =
+const SEAT_TUBE_JUNCTION_Y_MM =
   (SEAT_TUBE_LENGTH_MM - 150) * Math.sin((SEAT_TUBE_ANGLE_DEG * Math.PI) / 180);
 export const HEAD_TOP = coordM("headTop");
 export const HEAD_BOT = coordM("headBot");
@@ -82,7 +82,7 @@ const _stemEnd = _add2(_stemMid, _stemDir, STEM_LENGTH);
  *  이 모듈을 import 해서 읽어라. */
 const BAR_HOOD_XY = _add2(_stemEnd, _stemDir, BAR_REACH * 0.6);
 /** 후드 좌우 반폭 — 드롭바 폭보다 살짝 안쪽(후드는 바 끝이 아님) */
-export const HOOD_HALF_Z = (toM(geometry.handlebarWidth) / 2) * 0.9; // 0.189
+const HOOD_HALF_Z = (toM(geometry.handlebarWidth) / 2) * 0.9; // 0.189
 /** 왼손/오른손 고정점 (3D) */
 export const HOOD_L = [BAR_HOOD_XY[0], BAR_HOOD_XY[1], +HOOD_HALF_Z];
 export const HOOD_R = [BAR_HOOD_XY[0], BAR_HOOD_XY[1], -HOOD_HALF_Z];
@@ -145,18 +145,18 @@ export function ankleTargetWorld(side, crankRad) {
 
 /** 【1차 입력】 고관절 world(지면, m). 라이더 자세가 정한다 — **안장과 독립**.
  *  F12 확정: BDC 발바닥 피벗 기준 10° 후방 회전의 결과 (−211.28, 836.88). */
-export const HIP_GROUND = [-0.14966, 0.84452];
+const HIP_GROUND = [-0.14966, 0.84452];
 /** 고관절 → 좌골 수직 하강(m). **메시 실측**(F12: PELVIS 후방 45%·하부 20% 밴드 centroid).
  *  836.88 − 730.52 = 106.36mm. 가정값 아님 — 자세가 바뀌면 다시 재야 한다. */
-export const HIP_TO_ISCHIAL_M = 0.10636;
+const HIP_TO_ISCHIAL_M = 0.10636;
 /** 골반 중심 = 고관절 높이. 다리·몸통 IK 의 공통 root. */
 export const PELVIS_ROOT = [HIP_GROUND[0], HIP_GROUND[1], 0];
 /** 좌골 높이(지면, m) = **안장 상면이 와야 할 높이**. */
-export const ISCHIAL_Y_M = HIP_GROUND[1] - HIP_TO_ISCHIAL_M;
+const ISCHIAL_Y_M = HIP_GROUND[1] - HIP_TO_ISCHIAL_M;
 const _staRad = (SEAT_TUBE_ANGLE_DEG * Math.PI) / 180;
 /** 시트포스트 길이(= `saddleHeight`, mm) — 좌골 높이에서 **역산**한 파생값.
  *  `geometry.json.saddleHeight` 는 이 값의 기록이며, 어긋나면 verify-fit 이 잡는다. */
-export const SADDLE_HEIGHT_DERIVED_MM =
+const SADDLE_HEIGHT_DERIVED_MM =
   (ISCHIAL_Y_M * 1000 - BB_HEIGHT_MM) / Math.sin(_staRad);
 /** 엉덩이(좌골)가 안장에 닿는 지점 — HIP 에서 파생. seatTubeAngle·setback 은 불변 입력. */
 export const SADDLE_CONTACT = [
@@ -164,11 +164,6 @@ export const SADDLE_CONTACT = [
   ISCHIAL_Y_M,
   0,
 ];
-/** 노출 시트포스트 길이(mm) — 안장 상면 − 시트튜브 junction.
- *  **음수면** 시트포스트를 다 넣어도 도달 불가 = 진짜 물리적 불가능이다.
- *  유물 `SEAT_TOP` 과 비교하지 마라(F12~F16 오판의 원인). */
-export const SEATPOST_EXPOSED_MM =
-  ISCHIAL_Y_M * 1000 - BB_HEIGHT_MM - SEAT_TUBE_JUNCTION_Y_MM;
 /** 좌우 고관절 pivot — PELVIS_ROOT 에서 ±PELVIS_HALF_Z. 다리 root. */
 export const HIP_L = [PELVIS_ROOT[0], PELVIS_ROOT[1], +PELVIS_HALF_Z];
 export const HIP_R = [PELVIS_ROOT[0], PELVIS_ROOT[1], -PELVIS_HALF_Z];
@@ -197,7 +192,7 @@ const SHOULDER_XY = [0.12860, 1.16910];
 
 /** 등 수평 대비 전경사(deg). ⚠ 어깨는 더 이상 이 값에서 파생되지 않는다 —
  *  자세 기술·검증 리포트용으로만 남는다(`export-ik-joints.mjs` 등이 기록한다). */
-export const TORSO_ANGLE_DEG = 42;
+const TORSO_ANGLE_DEG = 42;
 
 /** 몸통 노드(`torso`) 회전 오버라이드 — Mapbox model-rotation `[x, y, z]`.
  *
@@ -243,27 +238,3 @@ export function pedalWorld(side, crankRad) {
 export const hipOf = (side) => (side === "l" ? HIP_L : HIP_R);
 export const shoulderOf = (side) => (side === "l" ? SHOULDER_L : SHOULDER_R);
 export const hoodOf = (side) => (side === "l" ? HOOD_L : HOOD_R);
-
-/** 디버그·검증용 — 모든 파생 앵커 */
-export const RIDER_RIG = {
-  BB,
-  SADDLE_CONTACT,
-  PELVIS_ROOT,
-  HIP_L,
-  HIP_R,
-  SHOULDER_L,
-  SHOULDER_R,
-  HOOD_L,
-  HOOD_R,
-  HEAD_C,
-  CRANK_ARM_M,
-  PEDAL_HALF_Z,
-  HOOD_HALF_Z,
-  PELVIS_HALF_Z,
-  SHOULDER_HALF_Z,
-  THIGH_LEN,
-  SHIN_LEN,
-  UPPER_ARM_LEN,
-  FOREARM_LEN,
-  TORSO_ANGLE_DEG,
-};

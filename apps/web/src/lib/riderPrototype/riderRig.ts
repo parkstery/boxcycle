@@ -9,10 +9,8 @@ import * as rig from "./riderRig.geometry.mjs";
 export type Vec2 = readonly [number, number];
 
 export const BB: Vec2 = rig.BB;
-export const SADDLE: Vec2 = rig.SADDLE;
 export const SEAT_TOP: Vec2 = rig.SEAT_TOP;
 export const BAR_HOOD: Vec2 = rig.BAR_HOOD;
-export const PELVIS: Vec2 = rig.PELVIS;
 export const SHOULDER: Vec2 = rig.SHOULDER;
 export const HEAD_C: Vec2 = rig.HEAD_C;
 export const PELVIS_ROOT: readonly [number, number, number] = rig.PELVIS_ROOT;

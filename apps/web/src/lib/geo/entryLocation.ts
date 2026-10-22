@@ -69,7 +69,7 @@ export type EntryLocationEnv = {
   clearTimeout: (id: unknown) => void;
 };
 
-export function isUsableLngLat(lng: number, lat: number): boolean {
+function isUsableLngLat(lng: number, lat: number): boolean {
   return (
     typeof lng === "number" &&
     typeof lat === "number" &&

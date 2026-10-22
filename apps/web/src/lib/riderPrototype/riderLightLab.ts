@@ -28,7 +28,7 @@ function clampToRange(value: number, range: RiderLightLabRange): number {
   return Math.min(range.max, Math.max(range.min, value));
 }
 
-export function sanitizeRiderLightLabState(input: unknown): RiderLightLabState {
+function sanitizeRiderLightLabState(input: unknown): RiderLightLabState {
   const o = (input && typeof input === "object" ? input : {}) as Partial<RiderLightLabState>;
   return {
     ambient: clampToRange(Number(o.ambient), RIDER_LIGHT_LAB_RANGES.ambient),

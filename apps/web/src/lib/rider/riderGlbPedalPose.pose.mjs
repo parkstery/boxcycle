@@ -63,12 +63,6 @@ function elbowPole(side, shoulder) {
   return [shoulder[0] + 0.12, shoulder[1] - 0.6, shoulder[2] + 0.06 * zSign];
 }
 
-/** ⚠ **검증 하네스 전용 export.** 게이트는 pole 을 재현하지 말고 **이것을 import** 하라 —
- *  복제하면 pose 와 게이트가 갈라져 **거짓 PASS** 를 준다. F22 교훈("계측이 보는 장면과
- *  렌더가 보는 장면이 다르다")이 검증 코드에서 그대로 재발한다.
- *  `verify-rider-pose-gate.mjs` 가 이 값을 쓴다. */
-export const _poles = { kneePole, elbowPole };
-
 /** 한쪽 다리 IK → { thigh:rotDeg[3], shin:rotDeg[3], kneeDeg, footErr, knee } */
 function legPose(side, crankRad) {
   const hip = hipOf(side);
@@ -253,7 +247,7 @@ export function resolveGlbPedalPose(phaseRev) {
 }
 
 /** 검증용 — 한 위상의 상세 계측(발/손 오차, 관절각, joint 위치). */
-export function sampleRiderMetrics(phaseRev) {
+function sampleRiderMetrics(phaseRev) {
   const phase = ((phaseRev % 1) + 1) % 1;
   const crankRad = crankRadFromPhase(phase);
   const legL = legPose("l", crankRad);

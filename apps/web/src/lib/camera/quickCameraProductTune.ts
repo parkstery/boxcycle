@@ -22,7 +22,7 @@ export type QuickCameraProductTune = {
 export const QUICK_CAMERA_FALLBACK_DISTANCE_M = 9.4;
 
 /** 슬롯에 항목이 있는 QC 만 제품 경로에서 덮어쓴다. */
-export const QUICK_CAMERA_PRODUCT_TUNE: Readonly<
+const QUICK_CAMERA_PRODUCT_TUNE: Readonly<
   Partial<Record<QuickCameraSlot, QuickCameraProductTune>>
 > = {
   2: {

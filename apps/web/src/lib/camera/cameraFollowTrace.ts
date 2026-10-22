@@ -6,7 +6,7 @@
 import type { LngLat } from "../geo/geo";
 import { getDistanceMeters } from "../geo/geo";
 
-export type CameraTraceFrame = {
+type CameraTraceFrame = {
   t: number;
   lng: number;
   lat: number;
@@ -21,7 +21,7 @@ export type CameraTraceFrame = {
   mPerPx: number;
 };
 
-export type CameraTraceSnapshot = {
+type CameraTraceSnapshot = {
   startedAt: number;
   endedAt: number;
   durationMs: number;
@@ -58,7 +58,7 @@ function metersPerPixel(latDeg: number, zoom: number): number {
   return (156543.03392 * Math.cos(latRad)) / Math.pow(2, zoom);
 }
 
-export function startCameraFollowTrace(): void {
+function startCameraFollowTrace(): void {
   if (!import.meta.env.DEV) return;
   trace = {
     active: true,
@@ -73,7 +73,7 @@ export function startCameraFollowTrace(): void {
   publish(null);
 }
 
-export function stopCameraFollowTrace(): CameraTraceSnapshot | null {
+function stopCameraFollowTrace(): CameraTraceSnapshot | null {
   if (!import.meta.env.DEV || !trace) return null;
   const snap = snapshotCameraFollowTrace();
   trace.active = false;
@@ -81,7 +81,7 @@ export function stopCameraFollowTrace(): CameraTraceSnapshot | null {
   return snap;
 }
 
-export function snapshotCameraFollowTrace(): CameraTraceSnapshot | null {
+function snapshotCameraFollowTrace(): CameraTraceSnapshot | null {
   if (!trace) return null;
   const endedAt = performance.now();
   return {
@@ -169,19 +169,4 @@ function publish(snap: CameraTraceSnapshot | null): void {
 
 if (import.meta.env.DEV && typeof window !== "undefined") {
   publish(null);
-}
-
-export function assertCameraTraceP0(snap: CameraTraceSnapshot): { ok: boolean; reasons: string[] } {
-  const reasons: string[] = [];
-  if (snap.sentinelDropped !== 0) reasons.push(`sentinel=${snap.sentinelDropped}`);
-  if (snap.frames.length < 500) reasons.push(`frames=${snap.frames.length}<500`);
-  let lastT = -Infinity;
-  for (const f of snap.frames) {
-    if (!Number.isFinite(f.t) || f.t < lastT) {
-      reasons.push("t not monotonic");
-      break;
-    }
-    lastT = f.t;
-  }
-  return { ok: reasons.length === 0, reasons };
 }

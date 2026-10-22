@@ -16,11 +16,11 @@ export const RIDER_SWAY_DEFAULTS = {
 export type RiderSwayParams = typeof RIDER_SWAY_DEFAULTS;
 
 /** 이 속도에서 흔들림 배율 1. 현재(배율 없는) 진폭과 같다. */
-export const RIDER_SWAY_REF_KMH = 20;
-export const RIDER_SWAY_MIN_FACTOR = 0.3;
-export const RIDER_SWAY_MAX_FACTOR = 1.8;
+const RIDER_SWAY_REF_KMH = 20;
+const RIDER_SWAY_MIN_FACTOR = 0.3;
+const RIDER_SWAY_MAX_FACTOR = 1.8;
 /** 속도 배율을 라이더 id 별로 따라가는 시상수. */
-export const RIDER_SWAY_SPEED_TAU_S = 1;
+const RIDER_SWAY_SPEED_TAU_S = 1;
 
 const DEG = Math.PI / 180;
 

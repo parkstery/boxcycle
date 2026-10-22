@@ -25,7 +25,7 @@ export const RIDE_HUD_SAFE_PADDING = {
  *
  * `fitBounds` 가 무시되거나 예외를 던지는 것은 아니다. **크기 문제**다.
  */
-export const RIDE_FIT_PADDING_MAX_VIEWPORT_RATIO = 0.4;
+const RIDE_FIT_PADDING_MAX_VIEWPORT_RATIO = 0.4;
 
 /**
  * 뷰포트에 맞춰 축소한 `fitBounds` padding.
@@ -156,7 +156,7 @@ export function rideRiderAnchorBiasM(input: {
  * 줌은 앱 상태가 쥐고 있으므로 거기서 m/px 을 얻는다. 주행 기본 모드가 이 경로라,
  * 여기를 빼먹으면 화면에서는 아무것도 바뀌지 않는다(2026-09-18 실측으로 확인).
  */
-export function rideRiderAnchorBiasMAtZoom(input: {
+function rideRiderAnchorBiasMAtZoom(input: {
   zoom: number;
   latDeg: number;
   viewportHeightPx: number;
@@ -349,7 +349,7 @@ type MapWithTransform = MapboxMap & {
 };
 
 /** 지면 + 고도(m)를 화면 픽셀로. GLB elevation-reference=ground 와 같은 세계 높이. */
-export function projectLngLatAltitude(
+function projectLngLatAltitude(
   map: MapboxMap,
   lngLat: LngLat,
   altitudeM: number,

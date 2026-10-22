@@ -119,11 +119,6 @@ export function subscribeRecentNewRoad(
   );
 }
 
-/** 내 도로 셀 전체(청크 병합) — 라이브 중복 판정·팝업 소유 판정용. v1(타일) 잔재는 걸러냄. */
-export async function loadConquestCellIds(userId: string): Promise<string[]> {
-  return [...(await loadConquestCellDays(userId)).keys()];
-}
-
 /** Reuses the existing chunks read; acquisition dates also restore legacy highlights. */
 export async function loadConquestCellDays(userId: string): Promise<Map<string, string>> {
   const db = getFirebaseFirestore();
