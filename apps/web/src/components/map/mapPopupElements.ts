@@ -243,6 +243,7 @@ export type PickPopupAutoRouteUi = {
   /** 거리 화면에서 방향을 선택하고 자동 탐색까지 진행한다. */
   stageDirectionPick: (point: LngLat) => boolean;
   getRoutePickView: () => "location" | "distance";
+  selectDistanceStart: (point: LngLat) => boolean;
 };
 
 export function buildPickPopup(deps: {
@@ -370,16 +371,16 @@ export function buildPickPopup(deps: {
   startBtn.textContent = "출발";
   startBtn.title = "출발 지점으로 설정";
   startBtn.setAttribute("aria-label", "출발 지점으로 설정");
-  startBtn.onclick = () => {
+  const selectStart = (point: LngLat) => {
     onClearAutoRouteClickDebugMarker?.();
     if (distanceDirectionChecked) {
       applyDistanceDirectionMode(false);
     }
     getDistanceAutoRouteMapBridge()?.disarm?.();
-    onSelectPoint("start", lngLat);
+    onSelectPoint("start", point);
     pins.start = true;
     profileChosen = false;
-    selectedStart = lngLat;
+    selectedStart = point;
     syncProfileUi();
     restartProfileAttention();
     syncAutoRouteUi();
@@ -387,6 +388,7 @@ export function buildPickPopup(deps: {
     if (routePickView === "distance") applyDistanceDirectionMode(true);
     onRoutePanelActivated?.();
   };
+  startBtn.onclick = () => selectStart(lngLat);
 
   const wpSlotHost = document.createElement("div");
   wpSlotHost.className = "map-view__pick-wp-slots";
@@ -628,8 +630,6 @@ export function buildPickPopup(deps: {
   autoRouteSection.id = "map-view-pick-distance-view";
   autoRouteSection.setAttribute("role", "tabpanel");
   autoRouteSection.setAttribute("aria-labelledby", "map-view-pick-tab-distance");
-  const distanceStartActions = document.createElement("div");
-  distanceStartActions.className = "map-view__pick-actions map-view__pick-distance-start-actions";
 
   let targetKm = autoRouteTargetKm;
 
@@ -967,6 +967,11 @@ export function buildPickPopup(deps: {
     tryArmDirectionPick: tryArmDirectionPickIfChecked,
     syncDistanceInputs,
     getRoutePickView: () => routePickView,
+    selectDistanceStart: (point) => {
+      if (routePickView !== "distance" || pins.start) return false;
+      selectStart(point);
+      return true;
+    },
     stageDirectionPick: (point) => {
       if (routePickView !== "distance") return false;
       if (!distanceConfirmed || distanceSearchPending) return true;
@@ -1008,11 +1013,10 @@ export function buildPickPopup(deps: {
   // 출발점이 없는 상태에서만 필요한 조작 안내를 남긴다.
   const distanceStartHint = document.createElement("p");
   distanceStartHint.className = "map-view__pick-route-distance-prereq";
-  distanceStartHint.textContent = "지도에서 시작할 위치를 길게 누른 뒤 출발을 선택하세요.";
+  distanceStartHint.textContent = "출발 위치를 지도에서 위치 길게 누르세요.";
 
   autoRouteSection.append(
     distanceStartHint,
-    distanceStartActions,
     distanceRow,
     autoRouteStatusSlot,
   );
@@ -1068,9 +1072,6 @@ export function buildPickPopup(deps: {
     tabLocation.classList.toggle("is-active", onLocation);
     tabDistance.classList.toggle("is-active", !onLocation);
     distanceStartHint.hidden = pins.start || onLocation;
-    distanceStartActions.hidden = pins.start || onLocation;
-    if (!pins.start && !onLocation) distanceStartActions.append(startBtn);
-    else if (startBtn.parentElement !== pinRow) pinRow.prepend(startBtn);
     distanceRow.hidden = !pins.start;
     autoRouteStatusSlot.hidden = !pins.start;
     wrap.classList.toggle("map-view__pick--route-tab-distance", !onLocation);

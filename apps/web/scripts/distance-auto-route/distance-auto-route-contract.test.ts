@@ -223,7 +223,7 @@ describe("distanceAutoRoute", () => {
   });
 
   it("Start 선택 — 기존 startLngLat 경로를 사용해 지도 마커와 동기화", () => {
-    assert.match(POPUP_SOURCE, /onSelectPoint\("start", lngLat\)/);
+    assert.match(POPUP_SOURCE, /onSelectPoint\("start", point\)/);
     // setStartLngLat 호출 계약은 phase-c e2e·phase-a-verify 가 동작으로 검증한다.
     assert.match(POPUP_SOURCE, /getDistanceAutoRouteMapBridge\(\)\?\.disarm/);
     // MapView 가 startLngLat 을 핀 훅에 넘기고, 훅이 그 좌표로 마커를 만든다(옮긴 뒤에도 같은 계약).

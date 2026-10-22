@@ -425,7 +425,8 @@ describe("distanceAutoRoute click debug marker 3F-A-R1 §2.5", () => {
     // MapView 가 지우기 콜백을 팝업에 넘기고, 팝업의 방향 모드 해제·Start 가 그것을 부른다
     assert.match(MAP_VIEW_SOURCE, /onClearAutoRouteClickDebugMarker: \(\) => clearAutoRouteClickDebugMarkerRef\.current\(\)/);
     assert.match(POPUP_ELEMENTS_SOURCE, /function applyDistanceDirectionMode[\s\S]*?onClearAutoRouteClickDebugMarker\?\.\(\)/);
-    assert.match(POPUP_ELEMENTS_SOURCE, /startBtn\.onclick = \(\) => \{\s*onClearAutoRouteClickDebugMarker\?\.\(\)/);
+    assert.match(POPUP_ELEMENTS_SOURCE, /const selectStart = \(point: LngLat\) => \{\s*onClearAutoRouteClickDebugMarker\?\.\(\)/);
+    assert.match(POPUP_ELEMENTS_SOURCE, /startBtn\.onclick = \(\) => selectStart\(lngLat\)/);
     assert.match(MAP_VIEW_SOURCE, /clearAutoRouteClickDebugMarkerOnMap\(autoRouteClickDebugMarkerRef\)/);
     assert.match(MAP_VIEW_SOURCE, /registerDistanceAutoRouteClickDebugMarkerClear/);
     assert.match(MAP_VIEW_SOURCE, /clearAutoRouteClickDebugMarkerOnMap\(autoRouteClickDebugMarkerRef\)/);

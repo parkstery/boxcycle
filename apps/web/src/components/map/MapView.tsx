@@ -1811,6 +1811,11 @@ export function MapView({
     const runLongPressRoutePick = (commit: MapRoutePickCommit) => {
       if (routePickDockDraggingRef.current) return;
       if (autoRouteSearchBusyRef.current) return;
+      if (!startLngLatRef.current && pickPopupAutoRouteUiRef.current?.getRoutePickView() === "distance") {
+        openPickSurface(commit.lngLat, mapMouseEventFromPickCommit(commit), "distance");
+        pickPopupAutoRouteUiRef.current?.selectDistanceStart(commit.lngLat);
+        return;
+      }
       // 거리·방향 선택 중에는 누른 길이와 관계없이 같은 방향 탐색 경로를 쓴다.
       if (autoRouteMapPickRef.current === "direction") {
         runDirectionMapPick(commit.lngLat);
