@@ -804,8 +804,9 @@ describe("distanceAutoRoute", () => {
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /textContent = "경로 생성"/);
     assert.doesNotMatch(MAP_VIEW_CSS, /map-view__pick-btn--create-route/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /\+경유지/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /wpBtn\.textContent = `W\$\{slot \+ 1\}`/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /slot < MAX_ROUTE_WAYPOINTS/);
+    // 10-23 Chief: W1~W3 칸 대신 「+경유」 하나, 최대 3개
+    assert.match(BUILD_PICK_POPUP_SOURCE, /wpBtn\.textContent = "\+경유"/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /slot >= MAX_ROUTE_WAYPOINTS/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /textContent = "출발"/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /textContent = "도착"/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /지도에서 방향을 탭하면 경로가 생성됩니다/);
