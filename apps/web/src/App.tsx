@@ -162,6 +162,7 @@ import {
 } from "./lib/account/routeTokenEconomyClient";
 import { useAppTrail } from "./hooks/useAppTrail";
 import { useRoutePlanning } from "./hooks/useRoutePlanning";
+import { useScreenWakeLock } from "./hooks/useScreenWakeLock";
 import { useRecentRideSessions } from "./hooks/useRecentRideSessions";
 import { usePublicationCatalogHub } from "./hooks/usePublicationCatalogHub";
 import { usePublicRouteReviewMeta } from "./hooks/usePublicRouteReviewMeta";
@@ -545,6 +546,8 @@ export default function App() {
     clearRouteArtifactsRef,
     onRouteDirectionsErrorRef,
   });
+  // 주행·일시정지 동안 폰 화면이 꺼지지 않게(10-23)
+  useScreenWakeLock(rideStatus !== "idle");
 
   /** 주행 시작 — 후방 추적·최대 줌 / 종료 시 이전 카메라 설정 복원 */
   useEffect(() => {
