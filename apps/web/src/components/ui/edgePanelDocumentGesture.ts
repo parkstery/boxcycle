@@ -7,7 +7,7 @@ import {
 } from "./usePanelHeaderCloseDrag";
 import type { EdgeSide } from "./EdgePanelHandle";
 
-export const EDGE_GESTURE_BAND_PX = 20;
+const EDGE_GESTURE_BAND_PX = 20;
 
 const YIELD_SELECTOR =
   "button, a, input, select, textarea, [role='button'], .mapboxgl-control, .mapboxgl-ctrl, .mapboxgl-ctrl-group, .route-dock-anchor, .ride-control-anchor";
@@ -165,7 +165,7 @@ function ensureDocumentListeners() {
   window.addEventListener("resize", onResize);
 }
 
-export function tryStartEdgeGesture(
+function tryStartEdgeGesture(
   edge: EdgeSide,
   e: PointerEvent,
   marker: HTMLElement | null,

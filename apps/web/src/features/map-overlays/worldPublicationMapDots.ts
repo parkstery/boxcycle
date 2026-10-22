@@ -4,13 +4,8 @@ import { ACTIVITY_TRACE_LIVE_STRENGTH } from "../../lib/activity/activityWorldTr
 import type { LineStringGeometry } from "../../lib/geo/geo";
 import { distanceMidpointLngLat } from "../../lib/route/routeGeometryMidpoint";
 
-/** @deprecated publication world mode 전용 — catalog 모드에서는 사용 안 함 */
-export function buildBasicHubWorldPulseDots(): ActivityWorldMapDot[] {
-  return [];
-}
-
 /** 주행 중 publication world mode — 로컬 midpoint 1개 */
-export function buildLocalRidePublicationPulseDot(
+function buildLocalRidePublicationPulseDot(
   publicationId: string | null | undefined,
   routeGeometry: LineStringGeometry | null | undefined,
 ): ActivityWorldMapDot | null {
@@ -59,7 +54,7 @@ export function mergePublicationWorldPulseDots(input: {
 }
 
 /** MapView 전달 직전 — fallback dot 없음 activity 없으면 빈 overlay */
-export function ensureWorldActivityMinimumDots(
+function ensureWorldActivityMinimumDots(
   raw: ActivityWorldRawOverlay,
   _opts: {
     mapSessionActive: boolean;

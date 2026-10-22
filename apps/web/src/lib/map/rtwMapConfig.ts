@@ -17,12 +17,12 @@ import type {
 export const RTW_MAP_STYLE_URL = "mapbox://styles/mapbox/navigation-night-v1";
 
 /** POI성 라벨 — 임시 토글(showPoi)로 표시/숨김 비교 가능 */
-export const RTW_POI_LAYER_KEYWORDS = ["poi-label", "airport-label", "transit-label"];
+const RTW_POI_LAYER_KEYWORDS = ["poi-label", "airport-label", "transit-label"];
 /** 건물 — 오버뷰(비주행)에서만 숨김. 주행 중엔 공간감을 위해 복원 */
-export const RTW_BUILDING_LAYER_KEYWORDS = ["building"];
+const RTW_BUILDING_LAYER_KEYWORDS = ["building"];
 
 /** 도로 레이어 낮은 존재감 — --rtw-map-road-ghost. dark-v11 기준 튜닝값 — navigation-night 베이스에서 재튜닝 여지 */
-export const RTW_ROAD_PAINT = {
+const RTW_ROAD_PAINT = {
   "line-color": "rgba(28, 37, 48, 0.6)",
   "line-opacity": 0.35,
 } as const;
@@ -56,18 +56,15 @@ export const RTW_ROAD_PAINT = {
  * 청록은 강·바다(205°)와 습지(194°)에 섞여 넓은 맵에서 임팩트가 사라졌다.
  */
 
-/** Trace 시그니처 골드 — tokens.css --rtw-trace. HUD 강조색(지도 궤적에는 쓰지 않는다) */
-export const RTW_TRACE_COLOR = "#E8A33D";
-
 /**
  * 내 도로망(과거 누적) — 마젠타(330°).
  * 대안(이 상수 한 줄만 고치면 된다):
  *   `#A855F7`(280°) 퍼플 · `#C026D3`(292°) 자주 — 빨강에서 더 멀게
  */
-export const RTW_TRACE_OWNED_COLOR = "#8A2BE2";
+const RTW_TRACE_OWNED_COLOR = "#8A2BE2";
 
 /** 이번 주행에서 지나온 구간 — 내 도로망과 같은 마젠타(glow·굵기로만 구별) */
-export const RTW_TRACE_LIVE_COLOR = RTW_TRACE_OWNED_COLOR;
+const RTW_TRACE_LIVE_COLOR = RTW_TRACE_OWNED_COLOR;
 
 
 /** 이번 주행 실시간 궤적 — 마젠타 + glow */
@@ -299,7 +296,7 @@ export const MAP_STYLE_OPTIONS = [
   { value: "mapbox://styles/mapbox/satellite-streets-v12", label: "Satellite" },
 ];
 
-export const MAP_STYLE_OUTDOORS = MAP_STYLE_OPTIONS[1]!.value;
+const MAP_STYLE_OUTDOORS = MAP_STYLE_OPTIONS[1]!.value;
 export const MAP_STYLE_SATELLITE = MAP_STYLE_OPTIONS[2]!.value;
 
 /**
@@ -340,9 +337,9 @@ export const DEFAULT_MAP_STYLE = MAP_STYLE_OPTIONS[1]!.value;
  */
 export const RIDER_MAP_MAX_PIXEL_RATIO = 2;
 /** `?maxdpr=` 비교 측정용 키 (운영 포함). 범위를 벗어나면 상수로 복귀. */
-export const RIDER_MAP_MAX_DPR_QUERY_KEY = "maxdpr";
-export const RIDER_MAP_MAX_DPR_MIN = 1;
-export const RIDER_MAP_MAX_DPR_MAX = 4;
+const RIDER_MAP_MAX_DPR_QUERY_KEY = "maxdpr";
+const RIDER_MAP_MAX_DPR_MIN = 1;
+const RIDER_MAP_MAX_DPR_MAX = 4;
 
 /** `?maxdpr=` 파싱 — 1–4 범위만 인정, 없거나 잘못되면 상수. */
 export function parseRiderMapMaxPixelRatio(search: string | null | undefined): number {
@@ -408,11 +405,6 @@ export function readRiderMapTrueDevicePixelRatio(): number | null {
   if (riderMapCapInstalled) return readNativeDevicePixelRatio() ?? riderMapTrueDprCache;
   if (riderMapTrueDprCache != null) return riderMapTrueDprCache;
   return readNativeDevicePixelRatio();
-}
-
-/** 현재 렌더에 적용되는 비율 (= min(실측, 상한)). */
-export function readRiderMapAppliedPixelRatio(): number {
-  return resolveRiderMapPixelRatio(readRiderMapTrueDevicePixelRatio() ?? 1, getRiderMapMaxPixelRatio());
 }
 
 /**

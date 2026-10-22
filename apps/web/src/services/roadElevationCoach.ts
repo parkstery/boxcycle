@@ -22,28 +22,28 @@ function computeDistanceBetween(a: { lat: number; lng: number }, b: { lat: numbe
   return getDistanceMeters([a.lng, a.lat], [b.lng, b.lat]);
 }
 
-export const ROAD_SMOOTH_WINDOW_M = 200;
-export const ROAD_SMOOTH_WINDOW_MAX_M = 420;
-export const ROAD_SLOPE_LOW_PASS_ALPHA = 0.25;
-export const ROAD_SLOPE_DELTA_LIMIT_PER_50M = 1.0;
-export const ROAD_SLOPE_DELTA_LIMIT_PER_M = ROAD_SLOPE_DELTA_LIMIT_PER_50M / 50;
+const ROAD_SMOOTH_WINDOW_M = 200;
+const ROAD_SMOOTH_WINDOW_MAX_M = 420;
+const ROAD_SLOPE_LOW_PASS_ALPHA = 0.25;
+const ROAD_SLOPE_DELTA_LIMIT_PER_50M = 1.0;
+const ROAD_SLOPE_DELTA_LIMIT_PER_M = ROAD_SLOPE_DELTA_LIMIT_PER_50M / 50;
 
 /** 짧은 가파른 진입을 잡기 위한 보조(short) 채널의 반경. */
-export const ROAD_SHORT_WINDOW_HALF_M = 60;
+const ROAD_SHORT_WINDOW_HALF_M = 60;
 
 /** Bridge-pattern 감쇠 게이트: 일반 산복도로 오인을 줄이도록 보수적으로 강화. */
-export const BRIDGE_PATTERN_DISTANCE_M = 1500;
-export const BRIDGE_PATTERN_ENDPOINT_DIFF_M = 4;
-export const BRIDGE_PATTERN_MID_DIP_M = 10;
+const BRIDGE_PATTERN_DISTANCE_M = 1500;
+const BRIDGE_PATTERN_ENDPOINT_DIFF_M = 4;
+const BRIDGE_PATTERN_MID_DIP_M = 10;
 /** 끝점-중앙 dip 외에 슬라이스 전체 변동(maxEl-minEl)이 dip 의 일정 비율 이상이면 교량으로 보지 않는다. */
-export const BRIDGE_PATTERN_VARIATION_GUARD_RATIO = 1.3;
+const BRIDGE_PATTERN_VARIATION_GUARD_RATIO = 1.3;
 /** 교량으로 판단됐을 때의 감쇠 — 0.35 → 0.6 으로 완화. */
-export const BRIDGE_PATTERN_ATTENUATION = 0.6;
+const BRIDGE_PATTERN_ATTENUATION = 0.6;
 
 /** 국소 교량/하천 trench 복원: DEM 이 강/하천 수면으로 꺼진 구간을 deck line 으로 끌어올린다. */
-export const LOCAL_BRIDGE_MIN_WIDTH_M = 40;
-export const LOCAL_BRIDGE_MAX_WIDTH_M = 2200;
-export const LOCAL_BRIDGE_MAX_ENDPOINT_GRADE = 0.035;
+const LOCAL_BRIDGE_MIN_WIDTH_M = 40;
+const LOCAL_BRIDGE_MAX_WIDTH_M = 2200;
+const LOCAL_BRIDGE_MAX_ENDPOINT_GRADE = 0.035;
 
 type RoadSample = { elevation: number; cumulativeDistM: number };
 

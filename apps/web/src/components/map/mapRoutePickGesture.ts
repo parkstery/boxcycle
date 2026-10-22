@@ -5,7 +5,7 @@ export const MAP_ROUTE_PICK_LONG_PRESS_MS = 500;
 export const MAP_ROUTE_PICK_MOVE_TOLERANCE_PX = 10;
 export const MAP_ROUTE_PICK_GESTURE_SUPPRESS_MS = 300;
 /** 짧은 탭 상한 — 롱프레스보다 짧아야 한다 */
-export const MAP_ROUTE_PICK_SHORT_TAP_MAX_MS = 450;
+const MAP_ROUTE_PICK_SHORT_TAP_MAX_MS = 450;
 
 export type MapRoutePickCommit = {
   lngLat: LngLat;

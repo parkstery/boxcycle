@@ -14,14 +14,14 @@ import {
 export const ROUTE_MINIMAP_PAD_PX = 6;
 /** 위쪽 여백 — 종점 깃발(높이 ~13px)이 상자 위로 잘리지 않게 */
 export const ROUTE_MINIMAP_PAD_TOP_PX = 16;
-export const ROUTE_MINIMAP_MAX_COORDS = 1000;
+const ROUTE_MINIMAP_MAX_COORDS = 1000;
 /** Mapbox GL·Static Images 의 세계 한 변 픽셀(zoom 0) */
 const MERCATOR_TILE_PX = 512;
 /** 한 점·아주 짧은 경로가 끝없이 확대되지 않게 */
-export const ROUTE_MINIMAP_MAX_ZOOM = 17;
+const ROUTE_MINIMAP_MAX_ZOOM = 17;
 const MERCATOR_MAX_LAT = 85.0511;
 
-export type MinimapPoint = { x: number; y: number };
+type MinimapPoint = { x: number; y: number };
 
 export type RouteMinimapProjection = {
   pathD: string;
@@ -55,7 +55,7 @@ function sampleCoords(coords: readonly LngLat[], maxCount: number): LngLat[] {
 }
 
 /** 경위도 → Web Mercator 정규 좌표(세계 = 0..1, y 는 아래로 증가) */
-export function mercatorXY(lngLat: LngLat): { x: number; y: number } {
+function mercatorXY(lngLat: LngLat): { x: number; y: number } {
   const [lng, lat] = lngLat;
   const clamped = Math.max(-MERCATOR_MAX_LAT, Math.min(MERCATOR_MAX_LAT, lat));
   const phi = (clamped * Math.PI) / 180;
@@ -155,7 +155,7 @@ export function projectRouteMinimap(
  * `logo=false&attribution=false` 는 같은 화면의 메인 지도가 이미 Mapbox·OSM 저작자 표시를
  * 하고 있어서 허용된다(미니맵은 그 지도 위에 얹힌 보조 그림이다).
  */
-export const ROUTE_MINIMAP_STATIC_STYLE = "mapbox/outdoors-v12";
+const ROUTE_MINIMAP_STATIC_STYLE = "mapbox/outdoors-v12";
 /** Static Images API 의 한 변 상한(논리 px) */
 const STATIC_MAX_SIDE_PX = 1280;
 
@@ -176,29 +176,6 @@ export function routeMinimapStaticImageUrl(
     `${lng},${lat},${layout.zoom},0,0/${w}x${h}@2x` +
     `?access_token=${encodeURIComponent(token)}&attribution=false&logo=false`
   );
-}
-
-/** 점과 폴리라인(샘플 SVG 점) 사이 최근접 거리 — 진척 검산용 */
-export function distancePointToPolylinePx(point: MinimapPoint, poly: readonly MinimapPoint[]): number {
-  if (poly.length === 0) return Number.POSITIVE_INFINITY;
-  if (poly.length === 1) {
-    const p = poly[0]!;
-    return Math.hypot(point.x - p.x, point.y - p.y);
-  }
-  let best = Number.POSITIVE_INFINITY;
-  for (let i = 0; i < poly.length - 1; i++) {
-    const a = poly[i]!;
-    const b = poly[i + 1]!;
-    const abx = b.x - a.x;
-    const aby = b.y - a.y;
-    const len2 = abx * abx + aby * aby;
-    let t = len2 < 1e-12 ? 0 : ((point.x - a.x) * abx + (point.y - a.y) * aby) / len2;
-    t = Math.max(0, Math.min(1, t));
-    const cx = a.x + abx * t;
-    const cy = a.y + aby * t;
-    best = Math.min(best, Math.hypot(point.x - cx, point.y - cy));
-  }
-  return best;
 }
 
 /** 지시03·04 — 미니맵 상자 = 화면 종횡비. 폭 비율은 Chief 실기 70% 축소 */

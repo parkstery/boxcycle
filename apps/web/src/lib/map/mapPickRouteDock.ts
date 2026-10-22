@@ -27,15 +27,6 @@ function rectFromLike(r: RectLike): RectLike {
   return r;
 }
 
-function rectsOverlap(a: RectLike, b: RectLike): boolean {
-  return !(
-    a.right <= b.left ||
-    a.left >= b.right ||
-    a.bottom <= b.top ||
-    a.top >= b.bottom
-  );
-}
-
 function overlapArea(a: RectLike, b: RectLike): number {
   const w = Math.min(a.right, b.right) - Math.max(a.left, b.left);
   const h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
@@ -119,7 +110,7 @@ export function panelReservedOverlapArea(
   return total;
 }
 
-export function panelFocusOverlapArea(panel: RectLike, focus: RoutePickDockFocus): number {
+function panelFocusOverlapArea(panel: RectLike, focus: RoutePickDockFocus): number {
   let total = 0;
   for (const focusRect of focusRects(focus)) {
     total += overlapArea(panel, focusRect);
@@ -224,7 +215,7 @@ export function pickRoutePickDockPosition(input: {
   );
 }
 
-export const ROUTE_PICK_DOCK_HUD_SLOT_SELECTORS = [
+const ROUTE_PICK_DOCK_HUD_SLOT_SELECTORS = [
   ".map-hud__tl",
   ".map-hud__tr",
   ".map-hud__tr-under",
@@ -340,10 +331,6 @@ export function mountRoutePickDockDrag(input: {
     input.handleEl.removeEventListener("pointerup", endDrag);
     input.handleEl.removeEventListener("pointercancel", endDrag);
   };
-}
-
-export function rectsOverlapAny(panel: RectLike, others: RectLike[]): boolean {
-  return others.some((other) => rectsOverlap(panel, other));
 }
 
 export function toCanvasLocalRect(rect: RectLike, canvasRect: RectLike): RectLike {

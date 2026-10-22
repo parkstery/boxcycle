@@ -60,10 +60,6 @@ export function isMapCutKeyActive(key: MapCutKey): boolean {
   return getMapCutKeys().includes(key);
 }
 
-export function isMapCutActive(): boolean {
-  return getMapCutKeys().length > 0;
-}
-
 /** 시험이 쿼리 캐시를 비운다. 운영에서는 부르지 않는다. */
 export function resetMapCutForTests(): void {
   mapCutCache = undefined;
@@ -77,7 +73,7 @@ export function resetMapCutForTests(): void {
 const MAP_CUT_PRESERVED_PREFIXES = ["boxcycle-", "route", "live-self", "debug-", "distance-"] as const;
 
 /** 3D 건물 커스텀 레이어 — `boxcycle-` 접두지만 `buildings` 키의 대상이라 보존 예외. */
-export const MAP_CUT_BUILDING_LAYER_ID = "boxcycle-3d-buildings";
+const MAP_CUT_BUILDING_LAYER_ID = "boxcycle-3d-buildings";
 
 /** `rtwMapConfig` 의 POI 키워드와 같은 값 — map 도메인 안이라 직접 두어 의존을 늘리지 않는다. */
 const MAP_CUT_POI_KEYWORDS = ["poi-label", "airport-label", "transit-label"] as const;

@@ -40,30 +40,30 @@ import { classifyMapCutLayers, type MapCutStyleLayer } from "./mapCut";
 import { RIDER_POSE_ANIMATION_MIN_ZOOM } from "../rider/riderDetailLod";
 
 /** 이 줌 이상(주행 중)이면 글자 절충을 적용한다. 라이더 자세를 그리는 줌과 같은 선. */
-export const RIDE_LABELS_HIDE_ZOOM = RIDER_POSE_ANIMATION_MIN_ZOOM;
+const RIDE_LABELS_HIDE_ZOOM = RIDER_POSE_ANIMATION_MIN_ZOOM;
 
 /** 적용 상태에서 이 줌 미만으로 내려가야 복원한다 (경계 깜빡임 방지). */
-export const RIDE_LABELS_SHOW_ZOOM = 18.7;
+const RIDE_LABELS_SHOW_ZOOM = 18.7;
 
-export const RIDE_LABELS_QUERY_KEY = "labels";
+const RIDE_LABELS_QUERY_KEY = "labels";
 
 /** 주행 글자 모드 쿼리 키 (`?labelmode=names|both|near|major|all|none`). */
-export const RIDE_LABEL_MODE_QUERY_KEY = "labelmode";
+const RIDE_LABEL_MODE_QUERY_KEY = "labelmode";
 
 /** near 거리 D 쿼리 키 (`?labeldist=`, 0.5–3). */
-export const RIDE_LABEL_DIST_QUERY_KEY = "labeldist";
+const RIDE_LABEL_DIST_QUERY_KEY = "labeldist";
 
 export type RideLabelMode = "names" | "both" | "near" | "major" | "all" | "none";
 
 const KNOWN_MODES: ReadonlySet<string> = new Set(["names", "both", "near", "major", "all", "none"]);
 
 /** 새 기본값 — 장식 기호만 숨기고 이름은 전부 남긴다(M4, Chief 결정). */
-export const RIDE_LABEL_MODE_DEFAULT: RideLabelMode = "names";
+const RIDE_LABEL_MODE_DEFAULT: RideLabelMode = "names";
 
 /** near 거리 기본·범위. `distance-from-center` 단위(화면 중심 기준 정규 거리). */
-export const RIDE_LABEL_DIST_DEFAULT = 1.2;
-export const RIDE_LABEL_DIST_MIN = 0.5;
-export const RIDE_LABEL_DIST_MAX = 3;
+const RIDE_LABEL_DIST_DEFAULT = 1.2;
+const RIDE_LABEL_DIST_MIN = 0.5;
+const RIDE_LABEL_DIST_MAX = 3;
 
 /**
  * `major`·`both` 에서 poi-label 을 조이는 filterrank 상한.
@@ -160,7 +160,7 @@ export function readRideLabelDist(): number {
 }
 
 /** 운영 판독 — 페이지 쿼리를 매번 읽는다(값이 바뀌면 다음 줌·주행 이벤트에 반영). */
-export function isRideLabelsForceShown(): boolean {
+function isRideLabelsForceShown(): boolean {
   if (typeof window === "undefined") return false;
   try {
     return parseRideLabelsForceShow(window.location?.search ?? "");
@@ -633,10 +633,4 @@ export function getRideLabelsController(): RideLabelsController {
 /** perflab 표시·복사 JSON 용 현재 숨김 상태. */
 export function readRideLabelsHidden(): boolean {
   return sharedController?.isHidden() ?? false;
-}
-
-/** 시험이 공유 컨트롤러를 비운다. 운영에서는 부르지 않는다. */
-export function resetRideLabelsControllerForTests(): void {
-  sharedController?.resetForTests();
-  sharedController = null;
 }

@@ -19,7 +19,7 @@ const MIN_ELEVATION_M = -500;
 const MAX_ELEVATION_M = 9000;
 const MAX_SAMPLES = 256;
 
-export function isStorableElevationValues(values: unknown): values is number[] {
+function isStorableElevationValues(values: unknown): values is number[] {
   return (
     Array.isArray(values) &&
     values.length >= 2 &&

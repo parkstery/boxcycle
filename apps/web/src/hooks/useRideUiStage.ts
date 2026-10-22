@@ -53,8 +53,3 @@ export function useRideUiStage(input: RideUiStageInputs): RideUiStage {
     input.hasEndPin,
   ]);
 }
-
-/** stage 가 라이딩 컨트롤이 잠겨야 하는 단계인지 */
-export function isRideStageLocked(stage: RideUiStage): boolean {
-  return stage === "riding" || stage === "paused";
-}

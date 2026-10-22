@@ -17,7 +17,7 @@ function readAltitudeM(map: MapboxMap): number | null {
 }
 
 /** 표시 문자열. 큰 값은 km, 그 외 m. 비정상이면 PLACEHOLDER. */
-export function formatCameraAltitudeLabel(altM: number | null): string {
+function formatCameraAltitudeLabel(altM: number | null): string {
   if (altM == null) return PLACEHOLDER;
   if (altM >= 1000) {
     const km = altM / 1000;

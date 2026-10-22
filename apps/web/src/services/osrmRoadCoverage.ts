@@ -1,9 +1,9 @@
 import type { FilterSpecification, Map as MapboxMap } from "mapbox-gl";
 
 /** Mapbox Streets v8 — OSM 도로 클래스 하이라이트(라우팅 참고용, OSRM 그래프와 1:1 아님) */
-export const ROUTABLE_ROAD_TILESET_URL = "mapbox://mapbox.mapbox-streets-v8";
+const ROUTABLE_ROAD_TILESET_URL = "mapbox://mapbox.mapbox-streets-v8";
 
-export const ROUTABLE_ROAD_SOURCE_ID = "boxcycle-routable-roads-src";
+const ROUTABLE_ROAD_SOURCE_ID = "boxcycle-routable-roads-src";
 export const ROUTABLE_ROAD_LAYER_ID = "boxcycle-routable-roads-overlay";
 
 const ROUTABLE_CLASS_FILTER: FilterSpecification = [

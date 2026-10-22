@@ -43,12 +43,12 @@ function notify(entry: Entry): void {
   for (const listener of entry.listeners) listener();
 }
 
-export function getPacerEnabledSnapshot(uid: string | null | undefined): boolean {
+function getPacerEnabledSnapshot(uid: string | null | undefined): boolean {
   if (!uid) return true;
   return ensureEntry(uid).enabled;
 }
 
-export function subscribePacerEnabled(
+function subscribePacerEnabled(
   uid: string | null | undefined,
   onStoreChange: () => void,
 ): () => void {
@@ -73,7 +73,7 @@ export function subscribePacerEnabled(
   };
 }
 
-export function writePacerEnabled(user: User | null, enabled: boolean): boolean {
+function writePacerEnabled(user: User | null, enabled: boolean): boolean {
   if (!user || typeof localStorage === "undefined") return false;
   try {
     localStorage.setItem(storageKey(user.uid), enabled ? "1" : "0");

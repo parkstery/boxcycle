@@ -10,7 +10,7 @@ import {
 import "./RideHistoryPanel.css";
 import { isRouteCompletion } from "../../lib/ride/rideRecordPolicy";
 
-export type RideHistoryPanelProps = {
+type RideHistoryPanelProps = {
   /**
    * 영구 주행 기록을 표시한다.
    * - 로그인 사용자: Firestore `rides` 컬렉션 (최근 50건)

@@ -103,7 +103,7 @@ export function rtwLayerRank(id: string): number | null {
  * 경로선이 **위**(내 도로망은 0.6 + 폭 하한으로 배경). 정적 랭크로는 표현할 수 없다 —
  * 순서 자체가 단계의 함수다.
  */
-export function conquestRankOffset(tracesAboveRoute: boolean): number {
+function conquestRankOffset(tracesAboveRoute: boolean): number {
   // 경로선(500) 위로 올릴 때는 관전 오버레이(600) 아래에 머물러야 한다.
   return tracesAboveRoute ? 150 : 0;
 }

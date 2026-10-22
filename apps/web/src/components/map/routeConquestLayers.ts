@@ -40,7 +40,7 @@ export const CONQUEST_RECENT_NEW_SRC = "boxcycle-conquest-recent-new";
 export const CONQUEST_RECENT_NEW_GLOW_LAYER = "boxcycle-conquest-recent-new-glow";
 export const CONQUEST_RECENT_NEW_LAYER = "boxcycle-conquest-recent-new-line";
 /** 기존 #8A2BE2 도로망과 분명히 분리되는 고채도 신규도로 강조색 */
-export const CONQUEST_RECENT_NEW_COLOR = "#FF3DCE";
+const CONQUEST_RECENT_NEW_COLOR = "#FF3DCE";
 export const CONQUEST_RECENT_NEW_GLOW_PAINT = {
   ...RTW_TRACE_LIVE_GLOW_PAINT,
   "line-color": CONQUEST_RECENT_NEW_COLOR,

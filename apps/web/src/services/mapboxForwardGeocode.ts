@@ -60,16 +60,6 @@ export async function fetchMapboxPlacePickDetail(
   };
 }
 
-/** @deprecated `fetchMapboxPlacePickDetail` 사용 */
-export async function fetchMapboxPlaceFeatureCenter(
-  featureId: string,
-  accessToken: string,
-  signal?: AbortSignal,
-): Promise<LngLat | null> {
-  const d = await fetchMapboxPlacePickDetail(featureId, accessToken, signal);
-  return d?.center ?? null;
-}
-
 /**
  * Mapbox Geocoding forward — 자동완성 후보(`autocomplete=true`).
  */

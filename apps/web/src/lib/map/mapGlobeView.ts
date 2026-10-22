@@ -1,5 +1,3 @@
-import type { Map as MapboxMap } from "mapbox-gl";
-
 /**
  * 주행 중 카메라가 라이더를 따라가는 방식.
  * 2026-09-25 에 `components/ride/RideRoutePanel` 에서 이곳으로 옮겼다 — 코어가 UI 패널의
@@ -22,9 +20,6 @@ export type FollowMode =
 import { RIDER_GLB_MODEL_BASE_SCALE } from "../riderPrototype/config";
 import { RIDER_DISPLAY_HEIGHT_M, RIDER_HEAD_C_Y_M, rideHeightSpanMargin } from "../camera/rideCameraFraming";
 
-/** `fitBounds` 로 지구 전체가 들어오도록 할 때의 줌 상한 */
-export const MAP_GLOBE_FIT_MAX_ZOOM = 2.5;
-
 /** 맵 최소 줌 — NavigationControl·지구 보기·맵 시트 슬라이더 */
 export const MAP_GLOBE_MIN_ZOOM = 0;
 
@@ -42,9 +37,6 @@ export const DEFAULT_FOLLOW_MODE: FollowMode = "left";
 
 /** 앱 진입 시 3D terrain·건물 */
 export const DEFAULT_MAP_ENABLE_3D = false;
-
-/** 밀착 추적 카메라 줌 — 캐릭터가 화면에 들어오도록 21.5 고정 (수동 선택 시) */
-export const RIDE_FOLLOW_CAMERA_ZOOM = 21.5;
 
 /** 주행 시작 시 자동 적용할 팔로우 모드 — 상공 수직(topDown) */
 export const RIDE_FOLLOW_CAMERA_MODE: FollowMode = "topDown";
@@ -139,21 +131,3 @@ export const RIDE_CAMERA_DISTANCE_DEFAULT_M = RIDE_CAMERA_DISTANCE_RANGE.default
 export const RIDE_CAMERA_DISTANCE_MAX_M = RIDE_CAMERA_DISTANCE_RANGE.maxM;
 export const RIDE_CAMERA_DISTANCE_STEP_M = RIDE_CAMERA_DISTANCE_RANGE.stepM;
 
-
-/** 지구 전체가 한 화면에 보이도록 카메라를 맞춘다(극지 왜곡 완화용 위도 클램프). */
-export function applyMapGlobeView(map: MapboxMap): void {
-  map.stop();
-  map.easeTo({ pitch: 0, bearing: 0, duration: 400 });
-  map.fitBounds(
-    [
-      [-180, -58],
-      [180, 78],
-    ],
-    {
-      padding: 48,
-      duration: 700,
-      maxZoom: MAP_GLOBE_FIT_MAX_ZOOM,
-      essential: true,
-    },
-  );
-}

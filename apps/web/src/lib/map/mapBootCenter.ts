@@ -15,10 +15,10 @@ export const MAP_FALLBACK_ZOOM = 15;
  * 위치 공유 후 줌아웃·이동·줌인 전체의 상한.
  * 지구 반대편도 이 시간 안에 끝나고, 가까운 곳은 더 짧다.
  */
-export const ENTRY_LOCATION_FLIGHT_MAX_MS = 5000;
+const ENTRY_LOCATION_FLIGHT_MAX_MS = 5000;
 
 /** 화면이 달라지는 가장 짧은 이동도 순간 점프로 끊기지 않게 하는 하한. */
-export const ENTRY_LOCATION_FLIGHT_MIN_MS = 280;
+const ENTRY_LOCATION_FLIGHT_MIN_MS = 280;
 
 /** 비행 시간 비율의 기준. 이 거리(지구 반 둘레)에서 상한에 닿는다. */
 const ENTRY_LOCATION_FLIGHT_HALF_EARTH_M = Math.PI * 6_371_000;
@@ -39,7 +39,7 @@ export function resolveEntryLocationFlightMs(distanceMeters: number): number {
   );
 }
 
-export type MapBootCenterSource = "localFirst" | "fallback";
+type MapBootCenterSource = "localFirst" | "fallback";
 
 export type MapBootCenter = {
   center: LngLat;
