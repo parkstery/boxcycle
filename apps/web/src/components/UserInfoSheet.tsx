@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDialogFocus } from "./ui/useDialogFocus";
-import { composePeriodStory } from "../lib/ride/rideStory";
 import type { User } from "firebase/auth";
 import { loadRideSessionsForStatsFromFirestore } from "../lib/ride/repo/firestoreRides";
 import { isFirebaseConfigured } from "../lib/firebase/app";
@@ -252,7 +251,6 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   const [statsPeriod, setStatsPeriod] = useState<RideStatsPeriod>("day");
   const [statsSessions, setStatsSessions] = useState<StoredRideSession[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
-  const [statsLoadNote, setStatsLoadNote] = useState<string | null>(null);
   const [subscriptionBusy, setSubscriptionBusy] = useState(false);
   const [subscriptionNote, setSubscriptionNote] = useState<string | null>(null);
   const [canCheckout, setCanCheckout] = useState(false);
@@ -358,7 +356,6 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
         if (!cancelled) {
           setStatsSessions([]);
           setStatsLoading(false);
-          setStatsLoadNote(null);
         }
         return;
       }
@@ -366,25 +363,15 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
         if (!cancelled) {
           setStatsSessions(props.recentSessions);
           setStatsLoading(false);
-          setStatsLoadNote("이 기기에 저장된 최근 기록만 집계했어요.");
         }
         return;
       }
-      if (!cancelled) {
-        setStatsLoading(true);
-        setStatsLoadNote(null);
-      }
+      if (!cancelled) setStatsLoading(true);
       try {
         const rows = await loadRideSessionsForStatsFromFirestore(props.user.uid, 400);
-        if (!cancelled) {
-          setStatsSessions(rows);
-          setStatsLoadNote(null);
-        }
+        if (!cancelled) setStatsSessions(rows);
       } catch {
-        if (!cancelled) {
-          setStatsSessions(props.recentSessions);
-          setStatsLoadNote("화면에 보이는 최근 기록만 집계했어요.");
-        }
+        if (!cancelled) setStatsSessions(props.recentSessions);
       } finally {
         if (!cancelled) setStatsLoading(false);
       }
@@ -397,12 +384,6 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   const periodStats = useMemo(
     () => aggregateRideStatsForPeriod(statsSessions, statsPeriod),
     [statsSessions, statsPeriod],
-  );
-  // 스토리 한 줄(M4, 주행 스토리 원칙 §5) — 같은 거리도 어떻게 이어 왔는지로 말한다
-  const periodStory = useMemo(
-    () =>
-      composePeriodStory({ period: statsPeriod, sessions: statsSessions, range: periodStats.range }),
-    [statsPeriod, statsSessions, periodStats.range],
   );
   const periodHasLegacyCalories = useMemo(() => {
     const start = periodStats.range.start.getTime();
@@ -552,17 +533,6 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
             ) : null}
             {!statsLoading && !hasRides ? (
               <p className="user-info-sheet__empty-hint">달리면 여기에 거리가 쌓여요</p>
-            ) : null}
-          </div>
-
-          <div className="user-info-sheet__left-foot">
-            {!statsLoading && periodStory ? (
-              <p className="user-info-sheet__stats-story">{periodStory}</p>
-            ) : null}
-            {statsLoadNote ? (
-              <p className="user-info-sheet__stats-note" role="status">
-                {statsLoadNote}
-              </p>
             ) : null}
           </div>
         </div>

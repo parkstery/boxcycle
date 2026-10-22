@@ -216,37 +216,6 @@
   font-size: 10px;
 }
 
-.user-info-sheet__left-foot {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.user-info-sheet__left-foot:empty {
-  display: none;
-}
-
-/* 스토리 한 줄(M4, 주행 스토리 원칙 §5) */
-.user-info-sheet__stats-story {
-  margin: 0;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  font-size: 11px;
-  line-height: 15px;
-  color: #4B5160;
-  word-break: keep-all;
-}
-
-.user-info-sheet__stats-note {
-  margin: 0;
-  font-size: 11px;
-  line-height: 15px;
-  color: #5E6472;
-}
-
 /* 글자 버튼(체중 입력·업그레이드) — 강조색 글자 */
 .user-info-sheet__link {
   appearance: none;

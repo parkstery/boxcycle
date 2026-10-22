@@ -117,13 +117,14 @@ test.describe("주행 스토리", () => {
       await page.getByRole("button", { name: "사용자 정보" }).click();
       const info = page.getByRole("dialog", { name: "사용자 정보" });
       await expect(info).toBeVisible({ timeout: 15_000 });
-      const periodStory = info.locator(".user-info-sheet__stats-story");
-      await expect(periodStory).toHaveText(/^오늘 2번 페달을 밟으셨어요\. 합계 3\.\dkm예요\.$/, { timeout: 20_000 });
-      console.log(`[ride-story] ${vp.name} account-day=${(await periodStory.textContent())?.trim()}`);
+      // 스토리 문장은 큰 숫자와 같은 정보라 뺐다(2026-10-23) — 합계 거리로 중복 없음을 본다(중복이면 6km대)
+      const periodHero = info.locator(".user-info-sheet__stats-hero strong");
+      await expect(periodHero).toHaveText(/^3\.\d\d$/, { timeout: 20_000 });
+      console.log(`[ride-story] ${vp.name} account-day=${(await periodHero.textContent())?.trim()}`);
       await info.screenshot({ path: path.join(OUT_DIR, `account-day-${vp.name}.png`) });
       await info.getByRole("tab", { name: "주간" }).click();
-      await expect(periodStory).toHaveText(/^이번 주 /);
-      console.log(`[ride-story] ${vp.name} account-week=${(await periodStory.textContent())?.trim()}`);
+      await expect(periodHero).toHaveText(/^3\.\d\d$/);
+      console.log(`[ride-story] ${vp.name} account-week=${(await periodHero.textContent())?.trim()}`);
       await info.screenshot({ path: path.join(OUT_DIR, `account-week-${vp.name}.png`) });
       expect(pageErrors, "잡히지 않은 페이지 에러(흰 화면 원인)").toEqual([]);
     });
@@ -156,7 +157,9 @@ async function armRideInput(page: Page, speedKmh: number) {
 }
 
 async function loadIntroCourse(page: Page) {
-  await page.getByRole("button", { name: "Trail 메뉴" }).click();
+  // 메뉴 진입 버튼은 지도 아래 숨은 접근성 버튼이라 클릭이 안 닿는다 — ride-entry 와 같이 포커스 후 Enter
+  await page.getByRole("button", { name: "Trail 메뉴" }).focus();
+  await page.keyboard.press("Enter");
   await page.getByRole("button", { name: "입문" }).click();
   const modal = page.getByRole("dialog").filter({ has: page.locator("#oc-modal-title") });
   await expect(modal).toBeVisible({ timeout: 15_000 });
