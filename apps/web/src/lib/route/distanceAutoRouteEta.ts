@@ -15,8 +15,8 @@
 export const DISTANCE_AUTO_ROUTE_FALLBACK_KMH = 20;
 
 /** 사람이 낼 수 없는 값은 누적이 오염된 것으로 본다(0 나눗셈·센서 폭주 방어) */
-export const DISTANCE_AUTO_ROUTE_MIN_PLAUSIBLE_KMH = 3;
-export const DISTANCE_AUTO_ROUTE_MAX_PLAUSIBLE_KMH = 60;
+const DISTANCE_AUTO_ROUTE_MIN_PLAUSIBLE_KMH = 3;
+const DISTANCE_AUTO_ROUTE_MAX_PLAUSIBLE_KMH = 60;
 
 export type DistanceAutoRouteEta = {
   /** 예상 소요 분(반올림, 최소 1) */

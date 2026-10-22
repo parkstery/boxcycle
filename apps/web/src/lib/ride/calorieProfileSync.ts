@@ -23,11 +23,11 @@ export type CalorieSyncAction =
   /** 서버에 없고 이 기기에만 있다 — 한 번 올린다(기존 사용자 이전) */
   | { kind: "upload"; profile: CalorieProfile };
 
-export function sameCalorieProfile(a: CalorieProfile, b: CalorieProfile): boolean {
+function sameCalorieProfile(a: CalorieProfile, b: CalorieProfile): boolean {
   return a.weightKg === b.weightKg && a.intensityId === b.intensityId;
 }
 
-export function isEmptyCalorieProfile(p: CalorieProfile): boolean {
+function isEmptyCalorieProfile(p: CalorieProfile): boolean {
   return p.weightKg == null && p.intensityId == null;
 }
 

@@ -26,7 +26,7 @@ export function isElevationQuotaError(error: unknown): boolean {
  * 차트(인덱스=가로축)에서 DEM 잡음이 “수직 톱니”처럼 과대 표시된다.
  * Open-Meteo 질의는 **누적 거리 기준 균등** 위치에서 수행한다.
  */
-export function sampleRouteCoordinatesByArcLength(geometry: LineStringGeometry, sampleCount: number): LngLat[] {
+function sampleRouteCoordinatesByArcLength(geometry: LineStringGeometry, sampleCount: number): LngLat[] {
   const coords = geometry.coordinates as LngLat[];
   if (coords.length === 0) return [];
   if (coords.length === 1) return Array.from({ length: Math.max(2, sampleCount) }, () => coords[0]);
@@ -41,17 +41,6 @@ export function sampleRouteCoordinatesByArcLength(geometry: LineStringGeometry, 
     if (p) sampled.push(p);
   }
   return sampled.length >= 2 ? sampled : [coords[0], coords[coords.length - 1]];
-}
-
-/** @deprecated 호장 샘플 `sampleRouteCoordinatesByArcLength` 사용 */
-export function sampleRouteCoordinatesForElevation(coords: LngLat[], sampleCount: number): LngLat[] {
-  if (coords.length <= sampleCount) return coords;
-  const sampled: LngLat[] = [];
-  for (let i = 0; i < sampleCount; i += 1) {
-    const idx = Math.round((i / (sampleCount - 1)) * (coords.length - 1));
-    sampled.push(coords[idx]);
-  }
-  return sampled;
 }
 
 export async function fetchElevationsForCoords(sampledCoords: LngLat[]): Promise<number[]> {

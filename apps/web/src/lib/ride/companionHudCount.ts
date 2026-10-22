@@ -30,7 +30,7 @@ const LIVE_COUNT_RE = /지금 \d+명 주행/g;
 const LIVE_BUSY_RE = /지금 활동 중/g;
 
 /** aggregate 한 줄에서 인원수·활동 중 절만 제거. heat·좋아요는 남긴다. */
-export function stripCompanionLiveCountClause(line: string | null): string | null {
+function stripCompanionLiveCountClause(line: string | null): string | null {
   if (!line) return null;
   const rest = line
     .replace(LIVE_COUNT_RE, "")

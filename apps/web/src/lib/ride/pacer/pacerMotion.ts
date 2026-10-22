@@ -30,41 +30,33 @@ export type PacerWorld = {
 
 export const PACER_MAX_GAP_M = 20;
 export const PACER_SOFT_GAP_M = 18;
-export const PACER_MIN_TARGET_ABS_M = 4;
-export const PACER_RETARGET_SEC = [15, 40] as const;
-export const PACER_CROSS_PROB = 0.7;
+const PACER_MIN_TARGET_ABS_M = 4;
+const PACER_RETARGET_SEC = [15, 40] as const;
+const PACER_CROSS_PROB = 0.7;
 /**
  * 목표 근처 감속 비례 이득. 실제 접근 속도는 제동 곡선(`pacerApproachSpeedMps`)이 함께 묶는다.
  * 비례 이득만 키우면 가속 상한 때문에 목표를 지나쳐 ±20 경계에 부딪힌다(Cursor 초안의 gain 2 가 그랬다).
  */
-export const PACER_GAIN_PER_SEC = 0.5;
+const PACER_GAIN_PER_SEC = 0.5;
 /** 제동 곡선 여유 — 1 보다 작아야 상한 가속으로 목표 안에서 선다 */
-export const PACER_BRAKE_MARGIN = 0.9;
+const PACER_BRAKE_MARGIN = 0.9;
 /** 상대속도 절대 상한. 실제 상한은 `pacerMaxRelVMps`. */
 export const PACER_MAX_REL_V_MPS = 1.5;
-export const PACER_REL_V_FLOOR_MPS = 0.3;
-export const PACER_REL_V_SPEED_FACTOR = 0.2;
+const PACER_REL_V_FLOOR_MPS = 0.3;
+const PACER_REL_V_SPEED_FACTOR = 0.2;
 export const PACER_MAX_ACCEL_MPS2 = 0.4;
 export const PACER_DT_MAX_SEC = 0.25;
 /** 이 속도 미만이면 함께 선다 */
-export const PACER_STOP_SELF_MPS = 0.5;
+const PACER_STOP_SELF_MPS = 0.5;
 /** 페달 위상을 멈추는 속도(km/h) — 동행 마커와 같은 문턱 */
-export const PACER_PHASE_HOLD_KMH = 0.38;
+const PACER_PHASE_HOLD_KMH = 0.38;
 
-/**
- * 예전 페이서 전용 현 반경(m).
- * 제품 위치·방향 반경은 `RIDER_CURVE_HALF_SPAN_M`(riderTurn.ts, 4m)이다.
- * ride 가 rider 를 import 할 수 없어 여기 값을 그 상수에 묶지 않는다.
- * MapView 는 이 상수를 더 이상 읽지 않는다.
- */
-export const PACER_HEADING_HALF_SPAN_M = 3;
-
-export const PACER_LANE_M: Record<PacerId, number> = {
+const PACER_LANE_M: Record<PacerId, number> = {
   "pacer-a": 1.2,
   "pacer-b": -1.2,
 };
 
-export const PACER_INITIAL_GAP_M: Record<PacerId, number> = {
+const PACER_INITIAL_GAP_M: Record<PacerId, number> = {
   "pacer-a": -8,
   "pacer-b": 6,
 };
@@ -79,7 +71,7 @@ export const PACER_ENTRY_DELAY_SEC: Record<PacerId, number> = {
 };
 
 /** 등장 위치 — 뒤에서 따라붙어 들어온다(제자리에 툭 나타나지 않게) */
-export const PACER_ENTRY_GAP_M = -PACER_SOFT_GAP_M;
+const PACER_ENTRY_GAP_M = -PACER_SOFT_GAP_M;
 
 const PACER_IDS: readonly PacerId[] = ["pacer-a", "pacer-b"];
 
@@ -92,7 +84,7 @@ function uniform(rng: () => number, lo: number, hi: number): number {
 }
 
 /** min(1.5, max(0.3, 0.2 × selfSpeed)) */
-export function pacerMaxRelVMps(selfSpeedMps: number): number {
+function pacerMaxRelVMps(selfSpeedMps: number): number {
   const speed = Number.isFinite(selfSpeedMps) ? Math.max(0, selfSpeedMps) : 0;
   return Math.min(
     PACER_MAX_REL_V_MPS,
@@ -104,7 +96,7 @@ export function pacerMaxRelVMps(selfSpeedMps: number): number {
  * 목표까지 남은 거리 `remainM` 안에서 가속 상한으로 설 수 있는 최대 접근 속도.
  * v ≤ √(2·a·d). 이 곡선을 따르면 목표(≤ 18 m)를 넘지 않으므로 ±20 경계는 안전장치로만 남는다.
  */
-export function pacerApproachSpeedMps(remainM: number): number {
+function pacerApproachSpeedMps(remainM: number): number {
   return PACER_BRAKE_MARGIN * Math.sqrt(2 * PACER_MAX_ACCEL_MPS2 * Math.max(0, remainM));
 }
 

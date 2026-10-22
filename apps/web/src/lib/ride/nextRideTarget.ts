@@ -54,7 +54,7 @@ function endedAtMs(ride: StoredRideSession): number {
 }
 
 /** 유효 Ride(폐기 필터 통과)만 종료시각 내림차순으로 */
-export function sortValidRidesNewestFirst(
+function sortValidRidesNewestFirst(
   rides: readonly StoredRideSession[],
 ): StoredRideSession[] {
   return rides
