@@ -1,6 +1,7 @@
 import type { User } from "firebase/auth";
 import type { UserTier } from "../../identity/repo/firestoreUser";
 import { functionsHttpUrl } from "../../firebase/functionsEmulatorUrl";
+import { parseErrorMessage } from "../functionsErrorMessage";
 
 export type SubscriptionStatus = "none" | "active" | "past_due" | "canceled";
 
@@ -12,14 +13,6 @@ export type SubscriptionMe = {
   canCheckout: boolean;
   canManagePortal: boolean;
 };
-
-function parseErrorMessage(json: unknown, fallback: string): string {
-  if (typeof json === "object" && json !== null && "error" in json) {
-    const err = (json as { error?: { message?: string } }).error;
-    if (typeof err?.message === "string" && err.message.trim()) return err.message.trim();
-  }
-  return fallback;
-}
 
 async function authedJson<T>(
   user: User,

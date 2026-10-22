@@ -5,6 +5,7 @@
 import { GoogleAuthProvider, reauthenticateWithPopup, signOut, type User } from "firebase/auth";
 import { getFirebaseAuth } from "../../firebase/app";
 import { functionsHttpUrl } from "../../firebase/functionsEmulatorUrl";
+import { readFunctionsHttpJson } from "../../identity/functionsHttpJson";
 
 /** 현재 토큰이 기록한 마지막 로그인 시각(ms). 읽지 못하면 null — 그때는 재인증한다 */
 export async function readAuthTimeMs(user: User): Promise<number | null> {
@@ -52,13 +53,7 @@ export async function postDeleteAccount(user: User, confirmPhrase: string): Prom
     },
     body: JSON.stringify({ confirmPhrase }),
   });
-  let json: { result?: { ok?: boolean }; error?: { message?: string } } = {};
-  try {
-    json = (await res.json()) as typeof json;
-  } catch {
-    json = {};
-  }
-  const ok = res.ok && json.result?.ok === true;
+  const { ok, json } = await readFunctionsHttpJson(res);
   const errorMessage =
     typeof json.error?.message === "string" && json.error.message.trim() ? json.error.message.trim() : null;
   return { ok, status: res.status, errorMessage };

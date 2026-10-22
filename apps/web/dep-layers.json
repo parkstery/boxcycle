@@ -192,7 +192,8 @@
     ],
     "storage": [
       "storage/appSessionKeys.ts",
-      "storage/clientPersistencePolicy.ts"
+      "storage/clientPersistencePolicy.ts",
+      "storage/storageEntrySubscription.ts"
     ],
     "sensor": [
       "sensor/bleAutoReconnect.ts",
@@ -205,6 +206,7 @@
     ],
     "identity": [
       "identity/authRestore.ts",
+      "identity/functionsHttpJson.ts",
       "identity/guestActivity.ts",
       "identity/guestGoogleLink.ts",
       "identity/guestResume.ts",
@@ -225,6 +227,7 @@
     ],
     "account": [
       "account/accountDeletion.ts",
+      "account/functionsErrorMessage.ts",
       "account/mountRouteTokenPopupFeedback.ts",
       "account/routeTokenEconomyClient.ts",
       "account/routeTokenPopupDisplay.mjs",
@@ -246,6 +249,7 @@
       "conquest/conquestLayerEmphasis.ts",
       "conquest/conquestTiles.ts",
       "conquest/conquestNewRoadGeometry.ts",
+      "conquest/conquestPathGeometry.ts",
       "conquest/conquestOverviewFrame.ts",
       "conquest/recentNewRoadDisplay.ts"
     ],
@@ -257,6 +261,7 @@
       "trail/trailDisplayNumber.ts",
       "trail/trailDisplayNumberCache.ts",
       "trail/trailId.ts",
+      "trail/keyedSubscriptionHub.ts",
       "trail/trailLivePolicy.ts",
       "trail/listenerVisibilityGracePolicy.ts",
       "trail/presenceWriteResumePolicy.ts",
@@ -271,7 +276,8 @@
       "trail/repo/firestoreTrailInstance.ts",
       "trail/repo/firestoreTrailLivePublicationRides.ts",
       "trail/repo/firestoreTrailPaths.ts",
-      "trail/repo/livePublicationRidesSubscriptionHub.ts"
+      "trail/repo/livePublicationRidesSubscriptionHub.ts",
+      "trail/repo/trailDocParse.ts"
     ],
     "route": [
       "route/adhocSaveAsUserRoutePolicy.ts",
@@ -356,7 +362,8 @@
       "ride/rideStatusCopy.ts",
       "ride/rideStory.ts",
       "ride/rideStoryMemory.ts",
-      "ride/rideSyncPolicy.ts"
+      "ride/rideSyncPolicy.ts",
+      "ride/sanitizeLngLat.ts"
     ],
     "ride/repo": [
       "ride/repo/calorieProfileCloud.ts",

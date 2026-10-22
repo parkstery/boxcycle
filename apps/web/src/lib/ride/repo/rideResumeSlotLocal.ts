@@ -101,6 +101,44 @@ function protectTtlThenWriteSlot(
   return { ok: true, slot: next };
 }
 
+/** 락 안에서 슬롯 연산을 실행한다. 락을 못 얻으면 lock_busy 로 실패한다. */
+async function runLockedSlotOp(uid: string, fn: () => LocalSlotResult): Promise<LocalSlotResult> {
+  const locked = await withLocalSlotLock(uid, fn);
+  if (locked == null) {
+    return { ok: false, reason: "lock_busy", slot: readSlot(uid) };
+  }
+  return locked;
+}
+
+/** 미완주 경로면 만료(TTL)를 다시 건다. 쓰기가 실패하면 실패 결과를, 아니면 null 을 돌려준다. */
+function restoreExpiryUnlessCompleted(
+  routeId: string,
+  route: SavedRoute | undefined,
+  slot: RideResumeSlot,
+): LocalSlotResult | null {
+  if (route && route.completed !== 1) {
+    const expiresAtIso = new Date(Date.now() + SAVED_ROUTE_EXPIRY_MS).toISOString();
+    try {
+      updateSavedRouteExpiresAtInLocal(routeId, expiresAtIso);
+    } catch {
+      return { ok: false, reason: "ttl_write_failed", slot };
+    }
+  }
+  return null;
+}
+
+/** CAS 쓰기 결과를 LocalSlotResult 로 옮긴다. */
+function casWriteSlotResult(uid: string, slot: RideResumeSlot, next: RideResumeSlot): LocalSlotResult {
+  try {
+    if (!casWriteSlot(uid, slot, next)) {
+      return { ok: false, reason: "cas_conflict", slot: readSlot(uid) };
+    }
+  } catch {
+    return { ok: false, reason: "slot_write_failed", slot };
+  }
+  return { ok: true, slot: next };
+}
+
 export function readLocalRideResumeSlot(uid: string): RideResumeSlot {
   return readSlot(uid);
 }
@@ -138,7 +176,7 @@ export async function acquireLocalRideResumeSlot(
   routeId: string,
   routes: readonly SavedRoute[],
 ): Promise<LocalSlotResult> {
-  const locked = await withLocalSlotLock(uid, () => {
+  return runLockedSlotOp(uid, () => {
     const slot = readSlot(uid);
     if (slot.activeRouteId !== null && slot.activeRouteId !== routeId) {
       return { ok: false as const, reason: "slot_occupied", slot };
@@ -158,10 +196,6 @@ export async function acquireLocalRideResumeSlot(
     }
     return protectTtlThenWriteSlot(uid, slot, next, routeId, route.expiresAtIso);
   });
-  if (locked == null) {
-    return { ok: false, reason: "lock_busy", slot: readSlot(uid) };
-  }
-  return locked;
 }
 
 /**
@@ -173,7 +207,7 @@ export async function bootstrapLocalRideResumeSlot(
   routeId: string,
   routes: readonly SavedRoute[],
 ): Promise<LocalSlotResult> {
-  const locked = await withLocalSlotLock(uid, () => {
+  return runLockedSlotOp(uid, () => {
     const slot = readSlot(uid);
     if (slot.initialized) return { ok: true as const, slot };
 
@@ -189,10 +223,6 @@ export async function bootstrapLocalRideResumeSlot(
     }
     return protectTtlThenWriteSlot(uid, slot, next, routeId, route.expiresAtIso);
   });
-  if (locked == null) {
-    return { ok: false, reason: "lock_busy", slot: readSlot(uid) };
-  }
-  return locked;
 }
 
 /** markInitializedEmpty — 재개 후보가 없을 때 초기화 완료 표시 */
@@ -216,7 +246,7 @@ export async function abandonLocalRideResumeSlot(
   routes: readonly SavedRoute[],
   expectedRouteId?: string,
 ): Promise<LocalSlotResult> {
-  const locked = await withLocalSlotLock(uid, () => {
+  return runLockedSlotOp(uid, () => {
     const slot = readSlot(uid);
     if (slot.activeRouteId === null) return { ok: true as const, slot };
     if (expectedRouteId != null && slot.activeRouteId !== expectedRouteId) {
@@ -225,14 +255,8 @@ export async function abandonLocalRideResumeSlot(
 
     const abandonedId = slot.activeRouteId;
     const route = routes.find((r) => r.id === abandonedId);
-    if (route && route.completed !== 1) {
-      const expiresAtIso = new Date(Date.now() + SAVED_ROUTE_EXPIRY_MS).toISOString();
-      try {
-        updateSavedRouteExpiresAtInLocal(abandonedId, expiresAtIso);
-      } catch {
-        return { ok: false as const, reason: "ttl_write_failed", slot };
-      }
-    }
+    const ttlFailure = restoreExpiryUnlessCompleted(abandonedId, route, slot);
+    if (ttlFailure) return ttlFailure;
 
     const now = new Date().toISOString();
     const next = applySlotTransition(slot, {
@@ -240,19 +264,8 @@ export async function abandonLocalRideResumeSlot(
       at: now,
       expectedRouteId,
     });
-    try {
-      if (!casWriteSlot(uid, slot, next)) {
-        return { ok: false as const, reason: "cas_conflict", slot: readSlot(uid) };
-      }
-    } catch {
-      return { ok: false as const, reason: "slot_write_failed", slot };
-    }
-    return { ok: true as const, slot: next };
+    return casWriteSlotResult(uid, slot, next);
   });
-  if (locked == null) {
-    return { ok: false, reason: "lock_busy", slot: readSlot(uid) };
-  }
-  return locked;
 }
 
 /**
@@ -266,7 +279,7 @@ export async function clearLocalRideResumeSlotIfActive(
   routes?: readonly SavedRoute[],
   options?: LocalClearOptions,
 ): Promise<LocalSlotResult> {
-  const locked = await withLocalSlotLock(uid, () => {
+  return runLockedSlotOp(uid, () => {
     const slot = readSlot(uid);
     if (slot.activeRouteId !== routeId) return { ok: true as const, slot };
 
@@ -275,27 +288,10 @@ export async function clearLocalRideResumeSlotIfActive(
       return { ok: false as const, reason: "route_still_resumable", slot };
     }
 
-    if (route && route.completed !== 1) {
-      const expiresAtIso = new Date(Date.now() + SAVED_ROUTE_EXPIRY_MS).toISOString();
-      try {
-        updateSavedRouteExpiresAtInLocal(routeId, expiresAtIso);
-      } catch {
-        return { ok: false as const, reason: "ttl_write_failed", slot };
-      }
-    }
+    const ttlFailure = restoreExpiryUnlessCompleted(routeId, route, slot);
+    if (ttlFailure) return ttlFailure;
 
     const next = applySlotTransition(slot, { type: "clearIfActive", routeId });
-    try {
-      if (!casWriteSlot(uid, slot, next)) {
-        return { ok: false as const, reason: "cas_conflict", slot: readSlot(uid) };
-      }
-    } catch {
-      return { ok: false as const, reason: "slot_write_failed", slot };
-    }
-    return { ok: true as const, slot: next };
+    return casWriteSlotResult(uid, slot, next);
   });
-  if (locked == null) {
-    return { ok: false, reason: "lock_busy", slot: readSlot(uid) };
-  }
-  return locked;
 }

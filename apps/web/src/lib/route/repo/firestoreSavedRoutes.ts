@@ -24,6 +24,7 @@ import type { User } from "firebase/auth";
 import type { RouteProfile } from "../../../services/mapboxDirections";
 import { assertTierQuotaClient } from "../../account/tierQuota";
 import { MAX_ROUTE_WAYPOINTS } from "../../geo/routeWaypoints";
+import { decodeLineStringCoordsJson } from "../../geo/lineStringCoordsJson";
 import { computeRouteFingerprint } from "../routeFingerprint";
 
 export const SAVED_ROUTES_COLLECTION = "savedRoutes";
@@ -226,23 +227,7 @@ function validateWaypointsForSave(waypoints: LngLat[] | undefined): LngLat[] {
 function decodeGeometryFromFirestore(data: Record<string, unknown>): LineStringGeometry | null {
   const json = data.geometryCoordsJson;
   if (typeof json === "string" && json.length > 0) {
-    try {
-      const coords = JSON.parse(json) as unknown;
-      if (!Array.isArray(coords) || coords.length < 2) return null;
-      const ok = coords.every(
-        (c) =>
-          Array.isArray(c) &&
-          c.length === 2 &&
-          typeof c[0] === "number" &&
-          typeof c[1] === "number" &&
-          Number.isFinite(c[0]) &&
-          Number.isFinite(c[1]),
-      );
-      if (!ok) return null;
-      return { type: "LineString", coordinates: coords as [number, number][] };
-    } catch {
-      return null;
-    }
+    return decodeLineStringCoordsJson(json);
   }
   /** 구버전(실패한 쓰기는 없었을 수 있음): 직렬화 없이 geometry 필드만 있는 경우 */
   const legacy = data.geometry as { type?: string; coordinates?: unknown } | undefined;

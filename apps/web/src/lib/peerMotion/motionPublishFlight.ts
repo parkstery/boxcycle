@@ -1,7 +1,7 @@
 /**
  * S3A / S4-M1R — RTDB motion 단일 슬롯(single-flight) + latest-wins + epoch 수명주기.
  * 배열 큐를 쓰지 않는다. 진행 중 쓰기가 있으면 대기 슬롯 1칸만 최신 스냅샷으로 덮는다.
- * routePublishFlight 와 같은 계약(epoch·배수·소유권·지연삭제·오류전달). route 파일은 수정하지 않는다.
+ * routePublishFlight 와 같은 계약(epoch·배수·소유권·지연삭제·오류전달) — 공통부는 publishFlightCore.
  */
 import type { User } from "firebase/auth";
 import type { LiveLocationSnapshot } from "./types";
@@ -12,6 +12,7 @@ import {
 import { MOTION_FLIGHT_DRAIN_TIMEOUT_MS, MOTION_MAX_IN_FLIGHT } from "./peerSyncPolicy";
 import { installDevMotionProbe } from "../debug/installMotionExistsDebug";
 import { nextPeerSyncChainSeq, peerSyncChainLog } from "./peerSyncChainLog";
+import { createPublishFlightCore, type DeferredCleanup } from "./publishFlightCore";
 
 export type MotionFlightJob = {
   user: User;
@@ -51,20 +52,18 @@ declare global {
 let inFlight = 0;
 let slot: MotionFlightJob | null = null;
 let slotDiscardCount = 0;
-let epochDiscardCount = 0;
 let motionErrorCount = 0;
-let currentEpoch = 0;
-const cancelledEpochs = new Set<number>();
-const settleWaiters = new Set<() => void>();
 
-const sessionKeyByEpoch = new Map<number, string>();
-
-type DeferredMotionCleanup = { epoch: number; sessionKey: string; run: () => Promise<void> };
-const deferredCleanups: DeferredMotionCleanup[] = [];
-let deferredCleanupRunCount = 0;
-let deferredCleanupSkipCount = 0;
+type DeferredMotionCleanup = DeferredCleanup;
 let lastLateWriteDoneAt = 0;
 let lastDeleteDoneAt = 0;
+
+const core = createPublishFlightCore({
+  syncDebug: () => syncMotionFlightDebug(),
+  onDeferredCleanupDone: () => {
+    lastDeleteDoneAt = Date.now();
+  },
+});
 
 export { MOTION_FLIGHT_DRAIN_TIMEOUT_MS };
 
@@ -73,71 +72,30 @@ export function peekMotionSlotDiscardCount(): number {
 }
 
 export function peekMotionPublishEpoch(): number {
-  return currentEpoch;
+  return core.peekEpoch();
 }
 
 export function nextMotionPublishEpoch(sessionKey = ""): number {
-  currentEpoch += 1;
-  sessionKeyByEpoch.set(currentEpoch, sessionKey);
+  const epoch = core.nextEpoch(sessionKey);
   if (import.meta.env.DEV && typeof window !== "undefined") {
     const prev = window.__rtwMotionEpochStarts ?? [];
-    prev.push({ epoch: currentEpoch, sessionKey, at: Date.now() });
+    prev.push({ epoch, sessionKey, at: Date.now() });
     window.__rtwMotionEpochStarts = prev;
   }
   syncMotionFlightDebug();
-  return currentEpoch;
+  return epoch;
 }
 
 export function isMotionSessionLive(sessionKey: string): boolean {
-  if (!sessionKey) return false;
-  if (cancelledEpochs.has(currentEpoch)) return false;
-  return sessionKeyByEpoch.get(currentEpoch) === sessionKey;
+  return core.isSessionLive(sessionKey);
 }
 
 export function requestMotionNodeCleanup(req: DeferredMotionCleanup): void {
-  if (inFlight === 0) {
-    void runDeferredCleanup(req);
-    return;
-  }
-  deferredCleanups.push(req);
-  syncMotionFlightDebug();
-}
-
-async function runDeferredCleanup(req: DeferredMotionCleanup): Promise<void> {
-  if (isMotionSessionLive(req.sessionKey)) {
-    deferredCleanupSkipCount += 1;
-    emitCleanupLog("skip-live-session", req);
-    syncMotionFlightDebug();
-    return;
-  }
-  await req.run().catch(() => {});
-  deferredCleanupRunCount += 1;
-  lastDeleteDoneAt = Date.now();
-  emitCleanupLog("run", req);
-  syncMotionFlightDebug();
-}
-
-function emitCleanupLog(reason: string, req: DeferredMotionCleanup): void {
-  if (!import.meta.env.DEV) return;
-  peerSyncChainLog(9, null, {
-    ok: 1,
-    deferredCleanup: 1,
-    reason,
-    epoch: req.epoch,
-    sessionKey: req.sessionKey,
-    deferredRunTotal: deferredCleanupRunCount,
-    deferredSkipTotal: deferredCleanupSkipCount,
-  });
-}
-
-function drainDeferredCleanups(): void {
-  if (deferredCleanups.length === 0) return;
-  const pending = deferredCleanups.splice(0, deferredCleanups.length);
-  for (const req of pending) void runDeferredCleanup(req);
+  core.requestCleanup(req, inFlight === 0);
 }
 
 export function cancelMotionPublish(epoch: number): { hadInFlight: boolean; droppedSlot: boolean } {
-  cancelledEpochs.add(epoch);
+  core.cancelEpoch(epoch);
   let droppedSlot = false;
   if (slot && slot.epoch === epoch) {
     slot = null;
@@ -149,45 +107,15 @@ export function cancelMotionPublish(epoch: number): { hadInFlight: boolean; drop
 }
 
 export function awaitMotionFlightSettled(timeoutMs = MOTION_FLIGHT_DRAIN_TIMEOUT_MS): Promise<boolean> {
-  if (inFlight === 0) return Promise.resolve(true);
-  return new Promise((resolve) => {
-    let done = false;
-    const finish = (ok: boolean) => {
-      if (done) return;
-      done = true;
-      settleWaiters.delete(onSettle);
-      clearTimeout(timer);
-      resolve(ok);
-    };
-    const onSettle = () => finish(true);
-    const timer = setTimeout(() => finish(false), timeoutMs);
-    settleWaiters.add(onSettle);
-  });
-}
-
-function notifySettled(): void {
-  for (const w of [...settleWaiters]) w();
-  settleWaiters.clear();
+  return core.awaitSettled(inFlight === 0, timeoutMs);
 }
 
 function isEpochLive(epoch: number): boolean {
-  return epoch === currentEpoch && !cancelledEpochs.has(epoch);
+  return core.isEpochLive(epoch);
 }
 
 function discardEpochJob(reason: string, job: MotionFlightJob): void {
-  epochDiscardCount += 1;
-  if (import.meta.env.DEV) {
-    peerSyncChainLog(9, null, {
-      ok: 0,
-      epochDiscard: 1,
-      epochDiscardTotal: epochDiscardCount,
-      epoch: job.epoch,
-      reason,
-      uid: job.user.uid.slice(0, 6),
-      trailId: job.trailId,
-    });
-  }
-  syncMotionFlightDebug();
+  core.discardEpochJob(reason, job);
 }
 
 function syncMotionFlightDebug(): void {
@@ -198,12 +126,12 @@ function syncMotionFlightDebug(): void {
     inFlightMax: MOTION_MAX_IN_FLIGHT,
     hasSlot: slot != null,
     slotDiscardTotal: slotDiscardCount,
-    epochDiscardTotal: epochDiscardCount,
-    currentEpoch,
+    epochDiscardTotal: core.peekEpochDiscardCount(),
+    currentEpoch: core.peekEpoch(),
     motionErrorCount,
-    deferredPending: deferredCleanups.length,
-    deferredRunTotal: deferredCleanupRunCount,
-    deferredSkipTotal: deferredCleanupSkipCount,
+    deferredPending: core.deferredStats().pending,
+    deferredRunTotal: core.deferredStats().run,
+    deferredSkipTotal: core.deferredStats().skip,
     ...(lastLateWriteDoneAt > 0 && lastDeleteDoneAt > 0
       ? { w2: { lateWriteDoneAt: lastLateWriteDoneAt, deleteDoneAt: lastDeleteDoneAt } }
       : {}),
@@ -331,7 +259,7 @@ async function runMotionJob(job: MotionFlightJob): Promise<void> {
     // 쓰기가 지운 노드를 되살린다.** 주행을 끝냈는데 상대 화면에 내가 남는다.
     // 실측 반례: deleteDoneAt 이 lateWriteDoneAt 보다 86ms 빨랐다.
     if (inFlight === 0 && !isEpochLive(job.epoch)) {
-      drainDeferredCleanups();
+      core.drainDeferredCleanups();
     }
     if (next && isEpochLive(next.epoch)) {
       inFlight += 1;
@@ -344,8 +272,8 @@ async function runMotionJob(job: MotionFlightJob): Promise<void> {
       syncMotionFlightDebug();
       // 마지막 한 개가 끝났을 때만 「배수 완료」다 — 겹쳐 보내면 남은 것이 있을 수 있다.
       if (inFlight === 0) {
-        notifySettled();
-        drainDeferredCleanups();
+        core.notifySettled();
+        core.drainDeferredCleanups();
       }
     }
   }

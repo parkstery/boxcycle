@@ -17,8 +17,8 @@ import {
   scheduleOpenTrailListingRefresh,
 } from "./firestoreOpenTrailListings";
 import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "../trailAccessPolicy";
-import { resolvePublicationIdFromDoc } from "../../firebase/converters";
 import { TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS } from "../trailLivePolicy";
+import { parseTrailInstance } from "./trailDocParse";
 import {
   noteTouchActivityCall,
   noteTrailDocUpdateDoc,
@@ -41,44 +41,6 @@ type TrailInstanceDoc = {
   createdAt?: FieldValue;
   lastActivityAt?: FieldValue;
 };
-
-function resolveTrailPublicationId(data: Record<string, unknown>): string | null {
-  return resolvePublicationIdFromDoc(data);
-}
-
-function timestampToMs(raw: unknown): number | null {
-  if (raw == null) return null;
-  if (typeof raw === "object" && raw !== null && typeof (raw as { toMillis?: () => number }).toMillis === "function") {
-    const ms = (raw as { toMillis: () => number }).toMillis();
-    return Number.isFinite(ms) ? ms : null;
-  }
-  return null;
-}
-
-function parseTrailInstance(id: string, data: Record<string, unknown>): TrailInstance {
-  return {
-    id,
-    hostUid: typeof data.hostUid === "string" ? data.hostUid : "",
-    displayNumber:
-      typeof data.displayNumber === "number" && Number.isFinite(data.displayNumber)
-        ? Math.max(1, Math.min(999, Math.floor(data.displayNumber)))
-        : 1,
-    publicationId: resolveTrailPublicationId(data),
-    regionLabel:
-      typeof data.regionLabel === "string" && data.regionLabel.trim() ? data.regionLabel.trim() : null,
-    distanceKm:
-      typeof data.distanceKm === "number" && Number.isFinite(data.distanceKm) ? data.distanceKm : null,
-    visibility: data.visibility === "private" ? "private" : "open",
-    status:
-      data.status === "archived"
-        ? "archived"
-        : data.status === "closed"
-          ? "closed"
-          : "open",
-    createdAtMs: timestampToMs(data.createdAt),
-    lastActivityAtMs: timestampToMs(data.lastActivityAt),
-  };
-}
 
 export function buildTrailRegionLabel(input: {
   startPlaceLabel: string | null;

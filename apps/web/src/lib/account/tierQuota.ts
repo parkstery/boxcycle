@@ -1,5 +1,6 @@
 import type { User } from "firebase/auth";
 import { postAssertTierQuota } from "./repo/tierQuotaApi";
+import { parseErrorMessage } from "./functionsErrorMessage";
 
 export type TierQuotaAction = "save_route" | "public_route_request" | "create_event";
 
@@ -51,14 +52,6 @@ export class TierQuotaExceededError extends Error {
 /** 미완료(진행 중) 경로 슬롯이 가득 차 저장이 막힌 경우인지. UI 는 이때 「내 경로」 대기 탭으로 유도한다. */
 export function isIncompleteQuotaError(e: unknown): e is TierQuotaExceededError {
   return e instanceof TierQuotaExceededError && e.reason === "save_route_incomplete_over";
-}
-
-function parseErrorMessage(json: unknown, fallback: string): string {
-  if (typeof json === "object" && json !== null && "error" in json) {
-    const err = (json as { error?: { message?: string } }).error;
-    if (typeof err?.message === "string" && err.message.trim()) return err.message.trim();
-  }
-  return fallback;
 }
 
 /**

@@ -17,6 +17,7 @@ import type { CaloriesEstimateMeta } from "../caloriesEstimate";
 import { parseCaloriesMeta } from "../caloriesEstimate";
 import type { StoredRideSession } from "../rideSessionsStorage";
 import { isDiscardableRideRecord } from "../rideRecordPolicy";
+import { sanitizeLngLat } from "../sanitizeLngLat";
 
 const RIDES_COLLECTION = "rides";
 
@@ -77,16 +78,6 @@ type RideDoc = {
   conquest?: ConquestRidePayload | null;
 };
 
-/** 좌표 유효성 — Firestore 에 `[NaN, NaN]`·Null Island 추측을 남기지 않는다 */
-function sanitizeAnchorLngLat(v: unknown): [number, number] | null {
-  if (!Array.isArray(v) || v.length !== 2) return null;
-  const lng = Number(v[0]);
-  const lat = Number(v[1]);
-  if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null;
-  if (lng < -180 || lng > 180 || lat < -90 || lat > 90) return null;
-  return [lng, lat];
-}
-
 function sanitizeAnchorMeters(v: unknown): number {
   const n = Number(v);
   return Number.isFinite(n) && n > 0 ? n : 0;
@@ -119,8 +110,8 @@ function buildRideSessionAnchorWriteFields(session: StoredRideSession): {
   const startMeters = sanitizeAnchorMeters(session.sessionStartRouteMeters);
   const endMeters = Math.max(startMeters, sanitizeAnchorMeters(session.sessionEndRouteMeters));
   return {
-    sessionStartLngLat: sanitizeAnchorLngLat(session.sessionStartLngLat),
-    sessionEndLngLat: sanitizeAnchorLngLat(session.sessionEndLngLat),
+    sessionStartLngLat: sanitizeLngLat(session.sessionStartLngLat),
+    sessionEndLngLat: sanitizeLngLat(session.sessionEndLngLat),
     sessionStartRouteMeters: startMeters,
     sessionEndRouteMeters: endMeters,
     sessionStartProgressRatio: sanitizeAnchorRatio(session.sessionStartProgressRatio),
@@ -280,8 +271,8 @@ export async function loadRideSessionsForStatsFromFirestore(
             ? data.endPlaceLabel.trim()
             : undefined,
         // 실제 세션 anchor — 옛 문서에는 없다. 없으면 `null`/0 이며 추측하지 않는다(§4.2).
-        sessionStartLngLat: sanitizeAnchorLngLat(data.sessionStartLngLat),
-        sessionEndLngLat: sanitizeAnchorLngLat(data.sessionEndLngLat),
+        sessionStartLngLat: sanitizeLngLat(data.sessionStartLngLat),
+        sessionEndLngLat: sanitizeLngLat(data.sessionEndLngLat),
         sessionStartRouteMeters: sanitizeAnchorMeters(data.sessionStartRouteMeters),
         sessionEndRouteMeters: sanitizeAnchorMeters(data.sessionEndRouteMeters),
         sessionStartProgressRatio: sanitizeAnchorRatio(data.sessionStartProgressRatio),

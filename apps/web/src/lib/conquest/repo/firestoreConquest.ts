@@ -9,6 +9,7 @@ import { getFirebaseFirestore } from "../../firebase/app";
 import type { LineStringGeometry } from "../../geo/geo";
 import { trackVisibilityListener } from "../../debug/visibilityReadMeters";
 import { normalizeAcquisitionDay } from "../recentNewRoadDisplay";
+import { parseConquestPathItem } from "../conquestPathGeometry";
 
 /**
  * Conquest(정복) v2 — 도로 셀·궤적. 읽기 전용 클라이언트(쓰기는 CF `conquestOnRideCreated`).
@@ -37,28 +38,8 @@ export type RecentNewRoad = {
 function parseRecentGeometry(raw: unknown): LineStringGeometry[] {
   if (!Array.isArray(raw)) return [];
   return raw.flatMap((item) => {
-    if (!item || typeof item !== "object") return [];
-    const path = (item as { path?: unknown }).path;
-    if (!Array.isArray(path) || path.length < 4 || path.length % 2 !== 0) return [];
-    const coordinates: [number, number][] = [];
-    for (let i = 0; i < path.length; i += 2) {
-      const lng = path[i];
-      const lat = path[i + 1];
-      if (
-        typeof lng !== "number" ||
-        typeof lat !== "number" ||
-        !Number.isFinite(lng) ||
-        !Number.isFinite(lat) ||
-        lng < -180 ||
-        lng > 180 ||
-        lat < -90 ||
-        lat > 90
-      ) {
-        return [];
-      }
-      coordinates.push([lng, lat]);
-    }
-    return coordinates.length >= 2 ? [{ type: "LineString", coordinates }] : [];
+    const line = parseConquestPathItem(item);
+    return line ? [line] : [];
   });
 }
 

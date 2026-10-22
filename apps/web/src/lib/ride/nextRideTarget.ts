@@ -2,6 +2,7 @@ import type { LngLat } from "../geo/geo";
 import { getPointOnRouteByDistance, lineStringLengthMeters } from "../geo/geo";
 import type { SavedRoute } from "../route/repo/firestoreSavedRoutes";
 import type { StoredRideSession } from "./rideSessionsStorage";
+import { sanitizeLngLat } from "./sanitizeLngLat";
 import { isDiscardableRideRecord, ROUTE_COMPLETION_RATIO_THRESHOLD, resumeOffsetMetersFrom } from "./rideRecordPolicy";
 
 /**
@@ -36,16 +37,6 @@ function clamp01(v: unknown): number {
   const n = Number(v);
   if (!Number.isFinite(n)) return 0;
   return Math.max(0, Math.min(1, n));
-}
-
-/** 좌표 유효성 — legacy Ride 의 빈 값을 `[0,0]`(Null Island) 로 추측하지 않는다 */
-function asLngLat(v: unknown): LngLat | null {
-  if (!Array.isArray(v) || v.length !== 2) return null;
-  const lng = Number(v[0]);
-  const lat = Number(v[1]);
-  if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null;
-  if (lng < -180 || lng > 180 || lat < -90 || lat > 90) return null;
-  return [lng, lat];
 }
 
 function endedAtMs(ride: StoredRideSession): number {
@@ -191,7 +182,7 @@ export function resolveNextRideView(input: {
         }
       }
     }
-    const anchorLngLat = asLngLat(ride.sessionEndLngLat);
+    const anchorLngLat = sanitizeLngLat(ride.sessionEndLngLat);
     if (anchorLngLat) {
       return {
         target: { kind: "extend_from_ride", rideId: ride.id, anchorLngLat },
@@ -223,7 +214,7 @@ export function resolveRecentRideActions(
   savedRoutes: readonly SavedRoute[],
   options?: { activeRouteId?: string | null },
 ): RecentRideActions {
-  const anchor = asLngLat(ride.sessionEndLngLat);
+  const anchor = sanitizeLngLat(ride.sessionEndLngLat);
   const routeId = ride.userRouteId?.trim();
   const route = routeId ? (savedRoutes.find((r) => r.id === routeId) ?? null) : null;
   const progressRatio = route ? clamp01(route.lastProgressRatio) : 0;

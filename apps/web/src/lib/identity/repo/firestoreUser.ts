@@ -196,11 +196,8 @@ async function reserveNicknameInTx(
   return true;
 }
 
-/**
- * `nicknames/{소문자}` 예약(트랜잭션) 후 서버에서 예약을 재확인(getDocFromServer)하고 `users/{uid}` 를 setDoc 한다.
- * (users 규칙의 get(nicknames/…)는 커밋된 문서를 봐야 하므로 예약·프로필을 단계로 나눈다.)
- */
-export async function claimNicknameTransaction(user: User, nickname: string): Promise<void> {
+/** 닉네임 검증(형식·키) 후 쓰기에 필요한 값과 참조를 만든다. 형식이 틀리면 Firestore 접근 전에 던진다. */
+function prepareNicknameWrite(user: User, nickname: string) {
   const trimmed = nickname.trim();
   if (!isValidNickname(trimmed)) {
     throw new Error("닉네임 형식이 올바르지 않습니다.");
@@ -213,6 +210,15 @@ export async function claimNicknameTransaction(user: User, nickname: string): Pr
   const db = getFirebaseFirestore();
   const nickRef = doc(db, "nicknames", key);
   const userRef = doc(db, "users", user.uid);
+  return { trimmed, key, db, nickRef, userRef };
+}
+
+/**
+ * `nicknames/{소문자}` 예약(트랜잭션) 후 서버에서 예약을 재확인(getDocFromServer)하고 `users/{uid}` 를 setDoc 한다.
+ * (users 규칙의 get(nicknames/…)는 커밋된 문서를 봐야 하므로 예약·프로필을 단계로 나눈다.)
+ */
+export async function claimNicknameTransaction(user: User, nickname: string): Promise<void> {
+  const { trimmed, key, db, nickRef, userRef } = prepareNicknameWrite(user, nickname);
 
   let claimedNewInTxn: boolean;
   try {
@@ -270,18 +276,7 @@ export async function claimNicknameTransaction(user: User, nickname: string): Pr
  */
 export async function changeNicknameTransaction(user: User, nickname: string): Promise<void> {
   if (user.isAnonymous) throw new Error("게스트는 닉네임을 바꿀 수 없습니다.");
-  const trimmed = nickname.trim();
-  if (!isValidNickname(trimmed)) {
-    throw new Error("닉네임 형식이 올바르지 않습니다.");
-  }
-  const key = normalizeNicknameKey(trimmed);
-  if (!isValidNicknameKeyNormalized(key)) {
-    throw new Error("닉네임 형식이 올바르지 않습니다.");
-  }
-
-  const db = getFirebaseFirestore();
-  const nickRef = doc(db, "nicknames", key);
-  const userRef = doc(db, "users", user.uid);
+  const { trimmed, key, db, nickRef, userRef } = prepareNicknameWrite(user, nickname);
 
   const userSnap = await getDocFromServer(userRef).catch((e: unknown) => {
     throw formatClaimFirestoreError("[프로필 읽기]", e);

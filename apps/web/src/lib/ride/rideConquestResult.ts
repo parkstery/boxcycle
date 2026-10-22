@@ -5,6 +5,7 @@
 
 import { formatRideDistanceKmNumber } from "./rideDistanceFormat";
 import type { LineStringGeometry } from "../geo/geo";
+import { parseConquestPathItem } from "../conquest/conquestPathGeometry";
 
 /** Conquest 결과 상태 — UI는 이 status로 loading·error·확정 0을 구분한다 */
 export type ConquestResultStatus =
@@ -45,32 +46,8 @@ function parseNewGeometry(raw: unknown): LineStringGeometry[] | undefined {
   if (!Array.isArray(raw)) return undefined;
   const out: LineStringGeometry[] = [];
   for (const item of raw) {
-    if (!item || typeof item !== "object") continue;
-    const path = (item as Record<string, unknown>).path;
-    if (!Array.isArray(path) || path.length < 4 || path.length % 2 !== 0) continue;
-    const coordinates: [number, number][] = [];
-    let valid = true;
-    for (let i = 0; i < path.length; i += 2) {
-      const lng = path[i];
-      const lat = path[i + 1];
-      if (
-        typeof lng !== "number" ||
-        typeof lat !== "number" ||
-        !Number.isFinite(lng) ||
-        !Number.isFinite(lat) ||
-        lng < -180 ||
-        lng > 180 ||
-        lat < -90 ||
-        lat > 90
-      ) {
-        valid = false;
-        break;
-      }
-      coordinates.push([lng, lat]);
-    }
-    if (valid && coordinates.length >= 2) {
-      out.push({ type: "LineString", coordinates });
-    }
+    const line = parseConquestPathItem(item);
+    if (line) out.push(line);
   }
   return out;
 }

@@ -2,13 +2,11 @@ import type { User } from "firebase/auth";
 import type { Functions } from "firebase/functions";
 import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
 import { assertDirectionsServerOnly } from "../lib/route/directionsDirectGuard";
-import {
-  getRouteTokenInsufficient,
-  reportRouteTokenSpend,
-} from "../lib/account/routeTokenSpendBridge";
+import { getRouteTokenInsufficient } from "../lib/account/routeTokenSpendBridge";
 import { ROUTE_TOKEN_INSUFFICIENT_HINT } from "../lib/account/routeTokenUiCopy";
 import { formatDistanceAutoRouteClientError } from "../lib/route/distanceAutoRouteErrors";
 import { functionsHttpUrl } from "../lib/firebase/functionsEmulatorUrl";
+import { createRouteTokenSpendReporter, wireStatusToFunctionsCode } from "./routeFunctionsWire";
 import type { RouteProfile } from "./mapboxDirections";
 
 export type RouteOutcome = "exact" | "detoured" | "offered" | "shortfall";
@@ -42,28 +40,7 @@ export type DistanceAutoRouteResponse =
       routeTokenBalance: number;
     };
 
-function wireStatusToFunctionsCode(status: string | undefined): string | undefined {
-  if (!status) return undefined;
-  const map: Record<string, string> = {
-    UNAUTHENTICATED: "functions/unauthenticated",
-    NOT_FOUND: "functions/not-found",
-    INVALID_ARGUMENT: "functions/invalid-argument",
-    INTERNAL: "functions/internal",
-    FAILED_PRECONDITION: "functions/failed-precondition",
-    UNAVAILABLE: "functions/unavailable",
-    PERMISSION_DENIED: "functions/permission-denied",
-    RESOURCE_EXHAUSTED: "functions/resource-exhausted",
-  };
-  return map[status] ?? "functions/internal";
-}
-
-let lastSpendFeedbackRequestId: string | null = null;
-
-function maybeReportRouteTokenSpend(uid: string, balance: number, requestId: string): void {
-  if (lastSpendFeedbackRequestId === requestId) return;
-  lastSpendFeedbackRequestId = requestId;
-  reportRouteTokenSpend(uid, balance, requestId);
-}
+const maybeReportRouteTokenSpend = createRouteTokenSpendReporter();
 
 export async function fetchDistanceAutoRoute(
   functions: Functions,

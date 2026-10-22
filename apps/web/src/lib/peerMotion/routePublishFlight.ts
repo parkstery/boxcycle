@@ -1,6 +1,6 @@
 /**
  * S4-1 / S4-1R — Firestore route single-flight + latest-wins + epoch 수명주기.
- * motionPublishFlight 와 같은 관용구. motion 파일은 수정하지 않는다.
+ * motionPublishFlight 와 같은 관용구 — 공통부는 publishFlightCore.
  */
 import type { User } from "firebase/auth";
 import type { LiveLocationSnapshot } from "./types";
@@ -8,6 +8,7 @@ import { DEFAULT_TRAIL_ID } from "../trail/trailId";
 import { installDevLiveRideProbe } from "../debug/installLiveRideExistsDebug";
 import type { TrailLiveRideSink } from "./trailLiveRidePort";
 import { ROUTE_FLIGHT_DRAIN_TIMEOUT_MS } from "./peerSyncPolicy";
+import { createPublishFlightCore, type DeferredCleanup } from "./publishFlightCore";
 import {
   beginRouteInFlight,
   endRouteInFlight,
@@ -55,41 +56,30 @@ declare global {
 let writing = false;
 let slot: RouteFlightJob | null = null;
 let slotDiscardCount = 0;
-let epochDiscardCount = 0;
 let routeErrorCount = 0;
-let currentEpoch = 0;
-const cancelledEpochs = new Set<number>();
-const settleWaiters = new Set<() => void>();
-
-/** S4-1R2 — epoch → 세션 키(uid|trailId). 같은 키의 새 세션이 살아 있으면 옛 정리를 하지 않는다. */
-const sessionKeyByEpoch = new Map<number, string>();
 
 /** S4-1R2 — 2 s 배수 시간 초과 뒤에도 「늦은 쓰기가 실제로 끝난 시점」에 실행할 정리 */
-type DeferredRouteCleanup = { epoch: number; sessionKey: string; run: () => Promise<void> };
-const deferredCleanups: DeferredRouteCleanup[] = [];
-let deferredCleanupRunCount = 0;
-let deferredCleanupSkipCount = 0;
+type DeferredRouteCleanup = DeferredCleanup;
+
+const core = createPublishFlightCore({ syncDebug: () => syncRouteFlightDebug() });
 
 export { ROUTE_FLIGHT_DRAIN_TIMEOUT_MS };
 
 /** 새 발행 세션 epoch. user/trail/publication 전환 시 호출. */
 export function nextRoutePublishEpoch(sessionKey = ""): number {
-  currentEpoch += 1;
-  sessionKeyByEpoch.set(currentEpoch, sessionKey);
+  const epoch = core.nextEpoch(sessionKey);
   if (import.meta.env.DEV && typeof window !== "undefined") {
     const prev = window.__rtwRouteEpochStarts ?? [];
-    prev.push({ epoch: currentEpoch, sessionKey, at: Date.now() });
+    prev.push({ epoch, sessionKey, at: Date.now() });
     window.__rtwRouteEpochStarts = prev;
   }
   syncRouteFlightDebug();
-  return currentEpoch;
+  return epoch;
 }
 
 /** 같은 세션 키(uid|trailId)의 세션이 지금 살아 있는가 — 살아 있으면 옛 정리는 건너뛴다. */
 export function isRouteSessionLive(sessionKey: string): boolean {
-  if (!sessionKey) return false;
-  if (cancelledEpochs.has(currentEpoch)) return false;
-  return sessionKeyByEpoch.get(currentEpoch) === sessionKey;
+  return core.isSessionLive(sessionKey);
 }
 
 /**
@@ -98,48 +88,11 @@ export function isRouteSessionLive(sessionKey: string): boolean {
  * 같은 세션 키의 새 세션이 살아 있으면 실행하지 않는다.
  */
 export function requestRouteRowCleanup(req: DeferredRouteCleanup): void {
-  if (!writing) {
-    void runDeferredCleanup(req);
-    return;
-  }
-  deferredCleanups.push(req);
-  syncRouteFlightDebug();
-}
-
-async function runDeferredCleanup(req: DeferredRouteCleanup): Promise<void> {
-  if (isRouteSessionLive(req.sessionKey)) {
-    deferredCleanupSkipCount += 1;
-    emitCleanupLog("skip-live-session", req);
-    syncRouteFlightDebug();
-    return;
-  }
-  await req.run().catch(() => {});
-  deferredCleanupRunCount += 1;
-  emitCleanupLog("run", req);
-  syncRouteFlightDebug();
-}
-
-function emitCleanupLog(reason: string, req: DeferredRouteCleanup): void {
-  if (!import.meta.env.DEV) return;
-  peerSyncChainLog(9, null, {
-    ok: 1,
-    deferredCleanup: 1,
-    reason,
-    epoch: req.epoch,
-    sessionKey: req.sessionKey,
-    deferredRunTotal: deferredCleanupRunCount,
-    deferredSkipTotal: deferredCleanupSkipCount,
-  });
-}
-
-function drainDeferredCleanups(): void {
-  if (deferredCleanups.length === 0) return;
-  const pending = deferredCleanups.splice(0, deferredCleanups.length);
-  for (const req of pending) void runDeferredCleanup(req);
+  core.requestCleanup(req, !writing);
 }
 
 export function cancelRoutePublish(epoch: number): { hadInFlight: boolean; droppedSlot: boolean } {
-  cancelledEpochs.add(epoch);
+  core.cancelEpoch(epoch);
   let droppedSlot = false;
   if (slot && slot.epoch === epoch) {
     slot = null;
@@ -151,45 +104,15 @@ export function cancelRoutePublish(epoch: number): { hadInFlight: boolean; dropp
 }
 
 export function awaitRouteFlightSettled(timeoutMs = ROUTE_FLIGHT_DRAIN_TIMEOUT_MS): Promise<boolean> {
-  if (!writing) return Promise.resolve(true);
-  return new Promise((resolve) => {
-    let done = false;
-    const finish = (ok: boolean) => {
-      if (done) return;
-      done = true;
-      settleWaiters.delete(onSettle);
-      clearTimeout(timer);
-      resolve(ok);
-    };
-    const onSettle = () => finish(true);
-    const timer = setTimeout(() => finish(false), timeoutMs);
-    settleWaiters.add(onSettle);
-  });
-}
-
-function notifySettled(): void {
-  for (const w of [...settleWaiters]) w();
-  settleWaiters.clear();
+  return core.awaitSettled(!writing, timeoutMs);
 }
 
 function isEpochLive(epoch: number): boolean {
-  return epoch === currentEpoch && !cancelledEpochs.has(epoch);
+  return core.isEpochLive(epoch);
 }
 
 function discardEpochJob(reason: string, job: RouteFlightJob): void {
-  epochDiscardCount += 1;
-  if (import.meta.env.DEV) {
-    peerSyncChainLog(9, null, {
-      ok: 0,
-      epochDiscard: 1,
-      epochDiscardTotal: epochDiscardCount,
-      epoch: job.epoch,
-      reason,
-      uid: job.user.uid.slice(0, 6),
-      trailId: job.trailId,
-    });
-  }
-  syncRouteFlightDebug();
+  core.discardEpochJob(reason, job);
 }
 
 function syncRouteFlightDebug(): void {
@@ -199,12 +122,12 @@ function syncRouteFlightDebug(): void {
     hasSlot: slot != null,
     inFlight: peekRouteInFlight(),
     slotDiscardTotal: slotDiscardCount,
-    epochDiscardTotal: epochDiscardCount,
-    currentEpoch,
+    epochDiscardTotal: core.peekEpochDiscardCount(),
+    currentEpoch: core.peekEpoch(),
     routeErrorCount,
-    deferredPending: deferredCleanups.length,
-    deferredRunTotal: deferredCleanupRunCount,
-    deferredSkipTotal: deferredCleanupSkipCount,
+    deferredPending: core.deferredStats().pending,
+    deferredRunTotal: core.deferredStats().run,
+    deferredSkipTotal: core.deferredStats().skip,
   };
 }
 
@@ -356,9 +279,9 @@ async function runRouteJob(job: RouteFlightJob): Promise<void> {
       }
       writing = false;
       syncRouteFlightDebug();
-      notifySettled();
+      core.notifySettled();
       // S4-1R2 — 늦은 쓰기가 「실제로」 끝난 지금이 안전 삭제 시점이다
-      drainDeferredCleanups();
+      core.drainDeferredCleanups();
     }
   }
 }

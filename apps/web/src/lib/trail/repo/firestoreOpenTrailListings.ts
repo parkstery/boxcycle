@@ -23,6 +23,7 @@ import { trailHasConfiguredRoute } from "../trailAccessPolicy";
 import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
 import type { TrailInstance } from "../trailTypes";
 import { resolvePublicationIdFromDoc } from "../../firebase/converters";
+import { parseTrailCoreFields, parseTrailInstance, timestampToMs } from "./trailDocParse";
 import {
   enterListingRefreshReadScope,
   leaveListingRefreshReadScope,
@@ -97,22 +98,7 @@ async function loadTrailForListing(trailId: string): Promise<TrailInstance | nul
   if (!snap.exists()) return null;
   const data = snap.data() as Record<string, unknown>;
   return {
-    id: snap.id,
-    hostUid: typeof data.hostUid === "string" ? data.hostUid : "",
-    displayNumber:
-      typeof data.displayNumber === "number" && Number.isFinite(data.displayNumber)
-        ? Math.max(1, Math.min(999, Math.floor(data.displayNumber)))
-        : 1,
-    publicationId: resolveListingPublicationId(data),
-    regionLabel:
-      typeof data.regionLabel === "string" && data.regionLabel.trim() ? data.regionLabel.trim() : null,
-    distanceKm:
-      typeof data.distanceKm === "number" && Number.isFinite(data.distanceKm) ? data.distanceKm : null,
-    visibility: data.visibility === "private" ? "private" : "open",
-    status:
-      data.status === "archived" ? "archived" : data.status === "closed" ? "closed" : "open",
-    createdAtMs: timestampToMs(data.createdAt),
-    lastActivityAtMs: timestampToMs(data.lastActivityAt),
+    ...parseTrailInstance(snap.id, data),
     liveRiderCount:
       typeof data.liveRiderCount === "number" && Number.isFinite(data.liveRiderCount)
         ? Math.max(0, Math.floor(data.liveRiderCount))
@@ -139,20 +125,7 @@ function listingToTrailInstance(
 ): TrailInstance {
   return {
     id: trailId,
-    hostUid: typeof data.hostUid === "string" ? data.hostUid : "",
-    displayNumber:
-      typeof data.displayNumber === "number" && Number.isFinite(data.displayNumber)
-        ? Math.max(1, Math.min(999, Math.floor(data.displayNumber)))
-        : 1,
-    publicationId: resolveListingPublicationId(data),
-    regionLabel:
-      typeof data.regionLabel === "string" && data.regionLabel.trim()
-        ? data.regionLabel.trim()
-        : null,
-    distanceKm:
-      typeof data.distanceKm === "number" && Number.isFinite(data.distanceKm)
-        ? data.distanceKm
-        : null,
+    ...parseTrailCoreFields(data),
     visibility: "open",
     status: "open",
     createdAtMs: timestampToMs(data.createdAt),
@@ -162,19 +135,6 @@ function listingToTrailInstance(
         ? Math.max(0, Math.floor(data.riderCount))
         : 0,
   };
-}
-
-function timestampToMs(raw: unknown): number | null {
-  if (raw == null) return null;
-  if (
-    typeof raw === "object" &&
-    raw !== null &&
-    typeof (raw as { toMillis?: () => number }).toMillis === "function"
-  ) {
-    const ms = (raw as { toMillis: () => number }).toMillis();
-    return Number.isFinite(ms) ? ms : null;
-  }
-  return null;
 }
 
 export async function fetchOpenTrailListingPublicationId(trailId: string): Promise<string | null> {
