@@ -207,8 +207,9 @@
 
 .map-view__pick {
   padding: 0.45rem 0.55rem 0.5rem;
-  min-width: 16rem;
-  max-width: 20rem;
+  width: min(280px, calc(100vw - 1.5rem));
+  min-width: 0;
+  max-width: 100%;
   box-sizing: border-box;
   color: #1F2937;
 }
@@ -879,6 +880,8 @@
   color: rgba(71, 85, 105, 0.9);
   font-size: 0.68rem;
   line-height: 1.35;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .map-view__pick-auto-route-status--idle {

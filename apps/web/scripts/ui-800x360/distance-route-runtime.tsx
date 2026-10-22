@@ -19,11 +19,13 @@ export function Runtime() {
   const [profile,setProfile]=useState<RouteProfile>('cycling');
   const [geometry,setGeometry]=useState<LineStringGeometry|null>(null);
   const [applied,setApplied]=useState(0);
+  const [starts,setStarts]=useState(0);
   const [open,setOpen]=useState<{lngLat:LngLat;requestId:number}|null>(null);
   const auto=useDistanceAutoRoute({user,functionsRegion:'asia-northeast3',rideLocked:false,routeTokenInsufficient:false,
     onClearRouteArtifacts:()=>{},onApplyRoute:r=>{setStart(r.start);setEnd(r.end);setProfile(r.profile);setGeometry(r.geometry);setApplied(n=>n+1);}});
   return <>
     <MapView accessToken="pk.fixture" routeElevationProfile={{values:[],sampledCoords:[],loading:false,error:null,quotaExceeded:false,routeSig:''}}
+      canStartRide={Boolean(geometry)} onStartRide={()=>setStarts(n=>n+1)}
       routeGeometry={geometry} startLngLat={start} endLngLat={end} routeWaypoints={[]} liveLngLat={null}
       mapStyle="mapbox://styles/mapbox/outdoors-v12" mapZoom={15} initialCenter={[127,37]} initialZoom={15}
       followMode="free" enable3D={false} onMapZoom={()=>{}} routeProfile={profile} onRouteProfile={setProfile}
@@ -42,7 +44,8 @@ export function Runtime() {
       auto.armDirectionPick({start:point,profile:'cycling',targetKm:3});
       setOpen({lngLat:point,requestId:Date.now()});
     }}>여기에서 계속</button>
-    <output id="distance-runtime-state" style={{position:'absolute',bottom:0,left:0,pointerEvents:'none'}}>{JSON.stringify({start,end,profile,applied,step:auto.step,mode:auto.mapPickMode})}</output>
+    <button style={{position:'absolute',left:0,top:0,zIndex:50}} onClick={()=>setOpen({lngLat:start??[127,37],requestId:Date.now()})}>검수 경로창 열기</button>
+    <output id="distance-runtime-state" style={{position:'absolute',bottom:0,left:0,pointerEvents:'none'}}>{JSON.stringify({start,end,profile,applied,starts,step:auto.step,mode:auto.mapPickMode})}</output>
   </>;
 }
 createRoot(document.getElementById('root')!).render(<Runtime/>);

@@ -24,7 +24,7 @@ export function formatDistanceAutoRouteOfferedMessage(
   targetKm: number,
 ): string {
   const directKm = directRoadMeters / 1000;
-  return `클릭 지점까지는 도로로 ${directKm.toFixed(1)} km 입니다. 목표 ${targetKm.toFixed(1)} km 지점에서 종료했습니다.`;
+  return `클릭 지점까지 도로로 ${directKm.toFixed(1)}km\n목표 ${targetKm.toFixed(1)} km 지점에서 종료.`;
 }
 
 

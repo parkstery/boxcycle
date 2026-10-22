@@ -48,18 +48,20 @@ test('다섯 위치의 추가·교체 및 열린 경로창의 시작 준비상�
       const buttons=[...el.querySelectorAll<HTMLElement>('.map-view__pick-actions--pin-row button')].map(b=>b.getBoundingClientRect());
       const play=el.querySelector('.map-view__pick-start-ride')!.getBoundingClientRect();
       const clear=el.querySelector('.map-view__pick-btn--clear-route')!.getBoundingClientRect();
+      const profiles=[...el.querySelectorAll('.map-view__pick-btn--profile')].map(b=>b.getBoundingClientRect().toJSON());
       const panel=el.getBoundingClientRect();
-      return {buttons:buttons.map(b=>({width:b.width,height:b.height,top:b.top,right:b.right})),play:play.toJSON(),clear:clear.toJSON(),panel:panel.toJSON()};
+      return {buttons:buttons.map(b=>({width:b.width,height:b.height,top:b.top,right:b.right})),profiles,play:play.toJSON(),clear:clear.toJSON(),panel:panel.toJSON()};
     });
     expect(geometry.buttons).toHaveLength(5);
     expect(geometry.buttons.every(b=>b.width>=44&&b.height>=44)).toBe(true);
     expect(new Set(geometry.buttons.map(b=>b.top)).size).toBe(1);
     expect(geometry.play.right).toBeLessThan(geometry.clear.left);
-    const leftPadding=await popup.evaluate(e=>parseFloat(getComputedStyle(e).paddingLeft));
-    expect(Math.abs(geometry.play.x-geometry.panel.x-leftPadding)).toBeLessThan(1);
+    expect(geometry.profiles).toHaveLength(3);
+    expect(geometry.profiles[2].right).toBeLessThan(geometry.play.x);
+    for(const profile of geometry.profiles)expect(Math.abs(profile.y+profile.height/2-geometry.play.y-geometry.play.height/2)).toBeLessThan(1);
     expect(Math.abs(geometry.play.y+geometry.play.height/2-geometry.clear.y-geometry.clear.height/2)).toBeLessThan(1);
     expect(geometry.panel.right).toBeLessThanOrEqual(size.width);
     expect(geometry.panel.bottom).toBeLessThanOrEqual(size.height);
-    await page.screenshot({path:path.resolve('../..','.out',`step29-popup-${size.width}.png`)});
+    await page.screenshot({path:path.resolve('../..','.out',`step30-manual-${size.width}.png`)});
   }
 });

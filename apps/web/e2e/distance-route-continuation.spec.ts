@@ -82,7 +82,8 @@ test('실제 hook: 여기에서 계속→방향 자동생성·수단 변경·삭
   await expect(page.locator('.map-view__temporary-pick-marker')).toHaveCount(0);
   await popup.getByRole('button',{name:'목표 거리 5km',exact:true}).click();
   await expect(state).toContainText('"mode":"direction"');
-  await page.mouse.click(650,210);
+  expect(await page.evaluate(()=>document.elementFromPoint(400,300)?.className)).toContain('mapboxgl-canvas');
+  await page.mouse.click(400,300);
   await expect(state).toContainText('"applied":7');
   const requests=await page.evaluate(()=>{
     // @ts-expect-error API fixture capture
@@ -100,7 +101,8 @@ test('실제 hook: 여기에서 계속→방향 자동생성·수단 변경·삭
     window.__holdDistanceNext=true;
   });
   await popup.getByRole('button',{name:'목표 거리 3km',exact:true}).click();
-  await page.mouse.click(650,210);
+  expect(await page.evaluate(()=>document.elementFromPoint(400,300)?.className)).toContain('mapboxgl-canvas');
+  await page.mouse.click(400,300);
   await expect(state).toContainText('"step":"searching"');
   await popup.getByRole('button',{name:'경로 전체 삭제',exact:true}).click();
   await expect(state).toContainText('"start":null');
@@ -108,7 +110,8 @@ test('실제 hook: 여기에서 계속→방향 자동생성·수단 변경·삭
   await expect(page.locator('.map-view__temporary-pick-marker')).toHaveCount(0);
   await expect(state).not.toContainText('"start":null');
   await popup.getByRole('button',{name:'목표 거리 5km',exact:true}).click();
-  await page.mouse.click(650,210);
+  expect(await page.evaluate(()=>document.elementFromPoint(400,300)?.className)).toContain('mapboxgl-canvas');
+  await page.mouse.click(400,300);
   await expect(state).toContainText('"applied":8');
   await page.evaluate(()=>{
     // @ts-expect-error API fixture control

@@ -290,6 +290,7 @@ export function buildPickPopup(deps: {
   onClearAutoRouteClickDebugMarker?: () => void;
   initialHasStart: boolean;
   initialHasEnd: boolean;
+  initialHasRoute?: boolean;
   autoRouteSessionActive?: boolean;
   autoRouteTargetKm?: number;
   autoRouteStatusMessage?: string | null;
@@ -332,9 +333,8 @@ export function buildPickPopup(deps: {
   const pins = { start: initialHasStart, end: initialHasEnd };
   let selectedStart = initialStart;
   let currentProfile = routeProfile;
-  // routeProfile은 기본 이동수단일 뿐이다. 사용자가 버튼을 누르기 전에는
-  // 어떤 수단도 선택된 것처럼 보이지 않게 한다.
-  let profileChosen = false;
+  // 실제 경로가 있으면 적용 수단을 표시하고, 탐색 전 기본값은 강조하지 않는다.
+  let profileChosen = Boolean(deps.initialHasRoute);
   let distanceConfirmed = Boolean(deps.autoRouteSessionActive || getDistanceAutoRouteMapBridge()?.sessionActive);
   let selectedDirection: LngLat | null = null;
   let distanceSearchPending = false;
@@ -497,9 +497,7 @@ export function buildPickPopup(deps: {
       if (getRouteTokenInsufficient?.()) return;
       currentProfile = profile;
       profileChosen = true;
-      profileButtons.forEach((item, index) => {
-        item.classList.toggle("is-active", profileSpecs[index]?.profile === currentProfile);
-      });
+      syncProfileUi();
       syncRoutePickView();
       const manualRouteReady = pins.start && pins.end && !distanceDirectionChecked;
       if (manualRouteReady && routePickView === "location") {
@@ -559,7 +557,7 @@ export function buildPickPopup(deps: {
     const autoGenerateOnProfile =
       manualRouteReady && onLocationTab && !distanceDirectionChecked;
     profileSection.hidden = !hasStart && !clearRouteBtn;
-    const readyForProfile = onLocationTab ? manualRouteReady : distanceConfirmed && Boolean(selectedDirection);
+    const readyForProfile = onLocationTab ? manualRouteReady : distanceConfirmed && (Boolean(selectedDirection) || profileChosen);
     rowProfile.hidden = !hasStart || !readyForProfile;
     if (clearRouteBtn) clearRouteBtn.hidden = false;
     wrap.classList.toggle("map-view__pick--awaiting-profile", readyForProfile && !profileChosen && !distanceSearchPending);
@@ -569,6 +567,7 @@ export function buildPickPopup(deps: {
       const pb = profileButtons[i];
       if (!pb) return;
       pb.classList.toggle("is-active", profileChosen && spec.profile === currentProfile);
+      pb.setAttribute("aria-pressed", String(profileChosen && spec.profile === currentProfile));
       const blockProfile = (autoGenerateOnProfile || !onLocationTab) && tokenInsufficient || distanceSearchPending;
       pb.disabled = blockProfile;
       pb.classList.toggle("is-disabled", blockProfile);
@@ -600,6 +599,7 @@ export function buildPickPopup(deps: {
 
   const profileBottomRow = document.createElement("div");
   profileBottomRow.className = "map-view__pick-profile-bottom-row";
+  profileBottomRow.append(rowProfile);
   const startRideBtn = document.createElement("button");
   startRideBtn.type = "button";
   startRideBtn.className = "ride-media-button ride-media-button--play map-view__pick-start-ride";
@@ -620,7 +620,7 @@ export function buildPickPopup(deps: {
   syncRideStart();
   profileBottomRow.append(startRideBtn);
   if (clearRouteBtn) profileBottomRow.append(clearRouteBtn);
-  profileSection.append(rowProfile, profileBottomRow);
+  profileSection.append(profileBottomRow);
   syncProfileUi();
   syncTokenUi();
 
@@ -895,6 +895,7 @@ export function buildPickPopup(deps: {
     message?: string,
   ) {
     distanceSearchPending = phase === "searching";
+    if (phase === "found") profileChosen = true;
     syncProfileUi();
     autoRouteStatus.className = "map-view__pick-auto-route-status";
     autoRouteStatus.dataset.phase = phase;
@@ -1094,7 +1095,7 @@ export function buildPickPopup(deps: {
   if (distanceDirectionChecked && pins.start) {
     tryArmDirectionPickIfChecked();
   }
-  if (distanceDirectionChecked && autoRouteStatusMessage) {
+  if (distanceDirectionChecked && deps.initialHasRoute && autoRouteStatusMessage) {
     setInlinePhase("found", autoRouteStatusMessage);
   }
 

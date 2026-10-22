@@ -24,6 +24,7 @@ import {
 import {
   formatDistanceAutoRouteClientError,
   formatDistanceAutoRouteShortfallMessage,
+  formatDistanceAutoRouteOfferedMessage,
   DISTANCE_AUTO_ROUTE_DIRECTION_CLICK_HINT,
   formatDistanceAutoRouteDirectionClickHint,
   DISTANCE_AUTO_ROUTE_REROUTE_HINT,
@@ -31,6 +32,10 @@ import {
   validateDistanceAutoRouteTargetKm,
 } from "../../src/lib/route/distanceAutoRouteErrors.ts";
 import { getDistanceMeters } from "../../src/lib/geo/geo.ts";
+
+it("offered 결과는 요청한 간결한 두 줄로 표시한다", () => {
+  assert.equal(formatDistanceAutoRouteOfferedMessage(800, 0.5), "클릭 지점까지 도로로 0.8km\n목표 0.5 km 지점에서 종료.");
+});
 import {
   buildRoutePickDockCandidates,
   clampRoutePickDockPosition,

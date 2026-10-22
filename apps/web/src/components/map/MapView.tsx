@@ -1698,6 +1698,7 @@ export function MapView({
         onClearAutoRouteClickDebugMarker: () => clearAutoRouteClickDebugMarkerRef.current(),
         initialHasStart,
         initialHasEnd: Boolean(endLngLatRef.current),
+        initialHasRoute: Boolean(routeGeometryRef.current),
         autoRouteSessionActive:
           autoRouteSessionActiveRef.current ||
           getDistanceAutoRouteMapBridge()?.sessionActive ||
