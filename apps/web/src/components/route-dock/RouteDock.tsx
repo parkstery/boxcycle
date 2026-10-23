@@ -1,7 +1,10 @@
 import { useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import { isRouteDockVisible, routeDockUiPolicy } from "../../lib/route/routeDockUiPolicy";
+import { sensorChipSlot } from "../../lib/route/sensorChipSlot";
+import { CadenceHudChip, type CadenceChipBinding } from "../maphud/CadenceHudChip";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
+import "../maphud/CadenceHudChip.css";
 import "./RouteDock.css";
 
 export type RouteDockProps = {
@@ -10,36 +13,57 @@ export type RouteDockProps = {
   routeLoading: boolean;
   onRemoveStop: (id: RouteDockStopId) => void;
   onFocusStop: (stop: RouteDockStop) => void;
-  /** 출발↔도착을 바꾸고 경유지 순서를 뒤집는다. 출발·도착이 모두 있을 때만 보인다 */
   onSwapEndpoints?: () => void;
   editLocked?: boolean;
+  cadence?: CadenceChipBinding | null;
+  sensorAttention?: boolean;
 };
-const STOP_KIND_LABEL: Record<RouteDockStop["kind"], string> = { start: "S", waypoint: "·", end: "E" };
 
-/** Addresses only: collapsing the route never hides ride controls or the sensor. */
-export function RouteDock({stage, stops, routeLoading, onRemoveStop, onFocusStop, onSwapEndpoints, editLocked = false}: RouteDockProps) {
+const KIND_LABEL: Record<RouteDockStop["kind"], string> = {
+  start: "출발",
+  waypoint: "경유",
+  end: "도착",
+};
+
+/** Addresses + sensor chip on ready map; hidden during active ride (minimap). */
+export function RouteDock({
+  stage,
+  stops,
+  routeLoading,
+  onRemoveStop,
+  onFocusStop,
+  onSwapEndpoints,
+  editLocked = false,
+  cadence = null,
+  sensorAttention = false,
+}: RouteDockProps) {
   const [expanded, setExpanded] = useState(true);
   const { lockStopEditing, isActiveRide } = routeDockUiPolicy(stage, editLocked);
-  if (!isRouteDockVisible(stage) || stops.length === 0) return null;
-  const canSwap = Boolean(onSwapEndpoints) && !lockStopEditing &&
-    stops.some(s => s.kind === "start") && stops.some(s => s.kind === "end");
+  if (!isRouteDockVisible(stage) || isActiveRide) return null;
+  if (stops.length === 0 && !cadence) return null;
+
+  const canSwap =
+    Boolean(onSwapEndpoints) &&
+    !lockStopEditing &&
+    stops.some((s) => s.kind === "start") &&
+    stops.some((s) => s.kind === "end");
+  const sensorInDock =
+    sensorChipSlot({ stage, hasCadence: Boolean(cadence), expanded: true }) === "route-dock";
+
   return (
-    <div className={`route-dock-anchor${expanded ? " route-dock-anchor--open" : ""}`} aria-label="경로 보기" aria-busy={routeLoading}>
-      <div className="route-dock__shell">
-        <button type="button" className="route-dock__caret" aria-expanded={expanded}
-          aria-label={expanded ? "경로 패널 접기" : "경로 패널 펼치기"} onClick={() => setExpanded(v => !v)}>
-          <span aria-hidden>{expanded ? "‹" : "›"}</span>
-        </button>
-        <div className="route-dock__body">
-          <div className="route-dock__panel" hidden={!expanded} aria-hidden={!expanded}>
-          <ul className="route-dock__stops" role="list">
+    <div
+      className={`route-dock-anchor${expanded ? " route-dock-anchor--open" : ""}`}
+      aria-label="경로 보기"
+      aria-busy={routeLoading}
+    >
+      <div className="route-dock__card">
+        <div className="route-dock__grid">
+          <ol className="route-dock__stops" role="list">
             {stops.length === 0 ? (
-              isActiveRide ? null : (
-                <li className="route-dock__stops-empty">지도를 탭해 출발·도착 설정</li>
-              )
+              <li className="route-dock__stops-empty">지도를 탭해 출발·도착 설정</li>
             ) : (
-              stops.map((stop, index) => (
-                <li key={stop.id}>
+              stops.map((stop) => (
+                <li key={stop.id} className="route-dock__row">
                   <button
                     type="button"
                     className="route-dock__stop"
@@ -47,42 +71,62 @@ export function RouteDock({stage, stops, routeLoading, onRemoveStop, onFocusStop
                     title="지도에서 보기"
                   >
                     <span
-                      className={`route-dock__stop-dot route-dock__stop-dot--${stop.kind}`}
+                      className={`route-dock__dot route-dock__dot--${stop.kind}`}
                       aria-hidden
-                    >
-                      {stop.kind === "waypoint"
-                        ? String((stop.waypointIndex ?? index) + 1)
-                        : STOP_KIND_LABEL[stop.kind]}
-                    </span>
-                    <span
-                      className="route-dock__stop-label"
-                      title={stop.loading ? undefined : stop.label}
-                    >
+                    />
+                    <span className="route-dock__kind">{KIND_LABEL[stop.kind]}</span>
+                    <span className="route-dock__label" title={stop.loading ? undefined : stop.label}>
                       {stop.loading ? "주소 불러오는 중…" : stop.label}
                     </span>
                   </button>
-                  <button
-                    type="button"
-                    className="route-dock__stop-remove"
-                    disabled={lockStopEditing}
-                    aria-label={`${stop.kind === "start" ? "출발" : stop.kind === "end" ? "도착" : "경유"} 삭제`}
-                    title={`${stop.kind === "start" ? "출발" : stop.kind === "end" ? "도착" : "경유"} 삭제`}
-                    onClick={() => onRemoveStop(stop.id)}
-                  >
-                    ✕
-                  </button>
+                  {!lockStopEditing ? (
+                    <button
+                      type="button"
+                      className="route-dock__remove"
+                      aria-label={`${KIND_LABEL[stop.kind]} 삭제`}
+                      onClick={() => onRemoveStop(stop.id)}
+                    >
+                      ✕
+                    </button>
+                  ) : null}
                 </li>
               ))
             )}
-          </ul>
+          </ol>
           {canSwap ? (
-            <button type="button" className="route-dock__swap" aria-label="출발·도착 바꾸기"
-              title="출발·도착 바꾸기" onClick={onSwapEndpoints}>
-              <span aria-hidden>⇅</span>
+            <button
+              type="button"
+              className="route-dock__swap"
+              aria-label="출발·도착 바꾸기"
+              onClick={onSwapEndpoints}
+            >
+              <span className="route-dock__swap-icon" aria-hidden />
             </button>
-          ) : null}
-          </div>
+          ) : (
+            <span className="route-dock__swap-spacer" aria-hidden />
+          )}
         </div>
+        {sensorInDock && cadence ? (
+          <div className="route-dock__footer">
+            <CadenceHudChip
+              placement="dock"
+              state={cadence.state}
+              riding={false}
+              open={cadence.open}
+              onOpen={cadence.onOpen}
+              attention={sensorAttention}
+            />
+          </div>
+        ) : null}
+        <button
+          type="button"
+          className="route-dock__caret"
+          aria-expanded={expanded}
+          aria-label={expanded ? "경로 패널 접기" : "경로 패널 펼치기"}
+          onClick={() => setExpanded((v) => !v)}
+        >
+          <span aria-hidden>{expanded ? "‹" : "›"}</span>
+        </button>
       </div>
     </div>
   );

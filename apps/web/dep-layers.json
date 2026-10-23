@@ -301,6 +301,7 @@
       "route/routeIdentityPort.ts",
       "route/routeLimits.ts",
       "route/routeListSort.ts",
+      "route/routeProfileIcons.ts",
       "route/routeProgressSplit.ts",
       "route/routePublicationResolve.ts",
       "route/routeWorkspaceLock.ts",
@@ -391,6 +392,7 @@
       "camera/cameraProbeMath.ts",
       "camera/cameraRenderPhase.ts",
       "camera/quickCameraProductTune.ts",
+      "camera/quickCameraMenuLabels.ts",
       "camera/rideCameraFraming.ts"
     ],
     "peerMotion": [
@@ -408,7 +410,8 @@
     ],
     "coach": [
       "coach/coachElevationFromRoute.ts",
-      "coach/coachTypes.ts"
+      "coach/coachTypes.ts",
+      "coach/coachingDisplayKo.ts"
     ],
     "map": [
       "map/appIntroMapView.ts",

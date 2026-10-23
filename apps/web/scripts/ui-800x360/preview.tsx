@@ -5,6 +5,8 @@ import '../../src/tokens.css';
 import '../../src/index.css';
 import { MapHud } from '../../src/components/maphud/MapHud';
 import { RideControlBar } from '../../src/components/ride/RideControlBar';
+import { MapBottomLeftStack } from '../../src/features/map-overlays/MapBottomLeftStack';
+import { RouteMinimap } from '../../src/features/map-overlays/RouteMinimap';
 import { RouteDock } from '../../src/components/route-dock/RouteDock';
 import { RideSummarySheet } from '../../src/components/ride/RideSummarySheet';
 import { RideSettingsSheet } from '../../src/components/ride/RideSettingsSheet';
@@ -92,6 +94,7 @@ function Preview() {
               ? 'setup'
               : 'ready-to-start',
   );
+  const [camera,setCamera] = useState<1|2|3|4|5|6>(1);
   const [routeSetupToken,setRouteSetupToken] = useState<object>({});
   const [panel,setPanel] = useState(initial === 'glance-summary' ? 'summary' : initial);
   const [manual,setManual] = useState(false);
@@ -144,21 +147,27 @@ function Preview() {
       onOpen={()=>setPanel('menu')} onClose={()=>setPanel('ready')} onDragProgress={setMenuReveal}/>
     <EdgePanelHandle edge="right" open={modalOpen} panelId="map-view-sheet" label="맵 뷰 열기"
       onOpen={()=>setPanel('map')} onClose={()=>setPanel('ready')} onDragProgress={setMapReveal}/>
+    <MapBottomLeftStack>
     <RouteDock key={hasRoute?'route':'empty'} stage={stage} stops={hasRoute?stops:stage==='setup'?[stops[0]]:[]} routeLoading={params.has('loading')}
-      onRemoveStop={noop} onFocusStop={noop} onSwapEndpoints={noop} />
-    <RideControlBar stage={panel==='summary'?'summary':stage} profile="cycling" routeLoading={params.has('loading')}
+      onRemoveStop={noop} onFocusStop={noop} onSwapEndpoints={noop}
+      cadence={{state:sensorState,open:panel==='sensor',onOpen:()=>setPanel('sensor')}} />
+    <RouteMinimap active={active} routeGeometry={{type:'LineString',coordinates:[[126.98,37.55],[126.982,37.553],[126.986,37.552],[126.99,37.56]]}} liveLngLat={[126.982,37.553]} mapboxAccessToken="" traveledMeters={420} routeMeters={2020} />
+    </MapBottomLeftStack>
+    <RideControlBar stage={panel==='summary'?'summary':stage} routeLoading={params.has('loading')}
       routeSetupToken={routeSetupToken}
-      canStartRide={!params.has('blocked')} onStartRide={()=>setStage('riding')} onPauseRide={()=>setStage('paused')} onResumeRide={()=>setStage('riding')}
+      canStartRide={!params.has('blocked')} onStartRide={()=>setStage('riding')} onPauseRide={()=>setStage('paused')} onResumeRide={()=>setStage('riding')} onModifyFromPause={()=>setStage('setup')}
       onEndRide={()=>{setPanel(params.has('short')?'ready':'summary');setStage(params.has('short')?'ready-to-start':'idle');}} resumeRatio={params.has('resume')?0.4:null}
       cadence={{state:sensorState,open:panel==='sensor',onOpen:()=>setPanel('sensor')}} />
     {params.has('short') ? <button type="button" style={{position:'absolute',left:'45%',bottom:4,zIndex:9}} onClick={()=>setRouteSetupToken({})}>검수용 새 경로 확정</button> : null}
     <MapHud stage={stage} onOpenMenu={()=>setPanel('menu')} menuOpen={panel==='menu'}
       account={glanceCapture?{initial:'R',isGuest:false,label:'Ridingman12',mileageKm:178}:{initial:'G',isGuest:true,label:long?'아주긴닉네임라이더테스트':'게스트 라이더',mileageKm:null}}
       onOpenUserInfo={()=>setPanel('account')} userInfoOpen={panel==='account'} onOpenMapView={()=>setPanel('map')} mapViewOpen={panel==='map'}
-      coachData={null} coachLineEnabled={false} metrics={hasRoute?active?{mode:'ride',elapsed:glanceRiding?'00:13':'24:08',distanceKm:glanceRiding?'0.07':'4.20',cumulativeKm:glanceRiding?'0.07':long?'1234.56':'4.20',avgKmh:glanceRiding?'19.8':'18.6',speedKmh:glanceRiding?37:24,routeTotalKm:glanceRiding?'2.02':long?'9999.99':'10.00'}:{mode:'route-preview',elapsed:'00:00',distanceKm:long?'1234.56':'5.00',avgKmh:'0',speedKmh:0}:null}
+      coachData={active?{tip:'Relax and find your rhythm',resistance:'Resistance 3',intensity:'MODERATE',action:'PEDAL',tipId:'tip_26'}:null} coachLineEnabled={active}
+      cadenceRpm={glanceRiding?82:null}
+      metrics={hasRoute?active?{mode:'ride',elapsed:glanceRiding?'00:13':'24:08',distanceKm:glanceRiding?'0.07':'4.20',cumulativeKm:glanceRiding?'0.07':long?'1234.56':'4.20',avgKmh:glanceRiding?'19.8':'18.6',speedKmh:glanceRiding?37:24,routeTotalKm:glanceRiding?'2.02':long?'9999.99':'10.00'}:{mode:'route-preview',distanceKm:long?'1234.56':'2.02',elevation:{status:'ready',startM:46,endM:30}}:null}
       conquestLiveMeters={active?420:null} onClearPins={noop} routeError={params.has('error')?'경로를 찾지 못했습니다. 다른 지점을 선택해 주세요.':null}
       onResumeFromPause={()=>setStage('riding')} onEndFromPause={()=>setPanel('summary')} onModifyFromPause={()=>setStage('setup')}
-      quickCamera={active&&!glanceRiding?{active:1,onSelect:noop}:null} mapControls={{styleLabel:'위성',styleAriaLabel:'맵 스타일 위성, 클릭 시 야외',onToggleStyle:noop,onZoomOut:noop,onZoomIn:noop,zoomOutDisabled:false,zoomInDisabled:false}}
+      quickCamera={active&&!glanceRiding?{active:camera,onSelect:setCamera}:null} mapControls={{styleLabel:'위성',styleAriaLabel:'맵 스타일 위성, 클릭 시 야외',onToggleStyle:noop,onZoomOut:noop,onZoomIn:noop,zoomOutDisabled:false,zoomInDisabled:false}}
       leaderboardGlanceChip={glanceView?<LeaderboardGlanceChip {...glanceView} />:undefined}
       leaderboardGlancePanel={glanceView && initial!=='glance-summary'?<LeaderboardGlancePanel {...glanceView} />:undefined} />
     <RideSummarySheet open={panel==='summary'||initial==='glance-summary'} result={result} arrivalCompleted={false} elapsedLabel="07:00" avgKmh="18" caloriesEstimate={null}
@@ -182,14 +191,16 @@ function Preview() {
     {panel==='routes'?<OfficialCourseListModal segment="intro" onClose={()=>setPanel('ready')} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
       basicStartLoading={false} basicStartHubJoined={false} routeLoading={false} sessionIdle officialCourseCatalogAvailable publishedPublicCourses={[]}
       publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}/>:null}
-    <MenuPanel open={panel==='menu'} revealProgress={menuReveal} onClose={()=>setPanel('ready')} onOpenSettings={()=>setPanel('settings')} onOpenPlaceSearch={noop}>
+    <MenuPanel open={panel==='menu'} revealProgress={menuReveal} onClose={()=>setPanel('ready')}>
       <RideRoutePanel routeSummary="" routeLoading={false} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
         basicStartLoading={false} basicStartHubJoined={false} officialCourseCatalogAvailable publishedPublicCourses={getBasicSharedHubSummaries()}
         publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} authGuest signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}
         savedRoutes={[]} savedRoutesLoading={false} onLoadSavedRoute={noop} onRenameSavedRoute={noop} onDeleteSavedRoute={noop}
         arrivalToastVisible={false} adhocSaveAvailable={false} onSaveAdhocAsUserRoute={noop} onDismissAdhocSave={noop}
         rideTtsEnabled onRideTtsEnabled={noop} rideBgmEnabled onRideBgmEnabled={noop} rideCoachingBanner onRideCoachingBanner={noop}
-        pacerEnabled onPacerEnabled={noop} rideElevationProfileLoading={false} rideBgmCatalogConfigured />
+        pacerEnabled onPacerEnabled={noop} rideElevationProfileLoading={false} rideBgmCatalogConfigured
+        onOpenSettings={()=>setPanel('settings')} onOpenPlaceSearch={noop} onOpenLeaderboard={noop}
+        leaderboardMenuAside={<>이번 주 <b>2</b>위</>} />
     </MenuPanel>
     {panel==='intro'?<AppIntroScreen onStartGuest={()=>setPanel('location')} onLogin={()=>setPanel('location')}/>:null}
     {panel==='location'?<EntryLocationDialog phase="choice" permission="prompt" onChooseRome={()=>setPanel('ready')} onChooseCurrent={()=>setPanel('ready')} onPosition={noop}/>:null}

@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import type { PublishedPublicCourseSummary } from "../../lib/route/repo/firestoreCourses";
 import {
   formatPublicationListMeta,
@@ -15,6 +15,7 @@ import {
   type RouteListSource,
 } from "./RouteListModalShell";
 import { RouteSortSelect } from "./RouteSortSelect";
+import { RouteProfileIcon } from "./RouteProfileIcon";
 import "./OfficialCourseListModal.css";
 
 /*
@@ -46,21 +47,15 @@ function introListTitle(title: string): string {
   return stripped || title;
 }
 
-function OfficialListMeta(props: {
-  course: PublishedPublicCourseSummary;
-  displayTitle: string;
-}) {
-  const profile = publicationProfileLabelKo(props.course.profile);
-  const km = (props.course.distanceMeters / 1000).toFixed(2);
-  const dest = publicationDestinationFromTitle(props.course.title);
-  const showDest = Boolean(dest && dest !== props.displayTitle);
-  return (
-    <>
-      <span title="도로 기준">{profile}</span>
-      {` · ${km} km`}
-      {showDest ? ` · ${dest}` : null}
-    </>
-  );
+/** 행 title·접근성 — 화면에는 쓰지 않고 마우스 올림·스크린리더에 남긴다. */
+function publicationRowDetailTitle(
+  publication: PublishedPublicCourseSummary,
+  displayTitle: string,
+): string {
+  const profile = publicationProfileLabelKo(publication.profile);
+  if (publication.publisherNickname) return `${profile} · ${publication.publisherNickname}`;
+  const meta = formatPublicationListMeta(publication).replace(/\s*·\s*[\d.]+\s*km\b/i, "");
+  return publicationDestinationFromTitle(publication.title) === displayTitle ? profile : meta;
 }
 
 function PublicCoursePickRow(props: {
@@ -69,34 +64,42 @@ function PublicCoursePickRow(props: {
   loadDisabled: boolean;
   activityBadge: string | null;
   listTitle: string;
-  listMeta: ReactNode;
+  detailTitle: string;
   onLoad: () => void;
 }) {
   const c = props.course;
+  const km = (c.distanceMeters / 1000).toFixed(2);
+  const detailId = `oc-row-detail-${c.id}`;
+  const loadTitle = props.loadDisabled ? "Available when idle" : "Load course";
+  const hoverTitle = [publicationDisplayTitle(c), props.detailTitle].filter(Boolean).join(" · ");
   return (
     <li>
       <button
         type="button"
-        className={`oc-modal__item${props.selected ? " is-selected" : ""}`}
-        title={props.loadDisabled ? "Available when idle" : "Load course"}
+        className={`oc-modal__item oc-modal__item--map-row${props.selected ? " is-selected" : ""}`}
+        title={hoverTitle || loadTitle}
+        aria-describedby={props.detailTitle ? detailId : undefined}
         disabled={props.loadDisabled}
         onClick={props.onLoad}
       >
-        <span className="oc-modal__item-meta">
+        <span className="oc-modal__item-main">
+          <RouteProfileIcon profile={c.profile} />
           <strong className="oc-modal__item-name" title={publicationDisplayTitle(c)}>
             {props.listTitle}
           </strong>
-          <span className="oc-modal__item-sub">
-            <span className="oc-modal__item-sub-left">
-              {props.listMeta}
-              {props.activityBadge ? (
-                <span className="oc-modal__item-activity"> · {props.activityBadge}</span>
-              ) : null}
+          {props.detailTitle ? (
+            <span id={detailId} className="oc-modal__item-detail-sr">
+              {props.detailTitle}
             </span>
-            {c.publisherNickname ? (
-              <span className="oc-modal__item-publisher">{c.publisherNickname}</span>
-            ) : null}
-          </span>
+          ) : null}
+        </span>
+        <span className="oc-modal__item-status">
+          {props.activityBadge ? (
+            <span className="oc-modal__item-status-text">{props.activityBadge}</span>
+          ) : null}
+        </span>
+        <span className="oc-modal__item-distance">
+          {km} <span className="oc-modal__item-distance-unit">km</span>
         </span>
       </button>
     </li>
@@ -167,6 +170,33 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
       </div>
     ) : null;
 
+  const visiblePublications = props.segment === "intro" ? introCourses : publicCourses;
+  const publicationList = (
+    <>
+      {visiblePublications.length === 0 ? <p className="oc-modal__hint">검색 결과가 없습니다.</p> : null}
+      <ul className="oc-modal__list oc-modal__list--map">
+        {visiblePublications.map((publication) => {
+          const title = publicationDisplayTitle(publication);
+          const listTitle = props.segment === "intro" ? introListTitle(title) : title;
+          return (
+            <PublicCoursePickRow
+              key={publication.id}
+              course={publication}
+              selected={props.basicActiveHubCourseId === publication.id}
+              loadDisabled={loadDisabled}
+              activityBadge={formatRouteActivityListBadge(
+                props.publicationActivityByPublicationId?.get(publication.id) ?? null,
+              )}
+              listTitle={listTitle}
+              detailTitle={publicationRowDetailTitle(publication, listTitle)}
+              onLoad={() => handleLoad(publication.id)}
+            />
+          );
+        })}
+      </ul>
+    </>
+  );
+
   const body =
     props.segment === "intro" ? (
       <>
@@ -184,29 +214,7 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
         {props.basicSharedHubs.length === 0 ? (
           <p className="oc-modal__hint">입문 경로 없음</p>
         ) : (
-          <>
-          {sortBar}
-          {introCourses.length === 0 ? <p className="oc-modal__hint">검색 결과가 없습니다.</p> : null}
-          <ul className="oc-modal__list">
-            {introCourses.map((c) => {
-              const listTitle = introListTitle(publicationDisplayTitle(c));
-              return (
-              <PublicCoursePickRow
-                key={c.id}
-                course={c}
-                selected={props.basicActiveHubCourseId === c.id}
-                loadDisabled={loadDisabled}
-                activityBadge={formatRouteActivityListBadge(
-                  props.publicationActivityByPublicationId?.get(c.id) ?? null,
-                )}
-                listTitle={listTitle}
-                listMeta={<OfficialListMeta course={c} displayTitle={listTitle} />}
-                onLoad={() => handleLoad(c.id)}
-              />
-              );
-            })}
-          </ul>
-          </>
+          publicationList
         )}
         {props.basicStartHubJoined ? (
           <button
@@ -241,26 +249,7 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
               : "퍼블릭 경로 없음"}
           </p>
         ) : (
-          <>
-          {sortBar}
-          {publicCourses.length === 0 ? <p className="oc-modal__hint">검색 결과가 없습니다.</p> : null}
-          <ul className="oc-modal__list">
-            {publicCourses.map((c) => (
-              <PublicCoursePickRow
-                key={c.id}
-                course={c}
-                selected={props.basicActiveHubCourseId === c.id}
-                loadDisabled={loadDisabled}
-                activityBadge={formatRouteActivityListBadge(
-                  props.publicationActivityByPublicationId?.get(c.id) ?? null,
-                )}
-                listTitle={publicationDisplayTitle(c)}
-                listMeta={formatPublicationListMeta(c)}
-                onLoad={() => handleLoad(c.id)}
-              />
-            ))}
-          </ul>
-          </>
+          publicationList
         )}
       </>
     );
@@ -273,6 +262,9 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
       searchValue={queryText}
       onSearchChange={setQueryText}
       onClose={props.onClose}
+      appearance="map"
+      headTools={sortBar}
+      footerHint="경로를 누르면 지도에 올라가요"
       sourceNav={
         props.onSelectSource ? (
           <RouteListSourceNav current={props.segment} onSelect={props.onSelectSource} />

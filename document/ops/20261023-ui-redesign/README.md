@@ -11,6 +11,12 @@ chief 가 승인한 시안대로 앱 화면을 묶음 단위로 바꾼다. 묶�
   - 버튼은 4종(주·보조·글자·아이콘).
 - **교대 규칙:** [수퍼바이저 교대 플레이북](../../reference/operations/261023-RTW-수퍼바이저-교대-플레이북.md).
 
+- **다음 Supervisor:** [상세 인계](13-handoff-next-supervisor.md) · [첫 프롬프트](14-first-prompt-next-supervisor.md)
+
+**최신 경로 목록 지시:** [15 가독성 보완](15-task-route-list-surface.md) → [결과·감리 16](16-result-route-list-surface.md), LOCAL_VERIFIED — 입문/퍼블릭/내 경로의 투명 시안은 흰 불투명 패널로 변경. 주행 순위 투명 유지. [최신 비교](comparison-route-list-surface.html).
+
+**경로 목록 한 줄 행(10-24):** [지시 17](17-task-route-list-one-line.md) → [결과 18](18-result-route-list-one-line.md) → [재지시 19](19-task-saved-routes-compact.md) → [결과·감리 20](20-result-saved-routes-compact.md), LOCAL_VERIFIED. [비교](comparison-route-list-one-line.html).
+
 ## 시안별 상태 (2026-10-23 기준)
 
 | # | 시안 | 상태 | 비고 |
@@ -18,12 +24,12 @@ chief 가 승인한 시안대로 앱 화면을 묶음 단위로 바꾼다. 묶�
 | 01 | [순위 칩 + 순위판](mockups/01-LbMap.png) | ✅ 배포 | `5ab00ad6` |
 | 02 | [주행 중 앞뒤 2명](mockups/02-LbRiding.png) | ✅ 배포 | 〃 |
 | 03 | [주행 결과 순위 줄](mockups/03-LbSummary.png) | ◐ | 지금 결과 시트에 한 줄만. 결과 시트 전체는 10번과 함께 |
-| 04 | [지도 대기 — 경로 도크](mockups/04-Main.png) | ⬜ | 묶음 2 |
+| 04 | [지도 대기 — 경로 도크](mockups/04-Main.png) | ◐ 로컬 검증 | 묶음 2, [감리](10-review-batch2.md) |
 | 05 | [경로 만들기 팝업](mockups/05-RoutePick.png) | ⬜ | 묶음 5. 팝업이 `mapPopupElements.ts`의 DOM 생성 코드(React 밖) |
-| 06 | [MENU](mockups/06-Menu.png) | ⬜ | 묶음 1 |
-| 07 | [경로 목록](mockups/07-RouteList.png) | ⬜ | 묶음 1 |
-| 08 | [주행 중](mockups/08-Riding.png) | ⬜ | 묶음 2. 계기판은 이미 윤곽선 방식(유지) |
-| 09 | [일시정지](mockups/09-Paused.png) | ⬜ | 묶음 2 |
+| 06 | [MENU](mockups/06-Menu.png) | ◐ 로컬 검증 | 묶음 1, [감리](05-review-batch1.md)·Chief 화면 확인 대기 |
+| 07 | [경로 목록](mockups/07-RouteList.png) | ◐ 로컬 검증 | 묶음 1, [시안 비교](comparison-batch1.html)·미배포 |
+| 08 | [주행 중](mockups/08-Riding.png) | ◐ 로컬 검증 | 묶음 2, [비교](comparison-batch2.html) |
+| 09 | [일시정지](mockups/09-Paused.png) | ◐ 로컬 검증 | 묶음 2, [감리](10-review-batch2.md) |
 | 10 | [주행 결과](mockups/10-Summary.png) | ⬜ | 묶음 3. 주인공 숫자 = 새 도로 |
 | 11 | [다음 주행](mockups/11-NextRide.png) | ⬜ | 묶음 3 |
 | 12 | [케이던스 센서](mockups/12-Sensor.png) | ⬜ | 묶음 4 |
@@ -38,8 +44,8 @@ chief 가 승인한 시안대로 앱 화면을 묶음 단위로 바꾼다. 묶�
 
 | 묶음 | 화면 | 상태 |
 |---|---|---|
-| 1 | MENU + 경로 목록 | 다음 |
-| 2 | 지도 대기 · 주행 중 · 일시정지 (지도 위 조작부: 카메라 1~6 → 버튼 하나, 정지 버튼 색, 코칭 문구 한국어, 출발 전 0 대신 경로·고도) | 대기 |
+| 1 | MENU + 경로 목록 | LOCAL_VERIFIED — [감리](05-review-batch1.md)·[비교](comparison-batch1.html), Chief 화면 확인 대기 |
+| 2 | 지도 대기 · 주행 중 · 일시정지 (지도 위 조작부: 카메라 1~6 → 버튼 하나, 정지 버튼 색, 코칭 문구 한국어, 출발 전 0 대신 경로·고도) | LOCAL_VERIFIED — [감리](10-review-batch2.md)·[비교](comparison-batch2.html), Chief 화면 확인 대기 |
 | 3 | 주행 결과(두 칸 판) + 다음 주행 | 대기 |
 | 4 | 센서 · 주행 설정 · 맵 뷰 · 프로필 수정 | 대기 |
 | 5 | 경로 만들기 팝업 | 대기 |

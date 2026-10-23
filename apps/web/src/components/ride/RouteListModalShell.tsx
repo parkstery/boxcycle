@@ -19,6 +19,12 @@ export type RouteListModalShellProps = {
   children: ReactNode;
   /** 한 모달 안에서 입문/퍼블릭/내 경로를 전환할 때 */
   sourceNav?: ReactNode;
+  /** 공용 경로 목록 패널의 넓은 map 레이아웃 vs 기존 좁은 sheet 레이아웃 */
+  appearance?: "sheet" | "map";
+  /** map 모드 헤더 한 줄 오른쪽(정렬 등) */
+  headTools?: ReactNode;
+  /** map 모드 하단 안내 */
+  footerHint?: ReactNode;
 };
 
 const SOURCE_ITEMS: { id: RouteListSource; label: string }[] = [
@@ -39,6 +45,7 @@ export function RouteListSourceNav(props: {
           type="button"
           className={`oc-modal__source${props.current === item.id ? " is-active" : ""}`}
           aria-current={props.current === item.id ? "page" : undefined}
+          aria-pressed={props.current === item.id}
           onClick={() => props.onSelect(item.id)}
         >
           {item.label}
@@ -50,20 +57,12 @@ export function RouteListSourceNav(props: {
 
 /**
  * 경로 목록 모달의 공용 껍데기 — 오버레이 · 제목 줄 · 스크롤 본문.
- *
- * 2026-09-16(B단계): 「내 경로」가 공식 코스와 같은 급의 모달을 갖게 되면서
- * `OfficialCourseListModal` 이 혼자 들고 있던 껍데기를 여기로 뺐다.
- * 스타일은 종전 `oc-modal*` 를 그대로 쓴다 — 두 모달이 같은 옷을 입어야
- * 「경로를 고르는 자리」로 읽힌다.
- *
- * 2026-10-06(Chief): 제목 줄 한 줄에 [제목 칩][검색][X] 를 담는다. 종전에는 제목 줄이
- * 제목과 「닫기」만 들고 있었고 검색은 본문 첫 줄을 따로 먹었다(내 경로), 입문·퍼블릭은
- * 검색이 아예 없었다. 닫기는 글자 대신 X 로 우상단 구석에 붙여 검색 폭을 최대로 준다.
- * 닫기 버튼의 접근성 이름(「닫기」)과 대화상자 이름(「입문 경로」 등)은 그대로 — e2e 계약.
  */
 export function RouteListModalShell(props: RouteListModalShellProps) {
   const { onClose } = props;
   const panelRef = useRef<HTMLDivElement>(null);
+  const appearance = props.appearance ?? "map";
+  const isMap = appearance === "map";
   useDialogFocus(true, panelRef);
 
   useEffect(() => {
@@ -77,42 +76,105 @@ export function RouteListModalShell(props: RouteListModalShellProps) {
   }, [onClose]);
 
   return createPortal(
-    <div className="oc-modal-overlay" role="presentation" onMouseDown={() => props.onClose()}>
+    <div
+      className={`oc-modal-overlay${isMap ? " oc-modal-overlay--map" : ""}`}
+      role="presentation"
+      onMouseDown={() => props.onClose()}
+    >
       <div
         ref={panelRef}
-        className="oc-modal"
+        className={`oc-modal${isMap ? " oc-modal--map" : ""}`}
         role="dialog"
         aria-label={props.dialogLabel}
         aria-modal="true"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="oc-modal__head">
-          <h2
-            id={props.titleId}
-            className={`oc-modal__title${props.sourceNav ? " oc-modal__title--slot" : ""}`}
-          >
-            {props.title}
-          </h2>
-          {props.sourceNav}
-          <input
-            type="search"
-            className="oc-modal__search"
-            value={props.searchValue}
-            placeholder="경로 이름 검색"
-            aria-label="경로 이름 검색"
-            onChange={(e) => props.onSearchChange(e.target.value)}
-          />
-          <button
-            type="button"
-            className="oc-modal__close"
-            aria-label="닫기"
-            title="닫기"
-            onClick={() => props.onClose()}
-          >
-            <span aria-hidden="true">✕</span>
-          </button>
+        <div className={`oc-modal__head${isMap ? " oc-modal__head--map" : ""}`}>
+          {isMap ? (
+            <>
+              <h2 id={props.titleId} className="oc-modal__title oc-modal__title--slot">
+                {props.title}
+              </h2>
+              {props.sourceNav}
+              <label className="oc-modal__search-wrap">
+                <svg
+                  className="oc-modal__search-icon"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden
+                >
+                  <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.6" />
+                  <path
+                    d="M10.5 10.5L14 14"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <input
+                  type="search"
+                  className="oc-modal__search oc-modal__search--map"
+                  value={props.searchValue}
+                  placeholder="경로 이름으로 찾기"
+                  aria-label="경로 이름 검색"
+                  onChange={(e) => props.onSearchChange(e.target.value)}
+                />
+              </label>
+              {props.headTools}
+              <button
+                type="button"
+                className="oc-modal__close oc-modal__close--map"
+                aria-label="닫기"
+                title="닫기"
+                onClick={() => props.onClose()}
+              >
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path
+                    d="M3 3l10 10M13 3L3 13"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+            </>
+          ) : (
+            <>
+              <h2
+                id={props.titleId}
+                className={`oc-modal__title${props.sourceNav ? " oc-modal__title--slot" : ""}`}
+              >
+                {props.title}
+              </h2>
+              {props.sourceNav}
+              <input
+                type="search"
+                className="oc-modal__search"
+                value={props.searchValue}
+                placeholder="경로 이름 검색"
+                aria-label="경로 이름 검색"
+                onChange={(e) => props.onSearchChange(e.target.value)}
+              />
+              <button
+                type="button"
+                className="oc-modal__close"
+                aria-label="닫기"
+                title="닫기"
+                onClick={() => props.onClose()}
+              >
+                <span aria-hidden="true">✕</span>
+              </button>
+            </>
+          )}
         </div>
-        <div className="oc-modal__body">{props.children}</div>
+        <div className={`oc-modal__body${isMap ? " oc-modal__body--map" : ""}`}>
+          {props.children}
+          {isMap && props.footerHint ? (
+            <p className="oc-modal__map-footer">{props.footerHint}</p>
+          ) : null}
+        </div>
       </div>
     </div>,
     document.body,

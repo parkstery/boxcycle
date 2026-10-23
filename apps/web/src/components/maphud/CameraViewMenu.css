@@ -1,0 +1,110 @@
+.camera-view-menu {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.camera-view-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #c9d6ee;
+  border-radius: 999px;
+  background: #fff;
+  color: #2a2e37;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.camera-view-menu__trigger:focus-visible {
+  outline: 2px solid #2457d6;
+  outline-offset: 2px;
+}
+
+.camera-view-menu__trigger-icon {
+  width: 14px;
+  height: 14px;
+  border: 1.6px solid #2a2e37;
+  border-radius: 2px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.camera-view-menu__trigger-icon::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: 3px;
+  width: 0;
+  height: 0;
+  border: 4px solid transparent;
+  border-left-color: #2a2e37;
+}
+
+.camera-view-menu__caret {
+  font-size: 10px;
+  opacity: 0.75;
+}
+
+.camera-view-menu__list {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 12;
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  min-width: 148px;
+  border: 1px solid #c9d6ee;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+}
+
+.camera-view-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #121417;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.camera-view-menu__item.is-selected {
+  background: #eef3fc;
+  color: #2457d6;
+}
+
+.camera-view-menu__item:focus-visible {
+  outline: 2px solid #2457d6;
+  outline-offset: -2px;
+}
+
+.camera-view-menu__item-num {
+  flex: 0 0 18px;
+  font-family: "Saira Condensed", system-ui, sans-serif;
+  font-weight: 700;
+}
+
+.camera-view-menu__item-label {
+  flex: 1 1 auto;
+}
+
+.camera-view-menu__item-hint {
+  font-size: 10px;
+  color: #5e6472;
+}

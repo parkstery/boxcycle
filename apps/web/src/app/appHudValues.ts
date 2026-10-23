@@ -3,6 +3,13 @@ import { formatRideDistanceKmNumber } from "../lib/ride/rideDistanceFormat";
 import { buildSuggestedRouteName } from "../lib/route/repo/firestoreSavedRoutes";
 import type { LineStringGeometry } from "../lib/geo/geo";
 import type { RideMetricsUi, RideSessionStatus } from "../hooks/useVirtualRideSession";
+import type { RouteElevationProfileState } from "../hooks/useRouteElevationProfile";
+
+export type RoutePreviewElevationHud =
+  | { status: "ready"; startM: number; endM: number }
+  | { status: "loading" }
+  | { status: "error"; message: string }
+  | { status: "unavailable" };
 
 export type AppHudValuesInput = {
   rideMetrics: RideMetricsUi;
@@ -15,7 +22,26 @@ export type AppHudValuesInput = {
   routeGeometry: LineStringGeometry | null;
   summaryVisible: boolean;
   avgSpeedLabel: string;
+  routeElevationProfile?: RouteElevationProfileState | null;
 };
+
+function routePreviewElevationHud(
+  profile: RouteElevationProfileState | null | undefined,
+): RoutePreviewElevationHud {
+  if (!profile) return { status: "unavailable" };
+  if (profile.loading) return { status: "loading" };
+  if (profile.quotaExceeded) {
+    return { status: "error", message: "고도 한도 초과" };
+  }
+  if (profile.error) {
+    return { status: "error", message: "고도 불러오기 실패" };
+  }
+  const values = profile.values;
+  if (!values.length || !Number.isFinite(values[0]) || !Number.isFinite(values[values.length - 1])) return { status: "unavailable" };
+  const startM = Math.round(values[0]!);
+  const endM = Math.round(values[values.length - 1]!);
+  return { status: "ready", startM, endM };
+}
 
 /** 계기판(HUD)·종료 요약용 표시값 — 렌더마다 계산하는 순수 함수 */
 export function computeAppHudValues({
@@ -29,6 +55,7 @@ export function computeAppHudValues({
   routeGeometry,
   summaryVisible,
   avgSpeedLabel,
+  routeElevationProfile = null,
 }: AppHudValuesInput) {
   /** HUD 거리·종료 요약·기록용 — 이번 세션 실주행 거리(오늘 N km, 재개 시 offset 차감) */
   const sessionDistanceMeters = Math.max(
@@ -72,10 +99,8 @@ export function computeAppHudValues({
       : hudRoutePreview
         ? {
             mode: "route-preview" as const,
-            elapsed: "00:00",
             distanceKm: (routeDistanceMeters / 1000).toFixed(2),
-            avgKmh: "0",
-            speedKmh: 0,
+            elevation: routePreviewElevationHud(routeElevationProfile),
           }
         : null;
   return {

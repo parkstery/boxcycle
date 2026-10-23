@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spinatlas · 묶음 1 시안과 실제 화면 비교</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:28px;background:#f2f3f5;color:#121417;font:15px/1.6 system-ui,sans-serif}
+main{max-width:1700px;margin:auto}h1{font-size:26px;margin:0}h2{font-size:20px;margin:30px 0 12px}p{color:#4b5160}button,a{color:#2457d6}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}figure{margin:0;background:#fff;border-radius:12px;overflow:hidden}figcaption{padding:10px 14px;font-weight:600}img{display:block;width:100%;height:auto;aspect-ratio:20/9;object-fit:contain;background:#2e3a2f}
+select{padding:8px;font:inherit;border-radius:8px;border:1px solid #cbd0d9;background:#fff}.note{padding:12px 16px;background:white;border-radius:12px}
+@media(max-width:900px){body{padding:16px}.pair{grid-template-columns:1fr}}
+</style>
+<main>
+<p class="note">후속 변경: Chief 지시에 따라 경로 목록을 흰 불투명 패널로 보완했습니다. 아래 투명 목록은 당시 기록입니다. <a href="comparison-route-list-surface.html">최신 변경 전후 비교 보기</a></p>
+<h1>Spinatlas · MENU + 경로 목록</h1>
+<p>800×360 폰 가로 기준. 왼쪽은 승인된 시안, 오른쪽은 변경한 제품 화면입니다. 시안 PNG는 2배 크기여서 같은 비율로 표시합니다.</p>
+<label>오른쪽 화면: <select id="mode"><option value="live">실제 App · Firebase 에뮬레이터</option><option value="preview">실제 컴포넌트 · 메모리 예시 데이터</option></select></label>
+<h2>MENU</h2>
+<div class="pair">
+<figure><figcaption>시안 06</figcaption><img src="mockups/06-Menu.png" alt="승인된 MENU 시안"></figure>
+<figure><figcaption class="actual-caption">실제 App</figcaption><img id="menu" src="evidence/batch1-live-menu-800x360.png" alt="제품 MENU 캡처"></figure>
+</div>
+<p>300px 흰 메뉴, 경로 3행과 검색·순위·설정 3행, 선 아이콘, 실제 Trail의 거리와 합류 버튼을 적용했습니다. 내 경로 개수·순위·Trail 내용은 데이터에 따라 달라집니다.</p>
+<h2>경로 목록</h2>
+<div class="pair">
+<figure><figcaption>시안 07</figcaption><img src="mockups/07-RouteList.png" alt="승인된 경로 목록 시안"></figure>
+<figure><figcaption class="actual-caption">실제 App</figcaption><img id="intro" src="evidence/batch1-live-intro-800x360.png" alt="제품 입문 경로 목록 캡처"></figure>
+</div>
+<p>740×324 투명 목록, 출처·검색·정렬·닫기 한 줄, 44px 목록행과 오른쪽 거리 열을 적용했습니다. 긴 이름은 행을 늘려 읽습니다. 위성지도 위에서는 글자 윤곽선으로 대비를 보강했습니다.</p>
+<p class="note">시안과 다른 점: 기존 정렬인 최근순·거리순·이름순을 유지합니다. 가까운 순은 지리 정렬 기능이 없습니다. 실제 출발 주소가 없는 행에 주소를 만들지 않았고, 실제 프로필·등록자 등의 정보를 표시합니다. 입문·퍼블릭 목록에는 개인 완주/진행 데이터가 없으므로 해당 상태를 꾸며 넣지 않습니다.</p>
+<h2>퍼블릭 · 내 경로</h2>
+<div class="pair">
+<figure><figcaption>퍼블릭</figcaption><img id="public" src="evidence/batch1-live-public-800x360.png" alt="퍼블릭 경로 목록"></figure>
+<figure><figcaption>내 경로</figcaption><img id="saved" src="evidence/batch1-live-saved-800x360.png" alt="내 경로 목록"></figure>
+</div>
+<p>내 경로는 기존 필터·선택 후 관리 도구·이어달리기를 유지합니다. 메모리 예시 화면에서 데이터가 있는 상태를 볼 수 있습니다. 실제 App 캡처의 Guest·목록은 에뮬레이터 안의 데이터이며 운영 데이터가 아닙니다.</p>
+<p><a href="05-review-batch1.md">감리 기록</a> · <a href="http://127.0.0.1:5020/scripts/ui-redesign-batch1/preview.html?state=menu">컴포넌트 프리뷰 열기</a></p>
+</main>
+<script>
+document.getElementById('mode').addEventListener('change',event=>{
+ const mode=event.target.value;
+ for(const name of ['menu','intro','public','saved'])document.getElementById(name).src=`evidence/batch1-${mode}-${name}-800x360.png`;
+ for(const label of document.querySelectorAll('.actual-caption'))label.textContent=mode==='live'?'실제 App':'실제 컴포넌트 · 메모리 예시';
+});
+</script>
+</html>

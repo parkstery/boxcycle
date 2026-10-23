@@ -12,8 +12,12 @@ import {
   formatCompanionHudActivityLine,
 } from "../../lib/ride/companionHudCount";
 import { formatRideDistanceKmNumber } from "../../lib/ride/rideDistanceFormat";
-import { type Camera1Mode, CAMERA1_MODE_META } from "../../lib/camera/camera1Mode";
+import { type Camera1Mode } from "../../lib/camera/camera1Mode";
+import type { RoutePreviewElevationHud } from "../../app/appHudValues";
+import { coachingTipDisplayKo } from "../../lib/coach/coachingDisplayKo";
+import { CameraViewMenu } from "./CameraViewMenu";
 import "./MapHud.css";
+import "./CameraViewMenu.css";
 
 /** HUD 우상단 시계 — `26.09.29 15:09:35` (로컬, 초 단위) */
 function formatHudClock(d: Date): string {
@@ -97,12 +101,13 @@ export type MapHudProps = {
       })
     | ({
         mode: "route-preview";
-        elapsed: string;
         distanceKm: string;
-        avgKmh: string;
-        speedKmh: number;
+        elevation: RoutePreviewElevationHud;
       })
     | null;
+
+  /** 센서에서 실제 rpm 이 올 때만 HUD 에 표시한다. 없으면 칸을 비운다. */
+  cadenceRpm?: number | null;
 
   // BL — 핀 초기화 (setup 오류 액션 등에서 사용)
   onClearPins: () => void;
@@ -162,6 +167,40 @@ export type MapHudProps = {
  * 밀리고 당겨졌다 — 주행 중 눈이 같은 자리에서 같은 값을 못 찾는다.
  * `tabular-nums` 는 **같은 자릿수**만 맞춰 주므로 이것만으로는 부족하다.
  */
+function RoutePreviewElevationCell({ elevation }: { elevation: RoutePreviewElevationHud }) {
+  const value = elevation.status === "loading" ? "…" : "—";
+  const title =
+    elevation.status === "ready"
+      ? `고도 ${elevation.startM}m 에서 ${elevation.endM}m`
+      : elevation.status === "loading"
+        ? "고도 불러오는 중"
+        : elevation.status === "error"
+          ? elevation.message
+          : "고도 데이터 없음";
+  return (
+    <span
+      className="hud-metrics__cell hud-metrics__cell--w-speed hud-metrics__cell--elevation-preview"
+      title={title}
+      role={elevation.status === "loading" ? "status" : undefined}
+      aria-busy={elevation.status === "loading" ? true : undefined}
+    >
+      <span className="hud-metrics__label">고도</span>
+      <span className="hud-metrics__value hud-metrics__value--elevation">
+        {elevation.status === "ready" ? (
+          <>
+            {elevation.startM}
+            <span className="hud-metrics__elevation-arrow" aria-hidden> → </span>
+            {elevation.endM}
+            <span className="hud-metrics__cell-unit">m</span>
+          </>
+        ) : (
+          <span className="hud-metrics__elevation-state">{value}</span>
+        )}
+      </span>
+    </span>
+  );
+}
+
 function HudMetricCell({
   label,
   value,
@@ -224,6 +263,7 @@ export function MapHud(props: MapHudProps) {
     mapControls = null,
     leaderboardGlanceChip = null,
     leaderboardGlancePanel = null,
+    cadenceRpm = null,
   } = props;
 
   const riding = stage === "riding";
@@ -332,6 +372,13 @@ export function MapHud(props: MapHudProps) {
           displayedRiderCount: companionCopy.riderCount,
         })
       : null;
+  const coachTipKo =
+    coachData != null
+      ? coachingTipDisplayKo(
+          (coachData as CoachingData & { tipId?: string }).tipId,
+          coachData.tip,
+        )
+      : "";
 
   if (!visible) return null;
 
@@ -375,8 +422,19 @@ export function MapHud(props: MapHudProps) {
                   className={`hud-metrics${metrics.mode === "route-preview" ? " hud-metrics--route-preview" : ""}`}
                 >
                   <div className="hud-metrics__capsule" role="group" aria-label="주행 지표">
-                    {/* 주행 중 — 세션 거리는 offset 없으면 누적과 항상 동일해 중복이었다.
-                        이제 누적거리/전체거리 한 줄만 표시(§9.5.5 단위7·U4) */}
+                    {metrics.mode === "route-preview" ? (
+                      <>
+                        <HudMetricCell
+                          label="경로"
+                          value={metrics.distanceKm}
+                          unit="km"
+                          hero
+                          variant="distance"
+                        />
+                        <span className="hud-metrics__divider" aria-hidden />
+                        <RoutePreviewElevationCell elevation={metrics.elevation} />
+                      </>
+                    ) : null}
                     {metrics.mode === "ride" && metrics.routeTotalKm ? (
                       <span
                         className={`hud-metrics__cell hud-metrics__cell--hero hud-metrics__cell--w-distance${`${metrics.cumulativeKm}/${metrics.routeTotalKm}`.length > 11 ? " hud-metrics__cell--long-distance" : ""}`}
@@ -395,15 +453,34 @@ export function MapHud(props: MapHudProps) {
                           <span className="hud-metrics__cell-unit">km</span>
                         </span>
                       </span>
-                    ) : (
+                    ) : metrics.mode === "ride" ? (
                       <HudMetricCell label="거리" value={metrics.distanceKm} unit="km" hero variant="distance" />
-                    )}
+                    ) : null}
+                    {metrics.mode === "ride" ? (
+                      <>
                     <span className="hud-metrics__divider" aria-hidden />
                     <HudMetricCell label="시간" value={metrics.elapsed} variant="time" />
                     <span className="hud-metrics__divider" aria-hidden />
                     <HudMetricCell label="평균" value={metrics.avgKmh} unit="km/h" variant="speed" />
-                    <span className="hud-metrics__divider" aria-hidden />
-                    <HudMetricCell label="속도" value={String(metrics.speedKmh)} unit="km/h" variant="speed" />
+                    {riding ? (
+                      <>
+                        <span className="hud-metrics__divider" aria-hidden />
+                        <HudMetricCell label="속도" value={String(metrics.speedKmh)} unit="km/h" variant="speed" />
+                      </>
+                    ) : null}
+                    {riding && cadenceRpm != null ? (
+                      <>
+                        <span className="hud-metrics__divider" aria-hidden />
+                        <HudMetricCell
+                          label="케이던스"
+                          value={String(Math.round(cadenceRpm))}
+                          unit="rpm"
+                          variant="speed"
+                        />
+                      </>
+                    ) : null}
+                      </>
+                    ) : null}
                     {/* null = 미무장 숨김. 0 포함 무장 후 항상 표시(이미 내 도로면 +0.00) */}
                     {(riding || paused) && conquestLiveMeters != null ? (
                       <>
@@ -523,51 +600,21 @@ export function MapHud(props: MapHudProps) {
               ) : null}
             </div>
           ) : null}
+          {paused ? (
+            <p className="map-hud__paused-banner" role="status">잠깐 멈췄어요</p>
+          ) : null}
         </div>
       ) : null}
 
-      {/* 우상단 한 줄 — [QC][야외 + −][계정]. 센서 칩은 RouteDock 이 소유한다. 지시66 */}
+      {/* 우상단 한 줄 — [시점][야외 + −][계정]. 센서 칩은 RouteDock 이 소유한다. 지시66 */}
       {showTopRight ? (
         <div className="map-hud__tr">
           {quickCamera ? (
-            <div
-              className="hud-quick-camera"
-              role="group"
-              aria-label="Quick Camera"
-              /* 지시10 §3: gap·가장자리 터치가 맵(Mapbox)으로 전파되지 않게.
-               * click 만 막으면 모바일에서 touchstart/pointerdown 이 지도를 먼저 움직인다. */
-              onPointerDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-            >
-              {([1, 2, 3, 4, 5, 6] as const).map((n) => {
-                const c1 = n === 1 ? quickCamera.camera1Mode ?? "routeFit" : null;
-                const c1Meta = c1 ? CAMERA1_MODE_META[c1] : null;
-                const c1Mark = c1Meta?.mark ?? null;
-                const c1Label = c1Meta?.label ?? null;
-                return (
-                  <button
-                    key={n}
-                    type="button"
-                    className={`hud-quick-camera__btn${quickCamera.active === n ? " is-active" : ""}${
-                      n === 1 ? " hud-quick-camera__btn--c1" : ""
-                    }`}
-                    aria-label={c1Label ? `카메라 1 · ${c1Label}` : `카메라 ${n}`}
-                    aria-pressed={quickCamera.active === n}
-                    data-camera1-mode={c1 ?? undefined}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onTouchStart={(e) => e.stopPropagation()}
-                    onClick={() => quickCamera.onSelect(n)}
-                  >
-                    <span className="hud-quick-camera__num">{n}</span>
-                    {c1Mark && quickCamera.active === 1 ? (
-                      <span className="hud-quick-camera__c1-mark" aria-hidden>
-                        {c1Mark}
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
+            <CameraViewMenu
+              active={quickCamera.active}
+              camera1Mode={quickCamera.camera1Mode}
+              onSelect={quickCamera.onSelect}
+            />
           ) : null}
 
           {showMapControls && mapControls ? (
@@ -629,7 +676,7 @@ export function MapHud(props: MapHudProps) {
           {showAccount && account ? (
             <button
               type="button"
-              className={`hud-account ${account.isGuest ? "hud-account--guest" : ""}`}
+              className={`hud-account${activeRide ? " hud-account--compact" : ""} ${account.isGuest ? "hud-account--guest" : ""}`}
               aria-label="사용자 정보"
               aria-expanded={userInfoOpen}
               title="Account"
@@ -676,9 +723,8 @@ export function MapHud(props: MapHudProps) {
       {showCoach ? (
         <div className="map-hud__bc">
           {showCoach && coachData ? (
-            <div className="hud-coach" role="status" aria-live="polite">
-              <span className="hud-coach__tip">{coachData.tip.replace(/\s*\(R\d+\)\s*$/, "")}</span>
-              <span className="hud-coach__r">{coachData.resistance.replace("Resistance ", "R")}</span>
+            <div className="hud-coach hud-coach--banner" role="status" aria-live="polite">
+              <span className="hud-coach__tip">{coachTipKo}</span>
             </div>
           ) : null}
         </div>

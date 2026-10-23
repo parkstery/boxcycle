@@ -6,8 +6,9 @@ import {
   encodeCanonicalRouteGeometryProfile,
   fingerprintFromCanonicalSync,
 } from "../../lib/route/routeFingerprint";
-import type { RouteProfile } from "../../services/mapboxDirections";
+import { routeProfileLabelKo } from "../../lib/route/routeProfileIcons";
 import { ROUTE_COMPLETION_RATIO_THRESHOLD } from "../../lib/ride/rideRecordPolicy";
+import { RouteProfileIcon } from "./RouteProfileIcon";
 import "./SavedRoutesPanel.css";
 
 /**
@@ -31,62 +32,6 @@ function isResumeToolbarTarget(r: SavedRoute): boolean {
   if (r.completed === 1) return false;
   const p = r.lastProgressRatio;
   return Number.isFinite(p) && p > 0 && p < ROUTE_COMPLETION_RATIO_THRESHOLD;
-}
-
-const PROFILE_LABEL: Record<RouteProfile, string> = {
-  cycling: "자전거",
-  driving: "자동차",
-  walking: "보행",
-};
-
-/**
- * 이동 수단(프로필) 아이콘 — currentColor 단색 라인. 의미 보완을 위해 title/aria-label 동반.
- * 24x24 뷰박스, 1.8 stroke. 자전거·자동차·보행 3종.
- */
-function RouteProfileIcon({ profile }: { profile: RouteProfile }) {
-  const label = PROFILE_LABEL[profile];
-  const common = {
-    className: "saved-routes__profile-icon",
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.8,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    role: "img" as const,
-    "aria-label": label,
-  };
-  if (profile === "cycling") {
-    return (
-      <svg {...common}>
-        <title>{label}</title>
-        <circle cx="5.5" cy="17" r="3.5" />
-        <circle cx="18.5" cy="17" r="3.5" />
-        <path d="M5.5 17l4-8h5l-3 8m0 0h-2m8-8h-3l-1.5 3" />
-        <circle cx="14.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
-      </svg>
-    );
-  }
-  if (profile === "driving") {
-    return (
-      <svg {...common}>
-        <title>{label}</title>
-        <path d="M3 13l1.6-4.2A2 2 0 016.5 7.5h11a2 2 0 011.9 1.3L21 13v5a1 1 0 01-1 1h-1a1 1 0 01-1-1v-1H6v1a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
-        <path d="M3 13h18" />
-        <circle cx="7" cy="16" r="0.6" fill="currentColor" stroke="none" />
-        <circle cx="17" cy="16" r="0.6" fill="currentColor" stroke="none" />
-      </svg>
-    );
-  }
-  return (
-    <svg {...common}>
-      <title>{label}</title>
-      <circle cx="13" cy="4" r="1.7" fill="currentColor" stroke="none" />
-      <path d="M13 7.5l-1 4 2.5 2.5 1 5" />
-      <path d="M12 11.5l-3 1M13 11.5l1.5 2.5" />
-      <path d="M12 11.5L10 20" />
-    </svg>
-  );
 }
 
 /** 진행률(0~1)을 방어적으로 클램프. 로컬·옛 데이터가 범위를 벗어나도 안전. */
@@ -153,7 +98,46 @@ export type SavedRoutesPanelProps = {
   onDismissQuotaNotice?: () => void;
   /** 값이 바뀔 때마다 완주 필터를 「대기」로 전환(미완료 초과 유도용). 0=무동작 */
   focusPendingSignal?: number;
+  /** 지도 위 투명 경로 목록(시안 07) */
+  listAppearance?: "classic" | "map";
 };
+
+function mapListStatusLabel(
+  route: SavedRoute,
+  ctx: {
+    pendingPublicRouteIds?: ReadonlySet<string>;
+    activeResumeRouteId?: string | null;
+  },
+): string | null {
+  if (route.completed === 1) return "완주함";
+  if (route.lastProgressRatio > 0) {
+    const pct = Math.round(clamp01(route.lastProgressRatio) * 100);
+    return `${pct}% 달림`;
+  }
+  if (ctx.pendingPublicRouteIds?.has(route.id)) return "심사 중";
+  if (ctx.activeResumeRouteId === route.id) return "이어달리기";
+  return null;
+}
+
+function savedMapRowDetailTitle(
+  route: SavedRoute,
+  ctx: Pick<
+    SavedRoutesPanelProps,
+    "publishedPublicSavedRouteIds" | "pendingPublicRouteIds" | "activeResumeRouteId"
+  >,
+): string {
+  const parts: string[] = [
+    routeProfileLabelKo(route.profile),
+    formatSavedDateTime(route.updatedAtIso),
+  ];
+  if (route.completed !== 1 && daysUntilExpiry(route.expiresAtIso) != null) {
+    parts.push(`${daysUntilExpiry(route.expiresAtIso)}일 후 만료`);
+  }
+  if (ctx.publishedPublicSavedRouteIds?.has(route.id)) parts.push("퍼블릭 등록됨");
+  if (ctx.pendingPublicRouteIds?.has(route.id)) parts.push("심사 중");
+  if (ctx.activeResumeRouteId === route.id) parts.push("이어달리기 중");
+  return parts.filter(Boolean).join(" · ");
+}
 
 /** 선택된 경로에 대해 「공개」 툴바 버튼의 활성 여부·안내를 판정. */
 type PublicActionState =
@@ -310,9 +294,115 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
   }
 
   const hasRoutes = props.routes.length > 0;
+  const mapList = props.listAppearance === "map";
+
+  const openToolbarTitle = !hasSelection
+    ? "경로를 선택하세요"
+    : !props.sessionIdle
+      ? "주행 종료 후 사용 가능"
+      : selectedRoute && isResumeToolbarTarget(selectedRoute)
+        ? "이어 달리기"
+        : "지도에 경로 불러오기";
+
+  const completionFilter = (
+    <div
+      className="saved-routes__filter"
+      role="tablist"
+      aria-label="사용자 경로 완주 여부 필터"
+    >
+      <button
+        type="button"
+        role="tab"
+        aria-selected={filter === "all"}
+        className={`saved-routes__filter-btn ${filter === "all" ? "is-active" : ""}`}
+        title="Show all"
+        onClick={() => setFilter("all")}
+      >
+        전체 ({props.routes.length})
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={filter === "completed"}
+        className={`saved-routes__filter-btn ${filter === "completed" ? "is-active" : ""}`}
+        title="Completed only"
+        onClick={() => setFilter("completed")}
+      >
+        완주 ({stateCounts.completed})
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={filter === "incomplete"}
+        className={`saved-routes__filter-btn ${filter === "incomplete" ? "is-active" : ""}`}
+        title="Ridden but not completed"
+        onClick={() => setFilter("incomplete")}
+      >
+        미완주 ({stateCounts.incomplete})
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={filter === "pending"}
+        className={`saved-routes__filter-btn ${filter === "pending" ? "is-active" : ""}`}
+        title="Pending only"
+        onClick={() => setFilter("pending")}
+      >
+        대기 ({stateCounts.pending})
+      </button>
+    </div>
+  );
+
+  const sortControl = (
+    <RouteSortSelect value={sortKey} onChange={setSortKey} keys={["recent", "distance", "name"]} />
+  );
+
+  const actionToolbar = (
+    <div className="saved-routes__toolbar" role="toolbar" aria-label="선택한 경로 작업">
+      <button
+        type="button"
+        className="saved-routes__tool saved-routes__tool--accent"
+        disabled={!publicEnabled}
+        title={publicActionState.title}
+        onClick={onToolbarPublic}
+      >
+        공개
+      </button>
+      <button
+        type="button"
+        className="saved-routes__tool saved-routes__tool--primary"
+        disabled={!actionsEnabled}
+        title={openToolbarTitle}
+        onClick={onToolbarOpen}
+      >
+        {selectedRoute && isResumeToolbarTarget(selectedRoute) ? "이어 달리기" : "열기"}
+      </button>
+      <button
+        type="button"
+        className="saved-routes__tool"
+        disabled={!actionsEnabled}
+        title={!hasSelection ? "경로를 선택하세요" : "이름 변경"}
+        onClick={onToolbarRename}
+      >
+        이름
+      </button>
+      <button
+        type="button"
+        className="saved-routes__tool saved-routes__tool--danger"
+        disabled={!actionsEnabled}
+        title={!hasSelection ? "경로를 선택하세요" : "경로 삭제"}
+        onClick={onToolbarDelete}
+      >
+        삭제
+      </button>
+    </div>
+  );
 
   return (
-    <section className="saved-routes" aria-label="사용자 경로">
+    <section
+      className={`saved-routes${mapList ? " saved-routes--map" : ""}`}
+      aria-label="사용자 경로"
+    >
       {props.quotaNotice ? (
         <div className="saved-routes__quota-notice" role="alert">
           <p className="saved-routes__quota-notice-msg">{props.quotaNotice}</p>
@@ -333,117 +423,33 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
         </div>
       ) : null}
 
-      {props.guestNotice ? (
+      {props.guestNotice && !mapList ? (
         <p className="saved-routes__notice">
           회원 등록하면 모든 기기에서 기록이 유지됩니다
         </p>
       ) : null}
 
       {hasRoutes ? (
-        <div className="saved-routes__controls">
-          <div className="saved-routes__control-row">
-            <div
-              className="saved-routes__filter"
-              role="tablist"
-              aria-label="사용자 경로 완주 여부 필터"
-            >
-              <button
-                type="button"
-                role="tab"
-                aria-selected={filter === "all"}
-                className={`saved-routes__filter-btn ${filter === "all" ? "is-active" : ""}`}
-                title="Show all"
-                onClick={() => setFilter("all")}
-              >
-                전체 ({props.routes.length})
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={filter === "completed"}
-                className={`saved-routes__filter-btn ${filter === "completed" ? "is-active" : ""}`}
-                title="Completed only"
-                onClick={() => setFilter("completed")}
-              >
-                완주 ({stateCounts.completed})
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={filter === "incomplete"}
-                className={`saved-routes__filter-btn ${filter === "incomplete" ? "is-active" : ""}`}
-                title="Ridden but not completed"
-                onClick={() => setFilter("incomplete")}
-              >
-                미완주 ({stateCounts.incomplete})
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={filter === "pending"}
-                className={`saved-routes__filter-btn ${filter === "pending" ? "is-active" : ""}`}
-                title="Pending only"
-                onClick={() => setFilter("pending")}
-              >
-                대기 ({stateCounts.pending})
-              </button>
-            </div>
-
-            <RouteSortSelect
-              value={sortKey}
-              onChange={setSortKey}
-              keys={["recent", "distance", "name"]}
-            />
-          </div>
-
-          <div className="saved-routes__toolbar" role="toolbar" aria-label="선택한 경로 작업">
-            <button
-              type="button"
-              className="saved-routes__tool saved-routes__tool--accent"
-              disabled={!publicEnabled}
-              title={publicActionState.title}
-              onClick={onToolbarPublic}
-            >
-              공개
-            </button>
-            <button
-              type="button"
-              className="saved-routes__tool saved-routes__tool--primary"
-              disabled={!actionsEnabled}
-              title={
-                !hasSelection
-                  ? "경로를 선택하세요"
-                  : !props.sessionIdle
-                    ? "주행 종료 후 사용 가능"
-                    : selectedRoute && isResumeToolbarTarget(selectedRoute)
-                      ? "이어 달리기"
-                      : "지도에 경로 불러오기"
-              }
-              onClick={onToolbarOpen}
-            >
-              {selectedRoute && isResumeToolbarTarget(selectedRoute)
-                ? "이어 달리기"
-                : "열기"}
-            </button>
-            <button
-              type="button"
-              className="saved-routes__tool"
-              disabled={!actionsEnabled}
-              title={!hasSelection ? "경로를 선택하세요" : "이름 변경"}
-              onClick={onToolbarRename}
-            >
-              이름
-            </button>
-            <button
-              type="button"
-              className="saved-routes__tool saved-routes__tool--danger"
-              disabled={!actionsEnabled}
-              title={!hasSelection ? "경로를 선택하세요" : "경로 삭제"}
-              onClick={onToolbarDelete}
-            >
-              삭제
-            </button>
-          </div>
+        <div
+          className={`saved-routes__controls${mapList ? " saved-routes__controls--map-line" : ""}`}
+        >
+          {mapList ? (
+            <>
+              {completionFilter}
+              <div className="saved-routes__controls-actions">
+                {sortControl}
+                {actionToolbar}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="saved-routes__control-row">
+                {completionFilter}
+                {sortControl}
+              </div>
+              {actionToolbar}
+            </>
+          )}
         </div>
       ) : null}
 
@@ -512,6 +518,56 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                       </button>
                     </div>
                   </div>
+                ) : mapList ? (
+                  (() => {
+                    const statusCtx = {
+                      pendingPublicRouteIds: props.pendingPublicRouteIds,
+                      activeResumeRouteId: props.activeResumeRouteId,
+                    };
+                    const detailTitle = savedMapRowDetailTitle(route, props);
+                    const detailId = `saved-row-detail-${route.id}`;
+                    const statusLabel = mapListStatusLabel(route, statusCtx);
+                    return (
+                  <div
+                    className={`saved-routes__row saved-routes__row--map${isSelected ? " is-selected" : ""}`}
+                    role="option"
+                    tabIndex={0}
+                    aria-selected={isSelected}
+                    title={[route.name, detailTitle].filter(Boolean).join(" · ")}
+                    aria-describedby={detailTitle ? detailId : undefined}
+                    onClick={() => toggleSelect(route)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleSelect(route);
+                      }
+                    }}
+                  >
+                    <span className="saved-routes__map-main">
+                      <RouteProfileIcon profile={route.profile} />
+                      <strong className="saved-routes__name" title={route.name}>
+                        {route.name}
+                      </strong>
+                      {detailTitle ? (
+                        <span id={detailId} className="oc-modal__item-detail-sr">
+                          {detailTitle}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span
+                      className={`saved-routes__map-status${
+                        statusLabel === "완주함" ? " is-done" : ""
+                      }`}
+                    >
+                      {statusLabel}
+                    </span>
+                    <span className="saved-routes__map-distance">
+                      {(route.distanceMeters / 1000).toFixed(2)}{" "}
+                      <span className="saved-routes__map-distance-unit">km</span>
+                    </span>
+                  </div>
+                    );
+                  })()
                 ) : (
                   // 버튼 대신 div: 행 내부에 블록 요소(head/meta/progress)를 담기 때문.
                   // <button> 안에 블록 콘텐츠를 넣으면 브라우저가 DOM 을 재구성해 레이아웃이 깨진다.
@@ -536,9 +592,9 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
                         {/* 경로 종류 아이콘이 앞, 완주·대기 배지가 맨 오른쪽(2026-10-06 Chief) */}
                         <span
                           className="saved-routes__profile"
-                          title={PROFILE_LABEL[route.profile]}
+                          title={routeProfileLabelKo(route.profile)}
                         >
-                          <RouteProfileIcon profile={route.profile} />
+                          <RouteProfileIcon profile={route.profile} className="saved-routes__profile-icon" />
                         </span>
                         {(() => {
                           if (route.completed === 1) {

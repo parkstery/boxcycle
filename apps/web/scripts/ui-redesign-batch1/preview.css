@@ -1,0 +1,4 @@
+html, body, #root { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+.audit-world { position: relative; width: 100vw; height: 100dvh; overflow: hidden; background: #2e3a2f; }
+.audit-map { position: absolute; inset: 0; width: 100%; height: 100%; }
+.audit-map-attribution { position: absolute; bottom: 2px; right: 8px; font: 10px system-ui; color: #fff; pointer-events: none; }

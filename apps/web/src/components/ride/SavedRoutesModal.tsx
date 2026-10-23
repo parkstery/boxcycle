@@ -23,8 +23,14 @@ export type SavedRoutesModalProps = Omit<SavedRoutesPanelProps, "queryText"> & {
  * 목록·정렬·필터는 `SavedRoutesPanel` 이 그대로 소유한다. 여기서는 자리만 바꾼다.
  * 검색어만은 제목 줄(껍데기)에 입력칸이 있으므로 여기서 들고 패널에 내려준다(2026-10-06).
  */
+const SAVED_MAP_ACTION_HINT = "경로를 고른 뒤 열기 또는 이어 달리기를 눌러요";
+const SAVED_GUEST_HINT = "회원 등록하면 모든 기기에서 기록이 유지됩니다";
+
 export function SavedRoutesModal({ onClose, onSelectSource, ...panel }: SavedRoutesModalProps) {
   const [queryText, setQueryText] = useState("");
+  const footerHint = panel.guestNotice
+    ? `${SAVED_GUEST_HINT} · ${SAVED_MAP_ACTION_HINT}`
+    : SAVED_MAP_ACTION_HINT;
   return (
     <RouteListModalShell
       titleId="saved-routes-modal-title"
@@ -33,6 +39,8 @@ export function SavedRoutesModal({ onClose, onSelectSource, ...panel }: SavedRou
       searchValue={queryText}
       onSearchChange={setQueryText}
       onClose={onClose}
+      appearance="map"
+      footerHint={footerHint}
       sourceNav={
         onSelectSource ? (
           <RouteListSourceNav current="saved" onSelect={onSelectSource} />
@@ -41,6 +49,7 @@ export function SavedRoutesModal({ onClose, onSelectSource, ...panel }: SavedRou
     >
       <SavedRoutesPanel
         {...panel}
+        listAppearance="map"
         queryText={queryText}
         onLoadRoute={(route) => {
           panel.onLoadRoute(route);

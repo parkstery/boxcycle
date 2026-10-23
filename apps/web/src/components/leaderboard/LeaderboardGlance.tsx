@@ -1,4 +1,4 @@
-import type { ReactNode, SyntheticEvent } from "react";
+import type { SyntheticEvent } from "react";
 import {
   computeLeaderboardLiveRank,
   type LeaderboardLiveRow,
@@ -41,19 +41,6 @@ function RankChipIcon() {
   );
 }
 
-function Chevron({ up }: { up: boolean }) {
-  return (
-    <svg width="9" height="9" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path
-        d={up ? "M3 10l5-5 5 5" : "M3 6l5 5 5-5"}
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 function stopMapTouch(e: SyntheticEvent) {
   e.stopPropagation();
 }
@@ -80,29 +67,13 @@ function buildGlanceModel(props: LeaderboardGlanceViewProps) {
       : null;
   const liveRank = live?.rank ?? null;
 
-  let chipMain: ReactNode = "순위";
+  let chipA11y = "순위";
   if (mode === "riding") {
-    if (liveRank != null) {
-      chipMain = (
-        <>
-          <span className="lb-glance__chip-num">{liveRank}</span>위
-        </>
-      );
-    }
+    if (liveRank != null) chipA11y = `주행 중 ${liveRank}위`;
   } else if (isGuest) {
-    if (projected != null) {
-      chipMain = (
-        <>
-          예상 <span className="lb-glance__chip-num">{projected}</span>위
-        </>
-      );
-    }
+    if (projected != null) chipA11y = `예상 ${projected}위`;
   } else if (ranked != null) {
-    chipMain = (
-      <>
-        이번 주 <span className="lb-glance__chip-num">{ranked}</span>위
-      </>
-    );
+    chipA11y = `이번 주 ${ranked}위`;
   }
 
   const listRows: LeaderboardLiveRow[] =
@@ -132,27 +103,25 @@ function buildGlanceModel(props: LeaderboardGlanceViewProps) {
 
   const ridingNoSensor = mode === "riding" && !pedalQualified;
 
-  return { me, mode, chipMain, liveRank, listRows, gapFooter, ridingNoSensor };
+  return { me, mode, chipA11y, listRows, gapFooter, ridingNoSensor };
 }
 
 export function LeaderboardGlanceChip(props: LeaderboardGlanceViewProps) {
-  const { panelOpen, onTogglePanel, mode } = props;
-  const { chipMain, liveRank } = buildGlanceModel(props);
+  const { panelOpen, onTogglePanel } = props;
+  const { chipA11y } = buildGlanceModel(props);
   return (
     <button
       type="button"
       className={`lb-glance__chip${panelOpen ? " lb-glance__chip--open" : ""}`}
       aria-expanded={panelOpen}
       aria-controls="lb-glance-panel"
+      aria-label={chipA11y}
+      title={chipA11y}
       onPointerDown={stopMapTouch}
       onTouchStart={stopMapTouch}
       onClick={onTogglePanel}
     >
       <RankChipIcon />
-      {chipMain}
-      {mode === "map" || (mode === "riding" && liveRank != null) ? (
-        <Chevron up={panelOpen} />
-      ) : null}
     </button>
   );
 }

@@ -1,3 +1,6 @@
+2026-10-24 08:05 KST [Chief 지정 조작부 되돌리기](20261023-ui-redesign/22-result-chief-revert-controls.md): PASS. 녹색 원형 시작·아이콘 일시정지 복원, 주행 중 지도 조작 유지, 순위 칩 원형 아이콘, 잠금 시험 「Chief 고정」. [고정 목록](../reference/product/261024-RTW-Chief-지정-디자인-고정.md) 신설·AGENTS/CLAUDE/플레이북 연결. 화면23·단위1354·실앱 ride-entry 7/7(재실행)·batch2-live PASS. 묶음1·2와 함께 커밋.
+2026-10-23 22:35 KST [Supervisor 인계](20261023-ui-redesign/13-handoff-next-supervisor.md): 묶음1/2 LOCAL_VERIFIED·Chief화면확인대기, 미커밋/미배포. 서버/보존파일/검증증거/후속순서 정리, [첫 프롬프트](20261023-ui-redesign/14-first-prompt-next-supervisor.md) 작성.
+2026-10-23 [MENU·경로 목록 묶음1](20261023-ui-redesign/05-review-batch1.md): LOCAL_VERIFIED/Chief화면확인대기. Cursor구현·Codex감리, DeepSeek/GLM 공통무료한도 후 미완 인수. [시안비교](20261023-ui-redesign/comparison-batch1.html),단위1353/서버169/실앱8 PASS,화면17 PASS·기존실패1.5020/미배포.
 2026-10-23 [수퍼바이저 교대 체계](HANDOFF.md): 채택. Chief — Claude Code·Codex 가 토큰 한도에 따라 수퍼바이저 교대. 시작·끝은 [HANDOFF.md](HANDOFF.md), 절차는 [교대 플레이북](../reference/operations/261023-RTW-수퍼바이저-교대-플레이북.md). 디자인 캔버스는 리포 [mockups](20261023-ui-redesign/mockups/)가 원본.
 2026-10-23 [전체 화면 디자인 변경](20261023-ui-redesign/README.md): IN_PROGRESS. 시안 16장 Chief 승인, 3장 배포·2장 부분. 묶음 1(MENU·경로 목록)부터. 결정 대기 2건.
 2026-10-23 [순위 칩·순위판·결과 순위 줄](20261023-leaderboard/05-result-glance.md): DEPLOYED. 5ab00ad6. Cursor 구현·Claude 감리(수정 2). 상위20·위아래3 함수 배포. tsc/단위1353/서버169/e2e:ride 7/7 PASS.

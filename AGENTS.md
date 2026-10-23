@@ -18,6 +18,7 @@
 | 질문 | 문서 |
 |---|---|
 | **수퍼바이저가 이어받을 지금 상태** | [document/ops/HANDOFF.md](document/ops/HANDOFF.md) |
+| **Chief 가 직접 정한 화면 — 바꾸지 말 것** | [document/reference/product/261024-RTW-Chief-지정-디자인-고정.md](document/reference/product/261024-RTW-Chief-지정-디자인-고정.md) |
 | 다음 목표·chief 결정 대기 요약 | [document/260928-RTW-현황판.md](document/260928-RTW-현황판.md) |
 | 에이전트 작업 창구(ops) 현황·새 묶음 열기 | [document/ops/README.md](document/ops/README.md) |
 | X가 무엇인가·뭐라고 부르나 | [document/reference/product/260714-RTW-Ontology.md](document/reference/product/260714-RTW-Ontology.md) |
@@ -52,6 +53,7 @@
 
 - **Chief**는 제품 방향, 중요한 기술·범위 결정과 최종 완료를 승인한다. 일상적인 구현의 중간 전달을 맡기지 않는다.
 - **Supervisor = 그때의 담당 agent (Claude Code 또는 Codex, 토큰 한도에 따라 교대)**: 요구를 분석하고 작업 범위·완료 조건·검증 방법을 정해 `document/ops/`에 지시한다. 구현 결과와 실제 diff·검증 증거를 검수하고 재작업 또는 완료를 판정한다. **시작하면 [document/ops/HANDOFF.md](document/ops/HANDOFF.md)부터 읽고, 작업 단위가 끝날 때마다·끊기기 전에 그 파일을 고친다.** 절차·실행자 호출·감리 명령·배포·환경 함정은 [수퍼바이저 교대 플레이북](document/reference/operations/261023-RTW-수퍼바이저-교대-플레이북.md).
+- **Chief 지정 디자인은 고정이다.** Chief 가 직접 지시로 바꾼 화면(버튼 모양·색·표시 여부 등)은 [Chief 지정 디자인 고정 목록](document/reference/product/261024-RTW-Chief-지정-디자인-고정.md)에 있다. 수퍼바이저·실행자는 시안·디자인 규칙·자기 판단으로 이 항목을 바꾸지 않는다. 지시서 「금지」에 해당 항목을 옮겨 적고, 감리에서 건드렸으면 FAIL. Chief 가 새로 화면을 지시하면 끝낼 때 목록에 한 줄 더한다(2026-10-24 Chief).
 - **Developer = Cursor AI·CLI(기본)**: OpenCode 무료 모델은 조사·기계적 작업에 쓰고(2026-10-22 Chief), 화면·판단 작업에 못 미치면 Cursor로 돌아온다. 지정된 작업을 조사·구현·검증하고 같은 묶음에 사실에 근거한 결과를 남긴다. 범위 밖 문제는 보고하고, 독단적으로 확장하지 않는다. IDE·CLI 어느 환경이든 같은 파일 인계·검수 계약을 따른다. 안내·질의·권한 요청은 한국어로 작성한다.
 - 최종 사용 기기는 **스마트폰**이다. PC는 개발·반복 테스트 환경이며, 현행 폰 가로 방향·공간밀도 기준을 우선한다. [협업·감리 계약](document/reference/operations/261009-RTW-개발에이전트-협업-감리.md)에 따라 도구가 교대해도 동일 지시·결과·검수 기록을 이어간다.
 - 공식 handoff는 [document/ops/README.md](document/ops/README.md)에 따른 파일 기록이다. 새 작업은 현재 묶음의 `README.md`와 최신 지시를 읽고 시작한다. 이전 릴레이의 상시 대기 지침을 새 작업에 적용하지 않는다.

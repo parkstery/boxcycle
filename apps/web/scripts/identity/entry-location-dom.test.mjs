@@ -69,7 +69,7 @@ test("first control directly requests browser location", {timeout:60000}, async(
   const rect=await control.boundingBox();assert.ok(rect&&rect.x>=0&&rect.y>=0&&rect.x+rect.width<=width&&rect.y+rect.height<=300);
  }
 
- const dir=resolve("../../document/ops/20261017-entry-location/evidence");mkdirSync(dir,{recursive:true});
+ const dir=resolve(process.env.RTW_ENTRY_LOCATION_EVIDENCE_DIR || "test-results/entry-location-dom");mkdirSync(dir,{recursive:true});
  await page.screenshot({path:resolve(dir,"12-rome-initial-667x300.png")});
  await page.waitForTimeout(1000);
  await control.click();await page.waitForFunction(()=>window.state?.phase==="ready",{},{timeout:10000});

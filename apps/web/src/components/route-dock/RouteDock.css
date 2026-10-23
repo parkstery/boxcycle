@@ -1,126 +1,155 @@
-/* Single, compact address surface. Transport and sensor belong to RideControlBar. */
+/* White route card — 250px mockup width; sensor row when ready. */
 .route-dock-anchor {
   --route-dock-pad: clamp(.45rem, 1.4vw, .85rem);
   position: absolute;
-  left: max(var(--route-dock-pad), env(safe-area-inset-left, 0px));
+  left: max(8px, env(safe-area-inset-left, 0px));
   bottom: calc(max(var(--route-dock-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem));
-  max-width: calc(100vw - 2rem);
+  width: min(250px, calc(100vw - 16px));
   z-index: 6;
   pointer-events: none;
 }
-.route-dock__shell {
-  display: flex;
-  align-items: stretch;
+.route-dock__card {
+  position: relative;
   pointer-events: auto;
-  border: 1px solid var(--rtw-ui-border-soft);
-  border-radius: 9px;
-  background: var(--rtw-ui-surface);
-  color: var(--rtw-ui-ink);
-  box-shadow: 0 1px 5px #0002;
-  overflow: hidden;
-}
-.route-dock__caret {
-  flex: 0 0 18px;
-  width: 18px;
-  min-height: 28px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--rtw-ui-muted);
-  font-size: 17px;
-  cursor: pointer;
-}
-.route-dock__body { min-width: 0; }
-.route-dock__panel {
-  width: min(150px, calc(100vw - 2.2rem));
   box-sizing: border-box;
-  padding: 2px 3px 2px 0;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  overflow: visible;
+  padding: 6px 8px 8px 12px;
+  border-radius: 12px;
+  background: #fff;
+  color: #121417;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
 }
-.route-dock__panel[hidden] { display: none; }
-.route-dock__stops { list-style: none; margin: 0; padding: 0; overflow: visible; max-height: none; }
-.route-dock__panel { position: relative; }
-/* 10-23 Chief: 출발↔도착 바꾸기 — 목록 오른쪽 가운데, ✕ 열 바로 왼쪽에 뜬 원 */
-.route-dock__swap {
-  position: absolute;
-  top: 50%;
-  right: 24px;
-  transform: translateY(-50%);
-  display: inline-flex;
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__grid {
+  display: none;
+}
+.route-dock__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
   align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
+  column-gap: 4px;
+}
+.route-dock__stops {
+  list-style: none;
+  margin: 0;
   padding: 0;
-  border: 1px solid var(--rtw-ui-border-soft);
-  border-radius: 50%;
-  background: var(--rtw-ui-surface);
-  color: var(--rtw-ui-ink);
-  font-size: 13px;
-  line-height: 1;
-  box-shadow: 0 1px 3px #0002;
-  cursor: pointer;
+  min-width: 0;
 }
-.route-dock__swap:active { background: #EFF6FF; border-color: #2563EB; color: #1D4ED8; }
-.route-dock__stops > li {
+.route-dock__row {
   display: flex;
-  align-items: stretch;
-  height: 24px;
-  min-height: 24px;
-  box-sizing: border-box;
-  border-top: 1px solid var(--rtw-ui-border-soft);
+  align-items: center;
+  min-height: 28px;
+  border-bottom: 1px solid #eef0f3;
 }
-.route-dock__stops > li:first-child { border-top: 0; }
+.route-dock__row:last-child { border-bottom: 0; }
 .route-dock__stop {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 8px;
   flex: 1 1 auto;
   min-width: 0;
-  padding: 0 3px;
+  padding: 0;
   border: 0;
-  border-radius: 0;
   background: transparent;
   color: inherit;
   font: inherit;
-  font-size: 11.5px;
-  cursor: pointer;
-  text-align: left;
-}
-.route-dock__stop-dot {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 11px;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  color: #fff;
-  font-size: 7px;
+  font-size: 13px;
   font-weight: 600;
+  text-align: left;
+  cursor: pointer;
 }
-.route-dock__stop-dot--start { background: #16a34a; }
-.route-dock__stop-dot--end { background: #dc2626; }
-.route-dock__stop-dot--waypoint { background: #a16207; }
-.route-dock__stop-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.route-dock__stop-remove {
+.route-dock__dot {
+  flex: 0 0 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+.route-dock__dot--start { border: 2px solid #121417; background: transparent; }
+.route-dock__dot--end { background: #121417; }
+.route-dock__dot--waypoint { background: #5e6472; }
+.route-dock__kind {
+  flex: 0 0 24px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #5e6472;
+}
+.route-dock__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.route-dock__remove {
   flex: 0 0 22px;
   width: 22px;
+  height: 22px;
   padding: 0;
   border: 0;
-  border-radius: 0;
   background: transparent;
-  color: var(--rtw-ui-muted);
+  color: #5e6472;
   font-size: 10px;
   cursor: pointer;
 }
-.route-dock__stop-remove:disabled { opacity: .35; cursor: not-allowed; }
-.route-dock__stop-remove:hover:not(:disabled) { color: #dc2626; background: #dc262615; }
-.route-dock__stop:hover, .route-dock__caret:hover { background: var(--rtw-ui-surface-primary-soft); }
-.route-dock__stops-empty { font-size: 11.5px; }
-.route-dock__shell button:focus-visible { outline: 2px solid var(--rtw-ui-primary-strong); outline-offset: -2px; }
+.route-dock__remove:hover { color: #dc2626; }
+.route-dock__swap {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #f2f3f5;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.route-dock__swap-icon {
+  width: 14px;
+  height: 14px;
+  background:
+    linear-gradient(#2a2e37, #2a2e37) center/1.7px 12px no-repeat,
+    linear-gradient(#2a2e37, #2a2e37) 3px 2px/1.7px 6px no-repeat,
+    linear-gradient(#2a2e37, #2a2e37) 9px 8px/1.7px 6px no-repeat;
+  opacity: 0.9;
+}
+.route-dock__swap-spacer { width: 32px; }
+.route-dock__footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  min-height: 28px;
+}
+.route-dock__footer .hud-cadence--dock {
+  height: 28px;
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+.route-dock__caret {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #5e6472;
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0.85;
+}
+.route-dock__stops-empty { font-size: 11px; color: #5e6472; padding: 4px 0; }
+.route-dock__card button:focus-visible { outline: 2px solid #2457d6; outline-offset: 1px; }
 @media (max-height: 560px) { .route-dock-anchor { --mapbox-logo-clearance: .35rem; } }
+
+/* Dock variant used to be a fixed bottom indicator; this card owns its sensor row. */
+.route-dock__footer .hud-cadence--dock {
+  position: static;
+  transform: none;
+  width: auto;
+  padding: 0 10px;
+  border: 1px solid #c9d6ee;
+  background: #fff;
+}
+.route-dock__footer .hud-cadence--dock .hud-cadence__text { display: inline; }

@@ -101,8 +101,8 @@ test.describe('실주행 진입 시퀀스', () => {
       await expect(item.locator('.oc-modal__item-name')).toHaveText(originalTitle.replace(/^Basic\s+\d+\s*·\s*/i, ''))
       await expect(item.locator('.oc-modal__item-name')).toHaveAttribute('title', originalTitle)
 
-      // 부제 "자전거 · 0.41 km · 예상 …" — 실도로 seed 라면 거리가 양수로 표시된다.
-      const sub = (await item.locator('.oc-modal__item-sub').innerText()).trim()
+      // 시안 07에서는 거리가 오른쪽 전용 열로 이동했다. 같은 양수 거리 계약을 확인한다.
+      const sub = (await item.locator('.oc-modal__item-distance').innerText()).trim()
       const km = Number(sub.match(/([\d.]+)\s*km/)?.[1])
       expect(Number.isFinite(km), `거리 파싱 실패: ${sub}`).toBe(true)
       expect(km).toBeGreaterThan(0)

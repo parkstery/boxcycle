@@ -1,30 +1,132 @@
 /* MapViewSheet 와 맞춘 밝은 카드 톤 · 모바일용 콤팩트 밀도 */
 .ride-panel {
-  --rp-fg: #1F2937;
-  --rp-fg-muted: #64748B;
-  --rp-border: #CBD5E1;
-  --rp-surface: #F8FAFC;
-  --rp-chip: #F1F5F9;
-  --rp-accent: #2563EB;
-  --rp-accent-strong: #1D4ED8;
-  --rp-btn-fg: #1F2937;
-  font-family: var(--rtw-font, inherit);
-  /* 세션 블록 컴팩트화로 확보한 높이 → 코스·내 경로 리스트에 재배분 */
+  --rp-fg: #121417;
+  --rp-fg-muted: #5e6472;
+  --rp-border: #eef0f3;
+  --rp-surface: #f8fafc;
+  --rp-chip: #f1f5f9;
+  --rp-accent: #2457d6;
+  --rp-accent-strong: #163e9e;
+  --rp-btn-fg: #121417;
+  font-family: "Gothic A1", system-ui, sans-serif;
   --rp-route-list-base-height: 5.5rem;
   --rp-session-compact-delta: 1.85rem;
   --rp-route-list-max-height: calc(var(--rp-route-list-base-height) + var(--rp-session-compact-delta));
 
   width: 100%;
-  max-width: var(--menu-panel-width, 15.4rem);
+  max-width: none;
   flex: 0 0 auto;
-  padding: 0.45rem 0.55rem 0.55rem;
-  border-right: 1px solid var(--rp-border);
+  padding: 0;
+  border: none;
   background: transparent;
   color: var(--rp-fg);
-  max-height: min(85vh, 720px);
-  overflow: auto;
+  max-height: none;
+  overflow: visible;
   box-sizing: border-box;
   color-scheme: light;
+}
+
+/* ── MENU 경로 6행 (시안 06) ── */
+.menu-route-nav__section-label {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #5e6472;
+}
+
+.menu-route-nav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu-route-nav__item {
+  border-bottom: 1px solid #eef0f3;
+  height: 34px;
+}
+
+.menu-route-nav__item:last-child {
+  border-bottom: none;
+}
+
+.menu-route-nav__row {
+  width: 100%;
+  min-height: 34px;
+  height: 34px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.menu-route-nav__row.is-active {
+  background: rgba(36, 87, 214, 0.06);
+}
+
+.menu-route-nav__icon {
+  flex: 0 0 auto;
+  display: flex;
+  color: #2a2e37;
+}
+
+.menu-route-nav__label {
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-route-nav__aside {
+  flex: 0 1 auto;
+  max-width: 42%;
+  font-size: 11px;
+  color: #5e6472;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+.menu-route-nav__aside--wrap {
+  flex: 1 1 auto;
+  max-width: none;
+  min-width: 0;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.menu-route-nav__aside b {
+  font-family: "Saira Condensed", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2457d6;
+}
+
+.menu-route-nav__count {
+  font-family: "Saira Condensed", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4b5160;
+  flex-shrink: 0;
+}
+
+.menu-route-nav__chevron {
+  flex: 0 0 auto;
+  color: #5e6472;
 }
 
 .ride-panel input,
@@ -210,69 +312,12 @@
   opacity: 0.88;
 }
 
-.ride-panel__official {
-  margin: 0 0 0.35rem;
-  padding: 0.35rem 0.4rem;
-  border-radius: 8px;
-  border: 1px solid var(--rp-border);
-  background: var(--rp-surface);
-}
-
-/*
- * 경로 출처 한 줄 — 입문 · 퍼블릭 · 내 경로.
- * 종전에는 「공식」 키커 오른쪽에 밀어 붙이느라 flex-end 였는데, 이제 이 줄이 곧 내비게이션이라
- * 세 버튼을 같은 폭으로 나눠 좌우 여백도 동일하게 둔다.
- */
-.ride-panel__official-segments {
-  display: flex;
-  width: 100%;
-  flex-wrap: nowrap;
-  gap: 0.25rem;
-  min-width: 0;
-  justify-content: center;
-}
-
-.ride-panel__official-seg {
-  font: inherit;
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 0.24rem 0.42rem;
-  flex: 1 1 0;
-  min-width: 0;
-  white-space: nowrap;
-  border-radius: 999px;
-  border: 1px solid var(--rp-border);
-  background: var(--rp-chip);
-  color: var(--rp-fg);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ride-panel__official-seg.is-active {
-  border-color: var(--rtw-ui-primary, #2563eb);
-  background: var(--rtw-ui-primary, #2563eb);
-  color: var(--rtw-ui-surface, #ffffff);
-}
-
 .ride-panel__official-active {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.45rem;
-  margin-top: 0.15rem;
-  padding: 0.28rem 0.35rem;
-  border-radius: 8px;
-  border: 1px solid var(--rp-border);
-  background: #F8FAFC;
-  font-size: 0.72rem;
+  margin: 6px 0 0;
+  padding: 0;
+  font-size: 11px;
   line-height: 1.35;
-}
-
-.ride-panel__official-active-label {
-  min-width: 0;
-  opacity: 0.9;
+  color: #5e6472;
 }
 
 .ride-panel__official-active-leave {

@@ -1,40 +1,35 @@
 .trail-hub {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  padding: 0.6rem 0.7rem;
-  margin-bottom: 0.5rem;
-  border-radius: var(--rtw-radius, 14px);
-  background: #FFFFFF;
-  border: 1px solid #CBD5E1;
-  -webkit-backdrop-filter: blur(var(--rtw-glass-blur, 12px));
-  backdrop-filter: blur(var(--rtw-glass-blur, 12px));
+  gap: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  font-family: "Gothic A1", system-ui, sans-serif;
 }
 
-.trail-hub__kicker {
-  font-size: 0.62rem;
+.trail-hub__section-label {
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
-  color: #2563EB;
+  letter-spacing: 0.12em;
+  color: #5e6472;
+  margin-top: 6px;
 }
 
-.trail-hub__row {
+.trail-hub__row--visibility {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
   align-items: center;
-}
-
-/* 소유자 공개 설정 전용 행 — 현재 위치 표시는 HUD가 소유(중복 제거) */
-.trail-hub__row--visibility {
   justify-content: space-between;
+  margin-bottom: 6px;
 }
 
 .trail-hub__vis-label {
-  font-size: 0.72rem;
+  font-size: 11px;
   font-weight: 600;
-  color: #64748B;
+  color: #5e6472;
 }
 
 .trail-hub__visibility {
@@ -44,165 +39,107 @@
 
 .trail-hub__vis-btn {
   padding: 0.28rem 0.5rem;
-  font-size: 0.7rem;
+  font-size: 11px;
   font-weight: 600;
-  border-radius: var(--rtw-radius-pill, 999px);
-  border: 1px solid #CBD5E1;
+  border-radius: 999px;
+  border: 1px solid #eef0f3;
   background: transparent;
   color: inherit;
   cursor: pointer;
 }
 
 .trail-hub__vis-btn--on {
-  border-color: #2563EB;
-  background: #2563EB;
-  color: #FFFFFF;
-}
-
-.trail-hub__list-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.5rem;
-}
-
-.trail-hub__meta {
-  font-size: 0.7rem;
-  color: #64748B;
+  border-color: #2457d6;
+  background: #2457d6;
+  color: #ffffff;
 }
 
 .trail-hub__list {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  max-height: 10.5rem;
-  overflow-y: auto;
 }
 
-/* =====================================================================
-   컴팩트 라인 카드 — ● 번호 · 지명 … 거리 · LIVE 인원
-   ===================================================================== */
-.trail-hub__row-card {
-  width: 100%;
+.trail-hub__item {
+  border-bottom: 1px solid #eef0f3;
+}
+
+.trail-hub__item:last-child {
+  border-bottom: none;
+}
+
+.trail-hub__live-row {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  text-align: left;
-  padding: 0.34rem 0.5rem;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  border-left: 2px solid transparent;
-  background: #F8FAFC;
-  color: #1F2937;
+  gap: 8px;
+  min-height: 34px;
+  height: 34px;
+}
+
+.trail-hub__live-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #121417;
+}
+
+.trail-hub__live-km {
+  flex-shrink: 0;
+  font-family: "Saira Condensed", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4b5160;
+}
+
+.trail-hub__live-km-unit {
+  font-size: 10px;
+}
+
+.trail-hub__live-join {
+  flex-shrink: 0;
+  height: 24px;
+  padding: 0 9px 0 7px;
+  border: 0;
+  border-radius: 12px;
+  background: #e6f4ec;
   font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  color: #1e7a46;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   cursor: pointer;
-  transition: background 0.14s ease, border-color 0.14s ease;
 }
 
-.trail-hub__row-card--join:hover:not(:disabled) {
-  background: #EFF6FF;
-  border-left-color: #2563EB;
-}
-
-.trail-hub__row-card--join:disabled {
+.trail-hub__live-join:disabled {
   opacity: 0.5;
   cursor: default;
 }
 
-.trail-hub__row-card--active {
-  background: #EFF6FF;
-  border-color: #CBD5E1;
-  border-left-color: #2563EB;
+.trail-hub__live-join--static {
+  cursor: default;
 }
 
-/* 공개 상태 점 */
-.trail-hub__dot {
-  flex-shrink: 0;
+.trail-hub__live-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #16A34A;
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18);
-}
-
-.trail-hub__dot--private {
-  background: #CBD5E1;
-  box-shadow: none;
-}
-
-/* Trail 번호 — 강조 수치 폰트 */
-.trail-hub__num {
+  background: #1e9a55;
   flex-shrink: 0;
-  font-family: var(--rtw-font-num, inherit);
-  font-weight: 700;
-  font-size: 0.92rem;
-  letter-spacing: -0.01em;
-  font-variant-numeric: tabular-nums;
-  min-width: 1.4rem;
-}
-
-.trail-hub__region {
-  flex: 1;
-  min-width: 0;
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: #475569;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.trail-hub__km {
-  flex-shrink: 0;
-  font-family: var(--rtw-font-num, inherit);
-  font-size: 0.74rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: #64748B;
-}
-
-/* LIVE 인원 — 액센트 + 펄스 */
-.trail-hub__riders {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.22rem;
-  font-family: var(--rtw-font-num, inherit);
-  font-weight: 700;
-  font-size: 0.8rem;
-  font-variant-numeric: tabular-nums;
-  color: #2563EB;
-}
-
-.trail-hub__riders-pulse {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #2563EB;
-  box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.35);
-  animation: trail-hub-pulse 1.8s ease-out infinite;
-}
-
-@keyframes trail-hub-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.55); }
-  70% { box-shadow: 0 0 0 5px rgba(37, 99, 235, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .trail-hub__riders-pulse { animation: none; }
 }
 
 .trail-hub__empty,
 .trail-hub__err {
-  margin: 0;
-  font-size: 0.76rem;
-  color: #64748B;
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #5e6472;
 }
 
 .trail-hub__err {
-  color: #DC2626;
+  color: #b4231b;
 }

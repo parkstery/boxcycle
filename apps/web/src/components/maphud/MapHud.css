@@ -1060,6 +1060,58 @@
   flex: 0 0 auto;
 }
 
+.hud-coach--banner {
+  justify-content: center;
+  width: 100%;
+  font-size: 14px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.hud-coach--banner .hud-coach__tip {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.map-hud__tl {
+  position: relative;
+}
+
+.map-hud__paused-banner {
+  position: absolute;
+  left: 50%;
+  top: 74px;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #f8fafc;
+  text-shadow: var(--rtw-map-text-keyline-strong);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.hud-account--compact {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  justify-content: center;
+}
+
+.hud-account--compact .hud-account__text {
+  display: none;
+}
+
+.hud-metrics__value--elevation {
+  font-family: "Saira Condensed", system-ui, sans-serif;
+}
+
+.hud-metrics__elevation-state {
+  font-size: 0.85em;
+  opacity: 0.9;
+}
+
 /* ---------- MC: ActionCenterCard ---------- */
 .hud-action {
   display: flex;
@@ -1444,3 +1496,6 @@
     max-width: calc(100vw - 208px);
   }
 }
+
+/* Endpoint elevations need room for both values and the direction arrow. */
+.hud-metrics__cell:has(.hud-metrics__value--elevation) { flex: 0 0 auto; width: auto; min-width: 100px; }

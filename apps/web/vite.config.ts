@@ -4,7 +4,17 @@ import { resolveDevPort } from './devPort'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
-  plugins: [react()],
+  plugins: [react(), ...(mode === 'harness' ? [{
+    name: 'harness-entry-guide',
+    configureServer(server: import('vite').ViteDevServer) {
+      server.middlewares.use((request, response, next) => {
+        const pathname = request.url?.split('?')[0];
+        if (pathname !== '/' && pathname !== '/index.html') return next();
+        response.setHeader('Content-Type', 'text/html; charset=utf-8');
+        response.end(`<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Spinatlas · 검증 화면</title><style>body{max-width:640px;margin:48px auto;padding:24px;font:16px/1.7 system-ui;color:#121417}a{color:#2457d6}li{margin:16px 0}</style><h1>검증 화면 서버예요</h1><p>이 주소는 로그인용 앱이 아닙니다. 로그인하려면 정상 개발 앱을 열어 주세요.</p><ul><li><a href="http://localhost:5000/">Spinatlas 앱 열기 · 로그인</a></li><li><a href="/scripts/ui-redesign-batch1/preview.html?state=menu">MENU·경로 목록 프리뷰 · 로그인 없이 확인</a></li><li><a href="/scripts/ui-800x360/preview.html?state=ready">지도·주행 프리뷰 · 로그인 없이 확인</a></li></ul><p>정상 앱 실행: C:\\20.HDev\\boxcycle\\apps\\web 에서<br><code>npm run dev -- --port 5000 --strictPort</code></p></html>`);
+      });
+    },
+  }] : [])],
   // 의존성 스캔 대상을 앱 진입점 하나로 못박는다.
   //
   // 기본값은 root 아래 **모든** HTML 을 훑는데, 그러면 `scripts/*/**.html`(rider-preview

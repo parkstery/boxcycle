@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { test, expect } from '@playwright/test';
 
 const preview = '/scripts/ui-800x360/preview.html';
@@ -12,14 +14,14 @@ test('800×360 준비·주행의 지표가 읽히고 계정/카메라와 겹치�
     const geometry = await page.evaluate(() => {
       const rect = (selector:string) => document.querySelector(selector)?.getBoundingClientRect().toJSON();
       const metrics=rect('.map-hud__tl-metrics');
-      const groups=['.hud-ride-map-controls','.hud-quick-camera','.hud-account']
+    const groups=['.hud-ride-map-controls','.camera-view-menu__trigger','.hud-account']
         .map(sel=>rect(sel)).filter(Boolean) as DOMRect[];
       return { labels:[...document.querySelectorAll('.hud-metrics__label')].map(e=>parseFloat(getComputedStyle(e).fontSize)),
         values:[...document.querySelectorAll('.hud-metrics__value')].map(e=>parseFloat(getComputedStyle(e).fontSize)),
         metrics,groups,top:rect('.map-hud__tl') };
     });
-    expect(geometry.labels.length).toBeGreaterThanOrEqual(4);
-    expect(geometry.values.length).toBeGreaterThanOrEqual(4);
+    expect(geometry.labels.length).toBeGreaterThanOrEqual(state === 'ready' ? 2 : 4);
+    expect(geometry.values.length).toBeGreaterThanOrEqual(state === 'ready' ? 2 : 4);
     expect(Math.min(...geometry.labels)).toBeGreaterThanOrEqual(11);
     expect(Math.min(...geometry.values)).toBeGreaterThanOrEqual(18);
     expect(geometry.top!.top).toBeLessThanOrEqual(8);
@@ -42,12 +44,12 @@ test('800×360 준비·주행의 지표가 읽히고 계정/카메라와 겹치�
   }
 });
 
-test('RouteDock 대표 패널은 220×100 이하이고 시작 전에는 일시정지/종료가 없다', async ({page}) => {
+test('RouteDock 시안의 250px 판이고 시작 전에는 일시정지/종료가 없다', async ({page}) => {
   await page.goto(`${preview}?state=ready`);
-  const shell = page.locator('.route-dock__shell');
+  const shell = page.locator('.route-dock__card');
   const box = await shell.boundingBox();
-  expect(box!.width).toBeLessThanOrEqual(220.5);
-  expect(box!.height).toBeLessThanOrEqual(100.5);
+  expect(box!.width).toBeLessThanOrEqual(250.5);
+  expect(box!.height).toBeLessThanOrEqual(130);
   await expect(page.getByRole('button', { name: '일시정지', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: '주행 종료', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: '주행 시작', exact: true }).click();
@@ -68,12 +70,12 @@ test('주소는 한 면으로 연결되고 경유지 추가만큼 패널이 늘�
         const bounds=root.getBoundingClientRect();
         return {height:bounds.height, scroll:list.scrollHeight, client:list.clientHeight,
           visible:rows.every(r=>r.top>=bounds.top&&r.bottom<=bounds.bottom),
-          boxes:[...root.querySelectorAll('.route-dock__stop,.route-dock__stop-remove')].map(e=>({border:getComputedStyle(e).borderTopWidth, background:getComputedStyle(e).backgroundColor})),
+          boxes:[...root.querySelectorAll('.route-dock__stop,.route-dock__remove')].map(e=>({border:getComputedStyle(e).borderTopWidth, background:getComputedStyle(e).backgroundColor})),
           rowHeight:rows[0].height};
       });
       expect(dimensions.visible).toBeTruthy();
       expect(dimensions.scroll).toBeLessThanOrEqual(dimensions.client+1);
-      expect(dimensions.rowHeight).toBeLessThanOrEqual(25);
+      expect(dimensions.rowHeight).toBeLessThanOrEqual(29);
       expect(dimensions.boxes.every(x=>x.border==='0px'&&x.background==='rgba(0, 0, 0, 0)')).toBeTruthy();
       if(previous) expect(dimensions.height-previous).toBeGreaterThanOrEqual(23);
       previous=dimensions.height;
@@ -88,7 +90,7 @@ test('시작·센서·접기는 조작 가능하고 시작→정지→재개→�
     expect(r!.height).toBeGreaterThanOrEqual(26);
     expect(await locator.evaluate(el=>{const r=el.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit===el||el.contains(hit);})).toBeTruthy();
   }
-  expect((await page.locator('.ride-control-bar').boundingBox())!.height).toBeLessThanOrEqual(36);
+  expect((await page.getByRole('button',{name:'주행 시작',exact:true}).boundingBox())!.height).toBe(44);
   await page.getByRole('button',{name:'경로 패널 접기'}).click();
   await expect(page.getByRole('button',{name:'주행 시작',exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
@@ -272,4 +274,76 @@ test('경로 모달에서 세 출처를 전환해도 목록은 하나이며 닫�
   await page.keyboard.press('Escape');
   await expect(saved).toHaveCount(0);
   await expect(page.getByRole('dialog',{name:'메뉴',exact:true})).toBeVisible();
+});
+
+// Chief 지정 — 바꾸려면 Chief 지시와 document/reference/product/261024-RTW-Chief-지정-디자인-고정.md 갱신 필요
+test.describe('Chief 고정 — 261024 목록 1~4', () => {
+  const greenBottom = 'rgb(0, 150, 39)';
+
+  test('준비·일시정지 조작부와 순위 칩·주행 중 지도 조작', async ({ page }) => {
+    const evidenceDir = process.env.BATCH2_EVIDENCE_DIR;
+    if (evidenceDir) await fs.mkdir(evidenceDir, { recursive: true });
+
+    for (const size of [{ width: 667, height: 300 }, { width: 800, height: 360 }]) {
+      await page.setViewportSize(size);
+      await page.goto(`${preview}?state=ready`);
+      const start = page.getByRole('button', { name: '주행 시작', exact: true });
+      await expect(start).toBeVisible();
+      expect((await start.innerText()).trim()).toBe('');
+      const startBox = await start.boundingBox();
+      expect(startBox!.width).toBeCloseTo(startBox!.height, 0);
+      const startBg = await start.evaluate((el) => getComputedStyle(el).backgroundImage);
+      expect(startBg).toContain(greenBottom);
+
+      await page.goto(`${preview}?state=glance-ready`);
+      const chip = page.locator('.lb-glance__chip');
+      await expect(chip).toBeVisible();
+      expect((await chip.innerText()).trim()).toBe('');
+      const chipBox = await chip.boundingBox();
+      expect(Math.abs(chipBox!.width - chipBox!.height)).toBeLessThanOrEqual(1);
+      const radius = await chip.evaluate((el) => parseFloat(getComputedStyle(el).borderRadius));
+      expect(radius).toBeGreaterThanOrEqual(chipBox!.width / 2 - 1);
+      await expect(chip.locator('svg')).toHaveCount(1);
+      const chipLabel = await chip.getAttribute('aria-label');
+      expect(chipLabel).toMatch(/위/);
+
+      if (evidenceDir && size.width === 667) {
+        await page.screenshot({ path: path.join(evidenceDir, 'ready-667x300.png'), animations: 'disabled' });
+      }
+      if (evidenceDir && size.width === 800) {
+        await page.screenshot({ path: path.join(evidenceDir, 'ready-800x360.png'), animations: 'disabled' });
+      }
+
+      await page.goto(`${preview}?state=paused`);
+      const controls = page.getByRole('group', { name: '주행 제어' });
+      const mediaTexts = await controls.locator('.ride-media-button, button[aria-label="일시정지 옵션"]').evaluateAll(
+        (buttons) => buttons.map((b) => (b.textContent ?? '').trim()),
+      );
+      expect(mediaTexts.every((t) => t === '' || t === '⋯' || t === '...')).toBeTruthy();
+      await expect(page.getByText('주행 끝내기', { exact: true })).toHaveCount(0);
+      await expect(page.getByText('다시 달리기', { exact: true })).toHaveCount(0);
+      const resume = page.getByRole('button', { name: '재개', exact: true });
+      const resumeBg = await resume.evaluate((el) => getComputedStyle(el).backgroundImage);
+      expect(resumeBg).toContain(greenBottom);
+
+      if (evidenceDir && size.width === 667) {
+        await page.screenshot({ path: path.join(evidenceDir, 'paused-667x300.png'), animations: 'disabled' });
+      }
+      if (evidenceDir && size.width === 800) {
+        await page.screenshot({ path: path.join(evidenceDir, 'paused-800x360.png'), animations: 'disabled' });
+      }
+    }
+
+    await page.setViewportSize({ width: 800, height: 360 });
+    for (const state of ['riding', 'paused'] as const) {
+      await page.goto(`${preview}?state=${state}`);
+      await expect(page.locator('.hud-ride-map-controls')).toBeVisible();
+      await expect(page.getByRole('button', { name: /야외|위성/ })).toBeVisible();
+      await expect(page.locator('.hud-ride-map-controls__zoom').first()).toBeVisible();
+    }
+    if (evidenceDir) {
+      await page.goto(`${preview}?state=riding`);
+      await page.screenshot({ path: path.join(evidenceDir, 'riding-800x360.png'), animations: 'disabled' });
+    }
+  });
 });

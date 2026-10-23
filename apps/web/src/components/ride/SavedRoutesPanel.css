@@ -349,6 +349,80 @@
   margin: 0 0 0.5rem;
 }
 
+/* map 모달 — 필터·정렬·관리 버튼 한 줄(지시19) */
+.saved-routes--map .saved-routes__controls--map-line {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.35rem;
+  min-width: 0;
+}
+
+.saved-routes--map .saved-routes__controls--map-line .saved-routes__filter {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: nowrap;
+  gap: 0.2rem;
+}
+
+.saved-routes--map .saved-routes__controls--map-line .saved-routes__filter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 28px;
+  height: 28px;
+  padding: 0 0.38rem;
+  font-size: 0.68rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.saved-routes--map .saved-routes__controls-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+}
+
+.saved-routes--map .saved-routes__controls--map-line .route-sort__caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.saved-routes--map .saved-routes__controls--map-line .route-sort__select {
+  box-sizing: border-box;
+  min-height: 28px;
+  height: 28px;
+  padding: 0 0.25rem;
+  font-size: 0.68rem;
+  line-height: 1;
+  max-width: 4.6rem;
+}
+
+.saved-routes--map .saved-routes__controls--map-line .saved-routes__toolbar {
+  display: flex;
+  gap: 0.2rem;
+  flex: 0 0 auto;
+}
+
+.saved-routes--map .saved-routes__controls--map-line .saved-routes__tool {
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 28px;
+  height: 28px;
+  padding: 0 0.4rem;
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
 .saved-routes__control-row {
   display: flex;
   align-items: center;
@@ -465,11 +539,11 @@
 /* 1. 내 경로가 든 창만 넓게·높게. 높이는 내용 높이(auto)가 원칙이라 0/1/2개는
  * 내용에서 끝나고, 개수가 불어나면 아래 상한까지 자라 목록이 스크롤된다.
  * 로딩·오류·키보드 등 모든 상태에서 상한은 항상 유지된다. */
-.oc-modal-overlay:has(.saved-routes) {
+.oc-modal-overlay:has(.oc-modal:not(.oc-modal--map) .saved-routes) {
   padding: 8px;
 }
 
-.oc-modal:has(.saved-routes) {
+.oc-modal:not(.oc-modal--map):has(.saved-routes) {
   width: min(560px, calc(100vw - 16px));
   max-height: calc(100vh - 16px);
   max-height: calc(100dvh - 16px);
@@ -477,11 +551,11 @@
 
 /* 3. 상단 반복 여백 절제 — 껍데기 패딩도 내 경로가 든 창에만.
  * 폰트·기존 버튼 높이/패딩은 손대지 않음. Guest 안내·필터4·정렬·검색 전부 표시 유지. */
-.oc-modal:has(.saved-routes) .oc-modal__head {
+.oc-modal:not(.oc-modal--map):has(.saved-routes) .oc-modal__head {
   padding: 0.5rem 2.4rem 0.5rem 0.65rem;
 }
 
-.oc-modal:has(.saved-routes) .oc-modal__body {
+.oc-modal:not(.oc-modal--map):has(.saved-routes) .oc-modal__body {
   padding: 0.5rem 0.6rem 0.6rem;
 }
 
@@ -489,6 +563,13 @@
  * disabled·문구·동작은 TSX 그대로, 자리만 조건부. flex 흐름 안이라
  * 목록 스크롤 영역에 자동 반영된다. */
 .saved-routes:not(:has(.saved-routes__item.is-selected)) .saved-routes__toolbar {
+  display: none;
+}
+
+/* map 한 줄 컨트롤: 선택 전에는 관리 버튼만 숨기고 정렬은 유지 */
+.saved-routes--map.saved-routes:not(:has(.saved-routes__item.is-selected))
+  .saved-routes__controls--map-line
+  .saved-routes__toolbar {
   display: none;
 }
 

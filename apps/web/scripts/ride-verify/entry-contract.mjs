@@ -139,7 +139,7 @@ export const ENTRY_STEPS = [
     step: "cadence-chip",
     desc:
       "케이던스 센서 칩 — 센서 상세 설정 트리거. 자리는 stage 에 따라 둘 중 하나다(6A): " +
-      "경로와 주소 접힘에 관계없이 우하단 주행바 한 곳. " +
+      "ready·setup 은 RouteDock, idle·주행·일시정지는 주행바의 센서 설정 버튼. " +
       "셀렉터는 자리에 의존하지 않는 역할·접근성 이름이므로 이동해도 그대로 쓴다.",
     file: "src/components/maphud/CadenceHudChip.tsx",
     anchors: [
@@ -158,8 +158,8 @@ export const ENTRY_STEPS = [
     anchors: [
       { name: "슬롯 판정 함수", re: /export function sensorChipSlot\(/ },
       // 2026-09-26(Phase 6-A): 2갈래(route-dock|none) → **3갈래**. 접힘이면 칩 대신 캐럿 LED.
-      { name: "단일 주행바 슬롯", re: /"ride-control-bar" \| "none"/ },
-      { name: "게이트 및 결과 제외", re: /stage !== "summary"/ },
+      { name: "슬롯 3갈래", re: /"route-dock" \| "ride-control-bar" \| "none"/ },
+      { name: "게이트 및 결과 제외", re: /stage === "summary"/ },
     ],
     selector: `(렌더 자리 판정 — 셀렉터 없음)`,
   },
@@ -257,8 +257,8 @@ export const ENTRY_STEPS = [
     file: "src/components/ride/RideControlBar.tsx",
     anchors: [
       // 2026-09-28: 일시정지 후 같은 버튼이 「재개」로 바뀐다 — 고정 문자열 앵커는 실종로 오탐.
-      // main RouteDock: 아이콘 버튼 + paused 분기 aria-label (문자 「Go」는 주석/클래스에 잔존).
-      { name: "Go aria-label (시작|재개)", re: /aria-label=\{paused \? "재개" : "주행 시작"\}/ },
+      // Chief 261024: 녹색 ride-media-button--play, ready·paused 공용 분기 aria-label.
+      { name: "주행 시작·재개 aria-label", re: /aria-label=\{paused \? "재개" : "주행 시작"\}/ },
       { name: "시작 콜백", re: /props\.onStartRide\(restartFromZero\)/ },
       { name: "ready-to-start 게이트", re: /stage === "ready-to-start"/ },
       { name: "주행 제어 그룹", re: /aria-label="주행 제어"/ },

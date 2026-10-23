@@ -122,9 +122,11 @@
   cursor: pointer;
 }
 
-.oc-modal__close:hover {
-  background: #EFF6FF;
-  color: #1F2937;
+@media (hover: hover) {
+  .oc-modal__close:hover {
+    background: #EFF6FF;
+    color: #1F2937;
+  }
 }
 
 /*
@@ -206,10 +208,12 @@
     box-shadow 0.15s ease;
 }
 
-.oc-modal__item:hover:not(:disabled) {
-  background: #EFF6FF;
-  border-color: #2563EB;
-  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.12);
+@media (hover: hover) {
+  .oc-modal__item:hover:not(:disabled) {
+    background: #EFF6FF;
+    border-color: #2563EB;
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.12);
+  }
 }
 
 .oc-modal__item:focus-visible {
@@ -310,11 +314,11 @@
 /* ── 지시23: 퍼블릭 경로 목록 한정 (입문/내 경로·모달 기본 불변) ── */
 
 /* 1. 퍼블릭이 든 창만 넓게·높게. 0/1/2/빈/로딩은 내용 높이, 많으면 상한까지. */
-.oc-modal-overlay:has(.oc-modal[aria-label="퍼블릭 경로"]) {
+.oc-modal-overlay:has(.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"]) {
   padding: 8px;
 }
 
-.oc-modal[aria-label="퍼블릭 경로"] {
+.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"] {
   position: relative;
   width: min(560px, calc(100vw - 16px));
   max-height: calc(100vh - 16px);
@@ -322,16 +326,16 @@
 }
 
 /* 4. 상단 여백 절제 — 퍼블릭 창에만. 폰트·버튼 높이/패딩 불변, 닫기 자리(우 2.4rem) 유지. */
-.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__head {
+.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"] .oc-modal__head {
   padding: 0.5rem 2.4rem 0.5rem 0.65rem;
 }
 
-.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__body {
+.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"] .oc-modal__body {
   padding: 0.5rem 0.6rem 0.6rem;
 }
 
 /* 2. 정렬 바를 헤더 한 행 안에 absolute. 닫기(우 0.3rem·폭 1.9rem)와 겹치지 않게 우 2.4rem. */
-.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__sortbar {
+.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"] .oc-modal__sortbar {
   position: absolute;
   top: 0;
   right: 2.4rem;
@@ -344,17 +348,17 @@
 }
 
 /* 정렬 바가 있을 때만 검색 오른쪽을 정렬 폭만큼 비운다. 0/1/2개(정렬 없음)는 예약 없음. */
-.oc-modal[aria-label="퍼블릭 경로"]:has(.oc-modal__sortbar) .oc-modal__search {
+.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"]:has(.oc-modal__sortbar) .oc-modal__search {
   margin-right: 6.5rem;
 }
 
 /* 3. 내 경로와 같이 행 구분선·gap 절제. 카드 테두리/둥근 반복 제거. */
-.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__list {
+.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"] .oc-modal__list {
   gap: 0;
   border-top: 1px solid #E2E8F0;
 }
 
-.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__item {
+.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"] .oc-modal__item {
   border: none;
   border-bottom: 1px solid #E2E8F0;
   border-radius: 0;
@@ -365,18 +369,18 @@
   padding: 1px 0.55rem;
 }
 
-.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__item:hover:not(:disabled) {
+.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"] .oc-modal__item:hover:not(:disabled) {
   background: #EFF6FF;
 }
 
-.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__item.is-selected {
+.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"] .oc-modal__item.is-selected {
   background: #EFF6FF;
   box-shadow: inset 3px 0 0 0 #2563EB;
 }
 
 /* 이름 전체 유지·줄바꿈으로 가로 overflow 방지. 축약/재작성/line-clamp 없음.
    지시25: 행 밀도용 line-height만 퍼블릭 범위에서 1.2로 (공용 base 불변). */
-.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__item-name {
+.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"] .oc-modal__item-name {
   line-height: 1.15;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -384,14 +388,14 @@
 
 /* 긴 등록자 이름은 메타 안에서 줄바꿈으로 가로 overflow 방지. 숨김으로 해결하지 않음.
    지시25: sub 상단 간격·행간만 퍼블릭 범위에서 절제 (공용 base 불변). */
-.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__item-sub {
+.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"] .oc-modal__item-sub {
   flex-wrap: wrap;
   row-gap: 0.1rem;
   margin-top: 0;
   line-height: 1.15;
 }
 
-.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__item-publisher {
+.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"] .oc-modal__item-publisher {
   flex-shrink: 1;
   min-width: 0;
   white-space: normal;
@@ -401,27 +405,27 @@
 }
 
 /* 4. 긴 오류는 본문 스크롤 예외로 전체 접근, 헤더(본문 밖) 고정. 일반 상태는 목록만 스크롤. */
-.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__body:has(.oc-modal__error) {
+.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"] .oc-modal__body:has(.oc-modal__error) {
   overflow-x: hidden;
   overflow-y: auto;
 }
 
-.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__error {
+.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"] .oc-modal__error {
   flex-shrink: 0;
 }
 
-.oc-modal[aria-label="퍼블릭 경로"] .oc-modal__error-detail {
+.oc-modal:not(.oc-modal--map)[aria-label="퍼블릭 경로"] .oc-modal__error-detail {
   overflow-wrap: anywhere;
 }
 
 /* ── 지시27: 입문 경로 목록 한정 (공용 base·퍼블릭 기존 rule 불변, 입문 override만 append) ── */
 
 /* 1. 입문이 든 창만 460px·상한까지. 소수 0/1/2/빈은 내용 높이로 끝나며, 폭/높이 고정 없음. */
-.oc-modal-overlay:has(.oc-modal[aria-label="입문 경로"]) {
+.oc-modal-overlay:has(.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"]) {
   padding: 8px;
 }
 
-.oc-modal[aria-label="입문 경로"] {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"] {
   position: relative;
   width: min(460px, calc(100vw - 16px));
   max-height: calc(100vh - 16px);
@@ -429,16 +433,16 @@
 }
 
 /* 2. 헤더 한 행 — 퍼블릭 compact값 참고. 폰트·높이·동작 불변, 닫기 자리(우 2.4rem) 유지. */
-.oc-modal[aria-label="입문 경로"] .oc-modal__head {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"] .oc-modal__head {
   padding: 0.5rem 2.4rem 0.5rem 0.65rem;
 }
 
-.oc-modal[aria-label="입문 경로"] .oc-modal__body {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"] .oc-modal__body {
   padding: 0.5rem 0.6rem 0.6rem;
 }
 
 /* 정렬 바가 있을 때만(3개 이상) 헤더 한 행 안에 absolute. 없으면 검색이 전체 가용폭. */
-.oc-modal[aria-label="입문 경로"] .oc-modal__sortbar {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"] .oc-modal__sortbar {
   position: absolute;
   top: 0;
   right: 2.4rem;
@@ -450,18 +454,18 @@
   white-space: nowrap;
 }
 
-.oc-modal[aria-label="입문 경로"]:has(.oc-modal__sortbar) .oc-modal__search {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"]:has(.oc-modal__sortbar) .oc-modal__search {
   margin-right: 6.5rem;
 }
 
 /* 3. 카드 반복을 행 구분선·gap 0으로 정리. 이번 입문 선택행은 min 44px 유지
    (32px 예외는 Chief 지정 내 경로/퍼블릭만). 전체 텍스트·수단거리·활동 배지 보존. */
-.oc-modal[aria-label="입문 경로"] .oc-modal__list {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"] .oc-modal__list {
   gap: 0;
   border-top: 1px solid #E2E8F0;
 }
 
-.oc-modal[aria-label="입문 경로"] .oc-modal__item {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"] .oc-modal__item {
   border: none;
   border-bottom: 1px solid #E2E8F0;
   border-radius: 0;
@@ -472,29 +476,29 @@
   padding: 1px 0.55rem;
 }
 
-.oc-modal[aria-label="입문 경로"] .oc-modal__item:hover:not(:disabled) {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"] .oc-modal__item:hover:not(:disabled) {
   background: #EFF6FF;
 }
 
-.oc-modal[aria-label="입문 경로"] .oc-modal__item.is-selected {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"] .oc-modal__item.is-selected {
   background: #EFF6FF;
   box-shadow: inset 3px 0 0 0 #2563EB;
 }
 
-.oc-modal[aria-label="입문 경로"] .oc-modal__item-name {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"] .oc-modal__item-name {
   line-height: 1.15;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
-.oc-modal[aria-label="입문 경로"] .oc-modal__item-sub {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"] .oc-modal__item-sub {
   flex-wrap: wrap;
   row-gap: 0.1rem;
   margin-top: 0;
   line-height: 1.15;
 }
 
-.oc-modal[aria-label="입문 경로"] .oc-modal__item-publisher {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"] .oc-modal__item-publisher {
   flex-shrink: 1;
   min-width: 0;
   white-space: normal;
@@ -505,20 +509,20 @@
 
 /* 4. 선택 안내·나가기는 그대로. 긴 선택 안내/오류(예외 有) 내용 접근,
    일반은 목록만 스크롤·헤더(본문 밖) 고정. */
-.oc-modal[aria-label="입문 경로"] .oc-modal__hint {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"] .oc-modal__hint {
   overflow-wrap: anywhere;
 }
 
-.oc-modal[aria-label="입문 경로"] .oc-modal__body:has(.oc-modal__error) {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"] .oc-modal__body:has(.oc-modal__error) {
   overflow-x: hidden;
   overflow-y: auto;
 }
 
-.oc-modal[aria-label="입문 경로"] .oc-modal__error {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"] .oc-modal__error {
   flex-shrink: 0;
 }
 
-.oc-modal[aria-label="입문 경로"] .oc-modal__error-detail {
+.oc-modal:not(.oc-modal--map)[aria-label="입문 경로"] .oc-modal__error-detail {
   overflow-wrap: anywhere;
 }
 
@@ -528,4 +532,446 @@
 
 .oc-modal .saved-routes__meta {
   font-size: 11px;
+}
+
+/* ── 정지 상태 경로 목록: 가독성 우선의 흰 패널 (740×324) ── */
+
+.oc-modal-overlay--map {
+  z-index: 1100;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 30px;
+  box-sizing: border-box;
+}
+
+/* 경로 목록 뒤의 조작부가 검색·출처 버튼과 겹치지 않게 한다. 지도와 저작권은 유지한다. */
+body:has(.oc-modal--map) :is(.map-hud, .route-dock-anchor, .ride-control-bar, .map-bottom-left-stack, .edge-panel-handle) {
+  visibility: hidden;
+}
+
+.oc-modal--map {
+  box-sizing: border-box;
+  width: min(740px, calc(100vw - 60px));
+  height: min(324px, calc(100dvh - 36px));
+  max-height: min(324px, calc(100dvh - 36px));
+  padding: 12px 16px 10px 20px;
+  font-family: "Gothic A1", system-ui, sans-serif;
+  background: #ffffff;
+  border: 1px solid #d8dee8;
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.24);
+  color: #172238;
+  color-scheme: light;
+}
+
+.oc-modal__head--map {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 0 8px;
+  border-bottom: none;
+  flex-shrink: 0;
+}
+
+.oc-modal--map .oc-modal__sources {
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  backdrop-filter: none;
+}
+
+.oc-modal--map .oc-modal__source {
+  min-height: 30px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #172238;
+  font-size: 12px;
+  font-weight: 600;
+  text-shadow: none;
+}
+
+.oc-modal--map .oc-modal__source.is-active {
+  color: #ffffff;
+  background: #2457d6;
+  font-weight: 700;
+  text-shadow: none;
+}
+
+.oc-modal__search-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  backdrop-filter: none;
+}
+
+.oc-modal__search-icon {
+  flex-shrink: 0;
+  color: #172238;
+}
+
+.oc-modal__search--map {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: #172238;
+  -webkit-text-fill-color: #172238;
+  outline: none;
+  text-shadow: none;
+}
+
+.oc-modal__search--map::placeholder {
+  color: #64748b;
+  -webkit-text-fill-color: #64748b;
+}
+
+.oc-modal__close--map {
+  position: static;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #172238;
+  backdrop-filter: none;
+}
+
+.oc-modal--map .oc-modal__sortbar {
+  position: static;
+  height: auto;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.oc-modal--map .route-sort__caption {
+  display: none;
+}
+
+.oc-modal--map .route-sort__select {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  color: #172238;
+  font-size: 12px;
+  font-weight: 600;
+  -webkit-text-fill-color: #172238;
+  backdrop-filter: none;
+}
+
+.oc-modal__body--map {
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.oc-modal__map-footer {
+  margin: auto 0 0;
+  padding-top: 6px;
+  font-size: 11px;
+  line-height: 15px;
+  color: #64748b;
+  text-shadow: none;
+}
+
+.oc-modal--map .oc-modal__hint,
+.oc-modal--map .oc-modal__error {
+  color: #475569;
+  text-shadow: none;
+}
+
+.oc-modal__list--map {
+  gap: 0;
+  padding: 0;
+  border-top: 1px solid #e2e8f0;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.route-list__profile-icon {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  display: block;
+  color: #475569;
+}
+
+.oc-modal__item-detail-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.oc-modal__item--map-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 90px 80px;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  height: auto;
+  padding: 2px 0;
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+  color: inherit;
+}
+
+@media (hover: hover) {
+  .oc-modal__item--map-row:hover:not(:disabled) {
+    background: #f1f5f9;
+  }
+}
+
+.oc-modal__item--map-row.is-selected {
+  background: #eff6ff;
+  box-shadow: inset 3px 0 0 0 #2457d6;
+}
+
+.oc-modal__item-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.oc-modal__item-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #172238;
+  text-shadow: none;
+  -webkit-text-fill-color: #172238;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.oc-modal__item-subline {
+  font-size: 11px;
+  color: #475569;
+  text-shadow: none;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.oc-modal__item-status {
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  color: #64748b;
+  text-shadow: none;
+}
+
+.oc-modal__item-status-text {
+  color: #0f766e;
+}
+
+.oc-modal__item-distance {
+  font-family: "Saira Condensed", sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  text-align: right;
+  color: #172238;
+  text-shadow: none;
+  white-space: nowrap;
+}
+
+.oc-modal__item-distance-unit {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* 내 경로 — map 목록 행 */
+.oc-modal--map .saved-routes__list {
+  border-top: 1px solid #e2e8f0;
+  max-height: none;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  gap: 0;
+}
+
+.oc-modal--map .saved-routes__item {
+  border: none;
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.oc-modal--map .saved-routes__row--map {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 90px 80px;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  height: auto;
+  padding: 2px 0;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.oc-modal--map .saved-routes__item.is-selected {
+  background: #eff6ff;
+  box-shadow: inset 3px 0 0 0 #2457d6;
+}
+
+.oc-modal--map .saved-routes__row--map.is-selected {
+  background: transparent;
+  box-shadow: none;
+}
+
+.saved-routes--map .saved-routes__name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #172238;
+  -webkit-text-fill-color: #172238;
+  text-shadow: none;
+}
+
+.saved-routes__map-status {
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  color: #64748b;
+  text-shadow: none;
+}
+
+.saved-routes__map-status.is-done {
+  color: #0f766e;
+}
+
+.saved-routes__map-distance {
+  font-family: "Saira Condensed", sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  text-align: right;
+  color: #172238;
+  text-shadow: none;
+  white-space: nowrap;
+}
+
+.saved-routes__map-distance-unit {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.oc-modal--map .saved-routes__controls {
+  flex-shrink: 0;
+}
+
+.oc-modal--map:has(.saved-routes--map) .oc-modal__map-footer {
+  padding-top: 4px;
+  font-size: 10px;
+  line-height: 13px;
+}
+
+.oc-modal--map .saved-routes__map-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.oc-modal--map .saved-routes__map-main .saved-routes__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.oc-modal--map .saved-routes--map {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.oc-modal--map .saved-routes__filter-btn,
+.oc-modal--map .saved-routes__tool {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+  color: #172238;
+  -webkit-text-fill-color: #172238;
+}
+
+.oc-modal--map .saved-routes__tool--danger:not(:disabled) {
+  color: #b91c1c;
+  -webkit-text-fill-color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+@media (hover: hover) {
+  .oc-modal--map .saved-routes__row:hover { background: #f1f5f9; }
+}
+
+.oc-modal--map .saved-routes__filter-btn.is-active {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+  background: #2457d6;
+}
+
+.oc-modal--map .saved-routes__empty,
+.oc-modal--map .saved-routes__notice {
+  color: #475569;
+}
+
+.oc-modal--map .saved-routes__notice {
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 11px;
+}
+
+.oc-modal--map :is(.oc-modal__item-name, .oc-modal__item-subline, .oc-modal__item-status,
+  .oc-modal__item-distance, .oc-modal__map-footer, .oc-modal__hint, .oc-modal__error,
+  .saved-routes__notice, .saved-routes__empty, .saved-routes__name,
+  .saved-routes__map-status, .saved-routes__map-distance) {
+  text-shadow: none;
+}
+
+.saved-routes__map-main { min-width: 0; }
+.saved-routes__map-subline {
+  display: block;
+  font-size: 11px;
+  color: #475569;
+  overflow-wrap: anywhere;
+  text-shadow: none;
 }

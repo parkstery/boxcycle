@@ -8,26 +8,17 @@ type MenuPanelProps = {
   onClose: () => void;
   /** @deprecated 주행 중 자동 닫기는 사용하지 않음 — 하위 호환용만 유지 */
   locked?: boolean;
-  /** 주행 설정 시트( BLE·TTS 등 ) */
-  onOpenSettings?: () => void;
-  /** 지명 검색 패널 — 헤더 행에 칩으로 산다(전폭 행은 한 줄을 통째로 낭비했다) */
-  onOpenPlaceSearch?: () => void;
-  /** 리더보드 시트 열기 */
-  onOpenLeaderboard?: () => void;
   children: ReactNode;
   revealProgress?: number | null;
 };
 
 /**
- * 좌측에서 슬라이드 인 하는 글래스 드로어.
+ * 좌측 흰 판 메뉴(시안 06) — 경로 6행은 RideRoutePanel, Trail 목록은 TrailHubPanel.
  */
 export function MenuPanel({
   open,
   onClose,
   locked: _locked,
-  onOpenSettings,
-  onOpenPlaceSearch,
-  onOpenLeaderboard,
   children,
   revealProgress = null,
 }: MenuPanelProps) {
@@ -35,6 +26,18 @@ export function MenuPanel({
   const panelRef = useRef<HTMLElement>(null);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const [headerReveal, setHeaderReveal] = useState<number | null>(null);
+  const entryFocusRef = useRef<HTMLElement | null>(null);
+  // 목록을 열고 닫을 때 포커스 트랩이 재개돼도, 메뉴를 연 원래 버튼은 보존한다.
+  useEffect(() => {
+    if (open) {
+      entryFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      return;
+    }
+    const origin = entryFocusRef.current;
+    if (!origin) return;
+    const frame = requestAnimationFrame(() => { if (document.contains(origin)) origin.focus(); });
+    return () => cancelAnimationFrame(frame);
+  }, [open]);
   useDialogFocus(open && !overlayOpen, panelRef);
   const headerDrag = usePanelHeaderCloseDrag({
     enabled: open && !overlayOpen,
@@ -98,60 +101,28 @@ export function MenuPanel({
         role="dialog"
         aria-label="메뉴"
       >
-        <div className="menu-panel__head" {...headerDrag}>
+        <header className="menu-panel__head" {...headerDrag}>
           <div className="menu-panel__head-brand">
             <span className="menu-panel__brand-dot" aria-hidden />
-            <span className="menu-panel__brand">SPINATLAS</span>
-            <h2 className="menu-panel__title">MENU</h2>
+            <span className="menu-panel__brand">Spinatlas</span>
           </div>
-          <div className="menu-panel__head-actions">
-            {onOpenPlaceSearch ? (
-              <button
-                type="button"
-                className="menu-panel__place-search"
-                onClick={onOpenPlaceSearch}
-                aria-label="지명 검색"
-                title="지명으로 찾기"
-              >
-                <span className="menu-panel__place-search-icon" aria-hidden>
-                  ⌕
-                </span>
-                지명
-              </button>
-            ) : null}
-            {onOpenLeaderboard ? (
-              <button
-                type="button"
-                className="menu-panel__leaderboard"
-                onClick={onOpenLeaderboard}
-                aria-label="리더보드"
-                title="순위 보기"
-              >
-                순위
-              </button>
-            ) : null}
-            {onOpenSettings ? (
-              <button
-                type="button"
-                className="menu-panel__settings"
-                onClick={onOpenSettings}
-                aria-label="주행 설정"
-                title="BLE·TTS·BGM 등"
-              >
-                설정
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className="menu-panel__close"
-              onClick={onClose}
-              aria-label="메뉴 닫기"
-              title="Close menu"
-            >
-              <span aria-hidden="true">✕</span>
-            </button>
-          </div>
-        </div>
+          <button
+            type="button"
+            className="menu-panel__close"
+            onClick={onClose}
+            aria-label="메뉴 닫기"
+            title="Close menu"
+          >
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <path
+                d="M3 3l10 10M13 3L3 13"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </header>
         <div className="menu-panel__body">{children}</div>
       </aside>
     </div>

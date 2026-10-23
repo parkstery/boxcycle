@@ -1,17 +1,19 @@
 .lb-glance__chip {
   pointer-events: auto;
-  height: 32px;
-  padding: 0 10px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border: 0;
   background: #2457d6;
   color: #ffffff;
   font: inherit;
   font-size: 12px;
   font-weight: 700;
-  border-radius: 999px;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   flex-shrink: 0;
   cursor: pointer;

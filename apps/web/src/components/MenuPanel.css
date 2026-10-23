@@ -18,40 +18,29 @@
 .menu-panel__scrim {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  opacity: 0;
-  transition: opacity 0.18s ease-out;
+  background: transparent;
+  opacity: 1;
   border: none;
   margin: 0;
   padding: 0;
   cursor: pointer;
 }
 
-.menu-panel-root.is-open .menu-panel__scrim {
-  opacity: 1;
-}
-
-.menu-panel-root.is-dragging .menu-panel__scrim {
-  opacity: var(--menu-reveal, 0);
-}
-
 .menu-panel {
   position: absolute;
   top: 0;
   left: 0;
-  --menu-panel-width: 15.4rem; /* 기존 22rem 대비 약 30% 축소 */
+  --menu-panel-width: 300px;
   width: min(var(--menu-panel-width), 92vw);
-  /* 내용 높이로 끝내기: bottom 고정 제거, 폰 가로 높이 상한만 둔다 */
-  max-height: 100vh;
+  height: 100%;
   max-height: 100dvh;
+  box-sizing: border-box;
   background: var(--rtw-ui-surface, #ffffff);
-  color: var(--rtw-ui-ink, #1f2937);
-  font-family: var(--rtw-font, inherit);
-  border-right: 1px solid var(--rtw-ui-border, #cbd5e1);
-  border-bottom-right-radius: 12px;
-  box-shadow: 8px 0 30px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  color: var(--rtw-ui-ink, #121417);
+  font-family: "Gothic A1", system-ui, sans-serif;
+  border: none;
+  border-radius: 0 18px 18px 0;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
   transform: translateX(calc(-105% * (1 - var(--menu-reveal, 0))));
   transition: transform 0.22s ease-out;
   display: flex;
@@ -67,94 +56,59 @@
 .menu-panel__head {
   touch-action: none;
   cursor: grab;
-}
-
-.menu-panel__head {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.6rem 0.8rem;
-  border-bottom: 1px solid #E2E8F0;
+  gap: 8px;
+  height: 36px;
+  padding: 10px 14px 0 18px;
+  box-sizing: content-box;
 }
 
 .menu-panel__head-brand {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 8px;
   min-width: 0;
 }
 
 .menu-panel__brand-dot {
-  width: 0.45rem;
-  height: 0.45rem;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: #2563eb;
+  background: var(--rtw-ui-primary, #2457d6);
   flex: 0 0 auto;
 }
 
 .menu-panel__brand {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  color: #1f2937;
-  white-space: nowrap;
-}
-
-.menu-panel__title {
-  margin: 0;
-  font-size: 0.78rem;
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
-  color: #1F2937;
-}
-
-.menu-panel__head-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.menu-panel__settings {
-  appearance: none;
-  border: 1px solid #CBD5E1;
-  background: #F1F5F9;
-  color: #475569;
-  min-height: 2rem;
-  padding: 0 0.55rem;
-  border-radius: 999px;
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.68rem;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  line-height: 1;
-}
-
-.menu-panel__settings:hover {
-  border-color: #2563EB;
-  background: #EFF6FF;
+  line-height: 1.2;
+  color: var(--rtw-ui-ink, #121417);
+  white-space: nowrap;
 }
 
 .menu-panel__close {
   appearance: none;
-  border: 1px solid var(--rtw-ui-border, #cbd5e1);
-  background: var(--rtw-ui-surface-mute, #f1f5f9);
-  color: var(--rtw-ui-muted, #475569);
-  width: 44px;
-  height: 44px;
+  border: 0;
+  background: #f2f3f5;
+  color: #2a2e37;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   cursor: pointer;
-  font: inherit;
-  font-size: 1rem;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
 }
 
-.menu-panel__close:hover {
-  border-color: #2563EB;
-  background: #EFF6FF;
+@media (hover: hover) {
+  .menu-panel__close:hover {
+    background: #e8eaee;
+  }
 }
 
 .menu-panel__body {
@@ -164,91 +118,26 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: #F8FAFC;
-  color: #475569;
-}
-
-/*
- * 2026-09-16: 섹션 헤더(`.menu-panel__section*`) 제거.
- * 라벨만 있고 조작이 없는 두 줄이 폰 가로(패널 275px)에서 51px 를 먹었다 —
- * 목록에 남던 높이 61px 에 맞먹는다. Trail 은 자체 라벨, 경로는 출처 칩이 스스로 말한다.
- */
-
-/* 지명 검색은 고정 높이, 경로 패널만 스크롤 → 모바일에서 한 화면에 가깝게 */
-.menu-panel__body > .menu-place-search {
-  flex-shrink: 0;
-}
-
-/*
- * 지명 검색 — 헤더 행에 「설정」 왼쪽 칩으로 산다(2026-09-17 Chief).
- * 종전엔 본문 첫 줄을 전폭으로 차지했는데, 「⌕ 지명으로 찾기」 한 줄에 목록 한 줄만큼을
- * 통째로 썼다. 폰 가로에서 메뉴 본문 높이는 그렇게 쓸 여유가 없다.
- * 톤은 옆의 `.menu-panel__settings` 와 같게 맞춘다 — 같은 행의 형제니까.
- */
-.menu-panel__place-search {
-  appearance: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.22rem;
-  border: 1px solid #CBD5E1;
-  background: #F1F5F9;
-  color: #475569;
-  min-height: 2rem;
-  padding: 0 0.55rem;
-  border-radius: 999px;
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.68rem;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  line-height: 1;
-}
-
-.menu-panel__place-search:hover {
-  border-color: #2563EB;
-  background: #EFF6FF;
-}
-
-.menu-panel__leaderboard {
-  appearance: none;
-  border: 1px solid #CBD5E1;
-  background: #F1F5F9;
-  color: #475569;
-  min-height: 2rem;
-  padding: 0 0.55rem;
-  border-radius: 999px;
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.68rem;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  line-height: 1;
-}
-
-.menu-panel__leaderboard:hover {
-  border-color: #2457D6;
-  background: #EFF6FF;
-  color: #2457D6;
-}
-
-.menu-panel__place-search-icon {
-  font-size: 0.92rem;
-  line-height: 1;
+  padding: 0 14px 0 18px;
+  background: #ffffff;
 }
 
 .menu-panel__body > .ride-panel {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
   min-width: 0;
-  overflow: auto;
-  border-right: none;
+  overflow: visible;
+  border: none;
   max-height: none;
   max-width: none;
+  padding: 0;
+  width: 100%;
 }
 
-/* Trail 블록은 줄어들지 않게 — 내용이 많을 때 직계 ride-panel만 스크롤 */
 .menu-panel__body > .trail-hub {
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -262,19 +151,14 @@ body:has(.oc-modal-overlay) .menu-panel-root {
   pointer-events: none;
 }
 
-/* 폰 가로: 헤더 높이·브랜드 중복을 줄이고 닫기까지 한 줄 안에 담는다. */
 @media (max-height: 560px) {
-  .menu-panel__head { padding: 4px 6px; gap: 4px; }
-  .menu-panel__head-actions { gap: 4px; }
-  .menu-panel__close { width: 28px; height: 28px; flex-shrink: 0; }
-  .menu-panel__settings,
-  .menu-panel__place-search { min-height: 28px; padding: 0 4px; font-size: 11px; }
-  .menu-panel__title {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    margin: -1px;
-    overflow: hidden;
-    clip-path: inset(50%);
+  .menu-panel__head {
+    padding-top: 10px;
   }
+}
+
+/* 낮은 폰에서 Trail 영역이 한 행보다 좁아지면 메뉴 본문 전체를 스크롤한다. */
+@media (max-height: 330px) {
+  .menu-panel__body { overflow-y: auto; }
+  .menu-panel__body > .trail-hub { flex: 0 0 auto; overflow: visible; }
 }

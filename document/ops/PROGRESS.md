@@ -1,3 +1,10 @@
+2026-10-24 08:05 KST [Chief 지정 조작부 되돌리기](20261023-ui-redesign/22-result-chief-revert-controls.md): PASS. 녹색 원형 시작·아이콘 일시정지 복원, 주행 중 지도 조작 유지, 순위 칩 원형 아이콘, 잠금 시험 「Chief 고정」. [고정 목록](../reference/product/261024-RTW-Chief-지정-디자인-고정.md) 신설·AGENTS/CLAUDE/플레이북 연결. 화면23·단위1354·실앱 ride-entry 7/7(재실행)·batch2-live PASS. 묶음1·2와 함께 커밋.
+2026-10-24 00:25 KST [경로 목록 한 줄 행·아이콘](20261023-ui-redesign/20-result-saved-routes-compact.md): LOCAL_VERIFIED/Chief화면확인대기. 지시17·재지시19 Cursor 구현, Claude Code 감리. 입문·퍼블릭 한 줄, 내 경로 667×300 4행·800×360 6행, 팝업과 같은 이동수단 아이콘. tsc/eslint/단위1353+재검1/selector19/화면18/실앱1(에뮬레이터) PASS. [비교](20261023-ui-redesign/comparison-route-list-one-line.html). 커밋·배포 없음.
+2026-10-23 23:55 KST [경로 목록 흰 박스](20261023-ui-redesign/16-result-route-list-surface.md): LOCAL_VERIFIED/Chief화면확인대기. Codex 구현·화면18·실앱1(에뮬레이터) 후 토큰 한도 중단 → Claude Code 인수·마감. tsc/eslint/단위1354/selector19/tidy/dep/doc PASS. 주행 순위 투명 유지. 커밋·배포 없음.
+2026-10-23 22:43 KST [Claude Code 인수](HANDOFF.md): Codex→Claude Code. HEAD 5671a014·작업 트리(스냅샷+인계파일3)·보존 JSON 해시·포트(3000/5000/5020/5021, 5017·9099 없음) 대조 일치. 묶음1/2·로그인복구 Chief 화면확인대기 유지, 검증 재실행·제품변경·커밋·배포 없음.
+2026-10-23 22:35 KST [Supervisor 인계](20261023-ui-redesign/13-handoff-next-supervisor.md): 묶음1/2 LOCAL_VERIFIED·Chief화면확인대기, 미커밋/미배포. 서버/보존파일/검증증거/후속순서 정리, [첫 프롬프트](20261023-ui-redesign/14-first-prompt-next-supervisor.md) 작성.
+2026-10-23 [MENU·경로 목록 묶음1](20261023-ui-redesign/05-review-batch1.md): LOCAL_VERIFIED/Chief화면확인대기. Cursor구현·재작업, DeepSeek조사/GLM프리뷰 한도종료→Codex마감. 단위1353/서버169/실앱8/신규화면5/selector19/타입/lint/정련/의존PASS, 기존UI12PASS·기존실패1. [시안비교](20261023-ui-redesign/comparison-batch1.html),5020/커밋푸시배포없음.
+2026-10-23 20:44 KST [Codex 인수](HANDOFF.md): main2/5671a014·작업 트리 대조 완료. 전체 화면 디자인 묶음 1 지시서 작성 전. 기존 증거 파일·비추적 파일 보존, 제품 변경·테스트·배포 없음.
 2026-10-23 [수퍼바이저 교대 체계](HANDOFF.md): 채택. Chief — Claude Code·Codex 가 토큰 한도에 따라 수퍼바이저 교대. 시작·끝은 [HANDOFF.md](HANDOFF.md), 절차는 [교대 플레이북](../reference/operations/261023-RTW-수퍼바이저-교대-플레이북.md). 디자인 캔버스는 리포 [mockups](20261023-ui-redesign/mockups/)가 원본.
 2026-10-23 [전체 화면 디자인 변경](20261023-ui-redesign/README.md): IN_PROGRESS. 시안 16장 Chief 승인, 3장 배포·2장 부분. 묶음 1(MENU·경로 목록)부터. 결정 대기 2건.
 2026-10-23 [순위 칩·순위판·결과 순위 줄](20261023-leaderboard/05-result-glance.md): DEPLOYED. 5ab00ad6. Cursor 구현·Claude 감리(수정 2). 상위20·위아래3 함수 배포. tsc/단위1353/서버169/e2e:ride 7/7 PASS.
@@ -283,3 +290,5 @@
 # 2026-10-20 800×360 UI 개선 — LOCAL_VERIFIED
 
 이전 자잘한 수정은 먼저 main2에 병합·푸시·배포 완료(코드 `5f012a52`, 문서 `8706ae91`, Hosting·Rules·Functions 4개 성공). 이후 GLM-5.3-Flash → Cursor 순서로 UI를 구현했다. 800×360·667×300·844×390 전용 Playwright 11/11 PASS, selector19/19 PASS, `tsc` PASS, lint 0 errors/37 existing warnings, build PASS, `git diff --check` PASS. 좌우 가장자리 핸들은 44px 터치 영역과 탭/키보드 대안을 유지하며 안쪽 드래그로 메뉴·맵뷰를 열고, 패널 헤더 바깥 드래그로 닫는다. UI 변경은 아직 커밋·푸시·배포하지 않았다. 상세: `document/ops/20261020-ui-800x360/04-review-04.md`.
+
+- 2026-10-23 Codex: 로그인 환경 복구(localhost5000, Google provider 연결 확인), 묶음2 Cursor 구현+Supervisor 보완. 주행진입7·최종화면/실앱18·기본단위1347+계약/코칭14 PASS. [감리](20261023-ui-redesign/10-review-batch2.md)·[비교](20261023-ui-redesign/comparison-batch2.html). Chief 화면 확인 대기, 커밋/푸시/배포 없음.

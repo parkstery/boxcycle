@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { RouteListSource } from "./RouteListModalShell";
 import type { PublishedPublicCourseSummary } from "../../lib/route/repo/firestoreCourses";
 import type { RouteActivitySnapshot } from "../../lib/activity/repo/firestoreRouteActivity";
@@ -93,7 +93,106 @@ type RideRoutePanelProps = {
   rideElevationProfileLoading: boolean;
   /** BGM 재생 URL 카탈로그 존재(내장·환경변수) */
   rideBgmCatalogConfigured: boolean;
+  onOpenPlaceSearch?: () => void;
+  onOpenLeaderboard?: () => void;
+  onOpenSettings?: () => void;
+  /** 순위 행 오른쪽 보조 문구 — API·glance 에서 온 실제 값만 */
+  leaderboardMenuAside?: ReactNode;
 };
+
+function MenuNavChevron() {
+  return (
+    <svg
+      className="menu-route-nav__chevron"
+      width="10"
+      height="10"
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-hidden
+    >
+      <path
+        d="M6 3l5 5-5 5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function MenuNavIconIntro() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M2 13l4-9 4 6 2-3 2 6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function MenuNavIconPublic() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M2 8h12M8 2c2.5 3 2.5 9 0 12M8 2c-2.5 3-2.5 9 0 12"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function MenuNavIconSaved() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M4 2h8v12l-4-3-4 3z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function MenuNavIconSearch() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function MenuNavIconRank() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M2 14V9h4v5M6 14V4h4v10M10 14V7h4v7"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function MenuNavIconSettings() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="5" cy="4" r="1.6" fill="#ffffff" />
+      <circle cx="11" cy="8" r="1.6" fill="#ffffff" />
+      <circle cx="7" cy="12" r="1.6" fill="#ffffff" />
+    </svg>
+  );
+}
 
 export function RideRoutePanel(props: RideRoutePanelProps) {
   /**
@@ -183,74 +282,147 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
     }
   }
 
+  const savedCount = props.savedRoutes.length;
+
   return (
     <aside className="ride-panel" aria-label="경로 및 라이딩">
-      <div className="ride-panel__official" aria-label="경로 고르기">
-            {/*
-              경로 출처 한 줄 — 입문·퍼블릭·내 경로. 셋 다 성격이 같다(어디서 경로를 가져올까).
-              종전에는 「공식경로/내 경로」 탭 위에 「공식 + 세그먼트」가 얹힌 2층이었는데,
-              폰 가로에서 그 두 층 + 섹션 라벨 2줄이 패널 높이의 78% 를 먹고 목록에는 61px 만 남았다.
-            */}
-            <div className="ride-panel__official-segments" role="group" aria-label="경로 출처">
-              <button
-                type="button"
-                className={`ride-panel__official-seg ${listSource === "intro" ? "is-active" : ""}`}
-                title="입문 경로 목록"
-                aria-haspopup="dialog"
-                aria-expanded={listSource === "intro"}
-                onClick={() => openOfficialList("intro")}
-              >
-                입문
-              </button>
-              <button
-                type="button"
-                className={`ride-panel__official-seg ${listSource === "public" ? "is-active" : ""}`}
-                title="퍼블릭 경로 목록"
-                aria-haspopup="dialog"
-                aria-expanded={listSource === "public"}
-                onClick={() => openOfficialList("public")}
-              >
-                퍼블릭
-              </button>
-              {/*
-                「내 경로」도 같은 줄의 출처 칩이다 — 종전 탭 계층을 없앴다.
-                aria-label 을 명시하는 이유: 텍스트만 쓰면 접근성 이름이 「내 경로 50」 이 되고,
-                주행 종료 후 나오는 「내 경로로 저장」 과 부분 일치해 셀렉터가 모호해진다.
-              */}
-              <button
-                type="button"
-                className={`ride-panel__official-seg ${listSource === "saved" ? "is-active" : ""}`}
-                aria-label="내 경로 목록"
-                title="내 경로 목록"
-                aria-haspopup="dialog"
-                aria-expanded={listSource === "saved"}
-                onClick={() => selectSource("saved")}
-              >
-                내 경로
-              </button>
-            </div>
-
-            {activeOfficialTitle ? (
-              <div className="ride-panel__official-active" role="status">
-                <span className="ride-panel__official-active-label">
-                  선택: <strong>{activeOfficialTitle}</strong>
-                </span>
-                {props.basicStartHubJoined ? (
-                  <button
-                    type="button"
-                    className="ride-panel__official-active-leave"
-                    disabled={props.basicStartLoading}
-                    title="Leave course"
-                    onClick={() => void props.onLeaveBasicHub()}
-                  >
-                    나가기
-                  </button>
-                ) : null}
-              </div>
+      <span className="menu-route-nav__section-label">경로</span>
+      <ul className="menu-route-nav" aria-label="경로 메뉴">
+        <li className="menu-route-nav__item">
+          <button
+            type="button"
+            className={`menu-route-nav__row${listSource === "intro" ? " is-active" : ""}`}
+            aria-label="입문"
+            title="입문 경로 목록"
+            aria-haspopup="dialog"
+            aria-expanded={listSource === "intro"}
+            onClick={() => openOfficialList("intro")}
+          >
+            <span className="menu-route-nav__icon" aria-hidden>
+              <MenuNavIconIntro />
+            </span>
+            <span className="menu-route-nav__label">입문 경로</span>
+            <span className="menu-route-nav__aside">처음이라면</span>
+            <MenuNavChevron />
+          </button>
+        </li>
+        <li className="menu-route-nav__item">
+          <button
+            type="button"
+            className={`menu-route-nav__row${listSource === "public" ? " is-active" : ""}`}
+            aria-label="퍼블릭"
+            title="퍼블릭 경로 목록"
+            aria-haspopup="dialog"
+            aria-expanded={listSource === "public"}
+            onClick={() => openOfficialList("public")}
+          >
+            <span className="menu-route-nav__icon" aria-hidden>
+              <MenuNavIconPublic />
+            </span>
+            <span className="menu-route-nav__label">퍼블릭 경로</span>
+            <span className="menu-route-nav__aside menu-route-nav__aside--wrap">
+              다른 라이더가 만든 길
+            </span>
+            <MenuNavChevron />
+          </button>
+        </li>
+        <li className="menu-route-nav__item">
+          <button
+            type="button"
+            className={`menu-route-nav__row${listSource === "saved" ? " is-active" : ""}`}
+            aria-label="내 경로 목록"
+            title="내 경로 목록"
+            aria-haspopup="dialog"
+            aria-expanded={listSource === "saved"}
+            onClick={() => selectSource("saved")}
+          >
+            <span className="menu-route-nav__icon" aria-hidden>
+              <MenuNavIconSaved />
+            </span>
+            <span className="menu-route-nav__label">내 경로</span>
+            {savedCount > 0 ? (
+              <span className="menu-route-nav__count" aria-hidden>{savedCount}</span>
             ) : null}
-          </div>
+            <MenuNavChevron />
+          </button>
+        </li>
+        {props.onOpenPlaceSearch ? (
+          <li className="menu-route-nav__item">
+            <button
+              type="button"
+              className="menu-route-nav__row"
+              aria-label="지명 검색"
+              title="지명으로 찾기"
+              onClick={props.onOpenPlaceSearch}
+            >
+              <span className="menu-route-nav__icon" aria-hidden>
+                <MenuNavIconSearch />
+              </span>
+              <span className="menu-route-nav__label">지명 검색</span>
+              <MenuNavChevron />
+            </button>
+          </li>
+        ) : null}
+        {props.onOpenLeaderboard ? (
+          <li className="menu-route-nav__item">
+            <button
+              type="button"
+              className="menu-route-nav__row"
+              aria-label="순위"
+              title="순위 보기"
+              onClick={props.onOpenLeaderboard}
+            >
+              <span className="menu-route-nav__icon" aria-hidden>
+                <MenuNavIconRank />
+              </span>
+              <span className="menu-route-nav__label">순위</span>
+              {props.leaderboardMenuAside ? (
+                <span className="menu-route-nav__aside">{props.leaderboardMenuAside}</span>
+              ) : null}
+              <MenuNavChevron />
+            </button>
+          </li>
+        ) : null}
+        {props.onOpenSettings ? (
+          <li className="menu-route-nav__item">
+            <button
+              type="button"
+              className="menu-route-nav__row"
+              aria-label="주행 설정"
+              title="BLE·TTS·BGM 등"
+              onClick={props.onOpenSettings}
+            >
+              <span className="menu-route-nav__icon" aria-hidden>
+                <MenuNavIconSettings />
+              </span>
+              <span className="menu-route-nav__label">주행 설정</span>
+              <MenuNavChevron />
+            </button>
+          </li>
+        ) : null}
+      </ul>
 
-          {props.routeSummary.trim() ? (
+      {activeOfficialTitle ? (
+        <p className="ride-panel__official-active" role="status">
+          선택: <strong>{activeOfficialTitle}</strong>
+          {props.basicStartHubJoined ? (
+            <>
+              {" · "}
+              <button
+                type="button"
+                className="ride-panel__official-active-leave"
+                disabled={props.basicStartLoading}
+                title="Leave course"
+                onClick={() => void props.onLeaveBasicHub()}
+              >
+                나가기
+              </button>
+            </>
+          ) : null}
+        </p>
+      ) : null}
+
+      {props.routeSummary.trim() ? (
             <p className="ride-panel__summary" role="status">
               {props.routeSummary}
             </p>

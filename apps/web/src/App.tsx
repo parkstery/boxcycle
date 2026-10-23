@@ -2761,6 +2761,8 @@ export default function App() {
       onFocusStop={handleFocusRouteDockStop}
       onSwapEndpoints={handleSwapRouteEndpoints}
       editLocked={routeMenuLockedForProd}
+      cadence={cadenceHud}
+      sensorAttention={Boolean(routeGeometry) && !routeLoading && !rideInputReady}
     />
   );
 
@@ -2867,6 +2869,7 @@ export default function App() {
     routeGeometry,
     summaryVisible,
     avgSpeedLabel,
+    routeElevationProfile: rideElevationProfile,
   });
   const accountInitial = (() => {
     if (!user) return null;
@@ -3069,6 +3072,10 @@ export default function App() {
                 coachData,
                 coachLineEnabled: rideCoachingBannerVisible,
                 metrics: hudMetrics,
+                cadenceRpm:
+                  rideStatus === "running" && bleCrankRpm.crankRpm != null
+                    ? bleCrankRpm.crankRpm
+                    : null,
                 onClearPins: handleClearPins,
                 routeError: null,
                 onResumeFromPause: handleResume,
@@ -3252,6 +3259,10 @@ export default function App() {
               coachData,
               coachLineEnabled: rideCoachingBannerVisible,
               metrics: hudMetrics,
+              cadenceRpm:
+                rideStatus === "running" && bleCrankRpm.crankRpm != null
+                  ? bleCrankRpm.crankRpm
+                  : null,
               onClearPins: handleClearPins,
               routeError: null,
               onResumeFromPause: handleResume,
@@ -3401,14 +3412,24 @@ export default function App() {
           setPlaceSearchMarkerLngLat(null);
           setMenuReveal(null);
         }}
-        onOpenSettings={openRideSettingsPanel}
-        onOpenPlaceSearch={() => {
-          placeSearchIntentRef.current = "menu";
-          openPlaceSearchPanel();
-        }}
-        onOpenLeaderboard={openLeaderboardPanel}
       >
         <RideRoutePanel
+          onOpenSettings={openRideSettingsPanel}
+          onOpenPlaceSearch={() => {
+            placeSearchIntentRef.current = "menu";
+            openPlaceSearchPanel();
+          }}
+          onOpenLeaderboard={openLeaderboardPanel}
+          leaderboardMenuAside={
+            leaderboardGlance.data?.me.status === "ranked" &&
+            leaderboardGlance.data.me.rank != null
+              ? (
+                  <>
+                    이번 주 <b>{leaderboardGlance.data.me.rank}</b>위
+                  </>
+                )
+              : undefined
+          }
           routeSummary={routeSummary}
           routeLoading={routeLoading || isSearching}
           basicSharedHubs={BASIC_SHARED_HUB_SUMMARIES}
