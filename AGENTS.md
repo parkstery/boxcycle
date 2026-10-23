@@ -17,6 +17,7 @@
 
 | 질문 | 문서 |
 |---|---|
+| **수퍼바이저가 이어받을 지금 상태** | [document/ops/HANDOFF.md](document/ops/HANDOFF.md) |
 | 다음 목표·chief 결정 대기 요약 | [document/260928-RTW-현황판.md](document/260928-RTW-현황판.md) |
 | 에이전트 작업 창구(ops) 현황·새 묶음 열기 | [document/ops/README.md](document/ops/README.md) |
 | X가 무엇인가·뭐라고 부르나 | [document/reference/product/260714-RTW-Ontology.md](document/reference/product/260714-RTW-Ontology.md) |
@@ -46,11 +47,12 @@
 - 위 경우가 아니면 구현·시험·증거 수집까지 완료한 뒤 결과와 발견 사항을 보고한다. 질문을 피하기 위해 검증을 생략하거나 위험을 숨기지 않는다.
 - 브라우저 또는 Playwright 단계가 5분 동안 유의미한 진전 없이 대기하면 같은 시도를 계속 기다리거나 반복하지 않는다. 즉시 중단하고 프로세스·서버·포트·로그를 확인한 뒤, headless·단일 worker·기존 서버 재사용·정적/단위 시험 등 다른 검증 경로로 전환한다. 전환 후에도 필수 검증이 불가능할 때만 BLOCK으로 보고한다.
 
+<!-- 아래 절은 AGENTS.md 와 CLAUDE.md 에서 같은 본문을 유지한다(Codex 는 AGENTS.md, Claude Code 는 CLAUDE.md 를 읽는다). 한쪽을 고치면 다른 쪽도 고친다. -->
 ## AI 개발 역할과 공용 작업 창구
 
 - **Chief**는 제품 방향, 중요한 기술·범위 결정과 최종 완료를 승인한다. 일상적인 구현의 중간 전달을 맡기지 않는다.
-- **Codex = Engineering Supervisor**: 요구를 분석하고 작업 범위·완료 조건·검증 방법을 정해 `document/ops/`에 지시한다. 구현 결과와 실제 diff·검증 증거를 검수하고 재작업 또는 완료를 판정한다.
-- **Developer = Cursor AI·CLI(기본)**: OpenCode는 Chief가 명시적으로 요청할 때만 GLM-5.3으로 사용하고, 사용할 수 없으면 Cursor로 돌아온다. 지정된 작업을 조사·구현·검증하고 같은 묶음에 사실에 근거한 결과를 남긴다. 범위 밖 문제는 보고하고, 독단적으로 확장하지 않는다. IDE·CLI 어느 환경이든 같은 파일 인계·검수 계약을 따른다. 안내·질의·권한 요청은 한국어로 작성한다.
+- **Supervisor = 그때의 담당 agent (Claude Code 또는 Codex, 토큰 한도에 따라 교대)**: 요구를 분석하고 작업 범위·완료 조건·검증 방법을 정해 `document/ops/`에 지시한다. 구현 결과와 실제 diff·검증 증거를 검수하고 재작업 또는 완료를 판정한다. **시작하면 [document/ops/HANDOFF.md](document/ops/HANDOFF.md)부터 읽고, 작업 단위가 끝날 때마다·끊기기 전에 그 파일을 고친다.** 절차·실행자 호출·감리 명령·배포·환경 함정은 [수퍼바이저 교대 플레이북](document/reference/operations/261023-RTW-수퍼바이저-교대-플레이북.md).
+- **Developer = Cursor AI·CLI(기본)**: OpenCode 무료 모델은 조사·기계적 작업에 쓰고(2026-10-22 Chief), 화면·판단 작업에 못 미치면 Cursor로 돌아온다. 지정된 작업을 조사·구현·검증하고 같은 묶음에 사실에 근거한 결과를 남긴다. 범위 밖 문제는 보고하고, 독단적으로 확장하지 않는다. IDE·CLI 어느 환경이든 같은 파일 인계·검수 계약을 따른다. 안내·질의·권한 요청은 한국어로 작성한다.
 - 최종 사용 기기는 **스마트폰**이다. PC는 개발·반복 테스트 환경이며, 현행 폰 가로 방향·공간밀도 기준을 우선한다. [협업·감리 계약](document/reference/operations/261009-RTW-개발에이전트-협업-감리.md)에 따라 도구가 교대해도 동일 지시·결과·검수 기록을 이어간다.
 - 공식 handoff는 [document/ops/README.md](document/ops/README.md)에 따른 파일 기록이다. 새 작업은 현재 묶음의 `README.md`와 최신 지시를 읽고 시작한다. 이전 릴레이의 상시 대기 지침을 새 작업에 적용하지 않는다.
 - 지시 → 결과 → 검수 → 필요하면 새 재지시를 별도 파일로 남긴다. 상태 요약은 [document/ops/PROGRESS.md](document/ops/PROGRESS.md)에 기록한다. 기존 ops 기록은 보존한다.

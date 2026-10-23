@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>지도 대기</title>
+<!-- 시안: 1. 지도 대기 — 경로 도크 · 폰 가로 800×360 을 2배(1600×720)로 그림. 원본 캔버스 https://claude.ai/artifact/NWrpXU7boGovvs8EixVcdN -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700&amp;family=Saira+Condensed:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2457D6}a:hover{color:#163E9E}
+.o{paint-order:stroke fill;-webkit-text-stroke:3px #000000;text-shadow:0 1px 4px rgba(0,0,0,0.55)}
+.o-l{color:#F8FAFC;font-size:11px;font-weight:700}
+.o-v{color:#52C9FF;-webkit-text-stroke:4px #000000}
+.o-h{color:#A8DCFF;-webkit-text-stroke:4px #000000}
+.o-g{color:#6EE7A0}
+.o-w{color:#F8FAFC}
+</style>
+</head>
+<body>
+<div style="width: 1600px; height: 720px; overflow: hidden; background: #2E3A2F; font-family: 'Gothic A1', system-ui, sans-serif; color: #121417">
+<div style="zoom: 2; position: relative; width: 800px; height: 360px; overflow: hidden">
+<svg aria-hidden="true" width="800" height="360" viewBox="0 0 800 360" fill="none" style="position: absolute; left: 0; top: 0">
+<rect width="800" height="360" fill="#2E3A2F"></rect>
+<ellipse cx="250" cy="200" rx="150" ry="80" fill="#35503C"></ellipse>
+<path d="M-20 320 C 160 270, 300 300, 460 240 S 700 190, 820 210" stroke="#3E6B8A" stroke-width="20" stroke-opacity="0.6"></path>
+<g stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="2">
+<path d="M0 60 H800 M0 130 H800 M0 280 H800 M90 0 V360 M380 0 V360 M560 0 V360 M700 0 V360"></path>
+</g>
+<g stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="5" stroke-linecap="round">
+<path d="M-10 110 C 200 90, 420 140, 810 80"></path>
+<path d="M480 -10 C 470 120, 520 240, 600 370"></path>
+<path d="M120 370 C 200 250, 300 200, 470 180"></path>
+</g>
+<path d="M175 235 C 220 200, 250 210, 300 170 S 340 120, 360 150 S 420 170, 520 140 S 600 120, 610 40" stroke="#0E1F4D" stroke-opacity="0.5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M175 235 C 220 200, 250 210, 300 170 S 340 120, 360 150 S 420 170, 520 140 S 600 120, 610 40" stroke="#6E97FF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+<circle cx="175" cy="235" r="9" fill="#FFFFFF"></circle><circle cx="175" cy="235" r="5" fill="#121417"></circle>
+<circle cx="610" cy="40" r="9" fill="#121417" stroke="#FFFFFF" stroke-width="3"></circle>
+</svg>
+
+<section aria-label="경로 요약" style="position: absolute; left: 14px; top: 6px; display: flex; gap: 18px; align-items: flex-start">
+<div style="display: flex; flex-direction: column; align-items: center"><span class="o o-l">경로</span><span class="o o-h" style="font-family: 'Saira Condensed', sans-serif; font-size: 26px; font-weight: 700; line-height: 1.05">2.02 <span class="o o-h" style="font-size: 12px">km</span></span></div>
+<div style="display: flex; flex-direction: column; align-items: center"><span class="o o-l">고도</span><span class="o o-v" style="font-family: 'Saira Condensed', sans-serif; font-size: 22px; font-weight: 700; line-height: 1.05">46 → 30 <span class="o o-v" style="font-size: 12px">m</span></span></div>
+</section>
+
+<div style="position: absolute; right: 8px; top: 8px; display: flex; gap: 6px; align-items: center">
+<button type="button" style="height: 32px; padding: 0 12px; border: 1px solid #C9D6EE; background: #FFFFFF; font: inherit; font-size: 12px; font-weight: 700; color: #2A2E37; border-radius: 999px">위성</button>
+<button type="button" aria-label="축소" style="width: 32px; height: 32px; border: 0; background: #FFFFFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.18)"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#2A2E37" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3 8h10"></path></svg></button>
+<button type="button" aria-label="확대" style="width: 32px; height: 32px; border: 0; background: #FFFFFF; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.18)"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#2A2E37" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3 8h10M8 3v10"></path></svg></button>
+<button type="button" aria-label="계정" style="height: 32px; padding: 0 12px 0 4px; border: 0; background: #FFFFFF; border-radius: 999px; display: flex; align-items: center; gap: 7px; font: inherit; box-shadow: 0 2px 8px rgba(0,0,0,0.18)">
+<span style="width: 24px; height: 24px; border-radius: 50%; background: #EEF3FC; color: #2457D6; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">R</span>
+<span style="font-size: 12px; font-weight: 700; color: #121417">Ridingman12</span>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 13px; font-weight: 600; color: #4B5160">480 <span style="font-size: 10px">km</span></span>
+</button>
+</div>
+
+<section aria-label="경로 도크" style="position: absolute; left: 8px; bottom: 8px; width: 250px; box-sizing: border-box; background: #FFFFFF; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.28); padding: 6px 8px 8px 12px">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 32px; align-items: center; column-gap: 4px">
+<ol style="list-style: none; margin: 0; padding: 0">
+<li style="display: flex; align-items: center; gap: 8px; height: 28px; border-bottom: 1px solid #EEF0F3">
+<span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; border: 2px solid #121417; box-sizing: border-box"></span>
+<span style="font-size: 10px; font-weight: 700; color: #5E6472; width: 24px">출발</span>
+<span style="font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Vondelpark 2</span>
+</li>
+<li style="display: flex; align-items: center; gap: 8px; height: 28px">
+<span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; background: #121417"></span>
+<span style="font-size: 10px; font-weight: 700; color: #5E6472; width: 24px">도착</span>
+<span style="font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Prinsengracht 524</span>
+</li>
+</ol>
+<button type="button" aria-label="출발·도착 바꾸기" style="width: 32px; height: 32px; border: 0; background: #F2F3F5; border-radius: 50%; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#2A2E37" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 2v12M2 5l3-3 3 3M11 14V2M8 11l3 3 3-3"></path></svg></button>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; margin-top: 6px">
+<button type="button" style="height: 28px; padding: 0 10px; border: 1px solid #C9D6EE; background: #FFFFFF; font: inherit; font-size: 12px; font-weight: 700; color: #2A2E37; border-radius: 999px; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="width: 7px; height: 7px; border-radius: 50%; background: #1E9A55"></span>센서 82 <span style="font-family: 'Saira Condensed', sans-serif; font-size: 11px; color: #4B5160">RPM</span></button>
+<button type="button" style="height: 28px; padding: 0 4px; border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 700; color: #2457D6">+ 경유지</button>
+</div>
+</section>
+
+<button type="button" style="position: absolute; right: 12px; bottom: 28px; height: 44px; padding: 0 20px 0 16px; border: 0; background: #2457D6; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 700; border-radius: 10px; display: flex; align-items: center; gap: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.28)"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5z" fill="#FFFFFF"></path></svg>주행 시작</button>
+
+<span style="position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%); font-size: 9px; color: rgba(255,255,255,0.7)">© Mapbox © OpenStreetMap</span>
+</div>
+</div>
+</body>
+</html>

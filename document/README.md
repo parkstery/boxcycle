@@ -53,7 +53,8 @@
 | 문서 | 역할 | 문서 상태 |
 |---|---|---|
 | [Firebase 비용 체크리스트](reference/operations/260523-Firebase-비용-운영-체크리스트.md) | 반복 비용 관측·대응 절차 | 검토됨·운영 문서 |
-| [개발 에이전트 협업·감리](reference/operations/261009-RTW-개발에이전트-협업-감리.md) | Muse·Cursor 교대·모바일 검수·파일 인계 | 채택 |
+| [수퍼바이저 교대 플레이북](reference/operations/261023-RTW-수퍼바이저-교대-플레이북.md) | Claude Code·Codex 수퍼바이저 교대·인수인계·감리 명령·배포·환경 함정 | 채택 |
+| [개발 에이전트 협업·감리](reference/operations/261009-RTW-개발에이전트-협업-감리.md) | 실행자 교대·모바일 검수·파일 인계 계약 | 채택 |
 | [개발 워크플로](reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md) | 브랜치·커밋·검증 게이트 | SoT |
 | [Skill·Harness 아키텍처](reference/operations/260722-Skill-Harness-아키텍처.md) | 규율·도구·실행코드 3계층 | SoT |
 | [구조 게이트 운용](reference/operations/260926-RTW-구조-게이트-운용-지침.md) | 구조 도구·게이트 규율 | SoT |

@@ -1,3 +1,10 @@
+2026-10-23 [수퍼바이저 교대 체계](HANDOFF.md): 채택. Chief — Claude Code·Codex 가 토큰 한도에 따라 수퍼바이저 교대. 시작·끝은 [HANDOFF.md](HANDOFF.md), 절차는 [교대 플레이북](../reference/operations/261023-RTW-수퍼바이저-교대-플레이북.md). 디자인 캔버스는 리포 [mockups](20261023-ui-redesign/mockups/)가 원본.
+2026-10-23 [전체 화면 디자인 변경](20261023-ui-redesign/README.md): IN_PROGRESS. 시안 16장 Chief 승인, 3장 배포·2장 부분. 묶음 1(MENU·경로 목록)부터. 결정 대기 2건.
+2026-10-23 [순위 칩·순위판·결과 순위 줄](20261023-leaderboard/05-result-glance.md): DEPLOYED. 5ab00ad6. Cursor 구현·Claude 감리(수정 2). 상위20·위아래3 함수 배포. tsc/단위1353/서버169/e2e:ride 7/7 PASS.
+2026-10-23 [맵 뷰 다이어트](20261023-mapview-diet/03-result.md): DEPLOYED. 649045b0. Spinatlas Dark·스타일칩·시점·줌·장소이름 제거. Cursor 구현·Claude 감리(의존방향·export 교정).
+2026-10-23 [리더보드 1단계·계정 패널](20261023-leaderboard/01-plan.md): DEPLOYED. getLeaderboard(센서 주행·세계·주/달/전체)·리더보드 시트·계정 패널 재설계·km 소문자·디자인 규칙.
+2026-10-23 [관리자 지표](20261023-admin-dashboard/01-plan.md): DEPLOYED·Chief 확인. getAdminDashboard·관리 시트.
+
 2026-10-22 [코드 정련](20261022-code-tidy/README.md): APPROVED. 안쓰는 export 446→186·반복 549→18줄·CSS −1,345줄·큰파일 3개 축소, pre-push 「코드 정련 래칫」 게이트 추가(생존 4/4). tsc/lint/단위1341/e2e7 PASS. 배포.
 
 2026-10-22 [적용수단·한행·두줄30](20261020-ui-800x360/04-review-30.md): DEPLOYED(main2 0ec14853·Hosting·운영 번들 문구 확인). 자동탐색 적용수단 파랑·두모드 수단/재생/삭제 한행·offered 두줄·팝업폭 고정. 브라우저17/거리146/selector19/타입/build/lint PASS. 기존5002·커밋/푸시/배포없음·Chief확인대기.

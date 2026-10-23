@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>경로 목록</title>
+<!-- 시안: 4. 경로 목록 · 폰 가로 800×360 을 2배(1600×720)로 그림. 원본 캔버스 https://claude.ai/artifact/NWrpXU7boGovvs8EixVcdN -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700&amp;family=Saira+Condensed:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2457D6}a:hover{color:#163E9E}
+</style>
+</head>
+<body>
+<div style="width: 1600px; height: 720px; overflow: hidden; background: #2E3A2F; font-family: 'Gothic A1', system-ui, sans-serif; color: #121417">
+<div style="zoom: 2; width: 800px; height: 360px; display: flex; align-items: center; justify-content: center">
+<section aria-label="경로 목록" style="width: 740px; height: 324px; box-sizing: border-box; background: transparent; border-radius: 18px; padding: 12px 16px 10px 20px; display: flex; flex-direction: column">
+<header style="display: flex; align-items: center; gap: 10px; padding-bottom: 8px">
+<nav aria-label="경로 출처" style="display: flex; gap: 4px; background: rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 3px; backdrop-filter: blur(4px)">
+<button type="button" aria-pressed="true" style="height: 30px; padding: 0 14px; border: 0; background: #2457D6; font: inherit; font-size: 12px; font-weight: 700; color: #FFFFFF; border-radius: 8px; text-shadow: 0 1px 2px rgba(0,0,0,0.2)">입문</button>
+<button type="button" style="height: 30px; padding: 0 14px; border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 600; color: #FFFFFF; border-radius: 8px; text-shadow: 0 1px 3px rgba(0,0,0,0.4)">퍼블릭</button>
+<button type="button" style="height: 30px; padding: 0 14px; border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 600; color: #FFFFFF; border-radius: 8px; text-shadow: 0 1px 3px rgba(0,0,0,0.4)">내 경로</button>
+</nav>
+<label style="flex-grow: 1; height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(4px)">
+<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+<input type="search" placeholder="경로 이름으로 찾기" aria-label="경로 이름으로 찾기" style="border: 0; background: transparent; font: inherit; font-size: 13px; color: #FFFFFF; outline: none; flex-grow: 1; min-width: 0; text-shadow: 0 1px 3px rgba(0,0,0,0.4)" placeholder-style="color: rgba(255,255,255,0.7)">
+</label>
+<button type="button" style="height: 30px; padding: 0 12px; border: 1px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.1); font: inherit; font-size: 12px; font-weight: 600; color: #FFFFFF; border-radius: 999px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); backdrop-filter: blur(4px)">가까운 순 ▾</button>
+<button type="button" aria-label="닫기" style="width: 34px; height: 34px; border: 0; background: rgba(255, 255, 255, 0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px)"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"></path></svg></button>
+</header>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-top: 1px solid rgba(255, 255, 255, 0.2)">
+<li style="display: grid; grid-template-columns: minmax(0, 1fr) 90px 80px; align-items: center; gap: 12px; height: 44px; border-bottom: 1px solid rgba(255, 255, 255, 0.1)">
+<div style="display: flex; flex-direction: column; min-width: 0"><span style="font-size: 13px; font-weight: 700; color: #FFFFFF; text-shadow: 0 1px 3px rgba(0,0,0,0.5)">암스테르담 폰델파크</span><span style="font-size: 11px; color: rgba(255, 255, 255, 0.8); text-shadow: 0 1px 2px rgba(0,0,0,0.4)">출발 Vondelpark 2 · 네덜란드</span></div>
+<span style="font-size: 11px; color: #4ECDC4; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.3)">완주함</span>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 600; text-align: right; color: #FFFFFF; text-shadow: 0 1px 3px rgba(0,0,0,0.5)">2.02 <span style="font-size: 11px; color: rgba(255, 255, 255, 0.7); text-shadow: 0 1px 2px rgba(0,0,0,0.4)">km</span></span>
+</li>
+<li style="display: grid; grid-template-columns: minmax(0, 1fr) 90px 80px; align-items: center; gap: 12px; height: 44px; border-bottom: 1px solid rgba(255, 255, 255, 0.1)">
+<div style="display: flex; flex-direction: column; min-width: 0"><span style="font-size: 13px; font-weight: 700; color: #FFFFFF; text-shadow: 0 1px 3px rgba(0,0,0,0.5)">서울 남산공원길</span><span style="font-size: 11px; color: rgba(255, 255, 255, 0.8); text-shadow: 0 1px 2px rgba(0,0,0,0.4)">출발 남산공원길 105 · 대한민국</span></div>
+<span style="font-size: 11px; color: rgba(255, 255, 255, 0.7); text-shadow: 0 1px 2px rgba(0,0,0,0.3)">43% 달림</span>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 600; text-align: right; color: #FFFFFF; text-shadow: 0 1px 3px rgba(0,0,0,0.5)">0.41 <span style="font-size: 11px; color: rgba(255, 255, 255, 0.7); text-shadow: 0 1px 2px rgba(0,0,0,0.4)">km</span></span>
+</li>
+<li style="display: grid; grid-template-columns: minmax(0, 1fr) 90px 80px; align-items: center; gap: 12px; height: 44px; border-bottom: 1px solid rgba(255, 255, 255, 0.1)">
+<div style="display: flex; flex-direction: column; min-width: 0"><span style="font-size: 13px; font-weight: 700; color: #FFFFFF; text-shadow: 0 1px 3px rgba(0,0,0,0.5)">파리 퐁뇌프</span><span style="font-size: 11px; color: rgba(255, 255, 255, 0.8); text-shadow: 0 1px 2px rgba(0,0,0,0.4)">출발 Pont Neuf · 프랑스</span></div>
+<span></span>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 600; text-align: right; color: #FFFFFF; text-shadow: 0 1px 3px rgba(0,0,0,0.5)">0.45 <span style="font-size: 11px; color: rgba(255, 255, 255, 0.7); text-shadow: 0 1px 2px rgba(0,0,0,0.4)">km</span></span>
+</li>
+<li style="display: grid; grid-template-columns: minmax(0, 1fr) 90px 80px; align-items: center; gap: 12px; height: 44px; border-bottom: 1px solid rgba(255, 255, 255, 0.1)">
+<div style="display: flex; flex-direction: column; min-width: 0"><span style="font-size: 13px; font-weight: 700; color: #FFFFFF; text-shadow: 0 1px 3px rgba(0,0,0,0.5)">뉴욕 센트럴파크</span><span style="font-size: 11px; color: rgba(255, 255, 255, 0.8); text-shadow: 0 1px 2px rgba(0,0,0,0.4)">출발 Central Park West · 미국</span></div>
+<span></span>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 17px; font-weight: 600; text-align: right; color: #FFFFFF; text-shadow: 0 1px 3px rgba(0,0,0,0.5)">0.45 <span style="font-size: 11px; color: rgba(255, 255, 255, 0.7); text-shadow: 0 1px 2px rgba(0,0,0,0.4)">km</span></span>
+</li>
+</ul>
+<p style="margin: auto 0 0; font-size: 11px; line-height: 15px; color: rgba(255, 255, 255, 0.7); text-shadow: 0 1px 2px rgba(0,0,0,0.3)">경로를 누르면 지도에 올라가요</p>
+</section>
+</div>
+</div>
+</body>
+</html>

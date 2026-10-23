@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>경로 만들기</title>
+<!-- 시안: 2. 경로 만들기 (길게 누르기) · 폰 가로 800×360 을 2배(1600×720)로 그림. 원본 캔버스 https://claude.ai/artifact/NWrpXU7boGovvs8EixVcdN -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;600;700&amp;family=Saira+Condensed:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#2457D6}a:hover{color:#163E9E}
+</style>
+</head>
+<body>
+<div style="width: 1600px; height: 720px; overflow: hidden; background: #2E3A2F; font-family: 'Gothic A1', system-ui, sans-serif; color: #121417">
+<div style="zoom: 2; position: relative; width: 800px; height: 360px; overflow: hidden">
+<svg aria-hidden="true" width="800" height="360" viewBox="0 0 800 360" fill="none" style="position: absolute; left: 0; top: 0">
+<rect width="800" height="360" fill="#2E3A2F"></rect>
+<ellipse cx="520" cy="210" rx="130" ry="70" fill="#35503C"></ellipse>
+<path d="M-20 300 C 160 260, 300 290, 460 250 S 700 210, 820 230" stroke="#3E6B8A" stroke-width="20" stroke-opacity="0.6"></path>
+<g stroke="#FFFFFF" stroke-opacity="0.07" stroke-width="2">
+<path d="M0 60 H800 M0 140 H800 M0 300 H800 M120 0 V360 M380 0 V360 M560 0 V360 M700 0 V360"></path>
+</g>
+<g stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="5" stroke-linecap="round">
+<path d="M-10 120 C 200 100, 420 150, 810 90"></path>
+<path d="M600 -10 C 580 120, 620 240, 680 370"></path>
+</g>
+<circle cx="520" cy="200" r="118" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="2" stroke-dasharray="6 6"></circle>
+<circle cx="520" cy="200" r="11" fill="#2457D6" stroke="#FFFFFF" stroke-width="3"></circle>
+</svg>
+
+<section aria-label="경로 만들기" style="position: absolute; left: 92px; top: 60px; width: 300px; box-sizing: border-box; background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 24px rgba(0,0,0,0.28); padding: 12px 14px 12px 16px; display: flex; flex-direction: column; gap: 8px">
+<header style="display: flex; align-items: center; gap: 8px">
+<nav aria-label="경로 만드는 방식" style="display: flex; gap: 4px; background: #F2F3F5; border-radius: 10px; padding: 3px; flex-grow: 1">
+<button type="button" style="flex: 1 1 0; height: 28px; border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 600; color: #4B5160; border-radius: 8px">출발·도착</button>
+<button type="button" aria-pressed="true" style="flex: 1 1 0; height: 28px; border: 0; background: #2457D6; font: inherit; font-size: 12px; font-weight: 700; color: #FFFFFF; border-radius: 8px">거리로 돌기</button>
+</nav>
+<button type="button" aria-label="닫기" style="width: 32px; height: 32px; border: 0; background: #F2F3F5; border-radius: 50%; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#2A2E37" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"></path></svg></button>
+</header>
+<span style="font-size: 11px; line-height: 15px; color: #4B5160; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">콜로세움에서 출발해 다시 돌아오는 길</span>
+<div style="display: flex; align-items: center; gap: 10px; padding: 2px 0">
+<span style="font-size: 10px; font-weight: 700; letter-spacing: 0.12em; color: #5E6472; width: 44px">목표 거리</span>
+<button type="button" aria-label="0.5 km 줄이기" style="width: 32px; height: 32px; border: 1px solid #C9D6EE; background: #FFFFFF; border-radius: 50%; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#2A2E37" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3 8h10"></path></svg></button>
+<span style="flex-grow: 1; text-align: center; font-family: 'Saira Condensed', sans-serif; font-size: 26px; font-weight: 700; line-height: 1.1; color: #2457D6">5.0 <span style="font-size: 13px; font-weight: 600">km</span></span>
+<button type="button" aria-label="0.5 km 늘리기" style="width: 32px; height: 32px; border: 1px solid #C9D6EE; background: #FFFFFF; border-radius: 50%; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#2A2E37" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3 8h10M8 3v10"></path></svg></button>
+</div>
+<div role="group" aria-label="자주 쓰는 거리" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px">
+<button type="button" style="height: 28px; border: 1px solid #C9D6EE; background: #FFFFFF; font-family: 'Saira Condensed', sans-serif; font-size: 14px; font-weight: 600; color: #2A2E37; border-radius: 999px">1</button>
+<button type="button" style="height: 28px; border: 1px solid #C9D6EE; background: #FFFFFF; font-family: 'Saira Condensed', sans-serif; font-size: 14px; font-weight: 600; color: #2A2E37; border-radius: 999px">3</button>
+<button type="button" aria-pressed="true" style="height: 28px; border: 1px solid #2457D6; background: #EEF3FC; font-family: 'Saira Condensed', sans-serif; font-size: 14px; font-weight: 700; color: #2457D6; border-radius: 999px">5</button>
+<button type="button" style="height: 28px; border: 1px solid #C9D6EE; background: #FFFFFF; font-family: 'Saira Condensed', sans-serif; font-size: 14px; font-weight: 600; color: #2A2E37; border-radius: 999px">10</button>
+<button type="button" style="height: 28px; border: 1px solid #C9D6EE; background: #FFFFFF; font-family: 'Saira Condensed', sans-serif; font-size: 14px; font-weight: 600; color: #2A2E37; border-radius: 999px">20</button>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #EEF0F3; padding-top: 8px">
+<button type="button" style="height: 32px; padding: 0 4px; border: 0; background: transparent; font: inherit; font-size: 12px; font-weight: 700; color: #4B5160">경로 지우기</button>
+<button type="button" style="height: 36px; padding: 0 16px 0 12px; border: 0; background: #2457D6; color: #FFFFFF; font: inherit; font-size: 12px; font-weight: 700; border-radius: 10px; display: flex; align-items: center; gap: 6px"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9.5-5.5z" fill="#FFFFFF"></path></svg>이 거리로 주행 시작</button>
+</div>
+</section>
+
+<div style="position: absolute; right: 8px; top: 8px; display: flex; gap: 6px; align-items: center">
+<button type="button" style="height: 32px; padding: 0 12px; border: 1px solid #C9D6EE; background: #FFFFFF; font: inherit; font-size: 12px; font-weight: 700; color: #2A2E37; border-radius: 999px">위성</button>
+<button type="button" aria-label="계정" style="height: 32px; padding: 0 12px 0 4px; border: 0; background: #FFFFFF; border-radius: 999px; display: flex; align-items: center; gap: 7px; font: inherit; box-shadow: 0 2px 8px rgba(0,0,0,0.18)">
+<span style="width: 24px; height: 24px; border-radius: 50%; background: #EEF3FC; color: #2457D6; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center">R</span>
+<span style="font-size: 12px; font-weight: 700; color: #121417">Ridingman12</span>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 13px; font-weight: 600; color: #4B5160">480 <span style="font-size: 10px">km</span></span>
+</button>
+</div>
+
+<section aria-label="경로 도크" style="position: absolute; left: 8px; bottom: 8px; width: 250px; box-sizing: border-box; background: #FFFFFF; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,0.28); padding: 4px 8px 4px 12px; display: flex; align-items: center; gap: 8px; height: 36px">
+<span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; border: 2px solid #121417; box-sizing: border-box"></span>
+<span style="font-size: 10px; font-weight: 700; color: #5E6472">출발</span>
+<span style="font-size: 13px; font-weight: 600; flex-grow: 1">콜로세움</span>
+<span style="font-family: 'Saira Condensed', sans-serif; font-size: 15px; font-weight: 600">5.0 <span style="font-size: 10px; color: #4B5160">km</span></span>
+</section>
+
+<span style="position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%); font-size: 9px; color: rgba(255,255,255,0.7)">© Mapbox © OpenStreetMap</span>
+</div>
+</div>
+</body>
+</html>
