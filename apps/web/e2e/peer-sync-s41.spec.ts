@@ -25,20 +25,15 @@ const RUN = Math.min(3, Math.max(1, Number(process.env.S41_RUN || '1')))
 const OUT_TAG = (process.env.S41_OUT_TAG || '').replace(/[^A-Za-z0-9]/g, '')
 const EVENTS_NAME = `S41${OUT_TAG}-${PHASE}-run${RUN}-events.json`
 
-async function openMapViewSheet(page: import('@playwright/test').Page) {
-  const btn = page.getByRole('button', { name: '맵 뷰 설정' })
-  await expect(btn).toBeVisible({ timeout: 15_000 })
-  if ((await btn.getAttribute('aria-expanded')) !== 'true') {
-    await btn.click()
-  }
-  await expect(page.getByRole('dialog', { name: '맵 뷰' })).toBeVisible({ timeout: 10_000 })
-}
-
 async function setMapZoom(page: import('@playwright/test').Page, zoom: number) {
-  await openMapViewSheet(page)
-  const slider = page.getByRole('slider', { name: /^줌 / })
-  await expect(slider).toBeVisible({ timeout: 10_000 })
-  await slider.fill(String(zoom))
+  await page.waitForFunction(
+    () => Boolean((window as { __RTW_MAP__?: unknown }).__RTW_MAP__),
+    null,
+    { timeout: 15_000 },
+  )
+  await page.evaluate((z) => {
+    (window as { __RTW_MAP__: { setZoom: (n: number) => void } }).__RTW_MAP__.setZoom(z)
+  }, zoom)
   await page.waitForTimeout(400)
 }
 

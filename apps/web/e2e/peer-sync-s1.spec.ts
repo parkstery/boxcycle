@@ -38,11 +38,10 @@ type PeerRow = {
   spd: number
 }
 
+/** 주행 HUD 퀵 카메라 1(routeFit) = follow free — 맵 뷰 시트 시점 칩 제거 후 대체 */
 async function setFollowFree(page: import('@playwright/test').Page) {
-  await page.getByRole('button', { name: '맵 뷰 설정' }).click()
-  await page.locator('.map-view-sheet__chip', { hasText: 'free' }).click()
-  // 시트 닫기 — 바깥 클릭 대신 Escape
-  await page.keyboard.press('Escape')
+  await page.getByRole('button', { name: /^카메라 2/ }).click()
+  await page.getByRole('button', { name: /^카메라 1/ }).click()
 }
 
 /** Mapbox 캔버스 휠로 줌 목표에 근접. peerSync 로그 유무로 ≤14 판정. */

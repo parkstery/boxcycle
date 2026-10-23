@@ -18,7 +18,6 @@ import { MenuPanel } from '../../src/components/MenuPanel';
 import { UserInfoSheet } from '../../src/components/UserInfoSheet';
 import { EdgePanelHandle } from '../../src/components/ui/EdgePanelHandle';
 import type { CalorieIntensityId } from '../../src/lib/ride/caloriesEstimate';
-import type { FollowMode } from '../../src/lib/map/mapGlobeView';
 import type { ConquestDisplayMode } from '../../src/components/map/routeConquestLayers';
 import { getBasicSharedHubSummaries } from '../../src/lib/route/repo/firestoreCourses';
 import type { RideUiStage } from '../../src/hooks/useRideUiStage';
@@ -55,8 +54,6 @@ function Preview() {
   const [speed,setSpeed] = useState(18);
   const [weight,setWeight] = useState<number|null>(null);
   const [intensity,setIntensity] = useState<CalorieIntensityId|null>(null);
-  const [style,setStyle] = useState('satellite-streets-v12');
-  const [camera,setCamera] = useState<FollowMode>('forward');
   const [conquest,setConquest] = useState<ConquestDisplayMode>('all');
   const [menuReveal,setMenuReveal] = useState<number|null>(null);
   const [mapReveal,setMapReveal] = useState<number|null>(null);
@@ -104,9 +101,9 @@ function Preview() {
     <CadenceSensorSheet open={panel==='sensor'} onClose={()=>setPanel('ready')} capable uiState="idle" deviceLabel={null} crankRpm={null} errorMessage={null}
       mode="manual" readiness={manual?'manual-ready':'choice-required'} riding={false} manualSpeedKmh={speed} onManualSpeedKmh={setSpeed}
       onConnect={noop} onDisconnect={noop} onChooseManual={()=>setManual(true)} onChooseCadence={()=>setManual(false)} />
-    <MapViewSheet open={panel==='map'} revealProgress={mapReveal} onClose={()=>setPanel('ready')} mapStyle={style} mapStyleOptions={[{value:'dark',label:'Spinatlas Dark'},{value:'outdoors',label:'Outdoors'},{value:'satellite-streets-v12',label:'Satellite'}]}
-      onMapStyle={setStyle} coverageOverlayMode="off" onCoverageOverlayMode={noop} enable3D={false} onEnable3D={noop} followMode={camera} onFollowMode={setCamera}
-      mapZoom={15} onMapZoom={noop} showRtwPoi={false} onShowRtwPoi={noop} rideActive={active} rideCameraDistanceM={60} onRideCameraDistanceM={noop}
+    <MapViewSheet open={panel==='map'} revealProgress={mapReveal} onClose={()=>setPanel('ready')}
+      coverageOverlayMode="off" onCoverageOverlayMode={noop} enable3D={false} onEnable3D={noop}
+      rideActive={active} rideCameraDistanceM={60} onRideCameraDistanceM={noop}
       conquestDisplayMode={conquest} conquestHasRecentGeometry={false} onConquestDisplayMode={setConquest} onShowAllConquest={noop} />
     {panel==='routes'?<OfficialCourseListModal segment="intro" onClose={()=>setPanel('ready')} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
       basicStartLoading={false} basicStartHubJoined={false} routeLoading={false} sessionIdle officialCourseCatalogAvailable publishedPublicCourses={[]}

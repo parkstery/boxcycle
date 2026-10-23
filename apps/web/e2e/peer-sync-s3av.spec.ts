@@ -21,9 +21,8 @@ const WEB_ROOT = path.resolve(__dirname, '..')
 const GEO_STOP_M = 900
 
 async function setFollowFree(page: import('@playwright/test').Page) {
-  await page.getByRole('button', { name: '맵 뷰 설정' }).click()
-  await page.locator('.map-view-sheet__chip', { hasText: 'free' }).click()
-  await page.keyboard.press('Escape')
+  await page.getByRole('button', { name: /^카메라 2/ }).click()
+  await page.getByRole('button', { name: /^카메라 1/ }).click()
 }
 
 async function zoomOutWheels(page: import('@playwright/test').Page, n = 16) {

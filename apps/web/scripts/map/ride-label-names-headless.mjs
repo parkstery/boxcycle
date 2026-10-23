@@ -2,8 +2,8 @@
 /**
  * M4 헤드리스 검증 — dev 서버(5070) + 브라우저 1개(순차 페이지).
  *
- * 실제 앱·실제 지도·실제 스타일 3종(navigation-night-v1·outdoors-v12·
- * satellite-streets-v12)에서 운영 `RideLabelsController` 를 주행 상태로
+ * 실제 앱·실제 지도·실제 스타일 2종(outdoors-v12·satellite-streets-v12)에서
+ * 운영 `RideLabelsController` 를 주행 상태로
  * 직접 구동(riding:true, 줌 19.5)해 `names` 모드의 숨김 목록이 장식층만
  * 맞는지 census 한다(filter 호출 0, 복원 불일치 0 기대).
  * 이어서 perflab 패널(`?perflab=1`)이 카메라 1–6·야외·+/− 버튼과 겹치지
@@ -29,7 +29,6 @@ const OUT = argValue("--out", "../../document/ops/20261016-map-cut/ride-label-na
 const STYLES = [
   { name: "outdoors", url: "mapbox://styles/mapbox/outdoors-v12" },
   { name: "satellite", url: "mapbox://styles/mapbox/satellite-streets-v12" },
-  { name: "night", url: "mapbox://styles/mapbox/navigation-night-v1" },
 ];
 
 /** 겹침 확인 대상 — 카메라 1–6·야외·+/−·계정 + TR/TL 행. */

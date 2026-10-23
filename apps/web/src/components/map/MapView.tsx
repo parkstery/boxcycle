@@ -38,10 +38,7 @@ import {
   viewportRectFromElement,
 } from "../../lib/map/mapPickRouteDock";
 import {
-  applyRtwLayerStyle,
   installRiderMapPixelRatioCap,
-  resetRtwStyleSnapshot,
-  RTW_MAP_STYLE_URL,
   RTW_TRACE_ACCUMULATED_HALO_PAINT,
   RTW_TRACE_ACCUMULATED_PAINT,
   RTW_TRACE_LIVE_GLOW_PAINT,
@@ -377,8 +374,6 @@ export type MapViewProps = {
   onRideCameraDistanceFromUserZoom?: (distanceM: number) => void;
   /** B1 floor 모드 — preset | userZoom */
   rideCameraSpanFloorMode?: "preset" | "userZoom";
-  /** 임시 — RTW Dark POI 라벨 표시 비교용 토글 */
-  showRtwPoi?: boolean;
   /** 목표 거리 참고 원 — GeoJSON LineString(지도 stroke용) */
   distanceTargetCircle?: LineStringGeometry | null;
   /** 예상 시간 계산용 누적 주행(5A-R2 §4.3). 없으면 폴백 속도를 쓴다. */
@@ -511,7 +506,6 @@ export function MapView({
   activeQuickCamera = null,
   onRideCameraDistanceFromUserZoom,
   rideCameraSpanFloorMode = "preset",
-  showRtwPoi = false,
   distanceTargetCircle = null,
   userMileageTotalMeters = null,
   userMileageTotalSec = null,
@@ -2433,37 +2427,7 @@ export function MapView({
     if (currentStyleRef.current === mapStyle) return;
     currentStyleRef.current = mapStyle;
     map.setStyle(mapStyle);
-    resetRtwStyleSnapshot(map);
   }, [mapStyle, mapLoaded]);
-
-  /** RTW 다크 스타일 한정 — POI/건물 숨김 + 도로 존재감 다이어트 */
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-    let disposed = false;
-    const apply = () => {
-      if (disposed) return;
-      if (mapStyle !== RTW_MAP_STYLE_URL) return;
-      // isStyleLoaded()는 traffic 등 라이브 소스 타일 갱신 중 false — 게이트로 쓰면 영영 미적용
-      // (본 파일 red dot 사례와 동일 교훈). 스타일시트 준비 전이면 다음 idle에 재시도.
-      let applied: boolean;
-      try {
-        applied = applyRtwLayerStyle(map, { rideActive, showPoi: showRtwPoi });
-      } catch {
-        applied = false;
-      }
-      if (!applied) map.once("idle", apply);
-    };
-    apply();
-    map.on("style.load", apply);
-    return () => {
-      disposed = true;
-      map.off("style.load", apply);
-      map.off("idle", apply);
-    };
-  }, [mapLoaded, mapStyle, rideActive, showRtwPoi]);
-
-
 
 
 

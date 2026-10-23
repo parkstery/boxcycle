@@ -17,7 +17,6 @@ import { MAP_STYLE_SATELLITE } from "../lib/map/rtwMapConfig";
 export function useAppMapCameraState() {
   /** 첫 지도는 저장 지역이 아니라 콜로세움. 실제 목적지는 위치 선택이 정한다. */
   const [mapStyle, setMapStyle] = useState(MAP_STYLE_SATELLITE);
-  const [showRtwPoi, setShowRtwPoi] = useState(false);
   const [mapZoom, setMapZoom] = useState(MAP_FALLBACK_ZOOM);
   /** 주행 카메라 라이더~카메라 거리(m) — 개발용 거리 슬라이더, 최적값 확정 후 제거 예정 */
   const [rideCameraDistanceM, setRideCameraDistanceM] = useState(RIDE_CAMERA_DISTANCE_DEFAULT_M);
@@ -74,8 +73,6 @@ export function useAppMapCameraState() {
   return {
     mapStyle,
     setMapStyle,
-    showRtwPoi,
-    setShowRtwPoi,
     mapZoom,
     setMapZoom,
     rideCameraDistanceM,

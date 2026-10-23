@@ -177,7 +177,6 @@ import { useDistanceAutoRoute } from "./hooks/useDistanceAutoRoute";
 import { useReadyRide } from "./hooks/useReadyRide";
 import {
   DEFAULT_MAP_STYLE,
-  MAP_STYLE_OPTIONS,
   MAP_STYLE_SATELLITE,
   mapStyleHudShortLabel,
   nextOutdoorsSatelliteMapStyle,
@@ -266,8 +265,6 @@ export default function App() {
   const {
     mapStyle,
     setMapStyle,
-    showRtwPoi,
-    setShowRtwPoi,
     mapZoom,
     setMapZoom,
     rideCameraDistanceM,
@@ -3090,7 +3087,6 @@ export default function App() {
               activeQuickCamera,
               rideCameraSpanFloorMode,
               onRideCameraDistanceFromUserZoom: handleRideCameraDistanceFromUserZoom,
-              showRtwPoi,
               onClearRoute: handleClearPins,
               onSelectPoint: (type, lngLat, waypointSlot) => {
                 if (!user || routeMenuLockedForProd) return;
@@ -3467,24 +3463,10 @@ export default function App() {
           setMapViewSheetOpen(false);
           setMapViewReveal(null);
         }}
-        mapStyle={mapStyle}
-        mapStyleOptions={MAP_STYLE_OPTIONS}
-        onMapStyle={setMapStyle}
         coverageOverlayMode={coverageOverlayMode}
         onCoverageOverlayMode={setCoverageOverlayMode}
         enable3D={enable3D}
         onEnable3D={setEnable3D}
-        followMode={followMode}
-        onFollowMode={(m) => {
-          setFollowMode(m);
-          setLockBaseHeading(null);
-          setActiveQuickCamera(null);
-          setRideCameraSpanFloorMode("preset");
-        }}
-        mapZoom={mapZoom}
-        onMapZoom={setMapZoom}
-        showRtwPoi={showRtwPoi}
-        onShowRtwPoi={setShowRtwPoi}
         rideActive={rideStatus === "running" || rideStatus === "paused"}
         rideCameraDistanceM={rideCameraDistanceM}
         onRideCameraDistanceM={handleRideCameraDistancePreset}

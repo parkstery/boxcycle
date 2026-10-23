@@ -1,31 +1,4 @@
-import type {
-  FilterSpecification,
-  LayoutSpecification,
-  LinePaint,
-  Map as MapboxMap,
-  PaintSpecification,
-} from "mapbox-gl";
-
-/**
- * RTW Mapbox 다크 스타일 설정 — 2026-07 리디자인 핸드오프.
- * 지도가 배경이 아니라 주인공: 다크 베이스 + POI/건물 숨김 + 도로 낮은 존재감.
- * Trace(궤적) 골드는 tokens.css --rtw-trace(#E8A33D)와 동일 값.
- * 2026-07-17 베이스를 dark-v11 → navigation-night-v1로 교체(주행 판독성 — 내비 전용 고대비 다크).
- * 2026-07-17 traffic·incidents 소스 상시 숨김 + showPoi 시 poi-label 운전자용 필터 해제.
- */
-
-export const RTW_MAP_STYLE_URL = "mapbox://styles/mapbox/navigation-night-v1";
-
-/** POI성 라벨 — 임시 토글(showPoi)로 표시/숨김 비교 가능 */
-const RTW_POI_LAYER_KEYWORDS = ["poi-label", "airport-label", "transit-label"];
-/** 건물 — 오버뷰(비주행)에서만 숨김. 주행 중엔 공간감을 위해 복원 */
-const RTW_BUILDING_LAYER_KEYWORDS = ["building"];
-
-/** 도로 레이어 낮은 존재감 — --rtw-map-road-ghost. dark-v11 기준 튜닝값 — navigation-night 베이스에서 재튜닝 여지 */
-const RTW_ROAD_PAINT = {
-  "line-color": "rgba(28, 37, 48, 0.6)",
-  "line-opacity": 0.35,
-} as const;
+import type { LinePaint } from "mapbox-gl";
 
 /**
  * 지도 위 선의 의미를 색으로 나눈다(2026-08-28).
@@ -147,182 +120,46 @@ export const RTW_TRACE_ACCUMULATED_HALO_PAINT: LinePaint = {
   "line-opacity": ["interpolate", ["linear"], ["zoom"], 4, 0.7, 8, 0.65, 11, 0.4, 13, 0],
 };
 
-/**
- * getter 반환값을 담았다가 동일 setter로 되돌리는 스냅샷.
- * 필드 타입을 각 setter 파라미터 타입에 맞춰, 복원 시 캐스팅 없이 통과하게 한다
- * (담을 때만 getter의 넓은 반환 타입을 캐스팅 — 아래 buildLayerSnapshot).
- */
-type RtwLayerSnapshot = {
-  visibility: LayoutSpecification["visibility"];
-  lineColor?: PaintSpecification["line-color"];
-  lineOpacity?: PaintSpecification["line-opacity"];
-  filter?: FilterSpecification | null;
-};
-const rtwStyleSnapshots = new WeakMap<MapboxMap, Map<string, RtwLayerSnapshot>>();
-
-/** 스타일이 새로 로드되면 이전 스냅샷은 무효 — setStyle 호출 직후 반드시 호출 */
-export function resetRtwStyleSnapshot(map: MapboxMap): void {
-  rtwStyleSnapshots.delete(map);
-}
-
-/**
- * style.load 시 호출 — RTW 다크 스타일에서만. POI/건물 visibility·도로 존재감을
- * rideActive·showPoi 에 따라 적용. 커스텀 레이어(boxcycle- 접두, route, live-self,
- * debug-)는 건드리지 않는다.
- * @returns 스타일시트 준비 전이면 false — 호출부는 다음 idle에 재시도할 것
- */
-export function applyRtwLayerStyle(
-  map: MapboxMap,
-  opts: { rideActive: boolean; showPoi: boolean },
-): boolean {
-  const { rideActive, showPoi } = opts;
-  let layers: NonNullable<ReturnType<MapboxMap["getStyle"]>>["layers"];
-  try {
-    layers = map.getStyle()?.layers ?? [];
-  } catch {
-    return false;
-  }
-  // 스타일시트 파싱 전(getStyle throw/undefined/빈 배열) — 아직 적용 불가, 호출부가 재시도
-  if (layers.length === 0) return false;
-
-  let snapshots = rtwStyleSnapshots.get(map);
-  if (!snapshots) {
-    snapshots = new Map();
-    rtwStyleSnapshots.set(map, snapshots);
-  }
-
-  for (const layer of layers) {
-    if (
-      layer.id.startsWith("boxcycle-") ||
-      layer.id === "route" ||
-      layer.id === "live-self" ||
-      layer.id.startsWith("debug-")
-    ) {
-      continue;
-    }
-
-    // 내비 전용 교통 정체·사고 레이어 — RTW는 내비 기능 미사용, 항상 숨김
-    if ("source" in layer && (layer.source === "mapbox-traffic" || layer.source === "mapbox-incidents")) {
-      try {
-        map.setLayoutProperty(layer.id, "visibility", "none");
-      } catch {
-        /* noop */
-      }
-      continue;
-    }
-
-    const isPoi = RTW_POI_LAYER_KEYWORDS.some((keyword) => layer.id.includes(keyword));
-    const isBuilding = RTW_BUILDING_LAYER_KEYWORDS.some((keyword) => layer.id.includes(keyword));
-    const isRoad = layer.id.includes("road") && layer.type === "line";
-
-    if (!isPoi && !isBuilding && !isRoad) continue;
-
-    if (!snapshots.has(layer.id)) {
-      const snapshot: RtwLayerSnapshot = {
-        visibility: map.getLayoutProperty(layer.id, "visibility") as RtwLayerSnapshot["visibility"],
-      };
-      if (isRoad) {
-        snapshot.lineColor = map.getPaintProperty(layer.id, "line-color") as RtwLayerSnapshot["lineColor"];
-        snapshot.lineOpacity = map.getPaintProperty(layer.id, "line-opacity") as RtwLayerSnapshot["lineOpacity"];
-      }
-      if (isPoi && layer.id === "poi-label") {
-        snapshot.filter = map.getFilter(layer.id) as RtwLayerSnapshot["filter"];
-      }
-      snapshots.set(layer.id, snapshot);
-    }
-    const snapshot = snapshots.get(layer.id)!;
-
-    if (isPoi) {
-      try {
-        map.setLayoutProperty(layer.id, "visibility", showPoi ? (snapshot.visibility ?? "visible") : "none");
-      } catch {
-        /* noop */
-      }
-      if (layer.id === "poi-label") {
-        if (showPoi) {
-          // 운전자용 클래스 필터(education/landmark/medical/motorist/park_like 등)를 해제해
-          // 전체 POI 라벨을 노출 — 밀도는 심볼 충돌 처리가 자동 제한
-          try {
-            map.setFilter(layer.id, null);
-          } catch {
-            /* noop */
-          }
-        } else if (snapshot.filter !== undefined) {
-          try {
-            map.setFilter(layer.id, snapshot.filter);
-          } catch {
-            /* noop */
-          }
-        }
-      }
-    }
-
-    if (isBuilding) {
-      try {
-        map.setLayoutProperty(
-          layer.id,
-          "visibility",
-          rideActive ? (snapshot.visibility ?? "visible") : "none",
-        );
-      } catch {
-        /* noop */
-      }
-    }
-
-    if (isRoad) {
-      try {
-        if (rideActive) {
-          map.setPaintProperty(layer.id, "line-color", snapshot.lineColor);
-          map.setPaintProperty(layer.id, "line-opacity", snapshot.lineOpacity);
-        } else {
-          map.setPaintProperty(layer.id, "line-color", RTW_ROAD_PAINT["line-color"]);
-          map.setPaintProperty(layer.id, "line-opacity", RTW_ROAD_PAINT["line-opacity"]);
-        }
-      } catch {
-        /* 일부 도로 레이어는 paint 프로퍼티가 다르게 정의될 수 있음 */
-      }
-    }
-  }
-  return true;
-}
-
 /*
  * 2026-09-26 (Phase 6-D3): `storage/appSessionKeys` 에서 **그대로** 옮겨 왔다.
  * 스타일 목록은 지도 설정이지 세션 저장 키가 아니다.
  */
-export const MAP_STYLE_OPTIONS = [
-  { value: RTW_MAP_STYLE_URL, label: "Spinatlas Dark" },
-  { value: "mapbox://styles/mapbox/outdoors-v12", label: "Outdoors" },
-  { value: "mapbox://styles/mapbox/satellite-streets-v12", label: "Satellite" },
-];
+const MAP_STYLE_OUTDOORS = "mapbox://styles/mapbox/outdoors-v12";
+export const MAP_STYLE_SATELLITE = "mapbox://styles/mapbox/satellite-streets-v12";
 
-const MAP_STYLE_OUTDOORS = MAP_STYLE_OPTIONS[1]!.value;
-export const MAP_STYLE_SATELLITE = MAP_STYLE_OPTIONS[2]!.value;
+/** 제거된 Spinatlas Dark(navigation-night·dark-v11) — 복원·저장값 방어용 */
+const LEGACY_MAP_STYLE_DARK_URLS = new Set([
+  "mapbox://styles/mapbox/navigation-night-v1",
+  "mapbox://styles/mapbox/dark-v11",
+]);
 
-/**
- * 주행 HUD Outdoors↔Satellite 토글.
- * RTW Dark 등 그 외 스타일이면 첫 클릭에 Outdoors 로 보낸다(목록에서 Dark 는 삭제하지 않음).
- */
-export function nextOutdoorsSatelliteMapStyle(current: string): string {
-  if (current === MAP_STYLE_SATELLITE) return MAP_STYLE_OUTDOORS;
-  if (current === MAP_STYLE_OUTDOORS) return MAP_STYLE_SATELLITE;
+/** 앱 기본 맵 스타일 — Outdoors */
+export const DEFAULT_MAP_STYLE = MAP_STYLE_OUTDOORS;
+
+/** 알 수 없거나 제거된 스타일 URL → Outdoors */
+function normalizeMapStyle(style: string): string {
+  if (LEGACY_MAP_STYLE_DARK_URLS.has(style)) return MAP_STYLE_OUTDOORS;
+  if (style === MAP_STYLE_OUTDOORS || style === MAP_STYLE_SATELLITE) return style;
   return MAP_STYLE_OUTDOORS;
 }
 
-/** HUD 칩용 짧은 라벨(2~4자). 시트 전체 라벨과 별개. */
-export function mapStyleHudShortLabel(style: string): string {
-  if (style === MAP_STYLE_SATELLITE) return "위성";
-  if (style === MAP_STYLE_OUTDOORS) return "야외";
-  if (style === RTW_MAP_STYLE_URL) return "다크";
-  return "맵";
+/**
+ * 주행 HUD Outdoors↔Satellite 토글.
+ * 그 외(레거시 Dark 등)는 Outdoors 로 정규화한 뒤 Satellite 으로 보낸다.
+ */
+export function nextOutdoorsSatelliteMapStyle(current: string): string {
+  const style = normalizeMapStyle(current);
+  if (style === MAP_STYLE_SATELLITE) return MAP_STYLE_OUTDOORS;
+  return MAP_STYLE_SATELLITE;
 }
 
-/**
- * 앱 진입 시 기본 맵 스타일 — Outdoors.
- * (2026-08-27) 폰 실주행에서 RTW Dark 는 도로·지형 판독이 어려워 Outdoors 를 기본으로 바꿨다.
- * RTW Dark 는 스타일 목록에 그대로 남아 있다.
- */
-export const DEFAULT_MAP_STYLE = MAP_STYLE_OPTIONS[1]!.value;
+/** HUD 칩용 짧은 라벨(2~4자). */
+export function mapStyleHudShortLabel(style: string): string {
+  const normalized = normalizeMapStyle(style);
+  if (normalized === MAP_STYLE_SATELLITE) return "위성";
+  if (normalized === MAP_STYLE_OUTDOORS) return "야외";
+  return "맵";
+}
 
 /**
  * 고밀도 화면 렌더 해상도 상한 (2026-10-16 P1).

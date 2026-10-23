@@ -18,9 +18,9 @@ function App(){
  const display=useRecentRoadDisplay(input);
  useEffect(()=>{window.api={setInput:(patch)=>setInput(s=>({...s,...patch})),result:display.onResult,timeout:display.onTimeout};window.shown=display.geometry;window.mode=mode;});
  const noop=()=>{};
- return React.createElement(MapViewSheet,{open:true,onClose:noop,mapStyle:"outdoors",mapStyleOptions:[],onMapStyle:noop,
- coverageOverlayMode:"off",onCoverageOverlayMode:noop,enable3D:false,onEnable3D:noop,followMode:"free",onFollowMode:noop,
- mapZoom:17,onMapZoom:noop,showRtwPoi:false,onShowRtwPoi:noop,rideActive:input.active,rideCameraDistanceM:50,onRideCameraDistanceM:noop,
+ return React.createElement(MapViewSheet,{open:true,onClose:noop,
+ coverageOverlayMode:"off",onCoverageOverlayMode:noop,enable3D:false,onEnable3D:noop,
+ rideActive:input.active,rideCameraDistanceM:50,onRideCameraDistanceM:noop,
  conquestDisplayMode:mode,conquestHasRecentGeometry:display.geometry.length>0,onConquestDisplayMode:setMode,onShowAllConquest:noop});
 }
 createRoot(document.getElementById("root")).render(React.createElement(React.StrictMode,null,React.createElement(App)));
