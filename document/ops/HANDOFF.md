@@ -8,7 +8,7 @@
 | 갱신 | 2026-10-24 07:58 KST — 묶음 1·2·경로 목록·Chief 지정 조작부 커밋 완료, Codex 인계 정리 |
 | 브랜치 | `main2` |
 | 마지막 커밋 | `c533dd5d` feat(ui): menu, route lists, ride controls redesign with Chief-pinned controls (+ 이 파일 기록 커밋) |
-| 푸시 | **안 함** — origin/main2 는 `5671a014`. 푸시는 Chief 지시가 있을 때 |
+| 푸시 | **완료** — origin/main2 = `f0a735e5` (2026-10-24, pre-push 게이트 PASS: selector 19·tidy·단위 1354) |
 | 마지막 배포 | 2026-10-23 함수(`getLeaderboard` 상위 20) + 화면(순위 칩·순위판·결과 순위 줄·맵 뷰 정리·km 소문자). `c533dd5d` 는 **미배포** |
 
 ## 먼저 읽을 것 (순서)
@@ -30,7 +30,7 @@
 ## 다음 한 걸음
 
 1. **Chief 지시를 기다린다.** 이 인계는 푸시·배포·묶음 3 착수 승인이 아니다.
-   - 푸시 지시 → Git Bash 는 `export PATH="/c/Program Files/nodejs:$PATH"` 후 `git push`(pre-push 게이트: 타입·코드 정련 래칫).
+   - 푸시는 완료(`f0a735e5`). 이후 커밋을 푸시할 때는 Git Bash `export PATH="/c/Program Files/nodejs:$PATH"` 후 `git push`.
    - 배포 지시 → 플레이북 §5. 범위 설명 → Chief 승인 → `npm run deploy:hosting`(루트) → 운영 번들 확인.
    - 화면 피드백 → 같은 묶음에 다음 번호(23~) 지시서 → Cursor → 감리. **고정 목록을 먼저 본다.**
 2. 묶음 3(주행 결과 두 칸 판 + 다음 주행, 시안 10·11)은 Chief 가 시작하라고 할 때. 지시서 번호 23 이후.

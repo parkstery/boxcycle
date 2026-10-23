@@ -9,9 +9,9 @@ C:\20.HDev\boxcycle 의 다음 Supervisor 로 인수하라.
 
 2. HANDOFF 「담당」을 Codex 와 인수 시각(KST)으로 고치고, 실제 상태를 대조하라: HEAD(c533dd5d 다음의 HANDOFF 기록 커밋), git status(남은 것은 15-entry-flight-metrics.json·.out/·cdbox.bat·firebase.route-list-qa.json 뿐이어야 함), 보존 JSON SHA256 4CAFA2A2…, 포트(3000 만 떠 있어야 함 — 이 앱 서버는 모두 중지된 상태). 다르면 그 차이부터 보고하라.
 
-3. 현재 상태: 묶음 1·2, 경로 목록(흰 박스·한 줄 행·이동수단 아이콘), Chief 지정 조작부 되돌리기(녹색 원형 시작·아이콘 일시정지·주행 중 지도 조작 유지·원형 순위 칩)가 main2 에 커밋됐다. 푸시·배포는 안 했다. 실행 중 하위 작업 없음. 완료된 검증은 새 변경 없이 반복하지 마라.
+3. 현재 상태: 묶음 1·2, 경로 목록(흰 박스·한 줄 행·이동수단 아이콘), Chief 지정 조작부 되돌리기(녹색 원형 시작·아이콘 일시정지·주행 중 지도 조작 유지·원형 순위 칩)가 main2 에 커밋됐다. 푸시는 했고(f0a735e5) 배포는 안 했다. 실행 중 하위 작업 없음. 완료된 검증은 새 변경 없이 반복하지 마라.
 
-4. 이 인계는 푸시·배포·묶음 3 착수 승인이 아니다. Chief 의 새 지시와 피드백에 따라 이어가라. 화면 수정은 document/ops/20261023-ui-redesign/ 에 다음 번호(24~) 지시서 → Cursor CLI 구현 → 네 감리(캡처 직접 확인) → 결과 파일 「감리」 절 순서다. 실행자 호출·감리 명령·배포 절차·환경 함정은 document/reference/operations/261023-RTW-수퍼바이저-교대-플레이북.md.
+4. 이 인계는 배포·묶음 3 착수 승인이 아니다. Chief 의 새 지시와 피드백에 따라 이어가라. 화면 수정은 document/ops/20261023-ui-redesign/ 에 다음 번호(24~) 지시서 → Cursor CLI 구현 → 네 감리(캡처 직접 확인) → 결과 파일 「감리」 절 순서다. 실행자 호출·감리 명령·배포 절차·환경 함정은 document/reference/operations/261023-RTW-수퍼바이저-교대-플레이북.md.
 
 5. 지킬 것: 15-entry-flight-metrics.json·.out/·cdbox.bat 보존, restore/clean/stash/worktree/일괄 되돌리기 금지, localhost:3000 끄지 말 것, 5000 은 운영 Firebase 라 시험 데이터 쓰기 금지(데이터 시험은 에뮬레이터만), 게이트 기준선·시험 기대값 완화 금지(특히 「Chief 고정」 잠금 시험).
 
