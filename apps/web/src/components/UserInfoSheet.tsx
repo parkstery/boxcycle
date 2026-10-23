@@ -487,7 +487,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
               ) : hasRides ? (
                 <>
                   <strong
-                    className={`rtw-numeric${heroText.length > 6 ? " is-long" : ""}`}
+                    className={`rtw-numeric${heroText.length >= 6 ? " is-long" : ""}`}
                   >
                     {heroText}
                   </strong>

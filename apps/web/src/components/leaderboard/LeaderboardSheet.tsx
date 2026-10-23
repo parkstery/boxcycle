@@ -150,7 +150,7 @@ function LeaderboardPanel({ onClose, user, onRegister, onJoinTrail }: Omit<Leade
                   <div className="leaderboard-sheet__guest">
                     <span className="leaderboard-sheet__guest-label">{PERIOD_LABELS[period].label} 내 기록</span>
                     <span className="leaderboard-sheet__guest-value">
-                      {fmtKm(me.valueKm)} <span className="leaderboard-sheet__unit">KM</span>
+                      {fmtKm(me.valueKm)} <span className="leaderboard-sheet__unit">km</span>
                     </span>
                     <p className="leaderboard-sheet__guest-desc">
                       회원 등록하면 지금까지의 기록이<br />그대로 순위에 올라갑니다
@@ -192,7 +192,7 @@ function LeaderboardPanel({ onClose, user, onRegister, onJoinTrail }: Omit<Leade
                       <span className="leaderboard-sheet__rank-suffix">위</span>
                     </div>
                     <span className="leaderboard-sheet__ranked-value">
-                      {fmtKm(me.valueKm)} <span className="leaderboard-sheet__unit">{board === "distance" ? "KM" : "KM 새 도로"}</span>
+                      {fmtKm(me.valueKm)} <span className="leaderboard-sheet__unit">{board === "distance" ? "km" : "km 새 도로"}</span>
                     </span>
                     {me.gapToNextKm != null && (
                       <p className="leaderboard-sheet__gap">
@@ -315,7 +315,7 @@ function LeaderboardRow({
         </button>
       )}
       <span className="leaderboard-sheet__value">
-        {fmtKm(valueKm)} <span className="leaderboard-sheet__unit">KM</span>
+        {fmtKm(valueKm)} <span className="leaderboard-sheet__unit">km</span>
       </span>
     </li>
   );

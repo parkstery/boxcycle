@@ -28,7 +28,7 @@
 
 ## 글자
 
-- 본문 `sans`(Gothic A1), 숫자 `num`(Saira Condensed). **숫자는 언제나 숫자 글꼴**, 단위는 그 뒤에 작게(`num-unit`, 대문자 KM·KM/H).
+- 본문 `sans`(Gothic A1), 숫자 `num`(Saira Condensed). **숫자는 언제나 숫자 글꼴**, 단위는 그 뒤에 작게(`num-unit`), **언제나 소문자**: km · km/h · kg · kcal (2026-10-23 Chief — KM·Km 금지).
 - 숫자 위 이름표는 `label`(작은 글자, 자간 0.12em, `subtle`).
 - 크기는 토큰 단계만 쓴다: 72 / 26 / 17 / 15 / 13 / 11 / 10 px. 그 사이 크기를 새로 만들지 않는다.
 

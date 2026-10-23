@@ -31,7 +31,8 @@ export type LeaderboardResponse = {
   board: LeaderboardBoard;
   period: LeaderboardPeriod;
   scope: LeaderboardScope;
-  periodStartKst: string;
+  /** 「전체」 기간은 시작일이 없어 null */
+  periodStartKst: string | null;
   rule: { sensorOnly: boolean };
   top: LeaderboardEntry[];
   me: LeaderboardMe;
@@ -72,7 +73,7 @@ function isLeaderboardResponse(v: unknown): v is LeaderboardResponse {
     ["distance", "pioneer"].includes(o.board as string) &&
     ["week", "month", "all"].includes(o.period as string) &&
     o.scope === "world" &&
-    typeof o.periodStartKst === "string" &&
+    (o.periodStartKst === null || typeof o.periodStartKst === "string") &&
     rule != null && typeof rule.sensorOnly === "boolean" &&
     Array.isArray(o.top) && o.top.every(isLeaderboardEntry) &&
     isLeaderboardMe(o.me)
