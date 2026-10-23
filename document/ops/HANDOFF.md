@@ -52,7 +52,7 @@
 - Chief 지시 「3000 을 제외하고 모두 중지」에 따라 boxcycle 개발 서버 5000(정상 앱)·5020(harness)을 중지했다. 지금 이 앱 서버는 **하나도 없다.**
 - 3000(PID 28472) = Chief 다른 프로젝트 imgman. 절대 끄지 않는다.
 - 18789 = `openclaw gateway`(전역 npm 도구, 10-17 시작). boxcycle 서버가 아니라 손대지 않았다.
-- 필요할 때 다시 띄운다(실행 폴더 `C:.HDevoxcyclepps\web`): 정상 앱 `$env:RTW_DEV_PORT='5000'; npm run dev -- --host 0.0.0.0 --strictPort`, harness `$env:RTW_DEV_PORT='5020'; npm run dev:localhost -- --mode harness --strictPort`. 시험이 끝나면 띄운 서버는 끈다.
+- 필요할 때 다시 띄운다(실행 폴더 `C:\20.HDev\boxcycle\apps\web`): 정상 앱 `$env:RTW_DEV_PORT='5000'; npm run dev -- --host 0.0.0.0 --strictPort`, harness `$env:RTW_DEV_PORT='5020'; npm run dev:localhost -- --mode harness --strictPort`. 시험이 끝나면 띄운 서버는 끈다.
 
 ## 최근 주의
 
