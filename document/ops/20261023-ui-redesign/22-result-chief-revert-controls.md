@@ -80,7 +80,7 @@ npx playwright test ui-800x360.spec.ts -g "Chief 고정" --workers=1 --retries=0
 
 프리뷰: dev 서버 기동 후 `http://localhost:5020/scripts/ui-800x360/preview.html?state=ready` · `?state=paused` · `?state=riding` · 순위 칩 `?state=glance-ready`
 
-## 감리 (Claude Code, 2026-10-24 08:0x)
+## 감리 (Claude Code, 2026-10-24 07:5x)
 
 판정 **PASS.** 고정 목록 1~4번이 캡처와 잠금 시험으로 확인되고, 5~9번 파일은 diff 에 없다.
 

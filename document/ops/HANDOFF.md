@@ -4,55 +4,67 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | Claude Code (23:40 KST Codex 토큰 한도 중단분 인수) |
-| 갱신 | 2026-10-24 00:4x KST — 지시 21(Chief 지정 조작부 되돌리기) Cursor 실행 중 |
+| 담당 | **인계 중: Claude Code → Codex** (Codex 가 인수하면 이 줄을 `Codex (YYYY-MM-DD HH:MM KST 인수)`로) |
+| 갱신 | 2026-10-24 07:58 KST — 묶음 1·2·경로 목록·Chief 지정 조작부 커밋 완료, Codex 인계 정리 |
 | 브랜치 | `main2` |
-| 마지막 커밋 | `5671a014` docs(ops): record handoff commit |
-| 마지막 배포 | 2026-10-23 함수(`getLeaderboard` 상위 20) + 화면(순위 칩·순위판·결과 순위 줄·맵 뷰 정리·km 소문자) |
+| 마지막 커밋 | `c533dd5d` feat(ui): menu, route lists, ride controls redesign with Chief-pinned controls (+ 이 파일 기록 커밋) |
+| 푸시 | **안 함** — origin/main2 는 `5671a014`. 푸시는 Chief 지시가 있을 때 |
+| 마지막 배포 | 2026-10-23 함수(`getLeaderboard` 상위 20) + 화면(순위 칩·순위판·결과 순위 줄·맵 뷰 정리·km 소문자). `c533dd5d` 는 **미배포** |
 
-## 지금 하던 일
+## 먼저 읽을 것 (순서)
 
-**전체 화면 디자인 변경** — [ops/20261023-ui-redesign/README.md](20261023-ui-redesign/README.md)
-- chief 가 시안 16장을 승인했다. 3장은 배포됐고 2장은 일부만 배포됐다. 나머지는 6개 묶음으로 진행한다.
+1. **[Chief 지정 디자인 고정 목록](../reference/product/261024-RTW-Chief-지정-디자인-고정.md)** — 2026-10-24 신설. Chief 가 직접 정한 화면 9가지. **시안·디자인 규칙·수퍼바이저 판단보다 우선.** 지시서 「금지」에 옮기고, 감리에서 건드렸으면 FAIL. 잠금 시험 `apps/web/e2e/ui-800x360.spec.ts` 「Chief 고정 — 261024 목록 1~4」.
+2. [전체 화면 디자인 변경 README](20261023-ui-redesign/README.md) — 시안 16장 상태·묶음 계획.
+3. 최근 결과·감리: [16 흰 박스](20261023-ui-redesign/16-result-route-list-surface.md) · [20 한 줄 행](20261023-ui-redesign/20-result-saved-routes-compact.md) · [22 Chief 지정 조작부](20261023-ui-redesign/22-result-chief-revert-controls.md).
+
+## 지금 상태
+
+- **커밋됨(`c533dd5d`), 미푸시·미배포:**
+  - 묶음 1 MENU·경로 목록 / 묶음 2 지도 대기·주행·일시정지(카메라 메뉴 하나·한국어 코칭·출발 전 거리·고도) / 로그인 환경 복구(harness 루트 안내).
+  - 경로 목록(입문·퍼블릭·내 경로): 흰 불투명 박스, 경로당 한 줄 + 경로 찾기 팝업과 같은 이동수단 아이콘(`lib/route/routeProfileIcons.ts`), 내 경로 조작부 한 줄.
+  - Chief 지정 되돌리기: 녹색 원형 시작(글자 없음), 아이콘 일시정지(재개·정지·⋯), 주행 중에도 야외/위성·줌 표시, 순위 칩 글자 없는 원형 아이콘.
+- **검증(마지막 상태 기준):** tsc·eslint 오류0·단위 1354·selector 19·화면 23(`ui-800x360`+batch1+batch2)·실앱 에뮬레이터 `ride-entry` 7/7·`ui-redesign-batch2-live` 1/1·tidy·dep-direction PASS. 증거 `20261023-ui-redesign/evidence/chief-revert/`.
+- **Chief 확인:** 경로 목록 흰 박스·한 줄 행과 조작부 되돌리기는 Chief 직접 지시의 결과다. 묶음 1·2 나머지 화면에 대한 Chief 피드백은 아직 없다(커밋 지시는 받음).
+- **실행 중 하위 작업 없음.**
 
 ## 다음 한 걸음
 
-- **진행 중 (10-24 00:4x~):** [지시 21 Chief 지정 조작부 되돌리기](20261023-ui-redesign/21-task-chief-revert-controls.md) — 녹색 시작·아이콘 일시정지 버튼 복원, 주행 중 지도 조작 유지, 순위 칩 원형 아이콘, 잠금 시험. Cursor 실행 중(scratchpad `cursor21.log`). 끝나면 결과 22 감리 → 실앱 에뮬레이터 `ride-entry`(5001 vite 피해 functions 5019 설정) → 고정 목록 1~4 잠금 확인. **새 규칙:** [Chief 지정 디자인 고정 목록](../reference/product/261024-RTW-Chief-지정-디자인-고정.md)이 시안보다 우선.
-- **직전 (10-24 00:25):** [지시 17](20261023-ui-redesign/17-task-route-list-one-line.md)·[재지시 19](20261023-ui-redesign/19-task-saved-routes-compact.md) 경로 목록 한 줄 행·이동수단 아이콘 **완료·LOCAL_VERIFIED** — [결과·감리 20](20261023-ui-redesign/20-result-saved-routes-compact.md), [비교](20261023-ui-redesign/comparison-route-list-one-line.html). Chief 화면 확인 대기, 미커밋. 실행 중 하위 작업 없음.
-- 포트 5001에 인계 목록 밖 vite(PID 33656, 10-23 23:05 시작)가 떠 있다. 소유 불명이라 끄지 않음 — 에뮬레이터 시험은 `firebase.route-list-qa.json`(functions 5019)+`VITE_FUNCTIONS_EMULATOR_HOST=127.0.0.1:5019`로 우회.
-- **최신 Chief 지시:** [경로 목록 배경 보완](20261023-ui-redesign/15-task-route-list-surface.md). 입문/퍼블릭/내 경로는 불투명 흰 박스, 주행 순위 투명 유지. 이전 투명 목록 시안보다 이 지시 우선. **완료·LOCAL_VERIFIED** — [결과·감리 16](20261023-ui-redesign/16-result-route-list-surface.md), [비교](20261023-ui-redesign/comparison-route-list-surface.html). 화면18·실앱1·단위1354·정적 검사 PASS. Chief 화면 확인 대기, 미커밋.
-- 루트 비추적 `firebase.route-list-qa.json` = 실앱 캡처용 임시 에뮬레이터 설정(functions 5019). 커밋 금지, Chief 확인 후 삭제.
-
-0. **22:43 Claude Code 인수 대조 결과:** HEAD `5671a014` 일치. `git status --short -uall`이 [스냅샷](20261023-ui-redesign/handoff-worktree-20261023.txt)과 같고, 추가분은 인계 파일 3개(13·14·스냅샷)뿐. 스냅샷 이후 바뀐 파일은 ops 문서 6개뿐(제품 코드 변경 없음). 보존 JSON SHA256 `4CAFA2A2…378179F` 일치. 포트 3000/28472·5000/61304·5020/33076·5021/62692 청취, 5017·9099 없음 — 인계표와 같다. 검증 재실행 없음(새 변경 없음).
-   - 다음 담당도 같은 순서로 인수한다. [상세 인계](20261023-ui-redesign/13-handoff-next-supervisor.md)·[첫 프롬프트](20261023-ui-redesign/14-first-prompt-next-supervisor.md)를 읽고 담당/시각·실제 작업 트리·포트를 대조한다. 실행 중인 하위 작업 없음.
-
-1. 정상 앱/로그인 주소는 `http://localhost:5000/`. harness 5020/5021 루트는 로그인용이 아니다. 9099 없는 harness 인증 연결거부를 복구했고 Google provider 계정선택까지 확인. [로그인 복구](20261023-ui-redesign/11-login-environment-fix.md).
-2. 묶음2 Cursor 구현·Codex 감리 완료. [감리](20261023-ui-redesign/10-review-batch2.md). 화면17 PASS, 기본단위1347 PASS + 보존계약/코칭추가시험 PASS. 실앱 주행7 PASS, 최종 화면17+실앱캡처1 총18 PASS. 지도/표고 로딩 후 최종캡처1 추가 PASS.
-3. [묶음1 비교](20261023-ui-redesign/comparison-batch1.html), [묶음2 비교](20261023-ui-redesign/comparison-batch2.html). 화면 확인 후 이번 작업 파일만 커밋/푸시, 배포는 별도 승인. 묶음3 미착수.
-4. 정상 앱5000·프리뷰5020 유지. 기존3000 및 Chief의5021 서버 보존.
+1. **Chief 지시를 기다린다.** 이 인계는 푸시·배포·묶음 3 착수 승인이 아니다.
+   - 푸시 지시 → Git Bash 는 `export PATH="/c/Program Files/nodejs:$PATH"` 후 `git push`(pre-push 게이트: 타입·코드 정련 래칫).
+   - 배포 지시 → 플레이북 §5. 범위 설명 → Chief 승인 → `npm run deploy:hosting`(루트) → 운영 번들 확인.
+   - 화면 피드백 → 같은 묶음에 다음 번호(23~) 지시서 → Cursor → 감리. **고정 목록을 먼저 본다.**
+2. 묶음 3(주행 결과 두 칸 판 + 다음 주행, 시안 10·11)은 Chief 가 시작하라고 할 때. 지시서 번호 23 이후.
 
 ## chief 결정 대기
 
 - `LocalFirstEntryCard`(「어디에서 첫 라이딩을 할까요?」) 삭제 여부. 권장: 삭제.
 - `RideHistoryPanel` 연결(계정 패널 「마지막 주행 ›」) 또는 삭제.
-- 묶음 순서는 위 계획대로 진행 중(이의 없으면 유지).
-
-## 진행 중인 하위 작업
-
-- Chief 「로그인 복구 후 다음 작업」 지시에 따라 [로그인환경복구](20261023-ui-redesign/11-login-environment-fix.md). 정상앱 localhost5000 복구·Guest복원/Google provider연결 확인, harness 루트에는 프리뷰 안내 추가. 실제 Google로그인 완료는 Chief가 선택.
-- [묶음2 지시](20261023-ui-redesign/08-task-batch2.md) Cursor CLI 구현 완료; 결과09. Codex 감리/보완/검증/캡처 완료. OpenCode MiMo도 공통무료한도 종료. ego bootstrap 두 실행 모두 실패→Playwright 사용.
+- 루트 비추적 `firebase.route-list-qa.json`(에뮬레이터 functions 5019 임시 설정) 삭제 여부 — 커밋 금지.
 
 ## 작업 트리 (커밋 안 된 것)
 
-- `document/ops/20261017-entry-location/evidence/15-entry-flight-metrics.json`: 세션 시작 전부터 수정돼 있던 증거 파일이다. 손대지 않는다.
-- `.out/`, `cdbox.bat`: 비추적이다. 손대지 않는다.
-- 묶음1/2 제품·App 최소 배선·시험·프리뷰·harness 로그인 안내·dep-layers 신규 파일 도메인 등재·ops 기록은 이번 미커밋 작업. [인계 시 작업 트리](20261023-ui-redesign/handoff-worktree-20261023.txt)와 실제 `git status --short`를 대조한다. 스냅샷은 자동 stage 목록이 아니다.
-- 위치DOM 시험 출력이 과거 증거에 쓰이던 것을 `test-results/entry-location-dom`으로 교정. 추적 PNG 복원, 기존 dirty JSON 해시 `4CAFA2A22CEAC8547D7EDB44D22A09082D0710EBDD71B6BDC34D59D57378179F` 보존.
+- `document/ops/20261017-entry-location/evidence/15-entry-flight-metrics.json`: 오래된 dirty 증거. SHA256 `4CAFA2A22CEAC8547D7EDB44D22A09082D0710EBDD71B6BDC34D59D57378179F`. 손대지 않는다.
+- `.out/`, `cdbox.bat`: 비추적. 손대지 않는다.
+- `firebase.route-list-qa.json`: 위 결정 대기.
+
+## 서버 (2026-10-24 07:58 관측)
+
+| 포트 | PID | 용도 |
+|---|---|---|
+| 3000 | 28472 | Chief 다른 프로젝트(imgman). 절대 끄지 않음 |
+| 5000 | 61304 | 정상 앱·로그인, **운영 Firebase** — 시험 데이터 쓰기 금지 |
+| 5020 | 33076 | harness 프리뷰(`/scripts/ui-800x360/preview.html?state=ready` 등). 로그인용 아님 |
+| 5001·5021·5017·9099 | 없음 | 밤사이 떠 있던 5001 vite·Chief 5021 harness 는 지금 없음 |
 
 ## 최근 주의
 
-- 실행자(Cursor)가 PC 메모리 부족으로 강제 종료된 적이 있다(2026-10-23). 끊긴 뒤에는 `git status`와 결과 파일을 보고 남은 검증만 하면 된다.
-- 리더보드 순위는 서버가 5분 동안 저장해 두고 보여 준다. 주행 직후 지도 칩이 몇 분 늦게 바뀌는 것은 정상이다.
-- Windows 직접 실행에서 전역 playwright는 다른 CLI. 에뮬레이터 inner 명령은 web 기준 `node ../../node_modules/@playwright/test/cli.js test …` 사용. 단위 watchdog은 프로세스 종료 권한 필요.
-
-- 플레이북의 ui-800x360:84 기존실패 허용 설명은 현재 트리에서 해소됨. 최종 화면17+실앱1 모두 PASS이므로 새 실패를 허용하지 않는다. 인계 요청은 화면 승인/묶음3 착수/커밋/배포 승인이 아니다.
+- **실앱 에뮬레이터 시험:** 기본 `run-with-functions-emulator.mjs`는 functions 5001 을 쓴다. 5001 이 막혀 있으면 아래처럼 5019 임시 설정으로 돌린다(실행 폴더 `C:\20.HDev\boxcycle\apps\web`, PowerShell):
+  ```powershell
+  $env:RTW_DEV_PORT='5017'; $env:RTW_E2E_WITH_FUNCTIONS='1'; $env:VITE_FUNCTIONS_EMULATOR_HOST='127.0.0.1:5019'
+  node scripts/e2e/run-with-deadline.mjs --limit-sec 540 -- firebase emulators:exec --only auth,firestore,database,functions --project boxcycle-dc2df --config ../../firebase.route-list-qa.json '"node ../../node_modules/@playwright/test/cli.js test ride-entry --workers=1 --retries=0"'
+  ```
+- `ride-entry.spec.ts:70` 첫 시험이 「어디에서 시작할까요?」 위치 창이 늦게 떠 한 번 실패했다(재실행 7/7). 다시 보이면 조사 거리.
+- `test:quick` 동시 실행 부하로 `entry-location-dom.test.mjs`가 60초 시간 초과할 때가 있다. 같은 플래그 단독 실행은 27초 PASS.
+- Cursor CLI 는 PowerShell 에서 `agent -p --force --trust --workspace C:\20.HDev\boxcycle "<지시>"`, 백그라운드로 돌리고 결과 파일로 받는다. 이번 세션 3회 모두 정상 종료.
+- 리더보드 순위는 서버가 5분 캐시. 주행 직후 칩이 늦게 바뀌는 것은 정상.
+- Windows 전역 `playwright`는 다른 CLI. 에뮬레이터 안쪽 명령은 `node ../../node_modules/@playwright/test/cli.js`.
