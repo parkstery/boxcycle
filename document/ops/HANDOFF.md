@@ -47,14 +47,12 @@
 - `.out/`, `cdbox.bat`: 비추적. 손대지 않는다.
 - `firebase.route-list-qa.json`: 위 결정 대기.
 
-## 서버 (2026-10-24 07:58 관측)
+## 서버 (2026-10-24 08:1x — Chief 지시로 정리)
 
-| 포트 | PID | 용도 |
-|---|---|---|
-| 3000 | 28472 | Chief 다른 프로젝트(imgman). 절대 끄지 않음 |
-| 5000 | 61304 | 정상 앱·로그인, **운영 Firebase** — 시험 데이터 쓰기 금지 |
-| 5020 | 33076 | harness 프리뷰(`/scripts/ui-800x360/preview.html?state=ready` 등). 로그인용 아님 |
-| 5001·5021·5017·9099 | 없음 | 밤사이 떠 있던 5001 vite·Chief 5021 harness 는 지금 없음 |
+- Chief 지시 「3000 을 제외하고 모두 중지」에 따라 boxcycle 개발 서버 5000(정상 앱)·5020(harness)을 중지했다. 지금 이 앱 서버는 **하나도 없다.**
+- 3000(PID 28472) = Chief 다른 프로젝트 imgman. 절대 끄지 않는다.
+- 18789 = `openclaw gateway`(전역 npm 도구, 10-17 시작). boxcycle 서버가 아니라 손대지 않았다.
+- 필요할 때 다시 띄운다(실행 폴더 `C:.HDevoxcyclepps\web`): 정상 앱 `$env:RTW_DEV_PORT='5000'; npm run dev -- --host 0.0.0.0 --strictPort`, harness `$env:RTW_DEV_PORT='5020'; npm run dev:localhost -- --mode harness --strictPort`. 시험이 끝나면 띄운 서버는 끈다.
 
 ## 최근 주의
 
