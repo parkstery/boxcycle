@@ -23,8 +23,8 @@ export const LEADERBOARD_PERIODS: readonly LeaderboardPeriod[] = ["week", "month
 export const LEADERBOARD_CACHE_COLLECTION = "leaderboardCache";
 export const LEADERBOARD_CACHE_TTL_MS = 5 * 60 * 1000;
 export const LEADERBOARD_LIVE_WINDOW_MS = 30 * 1000;
-export const LEADERBOARD_TOP_N = 10;
-const AROUND_SPAN = 2;
+export const LEADERBOARD_TOP_N = 20;
+const AROUND_SPAN = 3;
 const FALLBACK_NICKNAME = "라이더";
 
 const HOUR_MS = 3600 * 1000;

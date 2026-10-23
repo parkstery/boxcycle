@@ -216,28 +216,28 @@ describe("순위·동점·회원/게스트", () => {
 });
 
 describe("top·around", () => {
-  it("top 은 10명, 내가 밖이면 around 는 내 줄(isMe)+위아래 2명", () => {
-    const s = snapshot(ladder(30));
-    const r = respond(s, "u15");
-    assert.equal(r.top.length, 10);
-    assert.deepEqual(r.me.around.map((x) => x.rank), [13, 14, 15, 16, 17]);
-    assert.deepEqual(r.me.around.map((x) => x.isMe), [false, false, true, false, false]);
-    assert.equal(r.me.rank, 15);
+  it("top 은 20명, 내가 밖이면 around 는 내 줄(isMe)+위아래 3명", () => {
+    const s = snapshot(ladder(40));
+    const r = respond(s, "u30");
+    assert.equal(r.top.length, 20);
+    assert.deepEqual(r.me.around.map((x) => x.rank), [27, 28, 29, 30, 31, 32, 33]);
+    assert.deepEqual(r.me.around.map((x) => x.isMe), [false, false, false, true, false, false, false]);
+    assert.equal(r.me.rank, 30);
   });
 
   it("top 과 겹치는 줄은 around 에서 뺀다", () => {
-    const s = snapshot(ladder(30));
-    const r = respond(s, "u11"); // 위 2명 = 9,10위 (top 안)
-    assert.deepEqual(r.me.around.map((x) => x.rank), [11, 12, 13]);
+    const s = snapshot(ladder(40));
+    const r = respond(s, "u21"); // 위 3명 = 18~20위 (top 안)
+    assert.deepEqual(r.me.around.map((x) => x.rank), [21, 22, 23, 24]);
     const inTop = respond(s, "u3");
-    assert.ok(inTop.me.around.every((x) => x.rank > 10));
+    assert.ok(inTop.me.around.every((x) => x.rank > 20));
     assert.ok(inTop.top.some((x) => x.isMe));
   });
 
   it("목록 끝에서도 모자란 쪽을 건너뛴다", () => {
-    const s = snapshot(ladder(15));
-    const r = respond(s, "u15");
-    assert.deepEqual(r.me.around.map((x) => x.rank), [13, 14, 15]);
+    const s = snapshot(ladder(25));
+    const r = respond(s, "u25");
+    assert.deepEqual(r.me.around.map((x) => x.rank), [22, 23, 24, 25]);
   });
 });
 

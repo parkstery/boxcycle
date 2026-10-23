@@ -200,6 +200,52 @@
 }
 
 /* 진행률 배지 — 헤더 행(제목과 닫기 사이). 독립 줄 대신 여기 하나로 */
+.ride-summary__rank-line {
+  width: 100%;
+  margin: 0;
+  padding: 0.35rem 0;
+  border: 0;
+  border-bottom: 1px solid #eef0f3;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  color: #4b5160;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ride-summary__rank-num {
+  font-family: var(--rtw-font-num, "Saira Condensed", sans-serif);
+  font-size: 17px;
+  font-weight: 700;
+  color: #121417;
+}
+
+.ride-summary__rank-num-sm {
+  font-family: var(--rtw-font-num, "Saira Condensed", sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  color: #121417;
+}
+
+.ride-summary__rank-muted {
+  font-family: var(--rtw-font-num, "Saira Condensed", sans-serif);
+  font-size: 14px;
+  color: #5e6472;
+}
+
+.ride-summary__rank-up {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e7a46;
+  margin-left: 4px;
+}
+
+.ride-summary__rank-gap {
+  margin-left: 6px;
+  font-size: 11px;
+}
+
 .ride-summary__heroes-badge {
   flex-shrink: 0;
   line-height: 1.2;

@@ -1,6 +1,6 @@
 import type { CoachingData } from "../../lib/coach/coachTypes";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { reportHudCompanionTrailDedup } from "../../lib/debug/hudCompanionDiag";
 import { RIDE_PULSE_PERIOD_MS, ridePulseAnimationDelay } from "../../lib/ride/ridePulse";
 import {
@@ -150,6 +150,9 @@ export type MapHudProps = {
     zoomOutDisabled: boolean;
     zoomInDisabled: boolean;
   } | null;
+  /** 순위 칩(우상단 줄) · 순위판은 `leaderboardGlancePanel` */
+  leaderboardGlanceChip?: ReactNode;
+  leaderboardGlancePanel?: ReactNode;
 };
 
 /** TC 지표 캡슐 셀 — 라벨 위·값 아래 (참조 TopHud) */
@@ -219,6 +222,8 @@ export function MapHud(props: MapHudProps) {
     conquestAllOwnedHint,
     quickCamera = null,
     mapControls = null,
+    leaderboardGlanceChip = null,
+    leaderboardGlancePanel = null,
   } = props;
 
   const riding = stage === "riding";
@@ -298,7 +303,11 @@ export function MapHud(props: MapHudProps) {
    * 여기 남는 것은 계정·로그인 칩뿐이고, `cadence` 는 **RouteDock 으로만** 간다.
    */
   const showTopRight =
-    showAccount || showSignedOutAuth || Boolean(quickCamera) || showMapControls;
+    showAccount ||
+    showSignedOutAuth ||
+    Boolean(quickCamera) ||
+    showMapControls ||
+    Boolean(leaderboardGlanceChip);
   const showMapViewTrigger = !isGate && !isSummary;
   const showMetrics =
     metrics !== null &&
@@ -607,6 +616,16 @@ export function MapHud(props: MapHudProps) {
             </div>
           ) : null}
 
+          {leaderboardGlanceChip ? (
+            <div
+              className="lb-glance__chip-slot"
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
+              {leaderboardGlanceChip}
+            </div>
+          ) : null}
+
           {showAccount && account ? (
             <button
               type="button"
@@ -643,6 +662,8 @@ export function MapHud(props: MapHudProps) {
           ) : null}
         </div>
       ) : null}
+
+      {leaderboardGlancePanel}
 
       {/* 우하단 — 고도/축척 바 바로 위, 오른쪽 정렬 */}
       {showClock ? (

@@ -47,6 +47,10 @@ import { startGuestActivityWatch } from "./lib/identity/guestActivity";
 import { postGuestActivity } from "./lib/identity/repo/guestLifecycleApi";
 import { useUserTier } from "./hooks/useUserTier";
 import { RideSummarySheet } from "./components/ride/RideSummarySheet";
+import { LeaderboardGlanceChip, LeaderboardGlancePanel } from "./components/leaderboard/LeaderboardGlance";
+import { buildGlanceLiveRows } from "./components/leaderboard/leaderboardGlanceSnapshot";
+import { computeRideRankChangeLine } from "./components/leaderboard/leaderboardLiveRank";
+import { useLeaderboardGlance } from "./hooks/useLeaderboardGlance";
 import { NextRideCard, LocalFirstEntryCard } from "./components/ride";
 import { resolveNextRideView } from "./lib/ride/nextRideTarget";
 import type { NextRideTarget } from "./lib/ride/nextRideTarget";
@@ -551,6 +555,8 @@ export default function App() {
     clearRouteArtifactsRef,
     onRouteDirectionsErrorRef,
   });
+  const leaderboardGlance = useLeaderboardGlance(user, rideStatus !== "idle");
+  const sessionPedalQualifiedRef = useRef(false);
   // 주행·일시정지 동안 폰 화면이 꺼지지 않게(10-23)
   useScreenWakeLock(rideStatus !== "idle");
 
@@ -1127,6 +1133,12 @@ export default function App() {
   }, [bleCrankRpm.crankRpm]);
   const prevRideStatusRef = useRef(rideStatus);
   useEffect(() => {
+    if (
+      (prevRideStatusRef.current === "running" || prevRideStatusRef.current === "paused") &&
+      rideStatus === "idle"
+    ) {
+      sessionPedalQualifiedRef.current = pedalActiveSecRef.current != null;
+    }
     if (prevRideStatusRef.current === "idle" && rideStatus === "running") {
       // 새 세션 시작 — 센서 신호를 보기 전까지는 null(T0) 유지
       pedalActiveSecRef.current = null;
@@ -2890,6 +2902,70 @@ export default function App() {
           activeSec: clampActiveSecForCalories(pedalActiveSecRef.current, liveElapsedSec),
         });
 
+  const sessionRideKm = useMemo(
+    () =>
+      Math.max(0, rideMetrics.virtualDistanceMeters - sessionStartOffsetMeters) / 1000,
+    [rideMetrics.virtualDistanceMeters, sessionStartOffsetMeters],
+  );
+  const glanceMyBaseKm =
+    leaderboardGlance.atRideStart?.me.valueKm ?? leaderboardGlance.data?.me.valueKm ?? 0;
+  const leaderboardGlanceView = useMemo(() => {
+    if (!user) return null;
+    const riding = rideStatus === "running" || rideStatus === "paused";
+    const pedalQualifiedLive = pedalActiveSecRef.current != null;
+    const liveRows = buildGlanceLiveRows(
+      leaderboardGlance.atRideStart ?? leaderboardGlance.data,
+    );
+    return {
+      mode: riding ? ("riding" as const) : ("map" as const),
+      isGuest: Boolean(user.isAnonymous),
+      panelOpen: leaderboardGlance.panelOpen,
+      onTogglePanel: leaderboardGlance.togglePanel,
+      onOpenFullLeaderboard: openLeaderboardPanel,
+      onRegister: user.isAnonymous ? () => void handleGoogleSignIn() : undefined,
+      mapData: leaderboardGlance.data,
+      rideSnapshot: leaderboardGlance.atRideStart,
+      liveRows,
+      myBaseKm: glanceMyBaseKm,
+      addedKm: riding && pedalQualifiedLive ? sessionRideKm : 0,
+      pedalQualified: riding ? pedalQualifiedLive : true,
+    };
+  }, [
+    user,
+    rideStatus,
+    leaderboardGlance.data,
+    leaderboardGlance.atRideStart,
+    leaderboardGlance.panelOpen,
+    leaderboardGlance.togglePanel,
+    glanceMyBaseKm,
+    sessionRideKm,
+    openLeaderboardPanel,
+    handleGoogleSignIn,
+  ]);
+  const mapHudLeaderboard = useMemo(() => {
+    if (!leaderboardGlanceView) return {};
+    return {
+      leaderboardGlanceChip: <LeaderboardGlanceChip {...leaderboardGlanceView} />,
+      leaderboardGlancePanel: <LeaderboardGlancePanel {...leaderboardGlanceView} />,
+    };
+  }, [leaderboardGlanceView]);
+  const summaryRankChange = useMemo(() => {
+    if (!summaryVisible || !lastRideResult || !user) return null;
+    const snap = leaderboardGlance.atRideStart;
+    if (!snap) return null;
+    const rows = buildGlanceLiveRows(snap);
+    const sessionKm = lastRideResult.sessionDistanceMeters / 1000;
+    return computeRideRankChangeLine(
+      rows,
+      snap.me.valueKm,
+      sessionKm,
+      sessionPedalQualifiedRef.current,
+      Boolean(user.isAnonymous),
+      snap.me.status === "ranked" ? snap.me.rank : null,
+      snap.me.status === "guest" ? snap.me.projectedRank : null,
+    );
+  }, [summaryVisible, lastRideResult, user, leaderboardGlance.atRideStart]);
+
   const mapHudRidePresence = useMemo(() => {
     if (!configured || !user) return null;
     const courseTitle = sharedPresenceCourseId
@@ -3002,6 +3078,7 @@ export default function App() {
                 onGoTrailhead: goTrailheadAndCloseMenu,
                 conquestLiveMeters,
                 conquestAllOwnedHint,
+                ...mapHudLeaderboard,
               }}
             >
             </DebugMapStage>
@@ -3184,6 +3261,7 @@ export default function App() {
               onGoTrailhead: goTrailheadAndCloseMenu,
               conquestLiveMeters,
               conquestAllOwnedHint,
+              ...mapHudLeaderboard,
               quickCamera:
                 rideStatus === "running" || rideStatus === "paused"
                   ? {
@@ -3580,6 +3658,8 @@ export default function App() {
         onDismissAdhoc={() => setLastEndedWasAdhoc(null)}
         onClose={handleCloseSummary}
         onIncompleteQuotaBlocked={handleIncompleteQuotaBlocked}
+        rankChange={summaryRankChange}
+        onOpenLeaderboard={openLeaderboardPanel}
       />
 
       {publicRouteRequestModalRoute && user ? (

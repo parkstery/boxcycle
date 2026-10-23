@@ -8,6 +8,7 @@ import { getRideSaveStatusLabel, getSavedRouteProgressStatusLabel } from "../../
 import { formatNewRoadHero, formatConquestStatusCopy } from "../../lib/ride/rideSessionPreview";
 import { formatCaloriesEstimateLabel } from "../../lib/ride/caloriesEstimate";
 import type { RideStory } from "../../lib/ride/rideStory";
+import type { RideRankChangeLine } from "../leaderboard/leaderboardLiveRank";
 import { formatElapsedFromMs } from "../../lib/ride/rideFormat";
 import { useDialogFocus } from "../ui/useDialogFocus";
 import "./RideSummarySheet.css";
@@ -64,6 +65,9 @@ type RideSummarySheetProps = {
   onClose: () => void;
   /** 미완료 쿼터 초과로 저장이 막혔을 때 상위에 알림(→ 시트 닫고 「내 경로」 대기 탭 유도) */
   onIncompleteQuotaBlocked?: (message: string) => void;
+  /** 이번 주 순위 변화 한 줄 — 탭하면 큰 리더보드 */
+  rankChange?: RideRankChangeLine | null;
+  onOpenLeaderboard?: () => void;
   /**
    * RIDE-CLAIM-RESULT-1: 이미 로드된 내 도로망 geometries.
    * 세션 bounds 클리핑은 preview lib 에서 수행. 새 조회 없음.
@@ -466,6 +470,49 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
             ) : null}
           </div>
         </div>
+
+        {props.rankChange && props.onOpenLeaderboard ? (
+          <button
+            type="button"
+            className="ride-summary__rank-line"
+            onClick={props.onOpenLeaderboard}
+          >
+            {props.rankChange.kind === "guest-projected" ? (
+              <>
+                회원이라면 이번 주 예상{" "}
+                <strong className="ride-summary__rank-num">{props.rankChange.projectedRank}</strong>위
+              </>
+            ) : props.rankChange.kind === "member-change" ? (
+              <>
+                이번 주 순위{" "}
+                <span className="ride-summary__rank-muted">{props.rankChange.beforeRank}</span>위 →{" "}
+                <strong className="ride-summary__rank-num">{props.rankChange.afterRank}</strong>위
+                <span className="ride-summary__rank-up">▲{props.rankChange.delta}</span>
+                {props.rankChange.gapToFirstKm != null ? (
+                  <span className="ride-summary__rank-gap">
+                    1위까지{" "}
+                    <strong className="ride-summary__rank-num-sm">
+                      {props.rankChange.gapToFirstKm.toFixed(1)} km
+                    </strong>
+                  </span>
+                ) : null}
+              </>
+            ) : (
+              <>
+                이번 주 <strong className="ride-summary__rank-num">{props.rankChange.rank}</strong>위
+                그대로
+                {props.rankChange.gapToFirstKm != null ? (
+                  <span className="ride-summary__rank-gap">
+                    1위까지{" "}
+                    <strong className="ride-summary__rank-num-sm">
+                      {props.rankChange.gapToFirstKm.toFixed(1)} km
+                    </strong>
+                  </span>
+                ) : null}
+              </>
+            )}
+          </button>
+        ) : null}
 
         <div className="ride-summary__substats">
           <span className="ride-summary__substat">
