@@ -1,3 +1,5 @@
+2026-10-24 13:4x KST [주행 중 주소창 복구](20261023-ui-redesign/36-result-riding-address-dock.md): LOCAL_VERIFIED/Chief화면확인대기. Cursor 구현→재지시37(대기 카드 폭 원복)→Nemotron 감리38 PASS. 미니맵 위 같은 폭, 주행 중 ✕·⇅ 없음. tsc·화면40·실앱 ride-entry7+route-dock1·tidy/dep/doc PASS. 고정 목록 11 추가. 미커밋·미배포.
+2026-10-24 13:2x KST [Claude Code 인수·지시35](20261023-ui-redesign/35-task-riding-address-dock.md): Codex→Claude Code. HEAD a98afb41=origin, 보존JSON 해시 일치, 포트 3000/5000/5040. 묶음3 미커밋 유지(AWAITING_CHIEF). Chief 「주행 중 주소창 안 보임」 원인=묶음2 RouteDock `|| isActiveRide` 숨김. Cursor 구현 중, nemotron-3-ultra 독립 감리 예정.
 2026-10-24 10:14 KST [카드 삭제·인라인 유지 배포 완료](20261023-ui-redesign/27-result-inline-history-finalize.md): 3c3ba02c 푸시·Hosting 완료, index-BDb2hU8r.js 등 운영5자산 SHA256 일치. 단위1354/화면24/실앱8 PASS. 묶음3 지시28 Cursor 구현 중, 결과29·로컬 비교 대기.
 2026-10-24 10:09 KST [인라인 유지·카드 삭제 마감](20261023-ui-redesign/27-result-inline-history-finalize.md): Chief 인라인 확정, panel 연결 제거·고정10 등록. 단위1354/화면24/실앱8/정련·구조 PASS, 커밋·푸시·승인된 호스팅 배포 단계. 다음 묶음3 지시28.
 2026-10-24 Codex: Chief 요청으로 [주행 기록 inline/panel 비교](20261023-ui-redesign/comparison-account-history.html) 작성. 기존 캡처·코드 동작 비교, 데이터 차이와 panel 기록별 행동 부재 명시. 제품 코드·모드 변경 없음, Chief 결정 대기.
@@ -298,3 +300,7 @@
 이전 자잘한 수정은 먼저 main2에 병합·푸시·배포 완료(코드 `5f012a52`, 문서 `8706ae91`, Hosting·Rules·Functions 4개 성공). 이후 GLM-5.3-Flash → Cursor 순서로 UI를 구현했다. 800×360·667×300·844×390 전용 Playwright 11/11 PASS, selector19/19 PASS, `tsc` PASS, lint 0 errors/37 existing warnings, build PASS, `git diff --check` PASS. 좌우 가장자리 핸들은 44px 터치 영역과 탭/키보드 대안을 유지하며 안쪽 드래그로 메뉴·맵뷰를 열고, 패널 헤더 바깥 드래그로 닫는다. UI 변경은 아직 커밋·푸시·배포하지 않았다. 상세: `document/ops/20261020-ui-800x360/04-review-04.md`.
 
 - 2026-10-23 Codex: 로그인 환경 복구(localhost5000, Google provider 연결 확인), 묶음2 Cursor 구현+Supervisor 보완. 주행진입7·최종화면/실앱18·기본단위1347+계약/코칭14 PASS. [감리](20261023-ui-redesign/10-review-batch2.md)·[비교](20261023-ui-redesign/comparison-batch2.html). Chief 화면 확인 대기, 커밋/푸시/배포 없음.
+
+# 2026-10-24 UI 재설계 묶음3 — LOCAL_VERIFIED / AWAITING_CHIEF
+
+주행 결과·다음 주행 화면을 800×360 폰 가로 기준으로 재설계. 최초 결과29는 화면 품질 FAIL, 재지시30 후 Cursor·OpenCode DeepSeek v4.1 병행 감리 PASS. 화면13/13·전체 화면37/37·selector19/19·단위1354/1354·RC13 실앱1/1 PASS. NextRide 접근성 이름 계약을 복원하고 오래된 진입 하네스 race/셀렉터를 교정했다. 주행 기록은 계정 패널 인라인 유지. [최종감리34](20261023-ui-redesign/34-review-batch3-final.md)·[비교](20261023-ui-redesign/comparison-batch3-final.html). 미커밋·미푸시·미배포.

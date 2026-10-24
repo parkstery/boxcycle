@@ -25,7 +25,7 @@ const KIND_LABEL: Record<RouteDockStop["kind"], string> = {
   end: "도착",
 };
 
-/** Addresses + sensor chip on ready map; hidden during active ride (minimap). */
+/** Addresses (+ sensor chip when ready). Stays visible during ride; editing locks while riding. */
 export function RouteDock({
   stage,
   stops,
@@ -38,8 +38,8 @@ export function RouteDock({
   sensorAttention = false,
 }: RouteDockProps) {
   const [expanded, setExpanded] = useState(true);
-  const { lockStopEditing, isActiveRide } = routeDockUiPolicy(stage, editLocked);
-  if (!isRouteDockVisible(stage) || isActiveRide) return null;
+  const { lockStopEditing } = routeDockUiPolicy(stage, editLocked);
+  if (!isRouteDockVisible(stage)) return null;
   if (stops.length === 0 && !cadence) return null;
 
   const canSwap =
@@ -57,7 +57,9 @@ export function RouteDock({
       aria-busy={routeLoading}
     >
       <div className="route-dock__card">
-        <div className="route-dock__grid">
+        <div
+          className={`route-dock__grid${lockStopEditing ? " route-dock__grid--locked" : ""}`}
+        >
           <ol className="route-dock__stops" role="list">
             {stops.length === 0 ? (
               <li className="route-dock__stops-empty">지도를 탭해 출발·도착 설정</li>
@@ -102,7 +104,7 @@ export function RouteDock({
             >
               <span className="route-dock__swap-icon" aria-hidden />
             </button>
-          ) : (
+          ) : lockStopEditing ? null : (
             <span className="route-dock__swap-spacer" aria-hidden />
           )}
         </div>

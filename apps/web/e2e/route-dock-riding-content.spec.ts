@@ -36,7 +36,7 @@ test.describe("주행 중 RouteDock", () => {
     const beforeCount = await stops.count();
     expect(beforeCount, "주행 전 경유지 수").toBeGreaterThan(0);
     // 주소 라벨이 「불러오는 중」에 멈추지 않는다 — 역지오코딩 결과가 렌더에 반영된다
-    await expect(page.locator(".route-dock__stop-label").first()).not.toHaveText("주소 불러오는 중…", {
+    await expect(page.locator(".route-dock__label").first()).not.toHaveText("주소 불러오는 중…", {
       timeout: 15_000,
     });
     await page.screenshot({ path: path.join(OUT_DIR, "stops-labeled.png") });
@@ -59,15 +59,13 @@ test.describe("주행 중 RouteDock", () => {
       timeout: 10_000,
     });
     expect(await stops.count(), "주행 중 경유지 수").toBe(beforeCount);
-    const firstLabel = (await page.locator(".route-dock__stop-label").first().innerText()).trim();
+    const firstLabel = (await page.locator(".route-dock__label").first().innerText()).trim();
     expect(firstLabel.length, "경유지 라벨이 비어 있지 않아야 한다").toBeGreaterThan(0);
     await page.screenshot({ path: path.join(OUT_DIR, "riding-expanded.png") });
 
-    // 4) 표시는 하되 조작은 잠근다 — 주행 중 경로 변형 방지
-    const removes = page.locator(".route-dock__stop-remove");
-    for (let i = 0; i < (await removes.count()); i += 1) {
-      await expect(removes.nth(i), "주행 중 경유지 삭제는 잠금").toBeDisabled();
-    }
+    // 4) 표시는 하되 조작은 잠근다 — 주행 중 경유지 삭제·바꾸기 UI 는 렌더하지 않는다
+    await expect(page.locator(".route-dock__remove"), "주행 중 경유지 삭제는 잠금").toHaveCount(0);
+    await expect(page.getByRole("button", { name: "출발·도착 바꾸기" })).toHaveCount(0);
   });
 });
 
@@ -89,7 +87,8 @@ async function armRideInput(page: import("@playwright/test").Page) {
 }
 
 async function loadIntroCourse(page: import("@playwright/test").Page) {
-  await page.getByRole("button", { name: "Trail 메뉴" }).click();
+  await page.getByRole("button", { name: "Trail 메뉴" }).focus();
+  await page.keyboard.press("Enter");
   await page.getByRole("button", { name: "입문" }).click();
   const modal = page.getByRole("dialog").filter({ has: page.locator("#oc-modal-title") });
   await expect(modal).toBeVisible({ timeout: 15_000 });

@@ -18,14 +18,25 @@
   color: #121417;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
 }
+.route-dock-anchor:not(.route-dock-anchor--open) {
+  width: auto;
+}
 .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__grid {
   display: none;
+}
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card {
+  width: auto;
+  min-width: 0;
+  padding: 2px 4px 4px;
 }
 .route-dock__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 32px;
   align-items: center;
   column-gap: 4px;
+}
+.route-dock__grid--locked {
+  grid-template-columns: minmax(0, 1fr);
 }
 .route-dock__stops {
   list-style: none;

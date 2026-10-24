@@ -349,6 +349,44 @@ test.describe('Chief 고정 — 261024 목록 1~4', () => {
   });
 });
 
+// Chief 지정 — 바꾸려면 Chief 지시와 document/reference/product/261024-RTW-Chief-지정-디자인-고정.md 갱신 필요
+test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', () => {
+  test('대기 화면 펼친 주소 카드 폭은 250px(±0.5)이다', async ({ page }) => {
+    for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }]) {
+      await page.setViewportSize(size);
+      await page.goto(`${preview}?state=ready`);
+      await expect(page.locator('.route-dock-anchor.route-dock-anchor--open')).toBeVisible();
+      const cardWidth = (await page.locator('.route-dock__card').boundingBox())!.width;
+      expect(cardWidth).toBeCloseTo(250, 0.5);
+    }
+  });
+
+  test('출발·도착 줄이 보이고 삭제·바꾸기 없으며 펼친 미니맵과 너비가 같다', async ({ page }) => {
+    for (const state of ['riding', 'paused'] as const) {
+      await page.setViewportSize({ width: 800, height: 360 });
+      await page.goto(`${preview}?state=${state}&long&waypoints=1`);
+      await expect(page.locator('.route-dock-anchor')).toBeVisible();
+      await expect(page.getByText('출발', { exact: true })).toBeVisible();
+      await expect(page.getByText('도착', { exact: true })).toBeVisible();
+      await expect(page.locator('.route-dock__remove')).toHaveCount(0);
+      await expect(page.getByRole('button', { name: '출발·도착 바꾸기' })).toHaveCount(0);
+
+      const geometry = await page.evaluate(() => {
+        const dock = document.querySelector('.route-dock__card')!.getBoundingClientRect();
+        const mini = document.querySelector('.map-bottom-left-stack .route-minimap')!.getBoundingClientRect();
+        return {
+          width: dock.width - mini.width,
+          left: dock.left - mini.left,
+          right: dock.right - mini.right,
+        };
+      });
+      for (const difference of Object.values(geometry)) {
+        expect(Math.abs(difference)).toBeLessThan(0.1);
+      }
+    }
+  });
+});
+
 const entryCardHistoryEvidence = path.resolve(
   fileURLToPath(import.meta.url),
   '../../../../document/ops/20261023-ui-redesign/evidence/inline-history',

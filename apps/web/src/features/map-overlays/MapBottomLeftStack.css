@@ -44,22 +44,24 @@
   flex: 0 0 auto;
 }
 
-/* 펼친 미니맵의 실제 너비에 주소창의 좌우 끝을 맞춘다. */
+.map-bottom-left-stack > .route-dock-anchor {
+  width: min(250px, calc(100vw - 16px));
+  max-width: min(250px, calc(100vw - 16px));
+}
+
+/* 펼친 미니맵의 실제 너비에 주소 카드의 좌우 끝을 맞춘다. */
 .map-bottom-left-stack:has(> .route-minimap:not(.route-minimap--collapsed))
-  > .route-dock-anchor:has(.route-dock__panel:not([hidden])) {
-  /* 주소의 intrinsic 폭은 스택 계산에서 빼고, 미니맵이 정한 폭만 따른다. */
+  > .route-dock-anchor.route-dock-anchor--open {
+  /* intrinsic 250px cap 은 스택 안·미니맵 펼침일 때만 푼다. */
   width: 0;
   min-width: 100%;
+  max-width: none;
 }
 
 .map-bottom-left-stack:has(> .route-minimap:not(.route-minimap--collapsed))
-  > .route-dock-anchor .route-dock__body {
-  flex: 1 1 0;
-}
-
-.map-bottom-left-stack:has(> .route-minimap:not(.route-minimap--collapsed))
-  > .route-dock-anchor .route-dock__panel {
+  > .route-dock-anchor.route-dock-anchor--open .route-dock__card {
   width: 100%;
+  box-sizing: border-box;
 }
 
 /* 폰 가로 — 로고 여백 회수는 종전 dock 규칙과 같은 값 */
@@ -67,5 +69,14 @@
   .map-bottom-left-stack {
     --mapbox-logo-clearance: 0.35rem;
     gap: 0.28rem;
+  }
+
+  .map-bottom-left-stack:has(> .route-minimap) .route-dock__row {
+    min-height: 24px;
+  }
+
+  .map-bottom-left-stack:has(> .route-minimap) .route-dock__card {
+    padding-top: 4px;
+    padding-bottom: 6px;
   }
 }
