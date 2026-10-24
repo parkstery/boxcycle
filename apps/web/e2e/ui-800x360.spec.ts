@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { test, expect } from '@playwright/test';
 
 const preview = '/scripts/ui-800x360/preview.html';
@@ -345,5 +346,49 @@ test.describe('Chief 고정 — 261024 목록 1~4', () => {
       await page.goto(`${preview}?state=riding`);
       await page.screenshot({ path: path.join(evidenceDir, 'riding-800x360.png'), animations: 'disabled' });
     }
+  });
+});
+
+const entryCardHistoryEvidence = path.resolve(
+  fileURLToPath(import.meta.url),
+  '../../../../document/ops/20261023-ui-redesign/evidence/inline-history',
+);
+
+test('Chief 고정10 — 주행 기록은 계정 패널 안에서 인라인 펼침·접기를 유지한다', async ({ page }) => {
+  const outDir = process.env.ENTRY_CARD_HISTORY_EVIDENCE ?? entryCardHistoryEvidence;
+  await fs.mkdir(outDir, { recursive: true });
+  for (const size of [{ width: 667, height: 300 }, { width: 800, height: 360 }]) {
+    await page.setViewportSize(size);
+    await page.goto(`${preview}?state=account&historyPreview=1`);
+    const account = page.getByRole('dialog', { name: '사용자 정보', exact: true });
+    await expect(account).toBeVisible();
+    await page.screenshot({
+      path: path.join(outDir, `final-account-${size.width}x${size.height}.png`),
+      animations: 'disabled',
+    });
+    const trigger = account.getByRole('button', { name: /마지막 주행/ });
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    await trigger.click();
+    const history = account.locator('#user-info-sheet-history-list');
+    await expect(history).toBeVisible();
+    await expect(history.locator('li')).toHaveCount(3);
+    await expect(account.getByRole('tablist', { name: '통계 기간' })).toBeVisible();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByRole('region', { name: '주행 기록', exact: true })).toHaveCount(0);
+    await page.screenshot({
+      path: path.join(outDir, `final-inline-${size.width}x${size.height}.png`),
+      animations: 'disabled',
+    });
+    await trigger.click();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    await expect(history).toHaveCount(0);
+    await expect(account).toBeVisible();
+  }
+  await page.setViewportSize({ width: 800, height: 360 });
+  await page.goto(`${preview}?state=ready`);
+  await expect(page.locator('.local-first__card')).toHaveCount(0);
+  await page.screenshot({
+    path: path.join(outDir, 'after-first-visit-800x360.png'),
+    animations: 'disabled',
   });
 });

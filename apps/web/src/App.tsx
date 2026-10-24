@@ -51,7 +51,7 @@ import { LeaderboardGlanceChip, LeaderboardGlancePanel } from "./components/lead
 import { buildGlanceLiveRows } from "./components/leaderboard/leaderboardGlanceSnapshot";
 import { computeRideRankChangeLine } from "./components/leaderboard/leaderboardLiveRank";
 import { useLeaderboardGlance } from "./hooks/useLeaderboardGlance";
-import { NextRideCard, LocalFirstEntryCard } from "./components/ride";
+import { NextRideCard } from "./components/ride";
 import { resolveNextRideView } from "./lib/ride/nextRideTarget";
 import type { NextRideTarget } from "./lib/ride/nextRideTarget";
 import { useRideResumeSlot } from "./hooks/useRideResumeSlot";
@@ -76,7 +76,6 @@ import { TrailHubPanel } from "./components/trail/TrailHubPanel";
 import { useOpenTrails } from "./hooks/useOpenTrails";
 import { useTrailInstanceMeta } from "./hooks/useTrailInstanceMeta";
 import {
-  clearLocalFirstRegion,
   localFirstRegionLabel,
   makeLocalFirstRegion,
   readLocalFirstRegion,
@@ -178,7 +177,6 @@ import { useRecentRoadDisplay } from "./hooks/useRecentRoadDisplay";
 import { computeConquestOverviewFrame } from "./lib/conquest/conquestOverviewFrame";
 import type { ConquestDisplayMode } from "./components/map/routeConquestLayers";
 import { useDistanceAutoRoute } from "./hooks/useDistanceAutoRoute";
-import { useReadyRide } from "./hooks/useReadyRide";
 import {
   DEFAULT_MAP_STYLE,
   MAP_STYLE_SATELLITE,
@@ -1924,15 +1922,6 @@ export default function App() {
     onApplyRoute: applyGeneratedRouteResult,
   });
 
-  const readyRide = useReadyRide({
-    user,
-    functionsRegion: FUNCTIONS_REGION,
-    rideLocked: routeMenuLockedForProd,
-    routeTokenInsufficient,
-    profile,
-    onClearRouteArtifacts: () => clearRouteArtifactsRef.current(),
-    onApplyRoute: applyGeneratedRouteResult,
-  });
   const {
     clearCirclePreview,
     dismissResult,
@@ -2437,8 +2426,6 @@ export default function App() {
       />
     ) : null;
 
-  const defaultIntroPublication = BASIC_SHARED_HUB_SUMMARIES[0] ?? null;
-
   const applyLocalFirstRegion = useCallback(
     (region: LocalFirstRegion, opts?: { jumpCamera?: boolean }) => {
       setLocalFirstRegion(region);
@@ -2457,23 +2444,6 @@ export default function App() {
     },
     [setActiveQuickCamera, setFollowMode, setLockBaseHeading],
   );
-
-  const handleOpenLocalFirstRegionSearch = useCallback(() => {
-    placeSearchIntentRef.current = "localFirst";
-    setMenuOpen(false);
-    setMapViewSheetOpen(false);
-    setUserInfoSheetOpen(false);
-    setRideSettingsSheetOpen(false);
-    setCadenceSensorSheetOpen(false);
-    setPlaceSearchOpen(true);
-  }, [
-    setMenuOpen,
-    setMapViewSheetOpen,
-    setUserInfoSheetOpen,
-    setRideSettingsSheetOpen,
-    setCadenceSensorSheetOpen,
-    setPlaceSearchOpen,
-  ]);
 
   const handleMenuReveal = useCallback(
     (progress: number | null) => {
@@ -2532,16 +2502,8 @@ export default function App() {
     setMapViewSheetOpen,
   ]);
 
-  const handleClearLocalFirstRegion = useCallback(() => {
-    setLocalFirstRegion(null);
-    clearLocalFirstRegion();
-    localFirstFramedAtRef.current = null;
-    // 지역이 바뀌면 이전 지역의 「다른 경로」 제외 방위·편도 안내가 새 지역에 새어 나가지 않게 한다.
-    readyRide.cancel();
-  }, [readyRide]);
-
   /**
-   * localStorage 복원 지역 — 카드가 처음 보일 때 1회만 카메라 점프.
+   * localStorage 복원 지역 — 첫 idle 진입 시 1회만 카메라 점프.
    * 사용자가 지도를 움직인 뒤 재점프하지 않는다(at 가드).
    */
   useEffect(() => {
@@ -2558,68 +2520,6 @@ export default function App() {
       requestId: cameraJumpSeqRef.current,
     });
   }, [firstRideIntroVisible, localFirstRegion, setActiveQuickCamera, setFollowMode, setLockBaseHeading]);
-
-  const handleGenerateReadyRide = useCallback(
-    (targetDistanceKm: number) => {
-      if (!localFirstRegion) return;
-      void readyRide.generate({
-        start: localFirstRegion.lngLat,
-        targetDistanceMeters: targetDistanceKm * 1000,
-      });
-    },
-    [localFirstRegion, readyRide],
-  );
-
-  /**
-   * 「다른 경로」(지시03 §B3) — 직전에 쓴 시작 방위를 제외한 다음 표본. 결과 없이 되묻지 않는다는
-   * 원칙(§B2)에 따라 실패해도 기존 `readyRideStatus === "failed"` 카드로 자연스럽게 떨어진다.
-   */
-  const handleAnotherReadyRide = useCallback(
-    (targetDistanceKm: number) => {
-      if (!localFirstRegion) return;
-      void readyRide.another({
-        start: localFirstRegion.lngLat,
-        targetDistanceMeters: targetDistanceKm * 1000,
-      });
-    },
-    [localFirstRegion, readyRide],
-  );
-
-  /**
-   * Ready Ride 로 만든 경로가 이미 Go 게이트(`ready-to-start`)에 얹혀 있다 — 지시03 §B3.
-   * 「경로는 이미 지도에 그려져 있어야 한다」·「다른 경로를 선택할 기회도 동시에 준다」를
-   * 만족하려면 카드가 여기서도 살아 있어야 한다(그 전엔 route 가 생기는 순간 stage 가
-   * ready-to-start 로 바뀌어 카드가 통째로 사라졌다 — RouteDock 과 같은 좌하단 스택에 쌓인다).
-   */
-  const readyRideGeneratedActive =
-    stage === "ready-to-start" && Boolean(localFirstRegion) && readyRide.lastResult != null;
-
-  /** Local First Recognition + 입문 경로 CTA(RIDE-NEXT-VISIT-2 V3 · LF-1) */
-  const firstRideIntroCard =
-    !entryLocationPrompt &&
-    (firstRideIntroVisible || readyRideGeneratedActive) &&
-    defaultIntroPublication ? (
-      <LocalFirstEntryCard
-        region={localFirstRegion}
-        mapboxAccessToken={MAPBOX_TOKEN}
-        onOpenRegionSearch={handleOpenLocalFirstRegionSearch}
-        onConfirmRegion={(region) => applyLocalFirstRegion(region)}
-        onClearRegion={handleClearLocalFirstRegion}
-        onStartIntro={() => {
-          const hubId = BASIC_SHARED_HUB_IDS[0];
-          if (hubId) void enterBasicHub(hubId);
-        }}
-        readyRideStatus={readyRide.status}
-        readyRideGeneratingLabel={readyRide.generatingLabel}
-        readyRideSlow={readyRide.slow}
-        readyRideFailMessage={readyRide.failMessage}
-        readyRideLastResult={readyRide.lastResult}
-        hasActiveGeneratedRoute={readyRideGeneratedActive}
-        onGenerateReadyRide={handleGenerateReadyRide}
-        onAnotherReadyRide={handleAnotherReadyRide}
-        onCancelReadyRide={readyRide.cancel}
-      />
-    ) : null;
 
   /**
    * Quick Camera 1~6 — 공통 Camera Controller(followMode + distance + fitBounds)만 사용.
@@ -3096,7 +2996,6 @@ export default function App() {
               <>
                 <MapBottomLeftStack>
                   {routeDockPanel}
-                  {firstRideIntroCard}
                   <RouteMinimap
                     active={stage === "riding" || stage === "paused"}
                     routeGeometry={routeGeometry}

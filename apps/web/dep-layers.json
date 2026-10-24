@@ -294,7 +294,6 @@
       "route/publicRouteNamingPolicy.ts",
       "route/publicationDisplay.ts",
       "route/publishedCatalogRefreshPolicy.ts",
-      "route/readyRide.ts",
       "route/routeDockUiPolicy.ts",
       "route/routeFingerprint.ts",
       "route/routeGeometryMidpoint.ts",

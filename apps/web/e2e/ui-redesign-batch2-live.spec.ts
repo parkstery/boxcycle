@@ -13,6 +13,8 @@ test('실제 App의 대기·주행·일시정지와 센서 접근·카메라 연
     await page.screenshot({path:dir?path.join(dir,`batch2-live-${state}-800x360.png`):info.outputPath(`${state}.png`),animations:'disabled'});
   };
   await page.goto('/'); await guestStart(page);
+  await expect(page.locator('.local-first__card')).toHaveCount(0);
+  await capture('idle-no-first-card');
   await page.getByRole('button',{name:/케이던스 센서/}).click();
   const sheet=page.getByRole('dialog',{name:'케이던스 센서',exact:true});
   await sheet.getByRole('button',{name:'센서 없음',exact:true}).click();

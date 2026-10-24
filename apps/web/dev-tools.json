@@ -42,16 +42,6 @@
       "expires": "2026-11-19"
     },
     {
-      "id": "guest-demo-ready-ride-config",
-      "kind": "script",
-      "path": "apps/web/scripts/ride-verify/guest-demo-ready-ride.config.ts",
-      "class": "permanent",
-      "purpose": "실행 중 demo5004에서 Guest Ready Ride 네 거리 실제 서버 회귀",
-      "enable": "GUEST_DEMO_ROUTE_LIVE=1 playwright test --config apps/web/scripts/ride-verify/guest-demo-ready-ride.config.ts",
-      "bundle": "20261019-guest-lifecycle",
-      "added": "2026-10-19"
-    },
-    {
       "id": "guest-explicit-test-reset",
       "kind": "script",
       "path": "scripts/guest-test-reset-supervisor.mjs",

@@ -67,14 +67,6 @@ export function writeLocalFirstRegion(region: LocalFirstRegion): void {
   }
 }
 
-export function clearLocalFirstRegion(): void {
-  try {
-    localStorage.removeItem(LOCAL_FIRST_REGION_STORAGE_KEY);
-  } catch {
-    /* noop */
-  }
-}
-
 export function makeLocalFirstRegion(input: {
   name: string;
   lngLat: LngLat;

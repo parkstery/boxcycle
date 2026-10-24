@@ -25,6 +25,7 @@ import { getBasicSharedHubSummaries } from '../../src/lib/route/repo/firestoreCo
 import type { RideUiStage } from '../../src/hooks/useRideUiStage';
 import type { RouteDockStop } from '../../src/components/route-dock/useRouteDockStops';
 import type { RideEndResult } from '../../src/lib/ride/rideEndResult';
+import type { StoredRideSession } from '../../src/lib/ride/rideSessionsStorage';
 import type { LeaderboardResponse } from '../../src/services/leaderboardApi';
 import { LeaderboardGlanceChip, LeaderboardGlancePanel } from '../../src/components/leaderboard/LeaderboardGlance';
 import { buildGlanceLiveRows } from '../../src/components/leaderboard/leaderboardGlanceSnapshot';
@@ -70,6 +71,51 @@ const result: RideEndResult = {
   profile:'cycling', routeDistanceMeters:5000, rideSaveStatus:'success',
   savedRouteProgressStatus:'n/a',
 };
+const previewRideSessions: StoredRideSession[] = [
+  {
+    id: 'preview-ride-1',
+    endedAt: '2026-10-22T07:30:00.000Z',
+    elapsedSec: 1680,
+    distanceMeters: 4200,
+    avgSpeedKmh: 18.2,
+    caloriesEstimate: 312,
+    routeDistanceMeters: 5000,
+    routeDurationSec: 2100,
+    routeName: '남산 순환로',
+    completionRatio: 0.84,
+    startPlaceLabel: '남산 입구',
+    endPlaceLabel: '전망대',
+  },
+  {
+    id: 'preview-ride-2',
+    endedAt: '2026-10-20T12:00:00.000Z',
+    elapsedSec: 900,
+    distanceMeters: 2800,
+    avgSpeedKmh: 16.5,
+    caloriesEstimate: null,
+    routeDistanceMeters: 2800,
+    routeDurationSec: 900,
+    routeName: '한강 북단',
+    completionRatio: 1,
+    startPlaceLabel: '망원',
+    endPlaceLabel: '망원',
+  },
+  {
+    id: 'preview-ride-3',
+    endedAt: '2026-10-18T18:45:00.000Z',
+    elapsedSec: 540,
+    distanceMeters: 1500,
+    avgSpeedKmh: 14.1,
+    caloriesEstimate: 98,
+    routeDistanceMeters: 3200,
+    routeDurationSec: 1200,
+    routeName: '단구동 저녁 루프',
+    completionRatio: 0.47,
+    startPlaceLabel: '단구동',
+    endPlaceLabel: '단구동',
+  },
+];
+
 const stops: RouteDockStop[] = [
   {id:'start',kind:'start',label:long?'대한민국 서울특별시 용산구 남산공원길 126 아주 긴 출발 주소':'남산공원 입구',loading:false,lngLat:[126.98,37.55]},
   ...([0,1,2] as const).slice(0, Math.max(0, Math.min(3, Number(params.get('waypoints')) || 0))).map((i): RouteDockStop => ({
@@ -177,9 +223,11 @@ function Preview() {
     <RideSettingsSheet open={panel==='settings'} onClose={()=>setPanel('ready')} rideTtsEnabled rideBgmEnabled rideCoachingBanner pacerEnabled
       onRideTtsEnabled={noop} onRideBgmEnabled={noop} onRideCoachingBanner={noop} onPacerEnabled={noop} rideBgmCatalogConfigured rideElevationProfileLoading={false}
       calorieWeightKg={weight} onCalorieWeightKg={raw=>setWeight(Number(raw)||null)} calorieIntensityId={intensity} onCalorieIntensityId={setIntensity}/>
-    <UserInfoSheet open={panel==='account'} onClose={()=>setPanel('ready')} user={null} recentSessions={[]}
+    <UserInfoSheet open={panel==='account'} onClose={()=>setPanel('ready')} user={null}
+      recentSessions={params.has('historyPreview')?previewRideSessions:[]}
       isGuest tier="anonymous" subscriptionStatus="none" isPaid={false} busy={false}
-      conquest={params.has('loading')?null:{totalMeters:0,totalCells:0}} mileage={{totalMeters:0,totalSec:0,rideCount:0}}
+      conquest={params.has('loading')?null:params.has('historyPreview')?{totalMeters:12400,totalCells:42}:{totalMeters:0,totalCells:0}}
+      mileage={params.has('historyPreview')?{totalMeters:8500,totalSec:3120,rideCount:3}:{totalMeters:0,totalSec:0,rideCount:0}}
       onServiceExit={noop} onLinkGoogle={noop} />
     <CadenceSensorSheet open={panel==='sensor'} onClose={()=>setPanel('ready')} capable uiState="idle" deviceLabel={null} crankRpm={null} errorMessage={null}
       mode="manual" readiness={manual?'manual-ready':'choice-required'} riding={false} manualSpeedKmh={speed} onManualSpeedKmh={setSpeed}

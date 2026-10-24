@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>주행 기록 — inline / panel 비교</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f5f8;color:#17233b;font:16px/1.65 system-ui,"Malgun Gothic",sans-serif}main{max-width:1680px;margin:auto;padding:28px}h1{font-size:26px;margin:0 0 8px}h2{font-size:20px;margin:0 0 8px}p{margin:8px 0 16px}.note{background:#fff3ce;padding:14px 18px;border-radius:10px}.controls{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:20px 0}label{display:inline-flex;align-items:center;gap:8px;min-height:44px;cursor:pointer}input{accent-color:#2457d6}.pair{display:grid;grid-template-columns:1fr 1fr;gap:20px}article{background:white;border-radius:14px;padding:16px;min-width:0}figure{margin:0}img{display:block;width:100%;height:auto}figcaption{font-size:14px;color:#46516a;margin-top:8px}a{color:#1749bc}table{width:100%;border-collapse:collapse;background:white;margin:24px 0}th,td{text-align:left;vertical-align:top;padding:12px;border-bottom:1px solid #dce1ea}th{background:#e9edf4}.small{display:none}.sources{margin-top:24px}body:has(#size-small:checked) .large{display:none}body:has(#size-small:checked) .small{display:block}@media(max-width:1000px){.pair{grid-template-columns:1fr}main{padding:16px}} 
+</style>
+</head>
+<body><main>
+<h1>「마지막 주행 ›」을 누른 뒤의 차이</h1>
+<p><strong>2026-10-24 chief 결정: 현재 inline 스타일 유지.</strong> 아래 비교는 결정 당시 검토 기록입니다.</p>
+<p>inline: 계정 패널 안에서 목록 펼침 · panel: 계정 패널 내용을 주행 기록 전용 화면으로 교체</p>
+<p class="note"><strong>기존 프리뷰 캡처 비교입니다.</strong> inline 캡처는 기록 0건, panel 캡처는 예시 기록 3건입니다. 동일 데이터 비교가 아니므로 기록 유무·행 수로 우열을 판단할 수 없습니다. 아래 이미지는 편집하지 않은 원본이며, 제품 코드 변경 없이 구성했습니다.</p>
+<div class="controls" role="group" aria-label="캡처 화면 크기">
+<span>화면 크기</span><label><input type="radio" name="size" id="size-large" checked>800 × 360</label><label><input type="radio" name="size" id="size-small">667 × 300</label>
+</div>
+<div class="pair">
+<article><h2>inline — 기존 방식</h2><p>계정 통계와 마지막 주행을 함께 보며, 그 아래에 최근 기록을 펼칩니다.</p>
+<figure class="large"><a href="evidence/entry-card-history/before-account-inline-800x360.png" target="_blank" rel="noopener"><img src="evidence/entry-card-history/before-account-inline-800x360.png" width="800" height="360" alt="기존 계정 패널 안에 최근 주행이 없어요 문구가 펼쳐진 화면"></a><figcaption>변경 전 캡처 · 기록 0건 · 클릭하면 원본</figcaption></figure>
+<figure class="small"><a href="evidence/entry-card-history/before-account-inline-667x300.png" target="_blank" rel="noopener"><img src="evidence/entry-card-history/before-account-inline-667x300.png" width="667" height="300" alt="667×300 기존 인라인 화면"></a><figcaption>변경 전 캡처 · 기록 0건 · 클릭하면 원본</figcaption></figure>
+</article>
+<article><h2>panel — 비교 검토 중인 방식</h2><p>통계 대신 기록 목록이 판 전체를 사용합니다. 닫으면 계정 패널로 돌아갑니다.</p>
+<figure class="large"><a href="evidence/entry-card-history/after-history-panel-800x360.png" target="_blank" rel="noopener"><img src="evidence/entry-card-history/after-history-panel-800x360.png" width="800" height="360" alt="주행 기록 전용 화면에 예시 주행 세 건과 닫기 버튼이 표시된 화면"></a><figcaption>변경 후 캡처 · 예시 기록 3건 · 클릭하면 원본</figcaption></figure>
+<figure class="small"><a href="evidence/entry-card-history/after-history-panel-667x300.png" target="_blank" rel="noopener"><img src="evidence/entry-card-history/after-history-panel-667x300.png" width="667" height="300" alt="667×300 주행 기록 전용 화면"></a><figcaption>변경 후 캡처 · 예시 기록 3건 · 클릭하면 원본</figcaption></figure>
+</article>
+</div>
+<table><thead><tr><th>항목</th><th>inline</th><th>panel</th></tr></thead><tbody>
+<tr><th>열림·닫힘</th><td>「마지막 주행」으로 펼침·접기</td><td>「마지막 주행」으로 전용 화면 열기, 닫기·Escape로 계정 패널 복귀</td></tr>
+<tr><th>계정 통계</th><td>목록과 함께 유지</td><td>기록을 보는 동안 표시되지 않음</td></tr>
+<tr><th>기록 표현</th><td>간결한 행: 거리·시각·완주 상태·경로 설명</td><td>카드형: 경로명·날짜·거리·시간·평균 속도·완주율</td></tr>
+<tr><th>기록에서 하는 행동</th><td>조건을 만족하면 지도에서 보기·이어달리기·새 경로 등 제공</td><td>현재 구현은 기록 열람과 복귀만 제공</td></tr>
+<tr><th>기록 공급</th><td>계정 패널에 전달된 최근 주행 목록</td><td>Firestore 최근 50건 조회, 오류 시 로컬 기록 사용</td></tr>
+<tr><th>검토할 점</th><td>통계와 행동을 한 화면에서 유지</td><td>기록 읽을 공간 확보. 기존 기록별 행동은 현재 화면에 없음</td></tr>
+</tbody></table>
+<p>최종 채택은 <strong>inline</strong>입니다. 비교용 panel 연결과 모드 플래그는 제거했습니다. 아래 캡처는 비교 당시 화면을 보존합니다.</p>
+<details class="sources"><summary>「마지막 주행」을 누르기 전 — 변경 후 계정 패널</summary><figure><img src="evidence/entry-card-history/after-account-800x360.png" width="800" height="360" alt="마지막 주행을 누르기 전 변경 후 계정 패널"><figcaption>기존 프리뷰 캡처 · 800×360</figcaption></figure></details>
+</main></body></html>
