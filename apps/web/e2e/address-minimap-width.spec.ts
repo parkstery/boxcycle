@@ -3,6 +3,8 @@ import { test, expect } from '@playwright/test';
 test('긴 주소는 펼친 미니맵의 폭을 따르고 두 패널 접기가 독립적이다', async ({ page }) => {
   await page.goto('/scripts/ui-800x360/preview.html?state=riding&long&waypoints=3');
   await expect(page.locator('.route-dock-anchor')).toBeVisible();
+  await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
+  await expect(page.locator('.route-dock-anchor.route-dock-anchor--open')).toBeVisible();
   const minimap = page.locator('.map-bottom-left-stack .route-minimap');
   await expect(minimap).toBeVisible();
 
@@ -21,7 +23,9 @@ test('긴 주소는 펼친 미니맵의 폭을 따르고 두 패널 접기가 �
     }
   }
   await page.getByRole('button', { name: '경로 패널 접기' }).click();
-  expect((await page.locator('.route-dock__card').boundingBox())!.width).toBeLessThan(30);
+  const collapsedWidth = (await page.locator('.route-dock__card').boundingBox())!.width;
+  expect(collapsedWidth).toBeGreaterThanOrEqual(28);
+  expect(collapsedWidth).toBeLessThanOrEqual(44);
   await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
   const expandedWidth = (await page.locator('.route-dock__card').boundingBox())!.width;
   expect(expandedWidth).toBeCloseTo((await minimap.boundingBox())!.width, 0);

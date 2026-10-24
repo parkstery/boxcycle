@@ -49,6 +49,12 @@
   max-width: min(250px, calc(100vw - 16px));
 }
 
+/* 접힘: 스택 250px 규칙보다 우선 — CSS 로드 순서에 의존하지 않는다. */
+.map-bottom-left-stack > .route-dock-anchor:not(.route-dock-anchor--open) {
+  width: auto;
+  max-width: none;
+}
+
 /* 펼친 미니맵의 실제 너비에 주소 카드의 좌우 끝을 맞춘다. */
 .map-bottom-left-stack:has(> .route-minimap:not(.route-minimap--collapsed))
   > .route-dock-anchor.route-dock-anchor--open {

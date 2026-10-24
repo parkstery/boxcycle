@@ -7,19 +7,26 @@ describe("routeDock riding hierarchy", () => {
    * 2026-09-15 정정. 종전 계약은 주행 중 `hideStopsList: true` 를 요구했는데, 그것이
    * 펼친 패널을 빈 껍데기로 만들었다 — 경유지는 표시하되 조작만 잠근다(lockStopEditing).
    *
-   * 2026-09-28 Chief. 자동 접힘(`autoCollapse`)을 없앴다. dock 헤더가 Go·일시정지·종료
-   * 버튼 자리가 된 뒤로는, 접어 버리면 멈추려는 사용자가 버튼을 찾지 못한다.
-   * 저장·삭제가 dock 에서 빠지면서 `hideEditActions`·`preRideCompact` 도 함께 사라졌다.
+   * 2026-09-28 Chief. 그때는 자동 접힘을 없앴다(헤더에 일시정지·종료).
+   * 2026-10-24 Chief. 조작부가 RideControlBar 로 옮겨 `collapseOnRideStart: true` 로 복원.
    */
-  it("정책에는 자동 접힘·편집 액션 숨김 필드가 없다", () => {
+  it("정책 키 집합은 계약과 일치한다", () => {
     const keys = Object.keys(routeDockUiPolicy("riding")).sort();
     assert.deepEqual(keys, [
+      "collapseOnRideStart",
       "hideStopsList",
       "isActiveRide",
       "isPreRideReady",
       "lockStopEditing",
       "ridingDiet",
     ]);
+  });
+
+  it("주행·일시정지 — 주행 시작 접힘, 펼치면 경유지 표시", () => {
+    for (const stage of ["riding", "paused"] as const) {
+      const p = routeDockUiPolicy(stage);
+      assert.equal(p.collapseOnRideStart, true);
+    }
   });
 
   it("riding/paused — 편집만 빼고, 경유지는 표시하되 조작 잠금", () => {

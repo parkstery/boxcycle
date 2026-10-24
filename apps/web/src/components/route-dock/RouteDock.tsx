@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
-import { isRouteDockVisible, routeDockUiPolicy } from "../../lib/route/routeDockUiPolicy";
+import {
+  isRouteDockActiveRide,
+  isRouteDockVisible,
+  routeDockDefaultExpanded,
+  routeDockUiPolicy,
+} from "../../lib/route/routeDockUiPolicy";
 import { sensorChipSlot } from "../../lib/route/sensorChipSlot";
 import { CadenceHudChip, type CadenceChipBinding } from "../maphud/CadenceHudChip";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
@@ -37,8 +42,21 @@ export function RouteDock({
   cadence = null,
   sensorAttention = false,
 }: RouteDockProps) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(() => routeDockDefaultExpanded(stage));
+  const prevStageRef = useRef(stage);
   const { lockStopEditing } = routeDockUiPolicy(stage, editLocked);
+
+  useEffect(() => {
+    const prev = prevStageRef.current;
+    prevStageRef.current = stage;
+    const wasActive = isRouteDockActiveRide(prev);
+    const nowActive = isRouteDockActiveRide(stage);
+    if (!wasActive && nowActive) {
+      setExpanded(false);
+    } else if (wasActive && !nowActive) {
+      setExpanded(true);
+    }
+  }, [stage]);
   if (!isRouteDockVisible(stage)) return null;
   if (stops.length === 0 && !cadence) return null;
 
@@ -49,6 +67,19 @@ export function RouteDock({
     stops.some((s) => s.kind === "end");
   const sensorInDock =
     sensorChipSlot({ stage, hasCadence: Boolean(cadence), expanded: true }) === "route-dock";
+  const sensorFooter =
+    sensorInDock && cadence ? (
+      <div className="route-dock__footer">
+        <CadenceHudChip
+          placement="dock"
+          state={cadence.state}
+          riding={false}
+          open={cadence.open}
+          onOpen={cadence.onOpen}
+          attention={sensorAttention}
+        />
+      </div>
+    ) : null;
 
   return (
     <div
@@ -108,18 +139,7 @@ export function RouteDock({
             <span className="route-dock__swap-spacer" aria-hidden />
           )}
         </div>
-        {sensorInDock && cadence ? (
-          <div className="route-dock__footer">
-            <CadenceHudChip
-              placement="dock"
-              state={cadence.state}
-              riding={false}
-              open={cadence.open}
-              onOpen={cadence.onOpen}
-              attention={sensorAttention}
-            />
-          </div>
-        ) : null}
+        {expanded ? sensorFooter : null}
         <button
           type="button"
           className="route-dock__caret"
@@ -130,6 +150,7 @@ export function RouteDock({
           <span aria-hidden>{expanded ? "‹" : "›"}</span>
         </button>
       </div>
+      {!expanded ? sensorFooter : null}
     </div>
   );
 }

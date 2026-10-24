@@ -83,6 +83,7 @@ import {
 } from "../../lib/account/routeTokenSpendBridge";
 import type { CoverageOverlayMode } from "../../lib/activity/coverageOverlayMode";
 import type { RouteProfile } from "../../services/mapboxDirections";
+import { mapMouseEventFromPickCommit } from "./mapPickEvent";
 import { resolvePedalCrankRpm } from "../../lib/sensor/crankRpm";
 import { resolveGlbPedalPose } from "../../lib/rider/riderGlbPedalPose";
 import {
@@ -1582,12 +1583,6 @@ export function MapView({
       ui?.setInlinePhase("failed", result.message);
       onRetryDistanceAutoRouteRef.current?.();
     };
-
-    const mapMouseEventFromPickCommit = (commit: MapRoutePickCommit): mapboxgl.MapMouseEvent =>
-      ({
-        lngLat: { lng: commit.lngLat[0], lat: commit.lngLat[1] },
-        point: commit.point,
-      }) as mapboxgl.MapMouseEvent;
 
     const runDirectionRouteSearch = (picked: LngLat) => {
       if (autoRouteSearchBusyRef.current) return;

@@ -350,6 +350,63 @@ test.describe('Chief 고정 — 261024 목록 1~4', () => {
 });
 
 // Chief 지정 — 바꾸려면 Chief 지시와 document/reference/product/261024-RTW-Chief-지정-디자인-고정.md 갱신 필요
+async function assertCollapsedRouteDockChip(page: import('@playwright/test').Page) {
+  const card = page.locator('.route-dock__card');
+  const caret = page.getByRole('button', { name: '경로 패널 펼치기' });
+  await expect(caret).toBeVisible();
+  const cardBox = (await card.boundingBox())!;
+  expect(cardBox.width).toBeGreaterThanOrEqual(28);
+  expect(cardBox.width).toBeLessThanOrEqual(44);
+  expect(cardBox.height).toBeGreaterThanOrEqual(28);
+  expect(cardBox.height).toBeLessThanOrEqual(44);
+
+  const geometry = await page.evaluate(() => {
+    const cardEl = document.querySelector('.route-dock__card')!;
+    const caretEl = document.querySelector('.route-dock__caret')!;
+    const cardR = cardEl.getBoundingClientRect();
+    const caretR = caretEl.getBoundingClientRect();
+    const cx = caretR.x + caretR.width / 2;
+    const cy = caretR.y + caretR.height / 2;
+    const hit = document.elementFromPoint(cx, cy);
+    const caretStyle = getComputedStyle(caretEl);
+    const cardStyle = getComputedStyle(cardEl);
+    const parseRgb = (s: string) => {
+      const m = s.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : [0, 0, 0];
+    };
+    const caretRgb = parseRgb(caretStyle.color);
+    const caretBrightness = (caretRgb[0]! + caretRgb[1]! + caretRgb[2]!) / 3;
+    const bg =
+      caretStyle.backgroundColor === 'rgba(0, 0, 0, 0)'
+        ? cardStyle.backgroundColor
+        : caretStyle.backgroundColor;
+    const bgRgb = parseRgb(bg);
+    const inViewport =
+      caretR.left >= 0 &&
+      caretR.top >= 0 &&
+      caretR.right <= window.innerWidth &&
+      caretR.bottom <= window.innerHeight;
+    const caretInsideCard =
+      caretR.left >= cardR.left &&
+      caretR.top >= cardR.top &&
+      caretR.right <= cardR.right &&
+      caretR.bottom <= cardR.bottom;
+    const hitOk = hit === caretEl || caretEl.contains(hit);
+    return {
+      inViewport,
+      caretInsideCard,
+      hitOk,
+      bgRgb,
+      caretBrightness,
+    };
+  });
+  expect(geometry.inViewport).toBe(true);
+  expect(geometry.caretInsideCard).toBe(true);
+  expect(geometry.hitOk).toBe(true);
+  expect(geometry.bgRgb).toEqual([255, 255, 255]);
+  expect(geometry.caretBrightness).toBeLessThan(100);
+}
+
 test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', () => {
   test('대기 화면 펼친 주소 카드 폭은 250px(±0.5)이다', async ({ page }) => {
     for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }]) {
@@ -361,15 +418,70 @@ test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', (
     }
   });
 
-  test('출발·도착 줄이 보이고 삭제·바꾸기 없으며 펼친 미니맵과 너비가 같다', async ({ page }) => {
+  test('주행·일시정지는 접힌 상태로 시작하고 펼치면 출발·도착이 보이며 미니맵과 너비가 같다', async ({ page }) => {
+    const evidenceDir = path.resolve(
+      fileURLToPath(import.meta.url),
+      '../../../../document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse',
+    );
+    await fs.mkdir(evidenceDir, { recursive: true });
+
     for (const state of ['riding', 'paused'] as const) {
       await page.setViewportSize({ width: 800, height: 360 });
       await page.goto(`${preview}?state=${state}&long&waypoints=1`);
       await expect(page.locator('.route-dock-anchor')).toBeVisible();
+      await expect(page.locator('.route-dock-anchor.route-dock-anchor--open')).toHaveCount(0);
+      const expand = page.getByRole('button', { name: '경로 패널 펼치기' });
+      await assertCollapsedRouteDockChip(page);
+      await expect(page.locator('.route-dock__stops')).toBeHidden();
+
+      await page.evaluate(() => {
+        const style = document.createElement('style');
+        style.setAttribute('data-testid', 'late-map-bottom-left-stack-width');
+        style.textContent = `
+.map-bottom-left-stack > .route-dock-anchor {
+  width: min(250px, calc(100vw - 16px));
+  max-width: min(250px, calc(100vw - 16px));
+}`;
+        document.head.appendChild(style);
+      });
+      await assertCollapsedRouteDockChip(page);
+
+      if (state === 'riding') {
+        const expandBox = (await expand.boundingBox())!;
+        await page.screenshot({
+          path: path.join(evidenceDir, 'riding-collapsed-800x360.png'),
+          animations: 'disabled',
+        });
+        await page.screenshot({
+          path: path.join(evidenceDir, 'riding-collapsed-zoom.png'),
+          animations: 'disabled',
+          clip: {
+            x: Math.max(0, expandBox.x + expandBox.width / 2 - 60),
+            y: Math.max(0, expandBox.y + expandBox.height / 2 - 60),
+            width: 120,
+            height: 120,
+          },
+        });
+      }
+      if (state === 'paused') {
+        await page.screenshot({
+          path: path.join(evidenceDir, 'paused-collapsed-800x360.png'),
+          animations: 'disabled',
+        });
+      }
+
+      await expand.click();
+      await expect(page.locator('.route-dock-anchor.route-dock-anchor--open')).toBeVisible();
       await expect(page.getByText('출발', { exact: true })).toBeVisible();
       await expect(page.getByText('도착', { exact: true })).toBeVisible();
       await expect(page.locator('.route-dock__remove')).toHaveCount(0);
       await expect(page.getByRole('button', { name: '출발·도착 바꾸기' })).toHaveCount(0);
+      if (state === 'riding') {
+        await page.screenshot({
+          path: path.join(evidenceDir, 'riding-expanded-800x360.png'),
+          animations: 'disabled',
+        });
+      }
 
       const geometry = await page.evaluate(() => {
         const dock = document.querySelector('.route-dock__card')!.getBoundingClientRect();
@@ -384,6 +496,25 @@ test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', (
         expect(Math.abs(difference)).toBeLessThan(0.1);
       }
     }
+
+    await page.setViewportSize({ width: 667, height: 300 });
+    await page.goto(`${preview}?state=riding&long&waypoints=1`);
+    await assertCollapsedRouteDockChip(page);
+    await page.screenshot({
+      path: path.join(evidenceDir, 'riding-collapsed-667x300.png'),
+      animations: 'disabled',
+    });
+
+    await page.setViewportSize({ width: 800, height: 360 });
+    await page.goto(`${preview}?state=ready`);
+    await expect(page.locator('.route-dock-anchor.route-dock-anchor--open')).toBeVisible();
+    await page.getByRole('button', { name: '경로 패널 접기' }).click();
+    await expect(page.locator('.route-dock-anchor.route-dock-anchor--open')).toHaveCount(0);
+    await assertCollapsedRouteDockChip(page);
+    await page.screenshot({
+      path: path.join(evidenceDir, 'ready-collapsed-800x360.png'),
+      animations: 'disabled',
+    });
   });
 });
 

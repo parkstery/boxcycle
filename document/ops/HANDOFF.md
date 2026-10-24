@@ -3,9 +3,9 @@
 | 항목 | 값 |
 |---|---|
 | 담당 | **Claude Code (2026-10-24 13:2x KST 인수, Codex→Claude Code)** |
-| 갱신 | 2026-10-24 13:4x KST — [지시35](20261023-ui-redesign/35-task-riding-address-dock.md) 주행 중 주소창 복구 **LOCAL_VERIFIED, Chief 화면 확인 대기**(재지시37·Nemotron 감리38 PASS·실앱 ride-entry 7/7·route-dock 1/1). 묶음3도 미커밋 AWAITING_CHIEF |
+| 갱신 | 2026-10-24 15:0x KST — 지시39·41(주행 시작 주소창 접힘 › 버튼)·42(지도 탭 `reading 'x'` 오류) LOCAL_VERIFIED, 커밋·푸시 후 `tmp/deploy35` 재빌드. **호스팅 배포는 자동 권한 검사가 막아 Chief 실행 대기** |
 | 브랜치 | `main2` |
-| HEAD / 원격 | `a98afb41` (= origin/main2) |
+| HEAD / 원격 | `164f14f0` (= origin/main2) |
 | 마지막 배포 | 10-24 10:13 KST Hosting `3c3ba02c` 빌드 `index-BDb2hU8r.js`·`index-Dx13Hjt3.css`. 운영 자산5개 SHA256 일치. 함수·Rules 변경 없음 |
 
 ## 먼저 읽을 것
@@ -25,7 +25,8 @@
 
 ## 다음 한 걸음
 
-0. **지시35 주행 중 주소창 — LOCAL_VERIFIED, Chief 확인 대기.** [결과36 감리 절](20261023-ui-redesign/36-result-riding-address-dock.md). 원인 묶음2 `RouteDock` `|| isActiveRide` 숨김. 고정 목록 11 추가. 커밋 대상: `RouteDock.tsx/.css`, `MapBottomLeftStack.css`, `e2e/address-minimap-width.spec.ts`, `e2e/route-dock-riding-content.spec.ts`, `e2e/ui-800x360.spec.ts`, 고정 목록, ops 35~38·evidence/riding-address-dock. 묶음3 파일과 겹치지 않음 — 분리 커밋. 커밋·푸시·배포는 Chief 승인 뒤.
+0. **지시35 커밋·푸시 완료, 배포 대기.** 묶음3 미커밋을 피하려고 커밋 상태를 `tmp/deploy35`(gitignore)에 복제해 빌드(`index-MZlEgKGG.js`·`index-B20a2Y01.css`). 배포 명령은 Chief 실행: `cd C:\20.HDev\boxcycle\tmp\deploy35` → `npx firebase deploy --only hosting`. 배포 후 운영 번들 해시 대조, `tmp/deploy35` 삭제.
+0-1. **지시39 로컬 완료** — [결과40](20261023-ui-redesign/40-result-riding-address-dock-collapse.md). 다음: Nemotron 독립 감리 → Supervisor `npm run test:e2e:route-dock`(에뮬) → Chief 화면·커밋·배포 판단.
 
 1. 지시24·26 **완료**: 커밋·푸시·Hosting 배포·운영5자산 SHA256 대조 PASS. Chief 10-24 「카드 삭제하면 푸시 배포도 다시」 승인으로 수행.
 2. Chief 「UI·UX 품질 개선 관점으로 다음 작업 계속해」에 따라 [지시28 묶음3](20261023-ui-redesign/28-task-batch3-summary-next.md) 작성. 카드 삭제 배포를 먼저 마치고 Cursor 구현→Supervisor 실제 diff/캡처 감리→로컬 비교. 주행 결과·다음 주행 화면의 정보 위계·밀도·버튼 일관성을 개선하고 기존 행동·데이터 정책은 유지. 새 화면 배포는 카드 삭제 승인과 섞지 않는다.

@@ -5,12 +5,12 @@ import { fileURLToPath } from "node:url";
 import { guestStart as sharedGuestStart } from "./rideEntryHelpers";
 
 /**
- * 주행 중 RouteDock 계약 — Chief 의도(2026-09-28, 2026-09-15 의도를 뒤집음):
- *   "주행이 시작돼도 패널을 자동으로 접지 마라. 접으면 스톱 메뉴를 찾기 어렵다.
- *    접을 사용자는 스스로 접는다."
+ * 주행 중 RouteDock 계약 — Chief 의도(2026-10-24):
+ *   주행 시작 시 주소 카드는 **접힌 상태**(› 펼치기). 숨기지 않는다.
+ *   펼치면 경유지 수·라벨은 주행 전과 같고, 일시정지·종료는 RideControlBar 에 유지.
  *
- * 회귀 방지 대상 둘:
- *   1) 주행 시작 시 패널이 제멋대로 접히는 것(자동 접힘 부활)
+ * 회귀 방지:
+ *   1) 접힌 채로 남아야 하며 펼치기로 다시 볼 수 있어야 한다
  *   2) 펼친 패널이 **빈 껍데기**가 되는 것(경유지 목록 소실)
  *
  * 실행: npm run test:e2e:route-dock -w boxcycle-web
@@ -22,7 +22,7 @@ const OUT_DIR = path.resolve(__dirname, "../.out/route-dock");
 test.describe("주행 중 RouteDock", () => {
   test.skip(!LIVE, "Firebase 에뮬레이터 필요 — npm run test:e2e:route-dock");
 
-  test("주행 시작해도 펼친 채로 남고, 경로 내용·주행 제어가 보인다", async ({ page }) => {
+  test("주행 시작하면 접히고, 펼치면 경로 내용·주행 제어가 보인다", async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto("/");
@@ -43,18 +43,64 @@ test.describe("주행 중 RouteDock", () => {
 
     await startRide(page);
 
-    // 1) 자동 접힘 없음 — 접기 버튼이 그대로다(= 펼친 상태 유지)
-    await expect(
-      page.getByRole("button", { name: "경로 패널 접기" }),
-      "주행 시작해도 펼친 상태를 유지한다",
-    ).toBeVisible({ timeout: 15_000 });
     fs.mkdirSync(OUT_DIR, { recursive: true });
 
-    // 2) 주행 제어가 헤더에 그대로 있다 — 멈추려는 사용자가 찾아 헤맬 곳이 없어야 한다
+    // 1) 주행 시작 시 접힘 — › 로 다시 펼칠 수 있다
+    await expect(
+      page.getByRole("button", { name: "경로 패널 펼치기" }),
+      "주행 시작하면 접힌 상태로 시작한다",
+    ).toBeVisible({ timeout: 15_000 });
+
+    const collapsedCard = page.locator(".route-dock__card");
+    const collapsedCardBox = (await collapsedCard.boundingBox())!;
+    expect(collapsedCardBox.width).toBeGreaterThanOrEqual(28);
+    expect(collapsedCardBox.width).toBeLessThanOrEqual(44);
+    expect(collapsedCardBox.height).toBeGreaterThanOrEqual(28);
+    expect(collapsedCardBox.height).toBeLessThanOrEqual(44);
+
+    const collapsedGeometry = await page.evaluate(() => {
+      const cardEl = document.querySelector(".route-dock__card")!;
+      const caretEl = document.querySelector(".route-dock__caret")!;
+      const cardR = cardEl.getBoundingClientRect();
+      const caretR = caretEl.getBoundingClientRect();
+      const cx = caretR.x + caretR.width / 2;
+      const cy = caretR.y + caretR.height / 2;
+      const hit = document.elementFromPoint(cx, cy);
+      const cardStyle = getComputedStyle(cardEl);
+      const parseRgb = (s: string) => {
+        const m = s.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : [0, 0, 0];
+      };
+      const cardBgRgb = parseRgb(cardStyle.backgroundColor);
+      const inViewport =
+        caretR.left >= 0 &&
+        caretR.top >= 0 &&
+        caretR.right <= window.innerWidth &&
+        caretR.bottom <= window.innerHeight;
+      const caretInsideCard =
+        caretR.left >= cardR.left &&
+        caretR.top >= cardR.top &&
+        caretR.right <= cardR.right &&
+        caretR.bottom <= cardR.bottom;
+      const hitOk = hit === caretEl || caretEl.contains(hit);
+      return { inViewport, caretInsideCard, hitOk, cardBgRgb };
+    });
+    expect(collapsedGeometry.inViewport).toBe(true);
+    expect(collapsedGeometry.caretInsideCard).toBe(true);
+    expect(collapsedGeometry.hitOk).toBe(true);
+    expect(collapsedGeometry.cardBgRgb).toEqual([255, 255, 255]);
+
+    await page.screenshot({ path: path.join(OUT_DIR, "riding-collapsed.png") });
+
+    await expect(page.locator(".route-dock__stops")).toBeHidden();
+
+    // 2) 주행 제어는 RideControlBar 에 그대로
     await expect(page.getByRole("button", { name: "일시정지" })).toBeEnabled();
     await expect(page.getByRole("button", { name: "주행 종료" })).toBeEnabled();
 
-    // 3) 내용이 보인다 — 빈 껍데기가 아니어야 한다
+    await page.getByRole("button", { name: "경로 패널 펼치기" }).click();
+
+    // 3) 펼치면 내용이 보인다 — 빈 껍데기가 아니어야 한다
     await expect(stops.first(), "주행 중 펼친 패널에 경유지가 보여야 한다").toBeVisible({
       timeout: 10_000,
     });
