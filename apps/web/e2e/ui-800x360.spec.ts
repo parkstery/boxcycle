@@ -214,6 +214,57 @@ test('좌우 에지 띠는 20px·화면0에 붙고 안쪽 드래그로만 열린
   }
 });
 
+// Chief 고정14(2026-10-24): 측면 메뉴는 보이는 흰 반투명 반원 탭으로 연다 — 누르거나 탭에서 끌어서.
+test('Chief 고정14 — 좌우 흰 반투명 반원 탭: 계기판 아래 빈 자리, 누르면·끌면 열린다',async({page})=>{
+  for(const size of [{width:800,height:360},{width:667,height:300},{width:844,height:390}]){
+    await page.setViewportSize(size);
+    for(const [state,expand] of [['ready',false],['riding',true],['paused',true]] as const){
+      await page.goto(`${preview}?state=${state}&waypoints=3&long`);
+      if(expand) await page.getByRole('button',{name:'경로 패널 펼치기'}).click();
+      const g=await page.evaluate(()=>{
+        const boxes=(sel:string)=>[...document.querySelectorAll(sel)].map(e=>e.getBoundingClientRect()).filter(r=>r.width>0&&r.height>0);
+        const tabs=['left','right'].map(side=>{
+          const tab=document.querySelector(`.edge-panel-tab--${side}`)!;
+          const knob=tab.querySelector('.edge-panel-tab__knob')!;
+          const t=tab.getBoundingClientRect(),k=knob.getBoundingClientRect();
+          const hit=document.elementFromPoint(k.x+k.width/2,k.y+k.height/2);
+          return {side,t:t.toJSON(),k:k.toJSON(),bg:getComputedStyle(knob).backgroundColor,hitOk:Boolean(hit?.closest(`.edge-panel-tab--${side}`))};
+        });
+        const others=boxes('.map-hud__tl,.route-dock__card,.route-minimap,.map-hud__tr,.ride-control-bar,.hud-ride-map-controls,.camera-view-menu__trigger,.hud-account').map(r=>r.toJSON());
+        return {tabs,others,vw:innerWidth,vh:innerHeight};
+      });
+      for(const tab of g.tabs){
+        const label=`${size.width}×${size.height} ${state} ${tab.side}`;
+        expect(tab.k.width,label).toBeCloseTo(14,0);
+        expect(tab.k.height,label).toBeCloseTo(48,0);
+        expect(tab.t.width*tab.t.height,label).toBeGreaterThanOrEqual(28*64-1);
+        expect(tab.bg,label).toBe('rgba(255, 255, 255, 0.78)');
+        expect(tab.hitOk,label).toBe(true);
+        if(tab.side==='left') expect(tab.k.x,label).toBeLessThanOrEqual(0.5);
+        else expect(tab.k.x+tab.k.width,label).toBeGreaterThanOrEqual(g.vw-0.5);
+        for(const o of g.others){
+          const overlap=tab.k.x<o.right&&tab.k.right>o.left&&tab.k.y<o.bottom&&tab.k.bottom>o.top;
+          expect(overlap,`${label} 탭이 다른 조작부·카드와 겹치지 않는다`).toBe(false);
+        }
+      }
+    }
+  }
+  await page.setViewportSize({width:800,height:360});
+  for(const side of ['left','right'] as const){
+    const dialog=page.getByRole('dialog',{name:side==='left'?'메뉴':'맵 뷰',exact:true});
+    await page.goto(`${preview}?state=ready`);
+    await page.getByRole('button',{name:side==='left'?'메뉴 열기':'맵 뷰 열기',exact:true}).click();
+    await expect(dialog,`${side} 누르면 열림`).toBeVisible();
+    await page.goto(`${preview}?state=ready`);
+    const k=(await page.locator(`.edge-panel-tab--${side} .edge-panel-tab__knob`).boundingBox())!;
+    const x=k.x+k.width/2,y=k.y+k.height/2,dir=side==='left'?1:-1;
+    await page.mouse.move(x,y);await page.mouse.down();
+    await page.mouse.move(x+dir*120,y,{steps:10});await page.mouse.up();
+    await expect(dialog,`${side} 탭에서 끌면 열림`).toBeVisible();
+    await expect(page.locator(`.edge-panel-tab--${side}`),'열리면 그 쪽 탭은 사라진다').toHaveCount(0);
+  }
+});
+
 test('포커스 대안·짧은/반대 드래그 취소가 동작한다',async({page})=>{
   await page.goto(`${preview}?state=ready`);
   await page.getByRole('button',{name:'맵 뷰 설정',exact:true}).focus();

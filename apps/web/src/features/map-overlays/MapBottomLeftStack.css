@@ -8,7 +8,9 @@
 .map-bottom-left-stack {
   --map-bl-pad: clamp(0.45rem, 1.4vw, 0.85rem);
   position: absolute;
-  left: max(var(--map-bl-pad), env(safe-area-inset-left, 0px));
+  /* 16px: 왼쪽 가장자리 반원 탭(14px, 2026-10-24 Chief)이 주소 카드·미니맵 옆 틈에 들어가
+   * 카드 높이가 어떻든(경유 3개 펼침 등) 겹치지 않는다. */
+  left: max(var(--map-bl-pad), 16px, calc(env(safe-area-inset-left, 0px) + 16px));
   bottom: calc(
     max(var(--map-bl-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem)
   );

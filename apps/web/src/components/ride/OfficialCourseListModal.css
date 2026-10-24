@@ -547,7 +547,7 @@
 }
 
 /* 경로 목록 뒤의 조작부가 검색·출처 버튼과 겹치지 않게 한다. 지도와 저작권은 유지한다. */
-body:has(.oc-modal--map) :is(.map-hud, .route-dock-anchor, .ride-control-bar, .map-bottom-left-stack, .edge-panel-handle) {
+body:has(.oc-modal--map) :is(.map-hud, .route-dock-anchor, .ride-control-bar, .map-bottom-left-stack, .edge-panel-handle, .edge-panel-tab) {
   visibility: hidden;
 }
 

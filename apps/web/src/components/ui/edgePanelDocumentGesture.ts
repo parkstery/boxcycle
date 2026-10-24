@@ -48,9 +48,17 @@ function inVerticalBand(clientY: number, marker: HTMLElement | null): boolean {
   return clientY >= r.top && clientY <= r.bottom;
 }
 
+/** 그 가장자리의 보이는 탭(28px) 위인가 — 띠(20px)보다 넓어도 탭에서 시작한 끌기는 받는다. */
+function onEdgeTab(edge: EdgeSide, clientX: number, clientY: number): boolean {
+  const hit = document.elementFromPoint(clientX, clientY);
+  return Boolean(hit?.closest(`.edge-panel-tab--${edge}`));
+}
+
 function shouldYieldAt(clientX: number, clientY: number): boolean {
   const hit = document.elementFromPoint(clientX, clientY);
   if (!hit) return true;
+  // 탭은 버튼이지만 끌기도 받는다 — 움직이지 않고 떼면 버튼 click 이 그대로 열어 준다.
+  if (hit.closest(".edge-panel-tab")) return false;
   return Boolean(hit.closest(YIELD_SELECTOR));
 }
 
@@ -177,7 +185,7 @@ function tryStartEdgeGesture(
   }
   if (e.pointerType === "mouse" && e.button !== 0) return false;
   if (!e.isPrimary) return false;
-  if (!inHorizontalBand(edge, e.clientX)) return false;
+  if (!inHorizontalBand(edge, e.clientX) && !onEdgeTab(edge, e.clientX, e.clientY)) return false;
   if (!inVerticalBand(e.clientY, marker)) return false;
   if (shouldYieldAt(e.clientX, e.clientY)) return false;
 

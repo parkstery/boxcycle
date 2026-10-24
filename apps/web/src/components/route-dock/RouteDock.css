@@ -3,7 +3,7 @@
 .route-dock-anchor {
   --route-dock-pad: clamp(.45rem, 1.4vw, .85rem);
   position: absolute;
-  left: max(8px, env(safe-area-inset-left, 0px));
+  left: max(16px, calc(env(safe-area-inset-left, 0px) + 16px)); /* 왼쪽 반원 탭 자리(MapBottomLeftStack 과 같음) */
   bottom: calc(max(var(--route-dock-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem));
   width: min(29.4vw, calc(100vw - 16px));
   z-index: 6;

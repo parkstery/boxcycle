@@ -1,3 +1,4 @@
+2026-10-24 20:xx KST [측면 메뉴 흰 반원 탭](20261023-ui-redesign/48-result-edge-tab.md): Chief 「흰 반투명」. 시안·구현·감리 Claude Code 직접. 좌우 탭 14×48·누르는 영역 28×64·위 84px, 누르거나 끌면 열림. 왼쪽 아래 묶음 16px 띄움. 화면31·실앱8 PASS, ui-edge-live 오래된 기대값 FAIL(별도). 고정 14·결정 로그.
 2026-10-24 19:xx KST [기호 S·1·2·3·E, Start·End](20261023-ui-redesign/47-result-dock-badges-start-end.md): Chief 지시 → 시안 비교 → 「A」. 시안·구현·감리 Claude Code 직접. 주소 카드 이름표 제거·지도 핀 기호, 팝업 Start·+WP·End. 화면30 PASS, 팝업 계열 13 PASS·2 FAIL(무관 판단, 묶음3 preview 영향 의심). 고정 목록 13.
 2026-10-24 18:xx KST [대기 카드 센서·접기 맨 위 줄](20261023-ui-redesign/46-result-dock-head-row.md): Chief 캡처 지시 → 구현·감리 Claude Code 직접. 센서·접기 한 줄, ✕ 오른쪽 끝, 대기 폭 = 주행 중(29.4vw), 주행 중 경유 들여쓰기. 목록 11 폭 기대값 Chief 지시로 변경, 잠금 시험 추가.
 2026-10-24 17:xx KST [⇅ 목록 앞쪽](20261023-ui-redesign/45-result-dock-swap-front.md): Chief 스케치 → Claude Code 직접. ⇅ 점 열 위·목록 세로 가운데 20px 원, 경유 줄 들여쓰기, 잠금 시험 고정12 추가. 반원 탭 시안 Chief 선택 대기. OpenCode 소진 → 실행자는 Cursor(Grok Bot 은 CLI 없음).
