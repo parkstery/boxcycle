@@ -1,3 +1,4 @@
+2026-10-24 10:14 KST [카드 삭제·인라인 유지 배포 완료](20261023-ui-redesign/27-result-inline-history-finalize.md): 3c3ba02c 푸시·Hosting 완료, index-BDb2hU8r.js 등 운영5자산 SHA256 일치. 단위1354/화면24/실앱8 PASS. 묶음3 지시28 Cursor 구현 중, 결과29·로컬 비교 대기.
 2026-10-24 10:09 KST [인라인 유지·카드 삭제 마감](20261023-ui-redesign/27-result-inline-history-finalize.md): Chief 인라인 확정, panel 연결 제거·고정10 등록. 단위1354/화면24/실앱8/정련·구조 PASS, 커밋·푸시·승인된 호스팅 배포 단계. 다음 묶음3 지시28.
 2026-10-24 Codex: Chief 요청으로 [주행 기록 inline/panel 비교](20261023-ui-redesign/comparison-account-history.html) 작성. 기존 캡처·코드 동작 비교, 데이터 차이와 panel 기록별 행동 부재 명시. 제품 코드·모드 변경 없음, Chief 결정 대기.
 2026-10-24 09:28 KST [Codex 인수 대조](HANDOFF.md): 지시24 결과25·미커밋 구현·캡처9장 확인, 감리 전. HEAD 0a9a3c07 / origin 추적841b9540(fetch 미실행), 보존JSON 해시 일치. panel 상태라 배포 전 inline 전환 필요. 5000·5040 포트 열림(소속 조회 권한 거부), 서버 종료 없음. 다음 감리→실앱 시험→inline 검증→승인된 푸시·배포. 이번 요청은 현황 보고로 시험·배포 미실행.

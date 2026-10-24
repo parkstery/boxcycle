@@ -3,10 +3,10 @@
 | 항목 | 값 |
 |---|---|
 | 담당 | **Codex (2026-10-24 09:25 KST 인수)** |
-| 갱신 | 2026-10-24 10:09 KST — 지시24·26 감리 PASS, 커밋·푸시·승인된 호스팅 배포 단계 |
+| 갱신 | 2026-10-24 10:14 KST — 지시24·26 배포·번들 검증 완료. 묶음3 Cursor 구현 중 |
 | 브랜치 | `main2` |
-| HEAD / 원격 | 배포 전 HEAD `0a9a3c07`, fetch 확인 origin/main2 `841b9540`(문서1개 앞섬). 다음 커밋에 카드 삭제·인라인 유지 마감 |
-| 마지막 배포 | 10-24 Hosting `index-DmTMAA6G.js`(이전 묶음1·2·경로 목록·Chief 조작부). 함수 변경 없음 |
+| HEAD / 원격 | `3c3ba02c` 카드 삭제·인라인 유지 마감, origin/main2 푸시 완료 |
+| 마지막 배포 | 10-24 10:13 KST Hosting `3c3ba02c` 빌드 `index-BDb2hU8r.js`·`index-Dx13Hjt3.css`. 운영 자산5개 SHA256 일치. 함수·Rules 변경 없음 |
 
 ## 먼저 읽을 것
 
@@ -24,9 +24,9 @@
 
 ## 다음 한 걸음
 
-1. 지시24·26 커밋·푸시→`npm run deploy:hosting`(루트)→운영 번들 SHA256 대조. **Chief 10-24 「카드 삭제하면 푸시 배포도 다시」 승인 있음. 재승인 요청 불필요.**
+1. 지시24·26 **완료**: 커밋·푸시·Hosting 배포·운영5자산 SHA256 대조 PASS. Chief 10-24 「카드 삭제하면 푸시 배포도 다시」 승인으로 수행.
 2. Chief 「UI·UX 품질 개선 관점으로 다음 작업 계속해」에 따라 [지시28 묶음3](20261023-ui-redesign/28-task-batch3-summary-next.md) 작성. 카드 삭제 배포를 먼저 마치고 Cursor 구현→Supervisor 실제 diff/캡처 감리→로컬 비교. 주행 결과·다음 주행 화면의 정보 위계·밀도·버튼 일관성을 개선하고 기존 행동·데이터 정책은 유지. 새 화면 배포는 카드 삭제 승인과 섞지 않는다.
-3. 결과29가 아직 없으면 묶음3 미착수. Cursor 실행자는 현재 없음. 이전 지시26 Cursor는 sandbox에서 uv_os_get_passwd ENOMEM로2회 시작 실패해 Codex가 직접 마감.
+3. **묶음3 Cursor CLI 실행 중**, 로그 `20261023-ui-redesign/evidence/entry-card-history/cursor28.log`, 결과29 대기. 일반 권한 실행으로 CLI 시작 확인. dist 빌드·App·고정항목 변경 금지. 결과가 오면 실제 diff·시안/캡처·화면/타입/단위/정련 감리. 이전 지시26 Cursor는 sandbox에서 uv_os_get_passwd ENOMEM로2회 시작 실패해 Codex가 직접 마감.
 
 ## 보존할 작업 트리
 

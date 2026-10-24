@@ -33,4 +33,6 @@
 
 ## 배포
 
-감리 PASS. 커밋·푸시·승인된 호스팅 배포·운영 번들 대조 진행. 묶음3(지시28) 제품 변경은 포함하지 않는다.
+감리 PASS. 커밋 **`3c3ba02c`**, origin/main2 푸시 완료. pre-push에서 단위1354/0(59.3초)·selector19·정련·의존·개발도구·타입·동행 간격 게이트 PASS. 첫 PowerShell 푸시는 고장 난 `~/bin/npm` 래퍼로 실패했고, 플레이북대로 Git Bash 내부 PATH를 `/c/Program Files/nodejs` 우선으로 지정해 정상 통과(게이트 우회0). 승인된 호스팅 배포·운영 번들 대조 진행 중. 묶음3(지시28) 제품 변경은 포함하지 않는다.
+
+**10:13 KST 배포 완료.** 운영 `https://boxcycle-dc2df.web.app`의 HTML 자산 목록·JS/CSS 5개 SHA256이 로컬 빌드와 모두 일치. 메인 `index-BDb2hU8r.js`, CSS `index-Dx13Hjt3.css`. 증거 [배포 대조](evidence/inline-history/deploy-proof.json)·[검증 요약](evidence/inline-history/verification-summary.txt). 함수·Rules 배포 없음. 묶음3는 이 배포 이후 별도 로컬 작업으로 진행.

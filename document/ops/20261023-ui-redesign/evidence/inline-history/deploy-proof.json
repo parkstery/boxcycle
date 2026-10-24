@@ -1,0 +1,32 @@
+{
+  "dateKst": "2026-10-24 10:13:43",
+  "commit": "3c3ba02c",
+  "url": "https://boxcycle-dc2df.web.app",
+  "assets": [
+    {
+      "asset": "/assets/camera1Mode-jFFOGYcr.js",
+      "sha256": "CF1DBAF99A4FFB45FE3501B122BC4D79A17199E199B76F4796B624BA3CB2A84A",
+      "remoteMatch": true
+    },
+    {
+      "asset": "/assets/index-BDb2hU8r.js",
+      "sha256": "1FF18BFE0218F801AFCDBACF31066616ACDCD9716BD1AB9D56EF7DBDDCC3DC90",
+      "remoteMatch": true
+    },
+    {
+      "asset": "/assets/index-Dx13Hjt3.css",
+      "sha256": "29AC5A00458C30CB1360DFC141DA13E9C1E746E0E38733B24C6ABEAAA54992DD",
+      "remoteMatch": true
+    },
+    {
+      "asset": "/assets/jsx-runtime-QUjkQcTq.js",
+      "sha256": "EBBBC54E26E97693425CE9ABEABFB5B87C89E7A2D5AA4E2903727522B4F7715A",
+      "remoteMatch": true
+    },
+    {
+      "asset": "/assets/react-dA9wtOGr.js",
+      "sha256": "BDF474361D2A63D906850CFD35B8B6768331FA83A0239240AD3D4E345168C947",
+      "remoteMatch": true
+    }
+  ]
+}
