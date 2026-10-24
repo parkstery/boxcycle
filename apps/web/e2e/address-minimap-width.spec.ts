@@ -35,6 +35,7 @@ test('긴 주소는 펼친 미니맵의 폭을 따르고 두 패널 접기가 �
   await page.getByRole('button', { name: '미니맵 접기' }).click();
   await expect(minimap).toHaveClass(/route-minimap--collapsed/);
   const collapsedDockWidth = (await page.locator('.route-dock__card').boundingBox())!.width;
-  // 대기 화면과 동일 — min(250px, 100vw-16) 고정(접힌 미니맵 폭을 따르지 않음).
-  expect(collapsedDockWidth).toBeCloseTo(250, 0.5);
+  // 대기 화면과 동일 — 29.4vw(펼친 미니맵 폭 비율, 2026-10-24 Chief). 접힌 미니맵 폭은 따르지 않는다.
+  const vw = page.viewportSize()!.width;
+  expect(Math.abs(collapsedDockWidth - 0.294 * vw)).toBeLessThanOrEqual(1);
 });

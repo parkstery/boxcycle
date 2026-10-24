@@ -44,12 +44,13 @@
   flex: 0 0 auto;
 }
 
+/* 대기·미니맵 접힘: 주행 중 펼친 미니맵과 같은 폭(29.4vw = MINIMAP_WIDTH_RATIO, 2026-10-24 Chief). */
 .map-bottom-left-stack > .route-dock-anchor {
-  width: min(250px, calc(100vw - 16px));
-  max-width: min(250px, calc(100vw - 16px));
+  width: min(29.4vw, calc(100vw - 16px));
+  max-width: min(29.4vw, calc(100vw - 16px));
 }
 
-/* 접힘: 스택 250px 규칙보다 우선 — CSS 로드 순서에 의존하지 않는다. */
+/* 접힘: 스택 폭 규칙보다 우선 — CSS 로드 순서에 의존하지 않는다. */
 .map-bottom-left-stack > .route-dock-anchor:not(.route-dock-anchor--open) {
   width: auto;
   max-width: none;
@@ -58,7 +59,7 @@
 /* 펼친 미니맵의 실제 너비에 주소 카드의 좌우 끝을 맞춘다. */
 .map-bottom-left-stack:has(> .route-minimap:not(.route-minimap--collapsed))
   > .route-dock-anchor.route-dock-anchor--open {
-  /* intrinsic 250px cap 은 스택 안·미니맵 펼침일 때만 푼다. */
+  /* 29.4vw cap 은 스택 안·미니맵 펼침일 때만 푼다(미니맵 실제 폭이 높이 제한으로 더 좁을 수 있다). */
   width: 0;
   min-width: 100%;
   max-width: none;

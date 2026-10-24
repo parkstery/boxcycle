@@ -179,6 +179,7 @@ export function routeMinimapStaticImageUrl(
 }
 
 /** 지시03·04 — 미니맵 상자 = 화면 종횡비. 폭 비율은 Chief 실기 70% 축소 */
+/** RouteDock CSS 의 `29.4vw`(대기 카드 폭 = 주행 미니맵 폭, 2026-10-24 Chief)와 같은 값 — 바꾸면 함께. */
 export const MINIMAP_WIDTH_RATIO = 0.294; // 0.42 × 0.7 (2026-09-23 Chief 실기 판단)
 
 export function computeRouteMinimapSize(

@@ -92,19 +92,28 @@ export function RouteDock({
     stops.some((s) => s.kind === "end");
   const sensorInDock =
     sensorChipSlot({ stage, hasCadence: Boolean(cadence), expanded: true }) === "route-dock";
-  const sensorFooter =
+  const sensorChip =
     sensorInDock && cadence ? (
-      <div className="route-dock__footer">
-        <CadenceHudChip
-          placement="dock"
-          state={cadence.state}
-          riding={false}
-          open={cadence.open}
-          onOpen={cadence.onOpen}
-          attention={sensorAttention}
-        />
-      </div>
+      <CadenceHudChip
+        placement="dock"
+        state={cadence.state}
+        riding={false}
+        open={cadence.open}
+        onOpen={cadence.onOpen}
+        attention={sensorAttention}
+      />
     ) : null;
+  const caret = (
+    <button
+      type="button"
+      className="route-dock__caret"
+      aria-expanded={expanded}
+      aria-label={expanded ? "경로 패널 접기" : "경로 패널 펼치기"}
+      onClick={() => setExpanded((v) => !v)}
+    >
+      {expanded ? <DockIcon d={ICON_COLLAPSE} size={12} /> : <DockIcon d={ICON_EXPAND} size={16} />}
+    </button>
+  );
 
   return (
     <div
@@ -112,11 +121,18 @@ export function RouteDock({
       aria-label="경로 보기"
       aria-busy={routeLoading}
     >
-      <div className="route-dock__card">
+      <div className={`route-dock__card${sensorChip ? " route-dock__card--head" : ""}`}>
+        {/* 2026-10-24 Chief: 센서와 접기는 카드 맨 위 한 줄 — 접어도 이 줄은 남는다. */}
+        {sensorChip ? (
+          <div className="route-dock__head">
+            {sensorChip}
+            {caret}
+          </div>
+        ) : null}
         <div
           className={`route-dock__grid${lockStopEditing ? " route-dock__grid--locked" : ""}`}
         >
-          <div className={`route-dock__stops-wrap${canSwap ? " route-dock__stops-wrap--swap" : ""}`}>
+          <div className="route-dock__stops-wrap">
             <ol className="route-dock__stops" role="list">
               {stops.length === 0 ? (
                 <li className="route-dock__stops-empty">지도를 탭해 출발·도착 설정</li>
@@ -164,20 +180,9 @@ export function RouteDock({
               </button>
             ) : null}
           </div>
-          {lockStopEditing ? null : <span className="route-dock__swap-spacer" aria-hidden />}
         </div>
-        {expanded ? sensorFooter : null}
-        <button
-          type="button"
-          className="route-dock__caret"
-          aria-expanded={expanded}
-          aria-label={expanded ? "경로 패널 접기" : "경로 패널 펼치기"}
-          onClick={() => setExpanded((v) => !v)}
-        >
-          {expanded ? <DockIcon d={ICON_COLLAPSE} size={12} /> : <DockIcon d={ICON_EXPAND} size={16} />}
-        </button>
+        {sensorChip ? null : caret}
       </div>
-      {!expanded ? sensorFooter : null}
     </div>
   );
 }

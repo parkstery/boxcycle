@@ -350,13 +350,23 @@ test.describe('Chief 고정 — 261024 목록 1~4', () => {
 });
 
 // Chief 지정 — 바꾸려면 Chief 지시와 document/reference/product/261024-RTW-Chief-지정-디자인-고정.md 갱신 필요
-async function assertCollapsedRouteDockChip(page: import('@playwright/test').Page) {
+// 2026-10-24 Chief: 대기 화면은 센서·접기가 한 줄 — 접으면 그 한 줄(센서 + ›)만 남는다(withSensor).
+async function assertCollapsedRouteDockChip(
+  page: import('@playwright/test').Page,
+  { withSensor = false }: { withSensor?: boolean } = {},
+) {
   const card = page.locator('.route-dock__card');
   const caret = page.getByRole('button', { name: '경로 패널 펼치기' });
   await expect(caret).toBeVisible();
   const cardBox = (await card.boundingBox())!;
   expect(cardBox.width).toBeGreaterThanOrEqual(28);
-  expect(cardBox.width).toBeLessThanOrEqual(44);
+  expect(cardBox.width).toBeLessThanOrEqual(withSensor ? 140 : 44);
+  if (withSensor) {
+    const sensorBox = (await page.locator('.route-dock__head .hud-cadence').boundingBox())!;
+    const caretBox = (await caret.boundingBox())!;
+    expect(Math.abs(sensorBox.y + sensorBox.height / 2 - (caretBox.y + caretBox.height / 2))).toBeLessThanOrEqual(2);
+    expect(sensorBox.x).toBeLessThan(caretBox.x);
+  }
   expect(cardBox.height).toBeGreaterThanOrEqual(28);
   expect(cardBox.height).toBeLessThanOrEqual(44);
 
@@ -408,13 +418,18 @@ async function assertCollapsedRouteDockChip(page: import('@playwright/test').Pag
 }
 
 test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', () => {
-  test('대기 화면 펼친 주소 카드 폭은 250px(±0.5)이다', async ({ page }) => {
-    for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }]) {
+  // 2026-10-24 Chief: 「주행 전 routedock 가로길이를 주행 중과 같은 길이로」(종전 250px 고정 대체).
+  test('대기 화면 펼친 주소 카드 폭은 주행 중 펼친 주소 카드(=미니맵) 폭과 같다', async ({ page }) => {
+    for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }, { width: 1280, height: 720 }]) {
       await page.setViewportSize(size);
       await page.goto(`${preview}?state=ready`);
       await expect(page.locator('.route-dock-anchor.route-dock-anchor--open')).toBeVisible();
-      const cardWidth = (await page.locator('.route-dock__card').boundingBox())!.width;
-      expect(cardWidth).toBeCloseTo(250, 0.5);
+      const readyWidth = (await page.locator('.route-dock__card').boundingBox())!.width;
+      await page.goto(`${preview}?state=riding`);
+      await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
+      await expect(page.locator('.route-dock-anchor.route-dock-anchor--open')).toBeVisible();
+      const ridingWidth = (await page.locator('.route-dock__card').boundingBox())!.width;
+      expect(Math.abs(readyWidth - ridingWidth), `${size.width}×${size.height}`).toBeLessThanOrEqual(1);
     }
   });
 
@@ -510,7 +525,7 @@ test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', (
     await expect(page.locator('.route-dock-anchor.route-dock-anchor--open')).toBeVisible();
     await page.getByRole('button', { name: '경로 패널 접기' }).click();
     await expect(page.locator('.route-dock-anchor.route-dock-anchor--open')).toHaveCount(0);
-    await assertCollapsedRouteDockChip(page);
+    await assertCollapsedRouteDockChip(page, { withSensor: true });
     await page.screenshot({
       path: path.join(evidenceDir, 'ready-collapsed-800x360.png'),
       animations: 'disabled',
@@ -526,8 +541,8 @@ test('Chief 고정12 — 주소 카드 버튼은 선 아이콘·흰 알약 센�
     const look = await page.evaluate(() => {
       const box = (el: Element | null) => (el ? el.getBoundingClientRect() : null);
       const swap = document.querySelector('.route-dock__swap');
-      const sensor = document.querySelector('.route-dock__footer .hud-cadence');
-      const led = document.querySelector('.route-dock__footer .hud-cadence__led');
+      const sensor = document.querySelector('.route-dock__head .hud-cadence');
+      const led = document.querySelector('.route-dock__head .hud-cadence__led');
       const sensorStyle = sensor ? getComputedStyle(sensor) : null;
       return {
         swapSvg: Boolean(swap?.querySelector('svg path')),
@@ -595,6 +610,46 @@ test('Chief 고정12 — ⇅ 는 주소 목록 앞쪽, 점 열 위 세로 가운
       expect(g.discW).toBeCloseTo(20, 0);
     }
   }
+});
+
+test('Chief 고정12 — 대기 화면은 센서·접기가 맨 위 한 줄, ✕ 는 오른쪽 끝, 경유 줄은 대기·주행 모두 들여 쓴다', async ({ page }) => {
+  for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }]) {
+    await page.setViewportSize(size);
+    await page.goto(`${preview}?state=ready&waypoints=2`);
+    await expect(page.locator('.route-dock-anchor.route-dock-anchor--open')).toBeVisible();
+    const g = await page.evaluate(() => {
+      const r = (sel: string) => document.querySelector(sel)!.getBoundingClientRect();
+      const card = r('.route-dock__card');
+      const sensor = r('.route-dock__head .hud-cadence');
+      const caret = r('.route-dock__caret');
+      const firstRow = r('.route-dock__row');
+      const removes = [...document.querySelectorAll('.route-dock__remove')].map((e) => e.getBoundingClientRect());
+      const dots = [...document.querySelectorAll('.route-dock__row')].map((row) => ({
+        kind: [...row.classList].find((c) => c.startsWith('route-dock__row--'))!.replace('route-dock__row--', ''),
+        left: row.querySelector('.route-dock__dot')!.getBoundingClientRect().left,
+      }));
+      return { card, sensor, caret, firstRow, removes, dots };
+    });
+    expect(Math.abs(g.sensor.y + g.sensor.height / 2 - (g.caret.y + g.caret.height / 2)), '센서·접기 같은 줄').toBeLessThanOrEqual(2);
+    expect(g.sensor.bottom, '센서는 주소 첫 줄 위').toBeLessThanOrEqual(g.firstRow.top + 0.5);
+    expect(g.caret.bottom, '접기는 주소 첫 줄 위').toBeLessThanOrEqual(g.firstRow.top + 0.5);
+    for (const rm of g.removes) expect(g.card.right - rm.right, '✕ 는 오른쪽 끝').toBeLessThanOrEqual(10);
+    const start = g.dots.find((d) => d.kind === 'start')!.left;
+    for (const wp of g.dots.filter((d) => d.kind === 'waypoint')) expect(wp.left - start).toBeGreaterThanOrEqual(12);
+  }
+  await page.setViewportSize({ width: 800, height: 360 });
+  await page.goto(`${preview}?state=riding&waypoints=2`);
+  await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
+  const riding = await page.evaluate(() =>
+    [...document.querySelectorAll('.route-dock__row')].map((row) => ({
+      waypoint: row.classList.contains('route-dock__row--waypoint'),
+      left: row.querySelector('.route-dock__dot')!.getBoundingClientRect().left,
+    })),
+  );
+  const startLeft = riding[0]!.left;
+  const wps = riding.filter((d) => d.waypoint);
+  expect(wps.length).toBe(2);
+  for (const wp of wps) expect(wp.left - startLeft, '주행 중 경유 들여쓰기').toBeGreaterThanOrEqual(12);
 });
 
 const entryCardHistoryEvidence = path.resolve(
