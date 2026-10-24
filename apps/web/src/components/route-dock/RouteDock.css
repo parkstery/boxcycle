@@ -41,12 +41,16 @@
 }
 .route-dock__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 32px;
+  grid-template-columns: minmax(0, 1fr) 24px;
   align-items: center;
   column-gap: 4px;
 }
 .route-dock__grid--locked {
   grid-template-columns: minmax(0, 1fr);
+}
+.route-dock__stops-wrap {
+  position: relative;
+  min-width: 0;
 }
 .route-dock__stops {
   list-style: none;
@@ -113,13 +117,23 @@
   justify-content: center;
 }
 @media (hover: hover) { .route-dock__remove:hover { color: #121417; } }
+/* 2026-10-24 Chief: ⇅ 를 목록 앞쪽으로 — 점 열(중심 x=4px) 위, 목록 세로 가운데.
+ * 출발·도착 점 사이(20px)에 들어가게 보이는 원은 20px, 누르는 영역은 28px(바깥 4px 는 투명).
+ * 경유 줄은 원과 겹치지 않게 16px 들여 쓴다. */
 .route-dock__swap {
-  width: 32px;
-  height: 32px;
-  padding: 0;
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+  box-sizing: border-box;
   border: 0;
   border-radius: 50%;
   background: #f2f3f5;
+  background-clip: content-box;
   color: #2a2e37;
   cursor: pointer;
   display: inline-flex;
@@ -127,7 +141,8 @@
   justify-content: center;
 }
 .route-dock__icon { display: block; flex: 0 0 auto; pointer-events: none; }
-.route-dock__swap-spacer { width: 32px; }
+.route-dock__stops-wrap--swap .route-dock__row--waypoint .route-dock__stop { padding-left: 16px; }
+.route-dock__swap-spacer { width: 24px; }
 .route-dock__footer {
   display: flex;
   align-items: center;

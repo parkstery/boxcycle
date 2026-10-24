@@ -116,53 +116,55 @@ export function RouteDock({
         <div
           className={`route-dock__grid${lockStopEditing ? " route-dock__grid--locked" : ""}`}
         >
-          <ol className="route-dock__stops" role="list">
-            {stops.length === 0 ? (
-              <li className="route-dock__stops-empty">지도를 탭해 출발·도착 설정</li>
-            ) : (
-              stops.map((stop) => (
-                <li key={stop.id} className="route-dock__row">
-                  <button
-                    type="button"
-                    className="route-dock__stop"
-                    onClick={() => onFocusStop(stop)}
-                    title="지도에서 보기"
-                  >
-                    <span
-                      className={`route-dock__dot route-dock__dot--${stop.kind}`}
-                      aria-hidden
-                    />
-                    <span className="route-dock__kind">{KIND_LABEL[stop.kind]}</span>
-                    <span className="route-dock__label" title={stop.loading ? undefined : stop.label}>
-                      {stop.loading ? "주소 불러오는 중…" : stop.label}
-                    </span>
-                  </button>
-                  {!lockStopEditing ? (
+          <div className={`route-dock__stops-wrap${canSwap ? " route-dock__stops-wrap--swap" : ""}`}>
+            <ol className="route-dock__stops" role="list">
+              {stops.length === 0 ? (
+                <li className="route-dock__stops-empty">지도를 탭해 출발·도착 설정</li>
+              ) : (
+                stops.map((stop) => (
+                  <li key={stop.id} className={`route-dock__row route-dock__row--${stop.kind}`}>
                     <button
                       type="button"
-                      className="route-dock__remove"
-                      aria-label={`${KIND_LABEL[stop.kind]} 삭제`}
-                      onClick={() => onRemoveStop(stop.id)}
+                      className="route-dock__stop"
+                      onClick={() => onFocusStop(stop)}
+                      title="지도에서 보기"
                     >
-                      <DockIcon d={ICON_REMOVE} size={11} />
+                      <span
+                        className={`route-dock__dot route-dock__dot--${stop.kind}`}
+                        aria-hidden
+                      />
+                      <span className="route-dock__kind">{KIND_LABEL[stop.kind]}</span>
+                      <span className="route-dock__label" title={stop.loading ? undefined : stop.label}>
+                        {stop.loading ? "주소 불러오는 중…" : stop.label}
+                      </span>
                     </button>
-                  ) : null}
-                </li>
-              ))
-            )}
-          </ol>
-          {canSwap ? (
-            <button
-              type="button"
-              className="route-dock__swap"
-              aria-label="출발·도착 바꾸기"
-              onClick={onSwapEndpoints}
-            >
-              <DockIcon d={ICON_SWAP} size={16} />
-            </button>
-          ) : lockStopEditing ? null : (
-            <span className="route-dock__swap-spacer" aria-hidden />
-          )}
+                    {!lockStopEditing ? (
+                      <button
+                        type="button"
+                        className="route-dock__remove"
+                        aria-label={`${KIND_LABEL[stop.kind]} 삭제`}
+                        onClick={() => onRemoveStop(stop.id)}
+                      >
+                        <DockIcon d={ICON_REMOVE} size={11} />
+                      </button>
+                    ) : null}
+                  </li>
+                ))
+              )}
+            </ol>
+            {/* 2026-10-24 Chief: ⇅ 는 목록 앞쪽 — 점 열 위, 목록 세로 가운데(출발·도착 사이). */}
+            {canSwap ? (
+              <button
+                type="button"
+                className="route-dock__swap"
+                aria-label="출발·도착 바꾸기"
+                onClick={onSwapEndpoints}
+              >
+                <DockIcon d={ICON_SWAP} size={12} />
+              </button>
+            ) : null}
+          </div>
+          {lockStopEditing ? null : <span className="route-dock__swap-spacer" aria-hidden />}
         </div>
         {expanded ? sensorFooter : null}
         <button

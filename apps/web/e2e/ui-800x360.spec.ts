@@ -560,6 +560,43 @@ test('Chief 고정12 — 주소 카드 버튼은 선 아이콘·흰 알약 센�
   }
 });
 
+test('Chief 고정12 — ⇅ 는 주소 목록 앞쪽, 점 열 위 세로 가운데에 있고 점·글자를 가리지 않는다', async ({ page }) => {
+  for (const waypoints of [0, 2]) {
+    for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }]) {
+      await page.setViewportSize(size);
+      await page.goto(`${preview}?state=ready&waypoints=${waypoints}`);
+      await expect(page.getByRole('button', { name: '출발·도착 바꾸기' })).toBeVisible();
+      const g = await page.evaluate(() => {
+        const r = (el: Element) => el.getBoundingClientRect();
+        const swap = r(document.querySelector('.route-dock__swap')!);
+        const disc = { left: swap.left + 4, right: swap.right - 4, top: swap.top + 4, bottom: swap.bottom - 4 };
+        const dots = [...document.querySelectorAll('.route-dock__dot')].map(r);
+        const labels = [...document.querySelectorAll('.route-dock__kind')].map(r);
+        const list = r(document.querySelector('.route-dock__stops')!);
+        const hit = document.elementFromPoint(swap.left + swap.width / 2, swap.top + swap.height / 2);
+        const overlaps = (a: { left: number; right: number; top: number; bottom: number }, b: DOMRect) =>
+          a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+        return {
+          cx: swap.left + swap.width / 2,
+          cy: swap.top + swap.height / 2,
+          listMid: list.top + list.height / 2,
+          startDotX: dots[0]!.left + dots[0]!.width / 2,
+          discOverDot: dots.some((d) => overlaps(disc, d)),
+          discOverLabel: labels.some((l) => overlaps(disc, l)),
+          hitOk: Boolean(hit?.closest('.route-dock__swap')),
+          discW: disc.right - disc.left,
+        };
+      });
+      expect(Math.abs(g.cx - g.startDotX), '점 열 위').toBeLessThanOrEqual(1);
+      expect(Math.abs(g.cy - g.listMid), '목록 세로 가운데').toBeLessThanOrEqual(1);
+      expect(g.discOverDot, '점을 가리지 않는다').toBe(false);
+      expect(g.discOverLabel, '출발·도착 글자를 가리지 않는다').toBe(false);
+      expect(g.hitOk).toBe(true);
+      expect(g.discW).toBeCloseTo(20, 0);
+    }
+  }
+});
+
 const entryCardHistoryEvidence = path.resolve(
   fileURLToPath(import.meta.url),
   '../../../../document/ops/20261023-ui-redesign/evidence/inline-history',
