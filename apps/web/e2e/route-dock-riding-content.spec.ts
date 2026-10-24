@@ -111,7 +111,7 @@ test.describe("주행 중 RouteDock", () => {
 
     // 4) 표시는 하되 조작은 잠근다 — 주행 중 경유지 삭제·바꾸기 UI 는 렌더하지 않는다
     await expect(page.locator(".route-dock__remove"), "주행 중 경유지 삭제는 잠금").toHaveCount(0);
-    await expect(page.getByRole("button", { name: "출발·도착 바꾸기" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Start·End 바꾸기" })).toHaveCount(0);
   });
 });
 

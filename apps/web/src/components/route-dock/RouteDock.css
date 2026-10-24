@@ -65,7 +65,7 @@
 .route-dock__row {
   display: flex;
   align-items: center;
-  min-height: 28px;
+  min-height: 30px;
   border-bottom: 1px solid #eef0f3;
 }
 .route-dock__row:last-child { border-bottom: 0; }
@@ -85,21 +85,27 @@
   text-align: left;
   cursor: pointer;
 }
-.route-dock__dot {
-  flex: 0 0 8px;
-  width: 8px;
-  height: 8px;
+/* 지도 핀과 같은 기호·색(mapMarkerElements·MapView.css): S #16a34a, E #dc2626, 경유 주황 원.
+ * 16px — S·E 사이에 ⇅(14px)가 들어가도록(2026-10-24 Chief 제안 A). */
+.route-dock__badge {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  box-sizing: border-box;
-}
-.route-dock__dot--start { border: 2px solid #121417; background: transparent; }
-.route-dock__dot--end { background: #121417; }
-.route-dock__dot--waypoint { background: #5e6472; }
-.route-dock__kind {
-  flex: 0 0 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   font-size: 10px;
-  font-weight: 700;
-  color: #5e6472;
+  font-weight: 800;
+  line-height: 1;
+}
+.route-dock__badge--start { background: #16a34a; }
+.route-dock__badge--end { background: #dc2626; }
+.route-dock__badge--waypoint {
+  background: linear-gradient(145deg, rgba(234, 179, 8, 0.95), rgba(180, 83, 9, 0.92));
+  color: #fefce8;
 }
 .route-dock__label {
   overflow: hidden;
@@ -121,18 +127,18 @@
   justify-content: center;
 }
 @media (hover: hover) { .route-dock__remove:hover { color: #121417; } }
-/* 2026-10-24 Chief: ⇅ 를 목록 앞쪽으로 — 점 열(중심 x=4px) 위, 목록 세로 가운데.
- * 출발·도착 점 사이(20px)에 들어가게 보이는 원은 20px, 누르는 영역은 28px(바깥 4px 는 투명).
- * 경유 줄은 원과 겹치지 않게 16px 들여 쓴다. */
+/* 2026-10-24 Chief: ⇅ 를 목록 앞쪽으로 — 기호 열(중심 x=8px) 위, 목록 세로 가운데.
+ * S·E 기호 사이(줄 30px − 기호 16px ≈ 15px)에 들어가게 보이는 원은 14px,
+ * 누르는 영역은 28px(바깥 7px 는 투명). 경유 줄은 원과 겹치지 않게 20px 들여 쓴다. */
 .route-dock__swap {
   position: absolute;
-  left: -10px;
+  left: -6px;
   top: 50%;
   transform: translateY(-50%);
   z-index: 1;
   width: 28px;
   height: 28px;
-  padding: 4px;
+  padding: 7px;
   box-sizing: border-box;
   border: 0;
   border-radius: 50%;
@@ -145,8 +151,8 @@
   justify-content: center;
 }
 .route-dock__icon { display: block; flex: 0 0 auto; pointer-events: none; }
-/* 경유 줄은 대기·주행 모두 16px 들여 쓴다(2026-10-24 Chief) — ⇅ 원과도 겹치지 않는다. */
-.route-dock__row--waypoint .route-dock__stop { padding-left: 16px; }
+/* 경유 줄은 대기·주행 모두 20px 들여 쓴다(2026-10-24 Chief) — ⇅ 원과도 겹치지 않는다. */
+.route-dock__row--waypoint .route-dock__stop { padding-left: 20px; }
 .route-dock__caret {
   position: absolute;
   top: 4px;

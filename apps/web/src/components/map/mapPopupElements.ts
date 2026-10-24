@@ -176,7 +176,7 @@ export function buildPickPopup(deps: {
   const startBtn = document.createElement("button");
   startBtn.type = "button";
   startBtn.className = "map-view__pick-btn map-view__pick-btn--start";
-  startBtn.textContent = "출발";
+  startBtn.textContent = "Start";
   startBtn.title = "출발 지점으로 설정";
   startBtn.setAttribute("aria-label", "출발 지점으로 설정");
   const selectStart = (point: LngLat) => {
@@ -220,7 +220,7 @@ export function buildPickPopup(deps: {
   const endBtn = document.createElement("button");
   endBtn.type = "button";
   endBtn.className = "map-view__pick-btn map-view__pick-btn--end";
-  endBtn.textContent = "도착";
+  endBtn.textContent = "End";
   endBtn.title = "도착 지점으로 설정";
   endBtn.setAttribute("aria-label", "도착 지점으로 설정");
   endBtn.onclick = () => {
@@ -825,7 +825,9 @@ export function buildPickPopup(deps: {
   tabLocation.className = "map-view__pick-route-tab";
   tabLocation.id = "map-view-pick-tab-location";
   tabLocation.setAttribute("role", "tab");
-  tabLocation.textContent = "출발·도착";
+  /* 2026-10-24 Chief: 보이는 글자는 Start·End(영어 통일), 화면 읽기 이름은 한국어 유지 — 버튼 aria-label 과 같은 방침 */
+  tabLocation.textContent = "Start·End";
+  tabLocation.setAttribute("aria-label", "출발·도착");
   tabLocation.setAttribute("aria-controls", routeLocationView.id);
 
   const tabDistance = document.createElement("button");

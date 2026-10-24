@@ -5,7 +5,7 @@
 | 담당 | **Claude Code (2026-10-24 13:2x KST 인수, Codex→Claude Code)** |
 | 갱신 | 2026-10-24 16:1x KST — 지시44(주소 카드 ⇅·센서 버튼 제안 A, Supervisor 직접 구현) LOCAL_VERIFIED·커밋. 이전: 2026-10-24 15:0x KST — 지시39·41(주행 시작 주소창 접힘 › 버튼)·42(지도 탭 `reading 'x'` 오류) LOCAL_VERIFIED, 커밋·푸시 후 `tmp/deploy35` 재빌드. **호스팅 배포는 자동 권한 검사가 막아 Chief 실행 대기** |
 | 브랜치 | `main2` |
-| HEAD / 원격 | `4ab30ee1` (= origin/main2) |
+| HEAD / 원격 | `4cde7ae0` (= origin/main2) |
 | 마지막 배포 | 10-24 10:13 KST Hosting `3c3ba02c` 빌드 `index-BDb2hU8r.js`·`index-Dx13Hjt3.css`. 운영 자산5개 SHA256 일치. 함수·Rules 변경 없음 |
 
 ## 먼저 읽을 것
@@ -25,7 +25,8 @@
 
 ## 다음 한 걸음
 
-0. **지시35 커밋·푸시 완료, 배포 대기.** 묶음3 미커밋을 피하려고 커밋 상태를 `tmp/deploy35`(gitignore)에 복제해 빌드 — **10-24 17시 `4ab30ee1` 로 재빌드**(`index-Dl1q7sw5.js`·`index-2OGldro3.css`, 지시35·39·41·42·44·45 포함, 묶음3 제외). 배포 명령은 Chief 실행: `cd C:\20.HDev\boxcycle\tmp\deploy35` → `npx firebase deploy --only hosting`. 배포 후 운영 번들 해시 대조, `tmp/deploy35` 삭제.
+0. **지시35 커밋·푸시 완료, 배포 대기.** 묶음3 미커밋을 피하려고 커밋 상태를 `tmp/deploy35`(gitignore)에 복제해 빌드 — **10-24 18시 `4cde7ae0` 로 재빌드**(`index-COXGDagv.js`·`index-uvhmBw4G.css`, 지시35·39·41·42·44·45·46 포함, 묶음3 제외). 배포 명령은 Chief 실행: `cd C:\20.HDev\boxcycle\tmp\deploy35` → `npx firebase deploy --only hosting`. 배포 후 운영 번들 해시 대조, `tmp/deploy35` 삭제.
+0-0000. **지시47(기호 S·1·2·3·E, Start·End) 완료** — [결과47](20261023-ui-redesign/47-result-dock-badges-start-end.md). 무관 FAIL 2(`distance-direction-attention` 29줄, `route-ride-controls` idle 주소 카드) 묶음3 감리 때 확인.
 0-000. **지시46(대기 카드 센서·접기 맨 위 줄·폭=주행 중·주행 경유 들여쓰기) 완료** — [결과46](20261023-ui-redesign/46-result-dock-head-row.md). 보고 때 작업 agent 명시(Chief 10-24).
 0-00. **지시45(⇅ 목록 앞쪽) 완료** — [결과45](20261023-ui-redesign/45-result-dock-swap-front.md). 실행자: OpenCode 소진 → Cursor(Chief 10-24). Grok Bot 은 데스크톱 앱(CLI 없음)이라 못 씀.
 0-0. **지시44 완료** — [결과44](20261023-ui-redesign/44-result-dock-buttons-proposal-a.md). Chief 질문 대기: 측면 메뉴(왼쪽 MENU·오른쪽 맵 뷰)가 보이지 않는 가장자리 드래그뿐이라 불편 → Chief 「반원 탭으로 가자, 시안 먼저」 → 시안 https://claude.ai/artifact/Gx3hf9Tbdm25EpiT4SQXZH (A 어두운 반투명 추천 / B 흰 반투명, 14×48 보이는 탭·28×64 누르는 영역·위에서 84px). Chief 선택 후 Supervisor 직접 구현(10-21 「비노출 드래그」 결정 일부 변경 → 결정 로그·고정 목록 13).

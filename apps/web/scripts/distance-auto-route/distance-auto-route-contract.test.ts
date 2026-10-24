@@ -807,8 +807,8 @@ describe("distanceAutoRoute", () => {
     // 10-23 Chief: W1~W3 칸 대신 「+WP」 하나, 최대 3개
     assert.match(BUILD_PICK_POPUP_SOURCE, /wpBtn\.textContent = "\+WP"/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /slot >= MAX_ROUTE_WAYPOINTS/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /textContent = "출발"/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /textContent = "도착"/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /textContent = "Start"/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /textContent = "End"/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /지도에서 방향을 탭하면 경로가 생성됩니다/);
     const profileClick = BUILD_PICK_POPUP_SOURCE.slice(
       BUILD_PICK_POPUP_SOURCE.indexOf("pb.onclick = () =>"),

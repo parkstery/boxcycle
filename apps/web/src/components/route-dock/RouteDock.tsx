@@ -24,11 +24,18 @@ export type RouteDockProps = {
   sensorAttention?: boolean;
 };
 
-const KIND_LABEL: Record<RouteDockStop["kind"], string> = {
-  start: "출발",
-  waypoint: "경유",
-  end: "도착",
-};
+/* 2026-10-24 Chief: 「출발·경유·도착」 글자 대신 지도 핀과 같은 기호 S · 1 2 3 · E(영어로 통일). */
+function stopBadge(stop: RouteDockStop): string {
+  if (stop.kind === "start") return "S";
+  if (stop.kind === "end") return "E";
+  return String((stop.waypointIndex ?? 0) + 1);
+}
+
+function stopName(stop: RouteDockStop): string {
+  if (stop.kind === "start") return "Start";
+  if (stop.kind === "end") return "End";
+  return `WP${(stop.waypointIndex ?? 0) + 1}`;
+}
 
 /* 2026-10-24 Chief 제안 A: 글자 기호(✕ ‹ ›)·CSS 막대 대신 선 1.7 인라인 아이콘. 색은 currentColor. */
 function DockIcon({ d, size }: { d: string; size: number }) {
@@ -135,7 +142,7 @@ export function RouteDock({
           <div className="route-dock__stops-wrap">
             <ol className="route-dock__stops" role="list">
               {stops.length === 0 ? (
-                <li className="route-dock__stops-empty">지도를 탭해 출발·도착 설정</li>
+                <li className="route-dock__stops-empty">지도를 탭해 Start·End 설정</li>
               ) : (
                 stops.map((stop) => (
                   <li key={stop.id} className={`route-dock__row route-dock__row--${stop.kind}`}>
@@ -146,10 +153,11 @@ export function RouteDock({
                       title="지도에서 보기"
                     >
                       <span
-                        className={`route-dock__dot route-dock__dot--${stop.kind}`}
-                        aria-hidden
-                      />
-                      <span className="route-dock__kind">{KIND_LABEL[stop.kind]}</span>
+                        className={`route-dock__badge route-dock__badge--${stop.kind}`}
+                        aria-label={stopName(stop)}
+                      >
+                        {stopBadge(stop)}
+                      </span>
                       <span className="route-dock__label" title={stop.loading ? undefined : stop.label}>
                         {stop.loading ? "주소 불러오는 중…" : stop.label}
                       </span>
@@ -158,7 +166,7 @@ export function RouteDock({
                       <button
                         type="button"
                         className="route-dock__remove"
-                        aria-label={`${KIND_LABEL[stop.kind]} 삭제`}
+                        aria-label={`${stopName(stop)} 삭제`}
                         onClick={() => onRemoveStop(stop.id)}
                       >
                         <DockIcon d={ICON_REMOVE} size={11} />
@@ -168,12 +176,12 @@ export function RouteDock({
                 ))
               )}
             </ol>
-            {/* 2026-10-24 Chief: ⇅ 는 목록 앞쪽 — 점 열 위, 목록 세로 가운데(출발·도착 사이). */}
+            {/* 2026-10-24 Chief: ⇅ 는 목록 앞쪽 — 기호 열 위, 목록 세로 가운데(S·E 사이). */}
             {canSwap ? (
               <button
                 type="button"
                 className="route-dock__swap"
-                aria-label="출발·도착 바꾸기"
+                aria-label="Start·End 바꾸기"
                 onClick={onSwapEndpoints}
               >
                 <DockIcon d={ICON_SWAP} size={12} />

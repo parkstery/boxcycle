@@ -76,7 +76,8 @@ test('주소는 한 면으로 연결되고 경유지 추가만큼 패널이 늘�
       });
       expect(dimensions.visible).toBeTruthy();
       expect(dimensions.scroll).toBeLessThanOrEqual(dimensions.client+1);
-      expect(dimensions.rowHeight).toBeLessThanOrEqual(29);
+      // 2026-10-24 Chief 제안 A: S·E 기호 사이에 ⇅ 가 들어가도록 줄 30px(+경계선 1px) — 종전 29 이하에서 2px 늘림
+      expect(dimensions.rowHeight).toBeLessThanOrEqual(31);
       expect(dimensions.boxes.every(x=>x.border==='0px'&&x.background==='rgba(0, 0, 0, 0)')).toBeTruthy();
       if(previous) expect(dimensions.height-previous).toBeGreaterThanOrEqual(23);
       previous=dimensions.height;
@@ -487,10 +488,10 @@ test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', (
 
       await expand.click();
       await expect(page.locator('.route-dock-anchor.route-dock-anchor--open')).toBeVisible();
-      await expect(page.getByText('출발', { exact: true })).toBeVisible();
-      await expect(page.getByText('도착', { exact: true })).toBeVisible();
+      await expect(page.locator('.route-dock__badge--start')).toHaveText('S');
+      await expect(page.locator('.route-dock__badge--end')).toHaveText('E');
       await expect(page.locator('.route-dock__remove')).toHaveCount(0);
-      await expect(page.getByRole('button', { name: '출발·도착 바꾸기' })).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Start·End 바꾸기' })).toHaveCount(0);
       if (state === 'riding') {
         await page.screenshot({
           path: path.join(evidenceDir, 'riding-expanded-800x360.png'),
@@ -575,18 +576,18 @@ test('Chief 고정12 — 주소 카드 버튼은 선 아이콘·흰 알약 센�
   }
 });
 
-test('Chief 고정12 — ⇅ 는 주소 목록 앞쪽, 점 열 위 세로 가운데에 있고 점·글자를 가리지 않는다', async ({ page }) => {
+test('Chief 고정12 — ⇅ 는 주소 목록 앞쪽, 기호(S·1·2·3·E) 열 위 세로 가운데에 있고 기호·주소를 가리지 않는다', async ({ page }) => {
   for (const waypoints of [0, 2]) {
     for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }]) {
       await page.setViewportSize(size);
       await page.goto(`${preview}?state=ready&waypoints=${waypoints}`);
-      await expect(page.getByRole('button', { name: '출발·도착 바꾸기' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Start·End 바꾸기' })).toBeVisible();
       const g = await page.evaluate(() => {
         const r = (el: Element) => el.getBoundingClientRect();
         const swap = r(document.querySelector('.route-dock__swap')!);
-        const disc = { left: swap.left + 4, right: swap.right - 4, top: swap.top + 4, bottom: swap.bottom - 4 };
-        const dots = [...document.querySelectorAll('.route-dock__dot')].map(r);
-        const labels = [...document.querySelectorAll('.route-dock__kind')].map(r);
+        const disc = { left: swap.left + 7, right: swap.right - 7, top: swap.top + 7, bottom: swap.bottom - 7 };
+        const dots = [...document.querySelectorAll('.route-dock__badge')].map(r);
+        const labels = [...document.querySelectorAll('.route-dock__label')].map(r);
         const list = r(document.querySelector('.route-dock__stops')!);
         const hit = document.elementFromPoint(swap.left + swap.width / 2, swap.top + swap.height / 2);
         const overlaps = (a: { left: number; right: number; top: number; bottom: number }, b: DOMRect) =>
@@ -602,12 +603,19 @@ test('Chief 고정12 — ⇅ 는 주소 목록 앞쪽, 점 열 위 세로 가운
           discW: disc.right - disc.left,
         };
       });
-      expect(Math.abs(g.cx - g.startDotX), '점 열 위').toBeLessThanOrEqual(1);
+      expect(Math.abs(g.cx - g.startDotX), '기호 열 위').toBeLessThanOrEqual(1);
       expect(Math.abs(g.cy - g.listMid), '목록 세로 가운데').toBeLessThanOrEqual(1);
-      expect(g.discOverDot, '점을 가리지 않는다').toBe(false);
-      expect(g.discOverLabel, '출발·도착 글자를 가리지 않는다').toBe(false);
+      expect(g.discOverDot, '기호를 가리지 않는다').toBe(false);
+      expect(g.discOverLabel, '주소 글자를 가리지 않는다').toBe(false);
       expect(g.hitOk).toBe(true);
-      expect(g.discW).toBeCloseTo(20, 0);
+      expect(g.discW).toBeCloseTo(14, 0);
+      const badges = await page.locator('.route-dock__badge').allTextContents();
+      expect(badges, '지도 핀과 같은 기호').toEqual(['S', ...Array.from({ length: waypoints }, (_, i) => String(i + 1)), 'E']);
+      // 「출발·경유·도착」 이름표 칸 없음 — 줄 = 기호 + 주소뿐(주소 자체에 「경유지」가 들어갈 수 있어 글자 검색은 하지 않는다)
+      const rowParts = await page.locator('.route-dock__stop').evaluateAll((rows) =>
+        rows.map((row) => [...row.children].map((c) => c.className.split(' ')[0])),
+      );
+      for (const parts of rowParts) expect(parts).toEqual(['route-dock__badge', 'route-dock__label']);
     }
   }
 });
@@ -626,7 +634,7 @@ test('Chief 고정12 — 대기 화면은 센서·접기가 맨 위 한 줄, ✕
       const removes = [...document.querySelectorAll('.route-dock__remove')].map((e) => e.getBoundingClientRect());
       const dots = [...document.querySelectorAll('.route-dock__row')].map((row) => ({
         kind: [...row.classList].find((c) => c.startsWith('route-dock__row--'))!.replace('route-dock__row--', ''),
-        left: row.querySelector('.route-dock__dot')!.getBoundingClientRect().left,
+        left: row.querySelector('.route-dock__badge')!.getBoundingClientRect().left,
       }));
       return { card, sensor, caret, firstRow, removes, dots };
     });
@@ -643,7 +651,7 @@ test('Chief 고정12 — 대기 화면은 센서·접기가 맨 위 한 줄, ✕
   const riding = await page.evaluate(() =>
     [...document.querySelectorAll('.route-dock__row')].map((row) => ({
       waypoint: row.classList.contains('route-dock__row--waypoint'),
-      left: row.querySelector('.route-dock__dot')!.getBoundingClientRect().left,
+      left: row.querySelector('.route-dock__badge')!.getBoundingClientRect().left,
     })),
   );
   const startLeft = riding[0]!.left;

@@ -17,7 +17,7 @@ test('다섯 위치의 추가·교체 및 열린 경로창의 시작 준비상�
   };
   const readState=async()=>JSON.parse((await state.textContent())!) as {waypoints:number[][];starts:number};
   await hold(400,170);
-  await expect(popup.locator('.map-view__pick-actions--pin-row button')).toHaveText(['출발','+WP','도착']);
+  await expect(popup.locator('.map-view__pick-actions--pin-row button')).toHaveText(['Start','+WP','End']);
   const play=popup.getByRole('button',{name:'주행 시작',exact:true});
   await expect(play).toBeDisabled();
   await popup.getByRole('button',{name:'출발 지점으로 설정',exact:true}).click();
