@@ -30,6 +30,31 @@ const KIND_LABEL: Record<RouteDockStop["kind"], string> = {
   end: "도착",
 };
 
+/* 2026-10-24 Chief 제안 A: 글자 기호(✕ ‹ ›)·CSS 막대 대신 선 1.7 인라인 아이콘. 색은 currentColor. */
+function DockIcon({ d, size }: { d: string; size: number }) {
+  return (
+    <svg
+      className="route-dock__icon"
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d={d} />
+    </svg>
+  );
+}
+
+const ICON_REMOVE = "M4.5 4.5L11.5 11.5M11.5 4.5L4.5 11.5";
+const ICON_SWAP = "M5 13V3M2.5 5.5L5 3L7.5 5.5M11 3V13M8.5 10.5L11 13L13.5 10.5";
+const ICON_COLLAPSE = "M10 3.5L5.5 8L10 12.5";
+const ICON_EXPAND = "M6 3.5L10.5 8L6 12.5";
+
 /** Addresses (+ sensor chip when ready). Stays visible during ride; editing locks while riding. */
 export function RouteDock({
   stage,
@@ -119,7 +144,7 @@ export function RouteDock({
                       aria-label={`${KIND_LABEL[stop.kind]} 삭제`}
                       onClick={() => onRemoveStop(stop.id)}
                     >
-                      ✕
+                      <DockIcon d={ICON_REMOVE} size={11} />
                     </button>
                   ) : null}
                 </li>
@@ -133,7 +158,7 @@ export function RouteDock({
               aria-label="출발·도착 바꾸기"
               onClick={onSwapEndpoints}
             >
-              <span className="route-dock__swap-icon" aria-hidden />
+              <DockIcon d={ICON_SWAP} size={16} />
             </button>
           ) : lockStopEditing ? null : (
             <span className="route-dock__swap-spacer" aria-hidden />
@@ -147,7 +172,7 @@ export function RouteDock({
           aria-label={expanded ? "경로 패널 접기" : "경로 패널 펼치기"}
           onClick={() => setExpanded((v) => !v)}
         >
-          <span aria-hidden>{expanded ? "‹" : "›"}</span>
+          {expanded ? <DockIcon d={ICON_COLLAPSE} size={12} /> : <DockIcon d={ICON_EXPAND} size={16} />}
         </button>
       </div>
       {!expanded ? sensorFooter : null}

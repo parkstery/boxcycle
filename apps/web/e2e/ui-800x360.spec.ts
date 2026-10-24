@@ -518,6 +518,48 @@ test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', (
   });
 });
 
+test('Chief 고정12 — 주소 카드 버튼은 선 아이콘·흰 알약 센서(제안 A)다', async ({ page }) => {
+  for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }]) {
+    await page.setViewportSize(size);
+    await page.goto(`${preview}?state=ready`);
+    await expect(page.locator('.route-dock-anchor.route-dock-anchor--open')).toBeVisible();
+    const look = await page.evaluate(() => {
+      const box = (el: Element | null) => (el ? el.getBoundingClientRect() : null);
+      const swap = document.querySelector('.route-dock__swap');
+      const sensor = document.querySelector('.route-dock__footer .hud-cadence');
+      const led = document.querySelector('.route-dock__footer .hud-cadence__led');
+      const sensorStyle = sensor ? getComputedStyle(sensor) : null;
+      return {
+        swapSvg: Boolean(swap?.querySelector('svg path')),
+        swapBg: swap ? getComputedStyle(swap).backgroundColor : null,
+        glyphButtons: [...document.querySelectorAll('.route-dock__remove,.route-dock__caret')].map((b) => ({
+          text: (b.textContent ?? '').trim(),
+          svg: Boolean(b.querySelector('svg path')),
+        })),
+        sensorH: box(sensor)?.height ?? 0,
+        sensorBg: sensorStyle?.backgroundColor,
+        sensorBorder: sensorStyle ? `${sensorStyle.borderTopWidth} ${sensorStyle.borderTopColor}` : null,
+        sensorRadius: sensorStyle ? parseFloat(sensorStyle.borderTopLeftRadius) : 0,
+        sensorFont: sensorStyle ? `${sensorStyle.fontSize} ${sensorStyle.fontWeight}` : null,
+        ledW: box(led)?.width ?? 0,
+      };
+    });
+    expect(look.swapSvg, '⇅ 는 선 아이콘(CSS 막대 금지)').toBe(true);
+    expect(look.swapBg).toBe('rgb(242, 243, 245)');
+    expect(look.glyphButtons.length).toBeGreaterThanOrEqual(3);
+    for (const b of look.glyphButtons) {
+      expect(b.text, '✕ ‹ 글자 기호 금지').toBe('');
+      expect(b.svg).toBe(true);
+    }
+    expect(look.sensorH).toBeCloseTo(30, 0);
+    expect(look.sensorBg).toBe('rgb(255, 255, 255)');
+    expect(look.sensorBorder).toBe('1px rgb(201, 214, 238)');
+    expect(look.sensorRadius).toBeGreaterThanOrEqual(15);
+    expect(look.sensorFont).toBe('12px 700');
+    expect(look.ledW).toBeCloseTo(7, 0);
+  }
+});
+
 const entryCardHistoryEvidence = path.resolve(
   fileURLToPath(import.meta.url),
   '../../../../document/ops/20261023-ui-redesign/evidence/inline-history',
