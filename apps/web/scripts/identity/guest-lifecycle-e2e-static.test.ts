@@ -64,14 +64,14 @@ test("spec 은 실제 UI 진입과 demo REST 만 쓰고 SDK 를 모킹하지 않
 });
 
 test("종료/동일 Guest 복귀 계약 — 종료는 signOut 대신 시작 메뉴로 돌아온다(02-task-17)", () => {
-  // 종료 버튼 계약 — UserInfoSheet 의 「종료」 (exact). 옛 2단계 로그아웃 확인 계약은 없다.
-  assert.match(spec, /name: '종료', exact: true/);
+  // 10-25 Chief: 게스트에겐 로그아웃 버튼이 없다 — spec 은 버튼 부재를 확인하고, 옛 빌드가 남긴
+  // 「이용 종료」 표시(localStorage)로 종료 상태를 만든다. 버튼을 누르는 종료 계약(옛 「종료」)은 없다.
+  assert.match(spec, /name: '로그아웃', exact: true \}\)\)\.toHaveCount\(0\)/);
+  assert.match(spec, /boxcycle_app_use_ended_v1/);
+  assert.equal(spec.includes("name: '종료'"), false);
   assert.match(spec, /종료를 반복해도 같은 Guest/);
-  // 종료 뒤/만료 뒤 시작 메뉴는 로그인/게스트로 시작 둘뿐이다 — 옛 기대 문구 계약은 제거됐다
-  // (남는 것은 "이 문구가 없어야 한다"의 부정 검증뿐이다).
-  for (const banned of ["로그아웃 확인", "name: '로그아웃'"]) {
-    assert.equal(spec.includes(banned), false, banned);
-  }
+  // 종료 뒤/만료 뒤 시작 메뉴는 로그인/게스트로 시작 둘뿐이다 — 옛 2단계 로그아웃 확인 계약은 없다.
+  assert.equal(spec.includes("로그아웃 확인"), false);
   assert.match(spec, /로그인', exact: true/);
   assert.match(spec, /게스트로 시작/);
   // 종료 반복 3회 + 같은 UID + Auth 한 명 기대

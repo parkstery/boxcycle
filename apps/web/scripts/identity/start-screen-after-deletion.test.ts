@@ -89,6 +89,12 @@ test("Google 성공만 종료 표시를 풀고 팝업은 서버 확인보다 먼
   assert.match(body, /clearAppUseEnded\(\)/);
 });
 
+test("10-25 Chief — 로그아웃 버튼은 정식 계정에만, 게스트에겐 없다", () => {
+  const sheet = read("../../src/components/UserInfoSheet.tsx");
+  const code = sheet.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
+  assert.match(code, /const showLogout = props\.user != null && !props\.isGuest;/);
+});
+
 test("이용 종료 버튼은 같은 Guest 포기를 말하지 않는다", () => {
   const sheet = read("../../src/components/UserInfoSheet.tsx");
   const code = sheet.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");

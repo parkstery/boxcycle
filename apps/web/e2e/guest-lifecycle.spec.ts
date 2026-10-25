@@ -334,11 +334,19 @@ async function expectStartMenu(page: Page): Promise<void> {
   await expect(page.getByText('로그아웃되었습니다.', { exact: true })).toHaveCount(0)
 }
 
+/**
+ * 10-25 Chief — 게스트에게는 로그아웃 버튼이 없다(계정 패널의 출구는 「회원 등록」).
+ * 그 전 빌드에서 로그아웃한 기기는 「이용 종료」 표시(localStorage `boxcycle_app_use_ended_v1`)를
+ * 가진 채 돌아온다. 버튼이 없음을 확인한 뒤 그 표시를 세워 새로고침 — 같은 Guest 복귀 계약을 계속 지킨다.
+ */
 async function endSession(page: Page): Promise<void> {
   await page.getByRole('button', { name: '사용자 정보' }).click()
   const sheet = page.getByRole('dialog', { name: '사용자 정보' })
-  await sheet.getByRole('button', { name: '종료', exact: true }).click()
-  await expect(sheet).toBeHidden({ timeout: 15_000 })
+  await expect(sheet).toBeVisible({ timeout: 15_000 })
+  await expect(sheet.getByRole('button', { name: '로그아웃', exact: true })).toHaveCount(0)
+  await page.keyboard.press('Escape')
+  await page.evaluate(() => localStorage.setItem('boxcycle_app_use_ended_v1', '1'))
+  await page.reload()
   await expectStartMenu(page)
 }
 

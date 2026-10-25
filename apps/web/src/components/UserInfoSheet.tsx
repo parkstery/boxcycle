@@ -420,7 +420,12 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
     : "";
 
   const showGoogleLink = Boolean(props.isGuest && props.onLinkGoogle);
-  const showLogout = props.user != null;
+  /*
+   * 10-25 Chief — 게스트에게는 로그아웃을 주지 않는다. 사용자는 로그아웃을 「나갔다 다시 들어오기」로
+   * 알지만 게스트는 그 기기·브라우저에만 묶여 있어, 나가면 새 게스트처럼 보이고 계정만 쌓인다.
+   * 게스트의 출구는 「회원 등록」이다.
+   */
+  const showLogout = props.user != null && !props.isGuest;
 
   const stats = periodStats.stats;
   const hasRides = stats.rides > 0;
