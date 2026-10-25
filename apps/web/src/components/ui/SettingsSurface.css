@@ -1,0 +1,86 @@
+/* 승인 시안12~15 공통: 흰 단일 판, 회색 원형 닫기, 파란 스위치. */
+.settings-surface.settings-surface {
+  align-items: center;
+  color: #121417;
+}
+.settings-surface .settings-surface__panel {
+  box-sizing: border-box;
+  width: min(520px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  margin: 0;
+  padding: 16px 20px;
+  background: #fff;
+  border: 0;
+  border-radius: 18px;
+  color: #121417;
+  box-shadow: 0 12px 40px #0f172a38;
+  overflow: auto;
+  gap: 0;
+  backdrop-filter: none;
+}
+.settings-surface .settings-surface__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 36px;
+  margin: 0 0 10px;
+}
+.settings-surface .settings-surface__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.settings-surface .settings-surface__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #f2f3f5;
+  color: #2a2e37;
+  cursor: pointer;
+}
+.settings-surface input[role="switch"] {
+  appearance: none;
+  position: relative;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 24px;
+  margin: 0;
+  border: 0;
+  border-radius: 20px;
+  background: #c9d6ee;
+  cursor: pointer;
+}
+.settings-surface input[role="switch"]::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+}
+.settings-surface input[role="switch"]:checked { background: #2457d6; }
+.settings-surface input[role="switch"]:checked::after { left: 18px; }
+.settings-surface input[role="switch"]:disabled { opacity: .45; cursor: not-allowed; }
+.settings-surface button:focus-visible,
+.settings-surface input:focus-visible,
+.settings-surface summary:focus-visible { outline: 2px solid #2457d6; outline-offset: 2px; }
+.settings-surface .ride-settings-sheet__handle { display: none; }
+@media (max-height: 340px) {
+  .settings-surface .settings-surface__panel { max-height: calc(100dvh - 16px); padding: 10px 16px; }
+  .settings-surface .settings-surface__head { margin-bottom: 4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .settings-surface .settings-surface__panel { animation: none; }
+}

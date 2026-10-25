@@ -3430,9 +3430,11 @@ export default function App() {
         rideBgmCatalogConfigured={rideBgmCatalogConfigured}
         rideElevationProfileLoading={rideElevationProfileLoading}
         calorieWeightKg={calorieProfile.weightKg}
-        onCalorieWeightKg={setCalorieWeightKg}
         calorieIntensityId={calorieProfile.intensityId}
-        onCalorieIntensityId={setCalorieIntensityId}
+        onEditProfile={() => {
+          setRideSettingsSheetOpen(false);
+          setProfileEditOpen(true);
+        }}
       />
 
       <CadenceSensorSheet
@@ -3561,7 +3563,7 @@ export default function App() {
         elapsedLabel={elapsedLabel}
         avgKmh={avgSpeedLabel}
         caloriesEstimate={caloriesEstimate}
-        onOpenCalorieSettings={openRideSettingsPanel}
+        onOpenCalorieSettings={() => setProfileEditOpen(true)}
         calorieProfileComplete={calorieProfile.weightKg != null && calorieProfile.intensityId != null}
         onGuestLinkGoogle={user?.isAnonymous ? () => void handleGoogleSignIn() : undefined}
         adhocSaveAvailable={lastEndedWasAdhoc !== null}

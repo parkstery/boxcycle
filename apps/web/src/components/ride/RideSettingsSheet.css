@@ -318,3 +318,25 @@
   border-color: var(--rtw-ui-border, #cbd5e1);
   color: var(--rtw-ui-ink, #1f2937);
 }
+/* 묶음4 승인 시안13: 다섯 줄 설정, 편집은 프로필에서만. */
+.settings-surface .ride-settings-panel__choice,
+.settings-surface .ride-settings-panel__calories {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  min-height: 45px; border-bottom: 1px solid #e9ecf1; cursor: pointer;
+}
+.settings-surface .ride-settings-panel__calories { border: 0; min-height: 50px; cursor: default; }
+.settings-surface .ride-settings-panel__copy { display: flex; flex-direction: column; gap: 2px; font-size: 15px; }
+.settings-surface .ride-settings-panel__copy small { font-size: 11px; color: #5e6472; line-height: 1.3; }
+.settings-surface .ride-settings-panel__profile { flex: 0 0 auto; border: 1px solid #c9d6ee; border-radius: 20px; background: white; color: #2a2e37; min-height: 32px; padding: 4px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+@media (max-height: 340px) {
+  .settings-surface .ride-settings-panel__choice { min-height: 39px; }
+  .settings-surface .ride-settings-panel__calories { min-height: 45px; }
+}
+.ride-settings-sheet.settings-surface[aria-label="주행 설정"] .settings-surface__panel {
+  width: min(520px, calc(100vw - 24px)); max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px); padding: 16px 20px; gap: 0;
+}
+.ride-settings-sheet.settings-surface[aria-label="주행 설정"] .ride-settings-panel { gap: 0; }
+@media (max-height: 340px) {
+  .ride-settings-sheet.settings-surface[aria-label="주행 설정"] .settings-surface__panel { max-height: calc(100dvh - 16px); padding: 10px 16px; }
+}

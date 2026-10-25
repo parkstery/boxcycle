@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { cadenceRpmToVirtualSpeedKmh, type RideInputMode } from "../../lib/sensor/cadenceRideInput";
 import {
   cadenceSensorShortStatus,
@@ -9,6 +9,8 @@ import {
 import { ALLOW_MANUAL_SPEED_WHILE_RIDING } from "../../lib/sensor/manualSpeedWhileRiding";
 import { SessionSpeedControl } from "./SessionSpeedControl";
 import "./CadenceSensorSheet.css";
+import { SettingsCloseIcon } from "../ui/SettingsCloseIcon";
+import { useDialogFocus } from "../ui/useDialogFocus";
 
 export type CadenceSensorSheetProps = {
   open: boolean;
@@ -49,6 +51,8 @@ function rpmLine(props: CadenceSensorSheetProps): string | null {
  */
 export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
   const { open, onClose } = props;
+  const panelRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(open, panelRef);
 
   useEffect(() => {
     if (!open) return;
@@ -76,44 +80,45 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
   const manualSelected = manualReady && !cadenceMode;
 
   return (
-    <div className="cadence-sheet" role="dialog" aria-label="케이던스 센서">
+    <div className="cadence-sheet settings-surface" role="dialog" aria-label="케이던스 센서">
       <button
         type="button"
         className="cadence-sheet__scrim"
         aria-label="닫기"
-        title="Close"
+        title="닫기"
         onClick={onClose}
       />
-      <div className="cadence-sheet__panel">
-        <div className="cadence-sheet__handle" aria-hidden />
+      <div className="cadence-sheet__panel settings-surface__panel" ref={panelRef}>
+        <section className="cadence-sheet__hero" aria-label="센서 상태">
+          <span className="cadence-sheet__hero-label">케이던스</span>
+          <p className={`cadence-sheet__hero-value${connected && props.crankRpm != null ? "" : " cadence-sheet__hero-value--empty"}`} aria-label={rpm ?? "센서를 연결해 페달을 확인하세요"}>
+            {connected && props.crankRpm != null ? <>{Math.max(0, Math.round(props.crankRpm))}{" "}<small>rpm</small></> : connected ? "페달을 돌려 보세요" : manualSelected ? "체험 속도" : "센서를 연결하세요"}
+          </p>
+          <p className="cadence-sheet__status"><span className={connected ? "is-connected" : ""} />{manualSelected ? "센서 없이 달리기" : cadenceSensorShortStatus(props)}</p>
+          {props.deviceLabel ? <p className="cadence-sheet__device">{props.deviceLabel}</p> : null}
+        </section>
+        <div className="cadence-sheet__detail">
         {/*
          * 폰에는 Escape 키가 없고, 가로에서는 시트가 화면을 거의 채워 scrim 이 얇은 띠만
          * 남는다 — 명시적 닫기 버튼이 없으면 빠져나갈 길이 사실상 없다.
          */}
-        <div className="cadence-sheet__head">
+        <div className="cadence-sheet__head settings-surface__head">
           {/* 제목과 연결 상태를 한 줄로(2026-09-18 Chief) */}
-          <h2 className="cadence-sheet__title">
+          <h2 className="cadence-sheet__title settings-surface__title">
             {manualSelected ? "체험 속도" : "케이던스 센서"}
-            <span className="cadence-sheet__title-status">
-              {manualSelected ? "선택됨" : cadenceSensorShortStatus(props)}
-            </span>
           </h2>
           <button
             type="button"
-            className="cadence-sheet__close"
+            className="cadence-sheet__close settings-surface__close"
             aria-label="센서 설정 닫기"
-            title="Close"
+            title="닫기"
             onClick={onClose}
           >
-            닫기
+            <SettingsCloseIcon />
           </button>
         </div>
 
-        {props.deviceLabel ? (
-          <p className="cadence-sheet__device">{props.deviceLabel}</p>
-        ) : null}
-        {rpm ? <p className="cadence-sheet__rpm">{rpm}</p> : null}
-
+        <p className="cadence-sheet__intro">페달을 돌리면 왼쪽 숫자가 바뀌어요.<br />센서로 달린 주행만 순위에 올라가요.</p>
 
         {/* Go 가 잠긴 이유는 실제로 해소할 수 있는 이 자리에서만 말한다(RouteDock 에 두지 않는다) */}
         {/* 「센서를 연결해 페달을 확인하거나 체험 속도를 선택하세요」(choice-required)는
@@ -146,7 +151,7 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
               className={`cadence-sheet__btn${
                 manualReady ? "" : " cadence-sheet__btn--primary"
               }`}
-              title="Connect cadence sensor"
+              title="센서 연결"
               onClick={props.onConnect}
             >
               센서 연결
@@ -157,21 +162,25 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
             <button
               type="button"
               className="cadence-sheet__btn"
-              title="Disconnect sensor"
+              title="연결 해제"
               onClick={props.onDisconnect}
             >
               연결 해제
             </button>
           ) : null}
 
-          {connected && !cadenceMode ? (
+          {connected ? (
             <button
               type="button"
               className="cadence-sheet__btn cadence-sheet__btn--primary"
-              title="Switch to cadence speed"
-              onClick={props.onChooseCadence}
+              aria-label={cadenceMode ? "이 센서로 달리기" : "센서 속도로 전환"}
+              title="센서 선택 완료"
+              onClick={() => {
+                if (!cadenceMode) props.onChooseCadence();
+                onClose();
+              }}
             >
-              센서 속도로 전환
+              이 센서로 달리기
             </button>
           ) : null}
 
@@ -182,7 +191,7 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
               !cadenceMode && !manualReady ? " cadence-sheet__btn--primary" : ""
             }${manualReady ? " cadence-sheet__btn--on" : ""}`}
             aria-pressed={manualReady}
-            title="Use manual speed"
+            title="센서 없이 달리기 · 순위 제외"
             onClick={props.onChooseManual}
           >
             센서 없음
@@ -206,12 +215,14 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
         */}
         {!cadenceMode && (!props.riding || ALLOW_MANUAL_SPEED_WHILE_RIDING) ? (
           <div className="cadence-sheet__speed">
+            <span className="cadence-sheet__speed-label">센서 없이 달리기 · 순위 제외</span>
             <SessionSpeedControl
               speedKmh={props.manualSpeedKmh}
               onSpeedKmh={props.onManualSpeedKmh}
             />
           </div>
         ) : null}
+        </div>
       </div>
     </div>
   );

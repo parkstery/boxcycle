@@ -1,11 +1,4 @@
-import { useState } from "react";
-import {
-  CALORIE_INTENSITY_OPTIONS,
-  WEIGHT_KG_MAX,
-  WEIGHT_KG_MIN,
-  parseWeightKg,
-  type CalorieIntensityId,
-} from "../../lib/ride/caloriesEstimate";
+import { CALORIE_INTENSITY_OPTIONS, type CalorieIntensityId } from "../../lib/ride/caloriesEstimate";
 import "./RideSettingsSheet.css";
 
 export type RideSettingsPanelProps = {
@@ -25,149 +18,41 @@ export type RideSettingsPanelProps = {
   onCalorieWeightKg?: (raw: string) => boolean | void;
   calorieIntensityId?: CalorieIntensityId | null;
   onCalorieIntensityId?: (id: CalorieIntensityId) => boolean | void;
+  onEditProfile?: () => void;
   /** 계정 시트 등에 임베드 */
   embedded?: boolean;
 };
 
-/** TTS·BGM·코칭 배너 등 주행 설정 본문. 케이던스 센서는 HUD 센서 칩 → 센서 상세 설정이 소유한다. */
+/** 주행 중 표시 선택. 체중·강도 편집은 프로필이 소유한다(Chief 승인 묶음4). */
 export function RideSettingsPanel(props: RideSettingsPanelProps) {
-  const rootClass = props.embedded
-    ? "ride-settings-panel ride-settings-panel--embedded"
-    : "ride-settings-panel";
-  const showCalorie =
-    typeof props.onCalorieWeightKg === "function" &&
-    typeof props.onCalorieIntensityId === "function";
-  const [weightDraft, setWeightDraft] = useState(
-    props.calorieWeightKg != null ? String(props.calorieWeightKg) : "",
-  );
-  // prop 체중 변경 시 draft 동기화 — effect setState 금지(react-hooks/set-state-in-effect)
-  const [syncedWeightKg, setSyncedWeightKg] = useState(props.calorieWeightKg);
-  if (props.calorieWeightKg !== syncedWeightKg) {
-    setSyncedWeightKg(props.calorieWeightKg);
-    setWeightDraft(props.calorieWeightKg != null ? String(props.calorieWeightKg) : "");
-  }
-
-  const revertWeightDraft = () => {
-    setWeightDraft(props.calorieWeightKg != null ? String(props.calorieWeightKg) : "");
-  };
-
+  const intensity = CALORIE_INTENSITY_OPTIONS.find(option => option.id === props.calorieIntensityId);
+  const toggles = [
+    { name: "코칭 문구", value: props.rideCoachingBanner, change: props.onRideCoachingBanner, help: "주행 중 화면 아래에 짧게 보여요" },
+    { name: "음성 안내", value: props.rideTtsEnabled, change: props.onRideTtsEnabled },
+    { name: "배경 음악", value: props.rideBgmEnabled, change: props.onRideBgmEnabled, disabled: !props.rideBgmCatalogConfigured },
+    { name: "페이서", value: props.pacerEnabled, change: props.onPacerEnabled },
+  ];
   return (
-    <div className={rootClass}>
-      {showCalorie ? (
-        <div className="ride-settings-sheet__group" aria-label="추정 칼로리">
-          <span className="ride-settings-sheet__kicker ride-settings-sheet__calorie-title">
-            추정 칼로리
-          </span>
-          <p className="ride-settings-sheet__help">
-            센서 주행 시 체중과 운동 강도를 바탕으로 계산합니다.
-          </p>
-          <div className="ride-settings-sheet__calorie-row">
-            <label className="ride-settings-sheet__weight" title="Body weight">
-              <span>체중(kg)</span>
-              <input
-                type="number"
-                inputMode="decimal"
-                min={WEIGHT_KG_MIN}
-                max={WEIGHT_KG_MAX}
-                step={1}
-                placeholder={`${WEIGHT_KG_MIN}–${WEIGHT_KG_MAX}`}
-                value={weightDraft}
-                onChange={(e) => {
-                  const raw = e.target.value;
-                  setWeightDraft(raw);
-                  // 빈 칸·범위 밖은 확정 null. 입력 중(예: 7→70)은 draft만 유지.
-                  if (raw.trim() === "") {
-                    const ok = props.onCalorieWeightKg?.("");
-                    if (ok === false) revertWeightDraft();
-                    return;
-                  }
-                  if (parseWeightKg(raw) != null) {
-                    const ok = props.onCalorieWeightKg?.(raw);
-                    if (ok === false) revertWeightDraft();
-                  }
-                }}
-                onBlur={() => {
-                  const parsed = parseWeightKg(weightDraft);
-                  if (parsed == null && weightDraft.trim() !== "") {
-                    revertWeightDraft();
-                  } else if (parsed != null) {
-                    setWeightDraft(String(parsed));
-                    const ok = props.onCalorieWeightKg?.(String(parsed));
-                    if (ok === false) revertWeightDraft();
-                  }
-                }}
-              />
-            </label>
-            <div className="ride-settings-sheet__chips" role="group" aria-label="운동 강도">
-              <span className="ride-settings-sheet__fitness-label">운동 강도</span>
-              {CALORIE_INTENSITY_OPTIONS.map((opt) => {
-                const active = props.calorieIntensityId === opt.id;
-                const label = opt.id === "light" ? "약함" : opt.label;
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    className={`ride-settings-sheet__chip${active ? " is-active" : ""}`}
-                    aria-pressed={active}
-                    title={label}
-                    onClick={() => {
-                      props.onCalorieIntensityId?.(opt.id);
-                    }}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      <div className="ride-settings-sheet__group" aria-label="화면 표시">
-        <span className="ride-settings-sheet__kicker">표시</span>
-        <div className="ride-settings-sheet__toggles">
-          <label className="ride-settings-sheet__toggle" title="Coaching banner">
-            <input
-              type="checkbox"
-              checked={props.rideCoachingBanner}
-              onChange={(e) => props.onRideCoachingBanner(e.target.checked)}
-            />
-            코칭 배너
+    <div className={`ride-settings-panel${props.embedded ? " ride-settings-panel--embedded" : ""}`}>
+      <div className="ride-settings-panel__choices" role="group" aria-label="화면 표시">
+        {toggles.map(toggle => (
+          <label key={toggle.name} className="ride-settings-panel__choice">
+            <span className="ride-settings-panel__copy"><span>{toggle.name}</span>
+              {toggle.help ? <small>{toggle.help}</small> : null}
+              {toggle.disabled ? <small>배경 음악을 준비 중이에요</small> : null}
+            </span>
+            <input type="checkbox" role="switch" checked={toggle.value} disabled={toggle.disabled}
+              onChange={event => toggle.change(event.target.checked)} />
           </label>
-          <label className="ride-settings-sheet__toggle" title="Text-to-speech">
-            <input
-              type="checkbox"
-              checked={props.rideTtsEnabled}
-              onChange={(e) => props.onRideTtsEnabled(e.target.checked)}
-            />
-            음성 안내
-          </label>
-          <label
-            className="ride-settings-sheet__toggle"
-            title={!props.rideBgmCatalogConfigured ? "BGM not configured" : "Background music"}
-          >
-            <input
-              type="checkbox"
-              checked={props.rideBgmEnabled}
-              disabled={!props.rideBgmCatalogConfigured}
-              onChange={(e) => props.onRideBgmEnabled(e.target.checked)}
-            />
-            배경 음악
-          </label>
-          <label className="ride-settings-sheet__toggle" title="Pacer riders">
-            <input
-              type="checkbox"
-              checked={props.pacerEnabled}
-              onChange={(e) => props.onPacerEnabled(e.target.checked)}
-            />
-            페이서
-          </label>
-        </div>
-        {props.rideElevationProfileLoading ? (
-          <p className="ride-settings-sheet__help">고도 프로필 로드 중…</p>
-        ) : null}
+        ))}
       </div>
-
+      <div className="ride-settings-panel__calories">
+        <div className="ride-settings-panel__copy"><span>칼로리 계산</span>
+          <small>{props.calorieWeightKg != null ? `체중 ${props.calorieWeightKg} kg` : "프로필에 체중을 입력하세요"}{intensity ? ` · 운동 강도 ${intensity.label}` : " · 운동 강도를 선택하세요"}</small>
+        </div>
+        {props.onEditProfile ? <button type="button" className="ride-settings-panel__profile" onClick={props.onEditProfile}>프로필 수정</button> : null}
+      </div>
+      {props.rideElevationProfileLoading ? <p className="ride-settings-sheet__help">고도 프로필 로드 중…</p> : null}
     </div>
   );
 }

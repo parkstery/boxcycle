@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { User } from "firebase/auth";
 import {
   CALORIE_INTENSITY_OPTIONS,
@@ -17,6 +17,8 @@ import { ACCOUNT_DELETION_CONFIRM_PHRASE, deleteMyAccount, isDeletionConfirmPhra
 import { prepareStartScreen } from "../lib/storage/appSessionKeys";
 import "./ride/RideSettingsSheet.css";
 import "./ProfileEditSheet.css";
+import { SettingsCloseIcon } from "./ui/SettingsCloseIcon";
+import { useDialogFocus } from "./ui/useDialogFocus";
 
 type ProfileEditSheetProps = {
   open: boolean;
@@ -45,6 +47,8 @@ export function ProfileEditSheet(props: ProfileEditSheetProps) {
 
 function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
   const { onClose } = props;
+  const panelRef = useRef<HTMLFormElement>(null);
+  useDialogFocus(true, panelRef);
   const isGuest = props.user.isAnonymous;
   const currentNickname = props.user.displayName?.trim() ?? "";
   const [nickname, setNickname] = useState(currentNickname);
@@ -114,18 +118,21 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
   };
 
   return (
-    <div className="ride-settings-sheet profile-edit-sheet" role="dialog" aria-label="프로필 수정">
+    <div className="ride-settings-sheet profile-edit-sheet settings-surface" aria-modal="true" role="dialog" aria-label="프로필 수정">
       <button
         type="button"
         className="ride-settings-sheet__scrim"
         aria-label="닫기"
-        title="Close"
+        title="닫기"
         disabled={saving || deletionBusy}
         onClick={onClose}
       />
-      <form className="ride-settings-sheet__panel" noValidate onSubmit={(ev) => void handleSubmit(ev)}>
+      <form ref={panelRef} className="ride-settings-sheet__panel settings-surface__panel" noValidate onSubmit={(ev) => void handleSubmit(ev)}>
         <div className="ride-settings-sheet__handle" aria-hidden />
-        <h2 className="ride-settings-sheet__title">프로필 수정</h2>
+        <div className="settings-surface__head">
+          <h2 className="ride-settings-sheet__title settings-surface__title">프로필 수정</h2>
+          <button type="button" className="settings-surface__close" aria-label="닫기" title="닫기" disabled={saving || deletionBusy} onClick={onClose}><SettingsCloseIcon /></button>
+        </div>
 
         <div className="ride-settings-sheet__group profile-edit-sheet__nickname">
           <span className="ride-settings-sheet__kicker">닉네임</span>
@@ -160,8 +167,9 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
 
         <div className="ride-settings-sheet__group">
           <div className="profile-edit-sheet__calorie-field">
-            <span className="ride-settings-sheet__kicker">체중(Kg)</span>
+            <span className="ride-settings-sheet__kicker">체중</span>
             <div className="profile-edit-sheet__weight-controls">
+              <button type="button" className="profile-edit-sheet__weight-step" aria-label="체중 줄이기" disabled={saving} onClick={() => setWeightDraft(String(Math.max(WEIGHT_KG_MIN, Math.round(((parseWeightKg(weightDraft) ?? props.weightKg ?? WEIGHT_KG_MIN) - 1) * 10) / 10)))}>−</button>
               <label className="ride-settings-sheet__weight">
                 <span className="profile-edit-sheet__visually-hidden">체중(kg)</span>
                 <input
@@ -179,7 +187,9 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
                     setError(null);
                   }}
                 />
+                <span className="profile-edit-sheet__weight-unit">kg</span>
               </label>
+              <button type="button" className="profile-edit-sheet__weight-step" aria-label="체중 늘리기" disabled={saving} onClick={() => setWeightDraft(String(Math.min(WEIGHT_KG_MAX, Math.round(((parseWeightKg(weightDraft) ?? props.weightKg ?? WEIGHT_KG_MIN) + 1) * 10) / 10)))}>+</button>
               <input
                 className="profile-edit-sheet__weight-slider"
                 type="range"
@@ -197,8 +207,8 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
             </div>
           </div>
           <div className="profile-edit-sheet__calorie-field">
-            <span className="ride-settings-sheet__kicker">체력</span>
-            <div className="ride-settings-sheet__chips" role="group" aria-label="체력">
+            <span className="ride-settings-sheet__kicker">운동 강도</span>
+            <div className="ride-settings-sheet__chips" role="group" aria-label="운동 강도">
               {CALORIE_INTENSITY_OPTIONS.map((opt) => {
                 const active = intensityId === opt.id;
                 return (

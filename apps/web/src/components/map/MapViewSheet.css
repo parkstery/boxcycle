@@ -454,3 +454,28 @@
   .map-view-sheet__advanced-toggle { min-height: 32px; padding: 3px 6px; }
   .map-view-sheet__advanced-sub { display: none; }
 }
+/* 승인 시안14: 우측 위 내용 높이 판. 기존 가장자리 드래그 transform은 유지한다. */
+.map-view-sheet.settings-surface.settings-surface { align-items: flex-start; }
+.map-view-sheet.settings-surface .map-view-sheet__panel {
+  width: min(320px, calc(100vw - 16px)); margin: 8px; padding: 12px 16px;
+  max-height: calc(100dvh - 16px); gap: 0; border-radius: 18px;
+}
+.map-view-sheet.settings-surface .map-view-sheet__head { margin-bottom: 4px; }
+.map-view-sheet.settings-surface .map-view-sheet__group { min-height: 45px; border-bottom: 1px solid #e9ecf1; gap: 8px; }
+.map-view-sheet.settings-surface .map-view-sheet__label-title { flex: 0 0 64px; width: 64px; font-size: 13px; font-weight: 500; opacity: 1; letter-spacing: 0; white-space: nowrap; }
+.map-view-sheet.settings-surface .map-view-sheet__chips { display: flex; gap: 2px; padding: 3px; border-radius: 12px; background: #f2f3f5; width: 100%; }
+.map-view-sheet.settings-surface .map-view-sheet__chip { flex: 1; min-height: 30px; border: 0; border-radius: 9px; background: transparent; color: #4b5160; font-size: 13px; padding: 3px 5px; white-space: nowrap; }
+.map-view-sheet.settings-surface .map-view-sheet__chip.is-active { background: #2457d6; color: #fff; }
+.map-view-sheet.settings-surface .map-view-sheet__check { display: flex; justify-content: space-between; width: 100%; flex-direction: row-reverse; min-height: 40px; font-size: 13px; }
+.map-view-sheet.settings-surface .map-view-sheet__advanced-toggle { min-height: 36px; border: 0; border-radius: 0; padding: 4px 0; background: transparent; }
+.map-view-sheet.settings-surface .map-view-sheet__advanced-leading strong { font-size: 13px; letter-spacing: 0; }
+.map-view-sheet.settings-surface .map-view-sheet__advanced-sub { display: none; }
+.map-view-sheet.settings-surface .map-view-sheet__row-body { overflow: visible; }
+.map-view-sheet.settings-surface .map-view-sheet__advanced-body { padding: 0; }
+.map-view-sheet.settings-surface .map-view-sheet__advanced-body .map-view-sheet__group:last-child { border: 0; }
+.map-view-sheet.settings-surface .map-view-sheet__zoom-step { min-height: 30px; width: 30px; border: 1px solid #c9d6ee; border-radius: 50%; background: #fff; }
+.map-view-sheet.settings-surface .map-view-sheet__zoom-readout { font-family: var(--rtw-font-num, sans-serif); font-size: 17px; }
+.map-view-sheet.settings-surface .map-view-sheet__range { min-width: 0; width: 100%; accent-color: #2457d6; }
+@media (hover: hover) {
+  .map-view-sheet.settings-surface .map-view-sheet__chip:hover:not(:disabled) { background: #eef3fc; color: #2457d6; }
+}

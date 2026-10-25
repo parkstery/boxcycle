@@ -11,6 +11,7 @@ import {
 } from "../../lib/map/mapGlobeView";
 import type { ConquestDisplayMode } from "./routeConquestLayers";
 import "./MapViewSheet.css";
+import { SettingsCloseIcon } from "../ui/SettingsCloseIcon";
 
 type MapViewSheetProps = {
   open: boolean;
@@ -66,7 +67,7 @@ export function MapViewSheet(props: MapViewSheetProps) {
 
   return (
     <div
-      className={`map-view-sheet${props.open ? " is-open" : ""}${headerReveal != null || revealing ? " is-dragging" : ""}`}
+      className={`map-view-sheet settings-surface${props.open ? " is-open" : ""}${headerReveal != null || revealing ? " is-dragging" : ""}`}
       role="dialog"
       aria-label="맵 뷰"
       id="map-view-sheet"
@@ -78,21 +79,21 @@ export function MapViewSheet(props: MapViewSheetProps) {
         type="button"
         className="map-view-sheet__scrim"
         aria-label="닫기"
-        title="Close"
+        title="닫기"
         onClick={props.onClose}
       />
-      <div className="map-view-sheet__panel" ref={panelRef}>
+      <div className="map-view-sheet__panel settings-surface__panel" ref={panelRef}>
         <div className="map-view-sheet__handle" aria-hidden />
-        <div className="map-view-sheet__head" {...headerDrag}>
-          <span className="map-view-sheet__head-title">맵 뷰</span>
+        <div className="map-view-sheet__head settings-surface__head" {...headerDrag}>
+          <span className="map-view-sheet__head-title settings-surface__title">맵 뷰</span>
           <button
             type="button"
-            className="map-view-sheet__close"
+            className="map-view-sheet__close settings-surface__close"
             aria-label="맵 뷰 닫기"
-            title="Close"
+            title="닫기"
             onClick={props.onClose}
           >
-            <span aria-hidden="true">✕</span>
+            <SettingsCloseIcon />
           </button>
         </div>
 
@@ -127,10 +128,11 @@ export function MapViewSheet(props: MapViewSheetProps) {
           <div className="map-view-sheet__row-body">
             <label
               className="map-view-sheet__check map-view-sheet__check--inline-3d"
-              title="Tilt map and show 3D buildings"
+              title="지도 기울기와 3D 건물 표시"
             >
               <input
                 type="checkbox"
+                role="switch"
                 checked={props.enable3D}
                 onChange={(e) => props.onEnable3D(e.target.checked)}
               />
@@ -148,7 +150,7 @@ export function MapViewSheet(props: MapViewSheetProps) {
             <span className="map-view-sheet__advanced-leading">
               <strong>고급 설정</strong>
               <span className="map-view-sheet__advanced-sub">
-                비교용 표시와 카메라 거리 미세 조정
+                도로 비교와 주행 거리 조정
               </span>
             </span>
           </summary>

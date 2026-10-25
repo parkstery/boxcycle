@@ -9,9 +9,18 @@ import { MapBottomLeftStack } from '../../src/features/map-overlays/MapBottomLef
 import { RouteMinimap } from '../../src/features/map-overlays/RouteMinimap';
 import { RouteDock } from '../../src/components/route-dock/RouteDock';
 import { RideSummarySheet } from '../../src/components/ride/RideSummarySheet';
+import { NextRideCard } from '../../src/components/ride/NextRideCard';
+import type { NextRideView } from '../../src/lib/ride/nextRideTarget';
+import type { SavedRoute } from '../../src/lib/route/repo/firestoreSavedRoutes';
+import type { LineStringGeometry } from '../../src/lib/geo/geo';
 import { RideSettingsSheet } from '../../src/components/ride/RideSettingsSheet';
 import { CadenceSensorSheet } from '../../src/components/sensor/CadenceSensorSheet';
 import { MapViewSheet } from '../../src/components/map/MapViewSheet';
+import { ProfileEditSheet } from '../../src/components/ProfileEditSheet';
+import type { User } from 'firebase/auth';
+import type { RideInputMode } from '../../src/lib/sensor/cadenceRideInput';
+import type { BleCrankRpmUiState, RideInputReadiness } from '../../src/lib/sensor/cadenceSensorUi';
+import type { CoverageOverlayMode } from '../../src/lib/activity/coverageOverlayMode';
 import { AppIntroScreen } from '../../src/components/auth/AppIntroScreen';
 import { EntryLocationDialog } from '../../src/components/auth/EntryLocationDialog';
 import { OfficialCourseListModal } from '../../src/components/ride/OfficialCourseListModal';
@@ -63,13 +72,74 @@ const mockLeaderboard: LeaderboardResponse = {
     around: [],
   },
 };
+const summaryVariant = params.get('variant');
 const result: RideEndResult = {
   recordId:'ui-preview', endedAtIso:'2026-10-20T08:00:00Z', sessionDistanceMeters:1200,
   elapsedSec:420, avgSpeedKmh:18, caloriesEstimate:null, savedRouteId:null,
   routeName:'남산공원길', hasRoute:true, previousProgressRatio:0.2, progressRatio:0.44,
   routeCompleted:false, anchorLngLat:[126.98,37.55], anchorPlaceLabel:'남산공원길',
-  profile:'cycling', routeDistanceMeters:5000, rideSaveStatus:'success',
-  savedRouteProgressStatus:'n/a',
+  profile:'cycling', routeDistanceMeters:5000,
+  rideSaveStatus: summaryVariant === 'saving' ? 'pending' : 'success',
+  savedRouteProgressStatus: summaryVariant === 'progress-fail' ? 'failed' : 'n/a',
+};
+
+const nextRideGeometry: LineStringGeometry = {
+  type: 'LineString',
+  coordinates: [[127.0, 37.5], [127.01, 37.5], [127.02, 37.5]],
+};
+const nextRideRoute: SavedRoute = {
+  id: 'preview-route-a',
+  name: long ? '대한민국 서울특별시 용산구 남산공원길 아주 긴 경로 이름 테스트' : '남산 순환로',
+  profile: 'cycling',
+  startLngLat: [127.0, 37.5],
+  endLngLat: [127.02, 37.5],
+  waypoints: [],
+  geometry: nextRideGeometry,
+  distanceMeters: 2200,
+  durationSec: 480,
+  createdAtIso: '2026-10-01T00:00:00.000Z',
+  updatedAtIso: '2026-10-06T00:00:00.000Z',
+  completed: 0,
+  completedAtIso: null,
+  expiresAtIso: null,
+  lastRideId: 'preview-ride-1',
+  lastProgressRatio: 0.2,
+};
+const nextRideSession: StoredRideSession = {
+  id: 'preview-ride-1',
+  endedAt: '2026-10-22T07:30:00.000Z',
+  elapsedSec: 420,
+  distanceMeters: 440,
+  avgSpeedKmh: 18,
+  caloriesEstimate: 0,
+  routeDistanceMeters: 2200,
+  routeDurationSec: 480,
+  userRouteId: nextRideRoute.id,
+  routeName: nextRideRoute.name,
+  completionRatio: 0.2,
+  sessionEndLngLat: [127.004, 37.5],
+  sessionEndPlaceLabel: long ? '대한민국 서울특별시 용산구 남산공원길 126' : '남산공원 입구',
+  endPlaceLabel: '전망대',
+};
+const nextRideResumeView: NextRideView = {
+  target: {
+    kind: 'resume_route',
+    rideId: nextRideSession.id,
+    routeId: nextRideRoute.id,
+    progressRatio: 0.2,
+    anchorLngLat: [127.004, 37.5],
+  },
+  ride: nextRideSession,
+  route: nextRideRoute,
+};
+const nextRideExtendView: NextRideView = {
+  target: {
+    kind: 'extend_from_ride',
+    rideId: nextRideSession.id,
+    anchorLngLat: [127.004, 37.5],
+  },
+  ride: nextRideSession,
+  route: null,
 };
 const previewRideSessions: StoredRideSession[] = [
   {
@@ -124,36 +194,205 @@ const stops: RouteDockStop[] = [
   {id:'end',kind:'end',label:long?'대한민국 강원특별자치도 원주시 아주 긴 이름의 목적지':'남산 순환로 전망대',loading:false,lngLat:[126.99,37.56]},
 ];
 
+const isNextRidePreview = initial === 'nextride-resume' || initial === 'nextride-extend';
+
+const BATCH4_PROFILE_STATES = new Set(['profile', 'profile-guest', 'profile-locked']);
+const BATCH4_SENSOR_STATES = new Set([
+  'sensor',
+  'sensor-connected',
+  'sensor-disconnected',
+  'sensor-riding-manual',
+  'sensor-unsupported',
+]);
+const isBatch4Fixture =
+  BATCH4_PROFILE_STATES.has(initial) ||
+  BATCH4_SENSOR_STATES.has(initial) ||
+  initial === 'settings' ||
+  initial === 'map';
+
+function resolveInitialPanel(state: string): string {
+  if (state === 'glance-summary') return 'summary';
+  if (state === 'nextride-resume' || state === 'nextride-extend') return 'idle';
+  if (BATCH4_PROFILE_STATES.has(state)) return 'profile';
+  if (BATCH4_SENSOR_STATES.has(state)) return 'sensor';
+  if (state === 'settings' || state === 'map') return state;
+  return state;
+}
+
+function makeProfileUser(state: string): User {
+  const guest = state === 'profile-guest';
+  return {
+    uid: guest ? 'preview-guest' : 'preview-member',
+    isAnonymous: guest,
+    displayName: guest ? null : 'Ridingman12',
+  } as User;
+}
+
+function profileNicknameLockMs(state: string): number | null {
+  if (state !== 'profile-locked') return null;
+  return Date.now() - 86400000 * 5;
+}
+
+type SensorSheetMemory = {
+  capable: boolean;
+  uiState: BleCrankRpmUiState;
+  crankRpm: number | null;
+  mode: RideInputMode;
+  readiness: RideInputReadiness;
+  riding: boolean;
+  deviceLabel: string | null;
+  errorMessage: string | null;
+};
+
+function sensorSheetMemoryForState(state: string): SensorSheetMemory {
+  switch (state) {
+    case 'sensor-connected':
+      return {
+        capable: true,
+        uiState: 'connected',
+        crankRpm: 82,
+        mode: 'cadence',
+        readiness: 'cadence-ready',
+        riding: false,
+        deviceLabel: 'Wahoo CADENCE',
+        errorMessage: null,
+      };
+    case 'sensor-disconnected':
+      return {
+        capable: true,
+        uiState: 'disconnected',
+        crankRpm: null,
+        mode: 'cadence',
+        readiness: 'choice-required',
+        riding: false,
+        deviceLabel: 'Wahoo CADENCE',
+        errorMessage: '연결이 끊어졌습니다.',
+      };
+    case 'sensor-riding-manual':
+      return {
+        capable: true,
+        uiState: 'idle',
+        crankRpm: null,
+        mode: 'manual',
+        readiness: 'manual-ready',
+        riding: true,
+        deviceLabel: null,
+        errorMessage: null,
+      };
+    case 'sensor-unsupported':
+      return {
+        capable: false,
+        uiState: 'idle',
+        crankRpm: null,
+        mode: 'manual',
+        readiness: 'choice-required',
+        riding: false,
+        deviceLabel: null,
+        errorMessage: null,
+      };
+    default:
+      return {
+        capable: true,
+        uiState: 'idle',
+        crankRpm: null,
+        mode: 'manual',
+        readiness: 'choice-required',
+        riding: false,
+        deviceLabel: null,
+        errorMessage: null,
+      };
+  }
+}
+
 function Preview() {
   const glanceStage: RideUiStage =
     initial === 'glance-riding' ? 'riding' : initial === 'glance-summary' ? 'idle' : 'ready-to-start';
+  const batch4RidingMap = initial === 'map' && params.has('riding');
   const [stage,setStage] = useState<RideUiStage>(
     glanceCapture
       ? glanceStage
-      : initial==='riding'
-        ? 'riding'
-        : initial==='paused'
-          ? 'paused'
-          : initial==='idle'
-            ? 'idle'
-            : initial==='setup'
-              ? 'setup'
-              : 'ready-to-start',
+      : isNextRidePreview
+        ? 'idle'
+        : initial === 'sensor-riding-manual' || batch4RidingMap
+          ? 'riding'
+          : initial==='riding'
+            ? 'riding'
+            : initial==='paused'
+              ? 'paused'
+              : initial==='idle'
+                ? 'idle'
+                : initial==='setup'
+                  ? 'setup'
+                  : 'ready-to-start',
   );
   const [camera,setCamera] = useState<1|2|3|4|5|6>(1);
   const [routeSetupToken,setRouteSetupToken] = useState<object>({});
-  const [panel,setPanel] = useState(initial === 'glance-summary' ? 'summary' : initial);
+  const [panel,setPanel] = useState(resolveInitialPanel(initial));
+  const [nextRideHidden, setNextRideHidden] = useState(false);
+  const [nextRideCalls, setNextRideCalls] = useState({
+    resume: 0,
+    extend: 0,
+    map: 0,
+    dismiss: 0,
+  });
+  const bumpNextRideCall = (key: keyof typeof nextRideCalls) => {
+    setNextRideCalls((prev) => ({ ...prev, [key]: prev[key] + 1 }));
+  };
+  const batch4CalorieSeed = isBatch4Fixture || BATCH4_PROFILE_STATES.has(initial) || initial === 'settings';
   const [manual,setManual] = useState(false);
   const [speed,setSpeed] = useState(18);
-  const [weight,setWeight] = useState<number|null>(null);
-  const [intensity,setIntensity] = useState<CalorieIntensityId|null>(null);
+  const [weight,setWeight] = useState<number|null>(batch4CalorieSeed ? 64 : null);
+  const [intensity,setIntensity] = useState<CalorieIntensityId|null>(batch4CalorieSeed ? 'moderate' : null);
   const [conquest,setConquest] = useState<ConquestDisplayMode>('all');
+  const [coverage,setCoverage] = useState<CoverageOverlayMode>('off');
+  const [enable3D,setEnable3D] = useState(false);
+  const [mapRecentGeometry,setMapRecentGeometry] = useState(false);
+  const [rideCameraDistanceM,setRideCameraDistanceM] = useState(40);
+  const [rideTtsEnabled,setRideTtsEnabled] = useState(true);
+  const [rideBgmEnabled,setRideBgmEnabled] = useState(true);
+  const [rideCoachingBanner,setRideCoachingBanner] = useState(true);
+  const [pacerEnabled,setPacerEnabled] = useState(true);
+  const [settingsProfileNavCalls,setSettingsProfileNavCalls] = useState(0);
+  const [sensorCalls,setSensorCalls] = useState({ connect: 0, disconnect: 0, manual: 0, cadence: 0 });
+  const bumpSensorCall = (key: keyof typeof sensorCalls) => {
+    setSensorCalls((prev) => ({ ...prev, [key]: prev[key] + 1 }));
+  };
+  const [profilePersistCalls,setProfilePersistCalls] = useState({ nickname: 0, weight: 0, intensity: 0 });
+  const [sensorSheet,setSensorSheet] = useState<SensorSheetMemory>(() => sensorSheetMemoryForState(initial));
+  const sensorPreset = initial !== 'sensor';
+  const sensorReadiness: RideInputReadiness =
+    initial === 'sensor'
+      ? manual
+        ? 'manual-ready'
+        : 'choice-required'
+      : sensorSheet.readiness;
+  const sensorMode: RideInputMode =
+    initial === 'sensor' ? (manual ? 'manual' : sensorSheet.mode) : sensorSheet.mode;
+  const sensorRiding = sensorSheet.riding;
+  const sensorCapable = sensorSheet.capable;
+  const sensorUiState = sensorSheet.uiState;
+  const sensorCrankRpm =
+    sensorSheet.uiState === 'connected' ? sensorSheet.crankRpm : sensorPreset ? sensorSheet.crankRpm : null;
   const [menuReveal,setMenuReveal] = useState<number|null>(null);
   const [mapReveal,setMapReveal] = useState<number|null>(null);
-  const modalOpen=['menu','map','account','settings','sensor','routes','summary','intro','location'].includes(panel);
+  const modalOpen=['menu','map','account','settings','sensor','profile','routes','summary','intro','location'].includes(panel);
+  const profileUser = makeProfileUser(BATCH4_PROFILE_STATES.has(initial) ? initial : 'profile');
+  const profileNicknameChangedAtMs = profileNicknameLockMs(initial);
   const active = stage==='riding'||stage==='paused';
   const hasRoute = stage!=='idle'&&stage!=='setup';
-  const sensorState = {capable:true,uiState:active?'connected' as const:'idle' as const,crankRpm:active?72:null};
+  const dockSensorUi: BleCrankRpmUiState =
+    sensorPreset && panel === 'sensor'
+      ? sensorSheet.uiState
+      : active
+        ? 'connected'
+        : 'idle';
+  const dockCrankRpm =
+    sensorPreset && panel === 'sensor' && sensorSheet.uiState === 'connected'
+      ? sensorSheet.crankRpm
+      : active
+        ? 72
+        : null;
+  const sensorState = { capable: sensorCapable, uiState: dockSensorUi, crankRpm: dockCrankRpm };
   const glanceLiveRows = buildGlanceLiveRows(mockLeaderboard);
   const glanceRiding = initial === 'glance-riding';
   const glanceView = glanceCapture
@@ -217,25 +456,144 @@ function Preview() {
       leaderboardGlanceChip={glanceView?<LeaderboardGlanceChip {...glanceView} />:undefined}
       leaderboardGlancePanel={glanceView && initial!=='glance-summary'?<LeaderboardGlancePanel {...glanceView} />:undefined} />
     <RideSummarySheet open={panel==='summary'||initial==='glance-summary'} result={result} arrivalCompleted={false} elapsedLabel="07:00" avgKmh="18" caloriesEstimate={null}
-      story={initial==='glance-summary'?{headline:'첫 라이딩을 마치셨어요. 시작이 가장 어려운 법이에요.',detail:undefined}:{headline:'오늘도 나만의 길을 이었습니다.',detail:'남산공원길에서 1.2km를 달렸습니다.'}} adhocSaveAvailable={initial!=='glance-summary'} maxNameLength={80}
+      story={initial==='glance-summary'?{headline:'첫 라이딩을 마치셨어요. 시작이 가장 어려운 법이에요.',detail:undefined}:{headline:'오늘도 나만의 길을 이었습니다.',detail:'남산공원길에서 1.2km를 달렸습니다.'}}
+      adhocSaveAvailable={initial!=='glance-summary' && summaryVariant !== 'closed'}
+      onGuestLinkGoogle={initial==='glance-summary' ? noop : undefined}
+      maxNameLength={80}
       suggestedName="서울 남산공원길" onSaveAdhoc={()=>setPanel('ready')} onDismissAdhoc={noop} onClose={()=>setPanel('ready')}
       rankChange={summaryRank} onOpenLeaderboard={noop} />
-    <RideSettingsSheet open={panel==='settings'} onClose={()=>setPanel('ready')} rideTtsEnabled rideBgmEnabled rideCoachingBanner pacerEnabled
-      onRideTtsEnabled={noop} onRideBgmEnabled={noop} onRideCoachingBanner={noop} onPacerEnabled={noop} rideBgmCatalogConfigured rideElevationProfileLoading={false}
-      calorieWeightKg={weight} onCalorieWeightKg={raw=>setWeight(Number(raw)||null)} calorieIntensityId={intensity} onCalorieIntensityId={setIntensity}/>
+    {initial === 'nextride-resume' ? (
+      <div
+        id="batch3-next-ride-fixture"
+        data-resume-calls={String(nextRideCalls.resume)}
+        data-extend-calls={String(nextRideCalls.extend)}
+        data-map-calls={String(nextRideCalls.map)}
+        data-dismiss-calls={String(nextRideCalls.dismiss)}
+      >
+        {!nextRideHidden ? (
+          <NextRideCard
+            view={nextRideResumeView}
+            onResume={() => bumpNextRideCall('resume')}
+            onExtend={() => bumpNextRideCall('extend')}
+            onShowOnMap={() => bumpNextRideCall('map')}
+            onDismiss={() => {
+              bumpNextRideCall('dismiss');
+              setNextRideHidden(true);
+            }}
+          />
+        ) : null}
+      </div>
+    ) : null}
+    {initial === 'nextride-extend' ? (
+      <div
+        id="batch3-next-ride-fixture"
+        data-resume-calls={String(nextRideCalls.resume)}
+        data-extend-calls={String(nextRideCalls.extend)}
+        data-map-calls={String(nextRideCalls.map)}
+        data-dismiss-calls={String(nextRideCalls.dismiss)}
+      >
+        {!nextRideHidden ? (
+          <NextRideCard
+            view={nextRideExtendView}
+            onResume={() => bumpNextRideCall('resume')}
+            onExtend={() => bumpNextRideCall('extend')}
+            onShowOnMap={() => bumpNextRideCall('map')}
+            onDismiss={() => {
+              bumpNextRideCall('dismiss');
+              setNextRideHidden(true);
+            }}
+          />
+        ) : null}
+      </div>
+    ) : null}
+    <RideSettingsSheet open={panel==='settings'} onClose={()=>setPanel('ready')}
+      rideTtsEnabled={rideTtsEnabled} onRideTtsEnabled={setRideTtsEnabled}
+      rideBgmEnabled={rideBgmEnabled} onRideBgmEnabled={setRideBgmEnabled}
+      rideCoachingBanner={rideCoachingBanner} onRideCoachingBanner={setRideCoachingBanner}
+      pacerEnabled={pacerEnabled} onPacerEnabled={setPacerEnabled}
+      rideBgmCatalogConfigured rideElevationProfileLoading={false}
+      calorieWeightKg={weight} calorieIntensityId={intensity}
+      onEditProfile={() => {
+        setSettingsProfileNavCalls((n) => n + 1);
+        setPanel('profile');
+      }} />
+    <ProfileEditSheet
+      open={panel==='profile'}
+      onClose={() => setPanel(initial === 'settings' ? 'settings' : 'ready')}
+      user={profileUser}
+      weightKg={weight}
+      intensityId={intensity}
+      nicknameChangedAtMs={profileNicknameChangedAtMs}
+      onChangeNickname={async () => {
+        setProfilePersistCalls((prev) => ({ ...prev, nickname: prev.nickname + 1 }));
+      }}
+      onWeightKg={(raw) => {
+        const parsed = raw.trim() === '' ? null : Number(raw);
+        setWeight(parsed != null && Number.isFinite(parsed) ? parsed : null);
+        setProfilePersistCalls((prev) => ({ ...prev, weight: prev.weight + 1 }));
+        return true;
+      }}
+      onIntensityId={(id) => {
+        setIntensity(id);
+        setProfilePersistCalls((prev) => ({ ...prev, intensity: prev.intensity + 1 }));
+        return true;
+      }}
+    />
     <UserInfoSheet open={panel==='account'} onClose={()=>setPanel('ready')} user={null}
       recentSessions={params.has('historyPreview')?previewRideSessions:[]}
       isGuest tier="anonymous" subscriptionStatus="none" isPaid={false} busy={false}
       conquest={params.has('loading')?null:params.has('historyPreview')?{totalMeters:12400,totalCells:42}:{totalMeters:0,totalCells:0}}
       mileage={params.has('historyPreview')?{totalMeters:8500,totalSec:3120,rideCount:3}:{totalMeters:0,totalSec:0,rideCount:0}}
       onServiceExit={noop} onLinkGoogle={noop} />
-    <CadenceSensorSheet open={panel==='sensor'} onClose={()=>setPanel('ready')} capable uiState="idle" deviceLabel={null} crankRpm={null} errorMessage={null}
-      mode="manual" readiness={manual?'manual-ready':'choice-required'} riding={false} manualSpeedKmh={speed} onManualSpeedKmh={setSpeed}
-      onConnect={noop} onDisconnect={noop} onChooseManual={()=>setManual(true)} onChooseCadence={()=>setManual(false)} />
+    <CadenceSensorSheet
+      open={panel==='sensor'}
+      onClose={()=>setPanel('ready')}
+      capable={sensorCapable}
+      uiState={sensorUiState}
+      deviceLabel={sensorSheet.deviceLabel}
+      crankRpm={sensorCrankRpm}
+      errorMessage={sensorSheet.errorMessage}
+      mode={sensorMode}
+      readiness={sensorReadiness}
+      riding={sensorRiding}
+      manualSpeedKmh={speed}
+      onManualSpeedKmh={setSpeed}
+      onConnect={() => {
+        bumpSensorCall('connect');
+        setSensorSheet((prev) => ({ ...prev, uiState: 'connecting' }));
+      }}
+      onDisconnect={() => {
+        bumpSensorCall('disconnect');
+        setSensorSheet((prev) => ({
+          ...prev,
+          uiState: 'disconnected',
+          crankRpm: null,
+          errorMessage: '연결이 끊어졌습니다.',
+        }));
+      }}
+      onChooseManual={() => {
+        bumpSensorCall('manual');
+        setManual(true);
+        setSensorSheet((prev) => ({ ...prev, mode: 'manual', readiness: 'manual-ready' }));
+      }}
+      onChooseCadence={() => {
+        bumpSensorCall('cadence');
+        setManual(false);
+        setSensorSheet((prev) => ({
+          ...prev,
+          mode: 'cadence',
+          uiState: 'connected',
+          crankRpm: 82,
+          readiness: 'cadence-ready',
+        }));
+      }}
+    />
     <MapViewSheet open={panel==='map'} revealProgress={mapReveal} onClose={()=>setPanel('ready')}
-      coverageOverlayMode="off" onCoverageOverlayMode={noop} enable3D={false} onEnable3D={noop}
-      rideActive={active} rideCameraDistanceM={60} onRideCameraDistanceM={noop}
-      conquestDisplayMode={conquest} conquestHasRecentGeometry={false} onConquestDisplayMode={setConquest} onShowAllConquest={noop} />
+      coverageOverlayMode={coverage} onCoverageOverlayMode={setCoverage}
+      enable3D={enable3D} onEnable3D={setEnable3D}
+      rideActive={active} rideCameraDistanceM={rideCameraDistanceM} onRideCameraDistanceM={setRideCameraDistanceM}
+      conquestDisplayMode={conquest} conquestHasRecentGeometry={mapRecentGeometry}
+      onConquestDisplayMode={setConquest} onShowAllConquest={() => setMapRecentGeometry(true)} />
     {panel==='routes'?<OfficialCourseListModal segment="intro" onClose={()=>setPanel('ready')} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
       basicStartLoading={false} basicStartHubJoined={false} routeLoading={false} sessionIdle officialCourseCatalogAvailable publishedPublicCourses={[]}
       publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}/>:null}
@@ -252,6 +610,33 @@ function Preview() {
     </MenuPanel>
     {panel==='intro'?<AppIntroScreen onStartGuest={()=>setPanel('location')} onLogin={()=>setPanel('location')}/>:null}
     {panel==='location'?<EntryLocationDialog phase="choice" permission="prompt" onChooseRome={()=>setPanel('ready')} onChooseCurrent={()=>setPanel('ready')} onPosition={noop}/>:null}
+    {isBatch4Fixture ? (
+      <div
+        id="batch4-fixture"
+        aria-hidden="true"
+        data-ui-stage={stage}
+        data-manual-speed-kmh={String(speed)}
+        data-sensor-connect-calls={String(sensorCalls.connect)}
+        data-sensor-disconnect-calls={String(sensorCalls.disconnect)}
+        data-sensor-manual-calls={String(sensorCalls.manual)}
+        data-sensor-cadence-calls={String(sensorCalls.cadence)}
+        data-settings-profile-nav-calls={String(settingsProfileNavCalls)}
+        data-ride-tts={rideTtsEnabled ? '1' : '0'}
+        data-ride-bgm={rideBgmEnabled ? '1' : '0'}
+        data-ride-coaching={rideCoachingBanner ? '1' : '0'}
+        data-pacer={pacerEnabled ? '1' : '0'}
+        data-weight-kg={weight == null ? '' : String(weight)}
+        data-intensity-id={intensity ?? ''}
+        data-profile-nickname-calls={String(profilePersistCalls.nickname)}
+        data-profile-weight-calls={String(profilePersistCalls.weight)}
+        data-profile-intensity-calls={String(profilePersistCalls.intensity)}
+        data-map-enable3d={enable3D ? '1' : '0'}
+        data-map-coverage={coverage}
+        data-map-conquest={conquest}
+        data-map-recent={mapRecentGeometry ? '1' : '0'}
+        data-map-camera-m={String(rideCameraDistanceM)}
+      />
+    ) : null}
   </main>;
 }
 

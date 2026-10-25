@@ -90,15 +90,16 @@ export function RouteDock({
     }
   }, [stage]);
   if (!isRouteDockVisible(stage)) return null;
-  if (stops.length === 0 && !cadence) return null;
+  const sensorInDock =
+    sensorChipSlot({ stage, hasCadence: Boolean(cadence), expanded: true }) === "route-dock";
+  // 지시10: 빈 경로에서는 주소 판을 남기지 않는다. 센서가 실제 이 카드에 배치될 때만 예외다.
+  if (stops.length === 0 && !sensorInDock) return null;
 
   const canSwap =
     Boolean(onSwapEndpoints) &&
     !lockStopEditing &&
     stops.some((s) => s.kind === "start") &&
     stops.some((s) => s.kind === "end");
-  const sensorInDock =
-    sensorChipSlot({ stage, hasCadence: Boolean(cadence), expanded: true }) === "route-dock";
   const sensorChip =
     sensorInDock && cadence ? (
       <CadenceHudChip

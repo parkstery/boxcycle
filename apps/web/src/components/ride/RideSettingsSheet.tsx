@@ -4,6 +4,7 @@ import { useDialogFocus } from "../ui/useDialogFocus";
 import { useEscapeKeyClose } from "../ui/useEscapeKeyClose";
 import { RideSettingsPanel } from "./RideSettingsPanel";
 import "./RideSettingsSheet.css";
+import { SettingsCloseIcon } from "../ui/SettingsCloseIcon";
 
 type RideSettingsSheetProps = {
   open: boolean;
@@ -22,6 +23,7 @@ type RideSettingsSheetProps = {
   onCalorieWeightKg?: (raw: string) => boolean | void;
   calorieIntensityId?: CalorieIntensityId | null;
   onCalorieIntensityId?: (id: CalorieIntensityId) => boolean | void;
+  onEditProfile?: () => void;
 };
 
 /** 주행·표시 설정 — MENU 와 분리된 하단 시트. 센서는 별도 케이던스 상세 설정이 소유. */
@@ -34,26 +36,26 @@ export function RideSettingsSheet(props: RideSettingsSheetProps) {
   if (!props.open) return null;
 
   return (
-    <div className="ride-settings-sheet" role="dialog" aria-label="주행 설정">
+    <div className="ride-settings-sheet settings-surface" role="dialog" aria-label="주행 설정">
       <button
         type="button"
         className="ride-settings-sheet__scrim"
         aria-label="닫기"
-        title="Close"
+        title="닫기"
         onClick={props.onClose}
       />
-      <div className="ride-settings-sheet__panel" ref={panelRef}>
+      <div className="ride-settings-sheet__panel settings-surface__panel" ref={panelRef}>
         <div className="ride-settings-sheet__handle" aria-hidden />
-        <div className="ride-settings-sheet__head">
-          <h2 className="ride-settings-sheet__title">주행 설정</h2>
+        <div className="ride-settings-sheet__head settings-surface__head">
+          <h2 className="ride-settings-sheet__title settings-surface__title">주행 설정</h2>
           <button
             type="button"
-            className="ride-settings-sheet__close"
+            className="ride-settings-sheet__close settings-surface__close"
             aria-label="주행 설정 닫기"
             title="닫기"
             onClick={props.onClose}
           >
-            <span aria-hidden="true">✕</span>
+            <SettingsCloseIcon />
           </button>
         </div>
 
@@ -72,6 +74,7 @@ export function RideSettingsSheet(props: RideSettingsSheetProps) {
           onCalorieWeightKg={props.onCalorieWeightKg}
           calorieIntensityId={props.calorieIntensityId}
           onCalorieIntensityId={props.onCalorieIntensityId}
+          onEditProfile={props.onEditProfile}
         />
       </div>
     </div>
