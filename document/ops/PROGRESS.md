@@ -1,3 +1,4 @@
+2026-10-25 23:25 KST 지시76 배포·[지시77](20261023-ui-redesign/77-task-result-stale-e2e-rewrite.md): 76 커밋 4개 푸시(bfc1dd67)·호스팅 배포·운영 index-T5HbAjbA.js SHA256 일치. 77 낡은 시험 4건 다시 쓰기 — guest-lifecycle 4/4, ride-summary-compact 4/5(남은 1건 = 다음 주행 카드 오른쪽 5.7px 어긋남, 제품 발견·Chief 결정 대기). Claude Code 직접.
 2026-10-25 21:15 KST 지시76(미커밋): 거리·방향 기본 자동차·RouteDock 깜빡임 해소·에뮬레이터 시험 — 이어 달리기 7/7 등 통과, ride-summary-compact 낡은 시험 3건·게스트 offline 1건 FAIL(원인 확인, 제품 회귀 아님). Claude Code 직접.
 2026-10-25 19:50 KST 배포: main2 54eaa5e7 푸시·호스팅 배포, 운영 index-ogmYxeK9.js·index-hQh_MX2m.css SHA256 로컬 일치(Claude Code 직접). 에뮬레이터 종료·tmp/audit73 삭제. 남은 것: 거리·방향 기본 수단 결정, 에뮬레이터 실앱 시험 미실행, RouteDock 깜빡임.
 2026-10-25 19:00 KST 커밋: Chief 「커밋 푸시 배포해」. 묶음별 커밋 e19dc0e7(3)·685fa61f(4)·e52ee02a(5+74)·abc31f5f(75)·34d78830(로고) + 문서. 중간 커밋 tsc 0, quick 1361. 에뮬레이터 실앱 시험은 미실행.
