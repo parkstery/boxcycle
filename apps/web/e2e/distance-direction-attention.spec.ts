@@ -57,15 +57,16 @@ test('거리 확정→원 펄스→방향 클릭 자동 탐색→적용 수단 �
   // 10-22 지시24·29/커밋 0ec14853: 방향 클릭으로 탐색이 끝나면 적용 수단을 표시한다.
   await expect(popup).not.toHaveClass(/map-view__pick--awaiting-profile/);
   await expect(page.locator('#runtime-state')).toContainText('"picks":1');
-  await expect(page.locator('#runtime-state')).toContainText('"requestedProfile":"cycling"');
-  await expect(profiles.getByRole('button',{name:'자전거 경로',exact:true})).toHaveAttribute('aria-pressed','true');
+  // 10-25 Chief: 거리·방향 기본 수단은 자동차(앱 수단이 cycling 이어도).
+  await expect(page.locator('#runtime-state')).toContainText('"requestedProfile":"driving"');
+  await expect(profiles.getByRole('button',{name:'자동차 경로',exact:true})).toHaveAttribute('aria-pressed','true');
   await expect.poll(width).toBe(3);
   const animations=await profiles.locator('button').evaluateAll(buttons=>buttons.map(b=>getComputedStyle(b).animationName));
   expect(animations).toEqual(['none','none','none']);
-  await popup.getByRole('button',{name:'자동차 경로',exact:true}).click();
+  await popup.getByRole('button',{name:'자전거 경로',exact:true}).click();
   await expect(page.locator('#runtime-state')).toContainText('"picks":2');
-  await expect(page.locator('#runtime-state')).toContainText('"requestedProfile":"driving"');
-  await expect(profiles.getByRole('button',{name:'자동차 경로',exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('#runtime-state')).toContainText('"requestedProfile":"cycling"');
+  await expect(profiles.getByRole('button',{name:'자전거 경로',exact:true})).toHaveAttribute('aria-pressed','true');
   await expect(popup).not.toHaveClass(/map-view__pick--awaiting-profile/);
   const number=popup.getByRole('textbox',{name:'목표거리 km',exact:true});
   await number.fill('5');
@@ -92,6 +93,8 @@ test('거리 확정→원 펄스→방향 클릭 자동 탐색→적용 수단 �
   await expect.poll(width).toBe(3);
   await page.mouse.click(650,210);
   await expect(profiles).toBeVisible();
+  // 사용자가 고른 수단(보행)은 탭을 오가도 기본값(자동차)으로 돌아가지 않는다.
+  await expect(page.locator('#runtime-state')).toContainText('"requestedProfile":"walking"');
   expect(await profiles.locator('button').evaluateAll(buttons=>buttons.map(b=>getComputedStyle(b).animationName))).toEqual(['none','none','none']);
   await page.locator('.map-view__pick-dock-close,.mapboxgl-popup-close-button').first().click();
   await expect(popup).toHaveCount(0);

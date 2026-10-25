@@ -32,7 +32,8 @@ export {
   tryOpenActivityWorldPinPopup,
 } from "./mapMarkerElements";
 
-
+/** 거리·방향 탐색의 기본 수단(10-25 Chief 고정). 사용자가 맨 아래 수단 버튼으로 바꾼다. */
+export const DISTANCE_DEFAULT_PROFILE: RouteProfile = "driving";
 
 export type PickPopupAutoRouteUi = {
   setInlinePhase: (
@@ -154,6 +155,15 @@ export function buildPickPopup(deps: {
    */
   let routePickView: "location" | "distance" =
     deps.initialRoutePickView ?? (pins.start && (distanceDirectionChecked || autoSessionActive) ? "distance" : "location");
+  /*
+   * 10-25 Chief — 거리·방향의 기본 수단은 자동차로 고정, 사용자가 맨 아래 수단 버튼으로 바꿀 수 있다.
+   * 이미 걸린 거리 세션(팝업 다시 열기·이어 달리기)은 그때 고른·승계한 수단을 그대로 쓴다.
+   */
+  let distanceProfileKept = autoSessionActive || distanceDirectionChecked;
+  function applyDistanceDefaultProfile() {
+    if (!distanceProfileKept) currentProfile = DISTANCE_DEFAULT_PROFILE;
+  }
+  if (routePickView === "distance") applyDistanceDefaultProfile();
   /** 지시09 — 탭으로 location/distance 상호배타. 탭 전환은 핀·거리·수단·경로를 유지한다. */
   function getRouteStart(): LngLat | null {
     const armed = getDistanceAutoRouteMapBridge()?.getArmedStart?.() ?? null;
@@ -289,6 +299,7 @@ export function buildPickPopup(deps: {
       if (getRouteTokenInsufficient?.()) return;
       currentProfile = profile;
       profileChosen = true;
+      if (routePickView === "distance") distanceProfileKept = true;
       syncProfileUi();
       syncRoutePickView();
       const manualRouteReady = pins.start && pins.end && !distanceDirectionChecked;
@@ -652,6 +663,7 @@ export function buildPickPopup(deps: {
       pauseDistancePickForTabSwitch();
     }
     routePickView = next;
+    if (routePickView === "distance") applyDistanceDefaultProfile();
     syncRoutePickView();
     syncProfileUi();
     if (routePickView === "distance" && pins.start) {
