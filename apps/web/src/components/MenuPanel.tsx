@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { SpinatlasMark } from "./brand/SpinatlasMark";
 import { useDialogFocus } from "./ui/useDialogFocus";
 import { usePanelHeaderCloseDrag } from "./ui/usePanelHeaderCloseDrag";
 import "./MenuPanel.css";
@@ -103,7 +104,9 @@ export function MenuPanel({
       >
         <header className="menu-panel__head" {...headerDrag}>
           <div className="menu-panel__head-brand">
-            <span className="menu-panel__brand-dot" aria-hidden />
+            <span className="menu-panel__brand-mark" aria-hidden="true">
+              <SpinatlasMark className="menu-panel__brand-svg" />
+            </span>
             <span className="menu-panel__brand">Spinatlas</span>
           </div>
           <button

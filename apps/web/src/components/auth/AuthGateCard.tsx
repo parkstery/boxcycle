@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { SpinatlasMark } from "../brand/SpinatlasMark";
 import "./AuthGateCard.css";
 
 /** Google 로그인 버튼용 마크(앱 UI 한정; 실제 OAuth 화면은 구글 호스트) */
@@ -54,7 +55,10 @@ export function AuthGateCard({
       <div className="auth-gate__card">
         <div className="auth-gate__topbar">
           <div className="auth-gate__brand">
-            <span className="auth-gate__brand-dot" aria-hidden />
+            {/* 10-25 Chief — 글머리 점 대신 Spinatlas 심벌(메뉴 머리와 같은 SpinatlasMark). */}
+            <span className="auth-gate__brand-mark" aria-hidden="true">
+              <SpinatlasMark className="auth-gate__brand-svg" />
+            </span>
             Spinatlas
           </div>
           {onDismiss ? (
