@@ -345,9 +345,20 @@ async function endSession(page: Page): Promise<void> {
   await expect(sheet).toBeVisible({ timeout: 15_000 })
   await expect(sheet.getByRole('button', { name: '로그아웃', exact: true })).toHaveCount(0)
   await page.keyboard.press('Escape')
+  const uid = await readGuestUid(page)
   await page.evaluate(() => localStorage.setItem('boxcycle_app_use_ended_v1', '1'))
   await page.reload()
   await expectStartMenu(page)
+  /*
+   * 옛 빌드의 「종료」(handleServiceExit)는 표시를 세우기 전에 Trail membership·livePresence 를 지웠다.
+   * 그 기기가 돌아온 상태를 재현하려면 같은 정리를 해 둔다 — 아래 단언은 「종료 상태가 다시 만들지 않는다」를 본다.
+   */
+  if (uid) {
+    for (const name of await membershipDocPaths()) {
+      if (name.endsWith(`/${uid}`)) await deleteDoc(name.split('/documents/')[1]!)
+    }
+    await deleteDoc(`livePresence/${encodeURIComponent(uid)}`)
+  }
 }
 
 /**

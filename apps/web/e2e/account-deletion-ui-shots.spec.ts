@@ -12,7 +12,8 @@ import { guestStart } from "./rideEntryHelpers";
 
 const LIVE = process.env.RIDE_VERIFY_LIVE === "1";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SHOTS = path.resolve(__dirname, "../../../document/ops/20261006-account-deletion/shots-15");
+// 재검증 실행이 보관 사진을 덮지 않도록 출력 폴더를 바꿀 수 있다(10-25, 다른 잠금 시험과 같은 방식).
+const SHOTS = process.env.ACCOUNT_DELETION_SHOTS_DIR ?? path.resolve(__dirname, "../../../document/ops/20261006-account-deletion/shots-15");
 
 test.describe("계정 탈퇴 UI 촬영", () => {
   test.beforeAll(() => {

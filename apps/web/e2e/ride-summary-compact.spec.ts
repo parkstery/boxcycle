@@ -105,7 +105,9 @@ async function seedShortRoute(uid: string, routeId: string): Promise<void> {
 }
 
 async function loadSavedRouteFromMenu(page: Page, routeName: string) {
-  await page.getByRole("button", { name: "Trail 메뉴" }).click();
+  // 10-24 가장자리 탭이 화면 왼쪽을 덮는다 — 1px 접근성 트리거는 클릭 대신 키보드로 연다(calorie-profile-sync 와 같다).
+  await page.getByRole("button", { name: "Trail 메뉴" }).focus();
+  await page.keyboard.press("Enter");
   await page.getByRole("button", { name: "내 경로 목록" }).click();
   const row = page.getByText(routeName, { exact: false }).first();
   await expect(row).toBeVisible({ timeout: 15_000 });
@@ -252,11 +254,15 @@ test.describe("위치 컨트롤 선택이 거리 방향 대기를 끝낸다", ()
 
 test.describe("센서 설정 시트 레이아웃", () => {
   /*
-   * 2026-09-18 Chief 6건: ① 제목과 연결 상태를 한 줄 ② 버튼 이름 「센서 연결」·「센서 없음」
-   * ③ 「현재 입력」 줄과 choice-required 안내 제거 ④ SPD / km/h 두 줄
-   * ⑤ 숫자 입력의 증감(스피너) 제거 ⑥ 숫자 입력과 「＋」 위치 교체.
+   * 2026-09-18 Chief 6건 중 지금도 유효한 것: ② 버튼 이름 「센서 연결」·「센서 없음」
+   * ③ 「현재 입력」 줄과 choice-required 안내 제거 ⑤ 숫자 입력의 증감(스피너) 제거 ⑥ 「＋」 가 숫자 입력 왼쪽.
+   *
+   * 바뀐 것(10-25 Claude Code, 감리 지시76): ① 제목 한 줄 상태·④ SPD/km/h 두 줄·버튼 22px·
+   * 시트 255px·스피드 바 70% 는 Chief 승인 묶음4 시안12(두 칸 시트, 상태는 왼쪽 hero)로 대체됐다 —
+   * 패널 경계·글자는 `ui-redesign-batch4.spec.ts` 가 잠근다. 기본 입력은 2026-09-28 Chief 「센서 없음」이라
+   * 제목은 「체험 속도」, 상태는 hero 의 「센서 없이 달리기」다.
    */
-  test("제목 한 줄 · 버튼 이름 · 불필요 줄 제거 · SPD 2줄 · 스피너 없음 · ＋/숫자 교체", async ({
+  test("기본 체험 속도 제목·hero 상태 · 버튼 이름 · 불필요 줄 제거 · 스피너 없음 · ＋/숫자 교체", async ({
     page,
   }) => {
     test.setTimeout(120_000);
@@ -269,12 +275,11 @@ test.describe("센서 설정 시트 레이아웃", () => {
     const sheet = page.getByRole("dialog", { name: "케이던스 센서" });
     await expect(sheet).toBeVisible({ timeout: 15_000 });
 
-    // ① 제목 한 줄 — 제목과 상태가 같은 요소 안에 있다.
-    const title = sheet.locator(".cadence-sheet__title");
-    await expect(title).toContainText("케이던스 센서");
-    await expect(title.locator(".cadence-sheet__title-status")).toHaveText(/연결됨|연결 안 됨|연결 중|지원 안 됨/);
+    // ① 기본 「센서 없음」 — 제목은 체험 속도, 상태는 hero 한 줄.
+    await expect(sheet.locator(".cadence-sheet__title")).toHaveText("체험 속도");
+    await expect(sheet.locator(".cadence-sheet__status")).toHaveText("센서 없이 달리기");
 
-    // ② 버튼 이름
+    // ② 버튼 이름(「센서 연결」 은 BLE 지원 브라우저에서만 나온다 — 묶음4 시험이 따로 본다)
     await expect(sheet.getByRole("button", { name: "센서 없음" })).toBeVisible();
 
     // ③ 제거된 두 줄
@@ -297,14 +302,13 @@ test.describe("센서 설정 시트 레이아웃", () => {
       const steps = Array.from(document.querySelectorAll(".ride-speed-step")) as HTMLElement[];
       const plus = steps.find((b) => (b.textContent ?? "").includes("+")) ?? null;
       return {
-        name: box(q(".ride-speed-kicker__name")),
-        unit: box(q(".ride-speed-kicker__unit")),
         number: box(num),
         plus: box(plus),
         range: box(q(".ride-speed-range")),
-        panel: box(q(".cadence-sheet__panel")),
         numberAppearance: num ? getComputedStyle(num).appearance : null,
-        btn: box(q(".cadence-sheet__btn")),
+        btnHeights: Array.from(document.querySelectorAll(".cadence-sheet__btn")).map(
+          (b) => (b as HTMLElement).getBoundingClientRect().height,
+        ),
       };
     });
     fs.writeFileSync(
@@ -314,38 +318,19 @@ test.describe("센서 설정 시트 레이아웃", () => {
       "utf8",
     );
 
-    for (const k of ["name", "unit", "number", "plus"] as const) {
+    for (const k of ["number", "plus", "range"] as const) {
       expect(layout[k], `${k} 를 찾지 못했다`).not.toBeNull();
       expect(layout[k]!.width, `${k} 폭이 0`).toBeGreaterThan(0);
     }
 
-    /*
-     * 버튼 높이 80% 축소(2026-09-18 Chief) — 원래 28.17 → 22.52px.
-     * 세로 패딩만으로는 글자가 테두리에 닿아, line-height 를 1 로 조여 얻은 값이다.
-     */
-    expect(layout.btn, "센서 버튼을 찾지 못했다").not.toBeNull();
-    expect(layout.btn!.height, `버튼 높이: ${layout.btn!.height}`).toBeGreaterThan(21);
-    expect(layout.btn!.height, `버튼 높이: ${layout.btn!.height}`).toBeLessThan(24);
-
-    // ④ SPD 아래에 km/h — 두 줄이다(같은 줄이면 y 가 같다).
-    expect(layout.unit!.y, "km/h 가 SPD 아래 줄이어야 한다").toBeGreaterThan(layout.name!.y);
+    // 두 선택 버튼은 같은 높이다(묶음4 시안12).
+    expect(layout.btnHeights.length, "센서 버튼을 찾지 못했다").toBeGreaterThanOrEqual(2);
+    expect(new Set(layout.btnHeights).size, `버튼 높이: ${layout.btnHeights.join(",")}`).toBe(1);
 
     // ⑤ 스피너 제거 — textfield/none 이면 증감 화살표가 없다.
     expect(["textfield", "none"], `숫자 입력 appearance: ${layout.numberAppearance}`).toContain(
       layout.numberAppearance,
     );
-
-    /*
-     * 스피드 바를 종전의 70% 로, 시트 폭도 그만큼(2026-09-18 Chief).
-     * 바는 `flex: 1 1 auto` 라 시트에서 뺀 폭이 그대로 바에서 빠진다 —
-     * 실측 172.20 → 120.48px(70.0%), 시트 297.00 → 245.28px.
-     * 폰 가로 루트 13.5px 기준의 값이라 여유 밴드로 잡는다.
-     */
-    expect(layout.range, "스피드 바를 찾지 못했다").not.toBeNull();
-    expect(layout.panel, "시트 패널을 찾지 못했다").not.toBeNull();
-    expect(layout.range!.width, `스피드 바 폭: ${layout.range!.width}`).toBeGreaterThan(112);
-    expect(layout.range!.width, `스피드 바 폭: ${layout.range!.width}`).toBeLessThan(129);
-    expect(layout.panel!.width, `시트 폭: ${layout.panel!.width}`).toBeLessThan(255);
 
     // ⑥ ＋ 가 숫자 입력보다 왼쪽
     expect(layout.plus!.x, "＋ 가 숫자 입력 왼쪽이어야 한다").toBeLessThan(layout.number!.x);
