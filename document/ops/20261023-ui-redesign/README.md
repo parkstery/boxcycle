@@ -1,5 +1,7 @@
 # 전체 화면 디자인 변경 (2026-10-23~)
 
+2026-10-26 02:48 KST: [지시78](78-task-spinatlas-logo-replacement.md) → [결과79](79-result-spinatlas-logo-replacement.md). Spinatlas 심벌·파비콘을 `public/spinatlas-mark.svg` 단일 정본으로 통일(Codex 인수·Cursor 구현). 미커밋·미배포. 다음 80.
+
 2026-10-25 19:50 KST: **묶음3·4·5(+지시74)·지시75·로고 심벌 커밋·푸시·호스팅 배포 완료**(`e19dc0e7`…`54eaa5e7`, 운영 자산 SHA256 일치). 에뮬레이터 실앱 시험은 미실행으로 배포(Chief 지시). 아래 표의 「미커밋」 표시는 배포 전 기록이다.
 
 2026-10-25 KST: Supervisor Claude Code 재인수. [감리73](73-review-claude-batch3-5.md)(묶음3~5 독립 감리, 고정1~14 PASS, 묶음5 가 깨뜨린 옛 시험 9건 교정). Chief 묶음5 승인 조건 → [지시74](74-task-result-popup-bottom-row.md) 팝업 두 탭 맨 아래 줄 통일(고정15). Chief 결정 → [지시75](75-task-result-guest-no-logout.md) 게스트 로그아웃 제거. 모두 Claude Code 직접. 지시72 묶음6 은 중단·무효. 다음 76.
