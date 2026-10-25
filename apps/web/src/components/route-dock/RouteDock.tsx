@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import {
   isRouteDockActiveRide,
@@ -75,20 +75,23 @@ export function RouteDock({
   sensorAttention = false,
 }: RouteDockProps) {
   const [expanded, setExpanded] = useState(() => routeDockDefaultExpanded(stage));
-  const prevStageRef = useRef(stage);
+  const [prevStage, setPrevStage] = useState(stage);
   const { lockStopEditing } = routeDockUiPolicy(stage, editLocked);
 
-  useEffect(() => {
-    const prev = prevStageRef.current;
-    prevStageRef.current = stage;
-    const wasActive = isRouteDockActiveRide(prev);
+  /*
+   * 주행 시작엔 접고 끝나면 편다. effect 에서 바꾸면 펼친 카드가 한 번 commit 된 뒤 접혀
+   * 주행 시작 순간 깜빡였다(감리40 LOW, 10-25 해소) — 렌더 중에 이전 stage 와 비교해 맞춘다.
+   */
+  if (stage !== prevStage) {
+    setPrevStage(stage);
+    const wasActive = isRouteDockActiveRide(prevStage);
     const nowActive = isRouteDockActiveRide(stage);
     if (!wasActive && nowActive) {
       setExpanded(false);
     } else if (wasActive && !nowActive) {
       setExpanded(true);
     }
-  }, [stage]);
+  }
   if (!isRouteDockVisible(stage)) return null;
   const sensorInDock =
     sensorChipSlot({ stage, hasCadence: Boolean(cadence), expanded: true }) === "route-dock";
