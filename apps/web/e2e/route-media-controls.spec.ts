@@ -11,6 +11,11 @@ test('다섯 위치의 추가·교체 및 열린 경로창의 시작 준비상�
   const popup=page.locator('.map-view__pick');
   const state=page.locator('#runtime-state');
   const hold=async(x:number,y:number)=>{
+    // 지시65: 넓어진 팝업이 다음 지정 좌표를 덮을 수 있다. 닫고 실제 지도를 누른다.
+    if (await popup.isVisible()) {
+      await page.locator('.map-view__pick-dock-close, .mapboxgl-popup-close-button').last().click();
+      await expect(popup).toBeHidden();
+    }
     expect(await page.evaluate(([x,y])=>document.elementFromPoint(x,y)?.className,[x,y])).toContain('mapboxgl-canvas');
     await page.mouse.move(x,y);await page.mouse.down();await page.waitForTimeout(650);await page.mouse.up();
     await expect(popup).toBeVisible();
@@ -58,8 +63,9 @@ test('다섯 위치의 추가·교체 및 열린 경로창의 시작 준비상�
     expect(geometry.profiles[2].right).toBeLessThan(geometry.play.x);
     for(const profile of geometry.profiles)expect(Math.abs(profile.y+profile.height/2-geometry.play.y-geometry.play.height/2)).toBeLessThan(1);
     expect(Math.abs(geometry.play.y+geometry.play.height/2-geometry.clear.y-geometry.clear.height/2)).toBeLessThan(1);
+    expect(geometry.panel.width).toBe(300);
     expect(geometry.panel.right).toBeLessThanOrEqual(size.width);
     expect(geometry.panel.bottom).toBeLessThanOrEqual(size.height);
-    await page.screenshot({path:path.resolve('../..','.out',`step30-manual-${size.width}.png`)});
+    await page.screenshot({path:path.resolve(process.env.BATCH5_EVIDENCE_DIR ?? '../../.out',`step30-manual-${size.width}.png`)});
   }
 });

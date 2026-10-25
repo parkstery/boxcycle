@@ -1,8 +1,10 @@
 import { test, expect, type Page, type Locator } from "./open-meteo-stub";
 import fs from "node:fs";
+import { readGuestUid } from "./readGuestUid";
+import { stubMapboxStyle } from "./mapbox-stub";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { guestStart as sharedGuestStart } from "./rideEntryHelpers";
+import { chooseColosseumIfNeeded, guestStart as sharedGuestStart } from "./rideEntryHelpers";
 
 /**
  * 지도 지점 팝업 제목 행 계약 (2026-09-16 Chief).
@@ -17,13 +19,15 @@ import { guestStart as sharedGuestStart } from "./rideEntryHelpers";
  * 실행: npm run test:e2e:pick-title -w boxcycle-web
  */
 const LIVE = process.env.RIDE_VERIFY_LIVE === "1";
+const FS_HOST = process.env.FIRESTORE_EMULATOR_HOST?.trim() ?? "";
+const LOCAL_EMULATOR = /^(127\.0\.0\.1|localhost):/.test(FS_HOST);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const OUT_DIR = path.resolve(__dirname, "../.out/pick-popup-title");
+const OUT_DIR = process.env.BATCH5_EVIDENCE_DIR ?? path.resolve(__dirname, "../.out/pick-popup-title");
 
 type Box = { x: number; y: number; width: number; height: number };
 
 test.describe("지도 지점 팝업 — 제목 행", () => {
-  test.skip(!LIVE, "Firebase 에뮬레이터 필요 — npm run test:e2e:pick-title");
+  test.skip(!LIVE || !LOCAL_EMULATOR, "Firebase 에뮬레이터 필요 — npm run test:e2e:pick-title");
 
   for (const vp of [
     { name: "desktop", width: 1280, height: 900 },
@@ -33,8 +37,13 @@ test.describe("지도 지점 팝업 — 제목 행", () => {
       test.setTimeout(150_000);
       fs.mkdirSync(OUT_DIR, { recursive: true });
       await page.setViewportSize({ width: vp.width, height: vp.height });
+      await stubMapboxStyle(page);
+      // 이 시험은 비용이 있는 경우의 제목 계약을 검사한다. 비용0 기본값을 바꾸는 제품 수정이 아니다.
+      await seedTitleFixture("config/routeTokenEconomy", "generateCostBase", 1);
       await page.goto("/");
       await guestStart(page);
+      const uid = await readGuestUid(page);
+      await seedTitleFixture(`users/${uid}`, "routeTokenBalance", 8);
 
       const map = page.locator(".mapboxgl-canvas").first();
       await expect(map).toBeVisible({ timeout: 30_000 });
@@ -52,6 +61,11 @@ test.describe("지도 지점 팝업 — 제목 행", () => {
       await expect(titleLine, "핀 전 제목은 「경로 생성」").toHaveText("경로 생성");
       const titleBefore = await box(title);
       const addressBefore = await box(address);
+      const beforeBounds = await box(pick);
+      expect(beforeBounds.x).toBeGreaterThanOrEqual(0);
+      expect(beforeBounds.y).toBeGreaterThanOrEqual(0);
+      expect(beforeBounds.x + beforeBounds.width).toBeLessThanOrEqual(vp.width);
+      expect(beforeBounds.y + beforeBounds.height).toBeLessThanOrEqual(vp.height);
       expect(titleBefore.y, "제목이 주소보다 위").toBeLessThan(addressBefore.y);
       await pick.screenshot({ path: path.join(OUT_DIR, `01-${vp.name}-before-pin.png`) });
 
@@ -99,6 +113,7 @@ test.describe("지도 지점 팝업 — 제목 행", () => {
             titleTextBeforePin: "경로 생성",
             titleTextAfterPin: (await titleLine.innerText()).trim(),
             titleBefore,
+            beforeBounds,
             addressBefore,
             titleAfter,
             titleTextBox,
@@ -125,4 +140,16 @@ async function box(locator: Locator): Promise<Box> {
 
 async function guestStart(page: Page) {
   await sharedGuestStart(page);
+  await chooseColosseumIfNeeded(page, true);
+  await expect(page.getByRole("dialog", { name: "어디에서 시작할까요?", exact: true })).toBeHidden();
+}
+
+async function seedTitleFixture(documentPath: string, field: string, value: number) {
+  if (!LOCAL_EMULATOR) throw new Error("제목 fixture는 로컬 Firestore 에뮬레이터 전용");
+  const res = await fetch(`http://${FS_HOST}/v1/projects/boxcycle-dc2df/databases/(default)/documents/${documentPath}?updateMask.fieldPaths=${field}`, {
+    method: "PATCH",
+    headers: { Authorization: "Bearer owner", "Content-Type": "application/json" },
+    body: JSON.stringify({ fields: { [field]: { integerValue: String(value) } } }),
+  });
+  expect(res.status, await res.text()).toBe(200);
 }

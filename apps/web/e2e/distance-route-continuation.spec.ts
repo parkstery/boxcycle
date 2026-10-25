@@ -49,7 +49,8 @@ test('실제 hook: 여기에서 계속→방향 자동생성·수단 변경·삭
   await expect(page.locator('.map-view__temporary-pick-marker')).toHaveCount(0);
   await expect(page.locator('.map-view__auto-route-click-debug-host')).toHaveCount(0);
   // 출발·거리 재입력/수단 클릭 없이 다른 방향을 바로 눌러도 다시 생성한다.
-  for (const [index,point] of [[300,250],[450,80],[350,300]].entries()) {
+  // 감리73: 시안05 판 폭 300px(왼쪽 dock x≈8~308) 바깥 지도를 누른다. 캔버스 확인 단언은 유지.
+  for (const [index,point] of [[380,250],[450,80],[420,300]].entries()) {
     expect(await page.evaluate(point=>document.elementFromPoint(point[0]!,point[1]!)?.className,point)).toContain('mapboxgl-canvas');
     await page.mouse.click(point[0]!,point[1]!);
     await expect(state).toContainText(`"applied":${index+2}`);
@@ -69,11 +70,13 @@ test('실제 hook: 여기에서 계속→방향 자동생성·수단 변경·삭
   await popup.getByRole('tab',{name:'출발·도착',exact:true}).click();
   await expect(popup.getByRole('button',{name:'출발 지점으로 설정',exact:true})).toBeVisible();
   await popup.getByRole('tab',{name:'거리·방향',exact:true}).click();
-  await page.mouse.click(300,80);
+  // 감리73: 300px 판 바깥(지도 캔버스)에서 짧게 눌러도 출발은 정해지지 않는다.
+  expect(await page.evaluate(()=>document.elementFromPoint(480,80)?.className)).toContain('mapboxgl-canvas');
+  await page.mouse.click(480,80);
   await expect(state).toContainText('"start":null');
-  await page.screenshot({path:path.resolve('../..','.out','step24-distance-start.png')});
+  await page.screenshot({path:path.resolve(process.env.BATCH5_EVIDENCE_DIR ?? '../../.out','step24-distance-start.png')});
   const cdp=await page.context().newCDPSession(page);
-  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:300,y:80,id:1}]});
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:480,y:80,id:1}]});
   await page.waitForTimeout(650);
   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
   await expect(page.locator('.map-view__temporary-pick-marker')).toHaveCount(0);
@@ -94,7 +97,7 @@ test('실제 hook: 여기에서 계속→방향 자동생성·수단 변경·삭
   expect(requests[6].targetDistanceMeters).toBe(5000);
   expect(requests[6].start).not.toEqual(requests[0].start);
   expect(new Set(requests.slice(0,4).map((r:{targetRoadPoint:number[]})=>JSON.stringify(r.targetRoadPoint))).size).toBe(4);
-  await page.screenshot({path:path.resolve('../..','.out','step24-distance-generated.png')});
+  await page.screenshot({path:path.resolve(process.env.BATCH5_EVIDENCE_DIR ?? '../../.out','step24-distance-generated.png')});
   // 탐색 도중 삭제해도 즉시 새 출발 선택 가능, 늦은 옛 응답은 결과를 되살리지 않는다.
   await page.evaluate(()=>{
     // @ts-expect-error API fixture control
@@ -106,7 +109,8 @@ test('실제 hook: 여기에서 계속→방향 자동생성·수단 변경·삭
   await expect(state).toContainText('"step":"searching"');
   await popup.getByRole('button',{name:'경로 전체 삭제',exact:true}).click();
   await expect(state).toContainText('"start":null');
-  await page.mouse.move(300,80);await page.mouse.down();await page.waitForTimeout(650);await page.mouse.up();
+  expect(await page.evaluate(()=>document.elementFromPoint(480,80)?.className)).toContain('mapboxgl-canvas');
+  await page.mouse.move(480,80);await page.mouse.down();await page.waitForTimeout(650);await page.mouse.up();
   await expect(page.locator('.map-view__temporary-pick-marker')).toHaveCount(0);
   await expect(state).not.toContainText('"start":null');
   await popup.getByRole('button',{name:'목표 거리 5km',exact:true}).click();

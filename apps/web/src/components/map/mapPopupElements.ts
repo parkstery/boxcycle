@@ -10,6 +10,7 @@
  * 계약 시험이 문자열째 겨눈다 — 표현을 바꾸려면 시험부터 고쳐라.
  */
 import "../ride/RideMediaButton.css";
+import "./RoutePickPopup.css";
 import { formatDistanceAutoRouteDirectionClickHint, DISTANCE_AUTO_ROUTE_KM_MAX, DISTANCE_AUTO_ROUTE_KM_MIN, DISTANCE_AUTO_ROUTE_KM_STEP, DISTANCE_AUTO_ROUTE_REROUTE_HINT, DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA, DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL, validateDistanceAutoRouteTargetKm, DISTANCE_AUTO_ROUTE_CHIP_KM, DISTANCE_AUTO_ROUTE_DEFAULT_KM } from "../../lib/route/distanceAutoRouteErrors";
 import { getDistanceAutoRouteMapBridge } from "../../lib/map/distanceAutoRouteMapBridge";
 import type { LngLat } from "../../lib/geo/geo";
@@ -280,11 +281,11 @@ export function buildPickPopup(deps: {
     pb.className = "map-view__pick-btn map-view__pick-btn--profile";
     pb.innerHTML = buildPickPopupProfileIconSvg(profile);
     pb.title =
-      profile === "driving" ? "Route by car" : profile === "walking" ? "Route on foot" : "Route by bike";
+      profile === "driving" ? "자동차 경로" : profile === "walking" ? "보행 경로" : "자전거 경로";
     pb.setAttribute("aria-label", ariaLabelKo);
     pb.onclick = () => {
       if (!pins.start) return;
-      if (routePickView === "distance" && (!distanceConfirmed || !selectedDirection || distanceSearchPending)) return;
+      if (routePickView === "distance" && distanceSearchPending) return;
       if (getRouteTokenInsufficient?.()) return;
       currentProfile = profile;
       profileChosen = true;
@@ -298,7 +299,11 @@ export function buildPickPopup(deps: {
         return;
       }
       if (!pins.end) onSetRouteProfileOnly?.(profile);
-      if (routePickView === "distance" && selectedDirection && tryArmDirectionPick()) {
+      /*
+       * 10-25 Chief — 거리·방향에서도 수단을 고를 수 있다. 방향을 이미 골랐으면 그 수단으로
+       * 바로 재탐색, 아직이면 방향 대기를 새 수단으로 다시 걸어 다음 방향 클릭에 쓴다.
+       */
+      if (routePickView === "distance" && tryArmDirectionPick() && distanceConfirmed && selectedDirection) {
         onGenerateDistanceRoute?.(selectedDirection);
       }
     };
@@ -315,7 +320,7 @@ export function buildPickPopup(deps: {
     clearRouteBtn.type = "button";
     clearRouteBtn.className = "map-view__pick-btn map-view__pick-btn--clear-route";
     clearRouteBtn.textContent = "경로 삭제";
-    clearRouteBtn.title = "Clear route";
+    clearRouteBtn.title = "경로 전체 삭제";
     clearRouteBtn.setAttribute("aria-label", "경로 전체 삭제");
     clearRouteBtn.onclick = () => {
       onClearRoute();
@@ -349,7 +354,12 @@ export function buildPickPopup(deps: {
       manualRouteReady && onLocationTab && !distanceDirectionChecked;
     profileSection.hidden = !hasStart && !clearRouteBtn;
     const readyForProfile = onLocationTab ? manualRouteReady : distanceConfirmed && (Boolean(selectedDirection) || profileChosen);
-    rowProfile.hidden = !hasStart || !readyForProfile;
+    /*
+     * 10-25 Chief — 두 탭의 맨 아래 줄은 같은 구조(수단 3개 · 재생 · 경로 삭제)로 늘 보인다.
+     * 쓸 수 없을 때는 숨기지 않고 끈다: 출발·도착은 두 위치가 있어야, 거리·방향은 출발만 있으면 쓴다.
+     */
+    const profileUsable = onLocationTab ? manualRouteReady : hasStart;
+    rowProfile.hidden = false;
     if (clearRouteBtn) clearRouteBtn.hidden = false;
     wrap.classList.toggle("map-view__pick--awaiting-profile", readyForProfile && !profileChosen && !distanceSearchPending);
     profileLabel.textContent = readyForProfile ? "경로 탐색 유형 선택" : "이동수단";
@@ -359,22 +369,25 @@ export function buildPickPopup(deps: {
       if (!pb) return;
       pb.classList.toggle("is-active", profileChosen && spec.profile === currentProfile);
       pb.setAttribute("aria-pressed", String(profileChosen && spec.profile === currentProfile));
-      const blockProfile = (autoGenerateOnProfile || !onLocationTab) && tokenInsufficient || distanceSearchPending;
+      const blockProfile = !profileUsable || (autoGenerateOnProfile || !onLocationTab) && tokenInsufficient || distanceSearchPending;
       pb.disabled = blockProfile;
       pb.classList.toggle("is-disabled", blockProfile);
       pb.title = distanceSearchPending ? "경로 탐색 중입니다."
+        : !profileUsable
+        ? (onLocationTab ? "Start·End 를 먼저 정하세요" : "출발 위치를 먼저 정하세요")
         : blockProfile
         ? ROUTE_TOKEN_INSUFFICIENT_HINT
         : spec.profile === "driving"
-          ? "Route by car"
+          ? "자동차 경로"
           : spec.profile === "walking"
-            ? "Route on foot"
-            : "Route by bike";
+            ? "보행 경로"
+            : "자전거 경로";
     });
   }
 
   function restartProfileAttention() {
-    if (rowProfile.hidden || profileChosen || distanceSearchPending) return;
+    // 줄은 늘 보이므로 숨김이 아니라 강조 대상 여부(syncProfileUi 가 단 클래스)로 판단한다.
+    if (!wrap.classList.contains("map-view__pick--awaiting-profile")) return;
     wrap.classList.remove("map-view__pick--awaiting-profile");
     void wrap.offsetWidth;
     wrap.classList.add("map-view__pick--awaiting-profile");

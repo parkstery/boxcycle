@@ -37,7 +37,8 @@ for(const size of [{width:800,height:360},{width:667,height:300},{width:844,heig
       await expect(button).toHaveAttribute('aria-pressed','true');
       await expect(button).toHaveClass(/is-active/);
       await expect(popup.locator('.map-view__pick-btn--profile.is-active')).toHaveCount(1);
-      await expect(button).toHaveCSS('background-color','rgb(37, 99, 235)');
+      // 감리73: 묶음5 디자인 파랑 #2457d6(RoutePickPopup.css) — 종전 #2563EB 대체.
+      await expect(button).toHaveCSS('background-color','rgb(36, 87, 214)');
       const after=(await popup.boundingBox())!;
       expect(Math.abs(after.width-before.width)).toBeLessThan(1);
     }
@@ -57,7 +58,7 @@ for(const size of [{width:800,height:360},{width:667,height:300},{width:844,heig
     expect(layout.overflow).toBe(false);
     expect(layout.box.right).toBeLessThanOrEqual(size.width);
     expect(layout.box.bottom).toBeLessThanOrEqual(size.height);
-    await page.screenshot({path:path.resolve('../..','.out',`step30-distance-${size.width}.png`)});
+    await page.screenshot({path:path.resolve(process.env.BATCH5_EVIDENCE_DIR ?? '../../.out',`step30-distance-${size.width}.png`)});
     await page.locator('.map-view__pick-dock-close').click();
     await page.getByRole('button',{name:'검수 경로창 열기',exact:true}).click();
     await expect(popup.getByRole('button',{name:'보행 경로',exact:true})).toHaveAttribute('aria-pressed','true');

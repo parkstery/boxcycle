@@ -1,0 +1,104 @@
+/* 지시65 · 시안05. 고정 Start/+WP/End, 녹색 재생 및 기존 생성 단계를 유지한다. */
+:is(.map-view, .map-view-shell) .map-view__pick-dock-panel {
+  max-width: min(300px, calc(100vw - 24px)); border: 0; border-radius: 18px;
+  background: #fff; box-shadow: 0 6px 24px #00000047; backdrop-filter: none;
+}
+:is(.map-view, .map-view-shell) .map-view__pick,
+:is(.map-view, .map-view-shell) .map-view__pick-dock-panel .map-view__pick {
+  width: min(300px, calc(100vw - 24px)); padding: 12px 14px 12px 16px;
+  max-height: calc(100dvh - 24px); color: #121417; font-size: 12px;
+}
+:is(.map-view, .map-view-shell) .map-view__pick-popup .mapboxgl-popup-content {
+  max-height: calc(100dvh - 24px); border: 0; border-radius: 18px; background: #fff;
+  box-shadow: 0 6px 24px #00000047; backdrop-filter: none;
+}
+:is(.map-view, .map-view-shell) .map-view__pick-dock-close,
+:is(.map-view, .map-view-shell) .map-view__pick-popup .mapboxgl-popup-close-button {
+  top: 10px; right: 10px; width: 32px; height: 32px; border: 0; border-radius: 50%;
+  background: #f2f3f5; color: #2a2e37; font-size: 0;
+}
+:is(.map-view, .map-view-shell) .map-view__pick-dock-close::before,
+:is(.map-view, .map-view-shell) .map-view__pick-dock-close::after,
+:is(.map-view, .map-view-shell) .map-view__pick-popup .mapboxgl-popup-close-button::before,
+:is(.map-view, .map-view-shell) .map-view__pick-popup .mapboxgl-popup-close-button::after {
+  content: ''; position: absolute; left: 9px; top: 15px; width: 14px; height: 1.7px;
+  background: currentColor; border-radius: 1px; transform: rotate(45deg);
+}
+:is(.map-view, .map-view-shell) .map-view__pick-dock-close::after,
+:is(.map-view, .map-view-shell) .map-view__pick-popup .mapboxgl-popup-close-button::after { transform: rotate(-45deg); }
+:is(.map-view, .map-view-shell) .map-view__pick-header-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  margin: 0 0 8px; padding: 0; border: 0;
+}
+:is(.map-view, .map-view-shell) .map-view__pick-header-row .map-view__pick-token {
+  flex: 0 0 100%; box-sizing: border-box; padding: 0 34px 0 0; min-height: 24px;
+  margin: 0; display: flex; align-items: center;
+}
+:is(.map-view, .map-view-shell) .map-view__pick-header-row .map-view__pick-token-line {
+  font-size: 11px; font-weight: 600; line-height: 1.4; letter-spacing: 0;
+}
+:is(.map-view, .map-view-shell) .map-view__pick-header-row .map-view__pick-route-tabs {
+  flex: 1 1 100%; display: flex; gap: 4px; padding: 3px; margin: 0;
+  border-radius: 10px; background: #f2f3f5;
+}
+:is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-route-tab {
+  flex: 1 1 0; height: 28px; min-height: 28px; padding: 0 6px; border: 0;
+  border-radius: 8px; color: #4b5160; background: transparent; font-size: 12px;
+  font-weight: 600; letter-spacing: 0;
+}
+:is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-route-tab.is-active,
+:is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-route-tab[aria-selected='true'] { color: #fff; background: #2457d6; }
+:is(.map-view, .map-view-shell) .map-view__pick-address { font-size: 11px; font-weight: 400; line-height: 15px; color: #4b5160; margin: 0 0 8px; }
+:is(.map-view, .map-view-shell) .map-view__pick-route-view--location .map-view__pick-actions--pin-row { gap: 6px; margin: 0; position: static; overflow: visible; }
+:is(.map-view, .map-view-shell) .map-view__pick-route-view--location .map-view__pick-actions--pin-row .map-view__pick-btn {
+  height: 28px; min-height: 28px; border: 1px solid #c9d6ee; border-radius: 8px;
+  background: #fff; color: #2a2e37; font-size: 12px; letter-spacing: 0;
+}
+:is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-distance-row {
+  --pick-distance-control-height: 34px; grid-template-columns: 58px 32px minmax(52px, 1fr) 22px 32px;
+  column-gap: 6px; row-gap: 8px; margin: 0;
+}
+:is(.map-view, .map-view-shell) .map-view__pick-distance-caption { font-size: 10px; color: #5e6472; letter-spacing: .06em; white-space: nowrap; }
+:is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-distance-step {
+  width: 32px; min-width: 32px; height: 32px; min-height: 32px; border-radius: 50%;
+  background: #fff; border: 1px solid #c9d6ee; color: #2a2e37; font-size: 19px; font-weight: 400;
+}
+:is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-distance-number {
+  width: 100%; min-width: 0; height: 34px; padding: 0; border: 0; border-radius: 4px;
+  font: 700 26px/1.1 var(--rtw-font-num, 'Saira Condensed', sans-serif); color: #2457d6;
+  background: transparent; text-align: right;
+}
+:is(.map-view, .map-view-shell) .map-view__pick-distance-unit { color: #2457d6; font-size: 13px; font-weight: 600; }
+:is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-distance-chips {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-column: 1 / -1; gap: 4px; margin: 0; padding: 0;
+}
+:is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-distance-chip {
+  width: auto; min-width: 0; height: 28px; min-height: 28px; padding: 0;
+  border: 1px solid #c9d6ee; border-radius: 999px; background: #fff; color: #2a2e37;
+  font: 600 14px/1 var(--rtw-font-num, 'Saira Condensed', sans-serif);
+}
+:is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-distance-chip.is-active { border-color: #2457d6; color: #2457d6; background: #eef3fc; }
+:is(.map-view, .map-view-shell) .map-view__pick-profile-section { padding-top: 8px; margin-top: 8px; border-top: 1px solid #eef0f3; }
+:is(.map-view, .map-view-shell) .map-view__pick-profile-bottom-row { gap: 6px; min-height: 28px; }
+:is(.map-view, .map-view-shell) .map-view__pick-profile-bottom-row .map-view__pick-actions--profile { flex: 0 1 auto; gap: 6px; }
+:is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-btn--profile {
+  width: 28px; min-width: 28px; max-width: 28px; height: 28px; min-height: 28px; max-height: 28px;
+  border: 0; border-radius: 50%; padding: 0; background: #f2f3f5; color: #4b5160;
+}
+:is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-btn--profile.is-active { background: #2457d6; color: #fff; }
+:is(.map-view, .map-view-shell) .map-view__pick-profile-ico { width: 16px; height: 16px; }
+:is(.map-view, .map-view-shell) .map-view__pick-profile-bottom-row .map-view__pick-btn--clear-route {
+  flex: 0 0 auto; margin-left: auto; padding: 0 4px; height: 28px; min-height: 28px;
+  border: 0; border-radius: 0; background: transparent; color: #4b5160; font-size: 11px; font-weight: 600;
+}
+:is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-start-ride { flex: 0 0 28px; width: 28px; height: 28px; min-height: 28px; }
+:is(.map-view, .map-view-shell) .map-view__pick-auto-route-status { font-size: 11px; line-height: 1.4; }
+:is(.map-view, .map-view-shell) .map-view__pick-route-distance-prereq { font-size: 12px; line-height: 1.5; }
+:is(.map-view, .map-view-shell) .map-view__pick button:focus-visible,
+:is(.map-view, .map-view-shell) .map-view__pick input:focus-visible,
+:is(.map-view, .map-view-shell) .map-view__pick-dock-close:focus-visible { outline: 2px solid #2457d6; outline-offset: 2px; }
+@media (hover: hover) {
+  :is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-btn--profile:hover:not(:disabled),
+  :is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-route-tab:hover:not([aria-selected='true']) { background: #eef3fc; color: #2457d6; }
+  :is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-btn--profile.is-active:hover:not(:disabled) { background: #1d4ed8; color: #fff; }
+}

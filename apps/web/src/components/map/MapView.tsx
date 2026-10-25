@@ -175,6 +175,7 @@ import {
   RIDE_END_NORTH_UP_DURATION_MS,
 } from "../../lib/map/rideEndNorthUp";
 import "./MapView.css";
+import { mountPickPopupViewportClamp } from "./mountPickPopupViewportClamp";
 
 const RIDER_PROTOTYPE_MODE = getRiderPrototypeMode();
 const RIDER_PROTOTYPE_IS_3D = isRiderPrototype3dMode(RIDER_PROTOTYPE_MODE);
@@ -1539,6 +1540,7 @@ export function MapView({
         .setLngLat(picked)
         .setDOMContent(pickContent)
         .addTo(map);
+      mountPickPopupViewportClamp(popup, map.getContainer(), anchor);
       pickPopupCloseHandler = () => {
         ac.abort();
         const suspendPick =

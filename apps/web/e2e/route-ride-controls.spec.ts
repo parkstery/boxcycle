@@ -3,7 +3,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 const preview='/scripts/ui-800x360/preview.html';
-const evidence=path.resolve('../..','.out','ui-route-ride-20261021');
+const evidence=process.env.UI_REVALIDATION_EVIDENCE_DIR ?? path.resolve('../..','.out','ui-route-ride-20261021');
 test.use({viewport:{width:800,height:360},hasTouch:true});
 test('분리된 주소/주행바: 세 크기·다섯 상태·지도정보와 겹침 없음',async({page})=>{
   fs.mkdirSync(evidence,{recursive:true});
@@ -12,20 +12,22 @@ test('분리된 주소/주행바: 세 크기·다섯 상태·지도정보와 겹
     for(const state of ['idle','setup','ready','riding','paused']){
       await page.goto(`${preview}?state=${state}`);
       const bar=page.locator('.ride-control-bar');
-      // 센서만 있는 단계는 센서가 독립 고정 배치되고 투명 주행바 자체는 폭이 없다.
-      if(state==='idle'||state==='setup')await expect(bar).toBeAttached();
+      // Chief 고정12: setup 센서는 주소 카드 맨 위 줄, idle 센서는 독립 주행바.
+      if(state==='setup')await expect(bar).toHaveCount(0);
+      else if(state==='idle')await expect(bar).toBeAttached();
       else await expect(bar).toBeVisible();
       await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
       await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toBeVisible();
       if(state==='idle')await expect(page.locator('.route-dock-anchor')).toHaveCount(0);
-      const geom=await page.evaluate(()=>{
-        const bar=document.querySelector('.ride-control-bar')!.getBoundingClientRect();
-        const others=[...document.querySelectorAll('.hud-clock,.map-hud__tr,.route-dock-anchor')].map(e=>e.getBoundingClientRect());
+      if(state==='setup')await expect(page.locator('.route-dock__head').getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
+      const geom=await page.evaluate((state)=>{
+        const bar=document.querySelector(state==='setup'?'.route-dock__head .hud-cadence':'.ride-control-bar')!.getBoundingClientRect();
+        const others=[...document.querySelectorAll(state==='setup'?'.hud-clock,.map-hud__tr':'.hud-clock,.map-hud__tr,.route-dock-anchor')].map(e=>e.getBoundingClientRect());
         const collide=others.filter(b=>b.width>0&&b.height>0&&bar.left<b.right&&bar.right>b.left&&bar.top<b.bottom&&bar.bottom>b.top);
         return {bar:bar.toJSON(),collide:collide.map(b=>b.toJSON())};
-      });
+      },state);
       expect(geom.bar.height).toBeLessThanOrEqual(44);
-      await expect(bar).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+      if(state!=='setup')await expect(bar).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
       const media=bar.locator('.ride-media-button');
       for(const button of await media.all()){
         expect((await button.textContent())?.trim()).toBe('');
@@ -128,15 +130,22 @@ for(const initial of ['empty','start-only','end-only','ready','waypoints'] as co
       const clearRect=bottomRow.querySelector('.map-view__pick-btn--clear-route')!.getBoundingClientRect();
       const profiles=[...profileRow.querySelectorAll('.map-view__pick-btn--profile')].map(e=>e.getBoundingClientRect());
       const rightMost=profiles.length?Math.max(...profiles.map(b=>b.right)):0;
-      return {tokenTop:token.top,tabsTop:tabs.top,sameLine:Math.abs(token.top-tabs.top)<6,noTitleOverlap:token.right<=tabs.left,noCloseOverlap:tabs.right<=close.left,tabsHeight:tabs.height,clearInHeader:!!clearInHeader,clearRightOfProfiles:!profiles.length||clearRect.left>=rightMost-2,headerPadRight:parseFloat(getComputedStyle(row).paddingRight)};
+      const tab=row.querySelector('.map-view__pick-route-tab')!.getBoundingClientRect();
+      const tokenLine=row.querySelector('.map-view__pick-token-line')!.getBoundingClientRect();
+      const tabsCloseIntersect=tabs.left<close.right&&tabs.right>close.left&&tabs.top<close.bottom&&tabs.bottom>close.top;
+      return {tokenAboveTabs:token.bottom<=tabs.top,tabsFullWidth:Math.abs(tabs.width-row.getBoundingClientRect().width)<1,tabsCloseIntersect,tokenLineClearOfClose:tokenLine.right<=close.left,tabHeight:tab.height,tabsHeight:tabs.height,tokenPadRight:parseFloat(getComputedStyle(row.querySelector('.map-view__pick-token')!).paddingRight),closeWidth:close.width,clearInHeader:!!clearInHeader,clearRightOfProfiles:!profiles.length||clearRect.left>=rightMost-2};
     });
-    expect(headerLine.sameLine).toBe(true);
-    expect(headerLine.noTitleOverlap).toBe(true);
-    expect(headerLine.noCloseOverlap).toBe(true);
-    expect(headerLine.tabsHeight).toBeLessThanOrEqual(22);
+    // 지시65·시안05(묶음5): 토큰 줄 아래 전체 폭 분할 탭(28px), 원형 닫기와 겹치지 않음.
+    // 종전 10-21 압축 계약(토큰·탭 한 줄, 탭 22px 이하)을 대체한다 — 감리73.
+    expect(headerLine.tokenAboveTabs).toBe(true);
+    expect(headerLine.tabsFullWidth).toBe(true);
+    expect(headerLine.tabsCloseIntersect).toBe(false);
+    expect(headerLine.tokenLineClearOfClose).toBe(true);
+    expect(headerLine.tabHeight).toBe(28);
+    expect(headerLine.tabsHeight).toBeLessThanOrEqual(34);
+    expect(headerLine.tokenPadRight).toBeGreaterThanOrEqual(headerLine.closeWidth);
     expect(headerLine.clearInHeader).toBe(false);
     expect(headerLine.clearRightOfProfiles).toBe(true);
-    expect(headerLine.headerPadRight).toBeGreaterThanOrEqual(24);
     await expect(popup.getByRole('tab',{name:'출발·도착',exact:true})).toHaveAttribute('aria-selected','true');
     await popup.getByRole('tab',{name:'거리·방향',exact:true}).click();
     await expect(popup.locator('#map-view-pick-location-view')).toBeHidden();
@@ -146,7 +155,8 @@ for(const initial of ['empty','start-only','end-only','ready','waypoints'] as co
     else{
       await popup.getByRole('button',{name:'목표 거리 5km',exact:true}).click();
       await expect(popup.getByRole('textbox',{name:'목표거리 km',exact:true})).toHaveValue('5.0');
-      await expect(popup.getByRole('button',{name:'보행 경로',exact:true})).toBeHidden();
+      // 10-25 Chief: 거리·방향에도 수단 3개가 늘 보이고 출발이 있으면 쓸 수 있다. 보이기만 해서는 생성하지 않는다.
+      await expect(popup.getByRole('button',{name:'보행 경로',exact:true})).toBeEnabled();
       await expect(popup).toHaveAttribute('data-generated','0');
     }
     await popup.getByRole('tab',{name:'출발·도착',exact:true}).click();
@@ -177,8 +187,9 @@ for(const initial of ['empty','start-only','end-only','ready','waypoints'] as co
       await expect(popup).toHaveAttribute('data-generated','3');
       await page.evaluate(()=>{(document.getElementById('popup-audit') as HTMLElement & {setTokenBlocked:(v:boolean)=>void}).setTokenBlocked(false);});
     }else if(hasStart){
-      // 출발·도착 탭은 두 위치가 있어야 이동수단을 노출한다(현행 제품 계약).
-      await expect(popup.getByRole('button',{name:'자전거 경로',exact:true})).toBeHidden();
+      // 출발·도착 탭은 두 위치가 있어야 이동수단을 쓸 수 있다 — 10-25 Chief 부터 숨기지 않고 끈다.
+      await expect(popup.getByRole('button',{name:'자전거 경로',exact:true})).toBeVisible();
+      await expect(popup.getByRole('button',{name:'자전거 경로',exact:true})).toBeDisabled();
       await expect(popup).toHaveAttribute('data-generated','0');
     }
     await expect(popup.getByRole('button',{name:'경유지 추가',exact:true})).toHaveCount(1);
@@ -192,9 +203,11 @@ for(const initial of ['empty','start-only','end-only','ready','waypoints'] as co
         const box=e.querySelector('.mapboxgl-popup-content')!.getBoundingClientRect();
         const tabs=e.querySelector('.map-view__pick-route-tabs')!.getBoundingClientRect();
         const close=e.querySelector('.mapboxgl-popup-close-button')!.getBoundingClientRect();
-        return box.right<=innerWidth&&box.bottom<=innerHeight&&tabs.right<=close.left;
+        // 감리73: 시안05 는 탭이 닫기 아래 전체 폭이다 — 나란히(tabs.right<=close.left) 대신 겹침 없음.
+        const tabsCloseIntersect=tabs.left<close.right&&tabs.right>close.left&&tabs.top<close.bottom&&tabs.bottom>close.top;
+        return {right:box.right<=innerWidth,bottom:box.bottom<=innerHeight,tabsClear:!tabsCloseIntersect};
       });
-      expect(fit).toBe(true);
+      expect(fit).toEqual({right:true,bottom:true,tabsClear:true});
       await page.screenshot({path:path.join(evidence,`popup-11-ready-${size.width}.png`),animations:'disabled'});
     }
     const handle=await popup.locator('.map-view__pick-address').boundingBox();
