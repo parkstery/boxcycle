@@ -1,0 +1,365 @@
+[
+  {
+    "size": {
+      "width": 800,
+      "height": 360
+    },
+    "geometry": {
+      "metrics": {
+        "x": 4,
+        "y": 4,
+        "width": 236.125,
+        "height": 39.984375,
+        "top": 4,
+        "right": 240.125,
+        "bottom": 43.984375,
+        "left": 4
+      },
+      "dock": {
+        "x": 16,
+        "y": 238.078125,
+        "width": 235.1875,
+        "height": 106,
+        "top": 238.078125,
+        "right": 251.1875,
+        "bottom": 344.078125,
+        "left": 16
+      },
+      "controls": {
+        "x": 561,
+        "y": 4,
+        "width": 235,
+        "height": 40,
+        "top": 4,
+        "right": 796,
+        "bottom": 44,
+        "left": 561
+      },
+      "canvas": {
+        "x": 0,
+        "y": 0,
+        "width": 800,
+        "height": 360,
+        "top": 0,
+        "right": 800,
+        "bottom": 360,
+        "left": 0
+      }
+    }
+  },
+  {
+    "size": {
+      "width": 667,
+      "height": 300
+    },
+    "geometry": {
+      "metrics": {
+        "x": 4,
+        "y": 4,
+        "width": 236.125,
+        "height": 39.984375,
+        "top": 4,
+        "right": 240.125,
+        "bottom": 43.984375,
+        "left": 4
+      },
+      "dock": {
+        "x": 16,
+        "y": 179.9375,
+        "width": 196.09375,
+        "height": 106,
+        "top": 179.9375,
+        "right": 212.09375,
+        "bottom": 285.9375,
+        "left": 16
+      },
+      "controls": {
+        "x": 463,
+        "y": 4,
+        "width": 200,
+        "height": 71.5625,
+        "top": 4,
+        "right": 663,
+        "bottom": 75.5625,
+        "left": 463
+      },
+      "canvas": {
+        "x": 0,
+        "y": 0,
+        "width": 667,
+        "height": 300,
+        "top": 0,
+        "right": 667,
+        "bottom": 300,
+        "left": 0
+      }
+    }
+  },
+  {
+    "size": {
+      "width": 844,
+      "height": 390
+    },
+    "geometry": {
+      "metrics": {
+        "x": 4,
+        "y": 4,
+        "width": 236.125,
+        "height": 39.984375,
+        "top": 4,
+        "right": 240.125,
+        "bottom": 43.984375,
+        "left": 4
+      },
+      "dock": {
+        "x": 16,
+        "y": 267.8125,
+        "width": 248.125,
+        "height": 106,
+        "top": 267.8125,
+        "right": 264.125,
+        "bottom": 373.8125,
+        "left": 16
+      },
+      "controls": {
+        "x": 605,
+        "y": 4,
+        "width": 235,
+        "height": 40,
+        "top": 4,
+        "right": 840,
+        "bottom": 44,
+        "left": 605
+      },
+      "canvas": {
+        "x": 0,
+        "y": 0,
+        "width": 844,
+        "height": 390,
+        "top": 0,
+        "right": 844,
+        "bottom": 390,
+        "left": 0
+      }
+    }
+  },
+  {
+    "state": "riding",
+    "size": {
+      "width": 800,
+      "height": 360
+    },
+    "geometry": {
+      "metrics": {
+        "x": 4,
+        "y": 4,
+        "width": 398.1875,
+        "height": 35.984375,
+        "top": 4,
+        "right": 402.1875,
+        "bottom": 39.984375,
+        "left": 4
+      },
+      "controls": [
+        {
+          "x": 633.84375,
+          "y": 11.4375,
+          "width": 84.78125,
+          "height": 25.109375,
+          "top": 11.4375,
+          "right": 718.625,
+          "bottom": 36.546875,
+          "left": 633.84375
+        },
+        {
+          "x": 764,
+          "y": 8,
+          "width": 32,
+          "height": 32,
+          "top": 8,
+          "right": 796,
+          "bottom": 40,
+          "left": 764
+        }
+      ],
+      "hits": [
+        {
+          "label": "경로 패널 접기",
+          "target": true,
+          "rect": {
+            "x": 219,
+            "y": 177.078125,
+            "width": 28,
+            "height": 28,
+            "top": 177.078125,
+            "right": 247,
+            "bottom": 205.078125,
+            "left": 219
+          },
+          "hit": "route-dock__caret"
+        },
+        {
+          "label": "사용자 정보",
+          "target": true,
+          "rect": {
+            "x": 764,
+            "y": 8,
+            "width": 32,
+            "height": 32,
+            "top": 8,
+            "right": 796,
+            "bottom": 40,
+            "left": 764
+          },
+          "hit": "hud-account hud-account--compact hud-account--guest"
+        }
+      ]
+    }
+  },
+  {
+    "state": "riding",
+    "size": {
+      "width": 667,
+      "height": 300
+    },
+    "geometry": {
+      "metrics": {
+        "x": 4,
+        "y": 4,
+        "width": 398.1875,
+        "height": 35.984375,
+        "top": 4,
+        "right": 402.1875,
+        "bottom": 39.984375,
+        "left": 4
+      },
+      "controls": [
+        {
+          "x": 543.53125,
+          "y": 49.3125,
+          "width": 84.78125,
+          "height": 25.109375,
+          "top": 49.3125,
+          "right": 628.3125,
+          "bottom": 74.421875,
+          "left": 543.53125
+        },
+        {
+          "x": 631,
+          "y": 45.875,
+          "width": 32,
+          "height": 32,
+          "top": 45.875,
+          "right": 663,
+          "bottom": 77.875,
+          "left": 631
+        }
+      ],
+      "hits": [
+        {
+          "label": "경로 패널 접기",
+          "target": true,
+          "rect": {
+            "x": 180,
+            "y": 135.9375,
+            "width": 28,
+            "height": 28,
+            "top": 135.9375,
+            "right": 208,
+            "bottom": 163.9375,
+            "left": 180
+          },
+          "hit": "route-dock__caret"
+        },
+        {
+          "label": "사용자 정보",
+          "target": true,
+          "rect": {
+            "x": 631,
+            "y": 45.875,
+            "width": 32,
+            "height": 32,
+            "top": 45.875,
+            "right": 663,
+            "bottom": 77.875,
+            "left": 631
+          },
+          "hit": "hud-account hud-account--compact hud-account--guest"
+        }
+      ]
+    }
+  },
+  {
+    "state": "riding",
+    "size": {
+      "width": 844,
+      "height": 390
+    },
+    "geometry": {
+      "metrics": {
+        "x": 4,
+        "y": 4,
+        "width": 398.1875,
+        "height": 35.984375,
+        "top": 4,
+        "right": 402.1875,
+        "bottom": 39.984375,
+        "left": 4
+      },
+      "controls": [
+        {
+          "x": 677.84375,
+          "y": 11.4375,
+          "width": 84.78125,
+          "height": 25.109375,
+          "top": 11.4375,
+          "right": 762.625,
+          "bottom": 36.546875,
+          "left": 677.84375
+        },
+        {
+          "x": 808,
+          "y": 8,
+          "width": 32,
+          "height": 32,
+          "top": 8,
+          "right": 840,
+          "bottom": 40,
+          "left": 808
+        }
+      ],
+      "hits": [
+        {
+          "label": "경로 패널 접기",
+          "target": true,
+          "rect": {
+            "x": 232,
+            "y": 197.8125,
+            "width": 28,
+            "height": 28,
+            "top": 197.8125,
+            "right": 260,
+            "bottom": 225.8125,
+            "left": 232
+          },
+          "hit": "route-dock__caret"
+        },
+        {
+          "label": "사용자 정보",
+          "target": true,
+          "rect": {
+            "x": 808,
+            "y": 8,
+            "width": 32,
+            "height": 32,
+            "top": 8,
+            "right": 840,
+            "bottom": 40,
+            "left": 808
+          },
+          "hit": "hud-account hud-account--compact hud-account--guest"
+        }
+      ]
+    }
+  }
+]

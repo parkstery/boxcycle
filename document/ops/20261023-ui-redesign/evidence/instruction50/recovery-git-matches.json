@@ -1,0 +1,30 @@
+{
+  "examined": 10,
+  "matches": [
+    {
+      "target": "document/ops/20261023-ui-redesign/evidence/inline-history/after-first-visit-800x360.png",
+      "oid": "dbc4992c1842bd91d6f5bbdcca9402a8ebcf5e3d",
+      "hash": "1D0A22DEC407EBC77AD60B58A719609A4ACC61E8C2666384881A07B0416AE918"
+    },
+    {
+      "target": "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-667x300.png",
+      "oid": "c2f7e9b82d1a058d2e5edfeb3ddaedf28c9f73b0",
+      "hash": "E1CBDE068F30078679FFC8AA6F5AE3B5E2637F360FFBB403797C5D468A70483C"
+    },
+    {
+      "target": "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-800x360.png",
+      "oid": "03c78820045fe71d559043ec33d3cf1121e16c0d",
+      "hash": "30A1FB72C91CE0E0BDD8588DE36ED603F44DE9199E573578E98BA96F0C7B4415"
+    },
+    {
+      "target": "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-667x300.png",
+      "oid": "fbe255e839f3902fe5811ce62504f87bb8c0c05a",
+      "hash": "3294429975B5B76BCF4182840C56A7D48C51AAA99902D60FE30D0850AC8D36D6"
+    },
+    {
+      "target": "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-800x360.png",
+      "oid": "5e054438b3e0031f78fd21c1e9750970e87a9f07",
+      "hash": "8A9EE8F907F52AC495BCCF38C1F707846EF4B695963C68C57C71159596D902AD"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "viewport": {
+    "name": "phone-landscape",
+    "width": 690,
+    "height": 275
+  },
+  "titleTextBeforePin": "경로 생성",
+  "titleTextAfterPin": "경로 생성 잔여 토큰 8개",
+  "titleBefore": {
+    "x": 280,
+    "y": 20,
+    "width": 270,
+    "height": 24
+  },
+  "beforeBounds": {
+    "x": 264,
+    "y": 8,
+    "width": 300,
+    "height": 194
+  },
+  "addressBefore": {
+    "x": 280,
+    "y": 94,
+    "width": 270,
+    "height": 15
+  },
+  "titleAfter": {
+    "x": 398,
+    "y": 85,
+    "width": 270,
+    "height": 24
+  },
+  "titleTextBox": {
+    "x": 398,
+    "y": 89.3,
+    "width": 109,
+    "height": 15.39
+  },
+  "addressAfter": {
+    "x": 398,
+    "y": 159,
+    "width": 270,
+    "height": 15
+  },
+  "close": {
+    "x": 640,
+    "y": 83,
+    "width": 32,
+    "height": 32
+  },
+  "popup": {
+    "x": 382,
+    "y": 73,
+    "width": 300,
+    "height": 194
+  }
+}

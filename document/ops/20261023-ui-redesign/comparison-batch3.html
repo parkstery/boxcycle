@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spinatlas 묶음3 시안 비교 — 주행 결과·다음 주행 (재지시30)</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:24px;background:#f2f3f5;color:#172238;font:15px/1.6 system-ui,sans-serif}
+main{max-width:1700px;margin:auto}
+h1{font-size:26px}
+h2{font-size:20px;margin-top:2rem}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+figure{margin:0;background:#fff;border-radius:12px;overflow:hidden}
+figcaption{padding:10px 14px;font-weight:600}
+img{display:block;width:100%;height:auto;aspect-ratio:20/9;object-fit:contain;background:#2e3a2f}
+.note{background:#fff;padding:14px;border-radius:12px;margin-top:1.5rem}
+@media(max-width:900px){.pair{grid-template-columns:1fr}}
+</style>
+<main>
+<h1>주행 결과 · 다음 주행 (묶음3 · 지시30 보완)</h1>
+<p>승인 시안(10·11)과 harness 프리뷰 실제 컴포넌트 캡처. <strong>최종 after</strong>는 <code>evidence/batch3-final/</code>. 감리 FAIL 당시 캡처는 <code>evidence/batch3/</code>에 보존.</p>
+
+<h2>주행 결과</h2>
+<div class="pair">
+<figure><figcaption>시안 10-Summary</figcaption><img src="mockups/10-Summary.png" alt="주행 결과 시안"></figure>
+<figure><figcaption>제품 · after 800×360 (final)</figcaption><img src="evidence/batch3-final/after-summary-800x360.png" alt="주행 결과 after final"></figure>
+</div>
+<div class="pair">
+<figure><figcaption>감리 FAIL after 800×360 (기록)</figcaption><img src="evidence/batch3/after-summary-800x360.png" alt="주행 결과 감리 FAIL"></figure>
+<figure><figcaption>final 667×300</figcaption><img src="evidence/batch3-final/after-summary-667x300.png" alt="주행 결과 좁은 화면 final"></figure>
+</div>
+<div class="pair">
+<figure><figcaption>before 800×360</figcaption><img src="evidence/batch3/before-summary-800x360.png" alt="주행 결과 before"></figure>
+<figure><figcaption>확정 새 도로 fixture 800×360</figcaption><img src="evidence/batch3-final/after-summary-positive-800x360.png" alt="새 도로 양수 after"></figure>
+</div>
+
+<h2>다음 주행</h2>
+<div class="pair">
+<figure><figcaption>시안 11-NextRide</figcaption><img src="mockups/11-NextRide.png" alt="다음 주행 시안"></figure>
+<figure><figcaption>이어달리기 after 800×360 (final)</figcaption><img src="evidence/batch3-final/after-nextride-resume-800x360.png" alt="다음 주행 resume final"></figure>
+</div>
+<div class="pair">
+<figure><figcaption>감리 FAIL resume 800×360 (기록)</figcaption><img src="evidence/batch3/after-nextride-resume-800x360.png" alt="다음 주행 FAIL"></figure>
+<figure><figcaption>끝점 연장 after 800×360 (final)</figcaption><img src="evidence/batch3-final/after-nextride-extend-800x360.png" alt="다음 주행 extend final"></figure>
+</div>
+
+<p class="note">
+보완: 가로 판 CSS를 conquest·progress 기본 규칙 <strong>뒤</strong>로 옮겨 cascade 정리. 왼쪽 스토리 13px·새 도로·진행 26px 위계, 오른쪽 지표 전폭 행·제목 17px. 다음 주행 카드 폭 320px·제목/스토리 중복 제거·멈춘 곳은 지명만(없으면 「마지막 종료 지점」)·버튼 한 줄. 프리뷰 nextride 는 idle·센서 주행바만(Go 없음), callback 카운터로 e2e 검증.<br>
+의도된 차이: 일반 summary harness 는 conquest 확정 전이면 「새 도로 확인 중…」만 표시(허위 +N 없음). 양수 검증은 <code>after-summary-positive-*</code>·<code>ui-redesign-batch3-conquest.spec.ts</code>.
+</p>
+<p>
+<a href="comparison-batch2.html">묶음2 비교</a> ·
+<a href="http://127.0.0.1:5020/scripts/ui-800x360/preview.html?state=summary">주행 결과 프리뷰</a> ·
+<a href="http://127.0.0.1:5020/scripts/ui-800x360/preview.html?state=nextride-resume">다음 주행(이어달리기) 프리뷰</a>
+</p>
+</main>
+</html>

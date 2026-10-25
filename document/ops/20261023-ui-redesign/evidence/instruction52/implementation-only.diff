@@ -1,0 +1,183 @@
+diff --git a/document/ops/20261023-ui-redesign/evidence/instruction52/ride-continuation.before.txt b/apps/web/e2e/ride-continuation.spec.ts
+index 228cdf01..71f7fb3d 100644
+--- a/document/ops/20261023-ui-redesign/evidence/instruction52/ride-continuation.before.txt
++++ b/apps/web/e2e/ride-continuation.spec.ts
+@@ -63,28 +63,44 @@ const FIXTURE_LENGTH_M = fixtureLengthMeters()
+ 
+ /** U4 HUD 증거 스크린샷 — Playwright 가 정리해도 남는 고정 경로 */
+ const U4_HUD_EVIDENCE_PATH = path.resolve(
+-  process.cwd(),
+-  '../../document/archive/ride-verify-evidence/u4-hud-resume-dual.png',
++  process.env.RIDE_CONTINUATION_EVIDENCE_DIR ?? path.resolve(process.cwd(), '../../document/archive/ride-verify-evidence'),
++  'u4-hud-resume-dual.png',
+ )
+ 
+ /** RC1 U6 증거 — 결과 시트를 닫은 직후(reload 없이) 「다음 주행」 카드가 뜬 화면
+  *  ⚠ 이 상수는 이어달리기 e2e RC1 시나리오 전용이다 — 원문 §6 C1(서버 저장 응답)과 무관하다. */
+ const RC1_CARD_NO_RELOAD_EVIDENCE_PATH = path.resolve(
+-  process.cwd(),
+-  '../../document/archive/ride-verify-evidence/c1-next-ride-card-no-reload.png',
++  process.env.RIDE_CONTINUATION_EVIDENCE_DIR ?? path.resolve(process.cwd(), '../../document/archive/ride-verify-evidence'),
++  'c1-next-ride-card-no-reload.png',
+ )
+ 
+ /** RC1 U2·§3.4 증거 — 이어 달리기 준비 상태(완료/남은 구간 + 재개점 마커 + Go)
+  *  ⚠ 이어달리기 e2e RC1 시나리오 전용 — 원문 §6 C1 과 무관하다. */
+ const RC1_RESUME_READY_EVIDENCE_PATH = path.resolve(
+-  process.cwd(),
+-  '../../document/archive/ride-verify-evidence/c1-resume-ready-to-start.png',
++  process.env.RIDE_CONTINUATION_EVIDENCE_DIR ?? path.resolve(process.cwd(), '../../document/archive/ride-verify-evidence'),
++  'c1-resume-ready-to-start.png',
+ )
+ 
+ /** 게스트 진입 카드 → 익명 인증 완료 */
+ async function enterAsGuest(page: Page) {
+   await page.goto('/')
+   await guestStart(page)
++  await chooseColosseumIfNeeded(page, true)
++  await expect(page.getByRole('dialog', { name: '어디에서 시작할까요?', exact: true })).toBeHidden()
++}
++
++/** 새로고침 뒤 위치 안내를 완료한 다음 지도 조작을 시작한다. */
++async function reloadAtDefaultLocation(page: Page) {
++  await page.reload()
++  await chooseColosseumIfNeeded(page, true)
++  await expect(page.getByRole('dialog', { name: '어디에서 시작할까요?', exact: true })).toBeHidden()
++}
++
++/** 결과판 내부 닫기만 누른다. 같은 aria-label의 배경 scrim은 선택하지 않는다. */
++async function closeRideResult(page: Page) {
++  const summary = page.getByRole('region', { name: '주행 결과', exact: true })
++  await summary.locator('.ride-summary__close').click({ timeout: 15_000 })
++  await expect(summary).toBeHidden({ timeout: 15_000 })
+ }
+ 
+ /**
+@@ -319,6 +335,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
+   // 실제로 경로를 달리는 시험이다(1 km ≈ 80초). 기본 30초 타임아웃으로는 부족하다.
+   test.beforeEach(async ({ page }) => {
+     test.setTimeout(300_000)
++    page.setDefaultTimeout(15_000)
+     // Approach B: Mapbox 스타일 URL 을 가로채 최소 유효 JSON 으로 대체.
+     // fake pk 환경에서 map.on('load') 가 발화되어 mapLoaded=true 가 되게 한다.
+     // Auth / Firestore / Functions 에뮬레이터에는 영향 없음.
+@@ -332,7 +349,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
+     const routeId = `fixture-rc1-${Date.now()}`
+     await seedSavedRoute({ uid, routeId, name: 'RC1 이어달리기 픽스처', lastProgressRatio: 0 })
+ 
+-    await page.reload()
++    await reloadAtDefaultLocation(page)
+     await prepareManualRideInput(page)
+     await loadSavedRouteFromMenu(page, 'RC1 이어달리기 픽스처')
+ 
+@@ -347,7 +364,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
+     await expect(summary.getByLabel('전체 진행')).toContainText('0% →')
+     // 「다음 출발점이 저장되었습니다」 문구는 컴팩트 재설계로 제거됐다(Chief 지시, 되살리지 않는다).
+     // 같은 사실(anchor 저장)의 증거는 아래 U6 블록 — reload 없이 뜨는 「다음 주행」 카드로 확인한다.
+-    await summary.getByRole('button', { name: '닫기' }).first().click()
++    await closeRideResult(page)
+ 
+     /*
+      * U6 — **reload 없이** 결과를 닫는 즉시 카드가 나타나야 한다.
+@@ -374,7 +391,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
+       .toBeGreaterThan(0)
+ 
+     // 재진입 — 지도 위 「다음 주행」 카드가 자동으로 뜬다
+-    await page.reload()
++    await reloadAtDefaultLocation(page)
+     const card = nextRideCard(page)
+     await expect(card).toBeVisible({ timeout: 30_000 })
+     const resumeBtn = card.getByRole('button', { name: /%에서 이어 달리기/ })
+@@ -449,7 +466,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
+     // 앱이 20% 를 캐시한 상태에서 서버가 43% 로 올라간 상황을 만든다.
+     await seedSavedRoute({ uid, routeId, name: 'RC2 stale 픽스처', lastProgressRatio: 0.2 })
+ 
+-    await page.reload()
++    await reloadAtDefaultLocation(page)
+     await prepareManualRideInput(page)
+     await loadSavedRouteFromMenu(page, 'RC2 stale 픽스처')
+ 
+@@ -457,6 +474,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
+     await forceSavedRouteProgress(routeId, 0.43)
+ 
+     // 처음부터 달려 약 31% 에서 종료 → 클라이언트 요청값은 43% 보다 낮다
++    await page.getByRole('button', { name: '이어 달리기 선택', exact: true }).click()
+     await page.getByRole('radio', { name: /처음부터/ }).check()
+     await page.getByRole('button', { name: '주행 시작' }).click()
+     await rideUntilSessionMeters(page, FIXTURE_LENGTH_M * 0.31)
+@@ -469,7 +487,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
+       })
+       .toBeGreaterThanOrEqual(0.43)
+ 
+-    await page.reload()
++    await reloadAtDefaultLocation(page)
+     const card = nextRideCard(page)
+     await expect(card).toBeVisible({ timeout: 30_000 })
+     await expect(card.getByRole('button', { name: /43%에서 이어 달리기/ })).toBeVisible()
+@@ -484,7 +502,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
+     const before = await readSavedRoute(routeId)
+     const geometryBefore = (before.geometryCoordsJson as { stringValue?: string })?.stringValue
+ 
+-    await page.reload()
++    await reloadAtDefaultLocation(page)
+     await prepareManualRideInput(page)
+     await loadSavedRouteFromMenu(page, 'RC3 완주 픽스처')
+     await page.getByRole('button', { name: '주행 시작' }).click()
+@@ -510,7 +528,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
+     // 「끝점에서 새 경로」 버튼도 사라졌다(Chief 지시, 되살리지 않는다) — 살아있는 진입점
+     // (사용자 정보 → 최근 주행 → 「여기서 새 경로」)으로 다시 겨눈다. 시트를 먼저 닫아야
+     // 한다 — 전체화면 scrim 이 HUD 클릭을 막는다.
+-    await summary.getByRole('button', { name: '닫기' }).first().click()
++    await closeRideResult(page)
+     await expect(summary).toBeHidden({ timeout: 15_000 })
+     await extendFromRecentRideRow(page)
+ 
+@@ -549,9 +567,9 @@ test.describe('다음 주행 · 이어 달리기', () => {
+     // 않는다) — 같은 사실은 아래 reload 후 「다음 주행」 카드 등장으로 이미 증명된다.
+     // 저장하지 않고 닫는다 — 경고 없이 즉시 닫혀야 한다
+     await summary.getByRole('button', { name: '저장 안 함' }).click()
+-    await summary.getByRole('button', { name: '닫기' }).first().click()
++    await closeRideResult(page)
+ 
+-    await page.reload()
++    await reloadAtDefaultLocation(page)
+     const card = nextRideCard(page)
+     await expect(card).toBeVisible({ timeout: 30_000 })
+     await expect(card.getByRole('button', { name: '여기에서 계속' })).toBeVisible()
+@@ -572,7 +590,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
+     const pageErrors: string[] = []
+     page.on('pageerror', (err) => pageErrors.push(String(err)))
+ 
+-    await page.reload()
++    await reloadAtDefaultLocation(page)
+     // 좌표도 Route 도 없는 Ride 뿐이므로 「다음 주행」 카드는 뜨지 않는다
+     await expect(nextRideCard(page)).toHaveCount(0)
+ 
+@@ -607,8 +625,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
+     await seedSavedRoute({ uid, routeId, name: 'RC13 이어달리기 픽스처', lastProgressRatio: 0 })
+ 
+     // 첫 번째 reload: 씨드된 경로를 앱에 반영
+-    await page.reload()
+-    await chooseColosseumIfNeeded(page, true)
++    await reloadAtDefaultLocation(page)
+     await prepareManualRideInput(page)
+     await loadSavedRouteFromMenu(page, 'RC13 이어달리기 픽스처')
+ 
+@@ -619,7 +636,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
+     // 결과 시트 대기 및 닫기 (이 이후로 page.reload() 없음)
+     const summary = page.getByRole('region', { name: '주행 결과' })
+     await expect(summary).toBeVisible({ timeout: 20_000 })
+-    await summary.locator('.ride-summary__close').click({ timeout: 15_000 })
++    await closeRideResult(page)
+ 
+     // reload 없이 「다음 주행」 카드가 즉시 나타나야 한다
+     const card = nextRideCard(page)
+@@ -675,7 +692,7 @@ test.describe('다음 주행 · 이어 달리기', () => {
+     const routeId = `fixture-cf-live-${Date.now()}`
+     await seedSavedRoute({ uid, routeId, name: 'CF-LIVE 정복 픽스처', lastProgressRatio: 0 })
+ 
+-    await page.reload()
++    await reloadAtDefaultLocation(page)
+     await prepareManualRideInput(page)
+     await loadSavedRouteFromMenu(page, 'CF-LIVE 정복 픽스처')
+ 

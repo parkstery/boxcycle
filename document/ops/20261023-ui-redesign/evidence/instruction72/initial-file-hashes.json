@@ -1,0 +1,1330 @@
+[
+  {
+    "Path": "apps/web/e2e/ui-redesign-batch3-conquest.spec.ts",
+    "Hash": "0678BD0CA86644B53B3FE8D81224A3287C6D74622B9F31B15CE6EABBFCC839FE"
+  },
+  {
+    "Path": "apps/web/e2e/ui-redesign-batch3.spec.ts",
+    "Hash": "6DCDE93C166EFAE23F430B25552584227DC28FA16BAC3CA9563022D3A36511DE"
+  },
+  {
+    "Path": "apps/web/e2e/ui-redesign-batch4.spec.ts",
+    "Hash": "A96C29AB0631F19FEDB77EE204E244699A12DFB528F26A79AFAACB48B0D84DBF"
+  },
+  {
+    "Path": "apps/web/e2e/ui-redesign-batch5.spec.ts",
+    "Hash": "927B4DEFA0BE9410414783C3231FBF9C320E7A5D3BDF3EF0E4817D192319B311"
+  },
+  {
+    "Path": "apps/web/scripts/ui-redesign-batch5/fixture.html",
+    "Hash": "4A394A9A1B7E5837C0A2893480ACA9DF47E3D3965EF6F88BDAB5FEB474B436DC"
+  },
+  {
+    "Path": "apps/web/scripts/ui-redesign-batch5/fixture.ts",
+    "Hash": "BE029A6EB36D3B62469336565E170AF4EEEBA52CA8D99D721F102C9DFE8EA6FA"
+  },
+  {
+    "Path": "apps/web/src/components/map/RoutePickPopup.css",
+    "Hash": "1E3E52F4005F1478A436D5CD9F7D6D14CE68EF2DAD2169A420CE6F8684630994"
+  },
+  {
+    "Path": "apps/web/src/components/map/mountPickPopupViewportClamp.ts",
+    "Hash": "BE710634E845B63EDE13E4D6E5831625F7095D8111CCE327C89CC840EBBE50C3"
+  },
+  {
+    "Path": "apps/web/src/components/ui/SettingsCloseIcon.tsx",
+    "Hash": "675DA6A1A94F8F8A5488D4A9D96A0BD24E9E5212EC9B145D23141CD32722B100"
+  },
+  {
+    "Path": "apps/web/src/components/ui/SettingsSurface.css",
+    "Hash": "93315B718B5B7DD3FFFB7DFBA152E9DE958F93A2FA628045D7E6FC5353F27BED"
+  },
+  {
+    "Path": "cdbox.bat",
+    "Hash": "E5F4B8C6ACAD3FD26A22BE909D98BE5087E2E71B152E8AF7890D8CD56F76E532"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/29-result-batch3-summary-next.md",
+    "Hash": "418436F950AA78EE2C95735A9FE627B8DB8D011EBEA37BD332A105510886107E"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/30-task-batch3-visual-rework.md",
+    "Hash": "8493D65DF52D9D11AB393BF6F70CEB41DC5ED3C00B7753EB369FC1C293641825"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/31-result-batch3-visual-rework.md",
+    "Hash": "60AAA43E7EDF94886EF0E23FF5604A7FAD271C69A3A66E6984CAB5E578EB420D"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/32-review-deepseek-batch3-final.md",
+    "Hash": "E0FC5D1AD6DC0F1039E697AEAD264D3B5050F0821128471FB4982DEEFF669264"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/33-review-cursor-batch3-final.md",
+    "Hash": "E37B8FE1FD0E34A5354C360B43949071A5FF02CF7C600837C8786B4B2D61855C"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/34-review-batch3-final.md",
+    "Hash": "56A3C4109F403F80C31AA8E8E6D71FFF08AB4368A2F089E7034E682689752FAF"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/50-task-batch3-revalidation.md",
+    "Hash": "1F72EA0C946B599F85E39881D3D165B68AFE79DAD41CE9708D35427F6849C09C"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/51-result-batch3-revalidation.md",
+    "Hash": "E92AA0E3E289F610BC1DE75E21852854C01E891A03B87B25AC9768510A8B965E"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/52-task-ride-continuation.md",
+    "Hash": "AD413EA69E8F7EA2037DFE12D44F26E1045D91BF57E7224302577FD993375CA8"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/53-result-ride-continuation.md",
+    "Hash": "FA6023CDF58E5D42D486785B23492FF8E555C7E36785ED3EC6A8FAFA00C4B3C5"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/54-review-cursor-continuation.md",
+    "Hash": "7172BB21187CFC032E972046CA7900F2A002B38031CA742656DC39136AF7FD73"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/55-task-batch4-preparation.md",
+    "Hash": "CCCBDB613CBC73611981293DB123A1575C43510C8EF670218BA92CE2E0F9DC10"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/56-plan-batch4.md",
+    "Hash": "A86E6F991A62B9565BFD18FD4EEA007F01BED54039B032D9BD14467C66EBDAE4"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/57-review-batch4-preparation.md",
+    "Hash": "3DDA5C7364576A7A54539A461E47762EC0472A53565DC717198B6A5ACC1F5E57"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/58-task-batch4.md",
+    "Hash": "FDC12B39A3045FF4132AFC1F6EFF64DA09D8061906FB61D36FF1F574874F573F"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/59-result-batch4.md",
+    "Hash": "DA19361C7ECA1AA24E3290262DCA0F37C92621E187C2101CC6CDF67CE38EBDC8"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/60-result-cursor-batch4-fixture.md",
+    "Hash": "A0753FDC658DCE3DF1BFD484AF253609DAEE302A52550031DD532A250A980D31"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/61-result-cursor-calorie-migration.md",
+    "Hash": "3C565FE55F897D5F9D38492AA4950DA42DD93F7AF8253CD7D717E1703B3D7053"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/62-review-cursor-batch4.md",
+    "Hash": "F047822B228B54497E20CCB35DFDFBD983984DEDA6BBFB2EE0EBF5A9FF08E648"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/63-task-executor-availability.md",
+    "Hash": "49F2707B124331E0E905D96A1BE2762C8DDB2553997BABC8E86F17F6D506CBEF"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/64-result-executor-availability.md",
+    "Hash": "60091F33845A30D9B07504757D422966090F977DCEBE003B879E04C97EBC7E1A"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/65-task-batch5.md",
+    "Hash": "F1058F59E60D892594C288CE93A38B1F3A9717DEEA81F6220B89FF179CDA8C97"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/66-result-cursor-batch5.md",
+    "Hash": "0FCCB68B879C1A83DB3B67180B9225E590C7FBD562E56F6B1C6CA71E1E9A5A4D"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/67-result-batch5.md",
+    "Hash": "160C651754A2805A65A3EB41C7A4B4BE311814F6406292CE50B13B9362A740E5"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/68-review-cursor-batch5.md",
+    "Hash": "C6BFF2EA131772E760D71B30376413FA291A303072AAEC7A3D07ED3AA8C567F4"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/69-review-cursor-popup-bounds.md",
+    "Hash": "9AA7A980954E42F67AEB47C5B6DA8BBCB8B5A7309B5B0D73F9B3AA7A16E8E10A"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/70-review-cursor-type-final.md",
+    "Hash": "F61E845410705FE06433A934281D3A7266C203DEA3C0BCDF8CB13CD5F50A28EB"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/71-first-prompt-claude-20261025.md",
+    "Hash": "557E072636C8EDC73807EAD5BCD16DEC109D746853161AA8303BBE0B5E2CF867"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/comparison-batch3-final.html",
+    "Hash": "6109B7086D74712F3AC8D7605C62520F0FCB459FF4F00D9B56E222894B03C234"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/comparison-batch3-instruction50.html",
+    "Hash": "218162948D9E6310C38842DCCD6F1AE7336C8C4E1F33A39369A07BE0EB2ABE7E"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/comparison-batch3.html",
+    "Hash": "4A55AD72D29ED82BC7D2CE982F04F90954C767F701C9E54EE7AFD39502FDA4A3"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/comparison-batch4-final.html",
+    "Hash": "B2CDF7F6B51042595C1EA8BB79A08CE46EB9F106AB191958E1EE1909FB471EF4"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/comparison-batch4-plan.html",
+    "Hash": "43F726CC2F12B14B3CB8184A0BF01653A0AB7BABFE065710F4211B75D123CF0D"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/comparison-batch5-final.html",
+    "Hash": "0F25333CFECB08AB59FEC629B134B983B8EC640F0920B8AA8559FCB03414A92F"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3-final/after-nextride-extend-800x360.png",
+    "Hash": "749767FB424872B1032207C435F5D0A8D59F578668E321D335A67BCFACFB5CC4"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3-final/after-nextride-resume-667x300.png",
+    "Hash": "09FA2BD2E1B10A868AD2DDB7BAAF4E0B3DD2D034DB3A8B9F3571E6C6DBED9144"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3-final/after-nextride-resume-800x360.png",
+    "Hash": "D39E1C189591DDDB40850E13FC1FC911FE6A674417303EAA27DB9E8B290146D1"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3-final/after-summary-667x300.png",
+    "Hash": "21763267738BF254BE56F110425E35B2D1B33EDB58B498DCA74F8B59208C4538"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3-final/after-summary-800x360.png",
+    "Hash": "79CE648E7917D83A3D8EC114625210588759C7AD69151385E6B24457918E9F92"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3-final/after-summary-844x390.png",
+    "Hash": "1B1D4FA158A91158655C3854CFF24DC3514CA05BBCCB645DE8CE7C4FDBF78D64"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3-final/after-summary-positive-667x300.png",
+    "Hash": "43C607DE2B8E83F83899F94DEF31B9E944DCEE10FD42876EBFFFF125B5AD4D8D"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3-final/after-summary-positive-800x360.png",
+    "Hash": "A3B169074CFCDAF5872859A0B6919E40D0B115B97806EB4EF8E5FDD3BC6A6AA2"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3/after-nextride-667x300.png",
+    "Hash": "C5A443CBE2A93EBD40991EE7C02DA6CF8067117D2E8F439624621C6C587A3C4A"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3/after-nextride-800x360.png",
+    "Hash": "830DE8672FC3125439A2B220D90DCA70BBA0AD18400C4658E7A18492A02B0039"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3/after-nextride-resume-667x300.png",
+    "Hash": "80E2F317E91F41924C2722DEA48A7282B3523B4CD7C2D520066C06D8068DBDD2"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3/after-nextride-resume-800x360.png",
+    "Hash": "174F7137508DDEE11F96A9B980C849F8B6E6D70F209D1F65CF11F004E5875790"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3/after-summary-667x300.png",
+    "Hash": "19A60538D6451455346C541A858163E06C34ADE0F5D74DCDA9C271F6C3C20706"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3/after-summary-800x360.png",
+    "Hash": "86721268790A249B97C994637FBC1332FD8EA1D49909222CF5FC12F0189CBDEC"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3/after-summary-844x390.png",
+    "Hash": "90ECFFFC36385BA9F29305F07ADB75534C0AC084259EB0D2223EB872E319B4FD"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3/after-summary-guest-667x300.png",
+    "Hash": "C0D5FED1C8990283EEF43C2D7A9B7A494CD3D1D79975A86974A9278CB45689D4"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3/after-summary-guest-800x360.png",
+    "Hash": "F4239E9E147D9084042CC07E561359FE22FD1AAD0DF655AC4FE982517F57F66E"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3/before-nextride-667x300.png",
+    "Hash": "AB3FBF0CF8025E7F3BFBDA8E99D23186D2C54BB585D5F272E13E75C4E3E3C1E5"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3/before-nextride-800x360.png",
+    "Hash": "BF14E669C4E9752AE326E58B5319DCC55E39D885642BF058AC46B04C573660E4"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3/before-summary-667x300.png",
+    "Hash": "DA5689CA6E381957D698E2E9327D31989BB9185ED80300C5EC6E730F1FF7E83B"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/batch3/before-summary-800x360.png",
+    "Hash": "F1901C1D2D1F396495975F94B3A0A227B5F10B46AD4EB9E54664C42F277C9D6F"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/actual-ended-idle-800.png",
+    "Hash": "92FD972A21492DA69C06E76E867B378DF66175D7554F6726835FD22487F16632"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/actual-geometry.json",
+    "Hash": "526E77C984AC9EFEDEC2C016A14FF7F14F2044E4E970A21704C4E4577E8339F2"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/actual-idle-800.png",
+    "Hash": "071E1801936C7BFA88DA8F2F6FAA3A4019A2867659731507C2403B972760FB5B"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/actual-map-panel-800.png",
+    "Hash": "E1C20DA7AB687EF6F515A6256F6C70244047691BB31C4EAE448B8DD3A0999519"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/actual-menu-800.png",
+    "Hash": "D6CCF8A087061764D79BD7C18A754DA77C23F5BCCE6E3B4ED13E4FC42A8DAC28"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/actual-ready-667.png",
+    "Hash": "5E4545DD76FFE2ECAF83238D4E28DA6127CB07B7C5B7CE450230335C733F6D66"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/actual-ready-800.png",
+    "Hash": "BB125F46037DA0DCA9240CFF430A9A9FA1E0A0BCF33200283520DA7A2619846D"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/actual-ready-844.png",
+    "Hash": "7264DADF50644F99107838DE6178427233A9D32A1BC439200DDD9B54BE762557"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/actual-riding-667.png",
+    "Hash": "3D3B065B7D2192C359006694D297632000000BD9DE581E8C3FF6E56505EC2974"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/actual-riding-800.png",
+    "Hash": "5BAE0224E5B70573B49CC2DD32B428FB809B73496892C6FD2AB270B05628BA61"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/actual-riding-844.png",
+    "Hash": "1D881C3ACC5C38A4D404A84AC5DDEE422A6A8EC2009701B336741544D37235EB"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/after-nextride-extend-800x360.png",
+    "Hash": "7502EDB682BE47A3CCDF53F0CC18EA5847623DD3FDBA4263B3BB2EBE44B6E95B"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/after-nextride-resume-667x300.png",
+    "Hash": "05F3E04552EC433F991AB8F883FAB3C2EB1E389F8185FED3CE50883EE4F2BD84"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/after-nextride-resume-800x360.png",
+    "Hash": "EC8CF5A3A28946D555B5C2A6B48941BC8FA532EEF5AB2001963611763A24C421"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/after-summary-667x300.png",
+    "Hash": "151FCF8649AAB7F6F04386B08AE4A135C79B3005E675D9D5D999BF23452B1C0E"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/after-summary-800x360.png",
+    "Hash": "6CB9024422B1AB7449933CEE0C549141FF81E4D618DE2D917B2AD3DFEE083963"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/after-summary-844x390.png",
+    "Hash": "29D71D25ECABC2983594E73D25CE7445CBD29F5884E0806CA150678C73F8F429"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/after-summary-positive-667x300.png",
+    "Hash": "E2E68EF44528D67FAFC7C65FE6732A0CEE45B9B2C9FACFAC77E3AF4B7535A4F6"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/after-summary-positive-800x360.png",
+    "Hash": "FBFCDE21FB3FDC6F061BBC234895381ECDE0F7424950683A2A70B3363C366AE8"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/bar-idle-800.png",
+    "Hash": "06FC12D6E52A9D7FC1B156B676F2A30497ABDAE0FDC3DCBCEE0A380A0C9DE09E"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/bar-paused-800.png",
+    "Hash": "4534D3C771F265209044264DEAA4A1617E8046084A916BCACDF63A4E35D72F34"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/bar-ready-800.png",
+    "Hash": "9DFC199C4A104BE55443C0043A4AA49F282798D86D7E0704F423A72B2BC78CBD"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/bar-riding-800.png",
+    "Hash": "FD35D229717DD43DC46BE91FFCE1E805E658E3BAA4C4456D1F916259BE3875D3"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/bar-setup-800.png",
+    "Hash": "DC4F3F33601C3741FAFEC6403FFFA10C81C0938AD8125AB9CD7C4FE6678581A5"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/initial-file-hashes.json",
+    "Hash": "F5E62B0594FB5C710969EF8CDC226C9A365F51FE7A38FEDE74D97A1E74AC85C6"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/initial-status.txt",
+    "Hash": "8E7A5C5E089B88BE646B98993FC89FAF014AABE6DA47EFAE4273DE53EAF4E2CD"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/popup-11-empty-800.png",
+    "Hash": "D33B614A06480D263DAA977D50FBC97B9DE4EA8847F44924322EBEADB806FFF3"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/popup-11-end-only-800.png",
+    "Hash": "7F18E040352EA00A14AA040C597540812299A6D31863BE5C20AEC2029F9180CE"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/popup-11-ready-667.png",
+    "Hash": "19B365F1B6F7EE295439165AFAF7263CA5227F4C95E715725C4AF31C3ED593A9"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/popup-11-ready-800.png",
+    "Hash": "FB9FBE9C13B45962E6D0572F613AB0A0123272626021CFA119C049A6B112A9B6"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/popup-11-ready-844.png",
+    "Hash": "C29C4CC21627815F9185177A9D03FD025BFB323C6D1F7DB2E4CE2A79475DEED3"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/popup-11-start-only-800.png",
+    "Hash": "4F89FB95F31FE96A91DC534D7067AD5F4DC9E2514E686F54C8B0C629777BA6EB"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/popup-11-waypoints-800.png",
+    "Hash": "5A479C9DF602F6B3B534E2F3279C30E0D8B80D2595101AE173DCE2E9F30164AE"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/recovery-git-matches.json",
+    "Hash": "4BC0920423C0F16030C23A05891EB0AB1F16B8CF0303CB0DACC4BEA5392EB28F"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/rerun-after-first-visit-800x360.png",
+    "Hash": "55FFC4FFA168DE22FABE861B47304555C5C09CC60CEBDC3EF7619AA8E1178C7B"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/rerun-final-account-667x300.png",
+    "Hash": "3B00134D90C559501AA7BBCEB8F3554BC7FBED59306C92904120A1F9F8EEF061"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/rerun-final-account-800x360.png",
+    "Hash": "EC3BEE86AD0D082FCA15C99A271535B98B3993B3C175D17D7B3BE00DCB8DBC81"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/rerun-final-inline-667x300.png",
+    "Hash": "90CA800F6D061D3526E8AC88294C14FE669E7A0323F04294E698A2C06DCE1997"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/rerun-final-inline-800x360.png",
+    "Hash": "EBA9C4BE786C647D16CAF19FB01EEA2E0B871B03E5040EBB256A1D3C8C6D3AE8"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/rerun-paused-collapsed-800x360.png",
+    "Hash": "06D02B1DC3F93477CBF580178231DE244B4B22B884CCC94F4A109F164EB88946"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/rerun-ready-collapsed-800x360.png",
+    "Hash": "359D6D4E8ACF2C592DAEFF8006C1715BA30969F91BE2F4FAEF23672C59EF5B10"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/rerun-riding-collapsed-667x300.png",
+    "Hash": "6D2CF29B24D7F867085BFCE5797971AFF689A72DAECD77FB74C60CA7C71B9453"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/rerun-riding-collapsed-800x360.png",
+    "Hash": "40D039F456CEADFE0ABFC5D55B5ADFB3F922D77E3C86473F6AB0A2BE0BA72B8C"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/rerun-riding-expanded-800x360.png",
+    "Hash": "4B4E9F7E263EA6CF9EC044136559A67E3980FD5CB7B74E585053255FC3AACAA9"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/riding-collapsed.png",
+    "Hash": "9E8EAF3CB95C82B420F3683016ED41613519BD03E62BEC45C3BE84CD8CBFAB0C"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/riding-expanded.png",
+    "Hash": "A1C6202E127D4344A2F29C2F1BD83103E5E55766CE6BEF5F129BD4DB1D367F1A"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction50/stops-labeled.png",
+    "Hash": "44E56E50B2A8ACDE5B90F6015B2795F7622AABB4CD083F2195F7AB4F99B88E26"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction52/c1-next-ride-card-no-reload.png",
+    "Hash": "8CD48A8180E44D3B5A581F946429549B9EBDC1DEACD9FAAC5D82AE394970F147"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction52/c1-resume-ready-to-start.png",
+    "Hash": "A96F6143547A98721520284FECB394EEB36B9EBAA6C9567AF1356A73C54EA047"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction52/final-file-hashes-check.json",
+    "Hash": "9F596DEF1F5CB765D3C746E2C02247E42D5201B648E8166672A8D8DB3EE8D43B"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction52/final-implementation.diff",
+    "Hash": "44C3BE5EB6C53EE3B2B21ABD34E2F644DE85540E5C10D97EA4867C2BCDEEEDF8"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction52/final/c1-next-ride-card-no-reload.png",
+    "Hash": "3B420A9667CE2F58047810259FFBF1E8180D139C2615A34282AEA99CA9160C60"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction52/final/c1-resume-ready-to-start.png",
+    "Hash": "F4607417DAEBCC8CB5DA3DD1DCC8BDFC383F241BAC156249FA631D6950F63C81"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction52/final/playwright-results/.last-run.json",
+    "Hash": "91D1C43004802CD49950D78EB11C8FA7D05DA8FFFFE219A8B13B2F561BC00903"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction52/final/u4-hud-resume-dual.png",
+    "Hash": "9F24E7ECF9249737B4A4B9DCB59B24DD73DB0A4BA9F0FFC2C7985008B0B54D0C"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction52/implementation-only.diff",
+    "Hash": "F495D3201CB834FEB5A2B132D0B66FA3EABF390B0473F93785B575FB04121EDA"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction52/initial-file-hashes.json",
+    "Hash": "E3ACBF0C9A0D3A7DC90A48EFD7EA4102DA6E6D824EB90832B46415B7C7C16AD0"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction52/initial-status.txt",
+    "Hash": "0CA56C6A613A695B4A8804190E622B6F8FAA9B251FCE35DF904B4DB8902B17F6"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction52/playwright-results/.last-run.json",
+    "Hash": "D5CB3B6F757CDD02EA26ABD0C6D05558FD33AE7516043DF088C518204D8A2335"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction52/ride-continuation.before.txt",
+    "Hash": "B14BE6BDD5D8E66BB46721D09DE3790B4D6D03A63B0CB6E6562F01797638C5F8"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction52/u4-hud-resume-dual.png",
+    "Hash": "DC5E34A5F322C14C43AEEE3ABFA977856A6E61DD6BE4AD054E8D17C9E8AEBFD4"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction55/initial-file-hashes.json",
+    "Hash": "716B39C88CC8FA56DF15F164844BC4640C7F34783ED839702457464A7150D736"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/after-first-visit-800x360.png",
+    "Hash": "FD035B7349B19F066F2EF716447310CA8921BB56E40A9C5F5834F7B14B0002C1"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/after-nextride-extend-800x360.png",
+    "Hash": "4DD2709900EEA2F98965ABE101C2FA9E37D7DF051FD1A228479D806AFEB3B9D9"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/after-nextride-resume-667x300.png",
+    "Hash": "94C7B7793143A0257AAAEAC9E01233724ACED125CA332E77AC8F73B581BABA76"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/after-nextride-resume-800x360.png",
+    "Hash": "2831A07ECD4846EF815FB227654B06CCEB8B3B8E59BE5904EFD09FB98FB0E8ED"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/after-summary-667x300.png",
+    "Hash": "1E5D89E0259107C2E6975002ECE3D9033DDA5D932BC31BCE40CBC4A3848D29CF"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/after-summary-800x360.png",
+    "Hash": "14C6A482C90766CE12BC356A31BB2DC314893125E51A60A015EF9BA109D7876C"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/after-summary-844x390.png",
+    "Hash": "4A1792D6AC1FB4FB24C715A9B30D69EE07D7B7730AD3B7C3758C2563CBAE0C84"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/after-summary-positive-667x300.png",
+    "Hash": "E393A938DE124D2AC0E25356E2529CCAB961D62A38E637F0F0F9FD3DDE999F87"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/after-summary-positive-800x360.png",
+    "Hash": "2887C0DCE6742BC9CEF739E0083B8A76660622A498BB6EC2FAE951C0325760A1"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch2-paused-667x300.png",
+    "Hash": "6F23BA9B7E907CFB700D8AD2DDCCD15E788BEA961900FD16AE31E7ABCA5D89F8"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch2-paused-800x360.png",
+    "Hash": "5442DA0B4B6E05255156E06D527116F5EC846B7BBD954B7EF055C1800D4272B7"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch2-paused-844x390.png",
+    "Hash": "6519E7BC568ED5063E2C9D0067753FB26A46636B45A92F586D29B6E509D32C81"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch2-ready-667x300.png",
+    "Hash": "92AAA23182C6F883D820B2D2424DAAEE83B211F428E8E9C71F3DB22E12B75BCC"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch2-ready-800x360.png",
+    "Hash": "63E09ED7405964B1D21789D54F27F4C7F227C112035837E8607A3BFA6CE982DE"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch2-ready-844x390.png",
+    "Hash": "B8D6B40CB732A7928A7735A4A567B813AD86CFECB3E0FAFACF051730AF095F63"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch2-riding-667x300.png",
+    "Hash": "7B7B5D7E506D97F5267E1CD2408242C9FB1C44B7FFC00E15A4059C68D782CC82"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch2-riding-800x360.png",
+    "Hash": "B60F1F4C52C7198296E2BD15DFC62BFD0B0E771CA323D70FBDEE862900477DA1"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch2-riding-844x390.png",
+    "Hash": "D911F35795181D1352138865337E3DB353B3FE25E4886F3BBE1AB54C6763A638"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch4-map-667x300.png",
+    "Hash": "ABA65C1510EB086EB7B58062B23D007058566C7BAEE76F8E591C1C354A4D4E18"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch4-map-800x360.png",
+    "Hash": "1D28A00F7BEFDAA46CA824CA6DA7C41E76890A5A33EEB52E815F56B5801E197C"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch4-map-844x390.png",
+    "Hash": "E19E623219F99EBA569D617BE365D3F8F5C67DA399698C05FA3913E4CFA07375"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch4-profile-667x300.png",
+    "Hash": "7B4F4594477113C19956A7377DD772F14A56B55EA0FDAE29CB64C8871255DD0E"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch4-profile-800x360.png",
+    "Hash": "17256557A8936FF4DBFA39563107CBD88366145265D3E2B688F43994DA9AAF05"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch4-profile-844x390.png",
+    "Hash": "F70F32E19AE424F85E851438894E74FF4E9977B6D63ED15463938A28CFC443FC"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch4-sensor-667x300.png",
+    "Hash": "22D2D5A43C995E8B25ED7A0A93ABB8114DD741DA299B3E672958F92A4A6A4221"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch4-sensor-800x360.png",
+    "Hash": "7040B9B1B34A69BA1F1106E97460661C73A5422BF1CDAF6DE2A983FDE94B1E98"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch4-sensor-844x390.png",
+    "Hash": "9D587D0AC6A191FA71A4C13D616C4DB0B92082C4A2796C6E2A3714D93EBF491E"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch4-sensor-connected-667x300.png",
+    "Hash": "25E777AE6B4FB4BA713CA15F40746584B1D2BF6BE599523299171D600B6C5CD9"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch4-sensor-connected-800x360.png",
+    "Hash": "7D42195A4AC8317CBE2E98F6C9252C846BFA5EAA3C58BC451E37E2EDA2D27BCB"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch4-sensor-connected-844x390.png",
+    "Hash": "DF7F8BADF72247CBCC299F2A99B85EFFBEF2C639238F4BD7E9D09134A5624DCB"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch4-settings-667x300.png",
+    "Hash": "641ECCD1BC41C239F3AFC9EA2A6C759420A597A3BC8DE4AE7D92BADB69D37BC1"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch4-settings-800x360.png",
+    "Hash": "5C83625CD6901A36553796767CBD987B12EDE35D6D22DC46EBB7ABBC0EA33448"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/batch4-settings-844x390.png",
+    "Hash": "9F3D49114E6E636A56D76A3BF64128012675C51720B2FE02FC8B85F9D287CE4D"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/final-account-667x300.png",
+    "Hash": "AF76EA21CE3159AE7067F303028C77EA0366FD759CF8AD14E2CA52000B2ACB36"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/final-account-800x360.png",
+    "Hash": "5E7CD581F6777384A8F54721A4FD5BDEC4B5CAF96EF90B5BFCEC1ED2E57EE94B"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/final-inline-667x300.png",
+    "Hash": "1CE1D82C2EF3B2A91A9BE91B35EF455CA98F3C5D9DC7A12599C5E839463B0221"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/final-inline-800x360.png",
+    "Hash": "96307F8C6CA3CEC93526EDAF21355DEBE0E6C6A4335B938D3D5A30E421EC8F9B"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/paused-667x300.png",
+    "Hash": "3334418FB3CB8275052BDE3C5E45B4F73D8C9E39793F05A2CBB693D62F097B35"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/paused-800x360.png",
+    "Hash": "BF49AB995CA0EC9A7BD803D036E77EAE7E900C026E5AF48386D616BDAECFC376"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/paused-collapsed-800x360.png",
+    "Hash": "BA4FFF787A65DCACFCC7154318318ABFBD8CF8D381B10193FA2B11F9B43766B5"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/ready-667x300.png",
+    "Hash": "218EC9F5077A5CA63B060C1EE94B128F865243D7EFECB0C4C9CAC581E73F7B16"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/ready-800x360.png",
+    "Hash": "76DBEDA0911D2CA613622944EE78792F02561E318F3A8092055790CFA7F680FA"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/ready-collapsed-800x360.png",
+    "Hash": "725B994072BBDB0F9DA001E8D4E8D8C99ED8BD0136F38460E9D2E326CB9A01CE"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/riding-800x360.png",
+    "Hash": "8633BABF41D345B602FB358A7CBF3696E5D3443709AB7C945AEEC45F767C23EB"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/riding-collapsed-667x300.png",
+    "Hash": "CF019F548D91106B83F955D91E5B369755DD930946D3F9DBF82676AD0B6DF980"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/riding-collapsed-800x360.png",
+    "Hash": "184A9C09D78028AB453F778629F7170E2EEA60F6957F43C76AFE11D017A0473B"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/riding-collapsed-zoom.png",
+    "Hash": "8F98A7A5455033978EDB470EE834AEE9B7E4E514CFBE6515DAFBEAF186C31223"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/after/riding-expanded-800x360.png",
+    "Hash": "F421864F4A16D73B5B5C7867282414D5446EB3473C95338A8F274A8D07290A82"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/batch4-complete-test-results/.last-run.json",
+    "Hash": "91D1C43004802CD49950D78EB11C8FA7D05DA8FFFFE219A8B13B2F561BC00903"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/batch4-test-results/.last-run.json",
+    "Hash": "B34772410CF7AB62CAEDF2C35C0C87D72D3F7EFAC262C995AEA2F6F85A484E7E"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/before/map-800x360.png",
+    "Hash": "6A4B601C1516E08C9D5F257ACF6E49153C7F1BF053B3D2DF93BBFF0AAE50D9FF"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/before/sensor-800x360.png",
+    "Hash": "0BABC765891CADC6409C083BBF7FB29BC2590968607B46F1797530D5780D7BC1"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/before/settings-800x360.png",
+    "Hash": "148257E353ED00548E99071C56BEE262402ADF29B633940766A30A07A9AFE54B"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/blank-app-diagnostic.png",
+    "Hash": "7A6645F2009600B0185D82B35F86102474D5B6EF6C971D770F3059AD5FB8D979"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/calorie-sync/account-sheet-edit-button.png",
+    "Hash": "DD1A7A69D08E677EF24BDCBC44263BDBA52E83329821C27A9ED6130668DF9D6A"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/calorie-sync/changed-on-other-device-settings-summary.png",
+    "Hash": "42436D9E5669E93E853CC670A04D461A0E7451F7E94ECE114049A36FB35783FA"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/calorie-sync/changed-on-other-device.png",
+    "Hash": "B5D7C0167BDDEECA17E7E5DC018A7468C2699366CF102C5F965AEC34FA93C86C"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/calorie-sync/profile-edit-sheet.png",
+    "Hash": "830E17A42373FEBCAEDEA7EEC33248219435B12FEB8677F48796894F278C5C83"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/calorie-sync/restored-on-new-device.png",
+    "Hash": "40B0199D32264224AA7DADABF4713CDC2D0AEB1B58F7669FFE809E12FA594197"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/initial-file-hashes.json",
+    "Hash": "15635D845400FE08B66A699526AA8B418E6516FFB6F874A868AA1C811E9DA8B6"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/preservation-check.json",
+    "Hash": "352D201487CB878BA1E0ED1C06A08D74D4E98CBAFEAAD466C90FE10C7DFC77D8"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction58/preview.before.txt",
+    "Hash": "21A800C5033385CCECDD13C09E706FB3A30830B11E9233EF49A6A7D9FBA255B3"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/after-first-visit-800x360.png",
+    "Hash": "FD1F954A14CEAB8AEF90F3841E482603E8BF63449F911EA5241B12727373DC74"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/after-nextride-extend-800x360.png",
+    "Hash": "12368282AED6DD947A80020FE6DC8699E278108ACD970568AED8B87058DE5BAC"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/after-nextride-resume-667x300.png",
+    "Hash": "D3FFD6FA2841FAFA89FE72D363A54013D483B7B3F6CAC286C68B5D8088D93D05"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/after-nextride-resume-800x360.png",
+    "Hash": "039E3FAC9C90225ACE798FE55FD0DBF57EC85DDBA17053A594E1B12A29731933"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/after-summary-667x300.png",
+    "Hash": "D583D6E20470603FFB62745138A7CE354CB97A5DC57D69C256C2B1106C048149"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/after-summary-800x360.png",
+    "Hash": "6FF8346B3A5DA8E0890333C218C423291EDA0A4EC02FDE02807B9923A3EE9C03"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/after-summary-844x390.png",
+    "Hash": "46BDE2D8E57E8E3E6C8B267144FE51EA1C4B40D4D099693CD28373C48EF56883"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/after-summary-positive-667x300.png",
+    "Hash": "FD78DA622BDD4D13BD3426B55B6179CC79F46AAF51A9C38DAFD478B918FBCA95"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/after-summary-positive-800x360.png",
+    "Hash": "599FB3555F4CEFCD193E08828083C320A57BC78450E00D7E4366E9251AE7C2BC"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch2-paused-667x300.png",
+    "Hash": "EF25292130028D2DD9E5064633144861952A0756E780A428F64EAB379D1ECDF4"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch2-paused-800x360.png",
+    "Hash": "1BFFE218CA0684E629336CEFA1B2B15628C6C6205916A1CEF6984F67094040BA"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch2-paused-844x390.png",
+    "Hash": "DF3E5AD007947BE82190B2B6A36D0ECD60F2B701BBAA258F9644B8870963FD04"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch2-ready-667x300.png",
+    "Hash": "F969794E89795A1C683E19F7FD562C24274E02DC4D17BDC071ED3C5D39DF0626"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch2-ready-800x360.png",
+    "Hash": "C662D5F6BF953B7068F413A8DFC9FE416234A11EF7A906E6CFF9CBE4133C2A42"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch2-ready-844x390.png",
+    "Hash": "6520FFF4C7DB423A2488B5AE0A200513EFF657ED3E8CD2A9BE0A4D1200661405"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch2-riding-667x300.png",
+    "Hash": "92665240E17E321F6DC42729D8FA0A227A811056FEF9C8B5EBA726F6261DD8A6"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch2-riding-800x360.png",
+    "Hash": "B7892B3D43FF58880D30DBB2C6F66C25B685AA23644BEB1ACAC126489503CDEF"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch2-riding-844x390.png",
+    "Hash": "A84C3C09BC3D6986E465F2D8DFA5386EA705D061DAD9F1D1ED5AB2E3FF2E18E6"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch4-map-667x300.png",
+    "Hash": "BE595E413D4FCDED0ADC32B49D6264A236B0661AA37A12603ECD5BE38EF01914"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch4-map-800x360.png",
+    "Hash": "A22BB277F8D9CE15E3DBA2E5A1FB5DC6DE0F929BAED3F1F10E2863FCEB132FF4"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch4-map-844x390.png",
+    "Hash": "574FEEDFD6764CF17CA12F05A11017E8DED3FAA3E075C785E61DB45D6E1AEC52"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch4-profile-667x300.png",
+    "Hash": "A93F00F0F98C142667F4ADD1FFB7BE12E4A2F6593F63A0DDA81F8152CCA3D84B"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch4-profile-800x360.png",
+    "Hash": "EAE189A7D13F27090E30E5D9918CEFBFFE1882DF2833E43AB217D767F103C1AE"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch4-profile-844x390.png",
+    "Hash": "F2564CB31A209BA0AFA59E39122C0ABE9B40553C1260B4C8F7AA2F0FFEDC6B2E"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch4-sensor-667x300.png",
+    "Hash": "9ACABCE532BE8517B9606DEDA7CC55F7DD86ABFDFE226D120EF15103A0CEA50D"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch4-sensor-800x360.png",
+    "Hash": "86901B37562531E723E9ED9470D786F5F0DE3F7DF2BDA2708D25D0354EE8E757"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch4-sensor-844x390.png",
+    "Hash": "A789D0799C6B164DBA6E8B53E0C509501CBC1B1CF4E9F344B2DDB0897BCE0BF6"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch4-settings-667x300.png",
+    "Hash": "9E050C80835926050406B0A7A5A0B043E7DE7BD069F9978E1ED777C04DAC5F0C"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch4-settings-800x360.png",
+    "Hash": "6CFF6D6C8784DB8BD48D94004F5C4A68B011CF368677B5F862600EA148CDA31A"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch4-settings-844x390.png",
+    "Hash": "F13EBF9B15DC8A0477BEF6EDA241AF6E9E5AD82ED335CFE12E7990149321C208"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-distance-667x300.png",
+    "Hash": "26B47E2F50C0619741BBC847882352D2D46CF24C35C599267B8ADD6B8C3DD2CC"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-distance-800x360.png",
+    "Hash": "D568E64C2B91C0175238BADA0AB0C3EA600A24E9034747407E933A68A47CD900"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-distance-844x390.png",
+    "Hash": "126CDA8812C9EF85C13564E04F185588B929130A7050BBAFB0E44292F8CE4B3F"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-failed-667x300.png",
+    "Hash": "630720950EBD073CB703DA7DD8C85EB08BD650D4ED94B8D4C8D0BA867E04FD3E"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-failed-800x360.png",
+    "Hash": "98192A89817BCAF5F762CB246D33A409ACA7442199E417E409E3E50F763E9CD0"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-failed-844x390.png",
+    "Hash": "2F508894B694144F923D3A6D1D93AF5F43817C848E1D701C5967D98792BF3663"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-location-667x300.png",
+    "Hash": "F1CE8757848726B511884D1AD0AF32F2FF23D347F75826BFC2E3A5646E31F9ED"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-location-800x360.png",
+    "Hash": "345DDD7BB069EEEDB982EB0F61F93E69D663914B0A344D089397E9D487355B0E"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-location-844x390.png",
+    "Hash": "49011BD85F140B051ED6381A45A10ACB5BC3BB2A6A82D0C5C36476B2143C8762"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-no-start-667x300.png",
+    "Hash": "27B7B7FD7742735AEB92D39CEB8055DEA773A8DD9E4AC7E5EB59C91B85AF4214"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-no-start-800x360.png",
+    "Hash": "6262217F123095A8FC48C8BF8687C0126E84A0725369B08AE400048E0BF04359"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-no-start-844x390.png",
+    "Hash": "72726884F59230B9BBF056D7BC80E37B20AF588CE62C1050386FB7A90B6DC347"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-ready-start-667x300.png",
+    "Hash": "A7ABDBA29A407D8B0A0FA65F1C4C5675A99202C1FF75ACD6A4D666943A0D50B5"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-ready-start-800x360.png",
+    "Hash": "D994CA4102A5D30418F7E4C09810A461DB1381E03F3630385AA379A5615ED855"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-ready-start-844x390.png",
+    "Hash": "3D4EF58C34147578AEDE4662D12BE9EABE4956BA673FBB9307736734B43871C0"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-real-first-popup-667x300.png",
+    "Hash": "F7ABDA5FD5E95CE4F53A69677CFBC5DD99E769B559749AA0432F95B6A17BE67B"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-real-first-popup-690x275.png",
+    "Hash": "33EF459A419E0B18D6878DC1F82CD659193C937B1A5C2E8860D5883B39E16E3E"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-real-first-popup-800x360.png",
+    "Hash": "135EE4A8D574FD64366E198540BC51A1B3D17982318F54F09CEDAA68D4D8A736"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-searching-667x300.png",
+    "Hash": "03641035A60F846D70BA1535562C639D9D17C1C187E545CC1E2BAADB16C54EBE"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-searching-800x360.png",
+    "Hash": "583D60F125A47265CCD355E236528039A85D973601D9896580AA6B0635B3B3CC"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-searching-844x390.png",
+    "Hash": "2536B9D178191C73D5C0332B170EE33A5B53354B907CE594A6C6D1ABD384EBCB"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-token-empty-667x300.png",
+    "Hash": "F237A5B37398E08A35362DDD7C00FA59EE593182BCFE95432081CEB7D0887BAA"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-token-empty-800x360.png",
+    "Hash": "22B6382FA273FE4F002BE815D68E434BCB77185CA9A1DCBCF8C2A18DE8174E02"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-token-empty-844x390.png",
+    "Hash": "CD40A753F63EDA7243E77A9395267F25AACA28C8030A63E7FBF5767A59935495"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-waypoints-max-667x300.png",
+    "Hash": "2641218A590FEAC51327476B507339DA227D99FAF3DC60576D0D3865A958F882"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-waypoints-max-800x360.png",
+    "Hash": "D413DBD3E11541CA14988CF42FCE1A7A1AB0EBB89597313EA031B6E56FA2471D"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/batch5-waypoints-max-844x390.png",
+    "Hash": "BC85C289FE9A461F237E17B645DC19D4E9286E7FD28C04284AD3F802B02474A6"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/final-account-667x300.png",
+    "Hash": "541D90F5799E7C56C21FEA35C762B6DCAFD2DE96073D6666EEABA1ECF9E9542B"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/final-account-800x360.png",
+    "Hash": "FF78E44FD7C29038B6DEB555BFF36E28D3473A7ECF5BAF98D20B6B9152B3EA3E"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/final-inline-667x300.png",
+    "Hash": "C571FA915970962F5E9D93B30CDEEFB1916765E7D26B621B833083E0F2805397"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/final-inline-800x360.png",
+    "Hash": "FAA4DC5E4DA0B00C1F3179E78DFBD7D943F8F810C55311856FAACF14401C496C"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/paused-667x300.png",
+    "Hash": "CFBBE4D2C320E82328925BAE2EB26496F572EF6B6E2FF94C1FD56FD916D1D6F0"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/paused-800x360.png",
+    "Hash": "65B65664C58D0ABE956E35D55B0B8598D28010E25F7FBB5081B12DFA7C778D7D"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/paused-collapsed-800x360.png",
+    "Hash": "C77BB34D7A2E8CA0B19CBEF659E10D063AEA5184945C6BDA6DB15A3972CABE17"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/ready-667x300.png",
+    "Hash": "A2CF822E372318AEACE2BAD3AB3A10F6D8240A3449968F16F12F8C82ED8A280C"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/ready-800x360.png",
+    "Hash": "7DCA728261DBCDEA4341A6B24149347A0AE4038F96623C41B19EEDE1AE4EA408"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/ready-collapsed-800x360.png",
+    "Hash": "0A2C2495AD86914616F08949C629BD1AF8197D66D4E199A69610C489FFA27387"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/riding-800x360.png",
+    "Hash": "479E9A3800816C79F663B7AC3A0E9C63528C507CCAAFC467E3D73B8DF6C5A6AB"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/riding-collapsed-667x300.png",
+    "Hash": "22B555B8598724CE982FCD17FF742DCF5073F1E5B5AFFB4B128799F3BE080CE8"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/riding-collapsed-800x360.png",
+    "Hash": "3E1797A7259A1F5255CA1E48F888D093B8DDD863165CFD2FD268892381193746"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/riding-collapsed-zoom.png",
+    "Hash": "8F98A7A5455033978EDB470EE834AEE9B7E4E514CFBE6515DAFBEAF186C31223"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/riding-expanded-800x360.png",
+    "Hash": "879F5FD626E51C9D55EA57A547859DDA6D4C79C23D858E6192CB03CC7A381BC7"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/step30-manual-667.png",
+    "Hash": "442636715B22C7A463023BF6760DD74931F6E91FF673735158237481DF2E43A2"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/step30-manual-800.png",
+    "Hash": "7532E7E17F1ABDD07D22A721FC36CE7D9C733199B9FD262E8419609CBF4ADD24"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/after/step30-manual-844.png",
+    "Hash": "160D3DDFB69FA54094C3843DB7D9CD93A358548DD00D6A95981418ACD4D63624"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/before/distance-800x360.png",
+    "Hash": "F39BE00CDA95769E463D3B632D7FC28CEF27DE28FF3EC27CEAF6298617E6F4B9"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/before/location-800x360.png",
+    "Hash": "AD039383C1C19ADDAA31245D44C39AF1C47F2F2EFBBCAAA43BD2D7111487996A"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/before/ready-start-800x360.png",
+    "Hash": "89D3EC8597DE56CF723ED7DDCDE2E4BDC48841A48465F598D0F267C640385571"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/final-preservation-check.json",
+    "Hash": "95F7ACE67DA7647EEF469E650AB07AC0C3DC65822C57B0AE6A2364F4E68687E3"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/initial-file-hashes.json",
+    "Hash": "1FB721B36B7EDB47FAFB30334A88CAD634B03095839053EB8BAFF4B63436E100"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/live-bounds/01-desktop-before-pin.png",
+    "Hash": "806ECA900DDFDF415F30E96352E68E224478209EA41177E6023D9C3476DCC699"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/live-bounds/01-phone-landscape-before-pin.png",
+    "Hash": "2DEE6B9B5616E5D6FB939FA1AB2895F24AB0C71A37F1577245EDECE48767A091"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/live-bounds/02-desktop-after-pin.png",
+    "Hash": "77C71488C79FDA0203B72153AFADDA444D7E8DA49DFD13EC98709A0650AFA420"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/live-bounds/02-phone-landscape-after-pin.png",
+    "Hash": "0C849C7CE78CAE5AFF9A60BCF6AF019355ACDE9D449CE258698051900D6B28A7"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/live-bounds/measurements-desktop.json",
+    "Hash": "73720D9C75825B5B480CC12EE8C36586302585E5F0983B5DCB01591095FE1047"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/live-bounds/measurements-phone-landscape.json",
+    "Hash": "2C6ACAB93A21FCD6AB6B16DACEC6531FDA8D5EE87BEC42D70BA4F2C68D3B7E14"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/live/01-desktop-before-pin.png",
+    "Hash": "8B4F3E65108AD319DB49CD5C5F70A30DB21E408F299F6332C2627EA34B3CB8C2"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/live/01-phone-landscape-before-pin.png",
+    "Hash": "46117E96858261670BDE5CD197E45EE77D13BBAD5E61F0A4AFB52B1B464B6951"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/live/02-desktop-after-pin.png",
+    "Hash": "30D2CD8316B823DE3F606D382A719C276D8177FF5BD1CFC74E6300665D20DB1F"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/live/02-phone-landscape-after-pin.png",
+    "Hash": "0C849C7CE78CAE5AFF9A60BCF6AF019355ACDE9D449CE258698051900D6B28A7"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/live/measurements-desktop.json",
+    "Hash": "FC073F3AB25AFC51101ADFFC992CD3E239073314A2DF204D68FE76BBBAB7A2BD"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/live/measurements-phone-landscape.json",
+    "Hash": "6E43C9C95E491E52F2D35CC0EED2EBEFDE46B4E60AC636CD74A1C386F73CA98E"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/preservation-check.json",
+    "Hash": "624910FFD256FB3AF42B03C84138FBE0CF0EE8D28D20DF03DB42A12A499E3585"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/route-media-results/.last-run.json",
+    "Hash": "91D1C43004802CD49950D78EB11C8FA7D05DA8FFFFE219A8B13B2F561BC00903"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/instruction65/type-final-exit.json",
+    "Hash": "9ACC239A8A5735CAD66C4092C7A3B93284766DB7170DEFDCE34B18C638157E82"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/supervisor-intake-20261024-night.md",
+    "Hash": "24CAC4D10E9BE71EC8155E2037664C80118BC25A485CFC801C5E317F551F7230"
+  },
+  {
+    "Path": "apps/web/e2e/calorie-profile-sync.spec.ts",
+    "Hash": "487650111F0D1E9E4D97DF242A1F2CD6D380AB7815EA39B262D586FE97AAC965"
+  },
+  {
+    "Path": "apps/web/e2e/distance-direction-attention.spec.ts",
+    "Hash": "D1AD12B4723330DB61C2DBF775CEEBAB5F30D3F918CFA6C151D8A97A11FF1659"
+  },
+  {
+    "Path": "apps/web/e2e/ride-continuation.spec.ts",
+    "Hash": "3E17EA991A5B977B180C2D7102AAC367672CD1F934A2BA6EFE5E5B1B714ADA39"
+  },
+  {
+    "Path": "apps/web/e2e/rideEntryHelpers.ts",
+    "Hash": "52CB353F9A729806C554475004334EFD2FC67F82DCC19A31AAA8A5BBF7BD9D9F"
+  },
+  {
+    "Path": "apps/web/e2e/route-dock-riding-content.spec.ts",
+    "Hash": "DAB66889B2953D1C6563CC8928407C81E008769E2CA1C5C63CD3780E01F26079"
+  },
+  {
+    "Path": "apps/web/e2e/route-media-controls.spec.ts",
+    "Hash": "6D63201C0C2E3C10AB4F813C8EDE7FF9AE7AEB1C83E6FAF858A069C1A923898D"
+  },
+  {
+    "Path": "apps/web/e2e/route-pick-popup-title.spec.ts",
+    "Hash": "F0E8C129E37A363063DA19D29CA22759AB93C34105F37AD7B8FCD98DE15E3A12"
+  },
+  {
+    "Path": "apps/web/e2e/route-ride-controls.spec.ts",
+    "Hash": "8B961D63950D6ADFD55886FE392D56D0F56016BB48E0F37EA2B53B131CAA75F8"
+  },
+  {
+    "Path": "apps/web/e2e/ui-800x360.spec.ts",
+    "Hash": "BA81EE140D15E57E9A41006F39FA7534ACABC66EFEB55FE883987E29BAAAE963"
+  },
+  {
+    "Path": "apps/web/e2e/ui-edge-live.spec.ts",
+    "Hash": "F6E020BE45BAB99EBAC97DD6B5D79828422A00B2AF4EAAD0E61D5B3C292E77A1"
+  },
+  {
+    "Path": "apps/web/scripts/next-ride/resume-slot-ui-fixture-main.tsx",
+    "Hash": "0A8E630930675413A04641459318DBB700CD147CBC195E0B510AC09CA7722CD8"
+  },
+  {
+    "Path": "apps/web/scripts/ride-calories/calorie-settings-ui-fixture-main.tsx",
+    "Hash": "BF52725DE2CB10C6B48177D1A763D5A6ABB3CA22D64F7C9C1F4EBDD8BC458751"
+  },
+  {
+    "Path": "apps/web/scripts/ride-verify/entry-contract.mjs",
+    "Hash": "B086524D35ED2CFBF8D851EFB61A662C966583293116862329723458E0975191"
+  },
+  {
+    "Path": "apps/web/scripts/ui-800x360/preview.tsx",
+    "Hash": "22486AF06C5ADB7C8F1752FD343E188705EDCC3DDDB1A6C7B475764E888DE5F6"
+  },
+  {
+    "Path": "apps/web/src/App.tsx",
+    "Hash": "8DDAF6EE221385F63A27F753FD1DBAA46D22B3CE509C1DC93A705B91D0F9078E"
+  },
+  {
+    "Path": "apps/web/src/components/ProfileEditSheet.css",
+    "Hash": "1D304DBCDDC29AEA534AAA8323EE4A7BF9185794E0C0D551C7D6247923E15ACF"
+  },
+  {
+    "Path": "apps/web/src/components/ProfileEditSheet.tsx",
+    "Hash": "7251FE4A26D0E80566C2D0C1BC939B17EECD5F42ACBE1DE1150B22DAD154E5B1"
+  },
+  {
+    "Path": "apps/web/src/components/map/MapView.tsx",
+    "Hash": "79AC30180F0A60DA087B34EB14DFE0D538501F6BDEE28D809D81BFA49037841E"
+  },
+  {
+    "Path": "apps/web/src/components/map/MapViewSheet.css",
+    "Hash": "280F56AB43A497AE3DEB7C7BD417E8D50F00C2AC59E8547480ADE128C3F9F5C4"
+  },
+  {
+    "Path": "apps/web/src/components/map/MapViewSheet.tsx",
+    "Hash": "B3D5D28156AC3C6A7A403355DB0ED1C430CB393B240BFDC139925472D3F26DEE"
+  },
+  {
+    "Path": "apps/web/src/components/map/mapPopupElements.ts",
+    "Hash": "4B8B6243DA0E65D136FB02B32AEB2669DAD387D4B758B74FCB36D986066708DD"
+  },
+  {
+    "Path": "apps/web/src/components/ride/NextRideCard.css",
+    "Hash": "F8FE9EFC24A9F83C655A3C835F36694EF3E0F8827F973034B46714F612B08C1A"
+  },
+  {
+    "Path": "apps/web/src/components/ride/NextRideCard.tsx",
+    "Hash": "EF485BA464BFF353137D44104CB2532FE42FA8E5C0DC7920B4C7B8D6A3CAC76F"
+  },
+  {
+    "Path": "apps/web/src/components/ride/RideSettingsPanel.tsx",
+    "Hash": "6C818A96B7F4AF04EC5E6D11A1E97286F423D4314955EC13069ABAD002EE5A2F"
+  },
+  {
+    "Path": "apps/web/src/components/ride/RideSettingsSheet.css",
+    "Hash": "FC10CC74DDED15DF3036690E933AA099D1D6FBE829C42FBDB7732325ED90E3A1"
+  },
+  {
+    "Path": "apps/web/src/components/ride/RideSettingsSheet.tsx",
+    "Hash": "A8C23288A3350B504335780F943A1509452BEF1DB65B4F09E8C011A82C5ADDCE"
+  },
+  {
+    "Path": "apps/web/src/components/ride/RideSummarySheet.css",
+    "Hash": "202EB0207B1E44C3D93EBC5FEBFF77985C1A167AC0BB72460D2E1CC2DEC06C6E"
+  },
+  {
+    "Path": "apps/web/src/components/ride/RideSummarySheet.tsx",
+    "Hash": "4F60E0E1121A6A4F9A4C86FE6EF248685BD44CBBFEE0A1941A4983A382AE016C"
+  },
+  {
+    "Path": "apps/web/src/components/route-dock/RouteDock.tsx",
+    "Hash": "1C8E881148DAFA43E25356FA9AD242071AB55B483962A03678C0C6B7964A3FBA"
+  },
+  {
+    "Path": "apps/web/src/components/sensor/CadenceSensorSheet.css",
+    "Hash": "4703ACB7B02DD021CB5FEC682E1083972877711DEADAD1144FDCEB5D1A65ECD6"
+  },
+  {
+    "Path": "apps/web/src/components/sensor/CadenceSensorSheet.tsx",
+    "Hash": "926E8D23DC5F4D2DC9ED2282FA4B6C7B34B855D9A737D08D8090FD69419F85AE"
+  },
+  {
+    "Path": "document/archive/ride-verify-evidence/c1-next-ride-card-no-reload.png",
+    "Hash": "28BE1379B076A1EC8065783E3D008DCE2E273AC6E734053F580E2237D8577EA7"
+  },
+  {
+    "Path": "document/archive/ride-verify-evidence/c1-resume-ready-to-start.png",
+    "Hash": "32F136F38A18A2866F7CBEC9295938D7595E1B5B0B7374CFD4C4C6A3CFE44E23"
+  },
+  {
+    "Path": "document/archive/ride-verify-evidence/u4-hud-resume-dual.png",
+    "Hash": "97C99D59B86901E0DE7AD63318BB3BAA4C3E6C6227029982161982F6173A198F"
+  },
+  {
+    "Path": "document/ops/20261017-entry-location/evidence/15-entry-flight-metrics.json",
+    "Hash": "4CAFA2A22CEAC8547D7EDB44D22A09082D0710EBDD71B6BDC34D59D57378179F"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/README.md",
+    "Hash": "24BB053993BC21CA0900A63EADC3BD4BA6A4188965530B8D8D8294F53D741D43"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/after-first-visit-800x360.png",
+    "Hash": "1D0A22DEC407EBC77AD60B58A719609A4ACC61E8C2666384881A07B0416AE918"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-667x300.png",
+    "Hash": "E1CBDE068F30078679FFC8AA6F5AE3B5E2637F360FFBB403797C5D468A70483C"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-800x360.png",
+    "Hash": "30A1FB72C91CE0E0BDD8588DE36ED603F44DE9199E573578E98BA96F0C7B4415"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-667x300.png",
+    "Hash": "3294429975B5B76BCF4182840C56A7D48C51AAA99902D60FE30D0850AC8D36D6"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-800x360.png",
+    "Hash": "8A9EE8F907F52AC495BCCF38C1F707846EF4B695963C68C57C71159596D902AD"
+  },
+  {
+    "Path": "document/ops/HANDOFF.md",
+    "Hash": "DF783F319316084D7BBAD04397B7BE9B3569AB8121E5106C25F63273E827E272"
+  },
+  {
+    "Path": "document/ops/PROGRESS.md",
+    "Hash": "650980AFD9B317808A3BD07973CFD584E8F25CD77794C8F4EEC12BA400EA47A6"
+  },
+  {
+    "Path": "document/reference/product/261024-RTW-Chief-지정-디자인-고정.md",
+    "Hash": "C058DA10175C77B299EB46A99C5CF90FAFAA9F1574A2ACD9FE799FE1FCE46DB6"
+  },
+  {
+    "Path": "apps/web/src/components/auth/AppIntroScreen.tsx",
+    "Hash": "77E8698571A81565993A8A3E0274B5583C58065B6355A52CA1F4F27D7A844144"
+  },
+  {
+    "Path": "apps/web/src/components/auth/AppIntroScreen.css",
+    "Hash": "29D40550C7B623667D8E6BC6CF5276E33D1137394EE6C926028DE1C1CFC9250B"
+  }
+]

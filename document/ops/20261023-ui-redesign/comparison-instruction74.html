@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>지시74 팝업 맨 아래 줄</title>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--ink:#1d2330;--sub:#5b6270;--line:#e3e6eb;--accent:#2457d6}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,"Malgun Gothic",sans-serif}
+main{max-width:1500px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:26px;margin:0 0 6px}p.lead{color:var(--sub);margin:0 0 24px}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:22px}
+h2{font-size:20px;margin:0 0 12px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px;align-items:start}
+figure{margin:0}figcaption{font-weight:700;margin-bottom:8px}
+figcaption small{display:block;font-weight:400;color:var(--sub)}
+img{width:100%;height:auto;border:1px solid var(--line);border-radius:10px;background:#fff}
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:13px;font-weight:700;margin-right:6px}
+.before{background:#fde8e8;color:#b42318}.after{background:#e3f4e8;color:#16743a}.sketch{background:#e8eefc;color:var(--accent)}
+ul{margin:8px 0 0;padding-left:20px}
+</style></head><body><main>
+<h1>지시74 — 경로 팝업 두 탭의 맨 아래 줄 통일</h1>
+<p class="lead">구현·감리·캡처: Claude Code 직접. 오른쪽 "후" 그림은 실제 제품 코드로 찍은 2배 캡처입니다.</p>
+
+<section><h2>거리·방향 탭</h2><div class="row">
+<figure><figcaption><span class="tag before">전</span>수단 버튼 없음 · ▶ 왼쪽</figcaption><img src="evidence/instruction74/before-distance.png" alt=""></figure>
+<figure><figcaption><span class="tag sketch">Chief 스케치</span></figcaption><img src="evidence/instruction74/chief-sketch-distance.png" alt=""></figure>
+<figure><figcaption><span class="tag after">후</span>🚗 🚲 👣 … ▶ 경로 삭제</figcaption><img src="evidence/instruction74/popup-distance.png" alt=""></figure>
+</div></section>
+
+<section><h2>Start·End 탭</h2><div class="row">
+<figure><figcaption><span class="tag before">전</span></figcaption><img src="evidence/instruction74/before-start-end.png" alt=""></figure>
+<figure><figcaption><span class="tag sketch">Chief 스케치</span></figcaption><img src="evidence/instruction74/chief-sketch-start-end.png" alt=""></figure>
+<figure><figcaption><span class="tag after">후</span>거리·방향과 같은 자리·같은 크기</figcaption><img src="evidence/instruction74/popup-location.png" alt=""></figure>
+</div></section>
+
+<section><h2>실제 지도에서 — 거리·방향 결과 뒤 「도보」 재탐색</h2><div class="row">
+<figure><figcaption><span class="tag after">후</span>도보로 재탐색된 결과(파란 도보 버튼)<small>800×360, 검수용 가짜 서버 응답</small></figcaption><img src="evidence/instruction74/step30-distance-800.png" alt=""></figure>
+<figure><figcaption><span class="tag after">후</span>Start만 있을 때 Start·End 탭<small>수단 3개는 보이지만 꺼짐(흐림) — End를 정하면 켜짐</small></figcaption><img src="evidence/instruction74/instruction74-bottom-row-location.png" alt=""></figure>
+</div>
+<ul>
+<li>거리·방향: 방향을 고르기 <b>전</b>에 수단을 누르면 그 수단으로 다음 탐색, 결과가 나온 <b>뒤</b>에 누르면 바로 그 수단으로 다시 탐색합니다.</li>
+<li>녹색 재생 버튼(고정1)·Start·+WP·End(고정13)·경로 삭제 자리(10-21)는 그대로입니다.</li>
+</ul></section>
+</main></body></html>

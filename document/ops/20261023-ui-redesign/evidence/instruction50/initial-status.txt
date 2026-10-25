@@ -1,0 +1,34 @@
+ M apps/web/e2e/ride-continuation.spec.ts
+ M apps/web/e2e/rideEntryHelpers.ts
+ M apps/web/scripts/next-ride/resume-slot-ui-fixture-main.tsx
+ M apps/web/scripts/ui-800x360/preview.tsx
+ M apps/web/src/components/ride/NextRideCard.css
+ M apps/web/src/components/ride/NextRideCard.tsx
+ M apps/web/src/components/ride/RideSummarySheet.css
+ M apps/web/src/components/ride/RideSummarySheet.tsx
+ M document/ops/20261017-entry-location/evidence/15-entry-flight-metrics.json
+ M document/ops/20261023-ui-redesign/README.md
+ M document/ops/20261023-ui-redesign/evidence/inline-history/after-first-visit-800x360.png
+ M document/ops/20261023-ui-redesign/evidence/inline-history/final-account-667x300.png
+ M document/ops/20261023-ui-redesign/evidence/inline-history/final-account-800x360.png
+ M document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-667x300.png
+ M document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-800x360.png
+ M document/ops/HANDOFF.md
+ M document/ops/PROGRESS.md
+?? .out/
+?? apps/web/e2e/ui-redesign-batch3-conquest.spec.ts
+?? apps/web/e2e/ui-redesign-batch3.spec.ts
+?? cdbox.bat
+?? document/ops/20261023-ui-redesign/29-result-batch3-summary-next.md
+?? document/ops/20261023-ui-redesign/30-task-batch3-visual-rework.md
+?? document/ops/20261023-ui-redesign/31-result-batch3-visual-rework.md
+?? document/ops/20261023-ui-redesign/32-review-deepseek-batch3-final.md
+?? document/ops/20261023-ui-redesign/33-review-cursor-batch3-final.md
+?? document/ops/20261023-ui-redesign/34-review-batch3-final.md
+?? document/ops/20261023-ui-redesign/50-task-batch3-revalidation.md
+?? document/ops/20261023-ui-redesign/comparison-batch3-final.html
+?? document/ops/20261023-ui-redesign/comparison-batch3.html
+?? document/ops/20261023-ui-redesign/evidence/batch3-final/
+?? document/ops/20261023-ui-redesign/evidence/batch3/
+?? document/ops/20261023-ui-redesign/evidence/instruction50/
+?? document/ops/20261023-ui-redesign/supervisor-intake-20261024-night.md

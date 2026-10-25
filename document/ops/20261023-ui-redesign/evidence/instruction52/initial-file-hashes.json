@@ -1,0 +1,110 @@
+[
+  {
+    "Path": "apps/web/e2e/distance-direction-attention.spec.ts",
+    "Hash": "D1AD12B4723330DB61C2DBF775CEEBAB5F30D3F918CFA6C151D8A97A11FF1659"
+  },
+  {
+    "Path": "apps/web/e2e/ride-continuation.spec.ts",
+    "Hash": "B14BE6BDD5D8E66BB46721D09DE3790B4D6D03A63B0CB6E6562F01797638C5F8"
+  },
+  {
+    "Path": "apps/web/e2e/rideEntryHelpers.ts",
+    "Hash": "52CB353F9A729806C554475004334EFD2FC67F82DCC19A31AAA8A5BBF7BD9D9F"
+  },
+  {
+    "Path": "apps/web/e2e/route-dock-riding-content.spec.ts",
+    "Hash": "DAB66889B2953D1C6563CC8928407C81E008769E2CA1C5C63CD3780E01F26079"
+  },
+  {
+    "Path": "apps/web/e2e/route-ride-controls.spec.ts",
+    "Hash": "8B961D63950D6ADFD55886FE392D56D0F56016BB48E0F37EA2B53B131CAA75F8"
+  },
+  {
+    "Path": "apps/web/e2e/ui-800x360.spec.ts",
+    "Hash": "BA81EE140D15E57E9A41006F39FA7534ACABC66EFEB55FE883987E29BAAAE963"
+  },
+  {
+    "Path": "apps/web/e2e/ui-edge-live.spec.ts",
+    "Hash": "F6E020BE45BAB99EBAC97DD6B5D79828422A00B2AF4EAAD0E61D5B3C292E77A1"
+  },
+  {
+    "Path": "apps/web/scripts/next-ride/resume-slot-ui-fixture-main.tsx",
+    "Hash": "0A8E630930675413A04641459318DBB700CD147CBC195E0B510AC09CA7722CD8"
+  },
+  {
+    "Path": "apps/web/scripts/ui-800x360/preview.tsx",
+    "Hash": "21A800C5033385CCECDD13C09E706FB3A30830B11E9233EF49A6A7D9FBA255B3"
+  },
+  {
+    "Path": "apps/web/src/components/ride/NextRideCard.css",
+    "Hash": "F8FE9EFC24A9F83C655A3C835F36694EF3E0F8827F973034B46714F612B08C1A"
+  },
+  {
+    "Path": "apps/web/src/components/ride/NextRideCard.tsx",
+    "Hash": "EF485BA464BFF353137D44104CB2532FE42FA8E5C0DC7920B4C7B8D6A3CAC76F"
+  },
+  {
+    "Path": "apps/web/src/components/ride/RideSummarySheet.css",
+    "Hash": "202EB0207B1E44C3D93EBC5FEBFF77985C1A167AC0BB72460D2E1CC2DEC06C6E"
+  },
+  {
+    "Path": "apps/web/src/components/ride/RideSummarySheet.tsx",
+    "Hash": "4F60E0E1121A6A4F9A4C86FE6EF248685BD44CBBFEE0A1941A4983A382AE016C"
+  },
+  {
+    "Path": "apps/web/src/components/route-dock/RouteDock.tsx",
+    "Hash": "1C8E881148DAFA43E25356FA9AD242071AB55B483962A03678C0C6B7964A3FBA"
+  },
+  {
+    "Path": "document/ops/20261017-entry-location/evidence/15-entry-flight-metrics.json",
+    "Hash": "4CAFA2A22CEAC8547D7EDB44D22A09082D0710EBDD71B6BDC34D59D57378179F"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/README.md",
+    "Hash": "196917CE91A201759F478738CC8C0F779463C5869E4E2BE1B47A47C83F0A1E43"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/after-first-visit-800x360.png",
+    "Hash": "1D0A22DEC407EBC77AD60B58A719609A4ACC61E8C2666384881A07B0416AE918"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-667x300.png",
+    "Hash": "E1CBDE068F30078679FFC8AA6F5AE3B5E2637F360FFBB403797C5D468A70483C"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-800x360.png",
+    "Hash": "30A1FB72C91CE0E0BDD8588DE36ED603F44DE9199E573578E98BA96F0C7B4415"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-667x300.png",
+    "Hash": "3294429975B5B76BCF4182840C56A7D48C51AAA99902D60FE30D0850AC8D36D6"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-800x360.png",
+    "Hash": "8A9EE8F907F52AC495BCCF38C1F707846EF4B695963C68C57C71159596D902AD"
+  },
+  {
+    "Path": "document/ops/HANDOFF.md",
+    "Hash": "0BDD76E8F78EEAC453360DC6FEE876B091B62518A5796F9C27331F80592E3EC0"
+  },
+  {
+    "Path": "document/ops/PROGRESS.md",
+    "Hash": "A87CEFBCCA13CF35D3C5F764D718F2C5A98000E50B89F64875BFE559E5F40A44"
+  },
+  {
+    "Path": "apps/web/e2e/ui-redesign-batch3.spec.ts",
+    "Hash": "6DCDE93C166EFAE23F430B25552584227DC28FA16BAC3CA9563022D3A36511DE"
+  },
+  {
+    "Path": "apps/web/e2e/ui-redesign-batch3-conquest.spec.ts",
+    "Hash": "0678BD0CA86644B53B3FE8D81224A3287C6D74622B9F31B15CE6EABBFCC839FE"
+  },
+  {
+    "Path": "cdbox.bat",
+    "Hash": "E5F4B8C6ACAD3FD26A22BE909D98BE5087E2E71B152E8AF7890D8CD56F76E532"
+  },
+  {
+    "Path": "document/reference/product/261024-RTW-Chief-지정-디자인-고정.md",
+    "Hash": "C058DA10175C77B299EB46A99C5CF90FAFAA9F1574A2ACD9FE799FE1FCE46DB6"
+  }
+]

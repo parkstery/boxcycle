@@ -2,8 +2,9 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | **Codex 로 넘김(2026-10-24 21:0x KST, Claude Code → Codex).** Codex 는 인수하면 이 칸을 Codex·인수 시각으로 고친다 |
-| 갱신 | 2026-10-24 21:0x KST — 지시35~48 커밋·푸시·**호스팅 배포 완료**(Chief 실행), 운영 번들 대조 PASS, `tmp/deploy35` 삭제 |
+| 담당 | **Claude Code — 2026-10-25 08:36 KST 인수**(Codex → Claude Code, [첫 프롬프트71](20261023-ui-redesign/71-first-prompt-claude-20261025.md)). 대조 08:36: HEAD=origin/main2=`b9852157`(Codex 커밋 0건)·추적 수정 43(제품 src 17)·운영 번들 `index-BX-8_B6d.js`·`index-qxhH-5Vd.css`·보존 JSON `4CAFA2A2…179F` 일치. **09:09 Chief 가 실수로 Codex 에 묶음6 진행을 지시했다가 중지** — Codex 는 [지시72](20261023-ui-redesign/72-task-batch6.md)(중단)·`evidence/instruction72/`만 만들고 이 행을 고쳤음. Claude Code 09:12 확인: 제품·시험 파일 변경 0(Codex 시작 지문 332개 중 HANDOFF 만 달라짐, AppIntroScreen = HEAD) |
+| 이전 담당 | Codex — 2026-10-24 21:33 ~ 10-25 08:24 KST(지시50~70) |
+| 갱신 | 2026-10-25 19:00 KST — Claude Code. Chief 「커밋 푸시 배포해」 → 커밋: `e19dc0e7` 묶음3 · `685fa61f` 묶음4 · `e52ee02a` 묶음5+지시74 · `abc31f5f` 지시75 게스트 로그아웃 제거 · `34d78830` 로고 심벌(Codex+Claude) · 다음 문서 커밋. 중간 커밋 4개 모두 tsc 0(`tmp/audit73` 복제본). 배포 전 test:quick 1361/1361·tidy/dep/doc/diff 0. **에뮬레이터 실앱 시험(ride-continuation 등 25건·guest 2건)은 미실행으로 배포** — Chief 지시. 커밋 제외: 15-json·archive PNG 3·inline-history PNG 5·`.out/`·`cdbox.bat`·`claude-headless.err`.<br>이전: 18:30 KST — Claude Code. Chief 실앱 확인용 에뮬레이터를 Claude Code 가 띄움(`firebase emulators:start --only functions,auth,firestore,database`, 백그라운드 — 확인 끝나면 끈다). Codex 18:00 로고 교체(`SpinatlasMark` 신설·MENU·인트로)는 **로그인 카드를 빠뜨려** Claude Code 가 `AuthGateCard` 보완(고정16). Codex 변경분(AppIntroScreen·MenuPanel·brand/)은 커밋 때 별도 커밋으로.<br>이전: 17:00 KST — Claude Code. Chief: 묶음5 **조건부 승인** → [지시74](20261023-ui-redesign/74-task-result-popup-bottom-row.md) 팝업 두 탭 맨 아래 줄 `🚗🚲👣 … ▶ 경로 삭제` 통일(고정15, 구현·자체감리 PASS, Chief 화면 확인 대기). [지시75](20261023-ui-redesign/75-task-result-guest-no-logout.md) 게스트 로그아웃 제거(결정 로그) — **이번 배포에 함께**. 에뮬레이터 재실행·커밋·푸시·배포 일괄 승인 대기. 다음 새 번호 76. 루트 `claude-headless.err`(0바이트, 10:07, 출처 불명) 커밋 제외.<br>이전: 10:20 KST — Claude Code. [감리73](20261023-ui-redesign/73-review-claude-batch3-5.md): 고정1~14 PASS, 묶음5 가 깨뜨린 옛 시험 9건 교정·PASS. **에뮬레이터 실앱 시험은 메모리 부족으로 중단(미완)** — 재실행 Chief 허락 대기. 묶음5 Chief 화면 확인·게스트 경고 문구 결정 대기. 지시72 묶음6 은 **중단·무효**. 다음 새 번호 74. 커밋·배포 금지(승인 전). HEAD 비교 복제본 `tmp/audit73`(감리 끝나면 삭제) |
 | 브랜치 | `main2` |
 | HEAD / 원격 | 이 파일을 담은 커밋 = origin/main2 (제품 코드 마지막 커밋 `0b5b88ad`) |
 | 마지막 배포 | **10-24 20:5x KST Hosting `0b5b88ad`** 빌드 `index-BX-8_B6d.js`·`index-qxhH-5Vd.css` — 운영 `https://boxcycle-dc2df.web.app` 의 두 자산 SHA256 이 로컬 빌드와 일치(Claude Code 대조). 함수·Rules 변경 없음. **묶음3 미커밋분은 배포에 들어가지 않았다** |
@@ -32,14 +33,35 @@
 
 ## 남은 일 (우선순위)
 
-1. **묶음3(주행 결과·다음 주행) Chief 화면 확인 대기** — [최종감리34](20261023-ui-redesign/34-review-batch3-final.md) LOCAL_VERIFIED/AWAITING_CHIEF, 미커밋. 비교 페이지 `C:\20.HDev\boxcycle\document\ops\20261023-ui-redesign\comparison-batch3-final.html`(Supervisor 가 `Start-Process` 로 열어 줄 것). 미커밋 파일: `NextRideCard.*`, `RideSummarySheet.*`, `scripts/ui-800x360/preview.tsx`, `e2e/ride-continuation.spec.ts`, `e2e/rideEntryHelpers.ts`, `scripts/next-ride/resume-slot-ui-fixture-main.tsx`, `e2e/ui-redesign-batch3*.spec.ts`, 문서 29~34·`comparison-batch3*.html`·`evidence/batch3*`. **되돌리지도, 임의로 커밋·배포하지도 말 것.** 주의: 묶음3은 오늘 주소 카드 변경(44~48) 전에 만들어졌다 — Chief 확인 전에 오늘 변경 위에서 묶음3 화면 시험을 다시 돌려 충돌이 없는지 먼저 확인.
-2. **실패 중인 시험 3건(오늘 변경과 무관으로 판단, 기준선 재실행은 안 함)**
-   - `e2e/ui-edge-live.spec.ts`(에뮬레이터): 10-21 기대값(대기 카드 ≤220px, 주행바 ≤36px, 주행 시작 직후 「경로 패널 접기」)이 고정 목록 1·11·12와 어긋난다. 고정 목록에 맞게 다시 쓰기.
-   - `e2e/distance-direction-attention.spec.ts` 29줄(프로필 고르기 깜빡임 클래스), `e2e/route-ride-controls.spec.ts` 20줄(idle 에 주소 카드 없어야 함) — 묶음3 의 `preview.tsx` 미커밋 변경 영향 의심. 묶음3 감리 때 함께 확인.
+지시50 재검증·실패3건 조사 완료, [감리51](20261023-ui-redesign/51-result-batch3-revalidation.md). 지시58 완료, [결과59](20261023-ui-redesign/59-result-batch4.md)·Cursor60~62. 실행자 확인63·결과64 완료. 묶음5 지시65·결과67·감리68~70 완료. 다음 새 번호71. 디자인 맞춤은 시안 → Chief 선택 → Supervisor 직접 구현을 기본으로 하고, 넓고 기계적인 작업만 실행자에게 맡긴다.
+
+1. **묶음3(주행 결과·다음 주행) Chief 화면 승인(10-25)** — [최종감리34](20261023-ui-redesign/34-review-batch3-final.md) LOCAL_VERIFIED 후 CHIEF_APPROVED(10-25), 미커밋. 비교 페이지 `C:\20.HDev\boxcycle\document\ops\20261023-ui-redesign\comparison-batch3-final.html`(Supervisor 가 `Start-Process` 로 열어 줄 것). 미커밋 파일: `NextRideCard.*`, `RideSummarySheet.*`, `scripts/ui-800x360/preview.tsx`, `e2e/ride-continuation.spec.ts`, `e2e/rideEntryHelpers.ts`, `scripts/next-ride/resume-slot-ui-fixture-main.tsx`, `e2e/ui-redesign-batch3*.spec.ts`, 문서 29~34·`comparison-batch3*.html`·`evidence/batch3*`. **되돌리지도, 임의로 커밋·배포하지도 말 것.** 주의: 묶음3은 오늘 주소 카드 변경(44~48) 전에 만들어졌다 — 지시50 및58의 오늘 변경 위 묶음3 재검증 PASS. 승인 후에도 미커밋·미배포를 유지한다.
+2. **기존 실패3건은 지시50에서 교정·통과.** ui-edge는 고정1·11·12 정확한 계약으로 갱신, 거리 강조는 10-22 적용 수단 지시 근거로 수정+수동 강조 별도 보존. idle 카드 시험은 기대값을 유지하고 RouteDock 빈 카드 회귀를 복구했다(묶음3 preview 원인 아님). 결과 숫자 line-height 교정·애니메이션 완료 후 측정도 포함. 새 변경 모두 미커밋·미배포.
+   - **RC1 실패는 지시52에서 해결**: 위치 안내 완료·판 내부 닫기를 정확히 검사. 전체 첫4PASS/3FAIL의 RC2~4 낡은 UI 동작도 교정 후 전체7/7 PASS(6.7분·exit0), [감리53](20261023-ui-redesign/53-result-ride-continuation.md). 새 제품 변경 없음.
 3. 낮은 우선: RouteDock 주행 시작 순간 펼친 카드가 한 프레임 보였다 접힐 수 있음(effect 안 setState). 렌더 중 조정으로 바꾸면 사라짐.
+
+## 묶음4 완료(지시58)
+
+- Chief 다음 작업 계속 지시에 따라 Cursor CLI가 계획56·comparison-batch4-plan.html 작성, Codex 감리57 완료. 제품 수정 없음. 묶음3 최신 비교 및 묶음4 시안 페이지를 직접 연다. 10-25 Chief가 묶음3 화면 및 묶음4 진행 승인. 지시58 Codex 직접 구현·Cursor fixture/시험, 커밋·배포 없음.
+- 시작 시 archive/ride-verify-evidence PNG3장 dirty가 추가로 관측됨. 이번 작업 이전 변경이므로 원인 추정·되돌림 없이 해시 기록 보존. 보호 JSON 일치.
+
+- **묶음4 CHIEF_APPROVED(10-25) / 미커밋**: 센서2칸 판·설정4 switch/칼로리 요약·우상단 맵·프로필 체중강도 입력 전용. BLE/저장/탈퇴 정책 유지. Codex 제품·감리·캡처, Cursor fixture·시험·독립 diff감리62. [결과59](20261023-ui-redesign/59-result-batch4.md).
+- 최종 비교 `C:\20.HDev\boxcycle\document\ops\20261023-ui-redesign\comparison-batch4-final.html` 07:00 KST Start-Process로 직접 열기 완료(exit0), Chief 승인(10-25). 화면64/64 및 강화한 최종21/21, 실제 진입8/8·동기화2/2, quick1360/1360·selector19·타입/lint(기존경고7)/tidy/dep/doc/diff PASS. 실패·취소 중간 로그 보존, 기대값·게이트 완화 없음.
+- 지시58 시험5020/5021/5023·에뮬레이터 모두 종료. 기존5017(PID62896, 전날23:07 시작)은 손대지 않고 보존. 기존5000은 닫힌 것으로 관측(이 작업의 종료명령 없음). 기존3000/3001/5040 그대로. 보호JSON·기존dirty/묶음3/캡처 해시 일치. 미커밋·미배포. 묶음5/6 새 지시 전 진행하지 않음.
+
+## 묶음5 완료 — 지시65
+
+- [결과67](20261023-ui-redesign/67-result-batch5.md) LOCAL_VERIFIED / AWAITING_CHIEF_SCREEN. Chief 묶음4 승인 후 Codex 직접 팝업화면·경계 보정·타입교정·실제시험·캡처, Cursor 조사fixture시험66·독립감리68/69·타입증거감리70.
+- 흰300px 판·거리26px·프리셋·원형닫기. 고정13 Start/+WP/End·StartEnd 및 녹색재생 유지. 실제 dock형제DOM scope 보정, 낮은화면 첫floating 팝업8px 경계 보정. 도메인 탐색·토큰·준비 정책 유지.
+- 회귀100PASS/1기존조건SKIP, 경계보정후 팝업/실제지도36/36PASS, 실앱제목/경계2/2PASS, 타입가드후 실제지도1/1PASS, quick1360PASS. 타입exit0·eslint오류0(기존MapView경고9)·selector19·tidy/dep/doc/diff PASS. 중간실패기록보존·기대완화없음.
+- 비교 `C:\20.HDev\boxcycle\document\ops\20261023-ui-redesign\comparison-batch5-final.html`을 Codex가 직접 연다. 이전사진은 동일DOM에서 신규CSS만 제외한 스타일재현임을 표시. 실제초기690×275 경계보정 캡처와실앱측정 포함.
+- 기존고정목록·묶음1~4 dirty/증거/preview·보호JSON·cdbox 보존. .out9008개 전수해시대조 후 수정시각변경0. 이번시험5020/5023·에뮬레이터종료. 기존3000/3001/5040 유지,5017 현재PID48028(종전62896과다름) 관측·종료명령없음. 5000닫힘 유지. 커밋·푸시·배포없음. 묶음6은 Chief 새지시 때만. 다음71.
 
 ## 실행자·도구 상태
 
+- 지시50 최신 비교: `C:\20.HDev\boxcycle\document\ops\20261023-ui-redesign\comparison-batch3-instruction50.html`. 변경 후는 이번 캡처, 기존 비교·batch3 증거 보존. Chief에게 이 파일을 직접 연다. 기존 인라인 캡처5장이 잠금 시험 기본 출력으로 덮어써진 사고는 원본 SHA256 일치 blob으로 전부 복구 완료(결과51). 다음 실행은 `UI_REVALIDATION_EVIDENCE_DIR`·`ENTRY_CARD_HISTORY_EVIDENCE`를 새 증거 폴더로 지정한다.
+
+- **10-25 07:02 KST 지시63 재확인: OpenCode v2.0.26 무료 GLM 실제 호출도 Free usage limit reached(exit1). 현재 무료 실행 불가.** [결과64](20261023-ui-redesign/64-result-executor-availability.md). Cursor CLI 실제 읽기 점검 응답 정상. Chief 토큰 절약 지시: 조사·기계 작업·fixture·시험은 Cursor 활용, OpenCode는 한도 회복 확인 시 활용. 유료 전환 없음.
 - **OpenCode 무료 모델(GLM·DeepSeek·Nemotron) 모두 한도 소진(10-24).** Chief: 「cursor 를 활용해」. Grok Bot 은 데스크톱 채팅 앱(CLI 없음)이라 실행자로 못 쓴다.
 - Cursor CLI: PowerShell 에서 **이 문자열 그대로** `agent -p --force --trust --workspace C:\20.HDev\boxcycle "<지시>"`(인자 순서 바꾸면 권한 검사에 걸림).
 - 보고마다 **작업한 agent(구현·감리·캡처)를 명시**(Chief 10-24).
@@ -61,8 +83,14 @@
 
 ## 서버·환경
 
+- **10-25 08:40 KST 현재 열린 포트: 3000(PID28472, Chief imgman — 종료 금지)뿐.** 5040 은 Windows CDPSvc(앱 아님). 5000·5017·3001 닫힘. 5017 은 Chief 가 띄운 것이었고 Chief 허락으로 종료.
+
 - 10-24 21시 열린 포트: **3000(PID 28472, Chief imgman — 절대 종료 금지)**, 5000(PID 58256, Chief 확인용 앱 — 운영 Firebase 연결, 시험 데이터 쓰기 금지), 5040(PID 10096). 이 Supervisor 가 띄운 5020·5017·에뮬레이터는 모두 종료.
+- 10-24 21:33 Codex 대조: 위 세 포트/PID 유지. **3001(PID 42236)이 추가로 열림** — 명령행 `C:\20.HDev\imgman\node_modules\...\vite.js --port=3000 --host=0.0.0.0`, 다른 프로젝트 imgman이므로 종료하지 않음. 5017·5020 및 앱 에뮬레이터 포트는 열려 있지 않음.
+- 지시50 종료: 이번 프리뷰5020 종료·실앱5017/에뮬레이터 정상 종료. 보존 JSON 해시 일치, 기존 dirty 캡처5장 정확한 시작 해시 일치. 구현·감리·캡처 Codex 직접, 커밋·푸시·배포 없음.
 - 실행 폴더 `C:\20.HDev\boxcycle\apps\web`. 화면 프리뷰: `$env:RTW_DEV_PORT='5020'; npm run dev:localhost -- --mode harness --strictPort` → `http://127.0.0.1:5020/scripts/ui-800x360/preview.html?state=ready|riding|paused&waypoints=0..3&long`.
 - 화면 시험 묶음: `npx playwright test ui-800x360 address-minimap-width ui-redesign-batch1.spec.ts ui-redesign-batch2.spec.ts --workers=1 --retries=0`(10-24 21시 31/31).
 - 실앱(에뮬레이터): `$env:RTW_DEV_PORT='5017'; node scripts/e2e/run-with-deadline.mjs --limit-sec 540 -- node scripts/e2e/run-with-functions-emulator.mjs 'node ../../node_modules/@playwright/test/cli.js test ride-entry route-dock-riding-content --workers=1 --retries=0'`(8/8). 5분 무진전이면 로그·프로세스·포트 확인 후 경로 전환.
 - 게이트: `npx tsc -b --noEmit`, 변경 파일 eslint, `npm run test:quick`(1360), `node scripts/ride-verify/verify-selectors.mjs`(19), 루트 `node scripts/check-code-tidy.mjs`·`check-dep-direction.mjs --check`·`check-document-system.mjs`, `git diff --check`. Git Bash 에서 push 할 땐 `export PATH="/c/Program Files/nodejs:$PATH"`.
+
+최종 열람: 2026-10-25 08:24 KST Codex가 comparison-batch5-final.html을 Start-Process로 직접 열기 완료(exit0). 기록용 전체 경로 C:\20.HDev\boxcycle\document\ops\20261023-ui-redesign\comparison-batch5-final.html.

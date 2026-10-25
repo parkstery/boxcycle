@@ -1,0 +1,110 @@
+[
+  {
+    "Path": "apps/web/e2e/distance-direction-attention.spec.ts",
+    "Same": true
+  },
+  {
+    "Path": "apps/web/e2e/ride-continuation.spec.ts",
+    "Same": false
+  },
+  {
+    "Path": "apps/web/e2e/rideEntryHelpers.ts",
+    "Same": true
+  },
+  {
+    "Path": "apps/web/e2e/route-dock-riding-content.spec.ts",
+    "Same": true
+  },
+  {
+    "Path": "apps/web/e2e/route-ride-controls.spec.ts",
+    "Same": true
+  },
+  {
+    "Path": "apps/web/e2e/ui-800x360.spec.ts",
+    "Same": true
+  },
+  {
+    "Path": "apps/web/e2e/ui-edge-live.spec.ts",
+    "Same": true
+  },
+  {
+    "Path": "apps/web/scripts/next-ride/resume-slot-ui-fixture-main.tsx",
+    "Same": true
+  },
+  {
+    "Path": "apps/web/scripts/ui-800x360/preview.tsx",
+    "Same": true
+  },
+  {
+    "Path": "apps/web/src/components/ride/NextRideCard.css",
+    "Same": true
+  },
+  {
+    "Path": "apps/web/src/components/ride/NextRideCard.tsx",
+    "Same": true
+  },
+  {
+    "Path": "apps/web/src/components/ride/RideSummarySheet.css",
+    "Same": true
+  },
+  {
+    "Path": "apps/web/src/components/ride/RideSummarySheet.tsx",
+    "Same": true
+  },
+  {
+    "Path": "apps/web/src/components/route-dock/RouteDock.tsx",
+    "Same": true
+  },
+  {
+    "Path": "document/ops/20261017-entry-location/evidence/15-entry-flight-metrics.json",
+    "Same": true
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/README.md",
+    "Same": false
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/after-first-visit-800x360.png",
+    "Same": true
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-667x300.png",
+    "Same": true
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-800x360.png",
+    "Same": true
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-667x300.png",
+    "Same": true
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-800x360.png",
+    "Same": true
+  },
+  {
+    "Path": "document/ops/HANDOFF.md",
+    "Same": false
+  },
+  {
+    "Path": "document/ops/PROGRESS.md",
+    "Same": false
+  },
+  {
+    "Path": "apps/web/e2e/ui-redesign-batch3.spec.ts",
+    "Same": true
+  },
+  {
+    "Path": "apps/web/e2e/ui-redesign-batch3-conquest.spec.ts",
+    "Same": true
+  },
+  {
+    "Path": "cdbox.bat",
+    "Same": true
+  },
+  {
+    "Path": "document/reference/product/261024-RTW-Chief-지정-디자인-고정.md",
+    "Same": true
+  }
+]

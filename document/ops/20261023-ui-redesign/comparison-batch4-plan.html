@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spinatlas — 묶음4 준비(시안 12~15 vs 현재 코드)</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f3f5f8;color:#17233b;font:16px/1.65 system-ui,"Malgun Gothic",sans-serif}
+main{max-width:1680px;margin:auto;padding:28px}
+h1{font-size:26px;margin:0 0 8px}
+h2{font-size:21px;margin:28px 0 10px}
+h3{font-size:17px;margin:20px 0 8px}
+p,li{margin:8px 0}
+.note{background:#fff3ce;padding:14px 18px;border-radius:10px}
+.alert{background:#fee2e2;padding:14px 18px;border-radius:10px;border:1px solid #fecaca}
+.chief{background:#eef3fc;padding:14px 18px;border-radius:10px;border-left:4px solid #2457d6}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+figure{background:#fff;border-radius:14px;margin:0;overflow:hidden;min-width:0}
+figcaption{padding:10px 14px;font-weight:600;font-size:14px}
+img{display:block;width:100%;height:auto}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;margin:12px 0}
+th,td{padding:10px 12px;border-bottom:1px solid #eef0f3;text-align:left;vertical-align:top;font-size:14px}
+th{background:#f8fafc}
+code{font-size:13px;background:#f2f3f5;padding:2px 6px;border-radius:4px}
+a{color:#1749bc}
+@media(max-width:1100px){.grid4{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.grid4{grid-template-columns:1fr}main{padding:16px}}
+</style>
+</head>
+<body>
+<main>
+<h1>묶음4 준비 — 센서 · 주행 설정 · 맵 뷰 · 프로필 수정</h1>
+<p class="note"><strong>조사·계획만.</strong> 묶음3(주행 결과·다음 주행)은 Chief 화면 확인 대기이며, 여기 내용은 <strong>제품 구현 승인이 아닙니다.</strong> 상세 지시는 <code>56-plan-batch4.md</code>.</p>
+
+<section class="chief" aria-labelledby="chief9">
+<h2 id="chief9">Chief 고정 — 맵 스타일 (#9) 우선</h2>
+<ul>
+<li><strong>지도 스타일 종류:</strong> 야외·위성만. Spinatlas Dark 없음 (<code>rtwMapConfig.ts</code>, 다이어트 완료).</li>
+<li><strong>맵 뷰 판:</strong> 스타일·시점·줌 조작 <strong>없음</strong> — 우상단 HUD(야외/위성 토글, +/−)가 담당. 고정 #3과 함께 주행 중에도 HUD 유지.</li>
+<li><strong>묶음4에서 허용:</strong> 도로망 표시·3D·고급(노선 비교·주행 중 카메라 거리)의 <em>판 디자인</em> 정리. <strong>금지:</strong> 시트에 스타일 칩·시점·줌·Dark·POI 복원.</li>
+</ul>
+<p>근거: <code>document/reference/product/261024-RTW-Chief-지정-디자인-고정.md</code> #9, <code>document/ops/20261023-mapview-diet/00-task.md</code>.</p>
+</section>
+
+<h2>승인 시안 (mockups 12~15)</h2>
+<p>Chief 캔버스 사본과 동일한 리포 PNG. 구현 시 이 네 장이 기준이다.</p>
+<div class="grid4">
+<figure><figcaption>12 케이던스 센서</figcaption><a href="mockups/12-Sensor.png"><img src="mockups/12-Sensor.png" alt="시안 12 케이던스 센서"></a></figure>
+<figure><figcaption>13 주행 설정</figcaption><a href="mockups/13-Settings.png"><img src="mockups/13-Settings.png" alt="시안 13 주행 설정"></a></figure>
+<figure><figcaption>14 맵 뷰</figcaption><a href="mockups/14-MapView.png"><img src="mockups/14-MapView.png" alt="시안 14 맵 뷰"></a></figure>
+<figure><figcaption>15 프로필 수정</figcaption><a href="mockups/15-Profile.png"><img src="mockups/15-Profile.png" alt="시안 15 프로필 수정"></a></figure>
+</div>
+
+<h2>현재 코드 조사 요약</h2>
+<p class="alert">아래는 <strong>운영/로컬 제품 UI 스냅샷이 아님</strong>. 소스 대조 결과. 캡처는 묶음4 지시 후 evidence/batch4에 남긴다.</p>
+
+<table>
+<thead><tr><th>화면</th><th>소스</th><th>시안과 다른 점 (기능·콜백은 보존 전제)</th></tr></thead>
+<tbody>
+<tr>
+<td>케이던스 센서</td>
+<td><code>components/sensor/CadenceSensorSheet.tsx</code></td>
+<td>하단 좁은 시트 vs 두 칸 hero RPM 판; 「닫기」 텍스트 vs 원형 아이콘; 「이 센서로 달리기」 단일 CTA 없음. <code>onConnect</code>·<code>onChooseManual</code>·<code>onChooseCadence</code>·주행 중 제한 로직 유지.</td>
+</tr>
+<tr>
+<td>주행 설정</td>
+<td><code>RideSettingsSheet</code> + <code>RideSettingsPanel</code>, <code>App.tsx</code> calorie props</td>
+<td>시안: switch 목록 + 칼로리 <strong>요약·프로필 수정 링크만</strong>. 현재: 체중 숫자 입력·강도 칩이 설정에 <strong>남아 있음</strong> (README 결정 미이행). 체크박스 vs switch, 「코칭 배너」 vs 「코칭 문구」.</td>
+</tr>
+<tr>
+<td>맵 뷰</td>
+<td><code>components/map/MapViewSheet.tsx</code></td>
+<td>우측 하단 시트 vs 우상단 판; 칩/체크박스 vs segmented/switch. 스타일·시점·줌 없음은 <strong>고정 #9와 일치</strong>. 고급 설정 안 노선·주행 거리는 유지.</td>
+</tr>
+<tr>
+<td>프로필 수정</td>
+<td><code>ProfileEditSheet.tsx</code>, 계정 <code>UserInfoSheet</code> → <code>App</code> <code>profileEditOpen</code></td>
+<td>체중 ±·hero 숫자·5칸 segmented vs number+slider+5칩; 「운동 강도」 문구·라벨 상이. 닉네임 30일·탈퇴·<code>useCalorieProfile</code> 저장은 이미 구현.</td>
+</tr>
+</tbody>
+</table>
+
+<h3>체중·강도 이동 (시안 13·15)</h3>
+<ul>
+<li><strong>결정(README·시안):</strong> 입력은 프로필 수정에만; 주행 설정은 읽기 + 「프로필 수정」.</li>
+<li><strong>현재:</strong> <code>ProfileEditSheet</code>에 편집 있음. <code>RideSettingsPanel</code>에도 편집 있음. <code>RideSummarySheet</code>의 「체중·강도 설정」은 <code>openRideSettingsPanel</code> 연결 — 프로필로 바꿀지 미결.</li>
+<li><strong>데이터:</strong> 변경 없이 <code>setCalorieWeightKg</code> / <code>setCalorieIntensityId</code> (<code>useCalorieProfile</code>) 유지.</li>
+</ul>
+
+<h3>결선·진입</h3>
+<ul>
+<li>시트 상호 배타: <code>useAppSheetNavigation.ts</code> (MENU·맵 뷰·주행 설정·센서·계정).</li>
+<li>센서: RouteDock/HUD 칩 → <code>openCadenceSensorPanel</code>.</li>
+<li>주행 설정: MENU → <code>openRideSettingsPanel</code>.</li>
+<li>맵 뷰: 우측 고정14 반원 탭 → <code>openMapViewPanel</code>.</li>
+<li>프로필: 계정 시트 「프로필 수정」 → <code>setProfileEditOpen(true)</code>.</li>
+<li>하네스: <code>scripts/ui-800x360/preview.html?state=sensor|settings|map</code> — <strong>ProfileEdit 미마운트</strong>.</li>
+</ul>
+
+<h3>잠금 시험 힌트</h3>
+<ul>
+<li><code>e2e/ui-800x360.spec.ts</code> — 맵 뷰 패널 높이 ≤210px, 주행 설정 한국어·닫기.</li>
+<li>센서 dialog 이름·RouteDock 칩 — <code>ride-entry</code>, <code>route-ride-controls</code>, <code>sensor-chip-route-dock-6a</code> 등.</li>
+</ul>
+
+<p>전체 계획·금지·미해결: <code>C:\20.HDev\boxcycle\document\ops\20261023-ui-redesign\56-plan-batch4.md</code></p>
+</main>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "changes": [
+    {
+      "Path": "document/ops/20261023-ui-redesign/README.md",
+      "Authorized": true,
+      "Before": "DE9754DCC98BD0B801735FF53B78CC9C83A7E4E7B6CDD75E8118C02EA08BB5DF",
+      "Now": "CCF5B80512EAB9C71200AF92917F8DEEEFFE5D551A164B2A16F910AFAC555174"
+    },
+    {
+      "Path": "document/ops/HANDOFF.md",
+      "Authorized": true,
+      "Before": "C81A304840C09F6721E5202CBF87529F1A518694F92B97D685B120665D2CC8F6",
+      "Now": "E295C05DD900BB6FD30DAE29CCE417BD952F20C2A8A4523EF11D3802CE6FCDA9"
+    },
+    {
+      "Path": "document/ops/PROGRESS.md",
+      "Authorized": true,
+      "Before": "881C9EDEC078434C3B26879126DC13D63B0360ED08D29DCCA221D92570BC9771",
+      "Now": "97BA04EBEE2BDE36A1B74F6AFC9F72E03F8E55972D6986A5912494F12334EB5C"
+    }
+  ],
+  "outFilesBaseline": 9008,
+  "outModifiedSinceTask": 0,
+  "note": "Earlier preservation-check.json contains full content hash audit. Final unchanged .out modification times checked after quick; all other files hashed again."
+}

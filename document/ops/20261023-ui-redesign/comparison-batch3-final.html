@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spinatlas — 주행 결과·다음 주행 변경 전후</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f5f8;color:#17233b;font:16px/1.65 system-ui,"Malgun Gothic",sans-serif}main{max-width:1680px;margin:auto;padding:28px}h1{font-size:26px;margin:0 0 8px}h2{font-size:21px;margin:28px 0 10px}p{margin:8px 0 16px}.note{background:#fff3ce;padding:14px 18px;border-radius:10px}.controls{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:20px 0}label{display:inline-flex;align-items:center;gap:8px;min-height:44px;cursor:pointer}input{accent-color:#2457d6}.pair{display:grid;grid-template-columns:1fr 1fr;gap:18px}figure{background:white;border-radius:14px;margin:0;min-width:0;overflow:hidden}figcaption{padding:12px 16px;font-weight:600}img{display:block;width:100%;height:auto}a{color:#1749bc}.small{display:none}body:has(#size-small:checked) .large{display:none}body:has(#size-small:checked) .small{display:block}details{margin:26px 0}summary{cursor:pointer;min-height:44px}ul{padding-left:22px}@media(max-width:1000px){.pair{grid-template-columns:1fr}main{padding:16px}}
+</style></head>
+<body><main>
+<h1>주행 결과 · 다음 주행</h1>
+<p>주행 결과는 핵심 성과와 세부 정보로, 다음 주행은 멈춘 곳과 이어갈 행동으로 구분했습니다.</p>
+<p class="note"><strong>로컬 검토안입니다.</strong> 운영에는 첫 라이딩 카드 삭제·인라인 기록 유지까지 배포됐습니다. 아래 결과·다음 주행 개선은 화면 확인 전이며 운영에 배포하지 않았습니다. 이미지는 실제 컴포넌트를 메모리 예시 데이터로 렌더링한 캡처입니다.</p>
+<div class="controls" role="group" aria-label="캡처 화면 크기"><span>화면 크기</span><label><input type="radio" name="size" id="size-large" checked>800 × 360</label><label><input type="radio" name="size" id="size-small">667 × 300</label></div>
+
+<h2>주행 결과 — 변경 전 / 후</h2>
+<div class="pair large"><figure><figcaption>변경 전 · 작은 판에 숫자와 버튼 집중</figcaption><a href="evidence/batch3/before-summary-800x360.png"><img src="evidence/batch3/before-summary-800x360.png" alt="변경 전 결과 화면"></a></figure><figure><figcaption>변경 후 · 성과와 세부 정보를 두 칸으로</figcaption><a href="evidence/batch3-final/after-summary-800x360.png"><img src="evidence/batch3-final/after-summary-800x360.png" alt="변경 후 결과 화면, 새 도로 확인 중 상태"></a></figure></div>
+<div class="pair small"><figure><figcaption>변경 전 · 667×300</figcaption><img src="evidence/batch3/before-summary-667x300.png" alt="좁은 화면 변경 전 결과"></figure><figure><figcaption>변경 후 · 667×300</figcaption><img src="evidence/batch3-final/after-summary-667x300.png" alt="좁은 화면 변경 후 결과"></figure></div>
+<ul><li>새 도로를 주인공으로, 진행 정보는 아래에 배치했습니다.</li><li>시간·평균 속도·칼로리는 읽기 쉬운 행으로 정렬했습니다.</li><li>저장·닫기·실패 안내와 기존 행동 조건을 유지했습니다.</li></ul>
+
+<h2>새 도로가 확정됐을 때</h2>
+<p><strong>예시 +0.16 km</strong>: 시험에서 구독 결과만 예시로 제공했습니다. 화면은 실제 결과 컴포넌트이며, 운영 기록을 읽거나 쓰지 않았습니다. 미확정·확정 0·실패 상태에서 이 숫자를 대신 표시하지 않습니다.</p>
+<figure class="large"><figcaption>새 도로 숫자·단위 / 하단 진행 · 800×360</figcaption><img src="evidence/batch3-final/after-summary-positive-800x360.png" alt="확정된 새 도로 예시 0.16킬로미터"></figure>
+<figure class="small"><figcaption>새 도로 숫자·단위 / 하단 진행 · 667×300</figcaption><img src="evidence/batch3-final/after-summary-positive-667x300.png" alt="좁은 화면의 확정 새 도로 예시"></figure>
+
+<h2>다음 주행 — 변경 전 / 후</h2>
+<p>기존 캡처와 새 캡처의 배경·예시 경로는 다릅니다. 카드의 정보 위계와 조작 배치를 비교해 주세요.</p>
+<div class="pair large"><figure><figcaption>변경 전 · 경로·진행·설명이 같은 비중</figcaption><img src="evidence/batch3/before-nextride-800x360.png" alt="변경 전 다음 주행 카드"></figure><figure><figcaption>변경 후 · 멈춘 곳 / 남은 거리 / 행동</figcaption><img src="evidence/batch3-final/after-nextride-resume-800x360.png" alt="변경 후 다음 주행 카드"></figure></div>
+<div class="pair small"><figure><figcaption>변경 전 · 667×300</figcaption><img src="evidence/batch3/before-nextride-667x300.png" alt="좁은 화면 변경 전 다음 주행"></figure><figure><figcaption>변경 후 · 667×300</figcaption><img src="evidence/batch3-final/after-nextride-resume-667x300.png" alt="좁은 화면 변경 후 다음 주행"></figure></div>
+<p>이어달리기·끝점에서 새 경로·지도 보기·숨기기는 기존 조건과 콜백을 유지했습니다. 이어달리기는 경로 준비까지 하며 주행을 자동 시작하지 않습니다.</p>
+
+<details><summary>승인 시안 보기</summary><div class="pair"><figure><figcaption>주행 결과 시안</figcaption><img src="mockups/10-Summary.png" alt="승인된 결과 시안"></figure><figure><figcaption>다음 주행 시안</figcaption><img src="mockups/11-NextRide.png" alt="승인된 다음 주행 시안"></figure></div></details>
+</main></body></html>

@@ -1,0 +1,8 @@
+{
+  "command": "npx tsc -b --noEmit",
+  "cwd": "C:/20.HDev/boxcycle/apps/web",
+  "execSession": 12761,
+  "exitCode": 0,
+  "stdoutFile": "type-final.log",
+  "note": "Codex observed completed tool result exit_code=0; tsc emits no output on success."
+}

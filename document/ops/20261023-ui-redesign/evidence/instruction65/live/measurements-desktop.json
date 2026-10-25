@@ -1,0 +1,51 @@
+{
+  "viewport": {
+    "name": "desktop",
+    "width": 1280,
+    "height": 900
+  },
+  "titleTextBeforePin": "경로 생성",
+  "titleTextAfterPin": "경로 생성 잔여 토큰 8개",
+  "titleBefore": {
+    "x": 634,
+    "y": 240,
+    "width": 270,
+    "height": 24
+  },
+  "addressBefore": {
+    "x": 634,
+    "y": 314,
+    "width": 270,
+    "height": 15
+  },
+  "titleAfter": {
+    "x": 17.8,
+    "y": 386.69,
+    "width": 57.97,
+    "height": 44.91
+  },
+  "titleTextBox": {
+    "x": 17.8,
+    "y": 386.69,
+    "width": 57.97,
+    "height": 44.91
+  },
+  "addressAfter": {
+    "x": 17.8,
+    "y": 439.3,
+    "width": 202.41,
+    "height": 13.58
+  },
+  "close": {
+    "x": 199.42,
+    "y": 382.69,
+    "width": 26.39,
+    "height": 26.39
+  },
+  "popup": {
+    "x": 9,
+    "y": 379.5,
+    "width": 220,
+    "height": 140.88
+  }
+}

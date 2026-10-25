@@ -1,0 +1,78 @@
+[
+  {
+    "Path": "apps/web/e2e/ride-continuation.spec.ts",
+    "Hash": "B14BE6BDD5D8E66BB46721D09DE3790B4D6D03A63B0CB6E6562F01797638C5F8"
+  },
+  {
+    "Path": "apps/web/e2e/rideEntryHelpers.ts",
+    "Hash": "52CB353F9A729806C554475004334EFD2FC67F82DCC19A31AAA8A5BBF7BD9D9F"
+  },
+  {
+    "Path": "apps/web/scripts/next-ride/resume-slot-ui-fixture-main.tsx",
+    "Hash": "0A8E630930675413A04641459318DBB700CD147CBC195E0B510AC09CA7722CD8"
+  },
+  {
+    "Path": "apps/web/scripts/ui-800x360/preview.tsx",
+    "Hash": "21A800C5033385CCECDD13C09E706FB3A30830B11E9233EF49A6A7D9FBA255B3"
+  },
+  {
+    "Path": "apps/web/src/components/ride/NextRideCard.css",
+    "Hash": "F8FE9EFC24A9F83C655A3C835F36694EF3E0F8827F973034B46714F612B08C1A"
+  },
+  {
+    "Path": "apps/web/src/components/ride/NextRideCard.tsx",
+    "Hash": "EF485BA464BFF353137D44104CB2532FE42FA8E5C0DC7920B4C7B8D6A3CAC76F"
+  },
+  {
+    "Path": "apps/web/src/components/ride/RideSummarySheet.css",
+    "Hash": "356D76B4CFAE9CA3F9BEC007394F6B7F5445ADDEB9197AE0E588DDE5F6AEA506"
+  },
+  {
+    "Path": "apps/web/src/components/ride/RideSummarySheet.tsx",
+    "Hash": "4F60E0E1121A6A4F9A4C86FE6EF248685BD44CBBFEE0A1941A4983A382AE016C"
+  },
+  {
+    "Path": "document/ops/20261017-entry-location/evidence/15-entry-flight-metrics.json",
+    "Hash": "4CAFA2A22CEAC8547D7EDB44D22A09082D0710EBDD71B6BDC34D59D57378179F"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/README.md",
+    "Hash": "4424CC1CDF6AE64C8772161C6C278E3B46666EE176A99C1E0462CDD8FBD90C13"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/after-first-visit-800x360.png",
+    "Hash": "1D0A22DEC407EBC77AD60B58A719609A4ACC61E8C2666384881A07B0416AE918"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-667x300.png",
+    "Hash": "E1CBDE068F30078679FFC8AA6F5AE3B5E2637F360FFBB403797C5D468A70483C"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-800x360.png",
+    "Hash": "30A1FB72C91CE0E0BDD8588DE36ED603F44DE9199E573578E98BA96F0C7B4415"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-667x300.png",
+    "Hash": "3294429975B5B76BCF4182840C56A7D48C51AAA99902D60FE30D0850AC8D36D6"
+  },
+  {
+    "Path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-800x360.png",
+    "Hash": "8A9EE8F907F52AC495BCCF38C1F707846EF4B695963C68C57C71159596D902AD"
+  },
+  {
+    "Path": "document/ops/HANDOFF.md",
+    "Hash": "E92E793529C0427F6B69F6000F04C0247FE02E03590247CF37CBC663D423A817"
+  },
+  {
+    "Path": "document/ops/PROGRESS.md",
+    "Hash": "397428FDAD8E304DE754CACB90C7A14B853E178BFB9C5B23CB72EF2599D33667"
+  },
+  {
+    "Path": "apps/web/e2e/ui-redesign-batch3-conquest.spec.ts",
+    "Hash": "0678BD0CA86644B53B3FE8D81224A3287C6D74622B9F31B15CE6EABBFCC839FE"
+  },
+  {
+    "Path": "apps/web/e2e/ui-redesign-batch3.spec.ts",
+    "Hash": "675327F34E921549D52A7FEF8D0C36C6DDA6C2414A9789F347F18A44C4DE4409"
+  }
+]
