@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { stubMapboxStyle } from "./mapbox-stub";
 import { readGuestUid } from "./readGuestUid";
-import { guestStart as sharedGuestStart } from "./rideEntryHelpers";
+import { chooseColosseumIfNeeded, guestStart as sharedGuestStart } from "./rideEntryHelpers";
 
 /**
  * 주행 결과 시트 컴팩트화 — 스크롤 없음 실측 (2026-09-17 Chief).
@@ -126,17 +126,19 @@ const DISTANCE_THRESHOLD_KM = 0.11;
 /** 제거 대상 문구 2종 — 시트 텍스트에 남아 있으면 회귀다. */
 const REMOVED_PHRASES = ["내 도로망에 더해졌어요", "다음 출발점이 저장되었습니다"];
 
-test.describe("위치 컨트롤 선택이 거리 방향 대기를 끝낸다", () => {
+test.describe("Start·End 탭이 거리 방향 대기를 끝낸다", () => {
   /*
    * 「여기에서 계속」으로 들어오면 거리 기반 자동 End 선택이 켜진 채 시작한다
-   * (rideContinuationSetup 이 보장하는 계약). 이때 「거리」를 끄면 **그 세션까지** 끝나야
-   * 한다 — 끄고도 세션이 살아 있으면 사용자의 지도 클릭이 계속 「방향 선택」으로 먹혀
+   * (rideContinuationSetup 이 보장하는 계약). 이때 거리 탐색을 그만두면 **그 세션까지** 끝나야
+   * 한다 — 그만두고도 세션이 살아 있으면 사용자의 지도 누름이 계속 「방향 선택」으로 먹혀
    * End 를 직접 찍을 수 없다(2026-09-18 Chief).
    *
-   * 사용자 눈높이로 잰다: 끄면 방향 안내가 사라지고, 지도를 누르면 평소처럼 지점 팝업이
-   * 떠서 End 를 고를 수 있어야 한다.
+   * 10-23~24 묶음5: 「거리」 켜기·끄기와 캐럿 위치 컨트롤은 「Start·End | 거리·방향」 탭으로,
+   * 지점 팝업은 길게 누르기로 바뀌었고, 평상시 방향 안내 문구는 감췄다(상태는 data-phase 로 남는다).
+   * 그래서 「그만두기」 = Start·End 탭, 대기 표시 = 반경 원으로 잰다. 숨은 상태 줄의 data-phase 는
+   * 탭을 바꿔도 "direction" 으로 남으므로(보이지 않는 값) 들어올 때만 본다.
    */
-  test("끄면 방향 안내가 사라지고 지도 클릭이 지점 선택으로 돌아온다", async ({ page }) => {
+  test("Start·End 탭으로 바꾸면 반경 원이 사라지고 길게 눌러 End 를 고를 수 있다", async ({ page }) => {
     test.setTimeout(240_000);
     await stubMapboxStyle(page);
     await page.setViewportSize({ width: 1280, height: 800 });
@@ -156,14 +158,17 @@ test.describe("위치 컨트롤 선택이 거리 방향 대기를 끝낸다", ()
 
     await page.getByRole("button", { name: "여기에서 계속" }).click();
 
-    const dock = page.locator(".map-view__pick-dock-panel, .map-view__pick-popup").last();
-    await expect(dock, "「여기에서 계속」이 경로 설정을 연다").toBeVisible({ timeout: 30_000 });
-    const distanceView = dock.locator(".map-view__pick-auto-route");
-    const locationView = dock.locator(".map-view__pick-route-view--location");
-    await expect(distanceView, "들어오면 거리 탐색 화면이다").toBeVisible();
-    await expect(locationView, "거리 탐색 중 위치 컨트롤은 숨긴다").toBeHidden();
-    const hint = dock.getByText(/반경의 원 주변 도로를 선택하세요/);
-    await expect(hint, "거리 ON 이면 방향 안내가 보인다").toBeVisible({ timeout: 20_000 });
+    const popup = page.locator(".map-view__pick").last();
+    await expect(popup, "「여기에서 계속」이 경로 설정을 연다").toBeVisible({ timeout: 30_000 });
+    const distanceTab = popup.getByRole("tab", { name: "거리·방향", exact: true });
+    const locationTab = popup.getByRole("tab", { name: "출발·도착", exact: true });
+    const distanceView = popup.locator(".map-view__pick-auto-route");
+    const locationView = popup.locator(".map-view__pick-route-view--location");
+    const directionWait = page.locator('.map-view__pick-auto-route-status[data-phase="direction"]');
+    await expect(distanceTab, "들어오면 거리·방향 탭이다").toHaveAttribute("aria-selected", "true");
+    await expect(distanceView).toBeVisible();
+    await expect(locationView, "거리 탐색 중 Start·End 화면은 숨긴다").toBeHidden();
+    await expect(directionWait, "들어오면 방향 선택을 기다린다").toHaveCount(1, { timeout: 20_000 });
 
     /*
      * 목표 거리 반경 원 — Chief 가 실기기에서 본 **바로 그 표시**다.
@@ -175,37 +180,32 @@ test.describe("위치 컨트롤 선택이 거리 방향 대기를 끝낸다", ()
         return Boolean(w.__RTW_MAP__?.getLayer("distance-target-circle-line"));
       });
     await expect
-      .poll(ringOnMap, { timeout: 20_000, message: "거리 ON 이면 반경 원이 그려진다" })
+      .poll(ringOnMap, { timeout: 20_000, message: "거리 탐색이면 반경 원이 그려진다" })
       .toBe(true);
 
-    // ── 여기서 끈다 ────────────────────────────────────────────────────
-    await dock.getByRole("button", { name: "위치 선택 컨트롤 펼치기" }).click();
-    await expect(locationView, "캐럿은 위치 컨트롤을 위에 붙인다").toBeVisible();
-    await expect(distanceView, "위치를 펼쳐도 거리 내용은 유지된다").toBeVisible();
-    await expect(hint, "펼치기만으로 거리 대기를 해제하지 않는다").toBeVisible();
-    await dock.getByRole("button", { name: "Set start", exact: true }).click();
-
-    await expect(hint, "끄면 방향 안내가 사라져야 한다").toHaveCount(0, { timeout: 15_000 });
-    await expect
-      .poll(ringOnMap, { timeout: 15_000, message: "끄면 반경 원도 사라져야 한다" })
-      .toBe(false);
+    // ── 여기서 그만둔다 ──────────────────────────────────────────────────
+    await locationTab.click();
+    await expect(locationTab).toHaveAttribute("aria-selected", "true");
     await expect(locationView).toBeVisible();
-    await expect(distanceView, "위치 조작 후에도 펼친 거리 컨트롤을 유지한다").toBeVisible();
+    await expect(distanceView).toBeHidden();
+    await expect
+      .poll(ringOnMap, { timeout: 15_000, message: "탭을 바꾸면 반경 원도 사라져야 한다" })
+      .toBe(false);
 
-    // 지도를 누르면 평소처럼 지점 팝업이 뜨고 End 를 고를 수 있어야 한다.
+    // 지도를 길게 누르면 지점 팝업이 뜨고 End 를 고를 수 있어야 한다.
     const canvas = page.locator("canvas.mapboxgl-canvas").first();
     const box = await canvas.boundingBox();
     expect(box, "지도 캔버스를 찾지 못했다").not.toBeNull();
-    await page.mouse.click(box!.x + box!.width * 0.62, box!.y + box!.height * 0.45);
+    await page.mouse.move(box!.x + box!.width * 0.62, box!.y + box!.height * 0.45);
+    await page.mouse.down();
+    await page.waitForTimeout(650);
+    await page.mouse.up();
     await page.waitForTimeout(800);
 
-    const afterClick = page.locator(".map-view__pick-dock-panel, .map-view__pick-popup").last();
-    await expect(afterClick, "클릭이 지점 팝업을 연다").toBeVisible({ timeout: 20_000 });
-    await expect(
-      afterClick.getByText(/반경의 원 주변 도로를 선택하세요/),
-      "끈 뒤의 클릭이 방향 선택으로 먹히면 안 된다",
-    ).toHaveCount(0);
-    const endBtn = afterClick.getByRole("button", { name: "Set end", exact: true });
+    const afterHold = page.locator(".map-view__pick").last();
+    await expect(afterHold, "길게 누르면 지점 팝업이 열린다").toBeVisible({ timeout: 20_000 });
+    expect(await ringOnMap(), "그만둔 뒤의 누름이 방향 선택으로 먹히면 안 된다").toBe(false);
+    const endBtn = afterHold.getByRole("button", { name: "도착 지점으로 설정", exact: true });
     await expect(endBtn, "사용자가 End 를 직접 고를 수 있어야 한다").toBeEnabled({
       timeout: 15_000,
     });
@@ -220,17 +220,15 @@ test.describe("위치 컨트롤 선택이 거리 방향 대기를 끝낸다", ()
       const dockText = (
         document.querySelector(".route-dock__stops")?.textContent ?? ""
       ).replace(/\s+/g, " ").trim();
-      const surfaces = Array.from(
-        document.querySelectorAll(".map-view__pick-dock-panel, .map-view__pick-popup"),
-      ).map((el) => (el.textContent ?? "").replace(/\s+/g, " ").trim());
       const toggle = document.querySelector(
         ".map-view__pick-distance-mode-checkbox",
       ) as HTMLInputElement | null;
+      const w = window as Window & { __RTW_MAP__?: { getLayer: (id: string) => unknown } };
       return {
         dockStops: dockText,
-        endPinCount: document.querySelectorAll(".map-view__route-pin--end").length,
+        endBadgeCount: document.querySelectorAll(".route-dock__badge--end").length,
         distanceChecked: toggle ? toggle.checked : null,
-        hintBack: surfaces.some((t) => t.includes("반경의 원 주변 도로를 선택하세요")),
+        ringBack: Boolean(w.__RTW_MAP__?.getLayer("distance-target-circle-line")),
       };
     });
     fs.writeFileSync(
@@ -240,14 +238,14 @@ test.describe("위치 컨트롤 선택이 거리 방향 대기를 끝낸다", ()
       "utf8",
     );
 
-    expect(diag.hintBack, `End 지정 후 방향 안내가 되살아났다: ${JSON.stringify(diag)}`).toBe(false);
+    expect(diag.ringBack, `End 지정 후 반경 원이 되살아났다: ${JSON.stringify(diag)}`).toBe(false);
     expect(
       diag.distanceChecked === true,
-      `End 지정 후 「거리」가 다시 켜졌다: ${JSON.stringify(diag)}`,
+      `End 지정 후 거리 탐색이 다시 켜졌다: ${JSON.stringify(diag)}`,
     ).toBe(false);
     expect(
-      diag.endPinCount,
-      `End 핀이 찍히지 않았다: ${JSON.stringify(diag)}`,
+      diag.endBadgeCount,
+      `End 가 주소 카드에 들어오지 않았다: ${JSON.stringify(diag)}`,
     ).toBeGreaterThan(0);
   });
 });
@@ -337,15 +335,15 @@ test.describe("센서 설정 시트 레이아웃", () => {
   });
 });
 
-test.describe("RouteDock 레이아웃", () => {
+test.describe("RouteDock 센서 안내", () => {
   /*
-   * 2026-09-18 Chief 5건: ① 경로가 잡혔는데 센서 미준비면 SENSOR 칩이 깜빡인다
-   * ② 캐럿 폭 60% ③ 칩·주소를 왼쪽 끝까지 ④ Go 는 줄의 오른쪽 끝 ⑤ 삭제(X) 오른쪽 2px.
-   *
-   * 선언이 아니라 렌더된 상자로 잰다. 특히 ①은 **켜지는 쪽과 꺼지는 쪽을 모두** 본다 —
+   * 2026-09-18 Chief: 경로가 잡혔는데 센서 미준비면 센서 칩이 깜빡인다.
+   * 같은 날 정한 캐럿 60%·Go 오른쪽 끝·X 여백 같은 자리·크기는 10-24 Chief 고정12
+   * (센서·접기가 카드 맨 위 한 줄, ✕ 오른쪽 끝)로 바뀌었고 `e2e/ui-800x360.spec.ts` 「Chief 고정12」가 잠근다.
+   * 여기서는 깜빡임만 본다 — **켜지는 쪽과 꺼지는 쪽을 모두** 본다.
    * 한쪽만 보면 「항상 켜짐」·「항상 꺼짐」이 통과해 버린다.
    */
-  test("센서 안내 깜빡임 · 캐럿 60% · 왼쪽 밀착 · Go 우측 끝 · X 여백", async ({ page }) => {
+  test("센서 미준비면 깜빡이고 준비하면 멎는다", async ({ page }) => {
     test.setTimeout(180_000);
     await stubMapboxStyle(page);
     await page.setViewportSize(PHONE_LANDSCAPE);
@@ -356,9 +354,9 @@ test.describe("RouteDock 레이아웃", () => {
     await page.reload();
 
     await loadSavedRouteFromMenu(page, FIXTURE_NAME);
-    const chip = page.locator(".route-dock__top .hud-cadence");
-    await expect(chip, "dock 에 센서 칩이 있어야 한다").toBeVisible({ timeout: 15_000 });
-    // 2026-09-28 Chief: 기본 입력은 「센서 없음」(체험 속도) — 경로만 올려도 Go 가 열리므로 깜빡이지 않는다.
+    const chip = page.locator(".route-dock__head .hud-cadence");
+    await expect(chip, "주소 카드 맨 위 줄에 센서 칩이 있어야 한다").toBeVisible({ timeout: 15_000 });
+    // 2026-09-28 Chief: 기본 입력은 「센서 없음」(체험 속도) — 경로만 올려도 시작할 수 있으므로 깜빡이지 않는다.
     await expect(chip, "기본(센서 없음)은 준비 완료 → 깜빡이지 않는다").not.toHaveClass(
       /hud-cadence--attention/,
     );
@@ -370,82 +368,11 @@ test.describe("RouteDock 레이아웃", () => {
     await expect(chip, "경로가 잡혔는데 센서 미준비 → 깜빡인다").toHaveClass(
       /hud-cadence--attention/,
     );
-
-    const layout = await page.evaluate(() => {
-      const q = (sel: string) => document.querySelector(sel) as HTMLElement | null;
-      const box = (el: HTMLElement | null) =>
-        el
-          ? (({ x, y, width, height }) => ({ x, y, width, height }))(el.getBoundingClientRect())
-          : null;
-      return {
-        anchor: box(q(".route-dock-anchor")),
-        panel: box(q(".route-dock__panel")),
-        caret: box(q(".route-dock__caret")),
-        chip: box(q(".route-dock__top .hud-cadence")),
-        go: box(q(".route-dock__go")),
-        transport: box(q(".route-dock__transport")),
-        top: box(q(".route-dock__top")),
-        removeBtn: box(q(".route-dock__stop-remove")),
-        stops: box(q(".route-dock__stops")),
-      };
-    });
     await page.locator(".route-dock-anchor").screenshot({
-      path: path.join(SHOTS_DIR, "route-dock-layout.png"),
+      path: path.join(SHOTS_DIR, "route-dock-sensor-attention.png"),
     });
-    fs.writeFileSync(
-      path.join(SHOTS_DIR, "route-dock-layout.json"),
-      `${JSON.stringify(layout, null, 2)}
-`,
-      "utf8",
-    );
 
-    // M0 축퇴 방어 — 하나라도 못 찾으면 아래 비교는 공허하다.
-    for (const [k, v] of Object.entries(layout)) {
-      expect(v, `${k} 를 찾지 못했다`).not.toBeNull();
-      expect((v as { width: number }).width, `${k} 폭이 0`).toBeGreaterThan(0);
-    }
-
-    /*
-     * dock 가로 80% 축소(2026-09-18 Chief). 실측 243.00 → 194.36px.
-     * 캐럿(12.55px)·테두리(2px)는 고정이라 패널만 20% 줄이면 전체는 83.8% 에 그친다 —
-     * **dock 전체** 기준으로 맞춘 값이다.
-     */
-    expect(layout.anchor, "dock anchor 를 찾지 못했다").not.toBeNull();
-    expect(layout.anchor!.width, `dock 폭: ${layout.anchor!.width}`).toBeGreaterThan(188);
-    expect(layout.anchor!.width, `dock 폭: ${layout.anchor!.width}`).toBeLessThan(201);
-
-    // ② 캐럿 폭 = 0.93rem (종전 1.55rem 의 60%). 루트 13.5px 기준 약 12.55px.
-    expect(layout.caret!.width, `캐럿 폭: ${layout.caret!.width}`).toBeGreaterThan(11);
-    expect(layout.caret!.width, `캐럿 폭: ${layout.caret!.width}`).toBeLessThan(14);
-
-    // ③ 칩이 캐럿 바로 오른쪽 — 왼쪽에 빈 공간이 없다.
-    expect(
-      layout.chip!.x,
-      `캐럿 오른쪽 끝(${layout.caret!.x + layout.caret!.width})과 칩 왼쪽(${layout.chip!.x}) 사이에 빈 공간`,
-    ).toBeCloseTo(layout.caret!.x + layout.caret!.width, 0);
-
-    // ④ 주행 제어(Go·일시정지·종료, 2026-09-28 셋으로)가 줄의 오른쪽 끝 — 칩 바로 옆이 아니다.
-    // 종전엔 Go 하나였다. 셋이 된 뒤로 Go 는 묶음의 왼쪽 끝이라 묶음 오른쪽을 잰다.
-    const rowRight = layout.top!.x + layout.top!.width;
-    const transportRight = layout.transport!.x + layout.transport!.width;
-    expect(
-      rowRight - transportRight,
-      `주행 제어가 줄 오른쪽 끝에서 멀다: ${rowRight - transportRight}px`,
-    ).toBeLessThan(10);
-    expect(layout.go!.x, "Go 가 주행 제어 묶음의 첫 버튼").toBeCloseTo(layout.transport!.x, 0);
-    // 붙어 있으면 줄 간격(gap 0.28rem ≈ 4px)만 남는다. 40px 는 Go 하나일 때 정한 값 — 버튼이 셋이 된 뒤
-    // 정상 배치가 35px 다(2026-10-09 실측). 「붙음」과 「밀려남」을 가르는 값으로 15px 를 쓴다.
-    expect(
-      layout.go!.x - (layout.chip!.x + layout.chip!.width),
-      "Go 가 SENSOR 바로 옆에 붙어 있다",
-    ).toBeGreaterThan(15);
-
-    // ⑤ 삭제(X) 오른쪽 여백 2px
-    const gap = layout.stops!.x + layout.stops!.width - (layout.removeBtn!.x + layout.removeBtn!.width);
-    expect(gap, `X 버튼 오른쪽 여백: ${gap}px`).toBeGreaterThanOrEqual(1.5);
-    expect(gap, `X 버튼 오른쪽 여백: ${gap}px`).toBeLessThanOrEqual(4);
-
-    // ① 꺼지는 쪽 — 센서를 준비하면 안내는 소음이므로 멎어야 한다.
+    // 꺼지는 쪽 — 센서를 준비하면 안내는 소음이므로 멎어야 한다.
     await armRideInput(page);
     await expect(chip, "센서 준비 후에는 깜빡임이 멎는다").not.toHaveClass(
       /hud-cadence--attention/,
@@ -473,8 +400,11 @@ test.describe("다음 주행 카드 자리", () => {
     const uid = await readGuestUid(page);
     await seedShortRoute(uid, `next-ride-pos-${Date.now()}`);
     await page.reload();
+    // 새로고침 뒤 「어디에서 시작할까요?」 카드가 늦게 떠 길게 누르기를 가린다 — 먼저 닫는다.
+    await chooseColosseumIfNeeded(page, true);
     await armRideInput(page);
     await loadSavedRouteFromMenu(page, FIXTURE_NAME);
+    await chooseColosseumIfNeeded(page, false);
 
     /*
      * 주행이 시작되면 경로 설정 표면이 닫혀야 한다(2026-09-18 Chief).
@@ -484,12 +414,17 @@ test.describe("다음 주행 카드 자리", () => {
     const canvas = page.locator("canvas.mapboxgl-canvas").first();
     const canvasBox = await canvas.boundingBox();
     expect(canvasBox, "지도 캔버스를 찾지 못했다").not.toBeNull();
-    await page.mouse.click(canvasBox!.x + canvasBox!.width * 0.55, canvasBox!.y + canvasBox!.height * 0.4);
+    // 10-23 묶음5부터 지점 팝업은 길게 눌러 연다(짧은 탭은 지도 조작).
+    await page.mouse.move(canvasBox!.x + canvasBox!.width * 0.55, canvasBox!.y + canvasBox!.height * 0.4);
+    await page.mouse.down();
+    await page.waitForTimeout(650);
+    await page.mouse.up();
     await expect(pickSurfaces.last(), "주행 전에는 지점 팝업이 열린다").toBeVisible({
       timeout: 20_000,
     });
 
-    await page.getByRole("button", { name: "주행 시작" }).click();
+    // 묶음5: 폰 가로에서는 팝업이 주소 카드의 주행 제어를 덮는다 — 사용자가 누르는 팝업의 주행 시작으로 시작한다.
+    await pickSurfaces.last().getByRole("button", { name: "주행 시작" }).click();
     await expect(
       pickSurfaces,
       "주행이 시작되면 경로 설정 팝업이 닫혀야 한다",
@@ -538,9 +473,23 @@ test.describe("다음 주행 카드 자리", () => {
     await sheet.getByRole("button", { name: "닫기" }).first().click();
     await expect(sheet).toBeHidden({ timeout: 15_000 });
 
-    const dock = page.locator(".route-dock-anchor");
+    /*
+     * 묶음3(10-23~25): 종료 뒤 경로가 비면 주소 카드(RouteDock)는 빠지고, 센서만 든 주행 제어 줄이
+     * 우하단 시계 위에 남는다. 다음 주행 카드는 그 줄 **위**에 앉는다(RideControlBar.css --with-next).
+     * 그래서 「움직이면 안 되는 것」은 이제 그 센서 칩이다.
+     */
     const card = page.locator(".next-ride-anchor");
-    await expect(dock).toBeVisible({ timeout: 20_000 });
+    const barDiag = await page.evaluate(() =>
+      Array.from(document.querySelectorAll(".ride-control-anchor, .ride-control-bar, .ride-control-bar .hud-cadence")).map((el) => {
+        const r = el.getBoundingClientRect();
+        const cs = getComputedStyle(el);
+        return { cls: (el as HTMLElement).className, x: r.x, y: r.y, w: r.width, h: r.height, display: cs.display, visibility: cs.visibility, opacity: cs.opacity };
+      }),
+    );
+    fs.writeFileSync(path.join(SHOTS_DIR, "next-ride-bar-diag.json"), `${JSON.stringify(barDiag, null, 2)}
+`, "utf8");
+    const dock = page.locator(".ride-control-bar .hud-cadence");
+    await expect(dock, `센서 칩이 보여야 한다: ${JSON.stringify(barDiag)}`).toBeVisible({ timeout: 20_000 });
     await expect(card, "종료 후 idle 에서 「다음 주행」 카드가 뜬다").toBeVisible({
       timeout: 20_000,
     });
@@ -559,8 +508,11 @@ test.describe("다음 주행 카드 자리", () => {
       cardBox!.x,
       `카드가 우하단에 있어야 한다: x=${cardBox!.x}, viewport=${PHONE_LANDSCAPE.width}`,
     ).toBeGreaterThan(PHONE_LANDSCAPE.width / 2);
-    // dock 은 왼쪽에 그대로
-    expect(dockWithCard!.x, "dock 은 좌하단").toBeLessThan(PHONE_LANDSCAPE.width / 2);
+    // 카드는 센서 줄 위에 있다 — 덮지 않는다.
+    expect(
+      cardBox!.y + cardBox!.height,
+      `카드가 센서 칩을 덮는다: cardBottom=${cardBox!.y + cardBox!.height}, chipTop=${dockWithCard!.y}`,
+    ).toBeLessThanOrEqual(dockWithCard!.y + 1);
 
     /*
      * 자리는 기존 UI 격자에 맞춘다 — 「우하단」이라는 방향만으로는 부족하고,
@@ -573,7 +525,8 @@ test.describe("다음 주행 카드 자리", () => {
     const trBox = await page.locator(".map-hud__tr").boundingBox();
     expect(trBox, "우상단 계정·맵 묶음 boundingBox").not.toBeNull();
     expect(trBox!.width, "우상단 묶음 폭").toBeGreaterThan(0);
-    const ctrlBox = await page.locator(".mapboxgl-ctrl-top-right").boundingBox();
+    // 10-06 이후 지도 컨트롤은 Mapbox 기본 묶음이 아니라 앱의 「맵 제어」 묶음(스타일·＋·−)이다.
+    const ctrlBox = await page.getByRole("group", { name: "맵 제어" }).boundingBox();
     const clockBox = await page.locator(".hud-clock").boundingBox();
     expect(clockBox, "시계 boundingBox").not.toBeNull();
     expect(clockBox!.height, "시계 높이").toBeGreaterThan(0);
@@ -592,7 +545,7 @@ test.describe("다음 주행 카드 자리", () => {
      * 올라온다. 상자가 겹치는 것 자체보다 **버튼이 실제로 눌리는가**가 문제이므로 그것을 잰다.
      */
     const ctrlHit = await page.evaluate(() => {
-      const group = document.querySelector(".mapboxgl-ctrl-top-right .mapboxgl-ctrl-group");
+      const group = document.querySelector('[role="group"][aria-label="맵 제어"]');
       if (!group) return null;
       const btns = Array.from(group.querySelectorAll("button")) as HTMLElement[];
       return btns.map((b) => {
@@ -626,9 +579,9 @@ test.describe("다음 주행 카드 자리", () => {
 
     expect(
       dockWithoutCard!.y,
-      `카드가 닫히자 dock 이 움직였다: 카드있음 y=${dockWithCard!.y}, 카드없음 y=${dockWithoutCard!.y}`,
+      `카드가 닫히자 센서 칩이 움직였다: 카드있음 y=${dockWithCard!.y}, 카드없음 y=${dockWithoutCard!.y}`,
     ).toBeCloseTo(dockWithCard!.y, 0);
-    expect(dockWithoutCard!.x, "dock x 도 그대로여야 한다").toBeCloseTo(dockWithCard!.x, 0);
+    expect(dockWithoutCard!.x, "센서 칩 x 도 그대로여야 한다").toBeCloseTo(dockWithCard!.x, 0);
   });
 });
 

@@ -1,5 +1,5 @@
 import { test, expect, type Page } from './open-meteo-stub'
-import { guestStart } from './rideEntryHelpers'
+import { chooseColosseumIfNeeded, guestStart } from './rideEntryHelpers'
 import { readGuestUid } from './readGuestUid'
 
 /**
@@ -507,11 +507,28 @@ test.describe('guest lifecycle firebase sdk', () => {
     expect(addedCount(before, await listLocalIds()), 'auth count before offline start').toBe(1)
 
     // 실제 network 차단 — 시작 메뉴의 게스트로 시작은 새 계정을 만들지 않아야 한다(forceclick 금지).
+    // offline 결과는 두 가지다(2026-10-25 실측 각 1회, 지시77): 「서비스에 연결할 수 없습니다」로 시작 메뉴에
+    // 머물거나, 기기에 남은 Guest 인증으로 그 Guest 로 바로 들어간다. 둘 다 새 계정을 만들지 않는다 —
+    // 화면은 둘 중 하나면 되고, 아래 계정 수·uid 단언이 이 시험의 계약이다.
     await page.context().setOffline(true)
     const offlineButton = page.getByRole('button', { name: '게스트로 시작' })
     await expect(offlineButton).toBeVisible({ timeout: 30_000 })
     await offlineButton.click()
-    await expect(page.getByRole('button', { name: '게스트로 시작' })).toBeVisible({ timeout: 30_000 })
+    await chooseColosseumIfNeeded(page, true)
+    const unreachable = page.getByText('서비스에 연결할 수 없습니다.', { exact: true })
+    let offlineLanded: 'menu' | 'guest' | null = null
+    await expect
+      .poll(async () => {
+        if ((await unreachable.isVisible().catch(() => false)) && (await offlineButton.isVisible().catch(() => false))) {
+          offlineLanded = 'menu'
+        } else if ((await offlineButton.count()) === 0 && (await readGuestUid(page)) === created) {
+          offlineLanded = 'guest'
+        } else {
+          offlineLanded = null
+        }
+        return offlineLanded
+      }, { timeout: 30_000, message: 'offline 게스트 시작이 연결 안내에도, 같은 Guest 에도 정착하지 않았다' })
+      .not.toBeNull()
     // 확정은 서버 REST 계정 목록으로 본다 — UI 텍스트는 이 검증의 대상이 아니다.
     // 기준이 생성 후 snapshot이므로 "기존 계정이 유지된 채 증가 0"이 아니라 증가만 0으로 검사한다.
     await expect
@@ -522,11 +539,15 @@ test.describe('guest lifecycle firebase sdk', () => {
       .toBe(0)
     expect(await listLocalIds(), '기존 Guest 계정이 offline 구간에 사라졌다').toEqual(expect.arrayContaining(afterCreated))
 
-    // network 복구 후 시작 — 증가 0(재사용)이고 uid 는 그 Guest 이다.
+    // network 복구 후 — 증가 0(재사용)이고 uid 는 그 Guest 이다.
     await page.context().setOffline(false)
-    const button = page.getByRole('button', { name: '게스트로 시작' })
-    await expect(button).toBeVisible({ timeout: 30_000 })
-    await button.click()
+    if (offlineLanded === 'menu') {
+      const button = page.getByRole('button', { name: '게스트로 시작' })
+      await expect(button).toBeVisible({ timeout: 30_000 })
+      await button.click()
+    } else {
+      await page.reload()
+    }
     await guestStart(page)
     await expect(page.getByRole('button', { name: '사용자 정보' })).toBeVisible()
     expect(addedCount(afterCreated, await listLocalIds()), 'auth count after recovery').toBe(0)
