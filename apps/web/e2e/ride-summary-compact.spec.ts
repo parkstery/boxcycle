@@ -115,7 +115,7 @@ async function loadSavedRouteFromMenu(page: Page, routeName: string) {
 }
 
 /** 촬영·계측 산출물 — 저장소 기준 .out/ (gitignore). 세션 임시폴더에 두면 다음 세션에서 사라진다. */
-const SHOTS_DIR = path.resolve(process.cwd(), ".out/ride-summary");
+const SHOTS_DIR = process.env.UI_REVALIDATION_EVIDENCE_DIR ?? path.resolve(process.cwd(), ".out/ride-summary");
 fs.mkdirSync(SHOTS_DIR, { recursive: true });
 
 /** 폐기 정책(100m) 위 여유값 — 이보다 커지면 결과 시트가 뜬다고 확신할 수 있다. */

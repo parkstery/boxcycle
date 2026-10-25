@@ -257,9 +257,6 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
     Math.round(Math.max(0, Math.min(1, result?.previousProgressRatio ?? 0)) * 1000) / 10,
   );
   const progressThisPct = Math.max(0, progressNowPct - progressBeforePct);
-  /** 두 칸([주행/전체][새 도로])이 모두 있을 때 제목 줄도 2열로 나눠 「새 도로」 를 그 위에 둔다 */
-  const splitHead = hasConquestContent && distancePair != null;
-
   function requestClose() {
     if (busy) return;
     props.onClose();
@@ -314,76 +311,23 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
         aria-labelledby="ride-summary-title"
       >
         <div className="ride-summary__handle" aria-hidden />
-        <div
-          className={[
-            "ride-summary__head",
-            props.adhocSaveAvailable ? "" : "ride-summary__head--with-close",
-            splitHead ? "ride-summary__head--split" : "",
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        >
-          <div className="ride-summary__head-left">
-          <h2 id="ride-summary-title" className="ride-summary__title">
-            주행 결과
-            {/* 단위는 여기서 한 번만 — 아래 숫자들엔 붙이지 않는다(2026-09-17 Chief) */}
-            <span className="ride-summary__title-unit">km</span>
-          </h2>
-          {/*
-            미완주 진행률 배지(N% → M%) — 제목과 닫기 사이, 헤더 행에 둔다(히어로 열이 아니다).
-            「완주」·「도착」 배지는 뺐다(2026-09-17 Chief) — 사용자는 주행을 마치는 순간에
-            완주를 인식하고, 「0.18 / 0.18」 이라는 숫자가 다시 한 번 말해 준다. 미완주일
-            때의 진행률 배지는 숫자만으로는 이전 대비 얼마나 늘었는지 알 수 없어 남긴다.
-          */}
-          {!routeCompleted && showProgressLine && result ? (
-            <span className="ride-summary__heroes-badge" aria-label="전체 진행">
-              {progressPercentLabel(result.previousProgressRatio)}% →{" "}
-              {progressPercentLabel(result.progressRatio)}%
-            </span>
-          ) : null}
-          </div>
-          {/*
-            「새 도로」 라벨은 칸 안이 아니라 **제목 줄**, 새 도로 칸 바로 위(2026-10-06 Chief).
-            제목 줄을 히어로와 같은 2열 그리드로 나눠 오른쪽 열에 둔다(splitHead).
-          */}
-          {splitHead ? <div className="ride-summary__head-newroad">새 도로</div> : null}
-          {/*
-            닫는 버튼은 **상태마다 정확히 하나**다.
-             · 저장할 것이 있으면 → 「저장 안 함」이 닫는다(아래)
-             · 저장할 것이 없으면 → 여기 ✕ 가 닫는다
-            둘을 같이 두면 「저장 안 함」과 「닫기」가 무엇이 다른지 읽는 사람이 알 수 없다.
-            (배경 누르기는 언제나 닫힌다 — scrim)
-            모양은 oc-modal__close(공식 코스 목록 모달)와 같다 — 시트 우상단 절대 배치 ✕.
-            글자 대신 아이콘이라 폭을 먹지 않는다(공간 밀도 D2·D6).
-          */}
-          {props.adhocSaveAvailable ? null : (
-            <button
-              type="button"
-              className="ride-summary__close"
-              title="닫기"
-              aria-label="닫기"
-              onClick={requestClose}
-            >
-              <span aria-hidden="true">✕</span>
-            </button>
-          )}
-        </div>
-
-        {/*
-          스토리 — 숫자를 사람의 말로(2026-10-07 Chief). 「드라이한 데이터를 던져 주는 것으로
-          끝내서는 안 된다」. 문장은 lib/ride/rideStory.ts 가 기록의 사실로만 만든다.
-        */}
-        {props.story ? (
-          <div className="ride-summary__story" aria-live="polite">
-            <p className="ride-summary__story-headline">{props.story.headline}</p>
-            {props.story.detail ? (
-              <p className="ride-summary__story-detail">{props.story.detail}</p>
+        <div className="ride-summary__cols">
+          <div className="ride-summary__col ride-summary__col--primary">
+            {/*
+              스토리 — 숫자를 사람의 말로(2026-10-07 Chief). 문장은 lib/ride/rideStory.ts 가
+              기록의 사실로만 만든다. 가로 800 판에서는 왼쪽 요약 열의 맨 위.
+            */}
+            {props.story ? (
+              <div className="ride-summary__story" aria-live="polite">
+                <p className="ride-summary__story-headline">{props.story.headline}</p>
+                {props.story.detail ? (
+                  <p className="ride-summary__story-detail">{props.story.detail}</p>
+                ) : null}
+              </div>
             ) : null}
-          </div>
-        ) : null}
 
-        {/* §3.1 히어로 — 화면 순서 [주행/전체][새 도로](CSS order) 2칸만. 진행률은 헤더 행 */}
-        <div className="ride-summary__heroes">
+            {/* §3.1 히어로 — 새 도로 + 진행. 가로 판에서는 왼쪽 열에 세로로 쌓는다 */}
+            <div className="ride-summary__heroes">
           <div
             className={
               hasConquestContent && distancePair
@@ -395,9 +339,10 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
               <div className="ride-summary__conquest-hero" aria-live="polite">
                 {newRoadHero ? (
                   <>
-                    {splitHead ? null : <div className="ride-summary__conquest-label">새 도로</div>}
+                    <div className="ride-summary__conquest-label">새 도로</div>
                     <strong className="ride-summary__conquest-value" aria-label="새 도로">
                       +{newRoadHero}
+                      <span className="ride-summary__conquest-km" aria-hidden="true"> km</span>
                     </strong>
                   </>
                 ) : conquestStatusCopy ? (
@@ -469,7 +414,42 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
               </div>
             ) : null}
           </div>
-        </div>
+            </div>
+          </div>
+
+          <div className="ride-summary__col ride-summary__col--detail">
+            <div
+              className={[
+                "ride-summary__head",
+                props.adhocSaveAvailable ? "" : "ride-summary__head--with-close",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              <div className="ride-summary__head-left">
+                <h2 id="ride-summary-title" className="ride-summary__title">
+                  주행 결과
+                  <span className="ride-summary__title-unit">km</span>
+                </h2>
+                {!routeCompleted && showProgressLine && result ? (
+                  <span className="ride-summary__heroes-badge" aria-label="전체 진행">
+                    {progressPercentLabel(result.previousProgressRatio)}% →{" "}
+                    {progressPercentLabel(result.progressRatio)}%
+                  </span>
+                ) : null}
+              </div>
+              {props.adhocSaveAvailable ? null : (
+                <button
+                  type="button"
+                  className="ride-summary__close"
+                  title="닫기"
+                  aria-label="닫기"
+                  onClick={requestClose}
+                >
+                  <span aria-hidden="true">✕</span>
+                </button>
+              )}
+            </div>
 
         {props.rankChange && props.onOpenLeaderboard ? (
           <button
@@ -536,7 +516,10 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                   className="ride-summary__substat ride-summary__substat--calorie"
                   title={props.calorieProfileComplete ? "케이던스 센서가 연결된 주행만 산정합니다" : undefined}
                 >
-                  <span className="ride-summary__substat-metric">추정 — kcal</span>
+                  <span className="ride-summary__substat-label">칼로리</span>
+                  <span className="ride-summary__substat-metric">
+                    {props.calorieProfileComplete ? "센서 주행 후 표시" : "체중·강도 입력 후 표시"}
+                  </span>
                   {props.onOpenCalorieSettings && !props.calorieProfileComplete ? (
                     <button
                       type="button"
@@ -558,6 +541,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                     : "추정 총 운동 에너지"
                 }
               >
+                <span className="ride-summary__substat-label">칼로리</span>
                 <span className="ride-summary__substat-metric">
                   추정 {label} kcal{signalGap ? " · 누락" : ""}
                 </span>
@@ -588,7 +572,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
         {props.onGuestLinkGoogle ? (
           <div className="ride-summary__guest-cta" role="group" aria-label="기록 지키기">
             <span className="ride-summary__guest-cta-copy">
-              게스트 기록은 로그아웃하면 사라집니다. Google을 연결하면 이번 주행과 내 도로망이 그대로 남습니다.
+              회원 등록하면 이번 주행과 내 도로망이 그대로 이어지고, 다른 기기에서도 볼 수 있어요.
             </span>
             <button
               type="button"
@@ -675,6 +659,8 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
             ) : null}
           </>
         ) : null}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -486,7 +486,7 @@ test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', (
   });
 
   test('주행·일시정지는 접힌 상태로 시작하고 펼치면 출발·도착이 보이며 미니맵과 너비가 같다', async ({ page }) => {
-    const evidenceDir = path.resolve(
+    const evidenceDir = process.env.UI_REVALIDATION_EVIDENCE_DIR ?? path.resolve(
       fileURLToPath(import.meta.url),
       '../../../../document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse',
     );

@@ -37,19 +37,13 @@ function anchorPlaceName(view: NextRideView): string | null {
 
 /**
  * 지도 위 「다음 주행」 카드 — 다음 행동의 **주 표면**(§3.1).
- *
- * 사용자가 MENU → 내 경로 → 선택 → 열기를 반복하지 않도록, 마지막 유효 Ride 를 해석해
- * 「이어 달리기」·「여기에서 계속」을 지도 위에서 바로 제시한다.
- * 좌하단 RouteDock anchor 자리를 쓰며, 확장된 RouteDock 과 동시에 표시되지 않는다.
  */
 export function NextRideCard(props: NextRideCardProps) {
   const { view } = props;
   const resumeTarget = view.target.kind === "resume_route" ? view.target : null;
   const placeName = anchorPlaceName(view);
   const lastRideKm = formatRideDistanceKmNumber(view.ride.distanceMeters);
-  // 「오늘」의 기준 시각 — 카드가 뜬 순간으로 고정한다(렌더마다 시계를 읽지 않는다)
   const [openedAt] = useState(() => new Date());
-  // 스토리 한 줄(M1, 주행 스토리 원칙 §5) — 「어디서부터, 얼마나 왔나」
   const story = composeNextRideStory({
     resume:
       resumeTarget && view.route
@@ -59,13 +53,27 @@ export function NextRideCard(props: NextRideCardProps) {
     now: openedAt,
   });
 
+  const remainingKm =
+    resumeTarget && view.route
+      ? formatRideDistanceKmNumber(
+          Math.max(0, (1 - resumeTarget.progressRatio) * view.route.distanceMeters),
+        )
+      : null;
+
+  const stoppedLabel = placeName ?? "마지막 종료 지점";
+  const cardTitle = resumeTarget ? "이어 가기" : "새 출발";
+
   return (
     <div className="next-ride-anchor" aria-label="다음 주행">
-      <div className="next-ride__card hud-glass" role="group" aria-labelledby="next-ride-title">
+      <div className="next-ride__card hud-glass" role="group" aria-label="다음 주행">
         <div className="next-ride__head">
-          <h2 id="next-ride-title" className="next-ride__title">
-            다음 주행 이어가기
-          </h2>
+          <div className="next-ride__head-copy">
+            <span className="next-ride__kicker">다음 주행</span>
+            <h2 id="next-ride-title" className="next-ride__title">
+              {cardTitle}
+            </h2>
+            {story ? <p className="next-ride__story">{story.text}</p> : null}
+          </div>
           <button
             type="button"
             className="next-ride__dismiss"
@@ -73,48 +81,36 @@ export function NextRideCard(props: NextRideCardProps) {
             title="Hide"
             onClick={props.onDismiss}
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
         {resumeTarget && view.route ? (
-          <>
-            <p className="next-ride__line next-ride__line--strong">
-              <span className="next-ride__route-name" title={view.route.name}>
-                {view.route.name}
+          <div className="next-ride__facts" aria-label="경로 진행">
+            <div className="next-ride__fact">
+              <span className="next-ride__fact-label">멈춘 곳</span>
+              <span className="next-ride__fact-value" title={view.route.name}>
+                {stoppedLabel}
               </span>
-              <span className="next-ride__sep" aria-hidden>
-                ·
-              </span>
-              <span>
-                {formatRideDistanceKmNumber(resumeTarget.progressRatio * view.route.distanceMeters)} /{" "}
-                {formatRideDistanceKmNumber(view.route.distanceMeters)} km
-              </span>
-              <span className="next-ride__sep" aria-hidden>
-                ·
-              </span>
-              <span>{progressPercentLabel(resumeTarget.progressRatio)}%</span>
-            </p>
-            <p className="next-ride__line next-ride__story">
-              {story?.text ?? "멈춘 지점에서 계속합니다"}
-            </p>
-          </>
+            </div>
+            {remainingKm != null ? (
+              <div className="next-ride__fact next-ride__fact--end">
+                <span className="next-ride__fact-label">남은 거리</span>
+                <span className="next-ride__fact-value next-ride__fact-value--accent">
+                  {remainingKm}
+                  <span className="next-ride__fact-unit"> km</span>
+                </span>
+              </div>
+            ) : null}
+          </div>
         ) : (
           <>
-            {/* 둘째·셋째 줄 순서 교체 — 언제 달렸는지가 먼저, 어디서 이어갈지가 다음(2026-09-18 Chief) */}
-            {/*
-              오늘 탔으면 날짜 대신 스토리 한 줄. 아니면 날짜 줄 — 종전엔 며칠 전 주행에도
-              「오늘 2.1 km」라고 썼다(마지막 주행 거리를 「오늘」로 잘못 불렀다, 2026-10-07 수정).
-            */}
-            {story ? (
-              <p className="next-ride__line next-ride__story">{story.text}</p>
-            ) : (
+            {story ? null : (
               <p className="next-ride__line next-ride__line--muted">
                 마지막 주행 {formatEndedAtKo(view.ride.endedAt)} · {lastRideKm} km
               </p>
             )}
             <p className="next-ride__line next-ride__line--strong">
-              {/* 주소만 — 「에서 이어가기」는 제목이 이미 말한다(2026-09-18 Chief) */}
               {placeName ?? "마지막 종료 지점"}
             </p>
           </>

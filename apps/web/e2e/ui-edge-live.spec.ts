@@ -5,7 +5,7 @@ import { guestStart, prepareManualRideInput } from './rideEntryHelpers';
 
 // Supervisor integration check: real App + Mapbox, Firebase writes only to local emulators.
 const enabled = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
-const evidence = path.resolve('..', '..', '.out', 'ui-edge-20261021');
+const evidence = process.env.UI_REVALIDATION_EVIDENCE_DIR ?? path.resolve('..', '..', '.out', 'ui-edge-20261021');
 
 test('실제 지도 800×360: 에지 열기·상단 지표·조밀한 도크·중앙 pan', async ({ page }) => {
   test.skip(!enabled, '로컬 Firebase 에뮬레이터 전용');
@@ -73,10 +73,21 @@ test('실제 지도 800×360: 에지 열기·상단 지표·조밀한 도크·�
         canvas: rect('.mapboxgl-canvas'), brand: document.querySelector('.hud-brand')?.getBoundingClientRect().toJSON(),
         mapTrigger: document.querySelector('.hud-bc-trigger')?.getBoundingClientRect().toJSON() };
     });
-    expect(geometry.dock!.width).toBeLessThanOrEqual(220);
-    expect(geometry.dock!.height).toBeLessThanOrEqual(100);
+    // Chief 고정11·12: 대기 카드 폭 29.4vw, 센서·접기 맨 위 줄과 S/E 주소 두 줄.
+    expect(geometry.dock!.width).toBeCloseTo(size.width * 0.294, 0);
+    await expect(page.locator('.route-dock__head')).toBeVisible();
+    await expect(page.locator('.route-dock__stops > li')).toHaveCount(2);
+    await expect(page.locator('.route-dock__badge')).toHaveText(['S', 'E']);
     const rideBar = await page.locator('.ride-control-bar').boundingBox();
-    expect(rideBar!.height).toBeLessThanOrEqual(36);
+    // Chief 고정1: 글자 없는 녹색 원형 재생 버튼 44px.
+    const start = page.getByRole('button', { name: '주행 시작', exact: true });
+    const startBox = (await start.boundingBox())!;
+    expect(startBox.width).toBe(44);
+    expect(startBox.height).toBe(44);
+    expect((await start.innerText()).trim()).toBe('');
+    await expect(start).toHaveCSS('border-radius', '50%');
+    expect(await start.evaluate(el => getComputedStyle(el).backgroundImage)).toContain('rgb(0, 150, 39)');
+    expect(rideBar!.height).toBe(44);
     expect(rideBar!.x).toBeGreaterThan(size.width / 2);
     const clock = await page.locator('.hud-clock').boundingBox();
     if(clock) expect(rideBar!.y + rideBar!.height).toBeLessThanOrEqual(clock.y + 1);
@@ -88,13 +99,17 @@ test('실제 지도 800×360: 에지 열기·상단 지표·조밀한 도크·�
   await page.setViewportSize({ width: 800, height: 360 });
   await page.getByRole('button', { name: '주행 시작', exact: true }).click();
   await expect(page.getByRole('button', { name: '주행 종료', exact: true })).toBeEnabled();
-  await page.getByRole('button', { name: '경로 패널 접기', exact: true }).click();
+  // Chief 고정11: 주행 시작 직후 접힘. 펼치기는 남아 있어야 한다.
+  await expect(page.getByRole('button', { name: '경로 패널 펼치기', exact: true })).toBeVisible();
+  await expect(page.locator('.route-dock__stops')).toBeHidden();
   await expect(page.getByRole('button', { name: '주행 종료', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: /^케이던스 센서:/ })).toHaveCount(1);
   await page.getByRole('button', { name: '일시정지', exact: true }).click();
   await expect(page.getByRole('button', { name: '재개', exact: true })).toHaveCount(1);
   await page.getByRole('button', { name: '재개', exact: true }).click();
   await page.getByRole('button', { name: '경로 패널 펼치기', exact: true }).click();
+  await expect(page.locator('.route-dock__stops')).toBeVisible();
+  await expect(page.locator('.route-dock__remove,.route-dock__swap')).toHaveCount(0);
   await page.waitForTimeout(700);
   for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }, { width: 844, height: 390 }]) {
     await page.setViewportSize(size);

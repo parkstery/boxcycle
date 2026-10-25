@@ -17,7 +17,7 @@ import { guestStart as sharedGuestStart } from "./rideEntryHelpers";
  */
 const LIVE = process.env.RIDE_VERIFY_LIVE === "1";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const OUT_DIR = path.resolve(__dirname, "../.out/route-dock");
+const OUT_DIR = process.env.UI_REVALIDATION_EVIDENCE_DIR ?? path.resolve(__dirname, "../.out/route-dock");
 
 test.describe("주행 중 RouteDock", () => {
   test.skip(!LIVE, "Firebase 에뮬레이터 필요 — npm run test:e2e:route-dock");

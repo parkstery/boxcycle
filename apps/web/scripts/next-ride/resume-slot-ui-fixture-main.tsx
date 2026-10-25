@@ -81,6 +81,5 @@ createRoot(root).render(
     onExtend={() => {}}
     onShowOnMap={() => {}}
     onDismiss={() => {}}
-    onAbandonResume={() => {}}
   />,
 );

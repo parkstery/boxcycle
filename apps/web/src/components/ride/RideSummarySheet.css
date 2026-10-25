@@ -8,6 +8,14 @@
   justify-content: center;
 }
 
+/* 가로 800×360 등 — 중앙 흰 판(약 740×324). 좁은 폰은 하단 시트 유지 */
+@media (min-width: 640px) and (min-height: 280px) {
+  .ride-summary {
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 .ride-summary__scrim {
   position: absolute;
   inset: 0;
@@ -45,6 +53,24 @@
   flex-direction: column;
   gap: 0.3rem;
   animation: ride-summary-up 180ms ease-out;
+}
+
+.ride-summary__cols {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.ride-summary__col {
+  min-width: 0;
+}
+
+.ride-summary__col--detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-height: 0;
 }
 
 @keyframes ride-summary-up {
@@ -667,4 +693,279 @@
 .ride-summary__heroes-main--solo .ride-summary__conquest-hero {
   height: auto;
   padding: 0.35rem 0.35rem 0.4rem;
+}
+
+.ride-summary__conquest-km {
+  font-family: var(--rtw-font-family, inherit);
+  font-size: 0.34em;
+  font-weight: 600;
+  letter-spacing: 0;
+  vertical-align: baseline;
+}
+
+/* 가로 판 — conquest·progress 기본 규칙보다 뒤에 두어 cascade 최종값이 된다 */
+@media (min-width: 640px) and (min-height: 280px) {
+  .ride-summary__sheet {
+    width: min(740px, calc(100vw - 1rem));
+    min-height: min(324px, calc(100dvh - 1rem));
+    max-height: min(324px, calc(100dvh - 1rem));
+    margin-bottom: 0;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 18px;
+    gap: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ride-summary__handle {
+    display: none;
+  }
+
+  .ride-summary__cols {
+    display: grid;
+    grid-template-columns: 268px minmax(0, 1fr);
+    flex: 1;
+    min-height: 0;
+    gap: 0;
+  }
+
+  .ride-summary__col--primary {
+    background: #eef3fc;
+    padding: 0.85rem 1rem 0.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    overflow-y: auto;
+    min-height: 0;
+  }
+
+  .ride-summary__col--detail {
+    padding: 0.55rem 0.85rem 0.6rem 0.95rem;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    gap: 0.35rem;
+    min-height: 0;
+  }
+
+  .ride-summary__story {
+    padding: 0;
+  }
+
+  .ride-summary__story-headline {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: #121417;
+  }
+
+  .ride-summary__story-detail {
+    font-size: 12px;
+    font-weight: 600;
+    color: #4b5160;
+  }
+
+  .ride-summary__head.ride-summary__head--split {
+    display: flex;
+    padding-right: 0;
+  }
+
+  .ride-summary__head-newroad {
+    display: none;
+  }
+
+  .ride-summary__title {
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .ride-summary__title-unit {
+    display: none;
+  }
+
+  .ride-summary__heroes {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
+
+  .ride-summary__heroes-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .ride-summary__conquest-hero,
+  .ride-summary__progress {
+    background: transparent;
+    border: none;
+    min-height: 0;
+    padding: 0;
+    align-items: flex-start;
+    justify-content: flex-start;
+    height: auto;
+  }
+
+  .ride-summary__conquest-hero {
+    order: -1;
+    align-items: flex-start;
+    margin-block: auto;
+  }
+
+  .ride-summary__progress {
+    order: 1;
+    gap: 0.25rem;
+    margin-top: auto;
+    flex-shrink: 0;
+  }
+
+  .ride-summary__conquest-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #5e6472;
+    text-transform: uppercase;
+  }
+
+  .ride-summary__conquest-value {
+    font-family: var(--rtw-font-num, "Saira Condensed", sans-serif);
+    font-size: clamp(4rem, 9vw, 4.5rem);
+    font-weight: 700;
+    line-height: 0.95;
+    color: #2457d6;
+  }
+
+  .ride-summary__conquest-km {
+    font-size: 22px;
+    font-weight: 600;
+    color: #2457d6;
+  }
+
+  .ride-summary__conquest-status {
+    font-size: 12px;
+    text-align: left;
+    justify-content: flex-start;
+    color: #4b5160;
+  }
+
+  .ride-summary__progress-v {
+    font-family: var(--rtw-font-num, "Saira Condensed", sans-serif);
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: #121417;
+  }
+
+  .ride-summary__progress-of {
+    font-size: 13px;
+    font-weight: 600;
+    color: #4b5160;
+  }
+
+  .ride-summary__progress-left {
+    font-size: 11px;
+    color: #5e6472;
+  }
+
+  .ride-summary__progress-text {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .ride-summary__substats {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 600;
+    width: 100%;
+  }
+
+  .ride-summary__substat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 34px;
+    padding: 0 0.05rem;
+    border-bottom: 1px solid #eef0f3;
+    white-space: nowrap;
+  }
+
+  .ride-summary__substat:not(:last-child)::after {
+    content: none;
+  }
+
+  .ride-summary__substat-label {
+    margin-right: 0;
+    font-size: 13px;
+    color: #4b5160;
+  }
+
+  .ride-summary__substat-metric {
+    font-family: var(--rtw-font-num, "Saira Condensed", sans-serif);
+    font-size: 17px;
+    font-weight: 600;
+    color: #121417;
+  }
+
+  .ride-summary__substat--calorie {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+
+  .ride-summary__status {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .ride-summary__guest-cta {
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.05rem 0;
+  }
+
+  .ride-summary__guest-cta-copy {
+    font-size: 11px;
+    line-height: 1.35;
+    color: #5e6472;
+    flex: 1 1 auto;
+  }
+
+  .ride-summary__form {
+    margin-top: auto;
+    padding-top: 0.15rem;
+  }
+
+  .ride-summary__form-btns {
+    justify-content: flex-end;
+  }
+
+  .ride-summary__btn {
+    min-height: 36px;
+    font-size: 13px;
+    padding: 0.4rem 0.85rem;
+  }
+
+  .ride-summary__btn--primary {
+    min-height: 40px;
+    padding: 0.45rem 1rem;
+  }
+
+  .ride-summary__input {
+    min-height: 36px;
+    font-size: 13px;
+  }
+
+  .ride-summary__close {
+    top: 0.35rem;
+    right: 0.35rem;
+    background: #f2f3f5;
+    border-radius: 999px;
+    width: 34px;
+    height: 34px;
+  }
 }

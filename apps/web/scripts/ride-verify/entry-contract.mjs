@@ -297,6 +297,7 @@ export const ENTRY_STEPS = [
     file: "src/components/ride/RideSummarySheet.tsx",
     anchors: [
       { name: "결과 시트 region", re: /aria-label="주행 결과"/ },
+      { name: "결과판 내부 닫기(배경 scrim과 구분)", re: /className="ride-summary__close"/ },
       // 2026-09-17 Chief: 「오늘」·「거리」 라벨과 「완주/도착」 배지를 뺐다 — 숫자가 스스로 말한다.
       // 남은 표면은 「주행거리 / 총거리」 쌍이다.
       { name: "주행거리/총거리 쌍", re: /aria-label="주행 거리 \/ 경로 전체거리"/ },

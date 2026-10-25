@@ -52,7 +52,7 @@ async function readEntrySurface(page: Page): Promise<EntrySurface | null> {
  * 위치 안내가 떠 있으면 앱 기본 위치(로마 콜로세움)를 고른다. 권한 확인 직후 잠깐 떴다
  * 사라지면 넘어간다. 이미 인증된 화면에서는 기다리지 않는다.
  */
-async function chooseColosseumIfNeeded(page: Page, waitForDialog: boolean): Promise<void> {
+export async function chooseColosseumIfNeeded(page: Page, waitForDialog: boolean): Promise<void> {
   const location = page.getByRole('dialog', { name: LOCATION_DIALOG_NAME })
   if (waitForDialog) {
     const appeared = await location
@@ -128,7 +128,18 @@ export async function guestStart(page: Page): Promise<void> {
     .toMatch(/^(gate|account)$/)
 
   if (landed === 'gate') {
-    await gate.getByRole('button', { name: '시작', exact: true }).click()
+    // poll 이 gate 를 본 직후 익명 인증이 끝나면 gate 는 사라지고 위치 선택이 나타날 수 있다.
+    // 이 전환을 다시 확인하지 않으면 이미 사라진 버튼을 Playwright 전체 timeout 동안 기다린다.
+    await chooseColosseumIfNeeded(page, false)
+    if (
+      (await account.isVisible().catch(() => false)) ||
+      (await nickname.isVisible().catch(() => false))
+    ) {
+      return
+    }
+    const start = gate.getByRole('button', { name: '시작', exact: true })
+    await expect(start).toBeVisible({ timeout: 15_000 })
+    await start.click({ timeout: 15_000 })
     await expect(gate).toBeHidden({ timeout: 30_000 })
   }
 }
