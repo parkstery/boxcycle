@@ -2,12 +2,12 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | **Codex Supervisor — 2026-10-26 KST**([지시82](20261023-ui-redesign/82-task-intro-mark-three-turns.md)·[결과82](20261023-ui-redesign/82-result-intro-mark-three-turns.md): 인트로 심벌 3회 역회전 검수·시험 보완·푸시; [조사83](20261023-ui-redesign/83-investigation-all-road-network-frame.md): 전체 도로망 원인·반구 설계, 도로망 제품 로직 미변경). Cursor 후속은 시작 전 ENOMEM으로 Codex 직접 마감. |
-| 이전 담당 | Codex — 2026-10-24 21:33 ~ 10-25 08:24 KST(지시50~70) |
-| 갱신 | 2026-10-26 KST — `c260d7ea..17f3fb40`를 `origin/main2` 푸시 완료(로고·진입 순서·인트로 3회 역회전·조사83). Git Bash npm 래퍼 결함으로 첫 hook 중단, 동일 gate 수동 검증: 동행 PASS·셀렉터19 PASS·quick 제품 포함1365 PASS, watchdog 권한 실패3→정상 권한 단독4/4 PASS. 환경 결함만 `--no-verify` 우회. 배포 없음. 도로망 제품 로직은 Chief 설계 승인 전 변경하지 않음. |
+| 담당 | **Claude Code Supervisor — 2026-10-26 KST 오후**(Codex 지시84 인수·[결과85](20261023-ui-redesign/85-result-route-picker-hud-account.md) 배포 / 지시·결과86 펄스·87 주행 알약(`20261023-ui-redesign/86-…`·`87-…`) 미커밋·Chief 화면 확인 대기) |
+| 이전 담당 | Codex — 2026-10-26 오전(지시78~84, 84는 구현 후 미검증으로 멈춤) |
+| 갱신 | 2026-10-26 KST 오후 — 지시84 경로 선택 통합(`b8d01edf`)·계기판 거리 한 줄·계정 이름 복구(`9179240a`) 푸시·배포. 미커밋: 펄스86(`distanceCircleAttention.ts`·`MapView.tsx`·계약/실지도 시험)·주행 알약87(`mapPopupElements.ts`·`RoutePickPopup.css`·팝업 시험 2)·비교 `comparison-instruction86-87.html`·증거 instruction86/87. 승인 나면 고정 목록 15 갱신 후 커밋·배포 |
 | 브랜치 | `main2` |
-| HEAD / 원격 | `main2` = `origin/main2` = `17f3fb40`(문서 마감). 제품·조사 커밋 `2063aff3`, 진입 `4549356d`, 로고 `f39f6ee2`. |
-| 마지막 배포 | **10-26 12:55 KST Hosting `abb0e580`**(로고 `f39f6ee2`·진입 순서 `4549356d`·인트로 3회 `2063aff3` 포함) 빌드 `index-3Z1OtvqO.js`·`index-DowuD9YP.css` — 운영 SHA256 로컬 일치(Claude Code 직접 배포·대조). 함수·Rules 변경 없음. 미커밋 지시84는 미포함 |
+| HEAD / 원격 | `main2` = `origin/main2`(이 문서 커밋). 제품 커밋 `9179240a`(HUD·계정), `b8d01edf`(경로 선택) |
+| 마지막 배포 | **10-26 오후 KST Hosting `9179240a`**(경로 선택·계기판 거리 한 줄·계정 이름) 빌드 `index-DNNFlKOZ.js`·`index-BdOtfwTj.css` — 운영 SHA256 로컬 일치(Claude Code 직접 배포·대조). 함수·Rules 변경 없음. 펄스86·주행 알약87 미포함 |
 | 첫 프롬프트 | [49-first-prompt-codex-20261024-night.md](20261023-ui-redesign/49-first-prompt-codex-20261024-night.md) |
 
 ## 먼저 읽을 것
