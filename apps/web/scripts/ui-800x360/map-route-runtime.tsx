@@ -1,7 +1,8 @@
 // 실제 MapView/Mapbox 엔진, 서버 쓰기 없는 통합 시험용 진입점.
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MapView } from '../../src/components/map/MapView';
+import { useRideStartPulseKey } from '../../src/hooks/useRideStartPulseKey';
 import type { LngLat } from '../../src/lib/geo/geo';
 import { circleLineString } from '../../src/lib/route/distanceAutoRoute';
 import type { RouteProfile } from '../../src/services/mapboxDirections';
@@ -21,9 +22,12 @@ export function Runtime() {
   const [requestedProfile, setRequestedProfile] = useState<RouteProfile | null>(null);
   const [inputReady, setInputReady] = useState(false);
   const [starts, setStarts] = useState(0);
+  // 앱처럼 출발·도착이 정해질 때마다 새 경로 token, 입력 준비까지 되면 펄스 번호가 오른다.
+  const routeToken = useMemo(() => (start && end ? {} : null), [start, end]);
+  const rideStartPulseKey = useRideStartPulseKey(routeToken, Boolean(start && end && inputReady));
   return <>
     <MapView accessToken="pk.fixture" routeElevationProfile={{values:[],sampledCoords:[],loading:false,error:null,quotaExceeded:false,routeSig:''}}
-      canStartRide={Boolean(start && end && inputReady)} onStartRide={()=>setStarts(n=>n+1)}
+      canStartRide={Boolean(start && end && inputReady)} rideStartPulseKey={rideStartPulseKey} onStartRide={()=>setStarts(n=>n+1)}
       routeGeometry={null} startLngLat={start} endLngLat={end} routeWaypoints={waypoints} liveLngLat={null}
       mapStyle="mapbox://styles/mapbox/outdoors-v12" mapZoom={15} initialCenter={[127,37]} initialZoom={15}
       followMode="free" enable3D={false} onMapZoom={()=>{}} routeProfile="cycling" onRouteProfile={()=>{}}

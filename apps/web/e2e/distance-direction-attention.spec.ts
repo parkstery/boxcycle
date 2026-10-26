@@ -47,11 +47,22 @@ test('거리 확정→원 펄스→방향 클릭 자동 탐색→적용 수단 �
   await expect(page.locator('#runtime-state')).toContainText('"picks":0');
   await popup.getByRole('button',{name:'목표 거리 3km',exact:true}).click();
   await noneChosen();
-  const width=()=>page.evaluate(()=>{
-    // @ts-expect-error MapView 검수 참조
-    return window.__RTW_MAP__.getPaintProperty('distance-target-circle-arrows-line','line-width');
-  });
-  await expect.poll(width).toBeGreaterThan(3.2);
+  // 10-26 Chief 참고 영상: 원이 1.5초 주기로 커졌다 작아진다. 1.6초 동안 원의 남북 폭 최대/최소 비.
+  const pulseRatio=()=>page.evaluate(()=>new Promise<number>(resolve=>{
+    const spans:number[]=[];const t0=performance.now();
+    const sample=()=>{
+      // @ts-expect-error MapView 검수 참조
+      const src=window.__RTW_MAP__.getSource('distance-target-circle');
+      const coords=src?.serialize?.().data?.features?.[0]?.geometry?.coordinates as [number,number][]|undefined;
+      if(coords?.length){const lats=coords.map(c=>c[1]);spans.push(Math.max(...lats)-Math.min(...lats));}
+      if(performance.now()-t0<1600)requestAnimationFrame(sample);
+      else resolve(spans.length?Math.max(...spans)/Math.min(...spans):1);
+    };
+    sample();
+  }));
+  const pulsing=()=>expect.poll(pulseRatio,{timeout:10_000}).toBeGreaterThan(1.05);
+  const still=()=>expect.poll(pulseRatio,{timeout:10_000}).toBeLessThan(1.001);
+  await pulsing();
   await page.mouse.click(650,210);
   await expect(profiles).toBeVisible();
   // 10-22 지시24·29/커밋 0ec14853: 방향 클릭으로 탐색이 끝나면 적용 수단을 표시한다.
@@ -60,7 +71,7 @@ test('거리 확정→원 펄스→방향 클릭 자동 탐색→적용 수단 �
   // 10-25 Chief: 거리·방향 기본 수단은 자동차(앱 수단이 cycling 이어도).
   await expect(page.locator('#runtime-state')).toContainText('"requestedProfile":"driving"');
   await expect(profiles.getByRole('button',{name:'자동차 경로',exact:true})).toHaveAttribute('aria-pressed','true');
-  await expect.poll(width).toBe(3);
+  await still();
   const animations=await profiles.locator('button').evaluateAll(buttons=>buttons.map(b=>getComputedStyle(b).animationName));
   expect(animations).toEqual(['none','none','none']);
   await popup.getByRole('button',{name:'자전거 경로',exact:true}).click();
@@ -72,7 +83,7 @@ test('거리 확정→원 펄스→방향 클릭 자동 탐색→적용 수단 �
   await number.fill('5');
   await noneChosen();
   await number.press('Enter');
-  await expect.poll(width).toBeGreaterThan(3.2);
+  await pulsing();
   await page.mouse.click(650,210);
   await expect(profiles).toBeVisible();
   await popup.getByRole('button',{name:'보행 경로',exact:true}).click();
@@ -82,7 +93,7 @@ test('거리 확정→원 펄스→방향 클릭 자동 탐색→적용 수단 �
   await noneChosen();
   await expect(page.locator('#runtime-state')).toContainText('"picks":4');
   await number.fill('10');await number.press('Tab');
-  await expect.poll(width).toBeGreaterThan(3.2);
+  await pulsing();
   await popup.getByRole('tab',{name:'출발·도착',exact:true}).click();
   // 출발·도착 탭은 도착이 없으면 수단을 숨기지 않고 끈다.
   await expect(profiles).toBeVisible();
@@ -90,7 +101,7 @@ test('거리 확정→원 펄스→방향 클릭 자동 탐색→적용 수단 �
   await page.emulateMedia({reducedMotion:'reduce'});
   await popup.getByRole('tab',{name:'거리·방향',exact:true}).click();
   await popup.getByRole('button',{name:'목표 거리 20km',exact:true}).click();
-  await expect.poll(width).toBe(3);
+  await still();
   await page.mouse.click(650,210);
   await expect(profiles).toBeVisible();
   // 사용자가 고른 수단(보행)은 탭을 오가도 기본값(자동차)으로 돌아가지 않는다.

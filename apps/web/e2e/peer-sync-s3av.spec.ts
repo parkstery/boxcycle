@@ -22,7 +22,8 @@ const GEO_STOP_M = 900
 
 async function setFollowFree(page: import('@playwright/test').Page) {
   await page.getByRole('button', { name: /^카메라 2/ }).click()
-  await page.getByRole('button', { name: /^카메라 1/ }).click()
+  await page.getByRole('button', { name: /^평면 카메라/ }).click()
+  await page.getByRole('menuitemradio', { name: '평면 카메라 · 전체 경로' }).click()
 }
 
 async function zoomOutWheels(page: import('@playwright/test').Page, n = 16) {

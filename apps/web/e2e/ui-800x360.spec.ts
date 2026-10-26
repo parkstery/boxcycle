@@ -45,6 +45,37 @@ test('800×360 준비·주행의 지표가 읽히고 계정/카메라와 겹치�
   }
 });
 
+test('Chief 고정22 — 평면 높이와 시점 2~6을 좌우 두 메뉴로 나누고 시점은 아이콘으로 표시한다', async ({ page }) => {
+  await page.goto(`${preview}?state=riding`);
+
+  const flat = page.getByRole('button', { name: /평면 카메라/ }).first();
+  const perspective = page.getByRole('button', { name: /^카메라 2/ }).first();
+  await expect(flat).toBeVisible();
+  await expect(perspective).toBeVisible();
+  const [flatBox, perspectiveBox] = await Promise.all([flat.boundingBox(), perspective.boundingBox()]);
+  expect(flatBox!.x + flatBox!.width).toBeLessThanOrEqual(perspectiveBox!.x + 1);
+
+  await flat.click();
+  const heightMenu = page.getByRole('menu', { name: '평면 카메라 높이' });
+  await expect(heightMenu).toBeVisible();
+  await expect(heightMenu.getByRole('menuitemradio')).toHaveCount(7);
+  for (const label of ['전체 경로', '20m 상공', '200m 상공', '300m 상공', '400m 상공', '500m 상공', '1000m 상공']) {
+    await expect(heightMenu.getByRole('menuitemradio', { name: `평면 카메라 · ${label}` })).toBeVisible();
+  }
+  await heightMenu.getByRole('menuitemradio', { name: '평면 카메라 · 1000m 상공' }).click();
+  await expect(flat).toContainText('1000m');
+
+  await perspective.click();
+  const viewMenu = page.getByRole('menu', { name: '시점 카메라' });
+  await expect(viewMenu).toBeVisible();
+  await expect(viewMenu.getByRole('menuitemradio')).toHaveCount(5);
+  await expect(viewMenu.locator('svg')).toHaveCount(5);
+  await expect(viewMenu.locator('.camera-view-menu__item-label')).toHaveCount(0);
+  for (const slot of [2, 3, 4, 5, 6]) {
+    await expect(viewMenu.getByRole('menuitemradio', { name: new RegExp(`^카메라 ${slot}`) })).toBeVisible();
+  }
+});
+
 test('RouteDock 시안의 250px 판이고 시작 전에는 일시정지/종료가 없다', async ({page}) => {
   await page.goto(`${preview}?state=ready`);
   const shell = page.locator('.route-dock__card');

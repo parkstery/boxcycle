@@ -46,6 +46,7 @@ import {
 import { startGuestActivityWatch } from "./lib/identity/guestActivity";
 import { postGuestActivity } from "./lib/identity/repo/guestLifecycleApi";
 import { useUserTier } from "./hooks/useUserTier";
+import { useRideStartPulseKey } from "./hooks/useRideStartPulseKey";
 import { RideSummarySheet } from "./components/ride/RideSummarySheet";
 import { LeaderboardGlanceChip, LeaderboardGlancePanel } from "./components/leaderboard/LeaderboardGlance";
 import { buildGlanceLiveRows } from "./components/leaderboard/leaderboardGlanceSnapshot";
@@ -205,6 +206,7 @@ import {
 } from "./lib/camera/camera1Mode";
 import {
   getQuickCameraProductTune,
+  isQuickCameraOutdoorsOnly,
   QUICK_CAMERA_FALLBACK_DISTANCE_M,
 } from "./lib/camera/quickCameraProductTune";
 import "./App.css";
@@ -2521,7 +2523,7 @@ export default function App() {
    * 줌 비간섭은 지시03 범위 밖(STEP 6).
    */
   const handleQuickCameraSelect = useCallback(
-    (n: 1 | 2 | 3 | 4 | 5 | 6) => {
+    (n: 1 | 2 | 3 | 4 | 5 | 6, requestedFlatMode?: Camera1Mode) => {
       const leavingCamera1 = activeQuickCamera === 1 && n !== 1;
       const enteringCamera1 = n === 1 && activeQuickCamera !== 1;
 
@@ -2548,9 +2550,9 @@ export default function App() {
           camera1UserToggledStyleRef.current = false;
           setMapStyle(enter.nextStyle);
         }
-        // 다른 카메라에서 들어오면 Route Fit 부터. 이미 1이면 3단 순환(지시11).
+        // 평면 카메라 메뉴는 높이를 직접 넘긴다. 인자 없는 옛 호출만 순환 호환.
         const next: Camera1Mode =
-          activeQuickCamera === 1 ? nextCamera1Mode(camera1Mode) : "routeFit";
+          requestedFlatMode ?? (activeQuickCamera === 1 ? nextCamera1Mode(camera1Mode) : "routeFit");
         setCamera1Mode(next);
         setLockBaseHeading(null);
         if (next === "routeFit") {
@@ -2567,7 +2569,7 @@ export default function App() {
           setFollowMode("free");
           setRideCameraSpanFloorMode("preset");
         } else {
-          // aerial500/aerial20 — 거리는 camera1Mode.ts 의 단일 표(CAMERA1_AERIAL_DISTANCE_M).
+          // 평면 높이 preset — 거리는 camera1Mode.ts 의 단일 표(CAMERA1_AERIAL_DISTANCE_M).
           // 거리 상한 60m(RIDE_CAMERA_DISTANCE_MAX_M)은 맵 뷰 시트 슬라이더 전용 클램프라
           // 이 preset 경로는 거치지 않는다 — 500m 도 상한 변경 없이 그대로 적용된다.
           setFollowMode("aerial");
@@ -2577,6 +2579,8 @@ export default function App() {
         return;
       }
       setLockBaseHeading(n === 6 ? 0 : null);
+      // 지면 가까이 눕는 QC2~6 은 도로 판독이 우선 — 위성으로 남거나 바뀌지 않게 한다.
+      setMapStyle(DEFAULT_MAP_STYLE);
       const modeByN: Record<2 | 3 | 4 | 5 | 6, FollowMode> = {
         2: "forward",
         3: "backward",
@@ -2626,6 +2630,9 @@ export default function App() {
    * 준비 미완료 상태로 주행 화면에 들어간 뒤 센서를 설정시키지 않는다(§1.4).
    */
   const canStartRideWithInput = Boolean(routeGeometry) && !routeLoading && rideInputReady;
+  const rideStartable = stage === "ready-to-start" && canStartRideWithInput && !routeMenuLockedForProd;
+  /** 두 주행 버튼(경로 창·우측 하단)이 같은 순간 5회 펄싱하는 번호 — 새 경로마다 한 번(Chief 10-26) */
+  const rideStartPulseKey = useRideStartPulseKey(routeSetupToken, rideStartable);
 
   /** HUD 칩용 최소 상태 — BLE 훅 객체 전체를 넘기지 않는다 */
   const cadenceHud = useMemo(
@@ -2666,6 +2673,7 @@ export default function App() {
       stage={stage}
       routeLoading={routeLoading}
       routeSetupToken={routeSetupToken}
+      startPulseKey={rideStartPulseKey}
       canStartRide={canStartRideWithInput}
       sensorAttention={Boolean(routeGeometry) && !routeLoading && !rideInputReady}
       onStartRide={handleStartRide}
@@ -3012,7 +3020,8 @@ export default function App() {
             }
             mapView={{
               onStartRide: () => handleStartRide(),
-              canStartRide: stage === "ready-to-start" && canStartRideWithInput && !routeMenuLockedForProd,
+              canStartRide: rideStartable,
+              rideStartPulseKey,
               accessToken: MAPBOX_TOKEN || undefined,
               routeElevationProfile: rideElevationProfile,
               routeGeometry,
@@ -3172,13 +3181,21 @@ export default function App() {
                   ? {
                       active: activeQuickCamera,
                       onSelect: handleQuickCameraSelect,
+                      onSelectFlat: (mode) => handleQuickCameraSelect(1, mode),
                       camera1Mode,
                     }
                   : null,
               mapControls: {
                 styleLabel: mapStyleHudShortLabel(mapStyle),
-                styleAriaLabel: `맵 스타일 ${mapStyleHudShortLabel(mapStyle)}, 클릭 시 ${mapStyleHudShortLabel(nextOutdoorsSatelliteMapStyle(mapStyle))}`,
+                styleAriaLabel: isQuickCameraOutdoorsOnly(activeQuickCamera)
+                  ? "맵 스타일 야외, 카메라 2~6에서는 야외 고정"
+                  : `맵 스타일 ${mapStyleHudShortLabel(mapStyle)}, 클릭 시 ${mapStyleHudShortLabel(nextOutdoorsSatelliteMapStyle(mapStyle))}`,
+                styleToggleDisabled: isQuickCameraOutdoorsOnly(activeQuickCamera),
                 onToggleStyle: () => {
+                  if (isQuickCameraOutdoorsOnly(activeQuickCamera)) {
+                    setMapStyle(DEFAULT_MAP_STYLE);
+                    return;
+                  }
                   if (activeQuickCamera === 1) {
                     camera1UserToggledStyleRef.current = true;
                   }

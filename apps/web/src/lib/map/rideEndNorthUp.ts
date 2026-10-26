@@ -42,9 +42,9 @@ export function isSameRouteLine(
 }
 
 /**
- * 주행 종료 후 bearing 만 0° 로 ease. 중심·줌은 현재값을 명시해 유지한다
- * (fitBounds·재중심 금지). pitch 를 같이 되돌릴 기존 경로가 있으면 `pitch` 로
- * 같은 easeTo 에 합친다(애니메이션이 두 번 돌지 않게).
+ * 주행 종료 후 bearing 을 0° 로 ease. 중심·줌은 현재값을 명시해 유지한다
+ * (fitBounds·재중심 금지). 호출부가 pitch 를 넘기면 같은 easeTo 에 합쳐
+ * 정북·평면 복귀를 한 번의 애니메이션으로 처리한다.
  */
 export function easeMapNorthUpAfterRideEnd(
   map: MapboxMap,

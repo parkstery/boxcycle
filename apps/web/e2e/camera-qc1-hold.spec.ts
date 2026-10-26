@@ -41,7 +41,8 @@ test.describe("QC1 Route Fit hold (지시05)", () => {
 
     const qc = page.getByRole("group", { name: "Quick Camera" });
     await expect(qc).toBeVisible({ timeout: 15_000 });
-    await qc.getByRole("button", { name: /카메라 1/ }).click();
+    await qc.getByRole("button", { name: /평면 카메라/ }).click();
+    await qc.getByRole("menuitemradio", { name: "평면 카메라 · 전체 경로" }).click();
     // fitBounds 애니메이션(~1.1s) 직후
     await page.waitForTimeout(1300);
     const z0 = await readMapZoom(page);
@@ -57,10 +58,12 @@ test.describe("QC1 Route Fit hold (지시05)", () => {
     );
     fs.copyFileSync(path.join(OUT_DIR, "zoom.json"), path.join(OPS_OUT, "zoom.json"));
 
-    await qc.getByRole("button", { name: /카메라 1/ }).click();
+    await qc.getByRole("button", { name: /평면 카메라/ }).click();
+    await qc.getByRole("menuitemradio", { name: "평면 카메라 · 500m 상공" }).click();
     await page.waitForTimeout(1200);
     await shot("qc1-aerial60.png");
-    await qc.getByRole("button", { name: /카메라 1/ }).click();
+    await qc.getByRole("button", { name: /평면 카메라/ }).click();
+    await qc.getByRole("menuitemradio", { name: "평면 카메라 · 20m 상공" }).click();
     await page.waitForTimeout(1200);
     await shot("qc1-aerial5.png");
 

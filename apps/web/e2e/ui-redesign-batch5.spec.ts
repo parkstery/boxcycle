@@ -160,7 +160,7 @@ test('이동수단 선택·경유 최대·실제 콜백', async ({ page }) => {
   await expect(pickHost(page)).toHaveAttribute('data-clear-route-calls', '1');
 });
 
-test('Chief 고정1 — 준비 완료 녹색 재생·주행은 버튼으로만', async ({ page }) => {
+test('Chief 고정15 — 준비 완료 「▶ 주행」 알약·주행은 버튼으로만', async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 360 });
   await page.goto(`${fixtureUrl}?state=ready-start`);
   const host = pickHost(page);
@@ -168,9 +168,23 @@ test('Chief 고정1 — 준비 완료 녹색 재생·주행은 버튼으로만',
   const play = popup.getByRole('button', { name: '주행 시작', exact: true });
   await expect(host).toHaveAttribute('data-start-ride-calls', '0');
   await expect(play).toBeEnabled();
-  expect((await play.textContent())?.trim()).toBe('');
-  const top = await play.evaluate((el) => getComputedStyle(el).getPropertyValue('--media-top').trim());
-  expect(top).toBe('#23d65c');
+  // 10-26 Chief: 녹색 원 재생 아이콘 + 「주행」 글자, 「경로 삭제」와 같은 높이·알약 모양.
+  expect((await play.textContent())?.trim()).toBe('주행');
+  const look = await popup.evaluate((el) => {
+    const ride = el.querySelector<HTMLElement>('.map-view__pick-btn--start-ride')!;
+    const clear = el.querySelector<HTMLElement>('.map-view__pick-btn--clear-route')!;
+    const icon = ride.querySelector<HTMLElement>('.map-view__pick-start-ride-icon')!;
+    const r = ride.getBoundingClientRect(), c = clear.getBoundingClientRect();
+    return { iconBg: getComputedStyle(icon).backgroundImage, rideH: r.height, clearH: c.height,
+      rideRadius: parseFloat(getComputedStyle(ride).borderTopLeftRadius), clearRadius: parseFloat(getComputedStyle(clear).borderTopLeftRadius),
+      rideBorder: getComputedStyle(ride).borderTopColor, clearBorder: getComputedStyle(clear).borderTopColor, gap: c.left - r.right };
+  });
+  expect(look.iconBg).toContain('rgb(35, 214, 92)');
+  expect(look.rideH).toBe(look.clearH);
+  expect(look.rideRadius).toBeGreaterThanOrEqual(look.rideH / 2);
+  expect(look.clearRadius).toBeGreaterThanOrEqual(look.clearH / 2);
+  expect(look.rideBorder).toBe(look.clearBorder);
+  expect(look.gap).toBeGreaterThan(0);
   await play.click();
   await expect(host).toHaveAttribute('data-start-ride-calls', '1');
   await popup.getByRole('button', { name: '자전거 경로', exact: true }).click();

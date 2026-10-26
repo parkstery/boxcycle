@@ -117,7 +117,7 @@ test.describe("지시07 각도 후보 · QC1 3단", () => {
 
     const qc1 = page.getByRole("group", { name: "Quick Camera" });
     await expect(qc1).toBeVisible({ timeout: 15_000 });
-    const btn1 = qc1.getByRole("button", { name: /카메라 1/ });
+    const btn1 = qc1.getByRole("button", { name: /평면 카메라/ });
 
     // 2026-10-06 Chief: 주행 시작 기본 카메라 = QC1 500m — 누르기 전에 이미 1번·aerial500
     await page.waitForTimeout(1300);
@@ -126,11 +126,13 @@ test.describe("지시07 각도 후보 · QC1 3단", () => {
     await shot("qc1-aerial500.png");
 
     await btn1.click();
+    await qc1.getByRole("menuitemradio", { name: "평면 카메라 · 20m 상공" }).click();
     await page.waitForTimeout(1200);
     await expect(btn1).toHaveAttribute("data-camera1-mode", "aerial20");
     await shot("qc1-aerial20.png");
 
     await btn1.click();
+    await qc1.getByRole("menuitemradio", { name: "평면 카메라 · 전체 경로" }).click();
     await page.waitForTimeout(1300);
     await expect(btn1).toHaveAttribute("data-camera1-mode", "routeFit");
     await shot("qc1-routefit.png");

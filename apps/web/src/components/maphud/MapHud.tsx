@@ -139,6 +139,7 @@ export type MapHudProps = {
   quickCamera?: {
     active: 1 | 2 | 3 | 4 | 5 | 6 | null;
     onSelect: (n: 1 | 2 | 3 | 4 | 5 | 6) => void;
+    onSelectFlat: (mode: Camera1Mode) => void;
     /** 1번 순환 상태 — 버튼에 작은 표식(지시07·20260924-지시01: 4단) */
     camera1Mode?: Camera1Mode;
   } | null;
@@ -149,6 +150,7 @@ export type MapHudProps = {
   mapControls?: {
     styleLabel: string;
     styleAriaLabel: string;
+    styleToggleDisabled?: boolean;
     onToggleStyle: () => void;
     onZoomOut: () => void;
     onZoomIn: () => void;
@@ -614,6 +616,7 @@ export function MapHud(props: MapHudProps) {
               active={quickCamera.active}
               camera1Mode={quickCamera.camera1Mode}
               onSelect={quickCamera.onSelect}
+              onSelectFlat={quickCamera.onSelectFlat}
             />
           ) : null}
 
@@ -630,6 +633,7 @@ export function MapHud(props: MapHudProps) {
                 className="hud-ride-map-controls__style"
                 aria-label={mapControls.styleAriaLabel}
                 title={mapControls.styleAriaLabel}
+                disabled={mapControls.styleToggleDisabled}
                 onPointerDown={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
                 onClick={mapControls.onToggleStyle}

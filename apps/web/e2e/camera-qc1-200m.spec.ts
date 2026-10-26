@@ -53,25 +53,27 @@ test.describe("QC1 200m 추가 4단 (20260924-지시01)", () => {
 
     const qc = page.getByRole("group", { name: "Quick Camera" });
     await expect(qc).toBeVisible({ timeout: 15_000 });
-    const btn1 = qc.getByRole("button", { name: /카메라 1/ });
+    const btn1 = qc.getByRole("button", { name: /평면 카메라/ });
 
-    // 같은 경로·같은 위치에서 1번을 연속으로 눌러 찍는다(§5).
-    await btn1.click();
+    const selectFlat = async (name: string) => {
+      await btn1.click();
+      await qc.getByRole("menuitemradio", { name }).click();
+    };
+
+    // 같은 경로·같은 위치에서 평면 높이를 직접 골라 찍는다.
+    await selectFlat("평면 카메라 · 전체 경로");
     await shot("01-stage1-routefit.png");
 
-    await btn1.click();
+    await selectFlat("평면 카메라 · 200m 상공");
     await shot("02-stage2-200m.png");
 
-    await btn1.click();
-    await shot("03-stage3-60m.png");
+    await selectFlat("평면 카메라 · 300m 상공");
+    await shot("03-stage3-300m.png");
 
-    await btn1.click();
-    // 파일명은 지시서 §5 표기 그대로(04-stage4-10m.png) — 실제 단계는 aerial5(요청 5m,
-    // pitch 80 floor≈5.59m 클램프로 실효 6.0m). 수치는 보고서 §6 참조.
-    await shot("04-stage4-10m.png");
+    await selectFlat("평면 카메라 · 1000m 상공");
+    await shot("04-stage4-1000m.png");
 
-    await btn1.click();
-    // 순환이 닫히는지가 핵심(§5 E) — 5번째 클릭은 다시 Route Fit.
+    await selectFlat("평면 카메라 · 전체 경로");
     await shot("05-cycle-back.png");
 
     const listed = fs.readdirSync(OPS_OUT).filter((f) => f.endsWith(".png")).sort();

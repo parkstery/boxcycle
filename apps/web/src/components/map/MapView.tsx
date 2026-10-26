@@ -13,7 +13,11 @@ import {
   DISTANCE_AUTO_ROUTE_REFERENCE_CIRCLE_HINT,
   buildCircleRadialArrowsFromLineString,
 } from "../../lib/route/distanceAutoRoute";
-import { pulseDistanceCircle } from "../../lib/map/distanceCircleAttention";
+import {
+  DISTANCE_CIRCLE_ARROWS_SOURCE_ID,
+  DISTANCE_CIRCLE_SOURCE_ID,
+  pulseDistanceCircle,
+} from "../../lib/map/distanceCircleAttention";
 import { DISTANCE_AUTO_ROUTE_DEFAULT_KM } from "../../lib/route/distanceAutoRouteErrors";
 import {
   getDistanceAutoRouteMapBridge,
@@ -304,6 +308,8 @@ export type MapViewProps = {
   onClearRoute?: () => void;
   onStartRide?: () => void;
   canStartRide?: boolean;
+  /** 우측 하단 주행 버튼과 함께 쓰는 펄스 번호(`useRideStartPulseKey`). 바뀌면 경로 창 주행 버튼이 5회 펄싱 */
+  rideStartPulseKey?: number;
   /** OSRM(Mapbox Streets) 도로 커버리지 */
   coverageOverlayMode: CoverageOverlayMode;
   /** 메뉴 지명 검색 등 — `requestId`가 바뀔 때마다 한 번 카메라 이동 (`bbox` 있으면 도시 단위 fitBounds) */
@@ -485,6 +491,7 @@ export function MapView({
   onClearRoute,
   onStartRide,
   canStartRide = false,
+  rideStartPulseKey = 0,
   coverageOverlayMode,
   externalCameraJump = null,
   openRoutePickRequest = null,
@@ -635,6 +642,7 @@ export function MapView({
   const startLngLatRef = useRef(startLngLat);
   const endLngLatRef = useRef(endLngLat);
   const routeProfileRef = useRef(routeProfile);
+  const distanceTargetCircleRef = useRef(distanceTargetCircle);
   const onRouteProfileRef = useRef(onRouteProfile);
   const routeTokenInsufficientRef = useRef(routeTokenInsufficient);
   const onClearRouteRef = useRef(onClearRoute);
@@ -645,6 +653,10 @@ export function MapView({
     rideStartRef.current = {onStartRide, canStartRide};
     pickPopupAutoRouteUiRef.current?.syncRideStart();
   }, [onStartRide, canStartRide]);
+  // 위 effect 가 버튼을 켠 다음에 펄스를 튼다(effect 는 선언 순서대로 돈다).
+  useEffect(() => {
+    if (rideStartPulseKey > 0) pickPopupAutoRouteUiRef.current?.pulseRideStart();
+  }, [rideStartPulseKey]);
   const userMileageRef = useRef({
     totalMeters: userMileageTotalMeters,
     totalSec: userMileageTotalSec,
@@ -796,6 +808,7 @@ export function MapView({
   useAssignRef(endLngLatRef, endLngLat);
 
   useAssignRef(routeProfileRef, routeProfile);
+  useAssignRef(distanceTargetCircleRef, distanceTargetCircle);
 
   useAssignRef(routeTokenInsufficientRef, routeTokenInsufficient);
 
@@ -861,7 +874,8 @@ export function MapView({
 
   /**
    * 주행 종료(running|paused → idle) — follow 해제와 같은 신호(`rideActive` false)에서
-   * bearing 만 정북(0°)으로 ease. 일시정지(rideActive 유지)에서는 호출되지 않는다.
+   * bearing 을 정북(0°), pitch 를 평면(0°)으로 한 번에 ease 한다.
+   * 일시정지(rideActive 유지)에서는 호출되지 않는다.
    * 흐름: App `rideStatus→idle` → `liveRiderMotion=null`·`liveForMap=null`(follow tick 중단)
    * → 이 effect → `easeMapNorthUpAfterRideEnd`.
    * App idle `setMapZoom` 복원은 Chief(중심·줌 유지)와 충돌하므로 hold 로 무시하고,
@@ -881,10 +895,11 @@ export function MapView({
     const heldZoom = map.getZoom();
     cameraSmoothRef.current.zoom = heldZoom;
     mapZoomRef.current = heldZoom;
-    easeMapNorthUpAfterRideEnd(map, { durationMs });
+    easeMapNorthUpAfterRideEnd(map, { durationMs, pitch: 0 });
     const smooth = cameraSmoothRef.current;
     smooth.bearing = 0;
     smooth.bearingPrimary = 0;
+    smooth.pitch = 0;
     // App idle `setMapZoom(preRide)` 와 경합 — held 줌을 다시 올려 mapZoom props 충돌을 없앤다.
     const pushHeldZoom = () => {
       if (!holdCameraAfterRideEndRef.current) return;
@@ -1487,7 +1502,7 @@ export function MapView({
         onRoutePanelActivated: () => promotePointPopupToDock(picked, ac),
         onPulseDistanceCircle: () => {
           stopDistanceCircleAttention();
-          stopCircleAttention = pulseDistanceCircle(map);
+          stopCircleAttention = pulseDistanceCircle(map, () => distanceTargetCircleRef.current);
         },
         onStopDistanceCirclePulse: stopDistanceCircleAttention,
         onGenerateDistanceRoute: (point) => runDirectionRouteSearch(point),
@@ -1908,8 +1923,8 @@ export function MapView({
     };
   }, [routeGeometry, mapLoaded, prefersReducedMotion]);
 
-  const DISTANCE_TARGET_CIRCLE_SRC = "distance-target-circle";
-  const DISTANCE_TARGET_CIRCLE_ARROWS_SRC = "distance-target-circle-arrows";
+  const DISTANCE_TARGET_CIRCLE_SRC = DISTANCE_CIRCLE_SOURCE_ID;
+  const DISTANCE_TARGET_CIRCLE_ARROWS_SRC = DISTANCE_CIRCLE_ARROWS_SOURCE_ID;
   const lastAppliedCircleFitTokenRef = useRef(0);
 
   useEffect(() => {

@@ -11,21 +11,33 @@
  * 그 상한을 거치지 않으므로 500m 는 상한을 건드리지 않고도 그대로 통과한다
  * (구조 확인: 20260924-지시01수행결과 · 지시11).
  *
- * 순환(지시11): routeFit → aerial500 → aerial20 → routeFit.
+ * 2026-10-26 Chief: 단일 버튼 순환 대신 평면 카메라 드롭다운에서 직접 선택한다.
+ * `CAMERA1_MODE_CYCLE`·`nextCamera1Mode` 는 개발 도구와 옛 호출 경로 호환을 위해 남긴다.
  */
-export type Camera1Mode = "routeFit" | "aerial500" | "aerial20";
+export type Camera1Mode =
+  | "routeFit"
+  | "aerial20"
+  | "aerial200"
+  | "aerial300"
+  | "aerial400"
+  | "aerial500"
+  | "aerial1000";
 
 /** 지시11 이전 식별자 — localStorage·옛 세션에 남으면 routeFit 으로 이관 */
-export const CAMERA1_LEGACY_MODES = ["aerial200", "aerial60", "aerial5"] as const;
+export const CAMERA1_LEGACY_MODES = ["aerial60", "aerial5"] as const;
 
 export const CAMERA1_MODE_CYCLE: readonly Camera1Mode[] = [
   "routeFit",
-  "aerial500",
   "aerial20",
+  "aerial200",
+  "aerial300",
+  "aerial400",
+  "aerial500",
+  "aerial1000",
 ];
 
 function isCamera1Mode(raw: unknown): raw is Camera1Mode {
-  return raw === "routeFit" || raw === "aerial500" || raw === "aerial20";
+  return CAMERA1_MODE_CYCLE.includes(raw as Camera1Mode);
 }
 
 /** 알 수 없거나 옛 aerial* 값은 routeFit 으로 안전하게 대체 */
@@ -48,15 +60,23 @@ type Camera1AerialMode = Exclude<Camera1Mode, "routeFit">;
  * 값은 클램프 없이 그대로 적용된다.
  */
 export const CAMERA1_AERIAL_DISTANCE_M: Readonly<Record<Camera1AerialMode, number>> = {
-  aerial500: 500,
   aerial20: 20,
+  aerial200: 200,
+  aerial300: 300,
+  aerial400: 400,
+  aerial500: 500,
+  aerial1000: 1000,
 };
 
 /** 버튼 표식(2~4자, 단위 반복 없음) · aria-label 문구 */
 export const CAMERA1_MODE_META: Readonly<Record<Camera1Mode, { mark: string; label: string }>> = {
   routeFit: { mark: "R", label: "전체 경로" },
-  aerial500: { mark: "500", label: "500m 상공" },
   aerial20: { mark: "20", label: "20m 상공" },
+  aerial200: { mark: "200", label: "200m 상공" },
+  aerial300: { mark: "300", label: "300m 상공" },
+  aerial400: { mark: "400", label: "400m 상공" },
+  aerial500: { mark: "500", label: "500m 상공" },
+  aerial1000: { mark: "1k", label: "1000m 상공" },
 };
 
 /**

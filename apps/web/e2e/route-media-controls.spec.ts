@@ -31,7 +31,15 @@ test('다섯 위치의 추가·교체 및 열린 경로창의 시작 준비상�
   await expect(play).toBeDisabled();
   await page.getByRole('button',{name:'검수 입력 준비',exact:true}).click();
   await expect(play).toBeEnabled();
-  expect((await play.textContent())?.trim()).toBe('');
+  await expect(play).toHaveClass(/ride-start-ready-pulse/);
+  const popupPulse=await play.evaluate(el=>{
+    const style=getComputedStyle(el);
+    return {name:style.animationName,count:style.animationIterationCount,pointerEvents:style.pointerEvents};
+  });
+  expect(popupPulse).toEqual({name:'ride-start-ready-pulse',count:'5',pointerEvents:'auto'});
+  // 10-26 Chief: 경로창 재생은 「▶ 주행」 알약(글자 있음).
+  expect((await play.textContent())?.trim()).toBe('주행');
+  await page.waitForTimeout(180);
   await play.click();
   await expect(state).toContainText('"starts":1');
   await page.getByRole('button',{name:'검수 입력 준비',exact:true}).click();

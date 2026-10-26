@@ -36,7 +36,6 @@
 }
 .ride-control-bar button:disabled { opacity: .45; cursor: not-allowed; }
 .ride-control-bar .hud-cadence { min-width: 48px; width: auto; height: 28px; padding: 0 5px; font-size: 11px; }
-.ride-control-bar__primary--cue { animation: ride-control-ready 1s ease-in-out 5; }
 .ride-control-bar button:focus-visible { outline: 2px solid var(--rtw-ui-primary-strong, #2563eb); outline-offset: 1px; }
 .ride-control-bar__resume {
   pointer-events: auto;
@@ -60,5 +59,3 @@
 .app-shell--map-first:has(.ride-control-anchor--with-next) .next-ride-anchor {
   bottom: calc(max(clamp(.45rem, 1.4vw, .85rem), env(safe-area-inset-bottom, 0px)) + var(--br-clock-above-scale, 26px) + var(--br-clock-height, 16px) + 42px);
 }
-@keyframes ride-control-ready { 50% { box-shadow: 0 0 0 2px #2563eb55; } }
-@media (prefers-reduced-motion: reduce) { .ride-control-bar__primary--cue { animation: none; } }

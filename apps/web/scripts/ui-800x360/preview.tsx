@@ -5,6 +5,7 @@ import '../../src/tokens.css';
 import '../../src/index.css';
 import { MapHud } from '../../src/components/maphud/MapHud';
 import { RideControlBar } from '../../src/components/ride/RideControlBar';
+import { useRideStartPulseKey } from '../../src/hooks/useRideStartPulseKey';
 import { MapBottomLeftStack } from '../../src/features/map-overlays/MapBottomLeftStack';
 import { RouteMinimap } from '../../src/features/map-overlays/RouteMinimap';
 import { RouteDock } from '../../src/components/route-dock/RouteDock';
@@ -34,6 +35,7 @@ import { getBasicSharedHubSummaries } from '../../src/lib/route/repo/firestoreCo
 import type { RideUiStage } from '../../src/hooks/useRideUiStage';
 import type { RouteDockStop } from '../../src/components/route-dock/useRouteDockStops';
 import type { RideEndResult } from '../../src/lib/ride/rideEndResult';
+import type { Camera1Mode } from '../../src/lib/camera/camera1Mode';
 import type { StoredRideSession } from '../../src/lib/ride/rideSessionsStorage';
 import type { LeaderboardResponse } from '../../src/services/leaderboardApi';
 import { LeaderboardGlanceChip, LeaderboardGlancePanel } from '../../src/components/leaderboard/LeaderboardGlance';
@@ -326,8 +328,10 @@ function Preview() {
                   : 'ready-to-start',
   );
   const [camera,setCamera] = useState<1|2|3|4|5|6>(1);
+  const [flatCameraMode,setFlatCameraMode] = useState<Camera1Mode>('aerial500');
   const [routeSetupToken,setRouteSetupToken] = useState<object>({});
   const [panel,setPanel] = useState(resolveInitialPanel(initial));
+  const rideStartPulseKey = useRideStartPulseKey(routeSetupToken, stage==='ready-to-start' && panel!=='summary' && !params.has('loading') && !params.has('blocked'));
   const [nextRideHidden, setNextRideHidden] = useState(false);
   const [nextRideCalls, setNextRideCalls] = useState({
     resume: 0,
@@ -439,7 +443,7 @@ function Preview() {
     <RouteMinimap active={active} routeGeometry={{type:'LineString',coordinates:[[126.98,37.55],[126.982,37.553],[126.986,37.552],[126.99,37.56]]}} liveLngLat={[126.982,37.553]} mapboxAccessToken="" traveledMeters={420} routeMeters={2020} />
     </MapBottomLeftStack>
     <RideControlBar stage={panel==='summary'?'summary':stage} routeLoading={params.has('loading')}
-      routeSetupToken={routeSetupToken}
+      routeSetupToken={routeSetupToken} startPulseKey={rideStartPulseKey}
       canStartRide={!params.has('blocked')} onStartRide={()=>setStage('riding')} onPauseRide={()=>setStage('paused')} onResumeRide={()=>setStage('riding')} onModifyFromPause={()=>setStage('setup')}
       onEndRide={()=>{setPanel(params.has('short')?'ready':'summary');setStage(params.has('short')?'ready-to-start':'idle');}} resumeRatio={params.has('resume')?0.4:null}
       cadence={{state:sensorState,open:panel==='sensor',onOpen:()=>setPanel('sensor')}} />
@@ -452,7 +456,7 @@ function Preview() {
       metrics={hasRoute?active?{mode:'ride',elapsed:glanceRiding?'00:13':'24:08',distanceKm:glanceRiding?'0.07':'4.20',cumulativeKm:glanceRiding?'0.07':long?'1234.56':'4.20',avgKmh:glanceRiding?'19.8':'18.6',speedKmh:glanceRiding?37:24,routeTotalKm:glanceRiding?'2.02':long?'9999.99':'10.00'}:{mode:'route-preview',distanceKm:long?'1234.56':'2.02',elevation:{status:'ready',startM:46,endM:30}}:null}
       conquestLiveMeters={active?420:null} onClearPins={noop} routeError={params.has('error')?'경로를 찾지 못했습니다. 다른 지점을 선택해 주세요.':null}
       onResumeFromPause={()=>setStage('riding')} onEndFromPause={()=>setPanel('summary')} onModifyFromPause={()=>setStage('setup')}
-      quickCamera={active&&!glanceRiding?{active:camera,onSelect:setCamera}:null} mapControls={{styleLabel:'위성',styleAriaLabel:'맵 스타일 위성, 클릭 시 야외',onToggleStyle:noop,onZoomOut:noop,onZoomIn:noop,zoomOutDisabled:false,zoomInDisabled:false}}
+      quickCamera={active&&!glanceRiding?{active:camera,camera1Mode:flatCameraMode,onSelect:setCamera,onSelectFlat:(mode)=>{setFlatCameraMode(mode);setCamera(1);}}:null} mapControls={{styleLabel:'위성',styleAriaLabel:'맵 스타일 위성, 클릭 시 야외',onToggleStyle:noop,onZoomOut:noop,onZoomIn:noop,zoomOutDisabled:false,zoomInDisabled:false}}
       leaderboardGlanceChip={glanceView?<LeaderboardGlanceChip {...glanceView} />:undefined}
       leaderboardGlancePanel={glanceView && initial!=='glance-summary'?<LeaderboardGlancePanel {...glanceView} />:undefined} />
     <RideSummarySheet open={panel==='summary'||initial==='glance-summary'} result={result} arrivalCompleted={false} elapsedLabel="07:00" avgKmh="18" caloriesEstimate={null}

@@ -512,6 +512,7 @@
   font-size: 1.08rem;
 }
 
+.hud-ride-map-controls__style:disabled,
 .hud-ride-map-controls__zoom:disabled {
   opacity: 0.38;
   cursor: default;

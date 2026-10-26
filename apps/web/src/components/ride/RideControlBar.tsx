@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import { sensorChipSlot } from "../../lib/route/sensorChipSlot";
 import { CadenceHudChip, type CadenceChipBinding } from "../maphud/CadenceHudChip";
 import "./RideControlBar.css";
 import "./RideMediaButton.css";
+import { restartRideStartPulse, stopRideStartPulse } from "./rideStartPulse";
 
 export type RideControlBarProps = {
   stage: RideUiStage;
   routeLoading: boolean;
   routeSetupToken?: object | null;
+  /** 경로 생성 창 주행 버튼과 함께 쓰는 펄스 번호(`useRideStartPulseKey`). 바뀔 때마다 5회 펄스. */
+  startPulseKey?: number;
   canStartRide: boolean;
   sensorAttention?: boolean;
   onStartRide: (fromStart?: boolean) => void;
@@ -35,21 +38,11 @@ export function RideControlBar(props: RideControlBarProps) {
     setRestartFromZero(false);
     setResumeOpen(false);
   }
-  const [cue, setCue] = useState<{ consumed: object | null; active: boolean }>({
-    consumed: null,
-    active: false,
-  });
-  if (routeSetupToken == null && cue.consumed != null) setCue({ consumed: null, active: false });
-  else if (
-    routeSetupToken != null &&
-    routeSetupToken !== cue.consumed &&
-    stage === "ready-to-start" &&
-    !routeLoading
-  ) {
-    setCue({ consumed: routeSetupToken, active: true });
-  } else if (cue.active && (stage !== "ready-to-start" || routeLoading)) {
-    setCue({ ...cue, active: false });
-  }
+  const { startPulseKey = 0 } = props;
+  const primaryRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (startPulseKey > 0 && primaryRef.current) restartRideStartPulse(primaryRef.current);
+  }, [startPulseKey]);
 
   const endedCurrentRoute = endedRoute !== null && endedRoute.token === routeSetupToken;
   const riding = stage === "riding" && !endedCurrentRoute;
@@ -91,13 +84,14 @@ export function RideControlBar(props: RideControlBarProps) {
         {ready || paused ? (
           <button
             type="button"
-            className={`ride-media-button ride-media-button--play ride-control-bar__primary${cue.active && ready ? " ride-control-bar__primary--cue" : ""}`}
+            ref={primaryRef}
+            className="ride-media-button ride-media-button--play ride-control-bar__primary"
             disabled={ready && startDisabled}
             aria-label={paused ? "재개" : "주행 시작"}
-            onClick={() => {
+            onClick={(event) => {
               setResumeOpen(false);
               setPauseOptionsOpen(false);
-              setCue((c) => ({ ...c, active: false }));
+              stopRideStartPulse(event.currentTarget);
               if (paused) props.onResumeRide();
               else props.onStartRide(restartFromZero);
             }}

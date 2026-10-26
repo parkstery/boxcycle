@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  easeMapNorthUpAfterRideEnd,
   RIDE_END_NORTH_UP_DURATION_MS,
   shouldEaseNorthUpOnRideActiveChange,
   isSameRouteLine,
@@ -32,6 +33,30 @@ describe("RIDE_END_NORTH_UP_DURATION_MS", () => {
   it("500~800ms", () => {
     assert.ok(RIDE_END_NORTH_UP_DURATION_MS >= 500);
     assert.ok(RIDE_END_NORTH_UP_DURATION_MS <= 800);
+  });
+});
+
+describe("easeMapNorthUpAfterRideEnd", () => {
+  it("중심·줌을 유지하며 정북·평면을 한 번의 ease 로 적용한다", () => {
+    const calls: unknown[] = [];
+    let stopCount = 0;
+    const map = {
+      getCenter: () => ({ lng: 127.1, lat: 37.5 }),
+      getZoom: () => 16.25,
+      stop: () => { stopCount += 1; },
+      easeTo: (next: unknown) => { calls.push(next); },
+    };
+
+    easeMapNorthUpAfterRideEnd(map as never, { durationMs: 0, pitch: 0 });
+
+    assert.equal(stopCount, 1);
+    assert.deepEqual(calls, [{
+      bearing: 0,
+      duration: 0,
+      center: { lng: 127.1, lat: 37.5 },
+      zoom: 16.25,
+      pitch: 0,
+    }]);
   });
 });
 

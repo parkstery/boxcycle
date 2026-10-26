@@ -11,6 +11,7 @@ import {
   resolveCamera1ExitMapStyle,
   type Camera1Mode,
 } from "../../src/lib/camera/camera1Mode.ts";
+import { isQuickCameraOutdoorsOnly } from "../../src/lib/camera/quickCameraProductTune.ts";
 import { RIDE_CAMERA_DISTANCE_MAX_M, RIDE_CAMERA_DISTANCE_MIN_M } from "../../src/lib/map/mapGlobeView.ts";
 
 /**
@@ -23,7 +24,7 @@ import { RIDE_CAMERA_DISTANCE_MAX_M, RIDE_CAMERA_DISTANCE_MIN_M } from "../../sr
  * "일원화" 하면 500m 단계가 조용히 60m 로 잘리고, 화면을 보지 않으면 모른다.
  * 그 순간 이 시험이 깨지도록 여기에 못을 박는다.
  *
- * 지시11: 순환 routeFit → aerial500 → aerial20. 옛 4단(200/60/5)으로 되돌리면 실패.
+ * 2026-10-26: 평면 카메라 드롭다운에서 전체·20·200·300·400·500·1000m 직접 선택.
  */
 
 /** 표 3개(순환·거리·표식)가 갈라지지 않았는지 — 모든 판정의 전제다. */
@@ -41,9 +42,17 @@ describe("M0 · 시험 자가 검산", () => {
   });
 });
 
-describe("순환 · 3단이 닫힌 고리다 (지시11)", () => {
-  it("단계는 R → 500 → 20 세 개다 — 옛 4단(200/60/5)으로 되돌리면 여기서 깨진다", () => {
-    assert.deepEqual([...CAMERA1_MODE_CYCLE], ["routeFit", "aerial500", "aerial20"]);
+describe("평면 카메라 높이 메뉴 (2026-10-26 Chief)", () => {
+  it("전체 경로와 20·200·300·400·500·1000m를 이 순서로 제공한다", () => {
+    assert.deepEqual([...CAMERA1_MODE_CYCLE], [
+      "routeFit",
+      "aerial20",
+      "aerial200",
+      "aerial300",
+      "aerial400",
+      "aerial500",
+      "aerial1000",
+    ]);
     for (const legacy of CAMERA1_LEGACY_MODES) {
       assert.ok(
         !(CAMERA1_MODE_CYCLE as readonly string[]).includes(legacy),
@@ -52,7 +61,7 @@ describe("순환 · 3단이 닫힌 고리다 (지시11)", () => {
     }
   });
 
-  it("세 번 누르면 제자리로 돌아온다", () => {
+  it("호환 순환은 전체 메뉴를 한 바퀴 돌면 제자리다", () => {
     for (const start of CAMERA1_MODE_CYCLE) {
       let cur: Camera1Mode = start;
       for (let i = 0; i < CAMERA1_MODE_CYCLE.length; i += 1) cur = nextCamera1Mode(cur);
@@ -70,21 +79,22 @@ describe("순환 · 3단이 닫힌 고리다 (지시11)", () => {
     assert.equal(new Set(seen).size, CAMERA1_MODE_CYCLE.length);
   });
 
-  it("순서는 routeFit → aerial500 → aerial20 → routeFit", () => {
-    assert.equal(nextCamera1Mode("routeFit"), "aerial500");
-    assert.equal(nextCamera1Mode("aerial500"), "aerial20");
-    assert.equal(nextCamera1Mode("aerial20"), "routeFit");
+  it("호환 순환도 메뉴 순서를 따른다", () => {
+    for (let i = 0; i < CAMERA1_MODE_CYCLE.length; i += 1) {
+      assert.equal(
+        nextCamera1Mode(CAMERA1_MODE_CYCLE[i]!),
+        CAMERA1_MODE_CYCLE[(i + 1) % CAMERA1_MODE_CYCLE.length],
+      );
+    }
   });
 });
 
 describe("레거시 이관 · 옛 aerial* 는 routeFit", () => {
   it("현행 식별자는 그대로", () => {
-    assert.equal(normalizeCamera1Mode("routeFit"), "routeFit");
-    assert.equal(normalizeCamera1Mode("aerial500"), "aerial500");
-    assert.equal(normalizeCamera1Mode("aerial20"), "aerial20");
+    for (const mode of CAMERA1_MODE_CYCLE) assert.equal(normalizeCamera1Mode(mode), mode);
   });
 
-  it("옛 aerial200/60/5 와 알 수 없는 값은 routeFit", () => {
+  it("옛 aerial60/5 와 알 수 없는 값은 routeFit", () => {
     for (const legacy of CAMERA1_LEGACY_MODES) {
       assert.equal(normalizeCamera1Mode(legacy), "routeFit", `${legacy} → routeFit`);
     }
@@ -93,15 +103,14 @@ describe("레거시 이관 · 옛 aerial* 는 routeFit", () => {
   });
 
   it("nextCamera1Mode 가 옛 값을 받아도 안전하게 순환한다", () => {
-    assert.equal(nextCamera1Mode("aerial200"), "aerial500");
-    assert.equal(nextCamera1Mode("aerial60"), "aerial500");
-    assert.equal(nextCamera1Mode("aerial5"), "aerial500");
+    assert.equal(nextCamera1Mode("aerial60"), "aerial20");
+    assert.equal(nextCamera1Mode("aerial5"), "aerial20");
   });
 });
 
 describe("R5 고정 · preset 거리는 슬라이더 상한을 의도적으로 넘는다", () => {
-  it("500m 단계가 존재하고 값이 정확히 500 이다", () => {
-    assert.equal(CAMERA1_AERIAL_DISTANCE_M.aerial500, 500);
+  it("선택 가능한 높이가 정확하다", () => {
+    assert.deepEqual(Object.values(CAMERA1_AERIAL_DISTANCE_M), [20, 200, 300, 400, 500, 1000]);
   });
 
   it("500m 는 수동 슬라이더 상한보다 크다 — 두 경로를 일원화하면 여기서 깨진다", () => {
@@ -116,11 +125,11 @@ describe("R5 고정 · preset 거리는 슬라이더 상한을 의도적으로 �
     assert.equal(CAMERA1_AERIAL_DISTANCE_M.aerial20, 20);
   });
 
-  it("aerial 거리는 큰 값에서 작은 값으로 단조 감소한다", () => {
+  it("aerial 거리는 메뉴에서 낮은 값부터 단조 증가한다", () => {
     const order = CAMERA1_MODE_CYCLE.filter((m): m is Exclude<Camera1Mode, "routeFit"> => m !== "routeFit");
     const values = order.map((m) => CAMERA1_AERIAL_DISTANCE_M[m]);
     for (let i = 1; i < values.length; i += 1) {
-      assert.ok(values[i]! < values[i - 1]!, `${order[i]} 가 ${order[i - 1]} 보다 멀다 — 순환 방향이 뒤집혔다`);
+      assert.ok(values[i]! > values[i - 1]!, `${order[i]} 가 ${order[i - 1]} 보다 낮다 — 메뉴 순서가 뒤집혔다`);
     }
   });
 });
@@ -166,6 +175,20 @@ describe("맵 스타일 진입/이탈 (지시11)", () => {
       }),
       satellite,
     );
+  });
+});
+
+describe("QC2~6 맵 스타일 잠금 (2026-10-26 Chief)", () => {
+  it("2~6은 Outdoors 전용이다", () => {
+    for (const slot of [2, 3, 4, 5, 6] as const) {
+      assert.equal(isQuickCameraOutdoorsOnly(slot), true, `QC${slot}`);
+    }
+  });
+
+  it("QC1·미선택은 위성/야외 기존 정책을 유지한다", () => {
+    assert.equal(isQuickCameraOutdoorsOnly(1), false);
+    assert.equal(isQuickCameraOutdoorsOnly(null), false);
+    assert.equal(isQuickCameraOutdoorsOnly(undefined), false);
   });
 });
 

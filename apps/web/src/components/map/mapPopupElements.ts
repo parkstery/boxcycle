@@ -10,6 +10,7 @@
  * 계약 시험이 문자열째 겨눈다 — 표현을 바꾸려면 시험부터 고쳐라.
  */
 import "../ride/RideMediaButton.css";
+import { restartRideStartPulse, stopRideStartPulse } from "../ride/rideStartPulse";
 import "./RoutePickPopup.css";
 import { formatDistanceAutoRouteDirectionClickHint, DISTANCE_AUTO_ROUTE_KM_MAX, DISTANCE_AUTO_ROUTE_KM_MIN, DISTANCE_AUTO_ROUTE_KM_STEP, DISTANCE_AUTO_ROUTE_REROUTE_HINT, DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_ARIA, DISTANCE_AUTO_ROUTE_MODE_CHECKBOX_LABEL, validateDistanceAutoRouteTargetKm, DISTANCE_AUTO_ROUTE_CHIP_KM, DISTANCE_AUTO_ROUTE_DEFAULT_KM } from "../../lib/route/distanceAutoRouteErrors";
 import { getDistanceAutoRouteMapBridge } from "../../lib/map/distanceAutoRouteMapBridge";
@@ -52,6 +53,8 @@ export type PickPopupAutoRouteUi = {
   getRoutePickView: () => "location" | "distance";
   selectDistanceStart: (point: LngLat) => boolean;
   syncRideStart: () => void;
+  /** 우측 하단 주행 버튼과 같은 펄스 번호가 오를 때 MapView 가 부른다(Chief 10-26). */
+  pulseRideStart: () => void;
 };
 
 export function buildPickPopup(deps: {
@@ -417,19 +420,35 @@ export function buildPickPopup(deps: {
   profileBottomRow.append(rowProfile);
   const startRideBtn = document.createElement("button");
   startRideBtn.type = "button";
-  startRideBtn.className = "ride-media-button ride-media-button--play map-view__pick-start-ride";
+  /*
+   * 10-26 Chief — 녹색 원 아이콘만 있던 재생 버튼이 글자 버튼 「경로 삭제」와 이질적이라 혼동된다.
+   * 「▶ 주행」 알약으로 바꾸고 「경로 삭제」와 같은 높이·모양을 쓴다(두 탭 공통).
+   */
+  startRideBtn.className = "map-view__pick-btn map-view__pick-btn--start-ride map-view__pick-start-ride";
   startRideBtn.setAttribute("aria-label", "주행 시작");
   startRideBtn.title = "주행 시작";
   const playIcon = document.createElement("span");
-  playIcon.className = "ride-media-button__icon";
+  playIcon.className = "map-view__pick-start-ride-icon";
   playIcon.setAttribute("aria-hidden", "true");
-  startRideBtn.append(playIcon);
+  const playLabel = document.createElement("span");
+  playLabel.className = "map-view__pick-start-ride-label";
+  playLabel.textContent = "주행";
+  startRideBtn.append(playIcon, playLabel);
   const syncRideStart = () => {
     startRideBtn.hidden = typeof deps.onStartRide !== "function";
     startRideBtn.disabled = !deps.getCanStartRide?.();
   };
+  /*
+   * 펄스는 버튼 활성 전환이 아니라 App 의 펄스 번호를 따른다. 이미 경로가 있는 채 거리·방향으로
+   * 다시 찾으면 버튼이 한 번도 꺼지지 않아 활성 전환만으로는 펄스가 나지 않았다(10-26 Chief 확인).
+   */
+  const pulseRideStart = () => {
+    syncRideStart();
+    if (!startRideBtn.hidden && !startRideBtn.disabled) restartRideStartPulse(startRideBtn);
+  };
   startRideBtn.onclick = () => {
     if (!deps.getCanStartRide?.()) return;
+    stopRideStartPulse(startRideBtn);
     deps.onStartRide?.();
   };
   syncRideStart();
@@ -784,6 +803,7 @@ export function buildPickPopup(deps: {
     syncDistanceInputs,
     getRoutePickView: () => routePickView,
     syncRideStart,
+    pulseRideStart,
     selectDistanceStart: (point) => {
       if (routePickView !== "distance" || pins.start) return false;
       selectStart(point);

@@ -828,8 +828,9 @@ describe("distanceAutoRoute", () => {
   });
 });
 
-describe("거리 안내 원 유한 펄스", () => {
-  it("두 봉우리 후 기본 paint 복원·프레임 종료·취소·reduced motion", (t) => {
+describe("거리 안내 원 반복 펄스", () => {
+  // 2026-10-26 Chief 참고 영상(pulsing.mp4): 원과 바깥 화살표가 함께 커졌다 작아지기를 방향을 누를 때까지 반복한다.
+  it("원·화살표 반지름이 1.5초 주기로 1→1.1배를 반복하고 멈추면 원래 원으로 복원", (t) => {
     const names = ["window", "requestAnimationFrame", "cancelAnimationFrame"] as const;
     const descriptors = names.map(name => Object.getOwnPropertyDescriptor(globalThis,name));
     let reduced = false;
@@ -841,25 +842,41 @@ describe("거리 안내 원 유한 펄스", () => {
       requestAnimationFrame:(callback:FrameRequestCallback)=>{frames.set(++nextId,callback);return nextId;},
       cancelAnimationFrame:(id:number)=>frames.delete(id),
     });
-    const values = new Map<string,unknown>();
+    type Fc = { features: { geometry: { type: string; coordinates: unknown } }[] };
+    const data = new Map<string,Fc>();
     const map = {
-      getLayer:()=>true,
-      setPaintProperty:(id:string,key:string,value:unknown)=>values.set(`${id}:${key}`,value),
+      getSource:(id:string)=>({ setData:(value:Fc)=>data.set(id,value) }),
     };
     const tick=(now:number)=>{const entry=frames.entries().next().value!;frames.delete(entry[0]);entry[1](now);};
-    const width=()=>Number(values.get("distance-target-circle-arrows-line:line-width"));
+    const R = 3000;
+    let circle = circleLineString([127,37],R);
+    const radius=()=>inferCircleLineMetrics(
+      data.get("distance-target-circle")!.features[0]!.geometry as { coordinates: [number,number][] },
+    )!.radiusMeters;
+    const arrowTipRadius=()=>{
+      const arrows=buildCircleRadialArrowFeatureCollection([127,37],1);
+      const tipRatio=getDistanceMeters([127,37],arrows.features[0]!.geometry.coordinates[0]![1]!);
+      const shown=data.get("distance-target-circle-arrows")!.features[0]!.geometry.coordinates as [number,number][][];
+      return getDistanceMeters([127,37],shown[0]![1]!)/tipRatio;
+    };
+    const near=(actual:number,expected:number)=>assert.ok(Math.abs(actual-expected)<expected*0.005,`${actual} ≈ ${expected}`);
     try {
-      pulseDistanceCircle(map as unknown as Parameters<typeof pulseDistanceCircle>[0]);
-      tick(0);assert.equal(width(),3);
-      tick(350);assert.equal(width(),6);
-      tick(700);assert.equal(width(),3);
-      tick(1050);assert.equal(width(),6);
-      tick(1400);assert.equal(width(),3);assert.equal(frames.size,0);
-      const stop=pulseDistanceCircle(map as unknown as Parameters<typeof pulseDistanceCircle>[0]);
-      tick(350);stop();assert.equal(width(),3);assert.equal(frames.size,0);
-      reduced=true;
-      pulseDistanceCircle(map as unknown as Parameters<typeof pulseDistanceCircle>[0]);
+      const stop=pulseDistanceCircle(map as unknown as Parameters<typeof pulseDistanceCircle>[0],()=>circle);
+      tick(0);near(radius(),R);near(arrowTipRadius(),R);
+      tick(750);near(radius(),R*1.1);near(arrowTipRadius(),R*1.1);
+      tick(1500);near(radius(),R);
+      tick(2250);near(radius(),R*1.1);
+      assert.equal(frames.size,1,"방향을 누르기 전까지 멈추지 않는다");
+      circle=circleLineString([127,37],2*R);
+      tick(3000);near(radius(),2*R);
+      stop();
+      assert.equal(data.get("distance-target-circle")!.features[0]!.geometry,circle,"멈추면 원래 원 그대로");
       assert.equal(frames.size,0);
+      data.clear();
+      reduced=true;
+      pulseDistanceCircle(map as unknown as Parameters<typeof pulseDistanceCircle>[0],()=>circle)();
+      assert.equal(frames.size,0);
+      assert.equal(data.size,0,"reduced motion 은 원을 건드리지 않는다");
     } finally {
       names.forEach((name,index)=>{
         const descriptor=descriptors[index];

@@ -263,17 +263,27 @@ export const ENTRY_STEPS = [
       { name: "시작 콜백", re: /props\.onStartRide\(restartFromZero\)/ },
       { name: "ready-to-start 게이트", re: /stage === "ready-to-start"/ },
       { name: "주행 제어 그룹", re: /aria-label="주행 제어"/ },
+      // 10-26 Chief: 두 주행 버튼은 App 의 펄스 번호 하나를 따라 함께 펄싱한다(거리·방향 재탐색 포함).
+      { name: "우하단 공용 펄스 번호", re: /restartRideStartPulse\(primaryRef\.current\)/ },
     ],
     also: [
       { file: "src/components/map/mapPopupElements.ts", anchors: [
         { name: "경로창 시작 접근성 이름", re: /startRideBtn\.setAttribute\("aria-label", "주행 시작"\)/ },
         { name: "경로창 시작 준비 확인", re: /if \(!deps\.getCanStartRide\?\.\(\)\) return/ },
+        { name: "경로창 공용 펄스", re: /restartRideStartPulse\(startRideBtn\)/ },
+      ] },
+      { file: "src/components/ride/RideMediaButton.css", anchors: [
+        { name: "공용 펄스 정확히 5회", re: /animation: ride-start-ready-pulse \.82s ease-in-out 5/ },
+        { name: "펄스 중 클릭 허용", re: /\.ride-start-ready-pulse \{[\s\S]*pointer-events: auto/ },
       ] },
       { file: "src/components/map/MapView.tsx", anchors: [
         { name: "열린 창 준비상태 동기화", re: /pickPopupAutoRouteUiRef\.current\?\.syncRideStart\(\)/ },
+        { name: "열린 창 공용 펄스 번호", re: /pickPopupAutoRouteUiRef\.current\?\.pulseRideStart\(\)/ },
       ] },
       { file: "src/App.tsx", anchors: [
-        { name: "경로창 시작 게이트", re: /canStartRide: stage === "ready-to-start" && canStartRideWithInput && !routeMenuLockedForProd/ },
+        { name: "경로창 시작 게이트", re: /rideStartable = stage === "ready-to-start" && canStartRideWithInput && !routeMenuLockedForProd/ },
+        { name: "경로창 게이트 전달", re: /canStartRide: rideStartable,/ },
+        { name: "두 버튼 같은 펄스 번호", re: /startPulseKey=\{rideStartPulseKey\}[\s\S]*rideStartPulseKey,/ },
         { name: "경로창 시작 콜백", re: /onStartRide: \(\) => handleStartRide\(\)/ },
       ] },
     ],

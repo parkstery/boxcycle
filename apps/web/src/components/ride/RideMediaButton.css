@@ -28,3 +28,24 @@
 .ride-media-button--play .ride-media-button__icon { clip-path: polygon(12% 0, 100% 50%, 12% 100%); margin-left: 3px; }
 .ride-media-button--pause .ride-media-button__icon { width: 17px; border-radius: 2px; background: linear-gradient(to right, #fff 0 35%, transparent 35% 65%, #fff 65%); }
 .ride-media-button--stop .ride-media-button__icon { width: 18px; height: 18px; border-radius: 3px; }
+
+/*
+ * Chief 2026-10-26: 경로 탐색 완료 뒤 두 「주행 시작」 버튼이 정확히 다섯 번 같은 박자로
+ * 펄싱한다. 버튼 자체의 transform/그림자만 움직여 별도 overlay가 클릭을 가로채지 않는다.
+ */
+.ride-start-ready-pulse {
+  animation: ride-start-ready-pulse .82s ease-in-out 5;
+  pointer-events: auto;
+}
+
+@keyframes ride-start-ready-pulse {
+  0%, 100% { transform: scale(1); }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 5px rgba(37, 87, 214, .22), 0 4px 14px rgba(37, 87, 214, .28);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ride-start-ready-pulse { animation: none; }
+}
