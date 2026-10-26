@@ -33,4 +33,6 @@
 ## Git
 
 - 커밋 `2063aff3` (`fix(intro): reverse brand mark for three turns`).
-- Chief의 후속 지시대로 `main2`를 푸시한다. 배포 지시는 없음.
+- 문서 마감 `17f3fb40`, `origin/main2` 푸시 완료.
+- 첫 push hook은 Git Bash의 사용자 npm 래퍼 오류로 실제 시험을 실행하지 못했다. PowerShell에서 동행 gate·진입 셀렉터 19·quick 1,365 PASS를 확인했고, watchdog 3건은 샌드박스 권한 실패 후 정상 권한 단독 4/4 PASS로 확인한 뒤 `--no-verify`로 환경 결함만 우회했다.
+- 배포 지시는 없어 배포하지 않았다.
