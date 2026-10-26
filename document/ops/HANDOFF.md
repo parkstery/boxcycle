@@ -2,9 +2,9 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | **Claude Code Supervisor — 2026-10-26 KST 오후**(Codex 지시84 인수·[결과85](20261023-ui-redesign/85-result-route-picker-hud-account.md) 배포 / 지시·결과86 펄스·87 주행 알약(`20261023-ui-redesign/86-…`·`87-…`) 미커밋·Chief 화면 확인 대기) |
-| 이전 담당 | Codex — 2026-10-26 오전(지시78~84, 84는 구현 후 미검증으로 멈춤) |
-| 갱신 | 2026-10-26 KST 오후 — 지시84 경로 선택 통합(`b8d01edf`)·계기판 거리 한 줄·계정 이름 복구(`9179240a`) 푸시·배포. 미커밋: 펄스86(`distanceCircleAttention.ts`·`MapView.tsx`·계약/실지도 시험)·주행 알약87(`mapPopupElements.ts`·`RoutePickPopup.css`·팝업 시험 2)·비교 `comparison-instruction86-87.html`·증거 instruction86/87. 승인 나면 고정 목록 15 갱신 후 커밋·배포 |
+| 담당 | **Claude Code Supervisor — 2026-10-26 18:50 KST**([지시·결과91](20261023-ui-redesign/91-task-result-ride-start-pulse-both.md) 로컬 검증 완료 / 미커밋·미푸시·미배포) |
+| 이전 담당 | Codex Supervisor — 2026-10-26 17:50 KST(지시90 주행 버튼 펄스) |
+| 갱신 | 2026-10-26 18:50 KST — 지시91: Chief 시험에서 창 안 「주행」 펄스 없음·거리·방향 탐색 뒤 두 버튼 모두 펄스 없음. 원인=두 버튼 시작 조건이 달라 경로가 있는 채 재탐색하면 안 켜짐. App `useRideStartPulseKey` 번호 하나로 두 버튼 함께 재시작. 실제 App(에뮬레이터) 4종 탐색 `[popup,corner]`·펄스 중 클릭 시작, tsc·셀렉터19 PASS. e2e 11 PASS/1 FAIL(지시89 카메라 메뉴 시험, 무관). 지시88~90 및 기존 dirty 보존 |
 | 브랜치 | `main2` |
 | HEAD / 원격 | `main2` = `origin/main2`(이 문서 커밋). 제품 커밋 `9179240a`(HUD·계정), `b8d01edf`(경로 선택) |
 | 마지막 배포 | **10-26 오후 KST Hosting `9179240a`**(경로 선택·계기판 거리 한 줄·계정 이름) 빌드 `index-DNNFlKOZ.js`·`index-BdOtfwTj.css` — 운영 SHA256 로컬 일치(Claude Code 직접 배포·대조). 함수·Rules 변경 없음. 펄스86·주행 알약87 미포함 |
