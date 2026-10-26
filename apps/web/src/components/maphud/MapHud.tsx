@@ -676,7 +676,7 @@ export function MapHud(props: MapHudProps) {
           {showAccount && account ? (
             <button
               type="button"
-              className={`hud-account${activeRide ? " hud-account--compact" : ""} ${account.isGuest ? "hud-account--guest" : ""}`}
+              className={`hud-account ${account.isGuest ? "hud-account--guest" : ""}`}
               aria-label="사용자 정보"
               aria-expanded={userInfoOpen}
               title="Account"

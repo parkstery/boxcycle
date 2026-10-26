@@ -874,6 +874,7 @@
 .hud-metrics__value--cumulative {
   font-size: 1.32rem;
   color: #A8DCFF;
+  white-space: nowrap;
 }
 
 /* 주행 중 「새 도로」는 흐리지 않는다 — 강조 요소가 가장 약해지지 않게. */
@@ -927,10 +928,12 @@
  * 고정 폭 — 최악값(거리 123.45/234.56km · 시간 10:00:00 · 속도 100 · 새 도로 +12.34km)
  * 이 잘리지 않는 최소폭 + 값 사이 빈 간격이 변경 전 평균의 절반(±10%)이 되게 조임
  * (20260923-minimap 지시01 §2 · 폰 가로 루트 13.5px 실측).
+ * 거리는 PC(루트 16px)에서 「99.99 / 99.99 km」가 111px — 6.45rem(103px)이면 넘쳐
+ * 「/ 전체거리」가 아랫줄로 떨어졌다(2026-10-26 Chief). 한 줄 + 여유로 7.25rem.
  */
 .hud-metrics__cell--w-distance {
-  flex: 0 0 6.45rem;
-  width: 6.45rem;
+  flex: 0 0 7.25rem;
+  width: 7.25rem;
 }
 
 .hud-metrics__cell--w-time {
@@ -1089,18 +1092,6 @@
   text-shadow: var(--rtw-map-text-keyline-strong);
   pointer-events: none;
   white-space: nowrap;
-}
-
-.hud-account--compact {
-  width: 32px;
-  height: 32px;
-  min-height: 32px;
-  padding: 0;
-  justify-content: center;
-}
-
-.hud-account--compact .hud-account__text {
-  display: none;
 }
 
 .hud-metrics__value--elevation {
