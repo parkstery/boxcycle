@@ -1,5 +1,9 @@
 # 전체 화면 디자인 변경 (2026-10-23~)
 
+2026-10-26 09:16 KST: [지시80](80-task-entry-location-before-next-ride.md) → [결과81](81-result-entry-location-before-next-ride.md). **LOCAL_VERIFIED**·기능 커밋 `4549356d`·로고 `f39f6ee2`(`main2` 로컬, 미푸시·미배포). 다음 Chief 로컬 화면 확인·푸시/배포 별도 지시 대기. 다음 82.
+2026-10-26 09:14 KST: [지시80](80-task-entry-location-before-next-ride.md) → [결과81](81-result-entry-location-before-next-ride.md). **LOCAL_VERIFIED**·Supervisor PASS(`entryLocation.phase==="ready"`만; 1차 `!entryLocationPrompt` FAIL). 계약 5/5·build·게이트 PASS; quick 1365·entry-location-dom 병렬 timeout→단독 1/1. localhost:5000 HMR. 다음 82.
+2026-10-26 09:02 KST: [지시80](80-task-entry-location-before-next-ride.md) → [결과81](81-result-entry-location-before-next-ride.md). 위치 prompt 중 idle 후속 카드(`nextRide`·첫 주행) 단일 게이트·정적 회귀 5/5(Codex 재검증·tsc0). Cursor 후속: 시험 eslint `no-regex-spaces`만. 미커밋·미배포. 다음 82.
+
 2026-10-26 02:48 KST: [지시78](78-task-spinatlas-logo-replacement.md) → [결과79](79-result-spinatlas-logo-replacement.md). Spinatlas 심벌·파비콘을 `public/spinatlas-mark.svg` 단일 정본으로 통일(Codex 인수·Cursor 구현). 미커밋·미배포. 다음 80.
 
 2026-10-25 19:50 KST: **묶음3·4·5(+지시74)·지시75·로고 심벌 커밋·푸시·호스팅 배포 완료**(`e19dc0e7`…`54eaa5e7`, 운영 자산 SHA256 일치). 에뮬레이터 실앱 시험은 미실행으로 배포(Chief 지시). 아래 표의 「미커밋」 표시는 배포 전 기록이다.
