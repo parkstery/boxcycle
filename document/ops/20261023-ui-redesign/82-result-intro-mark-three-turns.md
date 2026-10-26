@@ -32,4 +32,5 @@
 
 ## Git
 
-- Chief의 후속 지시대로 관련 변경을 커밋·푸시한다. 배포 지시는 없음.
+- 커밋 `2063aff3` (`fix(intro): reverse brand mark for three turns`).
+- Chief의 후속 지시대로 `main2`를 푸시한다. 배포 지시는 없음.

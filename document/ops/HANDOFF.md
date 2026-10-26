@@ -4,9 +4,9 @@
 |---|---|
 | 담당 | **Codex Supervisor — 2026-10-26 KST**([지시82](20261023-ui-redesign/82-task-intro-mark-three-turns.md)·[결과82](20261023-ui-redesign/82-result-intro-mark-three-turns.md): 인트로 심벌 3회 역회전 검수·시험 보완; [조사83](20261023-ui-redesign/83-investigation-all-road-network-frame.md): 전체 도로망 원인·반구 설계, 도로망 제품 로직 미변경). Cursor 후속은 시작 전 ENOMEM으로 Codex 직접 마감. 이전: Codex 09:16 KST — [지시80](20261023-ui-redesign/80-task-entry-location-before-next-ride.md)·[결과81](20261023-ui-redesign/81-result-entry-location-before-next-ride.md): **LOCAL_VERIFIED**·기능 `4549356d`·로고 `f39f6ee2` 로컬 커밋, 미푸시·미배포). |
 | 이전 담당 | Codex — 2026-10-24 21:33 ~ 10-25 08:24 KST(지시50~70) |
-| 갱신 | 2026-10-26 KST — 인트로 3회 역회전 고정·시험 보완 및 [조사83](20261023-ui-redesign/83-investigation-all-road-network-frame.md) 완료. 전체 도로망 제품 로직은 Chief 설계 승인 전 변경하지 않음. 기존 로고·진입 커밋 포함 검증 후 `main2` 푸시 단계.<br>이전: 2026-10-26 09:16 KST — [결과81](20261023-ui-redesign/81-result-entry-location-before-next-ride.md) 문서 최종: 기능 커밋 `4549356d`·로고 `f39f6ee2` 완료(`main2` 로컬, 미푸시·미배포). |
+| 갱신 | 2026-10-26 KST — 인트로 3회 역회전·잠금 시험·고정17·전체 도로망 [조사83](20261023-ui-redesign/83-investigation-all-road-network-frame.md)를 `2063aff3`으로 커밋. 도로망 제품 로직은 Chief 설계 승인 전 변경하지 않음. 기존 로고·진입 커밋 포함 `main2` 푸시 단계.<br>이전: 2026-10-26 09:16 KST — [결과81](20261023-ui-redesign/81-result-entry-location-before-next-ride.md) 문서 최종: 기능 커밋 `4549356d`·로고 `f39f6ee2` 완료(`main2` 로컬, 미푸시·미배포). |
 | 브랜치 | `main2` |
-| HEAD / 원격 | `main2` 로컬 HEAD 기능 `4549356d`·로고 `f39f6ee2`(미푸시·미배포). `origin/main2`는 그 이전(마지막 푸시 제품 `0b5b88ad` 등) |
+| HEAD / 원격 | `main2` 로컬 HEAD `2063aff3`(인트로 3회 역회전·조사83), 아래에 진입 `4549356d`·로고 `f39f6ee2`; 모두 푸시 전. |
 | 마지막 배포 | **10-25 19:4x KST Hosting `54eaa5e7`**(묶음3·4·5+지시74·지시75·로고 심벌) 빌드 `index-ogmYxeK9.js`·`index-hQh_MX2m.css` — 운영 `https://boxcycle-dc2df.web.app` 의 두 자산 SHA256 이 로컬 빌드와 일치(Claude Code 대조). 함수·Rules 변경 없음. Claude Code 가 직접 `firebase deploy --only hosting` 실행(이번엔 막히지 않음). 에뮬레이터 실앱 시험은 미실행으로 배포(Chief 지시) |
 | 첫 프롬프트 | [49-first-prompt-codex-20261024-night.md](20261023-ui-redesign/49-first-prompt-codex-20261024-night.md) |
 
