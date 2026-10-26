@@ -1,5 +1,7 @@
 # 전체 화면 디자인 변경 (2026-10-23~)
 
+2026-10-26: [지시82](82-task-intro-mark-three-turns.md) → [결과82](82-result-intro-mark-three-turns.md). 인트로 Spinatlas 심벌 반대 방향 3회·3.3초 후 정지, reduced-motion 유지·잠금 시험 추가. [조사83](83-investigation-all-road-network-frame.md): 「전체 도로망」이 조밀한 연결 지역만 선택하는 현재 알고리즘·시험 계약을 원인으로 확정, 밀도 중심 반구 프레임 구현안 작성(제품 로직 미변경).
+
 2026-10-26 09:16 KST: [지시80](80-task-entry-location-before-next-ride.md) → [결과81](81-result-entry-location-before-next-ride.md). **LOCAL_VERIFIED**·기능 커밋 `4549356d`·로고 `f39f6ee2`(`main2` 로컬, 미푸시·미배포). 다음 Chief 로컬 화면 확인·푸시/배포 별도 지시 대기. 다음 82.
 2026-10-26 09:14 KST: [지시80](80-task-entry-location-before-next-ride.md) → [결과81](81-result-entry-location-before-next-ride.md). **LOCAL_VERIFIED**·Supervisor PASS(`entryLocation.phase==="ready"`만; 1차 `!entryLocationPrompt` FAIL). 계약 5/5·build·게이트 PASS; quick 1365·entry-location-dom 병렬 timeout→단독 1/1. localhost:5000 HMR. 다음 82.
 2026-10-26 09:02 KST: [지시80](80-task-entry-location-before-next-ride.md) → [결과81](81-result-entry-location-before-next-ride.md). 위치 prompt 중 idle 후속 카드(`nextRide`·첫 주행) 단일 게이트·정적 회귀 5/5(Codex 재검증·tsc0). Cursor 후속: 시험 eslint `no-regex-spaces`만. 미커밋·미배포. 다음 82.
