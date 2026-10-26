@@ -7,7 +7,7 @@
 | 갱신 | 2026-10-26 KST — `c260d7ea..17f3fb40`를 `origin/main2` 푸시 완료(로고·진입 순서·인트로 3회 역회전·조사83). Git Bash npm 래퍼 결함으로 첫 hook 중단, 동일 gate 수동 검증: 동행 PASS·셀렉터19 PASS·quick 제품 포함1365 PASS, watchdog 권한 실패3→정상 권한 단독4/4 PASS. 환경 결함만 `--no-verify` 우회. 배포 없음. 도로망 제품 로직은 Chief 설계 승인 전 변경하지 않음. |
 | 브랜치 | `main2` |
 | HEAD / 원격 | `main2` = `origin/main2` = `17f3fb40`(문서 마감). 제품·조사 커밋 `2063aff3`, 진입 `4549356d`, 로고 `f39f6ee2`. |
-| 마지막 배포 | **10-25 19:4x KST Hosting `54eaa5e7`**(묶음3·4·5+지시74·지시75·로고 심벌) 빌드 `index-ogmYxeK9.js`·`index-hQh_MX2m.css` — 운영 `https://boxcycle-dc2df.web.app` 의 두 자산 SHA256 이 로컬 빌드와 일치(Claude Code 대조). 함수·Rules 변경 없음. Claude Code 가 직접 `firebase deploy --only hosting` 실행(이번엔 막히지 않음). 에뮬레이터 실앱 시험은 미실행으로 배포(Chief 지시) |
+| 마지막 배포 | **10-26 12:55 KST Hosting `abb0e580`**(로고 `f39f6ee2`·진입 순서 `4549356d`·인트로 3회 `2063aff3` 포함) 빌드 `index-3Z1OtvqO.js`·`index-DowuD9YP.css` — 운영 SHA256 로컬 일치(Claude Code 직접 배포·대조). 함수·Rules 변경 없음. 미커밋 지시84는 미포함 |
 | 첫 프롬프트 | [49-first-prompt-codex-20261024-night.md](20261023-ui-redesign/49-first-prompt-codex-20261024-night.md) |
 
 ## 먼저 읽을 것
