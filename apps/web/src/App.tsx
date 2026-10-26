@@ -2048,17 +2048,16 @@ export default function App() {
   }, [rideResumeSlot.errorMessage, setRouteSummary]);
 
   /**
-   * 카드 노출 조건(§3.1) — Route 가 없는 idle 화면에서만, gate·summary·sheet/modal 이
-   * 주 화면을 점유하지 않을 때. 사용자가 다른 Route 를 명시적으로 불러오면 stage 가 바뀌어 사라진다.
+   * idle 후속 카드(다음 주행·첫 주행 표면) 공통 게이트 — `entryLocation.phase === "ready"` 일 때만 평가한다.
+   * idle/checking/choice/locating 은 모두 차단(인증 직후 idle 한 프레임 포함). Chief 지시80·81.
    */
-  const nextRideCardVisible = Boolean(
+  const idleFollowUpCardsEligible = Boolean(
     user &&
-      nextRideView &&
       stage === "idle" &&
       !savedRoutesLoading &&
       // 첫 로드 전 빈 목록으로 후보를 잘못 해석하지 않는다(§3.1 「로딩이 끝났다」)
       (!configured || savedRoutesLoaded) &&
-      nextRideDismissedRideId !== nextRideView.target.rideId &&
+      entryLocation.phase === "ready" &&
       !menuOpen &&
       !placeSearchOpen &&
       !mapViewSheetOpen &&
@@ -2070,24 +2069,20 @@ export default function App() {
   );
 
   /**
+   * 카드 노출 조건(§3.1) — Route 가 없는 idle 화면에서만, gate·summary·sheet/modal 이
+   * 주 화면을 점유하지 않을 때. 사용자가 다른 Route 를 명시적으로 불러오면 stage 가 바뀌어 사라진다.
+   */
+  const nextRideCardVisible = Boolean(
+    idleFollowUpCardsEligible &&
+      nextRideView &&
+      nextRideDismissedRideId !== nextRideView.target.rideId,
+  );
+
+  /**
    * 이전 주행이 없는 idle — 입문 코스 CTA 표시(RIDE-NEXT-VISIT-2 §3, V3).
    * NextRideCard 와 같은 가드를 쓰되, `nextRideView` 가 null 일 때만 등장한다.
    */
-  const firstRideIntroVisible = Boolean(
-    user &&
-      !nextRideView &&
-      stage === "idle" &&
-      !savedRoutesLoading &&
-      (!configured || savedRoutesLoaded) &&
-      !menuOpen &&
-      !placeSearchOpen &&
-      !mapViewSheetOpen &&
-      !userInfoSheetOpen &&
-      !rideSettingsSheetOpen &&
-      !cadenceSensorSheetOpen &&
-      !publicRouteRequestModalRoute &&
-      !needsGuestEntry,
-  );
+  const firstRideIntroVisible = Boolean(idleFollowUpCardsEligible && !nextRideView);
 
   /**
    * 재개 준비 상태의 지도 표현(§3.4) — 완료 구간은 마젠타(내 도로망과 같은 색),
