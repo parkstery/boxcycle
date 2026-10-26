@@ -6,10 +6,7 @@ import type { SavedRoute } from "../../lib/route/repo/firestoreSavedRoutes";
 import { SAVED_ROUTE_NAME_MAX, validateSavedRouteName } from "../../lib/route/repo/firestoreSavedRoutes";
 import { isIncompleteQuotaError } from "../../lib/account/tierQuota";
 import { SavedRoutesModal } from "./SavedRoutesModal";
-import {
-  OfficialCourseListModal,
-  type OfficialCourseSegment,
-} from "./OfficialCourseListModal";
+import { OfficialCourseListModal } from "./OfficialCourseListModal";
 import "./RideRoutePanel.css";
 
 /**
@@ -120,7 +117,7 @@ function MenuNavChevron() {
   );
 }
 
-function MenuNavIconIntro() {
+function MenuNavIconRoutes() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
       <path
@@ -128,33 +125,6 @@ function MenuNavIconIntro() {
         stroke="currentColor"
         strokeWidth="1.6"
         strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function MenuNavIconPublic() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.6" />
-      <path
-        d="M2 8h12M8 2c2.5 3 2.5 9 0 12M8 2c-2.5 3-2.5 9 0 12"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function MenuNavIconSaved() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path
-        d="M4 2h8v12l-4-3-4 3z"
-        stroke="currentColor"
-        strokeWidth="1.6"
         strokeLinejoin="round"
       />
     </svg>
@@ -234,10 +204,6 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
     setListSource(source);
   }
 
-  function openOfficialList(segment: OfficialCourseSegment) {
-    selectSource(segment);
-  }
-
   const activeOfficialTitle =
     props.basicActiveHubCourseId != null
       ? (props.basicSharedHubs.find((h) => h.id === props.basicActiveHubCourseId)?.title ??
@@ -291,55 +257,17 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
         <li className="menu-route-nav__item">
           <button
             type="button"
-            className={`menu-route-nav__row${listSource === "intro" ? " is-active" : ""}`}
-            aria-label="입문"
-            title="입문 경로 목록"
+            className={`menu-route-nav__row${listSource != null ? " is-active" : ""}`}
+            aria-label="경로 선택"
+            title="주행할 경로 선택"
             aria-haspopup="dialog"
-            aria-expanded={listSource === "intro"}
-            onClick={() => openOfficialList("intro")}
-          >
-            <span className="menu-route-nav__icon" aria-hidden>
-              <MenuNavIconIntro />
-            </span>
-            <span className="menu-route-nav__label">입문 경로</span>
-            <span className="menu-route-nav__aside">처음이라면</span>
-            <MenuNavChevron />
-          </button>
-        </li>
-        <li className="menu-route-nav__item">
-          <button
-            type="button"
-            className={`menu-route-nav__row${listSource === "public" ? " is-active" : ""}`}
-            aria-label="퍼블릭"
-            title="퍼블릭 경로 목록"
-            aria-haspopup="dialog"
-            aria-expanded={listSource === "public"}
-            onClick={() => openOfficialList("public")}
-          >
-            <span className="menu-route-nav__icon" aria-hidden>
-              <MenuNavIconPublic />
-            </span>
-            <span className="menu-route-nav__label">퍼블릭 경로</span>
-            <span className="menu-route-nav__aside menu-route-nav__aside--wrap">
-              다른 라이더가 만든 길
-            </span>
-            <MenuNavChevron />
-          </button>
-        </li>
-        <li className="menu-route-nav__item">
-          <button
-            type="button"
-            className={`menu-route-nav__row${listSource === "saved" ? " is-active" : ""}`}
-            aria-label="내 경로 목록"
-            title="내 경로 목록"
-            aria-haspopup="dialog"
-            aria-expanded={listSource === "saved"}
+            aria-expanded={listSource != null}
             onClick={() => selectSource("saved")}
           >
             <span className="menu-route-nav__icon" aria-hidden>
-              <MenuNavIconSaved />
+              <MenuNavIconRoutes />
             </span>
-            <span className="menu-route-nav__label">내 경로</span>
+            <span className="menu-route-nav__label">경로 선택</span>
             {savedCount > 0 ? (
               <span className="menu-route-nav__count" aria-hidden>{savedCount}</span>
             ) : null}

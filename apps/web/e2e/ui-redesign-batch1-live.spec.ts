@@ -26,10 +26,11 @@ test('실제 App에서 MENU와 세 경로 출처를 열고 캡처한다', async 
   await expect(menu).toBeVisible();
   await expect(menu.getByRole('button', { name: '지명 검색', exact: true })).toBeVisible();
   await expect(menu.getByRole('button', { name: '주행 설정', exact: true })).toBeVisible();
-  await expect(menu.locator('.menu-route-nav > li')).toHaveCount(6);
+  await expect(menu.locator('.menu-route-nav > li')).toHaveCount(4);
   await capture('batch1-live-menu-800x360.png');
 
-  await menu.getByRole('button', { name: '입문', exact: true }).click();
+  await menu.getByRole('button', { name: '경로 선택', exact: true }).click();
+  await page.getByRole('button', { name: '입문', exact: true }).click();
   const intro = page.getByRole('dialog', { name: '입문 경로', exact: true });
   await expect(intro).toBeVisible();
   await expect(intro.locator('.oc-modal__item')).toHaveCount(4);

@@ -40,7 +40,9 @@ test.describe("MENU 정리 A단계", () => {
     await page.goto("/");
     await guestStart(page);
 
-    await page.getByRole("button", { name: "Trail 메뉴" }).click();
+    // 1px 접근성 트리거는 계기판(.map-hud__tl)과 같은 자리라 클릭이 가로막힌다 — 다른 시험처럼 포커스 후 Enter.
+    await page.getByRole("button", { name: "Trail 메뉴" }).focus();
+    await page.keyboard.press("Enter");
     const panel = page.locator(".menu-panel");
     await expect(panel).toBeVisible({ timeout: 20_000 });
     await page.waitForTimeout(600);
@@ -52,20 +54,9 @@ test.describe("MENU 정리 A단계", () => {
     await expect(panel.getByRole("button", { name: "이벤트" }), "이벤트 칩").toHaveCount(0);
     expect(await page.locator(".ride-panel__kicker").count(), "「공식」 키커").toBe(0);
 
-    // ── 남아야 할 것들 — 출처 칩 한 줄 ──────────────────────────────────
-    const sources = page.locator(".ride-panel__official-segments");
-    await expect(sources).toBeVisible();
-    for (const name of ["입문", "퍼블릭", "내 경로 목록"]) {
-      await expect(
-        sources.getByRole("button", { name, exact: name === "입문" }),
-        `출처 칩 ${name}`,
-      ).toHaveCount(1);
-    }
-    // 세 칩이 한 줄에 — 줄바꿈되면 회수한 높이를 도로 까먹는다
-    const chipTops = await sources
-      .locator("button")
-      .evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().top)));
-    expect(new Set(chipTops).size, `출처 칩이 한 줄이어야 한다 (top=${chipTops})`).toBe(1);
+    // ── 경로 출처 세 행 대신 통합 진입점 하나 ───────────────────────────
+    const routePicker = panel.getByRole("button", { name: "경로 선택", exact: true });
+    await expect(routePicker).toHaveCount(1);
 
     // ── 높이 배분 실측 ──────────────────────────────────────────────────
     const rows = await page.evaluate(() => {
@@ -89,7 +80,7 @@ test.describe("MENU 정리 A단계", () => {
      * 종전에는 좁은 사이드 패널 안 탭이라 목록 가용 높이가 61px 뿐이었다.
      * 공식 코스와 같은 껍데기(oc-modal)를 쓰므로 「경로 고르는 자리」로 함께 읽힌다.
      */
-    await page.getByRole("button", { name: "내 경로 목록" }).click();
+    await routePicker.click();
     const savedDialog = page.getByRole("dialog", { name: "내 경로" });
     await expect(savedDialog, "내 경로 모달").toBeVisible({ timeout: 20_000 });
     expect(
@@ -155,7 +146,8 @@ test.describe("MENU 정리 A단계", () => {
      * 물러나므로 Basic 1·2·3 의 의도된 난이도 순서가 그대로 지켜진다 —
      * 「최근순으로 두면 입문이 섞이지 않을까」를 실제로 확인하는 것이 아래 왕복이다.
      */
-    await page.getByRole("button", { name: "입문", exact: true }).click();
+    await page.getByRole("button", { name: "경로 선택", exact: true }).click();
+    await page.getByRole("dialog", { name: "내 경로" }).getByRole("button", { name: "입문", exact: true }).click();
     const introDialog = page.getByRole("dialog", { name: "입문 경로" });
     await expect(introDialog).toBeVisible({ timeout: 20_000 });
     const introTitles = () =>

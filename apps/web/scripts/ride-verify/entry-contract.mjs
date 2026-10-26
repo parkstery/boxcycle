@@ -228,13 +228,14 @@ export const ENTRY_STEPS = [
   },
   {
     step: "open-basic-courses",
-    desc: "RideRoutePanel '입문' 버튼 → 입문 코스 모달",
+    desc: "RideRoutePanel '경로 선택' → 내 경로 기본 모달 → 입문 출처",
     file: "src/components/ride/RideRoutePanel.tsx",
     anchors: [
-      { name: "입문 title", re: /title="입문 경로 목록"/ },
-      { name: "입문 버튼 텍스트", re: /입문/ },
+      { name: "경로 선택 title", re: /title="주행할 경로 선택"/ },
+      { name: "경로 선택 버튼 텍스트", re: />경로 선택</ },
+      { name: "내 경로 기본 진입", re: /onClick=\{\(\) => selectSource\("saved"\)\}/ },
     ],
-    selector: `getByRole('button',{name:'입문'})`,
+    selector: `getByRole('button',{name:'경로 선택'}) → getByRole('button',{name:'입문'})`,
   },
   {
     step: "course-modal",

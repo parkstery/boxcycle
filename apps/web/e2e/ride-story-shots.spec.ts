@@ -160,7 +160,8 @@ async function loadIntroCourse(page: Page) {
   // 메뉴 진입 버튼은 지도 아래 숨은 접근성 버튼이라 클릭이 안 닿는다 — ride-entry 와 같이 포커스 후 Enter
   await page.getByRole("button", { name: "Trail 메뉴" }).focus();
   await page.keyboard.press("Enter");
-  await page.getByRole("button", { name: "입문" }).click();
+  await page.getByRole("button", { name: "경로 선택", exact: true }).click();
+  await page.getByRole("button", { name: "입문", exact: true }).click();
   const modal = page.getByRole("dialog").filter({ has: page.locator("#oc-modal-title") });
   await expect(modal).toBeVisible({ timeout: 15_000 });
   const items = modal.locator("button.oc-modal__item");

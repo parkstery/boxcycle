@@ -313,7 +313,12 @@ test('드래그 취소·화면 크기 변경 후 복구되며 중앙 지도는 �
 
 test('경로 모달에서 세 출처를 전환해도 목록은 하나이며 닫으면 메뉴로 돌아온다', async ({page})=>{
   await page.goto(`${preview}?state=menu`);
-  await page.getByRole('button',{name:'입문',exact:true}).click();
+  await page.getByRole('button',{name:'경로 선택',exact:true}).click();
+  const savedDefault=page.getByRole('dialog',{name:'내 경로',exact:true});
+  await expect(savedDefault).toBeVisible();
+  const sourceButtons=savedDefault.getByRole('navigation',{name:'경로 출처'}).getByRole('button');
+  await expect(sourceButtons).toHaveText(['내 경로','퍼블릭','입문']);
+  await savedDefault.getByRole('button',{name:'입문',exact:true}).click();
   await expect(page.getByRole('dialog',{name:'입문 경로',exact:true})).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(1);
   const intro=page.getByRole('dialog',{name:'입문 경로',exact:true});

@@ -362,6 +362,7 @@ async function guestStart(page: Page) {
 
 async function loadIntroCourse(page: Page) {
   await page.getByRole("button", { name: "Trail 메뉴" }).click();
+  await page.getByRole("button", { name: "경로 선택", exact: true }).click();
   await page.getByRole("button", { name: "입문", exact: true }).click();
   const modal = page.getByRole("dialog").filter({ has: page.locator("#oc-modal-title") });
   await expect(modal).toBeVisible({ timeout: 15_000 });

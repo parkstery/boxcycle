@@ -95,7 +95,7 @@ test.describe("S4-2 읽기 구독 계측", () => {
     states.A = pickUnderlying(await readSubs(page));
 
     await page.getByRole("button", { name: "Trail 메뉴" }).click();
-    await expect(page.getByRole("button", { name: "입문" })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("button", { name: "경로 선택", exact: true })).toBeVisible({ timeout: 15_000 });
     await page.waitForTimeout(1_000);
     states.B = pickUnderlying(await readSubs(page));
 
@@ -134,7 +134,8 @@ test.describe("S4-2 읽기 구독 계측", () => {
     }
 
     await page.getByRole("button", { name: "Trail 메뉴" }).click();
-    await page.getByRole("button", { name: "입문" }).click();
+    await page.getByRole("button", { name: "경로 선택", exact: true }).click();
+    await page.getByRole("button", { name: "입문", exact: true }).click();
     const modal = page.getByRole("dialog").filter({ has: page.locator("#oc-modal-title") });
     await expect(modal).toBeVisible({ timeout: 15_000 });
     await modal.locator("button.oc-modal__item").first().click();

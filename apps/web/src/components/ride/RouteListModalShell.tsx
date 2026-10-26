@@ -28,9 +28,9 @@ export type RouteListModalShellProps = {
 };
 
 const SOURCE_ITEMS: { id: RouteListSource; label: string }[] = [
-  { id: "intro", label: "입문" },
-  { id: "public", label: "퍼블릭" },
   { id: "saved", label: "내 경로" },
+  { id: "public", label: "퍼블릭" },
+  { id: "intro", label: "입문" },
 ];
 
 export function RouteListSourceNav(props: {

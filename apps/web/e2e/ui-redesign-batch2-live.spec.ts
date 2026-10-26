@@ -20,7 +20,8 @@ test('실제 App의 대기·주행·일시정지와 센서 접근·카메라 연
   await sheet.getByRole('button',{name:'센서 없음',exact:true}).click();
   await sheet.getByRole('button',{name:'센서 설정 닫기'}).click();
   await page.getByRole('button',{name:'Trail 메뉴',exact:true}).focus();await page.keyboard.press('Enter');
-  await page.getByRole('button',{name:'입문',exact:true}).click();
+  await page.getByRole('button', { name: '경로 선택', exact: true }).click();
+  await page.getByRole('button', { name: '입문', exact: true }).click();
   await page.locator('button.oc-modal__item').nth(3).click();
   const start=page.getByRole('button',{name:'주행 시작',exact:true});
   await expect(start).toBeEnabled();

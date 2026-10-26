@@ -108,7 +108,7 @@ async function loadSavedRouteFromMenu(page: Page, routeName: string) {
   // 10-24 가장자리 탭이 화면 왼쪽을 덮는다 — 1px 접근성 트리거는 클릭 대신 키보드로 연다(calorie-profile-sync 와 같다).
   await page.getByRole("button", { name: "Trail 메뉴" }).focus();
   await page.keyboard.press("Enter");
-  await page.getByRole("button", { name: "내 경로 목록" }).click();
+  await page.getByRole("button", { name: "경로 선택" }).click();
   const row = page.getByText(routeName, { exact: false }).first();
   await expect(row).toBeVisible({ timeout: 15_000 });
   await row.click();

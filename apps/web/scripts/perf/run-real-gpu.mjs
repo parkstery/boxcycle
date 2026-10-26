@@ -157,6 +157,7 @@ for (const v of VARIANTS) {
     await sheet.waitFor({ state: "hidden", timeout: 15_000 });
 
     await page.getByRole("button", { name: "Trail 메뉴" }).click();
+    await page.getByRole("button", { name: "경로 선택", exact: true }).click();
     await page.getByRole("button", { name: "입문", exact: true }).click();
     const modal = page.getByRole("dialog").filter({ has: page.locator("#oc-modal-title") });
     await modal.waitFor({ state: "visible", timeout: 20_000 });

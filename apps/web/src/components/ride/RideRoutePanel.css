@@ -98,17 +98,6 @@
   text-align: right;
 }
 
-.menu-route-nav__aside--wrap {
-  flex: 1 1 auto;
-  max-width: none;
-  min-width: 0;
-  white-space: normal;
-  overflow: visible;
-  text-overflow: unset;
-  line-height: 1.2;
-  overflow-wrap: anywhere;
-}
-
 .menu-route-nav__aside b {
   font-family: "Saira Condensed", sans-serif;
   font-size: 14px;
