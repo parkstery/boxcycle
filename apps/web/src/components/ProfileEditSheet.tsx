@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { User } from "firebase/auth";
 import {
   CALORIE_INTENSITY_OPTIONS,
+  WEIGHT_KG_INPUT_START,
   WEIGHT_KG_MAX,
   WEIGHT_KG_MIN,
   parseWeightKg,
@@ -35,8 +36,8 @@ type ProfileEditSheetProps = {
 };
 
 /**
- * 프로필 수정 — 닉네임(정식 계정만)·체중·강도. 2026-10-08 Chief.
- * 체중·강도는 본인 전용 서버 문서로 기기 간 동기화된다(useCalorieProfile).
+ * 프로필 수정 — 닉네임(정식 계정만)·체중·체력. 2026-10-08 Chief.
+ * 체중·체력은 본인 전용 서버 문서로 기기 간 동기화된다(useCalorieProfile).
  * 하단에 「계정 탈퇴」 작은 글자 버튼 추가(지시03).
  */
 export function ProfileEditSheet(props: ProfileEditSheetProps) {
@@ -52,7 +53,8 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
   const isGuest = props.user.isAnonymous;
   const currentNickname = props.user.displayName?.trim() ?? "";
   const [nickname, setNickname] = useState(currentNickname);
-  const [weightDraft, setWeightDraft] = useState(props.weightKg != null ? String(props.weightKg) : "");
+  // 체중이 없으면 70kg 에서 시작한다(Chief 10-26) — 보이는 값이 곧 저장될 값이다
+  const [weightDraft, setWeightDraft] = useState(String(props.weightKg ?? WEIGHT_KG_INPUT_START));
   const [intensityId, setIntensityId] = useState<CalorieIntensityId | null>(props.intensityId);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -169,7 +171,7 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
           <div className="profile-edit-sheet__calorie-field">
             <span className="ride-settings-sheet__kicker">체중</span>
             <div className="profile-edit-sheet__weight-controls">
-              <button type="button" className="profile-edit-sheet__weight-step" aria-label="체중 줄이기" disabled={saving} onClick={() => setWeightDraft(String(Math.max(WEIGHT_KG_MIN, Math.round(((parseWeightKg(weightDraft) ?? props.weightKg ?? WEIGHT_KG_MIN) - 1) * 10) / 10)))}>−</button>
+              <button type="button" className="profile-edit-sheet__weight-step" aria-label="체중 줄이기" disabled={saving} onClick={() => setWeightDraft(String(Math.max(WEIGHT_KG_MIN, Math.round(((parseWeightKg(weightDraft) ?? props.weightKg ?? WEIGHT_KG_INPUT_START) - 1) * 10) / 10)))}>−</button>
               <label className="ride-settings-sheet__weight">
                 <span className="profile-edit-sheet__visually-hidden">체중(kg)</span>
                 <input
@@ -189,7 +191,7 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
                 />
                 <span className="profile-edit-sheet__weight-unit">kg</span>
               </label>
-              <button type="button" className="profile-edit-sheet__weight-step" aria-label="체중 늘리기" disabled={saving} onClick={() => setWeightDraft(String(Math.min(WEIGHT_KG_MAX, Math.round(((parseWeightKg(weightDraft) ?? props.weightKg ?? WEIGHT_KG_MIN) + 1) * 10) / 10)))}>+</button>
+              <button type="button" className="profile-edit-sheet__weight-step" aria-label="체중 늘리기" disabled={saving} onClick={() => setWeightDraft(String(Math.min(WEIGHT_KG_MAX, Math.round(((parseWeightKg(weightDraft) ?? props.weightKg ?? WEIGHT_KG_INPUT_START) + 1) * 10) / 10)))}>+</button>
               <input
                 className="profile-edit-sheet__weight-slider"
                 type="range"
@@ -197,7 +199,7 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
                 min={WEIGHT_KG_MIN}
                 max={WEIGHT_KG_MAX}
                 step="0.1"
-                value={parseWeightKg(weightDraft) ?? props.weightKg ?? WEIGHT_KG_MIN}
+                value={parseWeightKg(weightDraft) ?? props.weightKg ?? WEIGHT_KG_INPUT_START}
                 disabled={saving}
                 onChange={(ev) => {
                   setWeightDraft(ev.target.value);
@@ -207,8 +209,10 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
             </div>
           </div>
           <div className="profile-edit-sheet__calorie-field">
-            <span className="ride-settings-sheet__kicker">운동 강도</span>
-            <div className="ride-settings-sheet__chips" role="group" aria-label="운동 강도">
+            <span className="ride-settings-sheet__kicker">체력</span>
+            <div className="profile-edit-sheet__fitness-scale">
+            <span className="profile-edit-sheet__fitness-end" aria-hidden="true">약함</span>
+            <div className="ride-settings-sheet__chips" role="group" aria-label="체력 1 약함 ~ 5 강함">
               {CALORIE_INTENSITY_OPTIONS.map((opt) => {
                 const active = intensityId === opt.id;
                 return (
@@ -217,7 +221,8 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
                     type="button"
                     className={`ride-settings-sheet__chip${active ? " is-active" : ""}`}
                     aria-pressed={active}
-                    title={opt.label}
+                    aria-label={`체력 ${opt.label}`}
+                    title={`체력 ${opt.label}`}
                     disabled={saving}
                     onClick={() => setIntensityId(active ? null : opt.id)}
                   >
@@ -225,6 +230,8 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
                   </button>
                 );
               })}
+            </div>
+            <span className="profile-edit-sheet__fitness-end" aria-hidden="true">강함</span>
             </div>
           </div>
           <p className="ride-settings-sheet__help">본인만 볼 수 있고 다른 기기에서도 이어 씁니다.</p>

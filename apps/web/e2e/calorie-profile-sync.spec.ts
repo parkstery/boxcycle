@@ -67,7 +67,7 @@ async function openProfileFromSettings(page: Page) {
 async function expectCalorieSummary(settings: Locator, weightKg: number, intensityLabel: string) {
   const row = settings.locator(".ride-settings-panel__calories");
   await expect(row).toContainText(`체중 ${weightKg} kg`);
-  await expect(row).toContainText(`운동 강도 ${intensityLabel}`);
+  await expect(row).toContainText(`체력 ${intensityLabel}`);
 }
 
 async function saveCalorieInProfile(
@@ -93,10 +93,10 @@ test.describe("체중·강도 기기 간 동기화", () => {
 
     // 1) 설정 → 프로필 수정 → 입력·저장 → 서버·설정 요약
     let { profile } = await openProfileFromSettings(page);
-    await saveCalorieInProfile(profile, "72", "강함");
+    await saveCalorieInProfile(profile, "72", "체력 4");
     await expect.poll(() => readCloud(uid), { timeout: 15_000 }).toEqual({ weightKg: 72, intensityId: "hard" });
     let settings = await openSettings(page);
-    await expectCalorieSummary(settings, 72, "강함");
+    await expectCalorieSummary(settings, 72, "4");
     await page.keyboard.press("Escape");
 
     // 2) 「새 기기」 — 이 기기 저장값을 지우고 새로고침(같은 계정)
@@ -107,18 +107,18 @@ test.describe("체중·강도 기기 간 동기화", () => {
     if (await gate.isVisible({ timeout: 5_000 }).catch(() => false)) await guestStart(page);
     expect(await readGuestUid(page)).toBe(uid);
     settings = await openSettings(page);
-    await expectCalorieSummary(settings, 72, "강함");
+    await expectCalorieSummary(settings, 72, "4");
     const local = await page.evaluate((u) => localStorage.getItem(`boxcycle_calorie_profile_v1_${u}`), uid);
     expect(JSON.parse(local ?? "{}")).toEqual({ weightKg: 72, intensityId: "hard" });
     await page.screenshot({ path: path.join(OUT_DIR, "restored-on-new-device.png") });
 
     // 3) 다른 기기에서 바꾸면 설정 요약이 갱신되고, 프로필을 다시 열면 입력도 맞다
     await writeCloudAsOtherDevice(uid, 65.5, "light");
-    await expectCalorieSummary(settings, 65.5, "가벼움");
+    await expectCalorieSummary(settings, 65.5, "2");
     await page.screenshot({ path: path.join(OUT_DIR, "changed-on-other-device-settings-summary.png") });
     ({ profile } = await openProfileFromSettings(page));
     await expect(profile.getByLabel("체중(kg)")).toHaveValue("65.5", { timeout: 15_000 });
-    await expect(profile.getByRole("button", { name: "가벼움", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(profile.getByRole("button", { name: "체력 2", exact: true })).toHaveAttribute("aria-pressed", "true");
     await page.screenshot({ path: path.join(OUT_DIR, "changed-on-other-device.png") });
   });
 
@@ -141,6 +141,8 @@ test.describe("체중·강도 기기 간 동기화", () => {
     await expect(sheet.getByLabel("닉네임")).toHaveCount(0);
     await expect(sheet.getByText("게스트는 닉네임이 없습니다", { exact: false })).toBeVisible();
 
+    // 체중이 없으면 70kg 에서 시작한다(Chief 10-26)
+    await expect(sheet.getByLabel("체중(kg)")).toHaveValue("70");
     // 잘못된 체중은 저장하지 않는다
     await sheet.getByLabel("체중(kg)").fill("500");
     await sheet.getByRole("button", { name: "저장" }).click();
@@ -148,7 +150,7 @@ test.describe("체중·강도 기기 간 동기화", () => {
     await expect(sheet).toBeVisible();
 
     await sheet.getByLabel("체중(kg)").fill("68.5");
-    await sheet.getByRole("button", { name: "보통" }).click();
+    await sheet.getByRole("button", { name: "체력 3" }).click();
     await page.screenshot({ path: path.join(OUT_DIR, "profile-edit-sheet.png") });
     await sheet.getByRole("button", { name: "저장" }).click();
     await expect(sheet).toBeHidden();
@@ -157,7 +159,7 @@ test.describe("체중·강도 기기 간 동기화", () => {
     // 다시 열면 저장한 값이 보인다
     await info.getByRole("button", { name: "프로필 수정" }).click();
     await expect(sheet.getByLabel("체중(kg)")).toHaveValue("68.5");
-    await expect(sheet.getByRole("button", { name: "보통" })).toHaveAttribute("aria-pressed", "true");
+    await expect(sheet.getByRole("button", { name: "체력 3" })).toHaveAttribute("aria-pressed", "true");
     // 취소는 아무것도 바꾸지 않는다
     await sheet.getByLabel("체중(kg)").fill("90");
     await sheet.getByRole("button", { name: "취소" }).click();

@@ -31,7 +31,7 @@ import { isRouteReviewer } from "../lib/route/repo/publicRouteRequests";
 type UserInfoSheetProps = {
   open: boolean;
   onClose: () => void;
-  /** 프로필 수정(닉네임·체중·강도) 열기 */
+  /** 프로필 수정(닉네임·체중·체력) 열기 */
   onEditProfile?: () => void;
   /** 관리자 지표 시트 열기 — 관리자(isRouteReviewer)에게만 「관리」 버튼으로 노출 */
   onOpenAdmin?: () => void;

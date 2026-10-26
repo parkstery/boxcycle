@@ -23,7 +23,7 @@ export type RideSettingsPanelProps = {
   embedded?: boolean;
 };
 
-/** 주행 중 표시 선택. 체중·강도 편집은 프로필이 소유한다(Chief 승인 묶음4). */
+/** 주행 중 표시 선택. 체중·체력 편집은 프로필이 소유한다(Chief 승인 묶음4). */
 export function RideSettingsPanel(props: RideSettingsPanelProps) {
   const intensity = CALORIE_INTENSITY_OPTIONS.find(option => option.id === props.calorieIntensityId);
   const toggles = [
@@ -48,7 +48,7 @@ export function RideSettingsPanel(props: RideSettingsPanelProps) {
       </div>
       <div className="ride-settings-panel__calories">
         <div className="ride-settings-panel__copy"><span>칼로리 계산</span>
-          <small>{props.calorieWeightKg != null ? `체중 ${props.calorieWeightKg} kg` : "프로필에 체중을 입력하세요"}{intensity ? ` · 운동 강도 ${intensity.label}` : " · 운동 강도를 선택하세요"}</small>
+          <small>{props.calorieWeightKg != null ? `체중 ${props.calorieWeightKg} kg` : "프로필에 체중을 입력하세요"}{intensity ? ` · 체력 ${intensity.label}` : " · 체력을 선택하세요"}</small>
         </div>
         {props.onEditProfile ? <button type="button" className="ride-settings-panel__profile" onClick={props.onEditProfile}>프로필 수정</button> : null}
       </div>

@@ -98,7 +98,11 @@ export function SignUpNicknameCard({
               }}
             />
           </label>
-          <div className="signup-nickname__chips" role="group" aria-label="평소 운동 강도">
+          {/* 체력 1~5(Chief 10-26) — 운동 강도를 고르는 것이 아니라 내 체력 수준 */}
+          <div className="signup-nickname__weight">
+          <span>체력</span>
+          <span aria-hidden="true">약함</span>
+          <div className="signup-nickname__chips" role="group" aria-label="체력 1 약함 ~ 5 강함">
             {CALORIE_INTENSITY_OPTIONS.map((opt) => {
               const active = intensityId === opt.id;
               return (
@@ -107,13 +111,16 @@ export function SignUpNicknameCard({
                   type="button"
                   className={`signup-nickname__chip${active ? " is-active" : ""}`}
                   aria-pressed={active}
-                  title={opt.label}
+                  aria-label={`체력 ${opt.label}`}
+                  title={`체력 ${opt.label}`}
                   onClick={() => setIntensityId(active ? null : opt.id)}
                 >
                   {opt.label}
                 </button>
               );
             })}
+          </div>
+          <span aria-hidden="true">강함</span>
           </div>
           <p className="signup-nickname__rules signup-nickname__rules--meta">
             본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.

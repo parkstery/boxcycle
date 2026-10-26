@@ -342,7 +342,8 @@ function Preview() {
   const bumpNextRideCall = (key: keyof typeof nextRideCalls) => {
     setNextRideCalls((prev) => ({ ...prev, [key]: prev[key] + 1 }));
   };
-  const batch4CalorieSeed = isBatch4Fixture || BATCH4_PROFILE_STATES.has(initial) || initial === 'settings';
+  // variant=no-calorie: 체중·체력을 아직 넣지 않은 사용자
+  const batch4CalorieSeed = (isBatch4Fixture || BATCH4_PROFILE_STATES.has(initial) || initial === 'settings') && summaryVariant !== 'no-calorie';
   const [manual,setManual] = useState(false);
   const [speed,setSpeed] = useState(18);
   const [weight,setWeight] = useState<number|null>(batch4CalorieSeed ? 64 : null);
@@ -462,7 +463,8 @@ function Preview() {
     <RideSummarySheet open={panel==='summary'||initial==='glance-summary'} result={result} arrivalCompleted={false} elapsedLabel="07:00" avgKmh="18" caloriesEstimate={null}
       story={initial==='glance-summary'?{headline:'첫 라이딩을 마치셨어요. 시작이 가장 어려운 법이에요.',detail:undefined}:{headline:'오늘도 나만의 길을 이었습니다.',detail:'남산공원길에서 1.2km를 달렸습니다.'}}
       adhocSaveAvailable={initial!=='glance-summary' && summaryVariant !== 'closed'}
-      onGuestLinkGoogle={initial==='glance-summary' ? noop : undefined}
+      onGuestLinkGoogle={initial==='glance-summary' || summaryVariant === 'guest-full' ? noop : undefined}
+      onOpenCalorieSettings={summaryVariant === 'guest-full' ? noop : undefined}
       maxNameLength={80}
       suggestedName="서울 남산공원길" onSaveAdhoc={()=>setPanel('ready')} onDismissAdhoc={noop} onClose={()=>setPanel('ready')}
       rankChange={summaryRank} onOpenLeaderboard={noop} />

@@ -1,19 +1,26 @@
 /**
  * 추정 kcal SoT — gross MET × 체중 × 실제 활동시간.
- * 거리(km)×30 은 신규 세션에서 쓰지 않는다. 체중 가정(70kg) 금지.
+ * 거리(km)×30 은 신규 세션에서 쓰지 않는다. 체중 가정(70kg) 금지 — 산정은 저장된 체중만 쓴다.
  */
 
 export const CALORIES_METHOD_VERSION = "MET-gross-v1" as const;
 
 export const WEIGHT_KG_MIN = 30;
 export const WEIGHT_KG_MAX = 300;
+/** 체중이 비어 있을 때 입력칸·슬라이더가 처음 보여 주는 값(Chief 2026-10-26). 저장해야 체중이 된다 */
+export const WEIGHT_KG_INPUT_START = 70;
 
+/**
+ * 「체력」 1~5(Chief 2026-10-26) — 내가 고르는 운동 강도가 아니라 내 체력 수준이다.
+ * 체력이 높을수록 같은 시간에 더 센 강도로 달린다고 보고 MET 를 그대로 잇는다.
+ * id 는 저장값(userPrivate)이라 바꾸지 않는다.
+ */
 export const CALORIE_INTENSITY_OPTIONS = [
-  { id: "very-light", label: "매우 가벼움", met: 3 },
-  { id: "light", label: "가벼움", met: 4 },
-  { id: "moderate", label: "보통", met: 6 },
-  { id: "hard", label: "강함", met: 8 },
-  { id: "very-hard", label: "매우 강함", met: 10 },
+  { id: "very-light", label: "1", met: 3 },
+  { id: "light", label: "2", met: 4 },
+  { id: "moderate", label: "3", met: 6 },
+  { id: "hard", label: "4", met: 8 },
+  { id: "very-hard", label: "5", met: 10 },
 ] as const;
 
 export type CalorieIntensityId = (typeof CALORIE_INTENSITY_OPTIONS)[number]["id"];

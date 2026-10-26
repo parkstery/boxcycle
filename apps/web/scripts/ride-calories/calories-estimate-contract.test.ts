@@ -4,6 +4,8 @@
 import assert from "node:assert/strict";
 import { describe, it, beforeEach } from "node:test";
 import {
+  CALORIE_INTENSITY_OPTIONS,
+  WEIGHT_KG_INPUT_START,
   buildCaloriesMeta,
   clampActiveSecForCalories,
   estimateGrossKcal,
@@ -58,7 +60,13 @@ describe("estimateGrossKcal · MET × kg × h", () => {
     assert.equal(parseWeightKg({ weightKg: 70 }), null);
   });
 
-  it("강도 MET 가벼움4/보통6/강함8", () => {
+  it("체력은 왼쪽부터 1~5, 체중 입력은 70kg 에서 시작(Chief 10-26)", () => {
+    assert.deepEqual(CALORIE_INTENSITY_OPTIONS.map((o) => o.label), ["1", "2", "3", "4", "5"]);
+    assert.equal(WEIGHT_KG_INPUT_START, 70);
+    assert.equal(parseWeightKg(WEIGHT_KG_INPUT_START), 70);
+  });
+
+  it("체력 2·3·4 → MET 4/6/8 (저장 id 는 그대로)", () => {
     assert.equal(resolveMet("light"), 4);
     assert.equal(resolveMet("moderate"), 6);
     assert.equal(resolveMet("hard"), 8);

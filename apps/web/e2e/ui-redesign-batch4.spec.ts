@@ -49,7 +49,9 @@ for (const size of sizes) {
       expect(box!.y + box!.height).toBeLessThanOrEqual(size.height + 1);
       const title = sheet.locator('.settings-surface__title').first();
       const titleSize = parsePx(await title.evaluate((el) => getComputedStyle(el).fontSize));
-      expect(titleSize).toBeGreaterThanOrEqual(14);
+      // 프로필 수정은 Chief 10-26 지시로 70%(폭 364px·제목 12px)
+      expect(titleSize).toBeGreaterThanOrEqual(state === 'profile' ? 12 : 14);
+      if (state === 'profile') expect(box!.width).toBeLessThanOrEqual(365);
       await shot(page, `batch4-${state}`, size.width, size.height);
     });
   }
@@ -132,9 +134,9 @@ test('프로필 게스트·닉네임 잠금·체중 저장', async ({ page }) =>
   await expect(fixture).toHaveAttribute('data-weight-kg', '64');
   await expect(fixture).toHaveAttribute('data-intensity-id', 'moderate');
   await profile.getByRole('spinbutton', { name: '체중(kg)', exact: true }).fill('65');
-  const moderate = profile.getByRole('button', { name: '보통', exact: true });
+  const moderate = profile.getByRole('button', { name: '체력 3', exact: true });
   await expect(moderate).toHaveAttribute('aria-pressed', 'true');
-  await profile.getByRole('group', { name: '운동 강도' }).getByRole('button', { name: '강함', exact: true }).click();
+  await profile.getByRole('group', { name: /^체력/ }).getByRole('button', { name: '체력 4', exact: true }).click();
   await profile.getByRole('button', { name: '저장', exact: true }).click();
   await expect(profile).toBeHidden();
   await expect(fixture).toHaveAttribute('data-weight-kg', '65');
@@ -142,15 +144,33 @@ test('프로필 게스트·닉네임 잠금·체중 저장', async ({ page }) =>
   await expect(fixture).toHaveAttribute('data-profile-weight-calls', '1');
 });
 
-test('주행 설정은 체중·강도 편집 없이 switch·프로필 진입', async ({ page }) => {
+test('체중이 비어 있으면 70kg 에서 시작하고 체력은 약함 1~5 강함(Chief 10-26)', async ({ page }) => {
+  await page.setViewportSize({ width: 800, height: 360 });
+  await page.goto(`${preview}?state=profile&variant=no-calorie`);
+  const fixture = page.locator('#batch4-fixture');
+  const profile = page.getByRole('dialog', { name: '프로필 수정', exact: true });
+  await expect(profile.getByRole('spinbutton', { name: '체중(kg)', exact: true })).toHaveValue('70');
+  await expect(profile.getByRole('slider', { name: '체중 슬라이더' })).toHaveValue('70');
+  await expect(profile.getByText('운동 강도')).toHaveCount(0);
+  const scale = profile.locator('.profile-edit-sheet__fitness-scale');
+  await expect(scale).toHaveText('약함12345강함');
+  await expect(profile.getByRole('group', { name: /^체력/ }).getByRole('button')).toHaveText(['1', '2', '3', '4', '5']);
+  await profile.getByRole('button', { name: '체력 2', exact: true }).click();
+  await profile.getByRole('button', { name: '저장', exact: true }).click();
+  await expect(profile).toBeHidden();
+  await expect(fixture).toHaveAttribute('data-weight-kg', '70');
+  await expect(fixture).toHaveAttribute('data-intensity-id', 'light');
+});
+
+test('주행 설정은 체중·체력 편집 없이 switch·프로필 진입', async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 360 });
   await page.goto(`${preview}?state=settings`);
   const fixture = page.locator('#batch4-fixture');
   const settings = page.getByRole('dialog', { name: '주행 설정', exact: true });
   await expect(settings.getByRole('spinbutton')).toHaveCount(0);
-  await expect(settings.getByRole('group', { name: '운동 강도' })).toHaveCount(0);
+  await expect(settings.getByRole('group', { name: /^체력/ })).toHaveCount(0);
   await expect(settings.getByText('체중 64 kg', { exact: false })).toBeVisible();
-  await expect(settings.getByText('운동 강도 보통', { exact: false })).toBeVisible();
+  await expect(settings.getByText('체력 3', { exact: false })).toBeVisible();
   const switches = settings.getByRole('switch');
   await expect(switches).toHaveCount(4);
   await switches.nth(0).click();

@@ -25,10 +25,10 @@ type RideSummarySheetProps = {
    * null 이면 줄을 그리지 않는다.
    */
   story?: RideStory | null;
-  /** 미산정 시 체중·강도 설정 진입 */
+  /** 미산정 시 체중·체력 설정 진입 */
   onOpenCalorieSettings?: () => void;
   /**
-   * 체중·강도가 이미 저장돼 있으면 미산정(센서 없음 등)이어도 설정 버튼을 띄우지 않는다 —
+   * 체중·체력이 이미 저장돼 있으면 미산정(센서 없음 등)이어도 설정 버튼을 띄우지 않는다 —
    * 주행마다 다시 묻지 않기(2026-10-08 Chief).
    */
   calorieProfileComplete?: boolean;
@@ -518,7 +518,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                 >
                   <span className="ride-summary__substat-label">칼로리</span>
                   <span className="ride-summary__substat-metric">
-                    {props.calorieProfileComplete ? "센서 주행 후 표시" : "체중·강도 입력 후 표시"}
+                    {props.calorieProfileComplete ? "센서 주행 후 표시" : "체중·체력 입력 후 표시"}
                   </span>
                   {props.onOpenCalorieSettings && !props.calorieProfileComplete ? (
                     <button
@@ -526,7 +526,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                       className="ride-summary__calorie-setup"
                       onClick={props.onOpenCalorieSettings}
                     >
-                      체중·강도 설정
+                      체중·체력 설정
                     </button>
                   ) : null}
                 </span>
