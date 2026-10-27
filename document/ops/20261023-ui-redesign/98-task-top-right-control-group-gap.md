@@ -42,7 +42,17 @@
 | `node scripts/ride-verify/verify-selectors.mjs` | PASS, 19/19 |
 | `npx tsc -b --noEmit` | PASS |
 | `MapHud.tsx`, `ui-800x360.spec.ts` ESLint | PASS, 오류 0 |
+| `npm run build` | PASS, 517 modules |
+| pre-push `test:quick` | PASS, 1384/1384 |
+| 정련·의존 방향·문서·diff 게이트 | PASS |
 | 신규 `Chief 고정30` Playwright | 800×360·667×300 시험 본문 PASS. 완료 뒤 저장소의 기존 webServer teardown 지연으로 프로세스 수동 종료 |
 | 독립 프리뷰 캡처 | PASS, 800×360에서 지도 그룹과 서비스 그룹 사이 구획 직접 확인 |
 
-판정: **LOCAL_VERIFIED**. 구현·감리 Codex Supervisor 직접.
+## 배포
+
+- 제품 커밋 `c94af5c1`을 `origin/main2`에 푸시했다.
+- 깨끗한 복제본 `C:\20.HDev\boxcycle\tmp\deploy98`에서 빌드하고 Firebase Hosting `https://boxcycle-dc2df.web.app/`에 배포했다.
+- 운영 JS/CSS 자산 이름·길이·SHA256이 로컬 배포본과 일치한다.
+- 함수·Rules 변경 없음. 구현·감리·배포·운영 대조 Codex Supervisor 직접.
+
+판정: **DEPLOYED**.

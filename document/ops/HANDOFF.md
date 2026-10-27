@@ -2,12 +2,12 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | **Codex Supervisor — 2026-10-27 09:31 KST**([지시·결과98](20261023-ui-redesign/98-task-top-right-control-group-gap.md) 로컬 검증 완료 / 배포 진행) |
+| 담당 | **Codex Supervisor — 2026-10-27 09:43 KST**([지시·결과98](20261023-ui-redesign/98-task-top-right-control-group-gap.md) 배포 완료) |
 | 이전 담당 | Claude Code Supervisor — 2026-10-26 22:00 KST(지시93·94) · Codex — 17:50 KST(지시90) |
-| 갱신 | 2026-10-27 09:31 KST — 지시98: 우상단 지도 조작과 순위·계정을 별도 의미 그룹으로 묶고 간격 확대. selector19·tsc·lint·화면 시험 본문·800×360 캡처 PASS. 고정30·결정로그 갱신. Chief 배포 지시로 지시93~98 제품·시험·문서의 커밋·푸시·Hosting 배포 진행 |
+| 갱신 | 2026-10-27 09:43 KST — 지시93~98 제품·시험·문서를 `c94af5c1`로 커밋·`origin/main2` 푸시·Hosting 배포. 운영 `index-C4woGEuF.js`·`index-h24GKZ9N.css` SHA256 로컬 일치. pre-push quick1384/1384·전체 게이트 PASS. 기존 증거 PNG/JSON·개인 파일 제외 |
 | 브랜치 | `main2` |
-| HEAD / 원격 | `main2` = `77739223`(로컬, `origin/main2` 보다 3커밋 앞섬·미푸시). 제품 커밋 `69bcfe89`(지시86~91)·`77739223`(지시92) |
-| 마지막 배포 | **10-26 오후 KST Hosting `9179240a`**(경로 선택·계기판 거리 한 줄·계정 이름) 빌드 `index-DNNFlKOZ.js`·`index-BdOtfwTj.css` — 운영 SHA256 로컬 일치(Claude Code 직접 배포·대조). 함수·Rules 변경 없음. 펄스86·주행 알약87 미포함 |
+| HEAD / 원격 | `main2` = `origin/main2` = `c94af5c1`(지시93~98 제품 커밋). 배포 기록 문서 커밋은 이 뒤 별도 |
+| 마지막 배포 | **2026-10-27 09:43 KST Hosting `c94af5c1`** — 운영 `index-C4woGEuF.js` SHA256 `146B5060…66177`, `index-h24GKZ9N.css` SHA256 `DF96E93D…FA8AE`, 로컬 배포본과 일치. 함수·Rules 변경 없음. Codex 직접 배포·대조 |
 | 첫 프롬프트 | [49-first-prompt-codex-20261024-night.md](20261023-ui-redesign/49-first-prompt-codex-20261024-night.md) |
 
 ## 먼저 읽을 것

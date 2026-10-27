@@ -1,3 +1,5 @@
+2026-10-27 09:43 KST 배포: 지시93~98 제품·시험·문서를 `c94af5c1`로 커밋해 `origin/main2` 푸시, 깨끗한 `tmp/deploy98` 복제본에서 Hosting 배포 완료. 운영 JS `index-C4woGEuF.js` SHA256 `146B5060…66177`, CSS `index-h24GKZ9N.css` SHA256 `DF96E93D…FA8AE`가 로컬과 일치. pre-push quick 1384/1384·전체 게이트 PASS. 증거 PNG/JSON·개인 파일 제외. Codex Supervisor 직접.
+
 2026-10-27 09:31 KST [지시·결과98](20261023-ui-redesign/98-task-top-right-control-group-gap.md): 우상단 지도 조작과 서비스 기능을 별도 flex 그룹으로 묶고 800×360 외부 간격 ≥8px·내부보다 ≥4px 크게 고정. 667×300 그룹 비분할·비겹침. selector19·tsc·lint PASS, 새 화면 시험 본문 PASS 뒤 기존 Playwright teardown 지연, 독립 800×360 캡처 직접 확인. 고정30·결정로그 갱신. 미커밋·미배포.
 
 2026-10-27 01:02 KST [지시·결과97](20261023-ui-redesign/97-task-route-overview-fold-buttons.md): RouteDock·미니맵 독립 토글을 왼쪽 위 28×28 공통 버튼으로 통일하고 경로/지도 식별 도안을 추가. Cursor CLI는 `.promote-lock` 누락 뒤 ENOMEM으로 구현 전 종료, Codex Supervisor 직접 구현·감리. selector19·tsc·lint·관련 화면6/6·주소2/2 PASS. 전체 ui-800x360 24건 1차의 범위 밖 기존 실패2건(주행 시작 높이 44.74≠44, 결과 설명 10<11) 별도. 고정29·결정로그 갱신, 미커밋·미배포.

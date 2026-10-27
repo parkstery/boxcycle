@@ -1,5 +1,7 @@
 # 전체 화면 디자인 변경 (2026-10-23~)
 
+2026-10-27 09:43 KST: **지시93~98 커밋·푸시·Hosting 배포 완료.** 제품 커밋 `c94af5c1`(`main2`·`origin/main2`), 깨끗한 복제본 빌드 후 `boxcycle-dc2df.web.app` 배포. 운영 `index-C4woGEuF.js`·`index-h24GKZ9N.css` 이름과 SHA256이 로컬 배포본과 일치. pre-push quick 1384/1384 및 전체 게이트 PASS. 기존 증거 PNG/JSON·`.out`·개인 파일은 커밋에서 제외.
+
 2026-10-27 09:31 KST: [지시·결과98](98-task-top-right-control-group-gap.md): 우상단 지도 조작 `야외/+ /−`와 서비스 기능 `순위/계정`을 의미 그룹으로 묶고 그룹 사이 간격을 내부보다 크게 적용. 800×360 한 줄·667×300 그룹 단위 줄바꿈 측정과 프리뷰 캡처 확인. selector19·tsc·lint PASS, Playwright 시험 본문 PASS 뒤 기존 teardown 지연. 미커밋·미배포.
 
 2026-10-27 01:02 KST: [지시·결과97](97-task-route-overview-fold-buttons.md): RouteDock·미니맵의 독립 접힘은 유지하고, 두 토글을 패널 왼쪽 위 28×28 공통 컴포넌트로 통일. 경로 지점/지도 식별 도안·‹›를 함께 표시. Cursor CLI는 구현 전 ENOMEM으로 종료되어 Supervisor 직접 구현·감리. selector19·tsc·lint·관련 화면6+주소2 PASS. 전체 화면 묶음의 범위 밖 기존 실패2건은 별도 기록. 미커밋·미배포.
