@@ -64,9 +64,11 @@
   stroke-linejoin: round;
 }
 
-.camera-view-menu__lock {
-  fill: #fff;
-  stroke-width: 1.4;
+.camera-view-menu__direction-icon .camera-view-menu__direction-path {
+  fill: none;
+  stroke-width: 4.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .camera-view-menu__caret {
@@ -89,13 +91,15 @@
 
 .camera-view-menu__list--flat {
   left: 0;
-  min-width: 120px;
+  width: 96px;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .camera-view-menu__list--perspective {
   right: 0;
   display: grid;
-  grid-template-columns: repeat(5, 42px);
+  grid-template-columns: 56px;
   gap: 3px;
 }
 
@@ -118,13 +122,19 @@
 }
 
 .camera-view-menu__item--icon {
-  width: 42px;
-  height: 42px;
-  min-height: 42px;
-  padding: 3px;
-  flex-direction: column;
+  width: 56px;
+  height: 38px;
+  min-height: 38px;
+  padding: 3px 7px;
+  flex-direction: row;
   justify-content: center;
-  gap: 0;
+  gap: 5px;
+}
+
+.camera-view-menu__item--icon .camera-view-menu__svg {
+  width: 24px;
+  height: 24px;
+  flex-basis: 24px;
 }
 
 .camera-view-menu__item.is-selected {
@@ -148,6 +158,8 @@
 
 .camera-view-menu__item-label {
   flex: 1 1 auto;
+  min-width: 5ch;
+  text-align: right;
 }
 
 @media (max-width: 700px), (max-height: 330px) {

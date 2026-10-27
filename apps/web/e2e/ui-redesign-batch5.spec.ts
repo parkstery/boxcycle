@@ -168,23 +168,25 @@ test('Chief 고정15 — 준비 완료 「▶ 주행」 알약·주행은 버튼
   const play = popup.getByRole('button', { name: '주행 시작', exact: true });
   await expect(host).toHaveAttribute('data-start-ride-calls', '0');
   await expect(play).toBeEnabled();
-  // 10-26 Chief: 녹색 원 재생 아이콘 + 「주행」 글자, 「경로 삭제」와 같은 높이·알약 모양.
-  expect((await play.textContent())?.trim()).toBe('주행');
+  // 지시94(10-26 Chief): 맨 아래 줄 오른쪽 끝 녹색 원 재생 버튼만 — 알약 테두리·글자 없음, 경로 삭제는 탭 줄.
+  expect((await play.textContent())?.trim()).toBe('');
   const look = await popup.evaluate((el) => {
     const ride = el.querySelector<HTMLElement>('.map-view__pick-btn--start-ride')!;
     const clear = el.querySelector<HTMLElement>('.map-view__pick-btn--clear-route')!;
     const icon = ride.querySelector<HTMLElement>('.map-view__pick-start-ride-icon')!;
     const r = ride.getBoundingClientRect(), c = clear.getBoundingClientRect();
-    return { iconBg: getComputedStyle(icon).backgroundImage, rideH: r.height, clearH: c.height,
-      rideRadius: parseFloat(getComputedStyle(ride).borderTopLeftRadius), clearRadius: parseFloat(getComputedStyle(clear).borderTopLeftRadius),
-      rideBorder: getComputedStyle(ride).borderTopColor, clearBorder: getComputedStyle(clear).borderTopColor, gap: c.left - r.right };
+    const row = el.querySelector<HTMLElement>('.map-view__pick-profile-bottom-row')!.getBoundingClientRect();
+    return { iconBg: getComputedStyle(icon).backgroundImage, rideBorderW: parseFloat(getComputedStyle(ride).borderTopWidth),
+      rideBg: getComputedStyle(ride).backgroundColor, rightGap: row.right - r.right,
+      clearInTabs: !!clear.closest('.map-view__pick-tabs-row'), clearBorder: getComputedStyle(clear).borderTopColor, clearAbove: c.bottom < r.top };
   });
   expect(look.iconBg).toContain('rgb(35, 214, 92)');
-  expect(look.rideH).toBe(look.clearH);
-  expect(look.rideRadius).toBeGreaterThanOrEqual(look.rideH / 2);
-  expect(look.clearRadius).toBeGreaterThanOrEqual(look.clearH / 2);
-  expect(look.rideBorder).toBe(look.clearBorder);
-  expect(look.gap).toBeGreaterThan(0);
+  expect(look.rideBorderW).toBe(0);
+  expect(look.rideBg).toBe('rgba(0, 0, 0, 0)');
+  expect(look.rightGap).toBeLessThan(1);
+  expect(look.clearInTabs).toBe(true);
+  expect(look.clearBorder).toBe('rgb(220, 38, 38)');
+  expect(look.clearAbove).toBe(true);
   await play.click();
   await expect(host).toHaveAttribute('data-start-ride-calls', '1');
   await popup.getByRole('button', { name: '자전거 경로', exact: true }).click();

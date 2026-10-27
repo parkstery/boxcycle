@@ -513,10 +513,11 @@ describe("distanceAutoRoute", () => {
     assert.doesNotMatch(MOUNT_TOKEN_SOURCE, /map-view__pick-token-secondary/);
   });
 
-  it("지시11 — 경로 삭제는 하단 수단 행, 제목 행은 token+탭", () => {
+  it("지시94 — 경로 삭제는 탭 줄 오른쪽, 제목 행은 token+[탭·경로 삭제], 맨 아래 줄은 수단+주행", () => {
     assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-btn--clear-route/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /profileBottomRow\.append\(clearRouteBtn\)/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /headerRow\.append\(tokenSection, routePickTabs\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /tabsRow\.append\(clearRouteBtn\)/);
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /profileBottomRow\.append\(clearRouteBtn\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /headerRow\.append\(tokenSection, tabsRow\)/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /dragHandle\.append\(headerRow, addressEl\)/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /headerRow\.append\(clearRouteBtn\)/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /map-view__pick-btn--create-route/);
@@ -800,7 +801,7 @@ describe("distanceAutoRoute", () => {
     assert.match(BUILD_PICK_POPUP_SOURCE, /aria-selected/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /setRoutePickTab/);
     assert.match(BUILD_PICK_POPUP_SOURCE, /pauseDistancePickForTabSwitch/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /routePickTabs\.addEventListener\("pointerdown", \(event\) => event\.stopPropagation\(\)\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /tabsRow\.addEventListener\("pointerdown", \(event\) => event\.stopPropagation\(\)\)/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /textContent = "경로 생성"/);
     assert.doesNotMatch(MAP_VIEW_CSS, /map-view__pick-btn--create-route/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /\+경유지/);

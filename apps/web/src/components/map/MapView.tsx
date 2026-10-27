@@ -306,6 +306,8 @@ export type MapViewProps = {
   conquestRecentNewRoad?: readonly LineStringGeometry[] | null;
   /** 지도 지점 선택 팝업에서 출발·도착·경유·계산 경로 전체 초기화 */
   onClearRoute?: () => void;
+  /** 지시93 — false 면 경로를 지울 수 없는 때(주행 중). 팝업은 상태를 건드리지 않고 onClearRoute(안내)만 부른다. */
+  canClearRouteNow?: () => boolean;
   onStartRide?: () => void;
   canStartRide?: boolean;
   /** 우측 하단 주행 버튼과 함께 쓰는 펄스 번호(`useRideStartPulseKey`). 바뀌면 경로 창 주행 버튼이 5회 펄싱 */
@@ -489,6 +491,7 @@ export function MapView({
   conquestLiveTraveledMeters = null,
   conquestRecentNewRoad = null,
   onClearRoute,
+  canClearRouteNow,
   onStartRide,
   canStartRide = false,
   rideStartPulseKey = 0,
@@ -646,6 +649,7 @@ export function MapView({
   const onRouteProfileRef = useRef(onRouteProfile);
   const routeTokenInsufficientRef = useRef(routeTokenInsufficient);
   const onClearRouteRef = useRef(onClearRoute);
+  const canClearRouteNowRef = useRef(canClearRouteNow);
   const onArmDirectionPickRef = useRef(onArmDirectionPick);
   const pickPopupAutoRouteUiRef = useRef<PickPopupAutoRouteUi | null>(null);
   const rideStartRef = useRef({onStartRide, canStartRide});
@@ -815,6 +819,7 @@ export function MapView({
   useAssignRef(onRouteProfileRef, onRouteProfile);
 
   useAssignRef(onClearRouteRef, onClearRoute);
+  useAssignRef(canClearRouteNowRef, canClearRouteNow);
 
   useAssignRef(onArmDirectionPickRef, onArmDirectionPick);
 
@@ -1516,12 +1521,17 @@ export function MapView({
         onClearRoute:
           typeof onClearRouteRef.current === "function"
             ? () => {
+                if (canClearRouteNowRef.current?.() === false) {
+                  onClearRouteRef.current?.();
+                  return;
+                }
                 directionSearchSequence += 1;
                 autoRouteSearchBusyRef.current = false;
                 clearAutoRouteClickDebugMarkerRef.current();
                 onClearRouteRef.current?.();
               }
             : undefined,
+        canClearRouteNow: () => canClearRouteNowRef.current?.() !== false,
         onClearAutoRouteClickDebugMarker: () => clearAutoRouteClickDebugMarkerRef.current(),
         initialHasStart,
         initialHasEnd: Boolean(endLngLatRef.current),

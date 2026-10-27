@@ -1,5 +1,17 @@
 # 전체 화면 디자인 변경 (2026-10-23~)
 
+2026-10-27 09:31 KST: [지시·결과98](98-task-top-right-control-group-gap.md): 우상단 지도 조작 `야외/+ /−`와 서비스 기능 `순위/계정`을 의미 그룹으로 묶고 그룹 사이 간격을 내부보다 크게 적용. 800×360 한 줄·667×300 그룹 단위 줄바꿈 측정과 프리뷰 캡처 확인. selector19·tsc·lint PASS, Playwright 시험 본문 PASS 뒤 기존 teardown 지연. 미커밋·미배포.
+
+2026-10-27 01:02 KST: [지시·결과97](97-task-route-overview-fold-buttons.md): RouteDock·미니맵의 독립 접힘은 유지하고, 두 토글을 패널 왼쪽 위 28×28 공통 컴포넌트로 통일. 경로 지점/지도 식별 도안·‹›를 함께 표시. Cursor CLI는 구현 전 ENOMEM으로 종료되어 Supervisor 직접 구현·감리. selector19·tsc·lint·관련 화면6+주소2 PASS. 전체 화면 묶음의 범위 밖 기존 실패2건은 별도 기록. 미커밋·미배포.
+
+2026-10-27 00:38 KST: [지시·결과96](96-task-result-map-zoom-out-unbounded.md): 주행 지도 `−`의 의도하지 않은 500m 거리 상한·버튼 비활성화 제거. 500→625m·1000→1250m로 계속 축소, 실제 하한은 Mapbox minZoom0. 신규3·카메라99·quick ride879·빌드·공용게이트 PASS. Supervisor 직접, 미커밋·미배포.
+
+2026-10-27 00:33 KST: [지시·결과95](95-task-result-camera-menu-arrows-vertical.md): 카메라2~6을 파란 그라데이션 화살표 세로 5행으로 교체. 후속 지시로 카메라1 높이 메뉴를 116→96px로 정확히 20px 더 축소, 5ch 우측 정렬 유지. 후속 UI 단언1/1·타입 PASS(Playwright 플러그인 teardown timeout 별도). 최초 화면2/2·카메라99/99·빌드·셀렉터19 PASS. quick은 제품군 포함1378 PASS, watchdog 권한/timeout 3 FAIL. Supervisor 직접, 미커밋·미배포.
+
+2026-10-26 22:00 KST: [지시·결과94](94-task-result-route-popup-header-clear.md): 경로 생성 창 제목 17px·탭 옆 빨간 테두리 경로 삭제·맨 아래 오른쪽 끝 녹색 원 주행(두 탭). Supervisor 직접. 지시93 dep-layers 누락 보완. e2e 55·quick 1381 PASS. 미커밋·미배포.
+
+2026-10-26 21:30 KST: 지시92 커밋 `77739223`. [지시93](93-task-no-route-delete-while-riding.md) → [결과93](93-result-no-route-delete-while-riding.md): 주행 중 경로 삭제는 「주행 종료」 확인 창, 경로 없으면 음악 정지. impl-standard 구현(Cursor CLI 권한 거부)·Supervisor 실앱 감리 PASS. 미커밋·미배포.
+
 2026-10-26 20:45 KST: 지시86~91 커밋 `69bcfe89`(코드)·`ec6ea2cb`(문서), 미푸시·미배포. [지시·결과92](92-task-result-summary-profile-shrink-fitness.md): 주행 결과 판 60%(444×194)·프로필 수정 70%(364px)·체중 70kg 시작·「운동 강도」→「체력」 1~5. 화면 34건·실앱 2건·quick 1372 PASS. 미커밋·미배포.
 
 2026-10-26 18:50 KST: [지시·결과91](91-task-result-ride-start-pulse-both.md). 지시90 재지시 — 창 안 「주행」이 펄싱하지 않고, 거리·방향 탐색 뒤에는 두 버튼 모두 펄스 없음. 원인은 두 버튼의 시작 조건이 달라 경로가 있는 채 다시 찾으면 안 켜짐. App 펄스 번호 하나로 두 버튼을 함께 다시 튼다. 실제 App 4종 탐색 모두 `[popup,corner]`, 펄스 중 클릭 시작 확인. 미커밋·미배포.

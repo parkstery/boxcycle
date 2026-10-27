@@ -24,14 +24,13 @@ import {
   MAP_GLOBE_MIN_ZOOM,
   MAP_ZOOM_SLIDER_MAX,
   RIDE_START_ZOOM,
-  RIDE_CAMERA_DISTANCE_MAX_M,
   RIDE_CAMERA_DISTANCE_MIN_M,
 } from "./lib/map/mapGlobeView";
+import {
+  nextRideUserZoomInDistanceM,
+  nextRideUserZoomOutDistanceM,
+} from "./lib/camera/rideUserZoom";
 
-/** HUD 줌 −/+ 거리 상한 — 제스처(MAX×2)와 aerial500 preset 을 모두 수용 */
-const RIDE_USER_ZOOM_DISTANCE_SOFT_MAX_M = Math.max(RIDE_CAMERA_DISTANCE_MAX_M * 2, 500);
-/** 거리 지배 모드 상대 줌(±1 map zoom 체감에 가깝게). 고정 STEP은 aerial500에서 무감. */
-const RIDE_USER_ZOOM_DISTANCE_FACTOR = 1.25;
 import { rideDistanceAlongRoute } from "./lib/ride/liveLocationSnapshot";
 import { AuthGateCard } from "./components/auth/AuthGateCard";
 import { AuthSessionGate } from "./components/auth/AuthSessionGate";
@@ -112,6 +111,8 @@ import { UserInfoSheet } from "./components/UserInfoSheet";
 import { AdminDashboardSheet } from "./components/admin/AdminDashboardSheet";
 import { LeaderboardSheet } from "./components/leaderboard/LeaderboardSheet";
 import { RideSettingsSheet } from "./components/ride/RideSettingsSheet";
+import { RouteClearBlockedDialog } from "./components/ride/RouteClearBlockedDialog";
+import { isRouteClearBlockedByRide } from "./lib/route/routeClearGuard";
 import { useCalorieProfile } from "./hooks/useCalorieProfile";
 import { usePacerPreference } from "./hooks/usePacerPreference";
 import {
@@ -1942,12 +1943,23 @@ export default function App() {
     setDistanceDirectionMode,
   } = distanceAutoRoute;
 
+  /** 지시93 — 주행 중(주행·일시정지)에는 경로를 지우지 않고 안내 창만 띄운다(PROD/DEV 무관). */
+  const [routeClearBlockedOpen, setRouteClearBlockedOpen] = useState(false);
+  const routeClearBlockedByRide = isRouteClearBlockedByRide(rideStatus);
+  useEffect(() => {
+    if (!routeClearBlockedByRide) setRouteClearBlockedOpen(false);
+  }, [routeClearBlockedByRide]);
+
   const handleClearPins = useCallback(() => {
+    if (routeClearBlockedByRide) {
+      setRouteClearBlockedOpen(true);
+      return;
+    }
     anchorFixedStartRef.current = null;
     clearRoutePins(routeMenuLockedForProd);
     clearCirclePreview();
     dismissResult();
-  }, [clearRoutePins, routeMenuLockedForProd, clearCirclePreview, dismissResult]);
+  }, [routeClearBlockedByRide, clearRoutePins, routeMenuLockedForProd, clearCirclePreview, dismissResult]);
 
   const handleSetRouteProfileOnly = useCallback(
     (p: RouteProfile) => {
@@ -1979,6 +1991,10 @@ export default function App() {
 
   const handleRemoveRouteDockStop = useCallback(
     (id: RouteDockStopId) => {
+      if (routeClearBlockedByRide) {
+        setRouteClearBlockedOpen(true);
+        return;
+      }
       if (routeMenuLockedForProd) return;
       if (id === "start") {
         anchorFixedStartRef.current = null;
@@ -1991,7 +2007,7 @@ export default function App() {
         }
       }
     },
-    [routeMenuLockedForProd, setStartLngLat, setEndLngLat, setRouteWaypoints],
+    [routeClearBlockedByRide, routeMenuLockedForProd, setStartLngLat, setEndLngLat, setRouteWaypoints],
   );
 
   /** 출발↔도착 바꾸기(10-23 Chief) — 경유지 순서도 뒤집는다. 경로가 있었으면 바뀐 위치로 같은 수단을 다시 만든다 */
@@ -3075,6 +3091,7 @@ export default function App() {
               rideCameraSpanFloorMode,
               onRideCameraDistanceFromUserZoom: handleRideCameraDistanceFromUserZoom,
               onClearRoute: handleClearPins,
+              canClearRouteNow: () => !routeClearBlockedByRide,
               onSelectPoint: (type, lngLat, waypointSlot) => {
                 if (!user || routeMenuLockedForProd) return;
                 setActiveOfficialCourseId(null);
@@ -3219,12 +3236,8 @@ export default function App() {
                     });
                     return;
                   }
-                  const m =
-                    Math.round(
-                      rideCameraDistanceM * RIDE_USER_ZOOM_DISTANCE_FACTOR * 10,
-                    ) / 10;
                   handleRideCameraDistanceFromUserZoom(
-                    Math.min(RIDE_USER_ZOOM_DISTANCE_SOFT_MAX_M, m),
+                    nextRideUserZoomOutDistanceM(rideCameraDistanceM),
                   );
                 },
                 onZoomIn: () => {
@@ -3245,11 +3258,9 @@ export default function App() {
                     });
                     return;
                   }
-                  const m =
-                    Math.round(
-                      (rideCameraDistanceM / RIDE_USER_ZOOM_DISTANCE_FACTOR) * 10,
-                    ) / 10;
-                  handleRideCameraDistanceFromUserZoom(Math.max(1e-9, m));
+                  handleRideCameraDistanceFromUserZoom(
+                    Math.max(1e-9, nextRideUserZoomInDistanceM(rideCameraDistanceM)),
+                  );
                 },
                 zoomOutDisabled: (() => {
                   const rideActive =
@@ -3263,10 +3274,9 @@ export default function App() {
                   ) {
                     return mapZoom <= MAP_GLOBE_MIN_ZOOM + 1e-6;
                   }
-                  return (
-                    rideCameraDistanceM >=
-                    RIDE_USER_ZOOM_DISTANCE_SOFT_MAX_M - 1e-6
-                  );
+                  // 거리 지배 주행 카메라에는 제품 임의 상한이 없다.
+                  // 실제 축소 한계는 Mapbox `minZoom`이 맡는다.
+                  return false;
                 })(),
                 zoomInDisabled: (() => {
                   const rideActive =
@@ -3427,6 +3437,15 @@ export default function App() {
           onPickPlace={handleMenuPlacePick}
         />
       </PlaceSearchPanel>
+
+      <RouteClearBlockedDialog
+        open={routeClearBlockedOpen && routeClearBlockedByRide}
+        onContinue={() => setRouteClearBlockedOpen(false)}
+        onEndRide={() => {
+          setRouteClearBlockedOpen(false);
+          handleEndRideWithTrailCleanup();
+        }}
+      />
 
       <RideSettingsSheet
         open={rideSettingsSheetOpen}

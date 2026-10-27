@@ -37,8 +37,8 @@ test('다섯 위치의 추가·교체 및 열린 경로창의 시작 준비상�
     return {name:style.animationName,count:style.animationIterationCount,pointerEvents:style.pointerEvents};
   });
   expect(popupPulse).toEqual({name:'ride-start-ready-pulse',count:'5',pointerEvents:'auto'});
-  // 10-26 Chief: 경로창 재생은 「▶ 주행」 알약(글자 있음).
-  expect((await play.textContent())?.trim()).toBe('주행');
+  // 지시94(10-26 Chief): 경로창 재생은 테두리·글자 없는 녹색 원 버튼.
+  expect((await play.textContent())?.trim()).toBe('');
   await page.waitForTimeout(180);
   await play.click();
   await expect(state).toContainText('"starts":1');
@@ -66,11 +66,12 @@ test('다섯 위치의 추가·교체 및 열린 경로창의 시작 준비상�
     expect(geometry.buttons).toHaveLength(3);
     expect(geometry.buttons.every(b=>b.width>=44&&b.height>=28&&b.height<=30)).toBe(true);
     expect(new Set(geometry.buttons.map(b=>b.top)).size).toBe(1);
-    expect(geometry.play.right).toBeLessThan(geometry.clear.left);
+    // 지시94: 경로 삭제는 탭 줄(주행 버튼보다 위), 주행은 맨 아래 줄 오른쪽 끝
+    expect(geometry.clear.bottom).toBeLessThan(geometry.play.top);
+    expect(geometry.panel.right-geometry.play.right).toBeLessThan(24);
     expect(geometry.profiles).toHaveLength(3);
     expect(geometry.profiles[2].right).toBeLessThan(geometry.play.x);
     for(const profile of geometry.profiles)expect(Math.abs(profile.y+profile.height/2-geometry.play.y-geometry.play.height/2)).toBeLessThan(1);
-    expect(Math.abs(geometry.play.y+geometry.play.height/2-geometry.clear.y-geometry.clear.height/2)).toBeLessThan(1);
     expect(geometry.panel.width).toBe(300);
     expect(geometry.panel.right).toBeLessThanOrEqual(size.width);
     expect(geometry.panel.bottom).toBeLessThanOrEqual(size.height);

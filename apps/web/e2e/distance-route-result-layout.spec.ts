@@ -52,7 +52,7 @@ for(const size of [{width:800,height:360},{width:667,height:300},{width:844,heig
       return {lineCount:box.height/parseFloat(getComputedStyle(status).lineHeight),controls,overflow:el.scrollWidth>el.clientWidth,box:el.getBoundingClientRect().toJSON()};
     });
     expect(layout.lineCount).toBeCloseTo(2,1);
-    expect(layout.controls).toHaveLength(5);
+    expect(layout.controls).toHaveLength(4); // 수단 3 + 주행(경로 삭제는 탭 줄, 지시94)
     const centers=layout.controls.map(b=>b.y+b.height/2);
     expect(Math.max(...centers)-Math.min(...centers)).toBeLessThan(1);
     expect(layout.overflow).toBe(false);

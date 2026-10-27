@@ -9,6 +9,7 @@ import {
 import { sensorChipSlot } from "../../lib/route/sensorChipSlot";
 import { CadenceHudChip, type CadenceChipBinding } from "../maphud/CadenceHudChip";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
+import { RouteOverviewFoldToggle } from "./RouteOverviewFoldToggle";
 import "../maphud/CadenceHudChip.css";
 import "./RouteDock.css";
 
@@ -59,8 +60,6 @@ function DockIcon({ d, size }: { d: string; size: number }) {
 
 const ICON_REMOVE = "M4.5 4.5L11.5 11.5M11.5 4.5L4.5 11.5";
 const ICON_SWAP = "M5 13V3M2.5 5.5L5 3L7.5 5.5M11 3V13M8.5 10.5L11 13L13.5 10.5";
-const ICON_COLLAPSE = "M10 3.5L5.5 8L10 12.5";
-const ICON_EXPAND = "M6 3.5L10.5 8L6 12.5";
 
 /** Addresses (+ sensor chip when ready). Stays visible during ride; editing locks while riding. */
 export function RouteDock({
@@ -115,15 +114,13 @@ export function RouteDock({
       />
     ) : null;
   const caret = (
-    <button
-      type="button"
+    <RouteOverviewFoldToggle
+      kind="route"
       className="route-dock__caret"
-      aria-expanded={expanded}
-      aria-label={expanded ? "경로 패널 접기" : "경로 패널 펼치기"}
+      expanded={expanded}
+      ariaLabel={expanded ? "경로 패널 접기" : "경로 패널 펼치기"}
       onClick={() => setExpanded((v) => !v)}
-    >
-      {expanded ? <DockIcon d={ICON_COLLAPSE} size={12} /> : <DockIcon d={ICON_EXPAND} size={16} />}
-    </button>
+    />
   );
 
   return (

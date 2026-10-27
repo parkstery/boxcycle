@@ -1,0 +1,41 @@
+.route-overview-fold-toggle {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 2px;
+  border: 1px solid #c9d6ee;
+  border-radius: 8px;
+  background: #fff;
+  color: #475569;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.route-overview-fold-toggle > svg {
+  display: block;
+  width: 24px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.route-overview-fold-toggle:hover {
+  border-color: #8da9e4;
+  background: #fff;
+  color: #1e40af;
+}
+
+.route-overview-fold-toggle:focus-visible {
+  outline: 2px solid #2457d6;
+  outline-offset: 1px;
+}

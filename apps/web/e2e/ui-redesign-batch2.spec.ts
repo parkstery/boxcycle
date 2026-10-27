@@ -46,7 +46,7 @@ for (const size of [{ width: 667, height: 300 }, { width: 800, height: 360 }, { 
 test('카메라 메뉴는 평면 높이와 시점 2~6으로 나뉘고 ESC·바깥 클릭으로 닫힌다', async ({ page }) => {
   await page.goto(`${preview}?state=riding`);
   const flatTrigger = page.getByRole('button', { name: /평면 카메라/ });
-  const perspectiveTrigger = page.getByRole('button', { name: /^카메라 2/ });
+  const perspectiveTrigger = page.locator('.camera-view-menu__trigger--perspective');
   await expect(flatTrigger).toBeVisible();
   await expect(perspectiveTrigger).toBeVisible();
   await expect(page.locator('.hud-quick-camera__btn')).toHaveCount(0);

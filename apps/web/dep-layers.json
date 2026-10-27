@@ -304,6 +304,7 @@
       "route/routeProgressSplit.ts",
       "route/routePublicationResolve.ts",
       "route/routeWorkspaceLock.ts",
+      "route/routeClearGuard.ts",
       "route/savedRouteProgressPolicy.ts",
       "route/sensorChipSlot.ts"
     ],
@@ -392,7 +393,8 @@
       "camera/cameraRenderPhase.ts",
       "camera/quickCameraProductTune.ts",
       "camera/quickCameraMenuLabels.ts",
-      "camera/rideCameraFraming.ts"
+      "camera/rideCameraFraming.ts",
+      "camera/rideUserZoom.ts"
     ],
     "peerMotion": [
       "peerMotion/",

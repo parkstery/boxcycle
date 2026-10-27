@@ -32,8 +32,9 @@ test('분리된 주소/주행바: 세 크기·다섯 상태·지도정보와 겹
       for(const button of await media.all()){
         expect((await button.textContent())?.trim()).toBe('');
         await expect(button).toHaveCSS('border-radius','50%');
-        const box=await button.boundingBox();
-        expect(box!.width).toBe(44);expect(box!.height).toBe(44);
+        // 준비 상태는 주행 버튼이 5회 펄스(1.1배, 지시90·91)한다 — 변형 전 레이아웃 크기를 잰다.
+        const box=await button.evaluate(el=>({width:(el as HTMLElement).offsetWidth,height:(el as HTMLElement).offsetHeight}));
+        expect(box.width).toBe(44);expect(box.height).toBe(44);
       }
       expect(geom.bar.right).toBeLessThanOrEqual(size.width);
       expect(geom.collide).toEqual([]);
@@ -125,27 +126,29 @@ for(const initial of ['empty','start-only','end-only','ready','waypoints'] as co
       const tabs=row.querySelector('.map-view__pick-route-tabs')!.getBoundingClientRect();
       const close=document.querySelector('#popup-audit .mapboxgl-popup-close-button')!.getBoundingClientRect();
       const clearInHeader=row.querySelector('.map-view__pick-btn--clear-route');
-      const bottomRow=document.querySelector('.map-view__pick-profile-bottom-row')!;
-      const profileRow=document.querySelector('#popup-audit .map-view__pick-actions--profile')!;
-      const clearRect=bottomRow.querySelector('.map-view__pick-btn--clear-route')!.getBoundingClientRect();
-      const profiles=[...profileRow.querySelectorAll('.map-view__pick-btn--profile')].map(e=>e.getBoundingClientRect());
-      const rightMost=profiles.length?Math.max(...profiles.map(b=>b.right)):0;
+      const clearRect=clearInHeader!.getBoundingClientRect();
+      const bottomClear=document.querySelector('.map-view__pick-profile-bottom-row .map-view__pick-btn--clear-route');
+      const tokenFont=parseFloat(getComputedStyle(row.querySelector('.map-view__pick-token-line')!).fontSize);
       const tab=row.querySelector('.map-view__pick-route-tab')!.getBoundingClientRect();
       const tokenLine=row.querySelector('.map-view__pick-token-line')!.getBoundingClientRect();
       const tabsCloseIntersect=tabs.left<close.right&&tabs.right>close.left&&tabs.top<close.bottom&&tabs.bottom>close.top;
-      return {tokenAboveTabs:token.bottom<=tabs.top,tabsFullWidth:Math.abs(tabs.width-row.getBoundingClientRect().width)<1,tabsCloseIntersect,tokenLineClearOfClose:tokenLine.right<=close.left,tabHeight:tab.height,tabsHeight:tabs.height,tokenPadRight:parseFloat(getComputedStyle(row.querySelector('.map-view__pick-token')!).paddingRight),closeWidth:close.width,clearInHeader:!!clearInHeader,clearRightOfProfiles:!profiles.length||clearRect.left>=rightMost-2};
+      return {tokenAboveTabs:token.bottom<=tabs.top,tabsShorter:tabs.width<row.getBoundingClientRect().width-40,clearRightOfTabs:clearRect.left>=tabs.right&&Math.abs((clearRect.top+clearRect.bottom)/2-(tabs.top+tabs.bottom)/2)<1,clearBorder:getComputedStyle(clearInHeader!).borderTopColor,bottomClear:!!bottomClear,tokenFont,tabsCloseIntersect,tokenLineClearOfClose:tokenLine.right<=close.left,tabHeight:tab.height,tabsHeight:tabs.height,tokenPadRight:parseFloat(getComputedStyle(row.querySelector('.map-view__pick-token')!).paddingRight),closeWidth:close.width,clearInHeader:!!clearInHeader};
     });
     // 지시65·시안05(묶음5): 토큰 줄 아래 전체 폭 분할 탭(28px), 원형 닫기와 겹치지 않음.
     // 종전 10-21 압축 계약(토큰·탭 한 줄, 탭 22px 이하)을 대체한다 — 감리73.
     expect(headerLine.tokenAboveTabs).toBe(true);
-    expect(headerLine.tabsFullWidth).toBe(true);
+    // 지시94(10-26 Chief): 탭은 줄고 같은 줄 오른쪽에 빨간 테두리 경로 삭제, 제목 17px
+    expect(headerLine.tabsShorter).toBe(true);
+    expect(headerLine.clearRightOfTabs).toBe(true);
+    expect(headerLine.clearBorder).toBe('rgb(220, 38, 38)');
+    expect(headerLine.bottomClear).toBe(false);
+    expect(headerLine.tokenFont).toBe(17);
     expect(headerLine.tabsCloseIntersect).toBe(false);
     expect(headerLine.tokenLineClearOfClose).toBe(true);
     expect(headerLine.tabHeight).toBe(28);
     expect(headerLine.tabsHeight).toBeLessThanOrEqual(34);
     expect(headerLine.tokenPadRight).toBeGreaterThanOrEqual(headerLine.closeWidth);
-    expect(headerLine.clearInHeader).toBe(false);
-    expect(headerLine.clearRightOfProfiles).toBe(true);
+    expect(headerLine.clearInHeader).toBe(true);
     await expect(popup.getByRole('tab',{name:'출발·도착',exact:true})).toHaveAttribute('aria-selected','true');
     await popup.getByRole('tab',{name:'거리·방향',exact:true}).click();
     await expect(popup.locator('#map-view-pick-location-view')).toBeHidden();

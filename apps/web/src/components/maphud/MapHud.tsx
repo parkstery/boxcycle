@@ -608,7 +608,7 @@ export function MapHud(props: MapHudProps) {
         </div>
       ) : null}
 
-      {/* 우상단 한 줄 — [시점][야외 + −][계정]. 센서 칩은 RouteDock 이 소유한다. 지시66 */}
+      {/* 우상단 — [시점][야외 + −]  [순위·계정]. 센서 칩은 RouteDock 이 소유한다. 지시66·98 */}
       {showTopRight ? (
         <div className="map-hud__tr">
           {quickCamera ? (
@@ -667,49 +667,53 @@ export function MapHud(props: MapHudProps) {
             </div>
           ) : null}
 
-          {leaderboardGlanceChip ? (
-            <div
-              className="lb-glance__chip-slot"
-              onPointerDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-            >
-              {leaderboardGlanceChip}
-            </div>
-          ) : null}
+          {leaderboardGlanceChip || (showAccount && account) || showSignedOutAuth ? (
+            <div className="map-hud__service-actions" role="group" aria-label="서비스 기능">
+              {leaderboardGlanceChip ? (
+                <div
+                  className="lb-glance__chip-slot"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                >
+                  {leaderboardGlanceChip}
+                </div>
+              ) : null}
 
-          {showAccount && account ? (
-            <button
-              type="button"
-              className={`hud-account ${account.isGuest ? "hud-account--guest" : ""}`}
-              aria-label="사용자 정보"
-              aria-expanded={userInfoOpen}
-              title="Account"
-              onClick={onOpenUserInfo}
-            >
-              <span className="hud-account__avatar" aria-hidden>
-                {account.initial}
-              </span>
-              <span className="hud-account__text">
-                <span className="hud-account__name">{account.label}</span>
-                {account.mileageKm != null ? (
-                  <span className="hud-account__mileage">
-                    {account.mileageKm.toLocaleString("ko-KR")} km
+              {showAccount && account ? (
+                <button
+                  type="button"
+                  className={`hud-account ${account.isGuest ? "hud-account--guest" : ""}`}
+                  aria-label="사용자 정보"
+                  aria-expanded={userInfoOpen}
+                  title="Account"
+                  onClick={onOpenUserInfo}
+                >
+                  <span className="hud-account__avatar" aria-hidden>
+                    {account.initial}
                   </span>
-                ) : null}
-              </span>
-            </button>
-          ) : null}
+                  <span className="hud-account__text">
+                    <span className="hud-account__name">{account.label}</span>
+                    {account.mileageKm != null ? (
+                      <span className="hud-account__mileage">
+                        {account.mileageKm.toLocaleString("ko-KR")} km
+                      </span>
+                    ) : null}
+                  </span>
+                </button>
+              ) : null}
 
-          {showSignedOutAuth ? (
-            <button
-              type="button"
-              className="hud-signin-pill"
-              aria-label="로그인 또는 게스트로 시작"
-              title="Sign in"
-              onClick={onOpenSignedOutAuth}
-            >
-              로그인
-            </button>
+              {showSignedOutAuth ? (
+                <button
+                  type="button"
+                  className="hud-signin-pill"
+                  aria-label="로그인 또는 게스트로 시작"
+                  title="Sign in"
+                  onClick={onOpenSignedOutAuth}
+                >
+                  로그인
+                </button>
+              ) : null}
+            </div>
           ) : null}
         </div>
       ) : null}

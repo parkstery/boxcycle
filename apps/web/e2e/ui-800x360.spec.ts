@@ -45,7 +45,48 @@ test('800×360 준비·주행의 지표가 읽히고 계정/카메라와 겹치�
   }
 });
 
-test('Chief 고정22 — 평면 높이와 시점 2~6을 좌우 두 메뉴로 나누고 시점은 아이콘으로 표시한다', async ({ page }) => {
+test('Chief 고정30 — 우상단 지도 조작과 서비스 기능은 간격으로 구획된다', async ({ page }) => {
+  await page.goto(`${preview}?state=glance-riding`);
+  const mapControls = page.getByRole('group', { name: '맵 제어' });
+  const serviceActions = page.getByRole('group', { name: '서비스 기능' });
+  await expect(mapControls).toBeVisible();
+  await expect(serviceActions).toBeVisible();
+
+  const spacing = await page.evaluate(() => {
+    const map = document.querySelector('.hud-ride-map-controls')!.getBoundingClientRect();
+    const service = document.querySelector('.map-hud__service-actions')!.getBoundingClientRect();
+    const rank = document.querySelector('.lb-glance__chip-slot')!.getBoundingClientRect();
+    const account = document.querySelector('.hud-account')!.getBoundingClientRect();
+    return {
+      outer: service.left - map.right,
+      inner: account.left - rank.right,
+      centerDelta: Math.abs(service.top + service.height / 2 - (map.top + map.height / 2)),
+    };
+  });
+  expect(spacing.outer).toBeGreaterThanOrEqual(8);
+  expect(spacing.outer - spacing.inner).toBeGreaterThanOrEqual(4);
+  expect(spacing.centerDelta).toBeLessThanOrEqual(1);
+
+  await page.setViewportSize({ width: 667, height: 300 });
+  await page.goto(`${preview}?state=glance-riding`);
+  const compact = await page.evaluate(() => {
+    const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+    const map = rect('.hud-ride-map-controls');
+    const service = rect('.map-hud__service-actions');
+    const children = [...document.querySelectorAll('.map-hud__service-actions > *')].map((el) => el.getBoundingClientRect());
+    const overlaps = map.left < service.right && map.right > service.left && map.top < service.bottom && map.bottom > service.top;
+    const inside = [map, service, ...children].every((box) =>
+      box.left >= 0 && box.top >= 0 && box.right <= window.innerWidth && box.bottom <= window.innerHeight,
+    );
+    const childrenInsideGroup = children.every((box) =>
+      box.left >= service.left && box.right <= service.right && box.top >= service.top && box.bottom <= service.bottom,
+    );
+    return { overlaps, inside, childrenInsideGroup };
+  });
+  expect(compact).toEqual({ overlaps: false, inside: true, childrenInsideGroup: true });
+});
+
+test('Chief 고정27 — 평면 높이는 좁고 우측 정렬하며 시점 2~6은 파란 화살표 세로 메뉴다', async ({ page }) => {
   await page.goto(`${preview}?state=riding`);
 
   const flat = page.getByRole('button', { name: /평면 카메라/ }).first();
@@ -62,6 +103,18 @@ test('Chief 고정22 — 평면 높이와 시점 2~6을 좌우 두 메뉴로 나
   for (const label of ['전체 경로', '20m 상공', '200m 상공', '300m 상공', '400m 상공', '500m 상공', '1000m 상공']) {
     await expect(heightMenu.getByRole('menuitemradio', { name: `평면 카메라 · ${label}` })).toBeVisible();
   }
+  const flatGeometry = await heightMenu.evaluate(menu => {
+    const box = menu.getBoundingClientRect();
+    const labels = [...menu.querySelectorAll<HTMLElement>('.camera-view-menu__item-label')];
+    return {
+      width: box.width,
+      alignments: labels.map(label => getComputedStyle(label).textAlign),
+      rightEdges: labels.map(label => label.getBoundingClientRect().right),
+    };
+  });
+  expect(flatGeometry.width).toBeCloseTo(96, 0);
+  expect(flatGeometry.alignments.every(value => value === 'right')).toBeTruthy();
+  expect(Math.max(...flatGeometry.rightEdges) - Math.min(...flatGeometry.rightEdges)).toBeLessThanOrEqual(0.1);
   await heightMenu.getByRole('menuitemradio', { name: '평면 카메라 · 1000m 상공' }).click();
   await expect(flat).toContainText('1000m');
 
@@ -71,8 +124,18 @@ test('Chief 고정22 — 평면 높이와 시점 2~6을 좌우 두 메뉴로 나
   await expect(viewMenu.getByRole('menuitemradio')).toHaveCount(5);
   await expect(viewMenu.locator('svg')).toHaveCount(5);
   await expect(viewMenu.locator('.camera-view-menu__item-label')).toHaveCount(0);
+  const viewGeometry = await viewMenu.evaluate(menu => {
+    const items = [...menu.querySelectorAll<HTMLElement>('.camera-view-menu__item--icon')].map(item => item.getBoundingClientRect());
+    return {
+      oneColumn: items.every(item => Math.abs(item.x - items[0]!.x) <= 0.1),
+      ordered: items.every((item, index) => index === 0 || item.y > items[index - 1]!.y),
+    };
+  });
+  expect(viewGeometry).toEqual({ oneColumn: true, ordered: true });
   for (const slot of [2, 3, 4, 5, 6]) {
-    await expect(viewMenu.getByRole('menuitemradio', { name: new RegExp(`^카메라 ${slot}`) })).toBeVisible();
+    const item = viewMenu.getByRole('menuitemradio', { name: new RegExp(`^카메라 ${slot}`) });
+    await expect(item).toBeVisible();
+    await expect(item.locator(`[data-camera-direction="${slot}"]`)).toHaveCount(1);
   }
 });
 
@@ -438,7 +501,7 @@ test.describe('Chief 고정 — 261024 목록 1~4', () => {
 });
 
 // Chief 지정 — 바꾸려면 Chief 지시와 document/reference/product/261024-RTW-Chief-지정-디자인-고정.md 갱신 필요
-// 2026-10-24 Chief: 대기 화면은 센서·접기가 한 줄 — 접으면 그 한 줄(센서 + ›)만 남는다(withSensor).
+// 2026-10-27 Chief: 대기 화면은 공통 접기 버튼·센서가 한 줄 — 접으면 그 한 줄(경로 도안 + ›, 센서)만 남는다(withSensor).
 async function assertCollapsedRouteDockChip(
   page: import('@playwright/test').Page,
   { withSensor = false }: { withSensor?: boolean } = {},
@@ -453,7 +516,7 @@ async function assertCollapsedRouteDockChip(
     const sensorBox = (await page.locator('.route-dock__head .hud-cadence').boundingBox())!;
     const caretBox = (await caret.boundingBox())!;
     expect(Math.abs(sensorBox.y + sensorBox.height / 2 - (caretBox.y + caretBox.height / 2))).toBeLessThanOrEqual(2);
-    expect(sensorBox.x).toBeLessThan(caretBox.x);
+    expect(caretBox.x).toBeLessThan(sensorBox.x);
   }
   expect(cardBox.height).toBeGreaterThanOrEqual(28);
   expect(cardBox.height).toBeLessThanOrEqual(44);

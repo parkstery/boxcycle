@@ -16,6 +16,7 @@ import {
   routeMinimapStaticImageUrl,
 } from "./routeMinimapProjection";
 import { isMapCutKeyActive } from "../../lib/map/mapCut";
+import { RouteOverviewFoldToggle } from "../../components/route-dock/RouteOverviewFoldToggle";
 import "./RouteMinimap.css";
 
 export type RouteMinimapProps = {
@@ -261,7 +262,7 @@ export function RouteMinimap({
       role="group"
       aria-label="경로 미니맵"
       style={{
-        width: expanded ? box.w || undefined : 24,
+        width: expanded ? box.w || undefined : 28,
         height: box.h || undefined,
       }}
       onPointerDown={blockMap}
@@ -321,21 +322,16 @@ export function RouteMinimap({
         </div>
       ) : null}
       </div>
-      <button
-        type="button"
+      <RouteOverviewFoldToggle
+        kind="map"
         className="route-minimap__toggle"
-        aria-label={expanded ? "미니맵 접기" : "미니맵 펼치기"}
-        aria-expanded={expanded}
-        aria-controls={contentId}
-        onClick={(e) => {
-          e.stopPropagation();
+        ariaLabel={expanded ? "미니맵 접기" : "미니맵 펼치기"}
+        expanded={expanded}
+        controls={contentId}
+        onClick={() => {
           setExpanded((value) => !value);
         }}
-      >
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path d={expanded ? "m10 4-4 4 4 4" : "m6 4 4 4-4 4"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
+      />
     </div>
   );
 }

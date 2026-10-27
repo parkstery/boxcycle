@@ -2,11 +2,11 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | **Claude Code Supervisor — 2026-10-26 20:45 KST**([지시·결과92](20261023-ui-redesign/92-task-result-summary-profile-shrink-fitness.md) 로컬 검증 완료 / 미커밋·미푸시·미배포) |
-| 이전 담당 | Claude Code Supervisor — 2026-10-26 18:50 KST(지시91 두 주행 버튼 펄스) · Codex — 17:50 KST(지시90) |
-| 갱신 | 2026-10-26 20:45 KST — Chief 「커밋해」: 지시86~91 커밋 `69bcfe89`(코드)·`ec6ea2cb`(문서), 푸시·배포 안 함. 지시92: 주행 결과 판 60%(444×194)·프로필 수정 70%(364px)·체중 70kg 시작·「운동 강도」→「체력」 1~5(id·MET 유지). 화면 34·실앱 에뮬레이터 2·quick 1372 PASS. 고정 목록 24·25 추가. 기존 dirty(증거 PNG 8장·보호 JSON·.out·cdbox.bat·claude-headless.err) 보존 |
+| 담당 | **Codex Supervisor — 2026-10-27 09:31 KST**([지시·결과98](20261023-ui-redesign/98-task-top-right-control-group-gap.md) 로컬 검증 완료 / 배포 진행) |
+| 이전 담당 | Claude Code Supervisor — 2026-10-26 22:00 KST(지시93·94) · Codex — 17:50 KST(지시90) |
+| 갱신 | 2026-10-27 09:31 KST — 지시98: 우상단 지도 조작과 순위·계정을 별도 의미 그룹으로 묶고 간격 확대. selector19·tsc·lint·화면 시험 본문·800×360 캡처 PASS. 고정30·결정로그 갱신. Chief 배포 지시로 지시93~98 제품·시험·문서의 커밋·푸시·Hosting 배포 진행 |
 | 브랜치 | `main2` |
-| HEAD / 원격 | `main2` = `ec6ea2cb`(로컬, `origin/main2` 보다 2커밋 앞섬·미푸시). 제품 커밋 `69bcfe89`(지시86~91) |
+| HEAD / 원격 | `main2` = `77739223`(로컬, `origin/main2` 보다 3커밋 앞섬·미푸시). 제품 커밋 `69bcfe89`(지시86~91)·`77739223`(지시92) |
 | 마지막 배포 | **10-26 오후 KST Hosting `9179240a`**(경로 선택·계기판 거리 한 줄·계정 이름) 빌드 `index-DNNFlKOZ.js`·`index-BdOtfwTj.css` — 운영 SHA256 로컬 일치(Claude Code 직접 배포·대조). 함수·Rules 변경 없음. 펄스86·주행 알약87 미포함 |
 | 첫 프롬프트 | [49-first-prompt-codex-20261024-night.md](20261023-ui-redesign/49-first-prompt-codex-20261024-night.md) |
 

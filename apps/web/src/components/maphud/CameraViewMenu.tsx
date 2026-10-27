@@ -29,22 +29,39 @@ function FlatCameraIcon() {
   );
 }
 
-/** 카메라 위치(작은 사각형)에서 라이더(원)를 바라보는 탑뷰 도안. */
+/** Chief 제공 방향표시.svg 순서: 2 위, 3 아래, 4 오른쪽, 5 왼쪽, 6 오른쪽 아래 대각선. */
 function PerspectiveCameraIcon({ slot }: { slot: PerspectiveSlot }) {
-  const cameraBySlot: Record<PerspectiveSlot, { x: number; y: number; tx: number; ty: number }> = {
-    2: { x: 10, y: 17, tx: 12, ty: 11 },
-    3: { x: 10, y: 3, tx: 12, ty: 10 },
-    4: { x: 3, y: 10, tx: 10, ty: 12 },
-    5: { x: 17, y: 10, tx: 14, ty: 12 },
-    6: { x: 10, y: 17, tx: 12, ty: 11 },
+  const rotationBySlot: Record<PerspectiveSlot, number> = {
+    2: -90,
+    3: 90,
+    4: 0,
+    5: 180,
+    6: 40,
   };
-  const c = cameraBySlot[slot];
   return (
-    <svg viewBox="0 0 24 24" aria-hidden>
-      <circle cx="12" cy="12" r="2.5" />
-      <path d={`M${c.x + 2} ${c.y + 2}L${c.tx} ${c.ty}`} />
-      <rect x={c.x} y={c.y} width="4" height="4" rx="0.8" />
-      {slot === 6 ? <path className="camera-view-menu__lock" d="M17 5v-1.2a2 2 0 0 1 4 0V5m-4 0h4v4h-4z" /> : null}
+    <svg className="camera-view-menu__direction-icon" viewBox="0 0 32 32" aria-hidden data-camera-direction={slot}>
+      <defs>
+        <linearGradient id={`camera-arrow-gradient-${slot}`} x1="4" y1="6" x2="27" y2="26" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#5eb8ff" />
+          <stop offset="0.48" stopColor="#347dff" />
+          <stop offset="1" stopColor="#263ee8" />
+        </linearGradient>
+        <filter id={`camera-arrow-glow-${slot}`} x="-45%" y="-45%" width="190%" height="190%">
+          <feGaussianBlur stdDeviation="1.6" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      <g transform={`rotate(${rotationBySlot[slot]} 16 16)`}>
+        <path
+          className="camera-view-menu__direction-path"
+          d="M5 16H25M18 9L25 16L18 23"
+          stroke={`url(#camera-arrow-gradient-${slot})`}
+          filter={`url(#camera-arrow-glow-${slot})`}
+        />
+      </g>
     </svg>
   );
 }
@@ -149,6 +166,7 @@ export function CameraViewMenu({ active, camera1Mode = "routeFit", onSelect, onS
                   type="button"
                   role="menuitemradio"
                   className={`camera-view-menu__item camera-view-menu__item--icon${active === slot ? " is-selected" : ""}`}
+                  data-camera-slot={slot}
                   aria-checked={active === slot}
                   aria-label={quickCameraMenuAriaLabel(slot, undefined)}
                   title={quickCameraMenuAriaLabel(slot, undefined)}

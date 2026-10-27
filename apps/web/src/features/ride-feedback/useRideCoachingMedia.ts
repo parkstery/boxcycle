@@ -32,7 +32,8 @@ export function useRideCoachingMedia(opts: {
     ttsEnabled: opts.rideTtsEnabled,
   });
   useRideBgm({
-    sessionActive: opts.sessionStatus !== "idle",
+    // 지시93 — 경로가 없으면 주행 중이어도 음악을 멈춘다(기존 페이드아웃 경로).
+    sessionActive: opts.sessionStatus !== "idle" && opts.routeGeometry != null,
     musicEnabled: opts.rideBgmEnabled,
   });
   return {

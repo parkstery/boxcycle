@@ -96,6 +96,8 @@ export function buildPickPopup(deps: {
   getRouteTokenInsufficient?: () => boolean;
   /** Conquest — 이 지점 영토의 개척자 한 줄(null=미개척) */
   onClearRoute?: (() => void) | undefined;
+  /** 지시93 — false 면(주행 중) 「경로 삭제」는 onClearRoute(안내)만 부르고 팝업 상태를 지우지 않는다. */
+  canClearRouteNow?: () => boolean;
   onClearAutoRouteClickDebugMarker?: () => void;
   initialHasStart: boolean;
   initialHasEnd: boolean;
@@ -126,6 +128,7 @@ export function buildPickPopup(deps: {
     onSetRouteProfileOnly,
     getRouteTokenInsufficient,
     onClearRoute,
+    canClearRouteNow,
     onClearAutoRouteClickDebugMarker,
     initialHasStart,
     initialHasEnd,
@@ -326,7 +329,7 @@ export function buildPickPopup(deps: {
   }
 
   /*
-   * 지시11 — 경로 삭제는 하단 이동수단 3개 오른쪽(공통 profile 행). header 제목행에는 두지 않는다.
+   * 10-26 Chief(지시94) — 경로 삭제는 탭(Start·End · 거리·방향) 오른쪽, 빨간 테두리. 두 탭 공통.
    */
   let clearRouteBtn: HTMLButtonElement | null = null;
   if (typeof onClearRoute === "function") {
@@ -337,6 +340,10 @@ export function buildPickPopup(deps: {
     clearRouteBtn.title = "경로 전체 삭제";
     clearRouteBtn.setAttribute("aria-label", "경로 전체 삭제");
     clearRouteBtn.onclick = () => {
+      if (canClearRouteNow && !canClearRouteNow()) {
+        onClearRoute();
+        return;
+      }
       onClearRoute();
       onClearDistanceAutoRouteCircle?.();
       pins.start = false;
@@ -369,7 +376,7 @@ export function buildPickPopup(deps: {
     profileSection.hidden = !hasStart && !clearRouteBtn;
     const readyForProfile = onLocationTab ? manualRouteReady : distanceConfirmed && (Boolean(selectedDirection) || profileChosen);
     /*
-     * 10-25 Chief — 두 탭의 맨 아래 줄은 같은 구조(수단 3개 · 재생 · 경로 삭제)로 늘 보인다.
+     * 10-25 Chief — 두 탭의 맨 아래 줄은 같은 구조(수단 3개 · 주행)로 늘 보인다(경로 삭제는 탭 줄, 지시94).
      * 쓸 수 없을 때는 숨기지 않고 끈다: 출발·도착은 두 위치가 있어야, 거리·방향은 출발만 있으면 쓴다.
      */
     const profileUsable = onLocationTab ? manualRouteReady : hasStart;
@@ -421,8 +428,8 @@ export function buildPickPopup(deps: {
   const startRideBtn = document.createElement("button");
   startRideBtn.type = "button";
   /*
-   * 10-26 Chief — 녹색 원 아이콘만 있던 재생 버튼이 글자 버튼 「경로 삭제」와 이질적이라 혼동된다.
-   * 「▶ 주행」 알약으로 바꾸고 「경로 삭제」와 같은 높이·모양을 쓴다(두 탭 공통).
+   * 10-26 Chief(지시94) — 「경로 삭제」가 탭 줄로 올라가 맨 아래 줄 오른쪽 끝에 녹색 원 재생 버튼만 둔다.
+   * 알약 테두리·「주행」 글자 없음(화면 읽기 이름은 「주행 시작」). 두 탭 공통.
    */
   startRideBtn.className = "map-view__pick-btn map-view__pick-btn--start-ride map-view__pick-start-ride";
   startRideBtn.setAttribute("aria-label", "주행 시작");
@@ -430,10 +437,7 @@ export function buildPickPopup(deps: {
   const playIcon = document.createElement("span");
   playIcon.className = "map-view__pick-start-ride-icon";
   playIcon.setAttribute("aria-hidden", "true");
-  const playLabel = document.createElement("span");
-  playLabel.className = "map-view__pick-start-ride-label";
-  playLabel.textContent = "주행";
-  startRideBtn.append(playIcon, playLabel);
+  startRideBtn.append(playIcon);
   const syncRideStart = () => {
     startRideBtn.hidden = typeof deps.onStartRide !== "function";
     startRideBtn.disabled = !deps.getCanStartRide?.();
@@ -453,7 +457,6 @@ export function buildPickPopup(deps: {
   };
   syncRideStart();
   profileBottomRow.append(startRideBtn);
-  if (clearRouteBtn) profileBottomRow.append(clearRouteBtn);
   profileSection.append(profileBottomRow);
   syncProfileUi();
   syncTokenUi();
@@ -862,8 +865,6 @@ export function buildPickPopup(deps: {
   routePickTabs.className = "map-view__pick-route-tabs";
   routePickTabs.setAttribute("role", "tablist");
   routePickTabs.setAttribute("aria-label", "경로 생성 방식");
-  // The header is draggable, but its tabs must keep their native click/tap and focus.
-  routePickTabs.addEventListener("pointerdown", (event) => event.stopPropagation());
 
   const tabLocation = document.createElement("button");
   tabLocation.type = "button";
@@ -899,6 +900,12 @@ export function buildPickPopup(deps: {
     tabDistance.focus();
   });
   routePickTabs.append(tabLocation, tabDistance);
+  // 탭 + 경로 삭제 한 줄(지시94). 머리는 끌어 옮길 수 있지만 이 줄의 버튼은 눌러야 한다.
+  const tabsRow = document.createElement("div");
+  tabsRow.className = "map-view__pick-tabs-row";
+  tabsRow.addEventListener("pointerdown", (event) => event.stopPropagation());
+  tabsRow.append(routePickTabs);
+  if (clearRouteBtn) tabsRow.append(clearRouteBtn);
 
   function syncRoutePickView() {
     const onLocation = routePickView === "location";
@@ -955,12 +962,11 @@ export function buildPickPopup(deps: {
   const dragHandle = document.createElement("div");
   dragHandle.className = "map-view__pick-drag-handle";
   /*
-   * 지시11 — headerRow: 제목(token) + 출발·도착/거리·방향 탭 한 줄. 닫기 ✕ 예약은 headerRow padding.
-   * 경로 삭제는 하단 profileBottomRow의 수단 행 오른쪽.
+   * headerRow: 제목(token) 한 줄 + [탭 · 경로 삭제] 한 줄(지시94). 닫기 ✕ 자리는 제목 padding.
    */
   const headerRow = document.createElement("div");
   headerRow.className = "map-view__pick-header-row";
-  headerRow.append(tokenSection, routePickTabs);
+  headerRow.append(tokenSection, tabsRow);
   dragHandle.append(headerRow, addressEl);
 
   wrap.append(dragHandle, routeLocationView, autoRouteSection, profileSection);

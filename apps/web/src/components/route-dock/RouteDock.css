@@ -33,25 +33,35 @@
   align-items: center;
   justify-content: center;
 }
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card:not(.route-dock__card--head) {
+  width: 28px;
+  height: 28px;
+}
 .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card--head { padding: 4px; }
 .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__head { margin: 0; gap: 4px; }
-/* 맨 위 줄: 센서(왼쪽) · 접기(오른쪽). 접기 중심을 아래 ✕ 열과 맞춘다(-3px). */
+/* 맨 위 줄: 공통 접기 버튼(왼쪽) · 센서. */
 .route-dock__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   min-height: 30px;
+  padding-left: 32px;
   margin-bottom: 2px;
 }
-.route-dock__card--head .route-dock__caret { position: static; flex: 0 0 auto; margin-right: -3px; }
+.route-dock__card--head .route-dock__caret {
+  top: 4px;
+  left: 4px;
+}
+.route-dock-anchor--open .route-dock__card--head { padding-top: 3px; }
 .route-dock__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
 }
-/* 센서 줄이 없으면(주행 중 등) 접기는 첫 줄 오른쪽 위에 겹쳐 있다 — 그 자리를 비운다. */
-.route-dock__card:not(.route-dock__card--head) .route-dock__row:first-child { padding-right: 24px; }
+/* 센서 줄이 없으면(주행 중 등) 접기는 왼쪽 위에 겹쳐 있다 — 목록 전체에 같은 자리를 비워
+ * S·경유지 들여쓰기 관계를 보존한다. */
+.route-dock__card:not(.route-dock__card--head) .route-dock__grid { padding-left: 32px; }
 .route-dock__stops-wrap {
   position: relative;
   min-width: 0;
@@ -156,26 +166,16 @@
 .route-dock__caret {
   position: absolute;
   top: 4px;
-  right: 4px;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #5e6472;
-  line-height: 1;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  left: 4px;
+  z-index: 2;
 }
 .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__caret {
-  position: static;
-  width: 32px;
-  height: 32px;
-  background: #fff;
-  color: #121417;
-  border-radius: 10px;
+  top: 0;
+  left: 0;
+}
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card--head .route-dock__caret {
+  top: 4px;
+  left: 4px;
 }
 .route-dock__stops-empty { font-size: 11px; color: #5e6472; padding: 4px 0; }
 .route-dock__card button:focus-visible { outline: 2px solid #2457d6; outline-offset: 1px; }
