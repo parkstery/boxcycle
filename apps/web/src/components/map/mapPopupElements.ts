@@ -83,7 +83,7 @@ export function buildPickPopup(deps: {
   getUserMileage?: () => { totalMeters: number | null; totalSec: number | null };
   onDirectionPickArmed?: () => void;
   onGenerateDistanceRoute?: (point: LngLat) => void;
-  onPulseDistanceCircle?: () => void;
+  onPulseDistanceCircle?: (cycles?: number) => void;
   onStopDistanceCirclePulse?: () => void;
   onRoutePanelActivated?: () => void;
   onPreviewDistanceAutoRouteCircle?: (input: {
@@ -667,7 +667,10 @@ export function buildPickPopup(deps: {
       return;
     }
     previewCircleForTargetKm(targetKm);
-    tryArmDirectionPickIfChecked();
+    if (tryArmDirectionPick()) {
+      distanceConfirmed = true;
+      syncProfileUi();
+    }
   }
 
   function pauseDistancePickForTabSwitch() {
@@ -690,6 +693,13 @@ export function buildPickPopup(deps: {
     syncProfileUi();
     if (routePickView === "distance" && pins.start) {
       applyDistanceDirectionMode(true);
+      pulseDistanceEntry();
+    }
+  }
+
+  function pulseDistanceEntry() {
+    if (routePickView === "distance" && pins.start && distanceDirectionChecked && autoRouteStatus.dataset.phase === "direction") {
+      onPulseDistanceCircle?.(5);
     }
   }
 
@@ -991,7 +1001,10 @@ export function buildPickPopup(deps: {
   queueMicrotask(() => {
     if (signal.aborted) return;
     const live = getDistanceAutoRouteMapBridge();
-    if (!live?.distanceDirectionMode) return;
+    if (!live?.distanceDirectionMode) {
+      pulseDistanceEntry();
+      return;
+    }
     const armed = live.getArmedStart?.() ?? null;
     if (armed) {
       selectedStart = armed;
@@ -1014,6 +1027,7 @@ export function buildPickPopup(deps: {
     syncProfileUi();
     tryArmDirectionPickIfChecked();
     onDirectionPickArmed?.();
+    pulseDistanceEntry();
   });
 
   return wrap;

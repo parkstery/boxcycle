@@ -1,5 +1,5 @@
 import { test, expect } from './open-meteo-stub'
-import { guestStart } from './rideEntryHelpers'
+import { guestStart, prepareManualRideInput } from './rideEntryHelpers'
 
 // 실주행 진입 시퀀스 e2e: 게스트(익명 인증) → 입문 코스 로드 → 주행 시작 → running 확정.
 // 셀렉터는 scripts/ride-verify/entry-contract.mjs 와 동일한 계약을 쓴다 —
@@ -38,20 +38,6 @@ function redactUrl(url: string): string {
 async function enterAsGuest(page: import('@playwright/test').Page) {
   await page.goto('/')
   await guestStart(page)
-}
-
-/**
- * 주행 입력 준비 — Go 의 사전조건(SENSOR-2 §1.4).
- * 자동 E2E 에는 BLE 장치가 없으므로 HUD 센서 칩 → 센서 상세 설정에서
- * 「센서 없음」를 **명시적으로** 고른다. 기본 manual 초기값만으로는 Go 가 잠긴다.
- */
-async function prepareManualRideInput(page: import('@playwright/test').Page) {
-  await page.getByRole('button', { name: /케이던스 센서/ }).click()
-  const sheet = page.getByRole('dialog', { name: '케이던스 센서' })
-  await expect(sheet).toBeVisible()
-  await sheet.getByRole('button', { name: '센서 없음' }).click()
-  await sheet.getByRole('button', { name: '센서 설정 닫기' }).click()
-  await expect(sheet).toBeHidden()
 }
 
 /** Trail 메뉴 → '입문' → 코스 모달 */

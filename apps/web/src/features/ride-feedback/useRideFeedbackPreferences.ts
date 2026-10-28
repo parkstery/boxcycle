@@ -8,10 +8,13 @@ export function useRideFeedbackPreferences(): {
   setRideBgmEnabled: (v: boolean) => void;
   rideCoachingBannerVisible: boolean;
   setRideCoachingBannerVisible: (v: boolean) => void;
+  rideMomentSoundEnabled: boolean;
+  setRideMomentSoundEnabled: (v: boolean) => void;
 } {
   const [rideTtsEnabled, setRideTtsEnabled] = useState(true);
   const [rideBgmEnabled, setRideBgmEnabled] = useState(true);
   const [rideCoachingBannerVisible, setRideCoachingBannerVisible] = useState(true);
+  const [rideMomentSoundEnabled, setRideMomentSoundEnabled] = useState(false);
   return {
     rideTtsEnabled,
     setRideTtsEnabled,
@@ -19,5 +22,7 @@ export function useRideFeedbackPreferences(): {
     setRideBgmEnabled,
     rideCoachingBannerVisible,
     setRideCoachingBannerVisible,
+    rideMomentSoundEnabled,
+    setRideMomentSoundEnabled,
   };
 }

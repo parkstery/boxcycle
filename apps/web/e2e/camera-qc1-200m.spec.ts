@@ -53,7 +53,7 @@ test.describe("QC1 200m 추가 4단 (20260924-지시01)", () => {
 
     const qc = page.getByRole("group", { name: "Quick Camera" });
     await expect(qc).toBeVisible({ timeout: 15_000 });
-    const btn1 = qc.getByRole("button", { name: /평면 카메라/ });
+    const btn1 = qc.getByRole("button", { name: /카메라 메뉴/ });
 
     const selectFlat = async (name: string) => {
       await btn1.click();

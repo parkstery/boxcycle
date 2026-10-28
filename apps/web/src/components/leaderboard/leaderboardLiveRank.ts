@@ -107,6 +107,7 @@ export function computeLeaderboardLiveRank(
   inputRows: LeaderboardLiveRow[],
   myBaseKm: number,
   addedKm: number,
+  visibleCount = 5,
 ): LeaderboardLiveRankResult {
   const myKm = myBaseKm + addedKm;
   const myTenths = tenthsOf(myKm);
@@ -149,8 +150,9 @@ export function computeLeaderboardLiveRank(
     ahead != null ? kmOfTenths(tenthsOf(ahead.valueKm) - tenthsOf(mine.valueKm)) : null;
   const aheadRank = ahead != null ? ahead.rank : null;
 
-  const span = 2;
-  const slice = ranked.slice(Math.max(0, idx - span), idx + span + 1);
+  const count = Math.max(1, Math.floor(visibleCount));
+  const start = Math.max(0, Math.min(idx - Math.floor(count / 2), ranked.length - count));
+  const slice = ranked.slice(start, start + count);
 
   return {
     rank: mine.rank,

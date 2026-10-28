@@ -1,0 +1,50 @@
+[
+  {
+    "width": 800,
+    "height": 360,
+    "hudFraction": 0.30046875,
+    "rankControlOverlap": false,
+    "rankIntervalOverlap": false,
+    "listHeight": 146.0625,
+    "rowHeight": 24,
+    "controlsBottom": 36,
+    "rankTop": 54.25,
+    "cellOverflows": []
+  },
+  {
+    "width": 736,
+    "height": 360,
+    "hudFraction": 0.3265964673913043,
+    "rankControlOverlap": false,
+    "rankIntervalOverlap": false,
+    "listHeight": 123.40625,
+    "rowHeight": 24,
+    "controlsBottom": 67.5625,
+    "rankTop": 77.796875,
+    "cellOverflows": []
+  },
+  {
+    "width": 699,
+    "height": 273,
+    "hudFraction": 0.3438841201716738,
+    "rankControlOverlap": false,
+    "rankIntervalOverlap": false,
+    "listHeight": 37.4375,
+    "rowHeight": 24,
+    "controlsBottom": 63.5625,
+    "rankTop": 77.28125,
+    "cellOverflows": []
+  },
+  {
+    "width": 667,
+    "height": 300,
+    "hudFraction": 0.3603823088455772,
+    "rankControlOverlap": false,
+    "rankIntervalOverlap": false,
+    "listHeight": 65.34375,
+    "rowHeight": 24,
+    "controlsBottom": 63.5625,
+    "rankTop": 76.828125,
+    "cellOverflows": []
+  }
+]

@@ -5,6 +5,7 @@ import { useEscapeKeyClose } from "../ui/useEscapeKeyClose";
 import { RideSettingsPanel } from "./RideSettingsPanel";
 import "./RideSettingsSheet.css";
 import { SettingsCloseIcon } from "../ui/SettingsCloseIcon";
+import type { RideIntervalConfig } from "../../lib/ride/rideInterval";
 
 type RideSettingsSheetProps = {
   open: boolean;
@@ -24,6 +25,12 @@ type RideSettingsSheetProps = {
   calorieIntensityId?: CalorieIntensityId | null;
   onCalorieIntensityId?: (id: CalorieIntensityId) => boolean | void;
   onEditProfile?: () => void;
+  rideIntervalEnabled?: boolean;
+  onRideIntervalEnabled?: (enabled: boolean) => void;
+  rideIntervalConfig?: RideIntervalConfig;
+  onOpenRideIntervalSettings?: () => void;
+  rideMomentSoundEnabled?: boolean;
+  onRideMomentSoundEnabled?: (enabled: boolean) => void;
 };
 
 /** 주행·표시 설정 — MENU 와 분리된 하단 시트. 센서는 별도 케이던스 상세 설정이 소유. */
@@ -75,6 +82,12 @@ export function RideSettingsSheet(props: RideSettingsSheetProps) {
           calorieIntensityId={props.calorieIntensityId}
           onCalorieIntensityId={props.onCalorieIntensityId}
           onEditProfile={props.onEditProfile}
+          rideIntervalEnabled={props.rideIntervalEnabled}
+          onRideIntervalEnabled={props.onRideIntervalEnabled}
+          rideIntervalConfig={props.rideIntervalConfig}
+          onOpenRideIntervalSettings={props.onOpenRideIntervalSettings}
+          rideMomentSoundEnabled={props.rideMomentSoundEnabled}
+          onRideMomentSoundEnabled={props.onRideMomentSoundEnabled}
         />
       </div>
     </div>

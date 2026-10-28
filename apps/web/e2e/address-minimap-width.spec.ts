@@ -23,9 +23,10 @@ test('긴 주소는 펼친 미니맵의 폭을 따르고 두 패널 접기가 �
     }
   }
   await page.getByRole('button', { name: '경로 패널 접기' }).click();
-  const collapsedWidth = (await page.locator('.route-dock__card').boundingBox())!.width;
-  expect(collapsedWidth).toBeGreaterThanOrEqual(28);
-  expect(collapsedWidth).toBeLessThanOrEqual(44);
+  // 10-28 후속: 접힌 카드에는 LED 옆 주행 제어도 남는다.
+  const ledWidth = (await page.getByRole('button', { name: '경로 패널 펼치기' }).boundingBox())!.width;
+  expect(ledWidth).toBe(28);
+  await expect(page.getByRole('button', { name: '일시정지', exact: true })).toBeVisible();
   await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
   const expandedWidth = (await page.locator('.route-dock__card').boundingBox())!.width;
   expect(expandedWidth).toBeCloseTo((await minimap.boundingBox())!.width, 0);
@@ -40,78 +41,45 @@ test('긴 주소는 펼친 미니맵의 폭을 따르고 두 패널 접기가 �
   expect(Math.abs(collapsedDockWidth - 0.294 * vw)).toBeLessThanOrEqual(1);
 });
 
-test('RouteDock과 미니맵은 같은 왼쪽 위 접기 버튼을 쓰되 독립적으로 접힌다', async ({ page }) => {
+test('RouteDock LED와 미니맵 접기는 독립적으로 접힌다', async ({ page }) => {
   await page.goto('/scripts/ui-800x360/preview.html?state=riding&waypoints=3');
 
   const routeExpand = page.getByRole('button', { name: '경로 패널 펼치기' });
   const minimapCollapse = page.getByRole('button', { name: '미니맵 접기' });
   await expect(routeExpand).toBeVisible();
   await expect(minimapCollapse).toBeVisible();
-  await expect(routeExpand).toHaveAttribute('data-fold-kind', 'route');
-  await expect(minimapCollapse).toHaveAttribute('data-fold-kind', 'map');
   await expect(routeExpand).toHaveAttribute('aria-expanded', 'false');
+  await expect(minimapCollapse).toHaveAttribute('data-fold-kind', 'map');
   await expect(minimapCollapse).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('.route-dock__led-toggle')).toHaveCount(1);
 
   await routeExpand.click();
   const routeCollapse = page.getByRole('button', { name: '경로 패널 접기' });
   await expect(routeCollapse).toBeVisible();
+  await expect(page.getByRole('button', { name: /^케이던스 센서:/ })).toHaveCount(1);
   await page.mouse.move(400, 200);
 
-  const appearance = await page.evaluate(() => {
-    const route = document.querySelector<HTMLButtonElement>('[data-fold-kind="route"]')!;
-    const map = document.querySelector<HTMLButtonElement>('[data-fold-kind="map"]')!;
-    const routePanel = document.querySelector<HTMLElement>('.route-dock__card')!;
-    const mapPanel = document.querySelector<HTMLElement>('.route-minimap')!;
-    const read = (button: HTMLButtonElement, panel: HTMLElement) => {
-      const buttonBox = button.getBoundingClientRect();
-      const panelBox = panel.getBoundingClientRect();
-      const style = getComputedStyle(button);
-      const svgStyle = getComputedStyle(button.querySelector('svg')!);
-      return {
-        width: buttonBox.width,
-        height: buttonBox.height,
-        left: buttonBox.left - panelBox.left,
-        top: buttonBox.top - panelBox.top,
-        background: style.backgroundColor,
-        border: style.borderTop,
-        radius: style.borderRadius,
-        shadow: style.boxShadow,
-        strokeWidth: svgStyle.strokeWidth,
-      };
-    };
-    return { route: read(route, routePanel), map: read(map, mapPanel) };
-  });
-
-  expect(appearance.route.width).toBe(28);
-  expect(appearance.route.height).toBe(28);
-  expect(appearance.map.width).toBe(28);
-  expect(appearance.map.height).toBe(28);
-  expect(appearance.route.left).toBe(4);
-  expect(appearance.route.top).toBe(4);
-  expect(appearance.map.left).toBe(4);
-  expect(appearance.map.top).toBe(4);
-  expect(appearance.route.background).toBe(appearance.map.background);
-  expect(appearance.route.border).toBe(appearance.map.border);
-  expect(appearance.route.radius).toBe(appearance.map.radius);
-  expect(appearance.route.shadow).toBe(appearance.map.shadow);
-  expect(appearance.route.strokeWidth).toBe(appearance.map.strokeWidth);
+  const mapBox = await minimapCollapse.boundingBox();
+  expect(mapBox!.width).toBe(28);
+  expect(mapBox!.height).toBe(28);
 
   // 주소 패널만 접어도 미니맵은 유지된다.
   await routeCollapse.click();
   await expect(page.getByRole('button', { name: '경로 패널 펼치기' })).toHaveAttribute('aria-expanded', 'false');
   await expect(minimapCollapse).toHaveAttribute('aria-expanded', 'true');
 
-  // 둘 다 접혀도 각 식별 도안이 남고 버튼끼리 겹치지 않는다.
+  // 둘 다 접혀도 서로 겹치지 않는다.
   await minimapCollapse.click();
-  const collapsed = await page.locator('.route-overview-fold-toggle').evaluateAll((buttons) =>
-    buttons.map((button) => {
-      const box = button.getBoundingClientRect();
-      return { left: box.left, right: box.right, top: box.top, bottom: box.bottom };
-    }),
-  );
-  expect(collapsed).toHaveLength(2);
-  const [a, b] = collapsed;
-  const overlaps = a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+  const collapsed = await page.evaluate(() => {
+    const led = document.querySelector('.route-dock__led-toggle')!.getBoundingClientRect();
+    const map = document.querySelector('[data-fold-kind="map"]')!.getBoundingClientRect();
+    return {
+      led: { left: led.left, right: led.right, top: led.top, bottom: led.bottom },
+      map: { left: map.left, right: map.right, top: map.top, bottom: map.bottom },
+    };
+  });
+  const overlaps = collapsed.led.left < collapsed.map.right && collapsed.led.right > collapsed.map.left
+    && collapsed.led.top < collapsed.map.bottom && collapsed.led.bottom > collapsed.map.top;
   expect(overlaps).toBe(false);
   await expect(page.getByRole('button', { name: '미니맵 펼치기' })).toHaveAttribute('aria-expanded', 'false');
 });

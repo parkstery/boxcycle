@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/refs */
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import mapboxgl from "mapbox-gl";
+import { RideTerrainGuard, readRideTerrainHealth, TERRAIN_GUARD_INTERVAL_MS } from "./rideTerrainGuard";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../../lib/map/disableMapboxTelemetry";
 import {
@@ -175,6 +176,7 @@ import {
 import {
   shouldEaseNorthUpOnRideActiveChange,
   easeMapNorthUpAfterRideEnd,
+  rideEndOverviewZoom,
   isSameRouteLine,
   RIDE_END_NORTH_UP_DURATION_MS,
 } from "../../lib/map/rideEndNorthUp";
@@ -279,6 +281,7 @@ export type MapViewProps = {
   mapZoom: number;
   followMode: FollowMode;
   enable3D: boolean;
+  onTerrainFallbackChange?: (flat: boolean) => void;
   onMapZoom: (zoom: number) => void;
   /**
    * HUD 줌 ± — 맵 실측 zoom+delta 를 즉시 적용(App mapZoom↔idle sync 경합·반대 jump 회피).
@@ -480,6 +483,7 @@ export function MapView({
   mapZoom,
   followMode,
   enable3D,
+  onTerrainFallbackChange,
   onMapZoom,
   mapZoomStepRequest = null,
   onSelectPoint,
@@ -634,6 +638,8 @@ export function MapView({
   const onRideCameraDistanceFromUserZoomRef = useRef(onRideCameraDistanceFromUserZoom);
   const prefersReducedMotionRef = useRef(false);
   const enable3DRef = useRef(enable3D);
+  const terrainFallbackRef = useRef(false);
+  const onTerrainFallbackChangeRef = useRef(onTerrainFallbackChange);
   /** 본인·동행·페이서의 화면 방향·기울기. 라이더 id 하나당 상태 하나. */
   const riderTurnRef = useRef(new RiderTurnSmoother());
   /** 동행 feature 에 속도가 없을 때, 직전 경로 거리. */
@@ -802,6 +808,7 @@ export function MapView({
   useAssignRef(prefersReducedMotionRef, prefersReducedMotion);
 
   useAssignRef(enable3DRef, enable3D);
+  useAssignRef(onTerrainFallbackChangeRef, onTerrainFallbackChange);
 
   useAssignRef(onSelectPointRef, onSelectPoint);
 
@@ -883,7 +890,7 @@ export function MapView({
    * 일시정지(rideActive 유지)에서는 호출되지 않는다.
    * 흐름: App `rideStatus→idle` → `liveRiderMotion=null`·`liveForMap=null`(follow tick 중단)
    * → 이 effect → `easeMapNorthUpAfterRideEnd`.
-   * App idle `setMapZoom` 복원은 Chief(중심·줌 유지)와 충돌하므로 hold 로 무시하고,
+   * App idle `setMapZoom` 복원은 종료 후 고도1,000m와 충돌하므로 hold 로 무시하고,
    * 다음 주행 시작(`rideFollowCameraNonce`)에서 해제한다.
    */
   useEffect(() => {
@@ -897,10 +904,14 @@ export function MapView({
     rideEndHeldRouteRef.current = routeGeometryRef.current;
     // hold 동안 follow tick 이 재개되지 않게 — ease 끝나면 짧게 여유.
     suppressCameraFollowUntilRef.current = performance.now() + durationMs + 200;
-    const heldZoom = map.getZoom();
+    // Remove physical terrain/buildings as well as flattening the camera.
+    terrainFallbackRef.current = false;
+    map.setTerrain(null);
+    if (map.getLayer(BUILDING_LAYER_ID)) map.removeLayer(BUILDING_LAYER_ID);
+    const heldZoom = rideEndOverviewZoom(map);
     cameraSmoothRef.current.zoom = heldZoom;
     mapZoomRef.current = heldZoom;
-    easeMapNorthUpAfterRideEnd(map, { durationMs, pitch: 0 });
+    easeMapNorthUpAfterRideEnd(map, { durationMs, pitch: 0, zoom: heldZoom });
     const smooth = cameraSmoothRef.current;
     smooth.bearing = 0;
     smooth.bearingPrimary = 0;
@@ -1192,7 +1203,7 @@ export function MapView({
       if (shouldMoveActivityWorldLayersToTop()) {
         moveActivityWorldLayersToTop(map);
       }
-      apply3DState(map, enable3DRef.current, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
+      apply3DState(map, enable3DRef.current, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID, { flatFallback: terrainFallbackRef.current });
       // mapcut 측정 스위치 — 쿼리 있을 때만. apply3DState 가 지형·건물을 되살린 뒤라 순서가 중요.
       try {
         applyMapCutToMap(map);
@@ -1505,9 +1516,9 @@ export function MapView({
           if (popup) popup.options.closeOnClick = false;
         },
         onRoutePanelActivated: () => promotePointPopupToDock(picked, ac),
-        onPulseDistanceCircle: () => {
+        onPulseDistanceCircle: (cycles) => {
           stopDistanceCircleAttention();
-          stopCircleAttention = pulseDistanceCircle(map, () => distanceTargetCircleRef.current);
+          stopCircleAttention = pulseDistanceCircle(map, () => distanceTargetCircleRef.current, cycles);
         },
         onStopDistanceCirclePulse: stopDistanceCircleAttention,
         onGenerateDistanceRoute: (point) => runDirectionRouteSearch(point),
@@ -3298,6 +3309,38 @@ export function MapView({
       /* lab 스위치 */
     }
   }, [enable3D, mapLoaded]);
+
+  // Automatic 2D is flat terrain, not setTerrain(null): retain DEM availability
+  // for recovery without a second map, raw tile downloads or retry flashes.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    if (!enable3D || !rideActive) {
+      terrainFallbackRef.current = false;
+      onTerrainFallbackChangeRef.current?.(false);
+      delete map.getContainer().dataset.terrainView;
+      return;
+    }
+    const guard = new RideTerrainGuard(performance.now());
+    let disposed = false;
+    const apply = (flat: boolean) => {
+      terrainFallbackRef.current = flat;
+      apply3DState(map, true, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID, { flatFallback: flat, preserveCamera: true });
+      map.getContainer().dataset.terrainView = flat ? "auto-2d" : "3d";
+      onTerrainFallbackChangeRef.current?.(flat);
+    };
+    apply(true);
+    const observe = () => {
+      if (disposed || document.hidden || !map.getTerrain()) return;
+      const next = guard.update(performance.now(), readRideTerrainHealth(map, liveLngLatRef.current, guard.flat));
+      if (next !== terrainFallbackRef.current) apply(next);
+    };
+    const timer = window.setInterval(observe, TERRAIN_GUARD_INTERVAL_MS);
+    return () => {
+      disposed = true;
+      window.clearInterval(timer);
+    };
+  }, [enable3D, rideActive, mapLoaded]);
 
   /**
    * mapcut 측정 스위치 — 스타일 재로드마다 재적용. 생성 effect 의 `style.load`

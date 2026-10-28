@@ -1,0 +1,377 @@
+[
+  {
+    "width": 800,
+    "height": 360,
+    "state": "ready",
+    "pass": true,
+    "account": {
+      "x": 716.125,
+      "y": 0,
+      "right": 800,
+      "bottom": 29.6875,
+      "width": 83.875,
+      "height": 29.6875
+    },
+    "controls": {
+      "x": 630.65625,
+      "y": 0,
+      "right": 713.4375,
+      "bottom": 25.109375,
+      "width": 82.78125,
+      "height": 25.109375
+    },
+    "vw": 800,
+    "hit": true,
+    "overlap": false
+  },
+  {
+    "width": 800,
+    "height": 360,
+    "state": "riding",
+    "pass": true,
+    "account": {
+      "x": 716.125,
+      "y": 0,
+      "right": 800,
+      "bottom": 29.6875,
+      "width": 83.875,
+      "height": 29.6875
+    },
+    "controls": {
+      "x": 630.65625,
+      "y": 0,
+      "right": 713.4375,
+      "bottom": 25.109375,
+      "width": 82.78125,
+      "height": 25.109375
+    },
+    "vw": 800,
+    "hit": true,
+    "overlap": false
+  },
+  {
+    "width": 800,
+    "height": 360,
+    "state": "paused",
+    "pass": true,
+    "account": {
+      "x": 716.125,
+      "y": 0,
+      "right": 800,
+      "bottom": 29.6875,
+      "width": 83.875,
+      "height": 29.6875
+    },
+    "controls": {
+      "x": 630.65625,
+      "y": 0,
+      "right": 713.4375,
+      "bottom": 25.109375,
+      "width": 82.78125,
+      "height": 25.109375
+    },
+    "vw": 800,
+    "hit": true,
+    "overlap": false
+  },
+  {
+    "width": 736,
+    "height": 360,
+    "state": "ready",
+    "pass": true,
+    "account": {
+      "x": 652.125,
+      "y": 0,
+      "right": 736,
+      "bottom": 29.6875,
+      "width": 83.875,
+      "height": 29.6875
+    },
+    "controls": {
+      "x": 566.65625,
+      "y": 0,
+      "right": 649.4375,
+      "bottom": 25.109375,
+      "width": 82.78125,
+      "height": 25.109375
+    },
+    "vw": 736,
+    "hit": true,
+    "overlap": false
+  },
+  {
+    "width": 736,
+    "height": 360,
+    "state": "riding",
+    "pass": true,
+    "account": {
+      "x": 652.125,
+      "y": 0,
+      "right": 736,
+      "bottom": 29.6875,
+      "width": 83.875,
+      "height": 29.6875
+    },
+    "controls": {
+      "x": 540.4375,
+      "y": 0,
+      "right": 649.4375,
+      "bottom": 25.109375,
+      "width": 109,
+      "height": 25.109375
+    },
+    "vw": 736,
+    "hit": true,
+    "overlap": false
+  },
+  {
+    "width": 736,
+    "height": 360,
+    "state": "paused",
+    "pass": true,
+    "account": {
+      "x": 652.125,
+      "y": 0,
+      "right": 736,
+      "bottom": 29.6875,
+      "width": 83.875,
+      "height": 29.6875
+    },
+    "controls": {
+      "x": 540.4375,
+      "y": 0,
+      "right": 649.4375,
+      "bottom": 25.109375,
+      "width": 109,
+      "height": 25.109375
+    },
+    "vw": 736,
+    "hit": true,
+    "overlap": false
+  },
+  {
+    "width": 699,
+    "height": 273,
+    "state": "ready",
+    "pass": true,
+    "account": {
+      "x": 615.125,
+      "y": 0,
+      "right": 699,
+      "bottom": 29.6875,
+      "width": 83.875,
+      "height": 29.6875
+    },
+    "controls": {
+      "x": 529.65625,
+      "y": 0,
+      "right": 612.4375,
+      "bottom": 25.109375,
+      "width": 82.78125,
+      "height": 25.109375
+    },
+    "vw": 699,
+    "hit": true,
+    "overlap": false
+  },
+  {
+    "width": 699,
+    "height": 273,
+    "state": "riding",
+    "pass": true,
+    "account": {
+      "x": 615.125,
+      "y": 0,
+      "right": 699,
+      "bottom": 29.6875,
+      "width": 83.875,
+      "height": 29.6875
+    },
+    "controls": {
+      "x": 511.4375,
+      "y": 0,
+      "right": 612.4375,
+      "bottom": 25.109375,
+      "width": 101,
+      "height": 25.109375
+    },
+    "vw": 699,
+    "hit": true,
+    "overlap": false
+  },
+  {
+    "width": 699,
+    "height": 273,
+    "state": "paused",
+    "pass": true,
+    "account": {
+      "x": 615.125,
+      "y": 0,
+      "right": 699,
+      "bottom": 29.6875,
+      "width": 83.875,
+      "height": 29.6875
+    },
+    "controls": {
+      "x": 511.4375,
+      "y": 0,
+      "right": 612.4375,
+      "bottom": 25.109375,
+      "width": 101,
+      "height": 25.109375
+    },
+    "vw": 699,
+    "hit": true,
+    "overlap": false
+  },
+  {
+    "width": 667,
+    "height": 300,
+    "state": "ready",
+    "pass": true,
+    "account": {
+      "x": 583.125,
+      "y": 0,
+      "right": 667,
+      "bottom": 29.6875,
+      "width": 83.875,
+      "height": 29.6875
+    },
+    "controls": {
+      "x": 497.65625,
+      "y": 0,
+      "right": 580.4375,
+      "bottom": 25.109375,
+      "width": 82.78125,
+      "height": 25.109375
+    },
+    "vw": 667,
+    "hit": true,
+    "overlap": false
+  },
+  {
+    "width": 667,
+    "height": 300,
+    "state": "riding",
+    "pass": true,
+    "account": {
+      "x": 583.125,
+      "y": 0,
+      "right": 667,
+      "bottom": 29.6875,
+      "width": 83.875,
+      "height": 29.6875
+    },
+    "controls": {
+      "x": 479.4375,
+      "y": 0,
+      "right": 580.4375,
+      "bottom": 25.109375,
+      "width": 101,
+      "height": 25.109375
+    },
+    "vw": 667,
+    "hit": true,
+    "overlap": false
+  },
+  {
+    "width": 667,
+    "height": 300,
+    "state": "paused",
+    "pass": true,
+    "account": {
+      "x": 583.125,
+      "y": 0,
+      "right": 667,
+      "bottom": 29.6875,
+      "width": 83.875,
+      "height": 29.6875
+    },
+    "controls": {
+      "x": 479.4375,
+      "y": 0,
+      "right": 580.4375,
+      "bottom": 25.109375,
+      "width": 101,
+      "height": 25.109375
+    },
+    "vw": 667,
+    "hit": true,
+    "overlap": false
+  },
+  {
+    "width": 1280,
+    "height": 720,
+    "state": "ready",
+    "pass": true,
+    "account": {
+      "x": 1179.625,
+      "y": 0,
+      "right": 1280,
+      "bottom": 35.1875,
+      "width": 100.375,
+      "height": 35.1875
+    },
+    "controls": {
+      "x": 1032.578125,
+      "y": 0,
+      "right": 1173.234375,
+      "bottom": 44.625,
+      "width": 140.65625,
+      "height": 44.625
+    },
+    "vw": 1280,
+    "hit": true,
+    "overlap": false
+  },
+  {
+    "width": 1280,
+    "height": 720,
+    "state": "riding",
+    "pass": true,
+    "account": {
+      "x": 1179.625,
+      "y": 0,
+      "right": 1280,
+      "bottom": 35.1875,
+      "width": 100.375,
+      "height": 35.1875
+    },
+    "controls": {
+      "x": 1032.578125,
+      "y": 0,
+      "right": 1173.234375,
+      "bottom": 44.625,
+      "width": 140.65625,
+      "height": 44.625
+    },
+    "vw": 1280,
+    "hit": true,
+    "overlap": false
+  },
+  {
+    "width": 1280,
+    "height": 720,
+    "state": "paused",
+    "pass": true,
+    "account": {
+      "x": 1179.625,
+      "y": 0,
+      "right": 1280,
+      "bottom": 35.1875,
+      "width": 100.375,
+      "height": 35.1875
+    },
+    "controls": {
+      "x": 1032.578125,
+      "y": 0,
+      "right": 1173.234375,
+      "bottom": 44.625,
+      "width": 140.65625,
+      "height": 44.625
+    },
+    "vw": 1280,
+    "hit": true,
+    "overlap": false
+  }
+]

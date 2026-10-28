@@ -269,6 +269,8 @@ test.describe("센서 설정 시트 레이아웃", () => {
     await page.goto("/");
     await guestStart(page);
 
+    const expand = page.getByRole("button", { name: "경로 패널 펼치기" });
+    if (await expand.isVisible().catch(() => false)) await expand.click();
     await page.getByRole("button", { name: /케이던스 센서/ }).click();
     const sheet = page.getByRole("dialog", { name: "케이던스 센서" });
     await expect(sheet).toBeVisible({ timeout: 15_000 });
@@ -488,8 +490,8 @@ test.describe("다음 주행 카드 자리", () => {
     );
     fs.writeFileSync(path.join(SHOTS_DIR, "next-ride-bar-diag.json"), `${JSON.stringify(barDiag, null, 2)}
 `, "utf8");
-    const dock = page.locator(".ride-control-bar .hud-cadence");
-    await expect(dock, `센서 칩이 보여야 한다: ${JSON.stringify(barDiag)}`).toBeVisible({ timeout: 20_000 });
+    const dock = page.locator(".route-dock__led-toggle");
+    await expect(dock, `센서 LED가 보여야 한다: ${JSON.stringify(barDiag)}`).toBeVisible({ timeout: 20_000 });
     await expect(card, "종료 후 idle 에서 「다음 주행」 카드가 뜬다").toBeVisible({
       timeout: 20_000,
     });
@@ -791,6 +793,8 @@ async function guestStart(page: Page) {
  * 짧은 거리를 재는 시험에 그 시간을 쓸 이유가 없다(2026-09-17 Chief).
  */
 async function armRideInput(page: Page, speedKmh = 50) {
+  const expand = page.getByRole("button", { name: "경로 패널 펼치기" });
+  if (await expand.isVisible().catch(() => false)) await expand.click();
   await page.getByRole("button", { name: /케이던스 센서/ }).click();
   const sheet = page.getByRole("dialog", { name: "케이던스 센서" });
   await expect(sheet).toBeVisible({ timeout: 15_000 });

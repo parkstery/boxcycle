@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
-import { sensorChipSlot } from "../../lib/route/sensorChipSlot";
-import { CadenceHudChip, type CadenceChipBinding } from "../maphud/CadenceHudChip";
 import "./RideControlBar.css";
 import "./RideMediaButton.css";
 import { restartRideStartPulse, stopRideStartPulse } from "./rideStartPulse";
@@ -13,7 +11,6 @@ export type RideControlBarProps = {
   /** 경로 생성 창 주행 버튼과 함께 쓰는 펄스 번호(`useRideStartPulseKey`). 바뀔 때마다 5회 펄스. */
   startPulseKey?: number;
   canStartRide: boolean;
-  sensorAttention?: boolean;
   onStartRide: (fromStart?: boolean) => void;
   onPauseRide: () => void;
   onResumeRide: () => void;
@@ -22,15 +19,13 @@ export type RideControlBarProps = {
   resumeRatio?: number | null;
   onAbandonResume?: (() => void) | null;
   editLocked?: boolean;
-  cadence?: CadenceChipBinding | null;
   nextRideVisible?: boolean;
 };
-/** One fixed place for input preparation and transport; route addresses are independent. */
+/** One fixed place for transport; route addresses and sensor live on RouteDock. */
 export function RideControlBar(props: RideControlBarProps) {
-  const { stage, routeLoading, routeSetupToken = null, resumeRatio = null, cadence = null } = props;
+  const { stage, routeLoading, resumeRatio = null } = props;
   const [resumeOpen, setResumeOpen] = useState(false);
   const [pauseOptionsOpen, setPauseOptionsOpen] = useState(false);
-  const [endedRoute, setEndedRoute] = useState<{ token: object | null } | null>(null);
   const [restartFromZero, setRestartFromZero] = useState(false);
   const [previousResume, setPreviousResume] = useState(resumeRatio);
   if (previousResume !== resumeRatio) {
@@ -44,15 +39,12 @@ export function RideControlBar(props: RideControlBarProps) {
     if (startPulseKey > 0 && primaryRef.current) restartRideStartPulse(primaryRef.current);
   }, [startPulseKey]);
 
-  const endedCurrentRoute = endedRoute !== null && endedRoute.token === routeSetupToken;
-  const riding = stage === "riding" && !endedCurrentRoute;
-  const paused = stage === "paused" && !endedCurrentRoute;
+  const riding = stage === "riding";
+  const paused = stage === "paused";
   const active = riding || paused;
-  const ready = stage === "ready-to-start" && !endedCurrentRoute;
-  const sensorVisible =
-    sensorChipSlot({ stage, hasCadence: Boolean(cadence), expanded: true }) === "ride-control-bar";
+  const ready = stage === "ready-to-start";
   if (stage === "gate" || stage === "gate-nickname" || stage === "summary") return null;
-  if (!ready && !active && !sensorVisible) return null;
+  if (!ready && !active) return null;
   const startDisabled = !props.canStartRide || routeLoading || Boolean(props.editLocked);
 
   return (
@@ -60,16 +52,6 @@ export function RideControlBar(props: RideControlBarProps) {
       className={`ride-control-anchor${props.nextRideVisible ? " ride-control-anchor--with-next" : ""}`}
     >
       <div className="ride-control-bar" role="group" aria-label="주행 제어">
-        {sensorVisible && cadence ? (
-          <CadenceHudChip
-            placement="dock"
-            state={cadence.state}
-            riding={active}
-            open={cadence.open}
-            onOpen={cadence.onOpen}
-            attention={false}
-          />
-        ) : null}
         {ready && resumeRatio != null ? (
           <button
             type="button"
@@ -115,7 +97,6 @@ export function RideControlBar(props: RideControlBarProps) {
             className="ride-media-button ride-media-button--stop ride-control-bar__end"
             aria-label="주행 종료"
             onClick={() => {
-              setEndedRoute({ token: routeSetupToken });
               setResumeOpen(false);
               setPauseOptionsOpen(false);
               props.onEndRide();

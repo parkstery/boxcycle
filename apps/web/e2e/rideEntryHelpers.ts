@@ -145,36 +145,33 @@ export async function guestStart(page: Page): Promise<void> {
 }
 
 /**
- * 센서 시트를 연다 — **입구가 상태마다 다르다.**
+ * 센서 시트를 연다 — **입구가 접힘과 펼침에서 다르다.**
  *
- * RouteDock 은 센서를 세 모습으로 보여 준다(`lib/route/sensorChipSlot`):
- *   · 첫 화면(idle)  캐럿만 — 누르면 **센서 시트가 열린다**
- *   · 주행 중 접힘   캐럿만 — 누르면 **패널이 펼쳐진다**(시트가 아니다)
- *   · 펼침           센서 칩 — 누르면 센서 시트가 열린다
+ * RouteDock 은 센서를 두 모습으로 보여 준다(`lib/route/sensorChipSlot`):
+ *   · 접힘·무경로  LED(경로 패널 펼치기) — 누르면 **패널이 펼쳐진다**
+ *   · 펼침         센서 알약 — 누르면 센서 시트가 열린다
  *
- * 캐럿의 접근성 이름이 「경로 패널 펼치기 · 케이던스 센서: …」라서, 앵커(`^`) 없이
- * `/케이던스 센서/` 로 누르면 **주행 중에 캐럿이 걸려** 패널만 펼쳐진다.
+ * 앵커(`^`) 없이 `/케이던스 센서/` 로 접힌 LED를 건드리면 시트가 안 열린다.
  */
 export async function openCadenceSheet(page: Page): Promise<Locator> {
   const sheet = page.getByRole('dialog', { name: '케이던스 센서' })
   if (await sheet.isVisible().catch(() => false)) return sheet
 
-  const caretOpensSheet = page.getByRole('button', { name: /^센서 설정 열기/ })
   const expand = page.getByRole('button', { name: /^경로 패널 펼치기/ })
   const chip = page.getByRole('button', { name: /^케이던스 센서/ })
 
   /*
    * ⚠️ `isVisible()` 은 **기다리지 않는다** — 그 순간의 상태를 그대로 돌려준다.
-   * 게이트가 막 닫힌 직후에는 dock 이 아직 안 그려져 셋 다 false 가 되고, 그러면 아래
+   * 게이트가 막 닫힌 직후에는 dock 이 아직 안 그려져 둘 다 false 가 되고, 그러면 아래
    * 분기가 「없는 것」을 누르러 가서 **시험 시간 전체를 그 클릭 하나가 먹는다.**
    * 2026-09-27 에 실제로 8분을 통째로 날렸다. 그래서 먼저 **하나가 나타날 때까지** 기다린다.
    */
-  await expect(caretOpensSheet.or(expand).or(chip).first()).toBeVisible({ timeout: 30_000 })
+  await expect(expand.or(chip).first()).toBeVisible({ timeout: 30_000 })
 
-  if (await caretOpensSheet.isVisible().catch(() => false)) {
-    await caretOpensSheet.click({ timeout: 15_000 })
+  if (await chip.isVisible().catch(() => false)) {
+    await chip.click({ timeout: 15_000 })
   } else {
-    if (await expand.isVisible().catch(() => false)) await expand.click({ timeout: 15_000 })
+    await expand.click({ timeout: 15_000 })
     await chip.click({ timeout: 15_000 })
   }
   await expect(sheet).toBeVisible({ timeout: 15_000 })

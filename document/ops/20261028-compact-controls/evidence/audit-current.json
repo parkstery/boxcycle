@@ -1,0 +1,30 @@
+{
+  "changed_sources": [
+    "apps/web/e2e/camera-angle-candidates.spec.ts",
+    "apps/web/e2e/camera-qc1-200m.spec.ts",
+    "apps/web/e2e/camera-qc1-hold.spec.ts",
+    "apps/web/e2e/camera-quick-capture.spec.ts",
+    "apps/web/e2e/map-menu-consolidation.spec.ts",
+    "apps/web/e2e/peer-sync-s1.spec.ts",
+    "apps/web/e2e/peer-sync-s3av.spec.ts",
+    "apps/web/e2e/ride-interval-settings.spec.ts",
+    "apps/web/e2e/ride-terrain-guard.spec.ts",
+    "apps/web/e2e/ui-800x360.spec.ts",
+    "apps/web/e2e/ui-redesign-batch2-live.spec.ts",
+    "apps/web/e2e/ui-redesign-batch2.spec.ts",
+    "apps/web/e2e/ui-redesign-batch4.spec.ts",
+    "apps/web/scripts/ui-800x360/preview.tsx",
+    "apps/web/src/components/leaderboard/LeaderboardSheet.css",
+    "apps/web/src/components/leaderboard/LeaderboardSheet.tsx",
+    "apps/web/src/components/maphud/CameraViewMenu.css",
+    "apps/web/src/components/maphud/CameraViewMenu.tsx",
+    "apps/web/src/components/ride/RideSettingsPanel.tsx",
+    "apps/web/src/components/ride/RideSettingsSheet.css",
+    "apps/web/src/components/ui/EdgePanelHandle.css"
+  ],
+  "new_sources": [
+    "apps/web/e2e/compact-controls.spec.ts"
+  ],
+  "changed_protected_images": [],
+  "protected_image_count": 2181
+}

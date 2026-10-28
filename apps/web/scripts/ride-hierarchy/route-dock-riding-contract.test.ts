@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { routeDockUiPolicy } from "../../src/lib/route/routeDockUiPolicy.ts";
+import { routeDockDefaultExpanded, routeDockUiPolicy } from "../../src/lib/route/routeDockUiPolicy.ts";
 
 describe("routeDock riding hierarchy", () => {
   /**
@@ -56,5 +56,13 @@ describe("routeDock riding hierarchy", () => {
     const p = routeDockUiPolicy("setup", true);
     assert.equal(p.lockStopEditing, true);
     assert.equal(p.hideStopsList, false, "잠겨도 목록 자체는 보인다");
+  });
+
+  it("무경로는 LED만, 경로가 있으면 주행 전 펼침·주행 중 접힘", () => {
+    assert.equal(routeDockDefaultExpanded("idle", 0), false);
+    assert.equal(routeDockDefaultExpanded("setup", 1), true);
+    assert.equal(routeDockDefaultExpanded("ready-to-start", 2), true);
+    assert.equal(routeDockDefaultExpanded("riding", 2), false);
+    assert.equal(routeDockDefaultExpanded("paused", 2), false);
   });
 });

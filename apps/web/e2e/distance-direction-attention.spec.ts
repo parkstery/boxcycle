@@ -1,5 +1,58 @@
 import {test,expect} from '@playwright/test';
 import {stubMapboxStyle} from './mapbox-stub';
+import type { PickPopupAutoRouteUi } from '../src/components/map/mapPopupElements';
+
+test('출발·도착 경로에서 전환하면 기존 목표 거리로 첫 방향 클릭을 탐색한다', async ({page}) => {
+  await page.goto('/scripts/ui-800x360/preview.html?state=idle');
+  const result = await page.evaluate(async () => {
+    const url = '/src/components/map/mapPopupElements.ts';
+    const {buildPickPopup} = await import(url);
+    let ui: PickPopupAutoRouteUi | undefined;
+    const searches: number[][] = [];
+    const popup = buildPickPopup({lngLat:[127,37], initialStart:[127,37], initialHasStart:true,
+      initialHasEnd:true, initialHasRoute:true, autoRouteTargetKm:10, routeProfile:'cycling',
+      getWaypointCount:()=>0, accessToken:'', signal:new AbortController().signal,
+      onSelectPoint:()=>{}, onRouteProfile:()=>{}, closePopup:()=>{},
+      onArmDirectionPick:()=>({ok:true}), onRegisterAutoRouteUi:(value: PickPopupAutoRouteUi)=>{ui=value;},
+      onGenerateDistanceRoute:(point: number[])=>searches.push(point)});
+    document.body.append(popup);
+    (popup.querySelector('#map-view-pick-tab-distance') as HTMLButtonElement).click();
+    ui!.stageDirectionPick([127.1,37.1]);
+    return {searches, distance:(popup.querySelector('[aria-label="목표거리 km"]') as HTMLInputElement).value};
+  });
+  expect(result.distance).toBe('10.0');
+  expect(result.searches).toEqual([[127.1,37.1]]);
+});
+
+test('여기에서 계속 첫 거리·방향 화면은 원·화살표를 5회 펄싱한다',async({page})=>{
+  await page.setViewportSize({width:699,height:273});
+  await stubMapboxStyle(page);
+  await page.route(/https:\/\/api\.mapbox\.com\/(?!styles)/,r=>r.fulfill({status:200,contentType:'application/json',body:'{}'}));
+  await page.goto('/scripts/ui-800x360/map-route-runtime.html');
+  await expect(page.locator('.mapboxgl-canvas')).toBeVisible();
+  await page.getByRole('button',{name:'여기에서 계속 검수',exact:true}).click();
+  await expect(page.getByRole('tab',{name:'거리·방향',exact:true})).toHaveAttribute('aria-selected','true');
+  const result=await page.evaluate(async()=>{
+    const url='/src/lib/route/distanceAutoRoute.ts';
+    const {circleLineString}=await import(url);
+    const base=circleLineString([127,37],3000).coordinates.map((p:number[])=>p[1]);
+    const span=Math.max(...base)-Math.min(...base);
+    return new Promise<{peaks:number;last:number;max:number}>(resolve=>{
+      let peaks=0,inPeak=false,last=1,max=1;const start=performance.now();
+      const sample=()=>{
+        // @ts-expect-error MapView 검수 참조
+        const src=window.__RTW_MAP__.getSource('distance-target-circle');
+        const coords=src?.serialize?.().data?.features?.[0]?.geometry?.coordinates as number[][]|undefined;
+        if(coords?.length){const lats=coords.map(p=>p[1]!);last=(Math.max(...lats)-Math.min(...lats))/span;max=Math.max(max,last);
+          if(last>1.08&&!inPeak){peaks++;inPeak=true;}if(last<1.02)inPeak=false;
+        }
+        if(performance.now()-start<8000)requestAnimationFrame(sample);else resolve({peaks,last,max});
+      };sample();
+    });
+  });
+  expect(result.peaks).toBe(5);expect(result.last).toBeCloseTo(1,3);expect(result.max).toBeGreaterThan(1.09);
+  await expect(page.locator('#runtime-state')).toContainText('"picks":0');
+});
 
 test('출발·도착 확정 후 미선택 수단은 기존 순차 강조를 유지한다',async({page})=>{
   await page.goto('/scripts/ui-800x360/preview.html?state=idle');
@@ -42,9 +95,6 @@ test('거리 확정→원 펄스→방향 클릭 자동 탐색→적용 수단 �
   await expect(profiles).toBeVisible();
   await expect(profiles.locator('button:disabled')).toHaveCount(0);
   await noneChosen();
-  await page.mouse.click(650,210);
-  await noneChosen();
-  await expect(page.locator('#runtime-state')).toContainText('"picks":0');
   await popup.getByRole('button',{name:'목표 거리 3km',exact:true}).click();
   await noneChosen();
   // 10-26 Chief 참고 영상: 원이 1.5초 주기로 커졌다 작아진다. 1.6초 동안 원의 남북 폭 최대/최소 비.

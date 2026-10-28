@@ -1,0 +1,57 @@
+[
+  {
+    "path": "document/ops/20261023-ui-redesign/evidence/inline-history/after-first-visit-800x360.png",
+    "restored_sha256": "5cef2bce1c235e502f81997634163447abf1fcdb791a134a147d063baa3ba3ac",
+    "generated_capture_sha256": "6d77617bd9258c2d652a15e5f2ceaeac00b9b54fb3d1479b8a0f5bba74f402a1"
+  },
+  {
+    "path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-667x300.png",
+    "restored_sha256": "084cceae164fb048b7c0aa2f40252f6f20739cd72c7dfc5df0dd698d2694e48c",
+    "generated_capture_sha256": "9a265b0c1b5286ecd221d88e46e7c2f38f31a3373562abd2e0a2f29c53d4290b"
+  },
+  {
+    "path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-800x360.png",
+    "restored_sha256": "d41d2a766043a7db1c3e9df0236630bd75cf3f294e2c17d41aa59da9205566e5",
+    "generated_capture_sha256": "67e538c59741d29a0577098db23a804299942a4cb14e77a5590deb85753fd69a"
+  },
+  {
+    "path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-667x300.png",
+    "restored_sha256": "9eb99ec52e04f24cd7b00fbc8bcf136d4955ae1ca944c2cd37a40e31231d74d0",
+    "generated_capture_sha256": "abc244d4b983e0a3155c680d58573e1c14c9029ed6b60dff0a76d6f265ba96ca"
+  },
+  {
+    "path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-800x360.png",
+    "restored_sha256": "2ed664192cff9e50393ce1854bf6406da9b991f776296536e8cc3089446a7e7b",
+    "generated_capture_sha256": "d93769fd97958d91e72132953023aa76f2ce6a5fc119da701b53a1f79e7025ba"
+  },
+  {
+    "path": "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/paused-collapsed-800x360.png",
+    "restored_sha256": "0bb84654516d8a4de4950749fbe825e1a06371a2ae414025b5678c12eee1d1d8",
+    "generated_capture_sha256": "5c5eef1f47129864e2fe3c3cb5d154fe8a205e3fd4c1a89e829ad98e3684a3e7"
+  },
+  {
+    "path": "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/ready-collapsed-800x360.png",
+    "restored_sha256": "d87be698bd758b87083a9a442780e9ab2715840e19ff5aee1b551a41809c581f",
+    "generated_capture_sha256": "79e03d23434ea59ef9591e912c96d76d854a503a9d70e164d1a4a8aba10ab88f"
+  },
+  {
+    "path": "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/riding-collapsed-667x300.png",
+    "restored_sha256": "b8b2667827361df4e41f3e16209d268a8b8d79d95295070498293a6677b99a3a",
+    "generated_capture_sha256": "96d28b0ad983c665976f4f974057cd31370a0fd6b6d10a21f85f5f6cbc0cbe23"
+  },
+  {
+    "path": "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/riding-collapsed-800x360.png",
+    "restored_sha256": "66f28670ae39fc23cf686dd3c588a6d99c379f128338848787efb20b47fba020",
+    "generated_capture_sha256": "3c80f7d78c17bd5ebfc8114678f660fe88a797ffa0e9287b8b8eff93ab3cb379"
+  },
+  {
+    "path": "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/riding-collapsed-zoom.png",
+    "restored_sha256": "e2dd5ef5f3431fcb7bd61c3c15bb519af90e0ba69ab1dec34a90c16b84e9bbf6",
+    "generated_capture_sha256": "6eb3bde36a2ae5f8035c9e7905320c503098b1fbfbaf3504c19ef6a22c586440"
+  },
+  {
+    "path": "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/riding-expanded-800x360.png",
+    "restored_sha256": "d1abc128aaa5dae7d3d9c1c4ebde20b1e3ff679ec0199e2231143a8e924d9c12",
+    "generated_capture_sha256": "8e483eff7ea18cba9f9537df80a8a52cbf7829fb4d862211a8e497e8cf9ab98f"
+  }
+]

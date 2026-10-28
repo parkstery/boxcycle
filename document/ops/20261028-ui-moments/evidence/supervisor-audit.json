@@ -1,0 +1,305 @@
+{
+  "changes": [
+    {
+      "path": "apps/web/dep-layers.json",
+      "status": "modified",
+      "before": "4c44d9531ed6d90b0268263b4d4ad4cfc3c68d2b0f1e78ffae397e48386bb6f9",
+      "after": "8f62104ca7bfe2c28efb1cc06511cd59462cc76537e97e5fbd13bfc20ecbfaec",
+      "added_lines": 2,
+      "removed_lines": 0
+    },
+    {
+      "path": "apps/web/e2e/map-menu-consolidation.spec.ts",
+      "status": "modified",
+      "before": "d8b4ca0bc3a8ff8176d6955c60f0b08a622a3e965499dc0680e702e07f131b49",
+      "after": "3423510774f1fc44f70ce2830488004290a611e49cd5213bffb7f4598151b211",
+      "added_lines": 2,
+      "removed_lines": 1
+    },
+    {
+      "path": "apps/web/e2e/ride-interval-settings.spec.ts",
+      "status": "modified",
+      "before": "39190c5ee16923566981203ddb31dfa40d6bc9646bcaed8913d69f69a020715b",
+      "after": "7de86d0f03e8c00037014b63e18c2e6e477130a1f6e085229dc8c5f35791b663",
+      "added_lines": 74,
+      "removed_lines": 37
+    },
+    {
+      "path": "apps/web/e2e/ride-interval.spec.ts",
+      "status": "modified",
+      "before": "3af3fcc7f16ae3ec51f7eda4d9f442a606ccd0595e455519968dabd850218b6d",
+      "after": "dbab975556349e5bddfc922d695cc2af79a1f641acf3e5fb16b7d23171f04bcf",
+      "added_lines": 11,
+      "removed_lines": 11
+    },
+    {
+      "path": "apps/web/e2e/ride-ui-moments.spec.ts",
+      "status": "added",
+      "before": null,
+      "after": "bc691dc9b72b608d94d67804ca34b9a5697cb8cdcffffa6820b2a432d60b1d27",
+      "added_lines": 146,
+      "removed_lines": 0
+    },
+    {
+      "path": "apps/web/e2e/ui-800x360.spec.ts",
+      "status": "modified",
+      "before": "04ca6e92395fdaae7a7a0822c9346010697e6044a0410b7b2b8b9dd1bff263c7",
+      "after": "67cc8fccb175aef2f33f3d69fc484636da2a2f2ddfde3725d9e846bbb2c6aec7",
+      "added_lines": 42,
+      "removed_lines": 30
+    },
+    {
+      "path": "apps/web/scripts/ride-interval/ride-interval.test.ts",
+      "status": "modified",
+      "before": "9b327c3decef09a65882dc6aa5392fb002ccc50f01d3a2917f14a9530e4682fb",
+      "after": "853cb756586a8a36861a4ed55f8b09d7107fc2d46b518d96b74b2f80d2261beb",
+      "added_lines": 64,
+      "removed_lines": 79
+    },
+    {
+      "path": "apps/web/scripts/ride-interval/ride-moment-sound.test.ts",
+      "status": "added",
+      "before": null,
+      "after": "58e4700c6750c1e03b36f7fc0d9cab7e9d84a8a1b6a471a997ebe1e88b643e20",
+      "added_lines": 65,
+      "removed_lines": 0
+    },
+    {
+      "path": "apps/web/scripts/ride-interval/ride-moments-dom.test.mjs",
+      "status": "added",
+      "before": null,
+      "after": "abfecf728b01c702cc9b8dc9ef2b8e3f9695d4a13a3d98a27bc30b22ac967c21",
+      "added_lines": 91,
+      "removed_lines": 0
+    },
+    {
+      "path": "apps/web/scripts/ride-interval/ride-moments-lifecycle.test.ts",
+      "status": "added",
+      "before": null,
+      "after": "0e06c6c1758e22b4c4c54ffac919c38e5ff3470e117ef0cfcedc5b3abd42ecca",
+      "added_lines": 123,
+      "removed_lines": 0
+    },
+    {
+      "path": "apps/web/scripts/ride-interval/ride-moments.test.ts",
+      "status": "added",
+      "before": null,
+      "after": "1ebaf8efec41d0d3a2e46be191646f405927e0c887f3781fd825ea07696cea8a",
+      "added_lines": 107,
+      "removed_lines": 0
+    },
+    {
+      "path": "apps/web/scripts/ride-interval/supervisor-layout-check.mjs",
+      "status": "added",
+      "before": null,
+      "after": "88d6c8dbbb2a885ee8227d167f0716a8e96e9430f0725e32e73952407d766197",
+      "added_lines": 45,
+      "removed_lines": 0
+    },
+    {
+      "path": "apps/web/scripts/ui-800x360/preview.tsx",
+      "status": "modified",
+      "before": "83f0c85d98572c083488afa54e9958a557f99df523bb1b4ad292dc16df8b78d1",
+      "after": "87b3a401ed303dbff43a833610e90db324e44a044edc354a825fcac197b651f1",
+      "added_lines": 29,
+      "removed_lines": 24
+    },
+    {
+      "path": "apps/web/src/App.tsx",
+      "status": "modified",
+      "before": "f920dea24349fc1abb291f74aab48f68b8e2cf57b79c24be4b980ee87c3b6374",
+      "after": "d500a31a4bbcd1bc4c558d6ebcd6b0c9dc09dc2f1032686b6b56743fd3ae923a",
+      "added_lines": 59,
+      "removed_lines": 13
+    },
+    {
+      "path": "apps/web/src/components/leaderboard/LeaderboardGlance.css",
+      "status": "modified",
+      "before": "b27b8c411e2db7f5fd7e6e1ea916bcb9a421cff3563dbf4470986a5867aaed4b",
+      "after": "c2d8eda04cc45995efea6270f28b7f8e63d663ab38f60b5c31baf856c0fb975c",
+      "added_lines": 15,
+      "removed_lines": 36
+    },
+    {
+      "path": "apps/web/src/components/leaderboard/LeaderboardGlance.tsx",
+      "status": "modified",
+      "before": "cf627b42b33a6dff6a4589b6412c84f94f205d4380adb2304812fb145f79bca5",
+      "after": "2689653764c83267026c6543677dd8ed7520e4488c4dde96548c4b3e684b6f22",
+      "added_lines": 3,
+      "removed_lines": 48
+    },
+    {
+      "path": "apps/web/src/components/maphud/MapHud.css",
+      "status": "modified",
+      "before": "2755d8ffaa83c5edfabfd95bc7dc71dc972aa659f1411dfd7f1e6df89b966591",
+      "after": "6afd291f8e739d150cb635c2732428dad5004aed96c0e5a6cc1e74acb6e002cc",
+      "added_lines": 46,
+      "removed_lines": 31
+    },
+    {
+      "path": "apps/web/src/components/maphud/MapHud.tsx",
+      "status": "modified",
+      "before": "7e2d9d4c30dab3068d935d6d47294757e7a3cc74cf5e42494fc76f377504e74a",
+      "after": "aa4aa9ccd4af2b72e24f724a5b3de7f69c43e6dd350725dd7cc205abafc6ca78",
+      "added_lines": 48,
+      "removed_lines": 55
+    },
+    {
+      "path": "apps/web/src/components/ride/RideIntervalHud.css",
+      "status": "modified",
+      "before": "59d3dcb9e3be693ded64be17302a8c8763f67b898b0cf2b08c5655a72a329e4b",
+      "after": "7f4aa0e18e3c902246097357c224877e10fd87250f24ed2db3292c2c7f98993c",
+      "added_lines": 22,
+      "removed_lines": 29
+    },
+    {
+      "path": "apps/web/src/components/ride/RideIntervalHud.tsx",
+      "status": "modified",
+      "before": "1e9a803284d144fd4b4d2c301511d881bd41cc2450bbfaee48cd928be2e1ecc6",
+      "after": "34df4297ae9c560c68174f06a3950d0fb4f32eb26e461b3af505ca2842bb1ae4",
+      "added_lines": 11,
+      "removed_lines": 5
+    },
+    {
+      "path": "apps/web/src/components/ride/RideIntervalSettingsSheet.css",
+      "status": "modified",
+      "before": "fe61fc79c1da1c8e95ab24bdb0c5023eaae3742f06d5c9c905402a3ea18c30b5",
+      "after": "7a0dc5aed7d856c44677808608346757539967e8ad667698ef86480e1e748274",
+      "added_lines": 12,
+      "removed_lines": 7
+    },
+    {
+      "path": "apps/web/src/components/ride/RideIntervalSettingsSheet.tsx",
+      "status": "modified",
+      "before": "61992fe78c12e6c48356eae7c9ae17c190750566a7d87300d8a57713842c3b35",
+      "after": "f5125a60848b168233dc70a355b9d7f3bb8cf200c1270b1d8797d0c2b4251ab8",
+      "added_lines": 217,
+      "removed_lines": 72
+    },
+    {
+      "path": "apps/web/src/components/ride/RideSettingsPanel.tsx",
+      "status": "modified",
+      "before": "0e6edf2fbf19d559009db5395bf984e085f92b5b7e313e3b23c0dc642fbc5a48",
+      "after": "0be2b7227709b6db9878581a939f51586d4e6cf3f20d1b717696b085824647e1",
+      "added_lines": 7,
+      "removed_lines": 3
+    },
+    {
+      "path": "apps/web/src/components/ride/RideSettingsSheet.tsx",
+      "status": "modified",
+      "before": "fac8bfa707a6f0aa481ef8d750a840d07f2f5ca20ca560ee90e0c5f38d2d986f",
+      "after": "d789bcb7afef295d5f895aaf258e04d9e3471da164fe8229b28907474332ae99",
+      "added_lines": 4,
+      "removed_lines": 0
+    },
+    {
+      "path": "apps/web/src/components/ride/RideSummarySheet.css",
+      "status": "modified",
+      "before": "4fe2f7b6f2218db764a6cd219797f0c2cbe052fa518d69b277db9491277a439e",
+      "after": "0212bee28cd695b5314523a60ddbac6fef815d4daacbd71494b297420e1c1bc8",
+      "added_lines": 1,
+      "removed_lines": 1
+    },
+    {
+      "path": "apps/web/src/components/ride/RideSummarySheet.tsx",
+      "status": "modified",
+      "before": "26d531d6cfd99285042305593533ba3b478d043989a69288869c6226159753c4",
+      "after": "4996ff17d69c707c5c0b71f8cfdec41b086d2d3add5d3e0c367c5c0efc63a457",
+      "added_lines": 2,
+      "removed_lines": 2
+    },
+    {
+      "path": "apps/web/src/components/route-dock/RouteDock.css",
+      "status": "modified",
+      "before": "12a96fa9d2aa655e617ca4c7fa685c44b48c81b38ee3d57d8b55db9fe6f78b11",
+      "after": "d946ccd024c781de2c404a10d7734a61a8d36df4e2c2ec8212709ce3329570a8",
+      "added_lines": 1,
+      "removed_lines": 1
+    },
+    {
+      "path": "apps/web/src/components/ui/EdgePanelHandle.css",
+      "status": "modified",
+      "before": "deb4d6196fe3518daaf12c692b10a1be4d6adf46189f3772dd8bbbb78c11daf8",
+      "after": "2d20d477c3d905fea27d1a4178dcf883390a6164e8910d34af3a2d78a8702869",
+      "added_lines": 26,
+      "removed_lines": 13
+    },
+    {
+      "path": "apps/web/src/components/ui/EdgePanelHandle.tsx",
+      "status": "modified",
+      "before": "242263d8ea1acac3381461867653d3fa1af2083539460e5c69dcc67f7a30a7a7",
+      "after": "dbde5b308cd36ae7a9d042f8b1e8049303d3bdd87f188bcbd54253790f340796",
+      "added_lines": 28,
+      "removed_lines": 16
+    },
+    {
+      "path": "apps/web/src/features/map-overlays/MapBottomLeftStack.css",
+      "status": "modified",
+      "before": "087fbde76daf9ddfcb672e7ffaa8d7cec839a078aa2c4724b254d378bc42331d",
+      "after": "7ee83da6240d0170f6ea63f8379a7af6e3bca1f5b3b94d4176bb5ecc9c9ada63",
+      "added_lines": 2,
+      "removed_lines": 3
+    },
+    {
+      "path": "apps/web/src/features/ride-feedback/useRideFeedbackPreferences.ts",
+      "status": "modified",
+      "before": "b8141ab20c0e74749580c3fd5c33c9a0a13a690772a68857cd607dd5b553e801",
+      "after": "0d3e1dbfb5eb157c9dd7b18f2ceba7f651e6927e4fffb3feacca8e0341acc225",
+      "added_lines": 5,
+      "removed_lines": 0
+    },
+    {
+      "path": "apps/web/src/hooks/useRideInterval.ts",
+      "status": "modified",
+      "before": "7e066671de0fed78b677161e9b53cd937e98fe0d96893907957454664bc67d3d",
+      "after": "9c8f2baba6aa19550673b764d535537a0f2474d2cf2bb26a55a4f3277102b8af",
+      "added_lines": 8,
+      "removed_lines": 24
+    },
+    {
+      "path": "apps/web/src/hooks/useRideMoments.ts",
+      "status": "added",
+      "before": null,
+      "after": "bfb1d906c9b685fe32b92a78e882834a6709c2819bb9bdd719916e2e82a8c0a2",
+      "added_lines": 104,
+      "removed_lines": 0
+    },
+    {
+      "path": "apps/web/src/lib/ride/rideInterval.ts",
+      "status": "modified",
+      "before": "d69caa4bdb7467d6591e73d7f5ababc2bbb15d4aa6cef64c370dd614947574b1",
+      "after": "cf318b06338c9822ab048c2943a79fa4f545380b7dfb6a39eb56a2cbcbe6f039",
+      "added_lines": 149,
+      "removed_lines": 31
+    },
+    {
+      "path": "apps/web/src/lib/ride/rideMomentSound.ts",
+      "status": "added",
+      "before": null,
+      "after": "2109d25dff93e1d455fa6a4f3b1a2c939f06934fb3ba06bafc41527e6d3dab90",
+      "added_lines": 85,
+      "removed_lines": 0
+    },
+    {
+      "path": "apps/web/src/lib/ride/rideMoments.ts",
+      "status": "added",
+      "before": null,
+      "after": "d8642baa0ee6c1e15f76ab932a1fb3fd7b67e1360fe5d680a0f08850c106bec2",
+      "added_lines": 352,
+      "removed_lines": 0
+    }
+  ],
+  "protected_count": 535,
+  "protected_failures": [
+    "document/ops/20261023-ui-redesign/evidence/inline-history/after-first-visit-800x360.png",
+    "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-667x300.png",
+    "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-800x360.png",
+    "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-667x300.png",
+    "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-800x360.png",
+    "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/paused-collapsed-800x360.png",
+    "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/ready-collapsed-800x360.png",
+    "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/riding-collapsed-667x300.png",
+    "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/riding-collapsed-800x360.png",
+    "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/riding-expanded-800x360.png"
+  ]
+}

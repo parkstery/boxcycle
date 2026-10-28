@@ -3,7 +3,7 @@
 .route-dock-anchor {
   --route-dock-pad: clamp(.45rem, 1.4vw, .85rem);
   position: absolute;
-  left: max(16px, calc(env(safe-area-inset-left, 0px) + 16px)); /* 왼쪽 반원 탭 자리(MapBottomLeftStack 과 같음) */
+  left: max(48px, calc(env(safe-area-inset-left, 0px) + 48px)); /* 반달 핸들44px + 여백4px(MapBottomLeftStack과 동일) */
   bottom: calc(max(var(--route-dock-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem));
   width: min(29.4vw, calc(100vw - 16px));
   z-index: 6;
@@ -26,32 +26,32 @@
   display: none;
 }
 .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card {
-  width: auto;
-  min-width: 0;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
   padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card:not(.route-dock__card--head) {
-  width: 28px;
-  height: 28px;
-}
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card--head { padding: 4px; }
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__head { margin: 0; gap: 4px; }
-/* 맨 위 줄: 공통 접기 버튼(왼쪽) · 센서. */
+/* 맨 위 줄: 접기 LED(왼쪽) · 센서 알약. */
 .route-dock__head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 8px;
   min-height: 30px;
   padding-left: 32px;
   margin-bottom: 2px;
 }
-.route-dock__card--head .route-dock__caret {
+.route-dock__fold {
+  position: absolute;
   top: 4px;
   left: 4px;
+  z-index: 2;
 }
 .route-dock-anchor--open .route-dock__card--head { padding-top: 3px; }
 .route-dock__grid {
@@ -163,19 +163,44 @@
 .route-dock__icon { display: block; flex: 0 0 auto; pointer-events: none; }
 /* 경유 줄은 대기·주행 모두 20px 들여 쓴다(2026-10-24 Chief) — ⇅ 원과도 겹치지 않는다. */
 .route-dock__row--waypoint .route-dock__stop { padding-left: 20px; }
-.route-dock__caret {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  z-index: 2;
+.route-dock__led-toggle {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
 }
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__caret {
-  top: 0;
-  left: 0;
+.route-dock__led {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f8fafc;
+  box-shadow: 0 0 0 1.5px rgba(15, 23, 42, 0.55), 0 0 6px rgba(255, 255, 255, 0.8);
+  animation: route-dock-led-pulse 1.1s ease-in-out infinite;
 }
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card--head .route-dock__caret {
-  top: 4px;
-  left: 4px;
+.route-dock__led-toggle--connected .route-dock__led {
+  background: #34d399;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.35), 0 0 8px rgba(52, 211, 153, 0.9);
+}
+@keyframes route-dock-led-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+.route-dock__led-toggle:focus-visible {
+  outline: 2px solid #2457d6;
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .route-dock__led { animation: none; }
 }
 .route-dock__stops-empty { font-size: 11px; color: #5e6472; padding: 4px 0; }
 .route-dock__card button:focus-visible { outline: 2px solid #2457d6; outline-offset: 1px; }
@@ -236,4 +261,35 @@
     border-color: #2457d6;
     color: #2457d6;
   }
+}
+
+/* Chief: 펼침은 센서 왼쪽·주행 제어 오른쪽 한 줄, 접힘은 버튼 한 폭 간격. */
+.route-dock-anchor { --dock-media-size: 32px; }
+.route-dock__interval { flex: 0 0 38px; width: 38px; height: 30px; display: grid; place-items: center; padding: 0; border: 1px solid #c9d6ee; border-radius: 12px; background: #fff; color: #5e6472; font-family: inherit; font-size: 11px; font-weight: 700; line-height: 1; cursor: pointer; }
+.route-dock__interval--active { color: #2457d6; border-color: #2457d6; background: #eef3fc; }
+.route-dock__interval:focus-visible { outline: 2px solid #2457d6; outline-offset: 2px; }
+.route-dock-anchor .ride-control-anchor { position: relative; inset: auto; max-width: none; flex: none; }
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card:has(.ride-control-anchor) { width: max-content; height: 32px; gap: var(--dock-media-size); }
+.route-dock__head:has(.ride-control-anchor) { flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: flex-start; padding-left: 24px; gap: 6px; min-height: 32px; }
+.route-dock__head:has(.route-dock__interval) { padding-left: 24px; gap: 3px; }
+.route-dock__head:has(.route-dock__interval) .hud-cadence--dock { padding-left: 5px; padding-right: 5px; gap: 3px; }
+@media (max-width: 700px) {
+  .route-dock__head:has(.route-dock__interval) .hud-cadence--dock { padding-left: 1px; padding-right: 1px; gap: 1px; }
+  .route-dock__interval { flex-basis: 28px; width: 28px; }
+}
+.route-dock__head .ride-control-anchor { margin-left: auto; }
+.route-dock-anchor .ride-control-bar__resume { right: 0; left: auto; }
+.route-dock-anchor .ride-control-bar { min-width: 70px; min-height: 32px; }
+.route-dock-anchor .ride-media-button { flex-basis: var(--dock-media-size); width: var(--dock-media-size); height: var(--dock-media-size); min-height: var(--dock-media-size); }
+.route-dock-anchor .ride-media-button__icon { width: 13px; height: 14px; }
+.route-dock-anchor .ride-media-button--pause .ride-media-button__icon { width: 13px; }
+.route-dock-anchor .ride-media-button--stop .ride-media-button__icon { width: 12px; height: 12px; }
+.route-dock-anchor .ride-control-bar__resume-trigger { position: absolute; right: 0; bottom: calc(100% + 4px); background: #fff; }
+.route-dock-anchor .ride-control-bar > button[aria-label="일시정지 옵션"] { position: absolute; right: 0; bottom: calc(100% + 4px); background: #fff; }
+
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__head {
+  padding: 0;
+  margin: 0;
+  min-height: 28px;
+  gap: 32px;
 }

@@ -873,6 +873,13 @@ describe("거리 안내 원 반복 펄스", () => {
       stop();
       assert.equal(data.get("distance-target-circle")!.features[0]!.geometry,circle,"멈추면 원래 원 그대로");
       assert.equal(frames.size,0);
+      // 첫 진입은 정확히 다섯 번 확대·복귀 후 원래 크기로 멈춘다.
+      pulseDistanceCircle(map as unknown as Parameters<typeof pulseDistanceCircle>[0],()=>circle,5);
+      for(let cycle=0;cycle<5;cycle++){
+        tick(cycle*1500+750);near(radius(),2*R*1.1);near(arrowTipRadius(),2*R*1.1);
+        tick((cycle+1)*1500);near(radius(),2*R);
+      }
+      assert.equal(frames.size,0,"진입 5회 후 프레임을 예약하지 않는다");
       data.clear();
       reduced=true;
       pulseDistanceCircle(map as unknown as Parameters<typeof pulseDistanceCircle>[0],()=>circle)();

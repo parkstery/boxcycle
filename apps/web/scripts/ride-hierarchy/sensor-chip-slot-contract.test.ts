@@ -9,13 +9,12 @@ const dock = source("components/route-dock/RouteDock.tsx");
 const bar = source("components/ride/RideControlBar.tsx");
 const app = source("App.tsx");
 
-describe("센서 단일 위치 — dock / 주행바 / HUD", () => {
+describe("센서 단일 위치 — RouteDock", () => {
   for (const stage of ["idle", "setup", "ready-to-start", "riding", "paused"] as RideUiStage[]) {
     it(stage + ": 접힘과 관계없이 센서 접근이 하나다", () => {
-      const expected = stage === "setup" || stage === "ready-to-start" ? "route-dock" : "ride-control-bar";
-      for (const expanded of [false,true]) {
-        assert.equal(sensorChipSlot({stage,expanded,hasCadence:true}),expected);
-        assert.equal(sensorChipSlot({stage,expanded,hasCadence:false}),"none");
+      for (const expanded of [false, true]) {
+        assert.equal(sensorChipSlot({ stage, expanded, hasCadence: true }), "route-dock");
+        assert.equal(sensorChipSlot({ stage, expanded, hasCadence: false }), "none");
       }
     });
   }
@@ -27,11 +26,14 @@ describe("센서 단일 위치 — dock / 주행바 / HUD", () => {
   it("RouteDock 이 센서 칩을 sensorChipSlot 로 판정한다", () => {
     assert.match(dock, /sensorChipSlot\(\{/);
     assert.match(dock, /<CadenceHudChip/);
+    assert.match(dock, /route-dock__led-toggle/);
+    assert.match(dock, /RouteOverviewFoldToggle/);
+    assert.match(dock, /kind="route"/);
     assert.doesNotMatch(dock, /onStartRide|onPauseRide|onEndRide/);
   });
-  it("주행바가 idle 센서·주행 조작을 사용한다", () => {
-    assert.match(bar, /sensorChipSlot\(\{/);
-    assert.match(bar, /<CadenceHudChip/);
+  it("주행바는 센서 칩을 그리지 않고 주행 조작만 담당한다", () => {
+    assert.doesNotMatch(bar, /sensorChipSlot/);
+    assert.doesNotMatch(bar, /<CadenceHudChip/);
     assert.match(bar, /aria-label="주행 제어"/);
     assert.match(app, /<RideControlBar/);
     assert.match(app, /canStartRide=\{canStartRideWithInput\}/);
@@ -56,12 +58,13 @@ describe("센서 단일 위치 — dock / 주행바 / HUD", () => {
     assert.match(bar, /처음부터/);
   });
   it("주소·미니맵 스택 밖에 주행 조작을 둔다", () => {
-    const start=app.indexOf("<MapBottomLeftStack>"), end=app.indexOf("</MapBottomLeftStack>",start);
-    assert.ok(start>=0 && end>start);
-    const stack=app.slice(start,end);
-    assert.match(stack,/\{routeDockPanel\}/);
-    assert.doesNotMatch(stack,/rideControlPanel|nextRideCard/);
-    assert.match(app,/\{rideControlPanel\}/);
-    assert.match(app,/\{nextRideCard\}/);
+    const start = app.indexOf("<MapBottomLeftStack>"),
+      end = app.indexOf("</MapBottomLeftStack>", start);
+    assert.ok(start >= 0 && end > start);
+    const stack = app.slice(start, end);
+    assert.match(stack, /\{routeDockPanel\}/);
+    assert.doesNotMatch(stack, /rideControlPanel|nextRideCard/);
+    assert.match(app, /\{rideControlPanel\}/);
+    assert.match(app, /\{nextRideCard\}/);
   });
 });

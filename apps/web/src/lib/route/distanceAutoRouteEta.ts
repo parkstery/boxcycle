@@ -14,6 +14,12 @@
  */
 export const DISTANCE_AUTO_ROUTE_FALLBACK_KMH = 20;
 
+/** 남은 거리와 평균 속도로 인터벌을 완료하기 전에 도착할 가능성을 판단한다. */
+export function isRouteShorterThanInterval(remainingMeters: number, speedKmh: number, intervalSec: number): boolean {
+  return Number.isFinite(remainingMeters) && remainingMeters > 0 && Number.isFinite(speedKmh) && speedKmh > 0 &&
+    Number.isFinite(intervalSec) && intervalSec > 0 && remainingMeters / 1000 / speedKmh * 3600 < intervalSec;
+}
+
 /** 사람이 낼 수 없는 값은 누적이 오염된 것으로 본다(0 나눗셈·센서 폭주 방어) */
 const DISTANCE_AUTO_ROUTE_MIN_PLAUSIBLE_KMH = 3;
 const DISTANCE_AUTO_ROUTE_MAX_PLAUSIBLE_KMH = 60;

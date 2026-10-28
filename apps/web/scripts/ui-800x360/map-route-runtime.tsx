@@ -8,6 +8,7 @@ import { circleLineString } from '../../src/lib/route/distanceAutoRoute';
 import type { RouteProfile } from '../../src/services/mapboxDirections';
 import { RouteClearBlockedDialog } from '../../src/components/ride/RouteClearBlockedDialog';
 import { isRouteClearBlockedByRide } from '../../src/lib/route/routeClearGuard';
+import { registerDistanceAutoRouteMapBridge } from '../../src/lib/map/distanceAutoRouteMapBridge';
 import '../../src/tokens.css';
 import '../../src/index.css';
 import '../../src/boxcycle-theme.css';
@@ -28,6 +29,7 @@ export function Runtime() {
   const [rideStatus, setRideStatus] = useState(new URLSearchParams(location.search).get('riding') === '1' ? 'running' : 'idle');
   const [clearBlockedOpen, setClearBlockedOpen] = useState(false);
   const [endRideCalls, setEndRideCalls] = useState(0);
+  const [openRoutePickRequest,setOpenRoutePickRequest]=useState<{lngLat:LngLat;requestId:number}|null>(null);
   const blocked = isRouteClearBlockedByRide(rideStatus);
   // 앱처럼 출발·도착이 정해질 때마다 새 경로 token, 입력 준비까지 되면 펄스 번호가 오른다.
   const routeToken = useMemo(() => (start && end ? {} : null), [start, end]);
@@ -40,6 +42,7 @@ export function Runtime() {
       followMode="free" enable3D={false} onMapZoom={()=>{}} routeProfile="cycling" onRouteProfile={()=>{}}
       coverageOverlayMode="off" autoRouteMapPick={direction?'direction':null}
       distanceTargetCircle={circle}
+      openRoutePickRequest={openRoutePickRequest}
       onPreviewDistanceAutoRouteCircle={({start,targetKm})=>setCircle(circleLineString(start,targetKm*1000))}
       onClearDistanceAutoRouteCircle={()=>setCircle(null)}
       canClearRouteNow={()=>!blocked}
@@ -49,6 +52,13 @@ export function Runtime() {
       onSelectPoint={(kind,point,slot)=>{if(kind==='start')setStart(point);else if(kind==='end')setEnd(point);else setWaypoints(v=>slot != null && slot < v.length?v.map((p,i)=>i===slot?point:p):[...v,point]);}}
     />
     <button style={{position:'absolute',right:0,bottom:0,zIndex:50}} onClick={()=>setMenu(v=>!v)}>검수 메뉴</button>
+    <button style={{position:'absolute',left:100,top:0,zIndex:50}} onClick={()=>{
+      const anchor:LngLat=[127,37];
+      setStart(anchor);setDirection(true);setCircle(circleLineString(anchor,3000));
+      registerDistanceAutoRouteMapBridge({sessionActive:true,distanceDirectionMode:true,targetKm:3,statusMessage:null,
+        getArmedStart:()=>anchor,setDistanceDirectionMode:setDirection,suspendPopupPick:()=>{},releasePickArm:()=>{},disarm:()=>{}});
+      setOpenRoutePickRequest(v=>({lngLat:anchor,requestId:(v?.requestId??0)+1}));
+    }}>여기에서 계속 검수</button>
     <button style={{position:'absolute',right:0,top:0,zIndex:50}} onClick={()=>setDirection(true)}>방향 선택 준비</button>
     <button style={{position:'absolute',left:0,top:0,zIndex:50}} onClick={()=>setInputReady(v=>!v)}>검수 입력 준비</button>
     {menu&&<div role="dialog" aria-label="메뉴" style={{position:'absolute',right:0,top:0,zIndex:50,background:'white'}}><button onClick={()=>setMenu(false)}>메뉴 닫기</button></div>}

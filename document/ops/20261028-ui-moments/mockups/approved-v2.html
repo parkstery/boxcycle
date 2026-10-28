@@ -1,0 +1,366 @@
+<div id="spinatlas-v2">
+  <div class="s2-preview-title"><strong>Spinatlas</strong><span>주행 · 인터벌 수정안</span><small>개념 지도 · 예시 수치</small></div>
+  <div class="viz-carousel viz-dotted-background" aria-label="수정된 Spinatlas 화면" data-previous-label="이전 화면" data-next-label="다음 화면">
+    <section data-variant="주행과 인터벌" aria-label="작은 계기판과 좌우로 나눈 주행 안내">
+      <div class="s2-preview-controls">
+        <label>주행 방식<select class="s2-mode" aria-label="시안의 센서 사용 여부"><option value="sensor">센서 연결</option><option value="free">무센서 체험</option></select></label>
+        <label>순간<select class="s2-event" aria-label="주행 순간 선택"><option value="normal">일반 주행</option><option value="start">주행 시작</option><option value="half">절반 통과</option><option value="waypoint">경유지 통과</option><option value="prepare">인터벌 시작</option><option value="countdown">전환 3초 전</option><option value="high" selected>고강도 전환</option><option value="low">회복 전환</option><option value="intervalEnd">인터벌 완료</option><option value="finish">목표 완주</option><option value="stop">중간 종료</option></select></label>
+        <button type="button" class="s2-replay cursor-interaction" aria-label="선택한 순간 다시 보기"><i data-lucide="rotate-ccw" aria-hidden="true"></i>다시 보기</button>
+        <label class="s2-audio-label"><input type="checkbox" class="s2-audio">효과음</label>
+      </div>
+      <div class="s2-screen s2-ride" aria-label="주행 화면 수정 시안">
+        <div class="s2-map" aria-hidden="true"></div>
+        <div class="s2-hud s2-outline" aria-label="주행 계기판">
+          <div class="s2-distance-cell"><span>거리</span><strong><b class="s2-distance">2.50</b><small> / 5.00 km</small></strong></div>
+          <div><span>시간</span><strong class="s2-elapsed">08:32</strong></div>
+          <div><span class="s2-speed-label">속도</span><strong><b class="s2-speed">20</b><small> km/h</small></strong></div>
+          <div class="s2-fresh-cell"><span>새 도로</span><strong>+<b class="s2-fresh">2.00</b><small> km</small></strong></div>
+          <div><span>평균</span><strong><b class="s2-average">17.6</b><small> km/h</small></strong></div>
+          <div><span>케이던스</span><strong><b class="s2-cadence">64</b><small> rpm</small></strong></div>
+        </div>
+        <div class="s2-right-top" aria-label="지도와 계정 조작">
+          <div class="s2-first-row"><div class="s2-cameras"><button type="button" class="s2-height-btn cursor-interaction" aria-label="평면 카메라 높이 선택" aria-expanded="false"><i data-lucide="scan" aria-hidden="true"></i><span>500m</span><i data-lucide="chevron-down" aria-hidden="true"></i></button><button type="button" class="s2-camera-btn cursor-interaction" aria-label="주행 카메라 선택" aria-expanded="false"><span>2</span><i data-lucide="arrow-up" aria-hidden="true"></i><i data-lucide="chevron-down" aria-hidden="true"></i></button></div><button type="button" class="s2-account cursor-interaction" aria-label="계정 Ridingman12" aria-expanded="false">Ridingman12</button></div>
+          <div class="s2-map-tools"><button type="button" class="s2-style-btn cursor-interaction" aria-label="지도 스타일 바꾸기">야외</button><button type="button" class="s2-zoom-in cursor-interaction" aria-label="지도 확대">+</button><button type="button" class="s2-zoom-out cursor-interaction" aria-label="지도 축소">−</button></div>
+        </div>
+        <div class="s2-camera-pop s2-pop" hidden><button type="button" data-height="200m" class="cursor-interaction">200m</button><button type="button" data-height="500m" class="cursor-interaction">500m</button><button type="button" data-height="1000m" class="cursor-interaction">1000m</button></div>
+        <div class="s2-view-pop s2-pop" hidden><button type="button" data-camera="2" class="cursor-interaction">2 · 뒤에서</button><button type="button" data-camera="3" class="cursor-interaction">3 · 앞에서</button><button type="button" data-camera="4" class="cursor-interaction">4 · 왼쪽</button></div>
+        <div class="s2-account-pop s2-pop" hidden><strong>Ridingman12</strong><span>내 도로망 507 km</span><span class="s2-account-mode">센서 연결됨</span><button type="button" class="s2-sensor-info cursor-interaction">센서 연결 안내</button><p class="s2-sensor-benefit" hidden>센서를 연결하면 내 페달링이 화면 속도에 반영되고 RPM도 볼 수 있어요.</p></div>
+        <button type="button" class="s2-mode-indicator s2-outline cursor-interaction" aria-label="현재 주행 방식 안내">센서 연결됨</button>
+        <div class="s2-interval s2-outline" aria-label="왼쪽 인터벌 운동 안내">
+          <div class="s2-interval-title"><b class="s2-phase">고강도</b><span class="s2-repeat">3 / 5</span></div>
+          <div class="s2-interval-values"><strong class="s2-count">60<small>초</small></strong><span class="s2-rpm-readout"><b class="s2-rpm-value">64</b><small class="s2-rpm-label">현재 rpm</small></span></div>
+          <div class="s2-steps" aria-hidden="true"><i></i><i></i><i class="s2-active-step"></i><i></i><i></i></div>
+          <span class="s2-next">다음 · 회복 2분</span>
+          <span class="s2-free-hint" hidden>화면 속도는 고정<br>페달 강도는 직접 조절</span>
+        </div>
+        <div class="s2-moment s2-outline" aria-live="polite" hidden><strong class="s2-moment-title">절반 통과</strong><span class="s2-moment-detail">2.50 / 5.00 km</span></div>
+        <aside class="s2-ranking s2-outline" aria-label="주간 순위표"><span class="s2-ranking-title">이번 주 주행 거리</span><div><span>1</span><b>geum</b><strong>8.9<small> km</small></strong></div><div class="s2-my-rank"><span>2</span><b>Ridingman12</b><strong>3.0<small> km</small></strong></div><span class="s2-rank-gap">1위까지 5.9 km</span></aside>
+        <aside class="s2-menu" hidden aria-label="왼쪽 메뉴"><strong>Spinatlas</strong><button type="button" data-menu="route" class="cursor-interaction"><i data-lucide="route" aria-hidden="true"></i>경로 선택</button><button type="button" data-menu="workout" class="cursor-interaction"><i data-lucide="timer" aria-hidden="true"></i>운동 설정</button><button type="button" data-menu="sensor" class="cursor-interaction"><i data-lucide="radio" aria-hidden="true"></i>센서 연결 안내</button></aside>
+        <button type="button" class="s2-edge s2-edge-left cursor-interaction" aria-label="메뉴 펼치기 또는 접기" aria-expanded="false"><i data-lucide="chevron-right" aria-hidden="true"></i></button>
+        <button type="button" class="s2-edge s2-edge-right cursor-interaction" aria-label="순위표 펼치기 또는 접기" aria-expanded="true"><i data-lucide="chevron-right" aria-hidden="true"></i></button>
+        <div class="s2-folds"><button type="button" class="s2-address cursor-interaction" aria-label="주소 카드 펼치기"><i data-lucide="route" aria-hidden="true"></i><i data-lucide="chevron-right" aria-hidden="true"></i></button><button type="button" class="s2-minimap cursor-interaction" aria-label="미니맵 펼치기"><i data-lucide="map" aria-hidden="true"></i><i data-lucide="chevron-right" aria-hidden="true"></i></button></div>
+        <div class="s2-pacer s2-rider"><span>페이서</span><i data-lucide="bike" aria-hidden="true"></i><b></b></div>
+        <div class="s2-self s2-rider"><span>Ridingman12</span><i data-lucide="bike" aria-hidden="true"></i><b></b></div>
+        <div class="s2-elevation" aria-label="표고 개념도"><span>시점 0m</span><svg viewBox="0 0 320 24" preserveAspectRatio="none" aria-hidden="true"><path d="M0 18L35 14 70 18 110 9 150 12 180 5 215 10 250 8 285 16 320 10"/><circle cx="180" cy="5" r="3"/></svg><span>종점 4m</span></div>
+        <div class="s2-media"><button type="button" class="s2-pause cursor-interaction" aria-label="일시정지"><i data-lucide="pause" aria-hidden="true"></i></button><button type="button" class="s2-stop cursor-interaction" aria-label="주행 종료"><i data-lucide="square" aria-hidden="true"></i></button></div>
+        <div class="s2-coach s2-outline" aria-live="polite">이번 구간, 힘을 내봐요!</div>
+        <div class="s2-attribution">개념 지도 · 주행 시안</div><div class="s2-glow" aria-hidden="true"></div>
+        <div class="s2-message" hidden aria-live="polite"></div>
+      </div>
+      <div class="s2-preview-foot"><span>계기판 ≤ 화면 폭 50% · 중앙은 주행 시야</span><span>좌우 반달 버튼 · 클릭 / 끌어서 열기</span></div>
+    </section>
+    <section data-variant="간단한 운동 설정" aria-label="기본 세 구성과 최근 값 유지" hidden>
+      <div class="s2-preview-controls"><span>기본 구성 하나 선택 · 필요할 때만 직접 조절</span></div>
+      <div class="s2-screen s2-settings-screen">
+        <div class="s2-map" aria-hidden="true"></div>
+        <form class="s2-settings" aria-label="인터벌 운동 설정">
+          <div class="s2-settings-heading"><strong>인터벌 운동</strong><span class="s2-recent-label">최근 값 유지</span><button type="button" class="s2-settings-close cursor-interaction" aria-label="설정 닫기"><i data-lucide="x" aria-hidden="true"></i></button></div>
+          <label class="s2-preset-row">기본 구성<select name="preset" aria-label="운동 기본 구성"><option value="recovery">회복형 · 운동 1 : 회복 2</option><option value="balanced">균형형 · 운동 1 : 회복 1</option><option value="short">짧은 반복 · 20초 : 10초</option></select></label>
+          <div class="s2-workout-brief"><span class="s2-brief-times">준비 5분 · 마무리 5분</span><strong class="s2-brief-cycles">운동 1분 / 회복 2분 × 5회</strong><span class="s2-brief-rounds" hidden>8회 × 2라운드 · 라운드 사이 3분</span></div>
+          <div class="s2-workout-track" aria-label="운동 시간 구성"></div>
+          <button type="button" class="s2-custom-toggle cursor-interaction" aria-expanded="false" aria-controls="s2-custom-fields"><span>직접 조절</span><i data-lucide="chevron-down" aria-hidden="true"></i></button>
+          <div class="s2-custom-fields" id="s2-custom-fields" hidden>
+            <label>준비<span><input name="warmup" type="number" min="0" max="30" step="1" value="5" required>분</span></label>
+            <label>운동<span><input name="high" type="number" min="5" max="600" step="1" value="60" required>초</span></label>
+            <label>회복<span><input name="low" type="number" min="5" max="600" step="1" value="120" required>초</span></label>
+            <label>반복<span><input name="repeats" type="number" min="1" max="30" step="1" value="5" required>회</span></label>
+            <label>마무리<span><input name="cooldown" type="number" min="0" max="30" step="1" value="5" required>분</span></label>
+            <label class="s2-round-input" hidden>라운드<span><input name="rounds" type="number" min="1" max="3" step="1" value="2" required>회</span></label>
+            <label class="s2-round-input" hidden>라운드 사이<span><input name="rest" type="number" min="0" max="30" step="1" value="3" required>분</span></label>
+          </div>
+          <div class="s2-settings-footer"><span class="s2-total">총 25분</span><button type="submit" class="s2-apply cursor-interaction">적용</button></div>
+          <span class="s2-remember">적용한 구성과 시간은 다음에도 유지해요.</span>
+        </form>
+        <div class="s2-settings-done" hidden aria-live="polite"><i data-lucide="check" aria-hidden="true"></i><strong>이 설정으로 준비됐어요.</strong><span class="s2-applied-description">회복형 · 총 25분</span><small>다음에도 같은 설정으로 시작해요.</small><button type="button" class="s2-settings-reopen cursor-interaction">다시 변경</button></div>
+        <div class="s2-attribution">개념 지도 · 제공한 루틴의 시간 구성 예시</div>
+      </div>
+      <div class="s2-preview-foot"><span>기본 화면은 간단하게 · 세부 입력은 접어서 보관</span><span>20:10 구성은 라운드·중간 휴식 포함</span></div>
+    </section>
+    <section data-variant="완주와 마무리" aria-label="간결한 주행 결과" hidden>
+      <div class="s2-preview-controls"><label>종료 상황<select class="s2-result-select" aria-label="종료 상황 선택"><option value="complete">목표 완주</option><option value="manual">중간 종료</option></select></label><button type="button" class="s2-result-replay cursor-interaction"><i data-lucide="sparkles" aria-hidden="true"></i>축하 다시 보기</button></div>
+      <div class="s2-screen s2-result-screen">
+        <div class="s2-map" aria-hidden="true"></div><div class="s2-veil"></div>
+        <div class="s2-result" aria-label="주행 결과">
+          <div class="s2-result-heading"><span><i data-lucide="check" aria-hidden="true"></i></span><strong class="s2-result-title">끝까지 해냈어요!</strong><small>오늘 9회 · 합계 11.7 km</small></div>
+          <div class="s2-result-values"><div><span>주행 거리</span><strong><b class="s2-result-distance">5.00</b><small> km</small></strong></div><div><span>내 도로망에 더한 새 도로</span><strong>+<b class="s2-result-fresh">4.99</b><small> km</small></strong></div></div>
+          <div class="s2-result-stats"><span>시간 <b class="s2-result-time">16:59</b></span><span>평균 <b>17.6 km/h</b></span><span>칼로리 추정 <b class="s2-result-kcal">107 kcal</b></span></div>
+          <div class="s2-result-rank"><span>이번 주 <b>2위 유지</b></span><span>1위까지 2.9 km</span></div>
+          <form class="s2-save-form"><input aria-label="저장할 경로 이름" value="오사카 해안 라이딩" maxlength="40" required><button type="submit" class="s2-save cursor-interaction">내 경로로 저장</button><button type="button" class="s2-skip cursor-interaction">저장 안 함</button></form><div class="s2-saved" hidden aria-live="polite"></div>
+        </div>
+        <div class="s2-result-dismissed" hidden><strong>다음 길도 이어 볼까요?</strong><button type="button" class="s2-result-reopen cursor-interaction">결과 다시 보기</button></div>
+        <div class="s2-confetti" aria-hidden="true"></div><div class="s2-attribution">개념 지도 · 주행 종료 후 2D</div>
+      </div>
+      <div class="s2-preview-foot"><span>완주와 중간 종료는 다른 문구로</span><span>가로 결과창 444 × 194</span></div>
+    </section>
+  </div>
+  <template class="s2-map-template"><svg viewBox="0 0 800 360" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="presentation"><defs><pattern id="s2-blocks" width="140" height="104" patternUnits="userSpaceOnUse" patternTransform="rotate(-12)"><rect x="12" y="12" width="42" height="32" rx="3" fill="#dce1d3"/><rect x="61" y="12" width="54" height="32" rx="3" fill="#dfe4d7"/><rect x="12" y="51" width="65" height="25" rx="3" fill="#dce1d3"/><rect x="84" y="51" width="31" height="25" rx="3" fill="#d5dccd"/><path d="M0 92H140M130 0V104" stroke="#f9faf4" stroke-width="11" fill="none"/></pattern></defs><rect width="800" height="360" fill="#e8ecdf"/><rect width="800" height="360" fill="url(#s2-blocks)"/><path d="M600 -50C540 60 620 108 663 162S680 272 620 400H900V-50Z" fill="#bad8df"/><path d="M595 -50C535 60 615 108 658 162S675 272 615 400" fill="none" stroke="#d4e4d5" stroke-width="14"/><path d="M225 82L321 62 340 130 248 149Z" fill="#cbdcc0"/><path d="M475 195L560 176 584 239 496 264Z" fill="#cbdcc0"/><g fill="none" stroke-linejoin="round" stroke-linecap="round"><path d="M-20 267L180 224 385 235 485 164 637 180 820 125M355 -20L385 235 430 380" stroke="#ced4c8" stroke-width="19"/><path d="M-20 267L180 224 385 235 485 164 637 180 820 125M355 -20L385 235 430 380" stroke="#fcfcf6" stroke-width="15"/><path d="M400 380L385 235 485 164 637 180" stroke="#2457d6" stroke-opacity=".12" stroke-width="13"/><path d="M400 380L385 235 485 164 637 180" stroke="#2457d6" stroke-width="4"/><path d="M385 235L485 164" stroke="#75a4df" stroke-width="4" stroke-dasharray="1 8"/></g><g fill="#85917c" font-family="Arial,sans-serif" font-size="9"><text x="249" y="111" transform="rotate(-12 249 111)">PARK</text><text x="510" y="213" transform="rotate(-12 510 213)">PARK</text><text x="692" y="217" fill="#7397a0" transform="rotate(25 692 217)">WATERFRONT</text></g><circle cx="485" cy="164" r="6" fill="#fff" stroke="#2457d6" stroke-width="2"/></svg></template>
+</div>
+<style>
+#spinatlas-v2{font-family:Arial,'Malgun Gothic',sans-serif;font-size:13px;line-height:1.45;color:light-dark(#283845,#e0e6ed);width:100%;container-type:inline-size;--s2-blue:#2457d6;--s2-ink:#233743;--s2-muted:#647581}
+#spinatlas-v2 *{box-sizing:border-box}
+#spinatlas-v2 [hidden]{display:none!important}
+#spinatlas-v2 button,#spinatlas-v2 input,#spinatlas-v2 select{font:inherit}
+#spinatlas-v2 button{display:inline-flex;align-items:center;justify-content:center;gap:5px}
+#spinatlas-v2 button svg{width:16px;height:16px;flex-shrink:0}
+#spinatlas-v2 .s2-preview-title{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+#spinatlas-v2 .s2-preview-title>strong{font-size:21px;letter-spacing:-.8px}
+#spinatlas-v2 .s2-preview-title>span{font-size:12px;opacity:.7}
+#spinatlas-v2 .s2-preview-title>small{margin-left:auto;font-size:11px;opacity:.6}
+#spinatlas-v2 .s2-preview-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:54px;padding-bottom:10px}
+#spinatlas-v2 .s2-preview-controls label{display:flex;align-items:center;gap:7px;font-size:12px}
+#spinatlas-v2 .s2-preview-controls select,#spinatlas-v2 .s2-preview-controls>button{border:1px solid light-dark(#cbd4dd,#53616e);border-radius:7px;background:light-dark(#fff,#25333e);color:inherit;min-height:35px;padding:6px 9px}
+#spinatlas-v2 .s2-preview-controls select{min-width:110px}
+#spinatlas-v2 .s2-preview-controls .s2-audio-label{margin-left:auto;gap:4px}
+#spinatlas-v2 .s2-screen{position:relative;isolation:isolate;container-type:inline-size;height:360px;border:1px solid #bac7bd;border-radius:12px;overflow:hidden;color-scheme:light;color:var(--s2-ink);background:#e8ecdf}
+#spinatlas-v2 .s2-map{position:absolute;inset:0;z-index:-2;overflow:hidden;background:#e8ecdf}
+#spinatlas-v2 .s2-map>svg{width:100%;height:100%;display:block}
+#spinatlas-v2 .s2-outline{paint-order:stroke fill;-webkit-text-stroke:2.4px #fff;text-shadow:0 1px 2px #53614a25;color:#263c48;font-weight:700}
+#spinatlas-v2 .s2-hud{position:absolute;left:14px;top:12px;width:calc(50% - 28px);max-width:340px;display:grid;grid-template-columns:1.2fr .95fr 1fr;gap:7px 14px;-webkit-text-stroke:2px #fff}
+#spinatlas-v2 .s2-hud>div{min-width:0;white-space:nowrap}
+#spinatlas-v2 .s2-hud>div>span{display:block;font-size:10px;font-weight:500;color:#50616a}
+#spinatlas-v2 .s2-hud strong{display:block;font-size:19px;line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+#spinatlas-v2 .s2-hud b{font-weight:700}
+#spinatlas-v2 .s2-hud small{font-size:9px;letter-spacing:0;font-weight:500}
+#spinatlas-v2 .s2-hud .s2-fresh-cell{color:#18774f}
+#spinatlas-v2 .s2-right-top{position:absolute;right:14px;top:13px;width:calc(50% - 28px);max-width:292px;display:grid;gap:7px}
+#spinatlas-v2 .s2-first-row{display:flex;justify-content:flex-end;gap:10px;align-items:center}
+#spinatlas-v2 .s2-right-top button{height:34px;flex-shrink:0;border:1px solid #c9d4df;border-radius:8px;padding:5px 10px;background:#fff;color:#3e5262;font-size:12px;box-shadow:0 1px 3px #354f6010;white-space:nowrap}
+#spinatlas-v2 .s2-cameras{display:flex;gap:5px;flex:none}
+#spinatlas-v2 .s2-right-top .s2-cameras button{border-radius:18px;color:#2457d6;gap:5px;padding:5px 8px}
+#spinatlas-v2 .s2-cameras button svg:last-child{width:10px;height:10px}
+#spinatlas-v2 .s2-right-top .s2-account{font-size:12px;border-radius:18px;padding:5px 11px;min-width:104px}
+#spinatlas-v2 .s2-map-tools{display:flex;justify-content:flex-end;gap:5px}
+#spinatlas-v2 .s2-map-tools button{min-width:34px}
+#spinatlas-v2 .s2-mode-indicator{position:absolute;top:91px;left:14px;background:none;border:0;padding:0;font-size:10px;color:#60756b;-webkit-text-stroke:2px #fff;white-space:nowrap}
+#spinatlas-v2 .s2-interval{position:absolute;left:48px;top:126px;width:174px}
+#spinatlas-v2 .s2-interval-title{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#spinatlas-v2 .s2-phase{color:var(--s2-blue);font-size:13px}
+#spinatlas-v2 .s2-repeat{font-size:10px;color:#61717b}
+#spinatlas-v2 .s2-interval-values{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:1px}
+#spinatlas-v2 .s2-count{font-size:35px;line-height:1.2;letter-spacing:-1px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#spinatlas-v2 .s2-count small{font-size:11px;margin-left:4px;letter-spacing:0}
+#spinatlas-v2 .s2-rpm-readout{text-align:right}
+#spinatlas-v2 .s2-rpm-value{display:block;font-size:21px;line-height:1.15}
+#spinatlas-v2 .s2-rpm-label{display:block;font-size:10px;color:#647481}
+#spinatlas-v2 .s2-steps{display:flex;gap:4px;margin:4px 0 6px}
+#spinatlas-v2 .s2-steps i{height:3px;flex:1;background:#fff9}
+#spinatlas-v2 .s2-steps .s2-active-step{background:#2457d6}
+#spinatlas-v2 .s2-next{font-size:11px;display:block}
+#spinatlas-v2 .s2-free-hint{display:block;margin-top:6px;font-size:10px;font-weight:500;color:#516975;line-height:1.5}
+#spinatlas-v2 .s2-ride[data-mode=free] .s2-rpm-value{font-size:12px;letter-spacing:0}
+#spinatlas-v2 .s2-ride[data-mode=free] .s2-rpm-label{font-size:9px;margin-top:4px}
+#spinatlas-v2 .s2-moment{position:absolute;left:48px;top:130px;width:190px;display:flex;flex-direction:column;gap:5px}
+#spinatlas-v2 .s2-moment-title{font-size:23px;line-height:1.2;letter-spacing:-.6px}
+#spinatlas-v2 .s2-moment-detail{font-size:11px}
+#spinatlas-v2 .s2-ranking{position:absolute;top:129px;right:51px;width:161px;font-size:12px;-webkit-text-stroke:2px #fff}
+#spinatlas-v2 .s2-ranking-title{font-size:10px;display:block;color:#647481;margin-bottom:8px}
+#spinatlas-v2 .s2-ranking>div{display:grid;grid-template-columns:12px minmax(0,1fr) auto;align-items:center;gap:6px;margin:6px 0}
+#spinatlas-v2 .s2-ranking b{font-size:10px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#spinatlas-v2 .s2-ranking strong{font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#spinatlas-v2 .s2-ranking small{font-size:9px}
+#spinatlas-v2 .s2-my-rank{color:var(--s2-blue)}
+#spinatlas-v2 .s2-rank-gap{display:block;text-align:right;font-size:10px;margin-top:8px;color:#647481}
+#spinatlas-v2 .s2-edge{position:absolute;top:calc(50% - 38px);width:44px;height:76px;border:0;background:none;color:#405665;padding:0;z-index:8;touch-action:none;user-select:none}
+#spinatlas-v2 .s2-edge::before{content:'';position:absolute;top:2px;bottom:2px;width:34px;background:#ffffffe8;border:1px solid #d7e0e5;box-shadow:0 2px 8px #28403912;z-index:-1}
+#spinatlas-v2 .s2-edge svg{width:20px;height:20px;transition:rotate 180ms ease}
+#spinatlas-v2 .s2-edge-left{left:0;justify-content:flex-start;padding-left:7px}
+#spinatlas-v2 .s2-edge-left::before{left:-1px;border-radius:0 40px 40px 0}
+#spinatlas-v2 .s2-edge-right{right:0;justify-content:flex-end;padding-right:7px}
+#spinatlas-v2 .s2-edge-right::before{right:-1px;border-radius:40px 0 0 40px}
+#spinatlas-v2 .s2-edge-left[aria-expanded=true]{left:208px}
+#spinatlas-v2 .s2-edge-left[aria-expanded=true] svg,#spinatlas-v2 .s2-edge-right[aria-expanded=false] svg{rotate:180deg}
+#spinatlas-v2 .s2-menu{position:absolute;left:0;top:116px;width:208px;background:#fff;color:#2b4254;box-shadow:3px 5px 22px #2b443b24;border:1px solid #d9e1e6;border-left:0;border-radius:0 12px 12px 0;z-index:7;padding:14px 15px;display:grid;gap:3px}
+#spinatlas-v2 .s2-menu>strong{font-size:16px;margin-bottom:7px}
+#spinatlas-v2 .s2-menu>button{min-height:38px;justify-content:flex-start;padding:6px 5px;border:0;background:transparent;color:#425767;font-size:12px;gap:10px}
+#spinatlas-v2 .s2-pop{position:absolute;z-index:10;right:14px;top:93px;padding:10px;border:1px solid #d3dce4;border-radius:10px;background:#fff;box-shadow:0 6px 24px #243f4d20;color:#344d5e}
+#spinatlas-v2 .s2-pop button{border:0;border-radius:5px;background:#f1f5f8;color:#2457d6;padding:7px 10px;font-size:11px}
+#spinatlas-v2 .s2-camera-pop,#spinatlas-v2 .s2-view-pop{display:grid;gap:3px;min-width:100px}
+#spinatlas-v2 .s2-account-pop{width:216px;display:grid;gap:7px;font-size:12px}
+#spinatlas-v2 .s2-account-pop>span{font-size:11px;color:#657987}
+#spinatlas-v2 .s2-account-pop p{font-size:11px;line-height:1.6;margin:0}
+#spinatlas-v2 .s2-folds{position:absolute;left:12px;bottom:43px;display:grid;gap:8px}
+#spinatlas-v2 .s2-folds button{width:34px;height:30px;padding:3px;gap:0;border:1px solid #d0dbe3;border-radius:7px;background:#fff;color:#536c7e;box-shadow:0 2px 4px #324b5c12}
+#spinatlas-v2 .s2-folds button svg:last-child{width:10px}
+#spinatlas-v2 .s2-rider{position:absolute;display:flex;flex-direction:column;align-items:center;z-index:1;color:#2457d6}
+#spinatlas-v2 .s2-rider>span{font-size:10px;color:#2457d6;background:#ffffffb0;border-radius:4px;padding:1px 4px;white-space:nowrap}
+#spinatlas-v2 .s2-rider>svg{width:35px;height:35px;stroke-width:2.3;filter:drop-shadow(0 1px 0 #fff)}
+#spinatlas-v2 .s2-rider>b{width:9px;height:9px;border-radius:50%;border:2px solid #fff;background:#2457d6;box-shadow:0 0 0 4px #2457d628}
+#spinatlas-v2 .s2-self{left:49%;top:55%;transform:translateX(-50%)}
+#spinatlas-v2 .s2-pacer{left:43%;top:45%;color:#4f8c78;transform:scale(.85);opacity:.8}
+#spinatlas-v2 .s2-pacer>span{color:#538271}
+#spinatlas-v2 .s2-pacer>b{background:#4f8c78;box-shadow:0 0 0 4px #4f8c7820}
+#spinatlas-v2 .s2-elevation{position:absolute;left:26%;bottom:51px;width:40%;display:flex;align-items:flex-end;gap:7px;color:#6d795f;font-size:9px;white-space:nowrap}
+#spinatlas-v2 .s2-elevation svg{width:100%;height:23px;overflow:visible}
+#spinatlas-v2 .s2-elevation path{fill:none;stroke:#a78a62;stroke-width:1.5}
+#spinatlas-v2 .s2-elevation circle{fill:#2457d6;stroke:#fff;stroke-width:1.5}
+#spinatlas-v2 .s2-media{position:absolute;right:16px;bottom:43px;display:flex;gap:11px}
+#spinatlas-v2 .s2-media button{width:46px;height:46px;border:1px solid #ffffff80;border-radius:50%;color:#fff;box-shadow:0 2px 5px #29485f24}
+#spinatlas-v2 .s2-media button svg{width:21px;height:21px;fill:currentColor;stroke-width:1.5}
+#spinatlas-v2 .s2-pause{background:linear-gradient(145deg,#5db7f7,#1665e5)}
+#spinatlas-v2 .s2-stop{background:linear-gradient(145deg,#ff897b,#df3437)}
+#spinatlas-v2 .s2-coach{position:absolute;bottom:19px;left:12%;right:12%;text-align:center;font-size:14px;line-height:1.45;z-index:3}
+#spinatlas-v2 .s2-attribution{position:absolute;left:10px;bottom:3px;font-size:8px;color:#5e7164;opacity:.8}
+#spinatlas-v2 .s2-preview-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11px;min-height:38px;padding-top:10px;opacity:.7}
+#spinatlas-v2 .s2-glow{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:6}
+#spinatlas-v2 .s2-glow.s2-play{animation:s2-glow 850ms ease-out both}
+#spinatlas-v2 .s2-coach.s2-play,#spinatlas-v2 .s2-moment.s2-play{animation:s2-rise 350ms ease-out both}
+#spinatlas-v2 .s2-message{position:absolute;left:56px;bottom:43px;max-width:240px;padding:10px 12px;background:#fff;border:1px solid #d3dce4;border-radius:8px;box-shadow:0 4px 16px #29485f24;z-index:11;font-size:11px}
+#spinatlas-v2 .s2-settings{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:382px;max-width:calc(100% - 28px);background:#fff;border:1px solid #d7e0e5;border-radius:13px;box-shadow:0 10px 35px #26392e24;padding:11px 14px;display:flex;flex-direction:column;gap:6px;color:#2a4050}
+#spinatlas-v2 .s2-settings-heading{display:flex;align-items:center;gap:8px}
+#spinatlas-v2 .s2-settings-heading>strong{font-size:15px}
+#spinatlas-v2 .s2-recent-label{font-size:10px;color:#6a7b87;margin-left:auto}
+#spinatlas-v2 .s2-settings-close{width:25px;height:25px;background:none;border:0;padding:4px;color:#6a7b87}
+#spinatlas-v2 .s2-preset-row{display:flex;align-items:center;gap:12px;font-size:11px;color:#6a7b87;white-space:nowrap}
+#spinatlas-v2 .s2-preset-row select{flex:1;width:0;min-width:0;border:1px solid #ced9e2;border-radius:6px;background:#fff;color:#2f4a5e;padding:6px;font-size:12px;min-height:32px}
+#spinatlas-v2 .s2-workout-brief{display:grid;gap:2px}
+#spinatlas-v2 .s2-brief-times{font-size:10px;color:#6a7b87}
+#spinatlas-v2 .s2-brief-cycles{font-size:12px;font-weight:600}
+#spinatlas-v2 .s2-brief-rounds{font-size:10px;color:#6a7b87}
+#spinatlas-v2 .s2-workout-track{height:6px;display:flex;gap:2px}
+#spinatlas-v2 .s2-workout-track>span{min-width:0;border-radius:1px}
+#spinatlas-v2 .s2-workout-track .s2-warm,#spinatlas-v2 .s2-workout-track .s2-cool{background:#bdc9d3}
+#spinatlas-v2 .s2-workout-track .s2-work{background:#2457d6}
+#spinatlas-v2 .s2-workout-track .s2-recover{background:#a6b9e4}
+#spinatlas-v2 .s2-workout-track .s2-round-rest{background:#d9e1e7}
+#spinatlas-v2 .s2-custom-toggle{align-self:flex-start;background:none;border:0;padding:0;color:#2457d6;font-size:11px;min-height:20px}
+#spinatlas-v2 .s2-custom-toggle svg{width:12px;height:12px;transition:rotate 180ms ease}
+#spinatlas-v2 .s2-custom-toggle[aria-expanded=true] svg{rotate:180deg}
+#spinatlas-v2 .s2-custom-fields{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+#spinatlas-v2 .s2-custom-fields label{font-size:10px;color:#667c8c}
+#spinatlas-v2 .s2-custom-fields label>span{display:flex;align-items:center;gap:3px;margin-top:3px;font-size:10px}
+#spinatlas-v2 .s2-custom-fields input{width:0;min-width:0;flex:1;border:1px solid #cfdbe5;border-radius:5px;padding:5px 4px;background:#fff;color:#2a4050;font-size:12px;height:31px;font-variant-numeric:tabular-nums}
+#spinatlas-v2 .s2-custom-fields .s2-round-input{grid-column:span 2}
+#spinatlas-v2 .s2-settings:has(.s2-custom-fields:not([hidden])) .s2-workout-brief{display:none}
+#spinatlas-v2 .s2-settings-footer{display:flex;justify-content:space-between;align-items:center;margin-top:1px}
+#spinatlas-v2 .s2-total{font-size:14px;font-weight:700;color:#2457d6}
+#spinatlas-v2 .s2-apply{min-width:64px;border:0;border-radius:6px;padding:7px 14px;background:#2457d6;color:#fff;font-size:12px}
+#spinatlas-v2 .s2-remember{font-size:10px;color:#6a7b87;margin-top:-3px}
+#spinatlas-v2 .s2-settings-done{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:285px;max-width:calc(100% - 28px);background:#fff;border:1px solid #d7e0e5;border-radius:12px;padding:20px;box-shadow:0 10px 35px #26392e24;display:flex;align-items:center;flex-direction:column;gap:8px}
+#spinatlas-v2 .s2-settings-done>svg{width:25px;height:25px;color:#218353}
+#spinatlas-v2 .s2-settings-done>strong{font-size:14px}
+#spinatlas-v2 .s2-settings-done>span{font-size:12px;color:#526e82}
+#spinatlas-v2 .s2-settings-done>small{font-size:10px;color:#71818e}
+#spinatlas-v2 .s2-settings-done button,#spinatlas-v2 .s2-result-dismissed button{border:1px solid #ced9e2;border-radius:6px;padding:7px 12px;background:#fff;color:#2457d6;font-size:12px;margin-top:4px}
+#spinatlas-v2 .s2-veil{position:absolute;inset:0;background:#283d3014;backdrop-filter:blur(1px)}
+#spinatlas-v2 .s2-result{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:444px;height:194px;max-width:calc(100% - 28px);padding:12px 15px;background:#fff;border:1px solid #d7e0e5;border-radius:13px;box-shadow:0 10px 35px #26392e24;color:#2a4050;z-index:2}
+#spinatlas-v2 .s2-result-heading{display:flex;align-items:center;gap:6px;font-size:13px}
+#spinatlas-v2 .s2-result-heading>span{width:19px;height:19px;border-radius:50%;background:#e9f3ec;color:#218353;display:grid;place-items:center}
+#spinatlas-v2 .s2-result-heading svg{width:13px;height:13px}
+#spinatlas-v2 .s2-result-heading>small{font-size:10px;color:#71818e;margin-left:auto}
+#spinatlas-v2 .s2-result-values{display:grid;grid-template-columns:1fr 1.25fr;gap:15px;margin:9px 0 8px}
+#spinatlas-v2 .s2-result-values>div+div{padding-left:15px;border-left:1px solid #e5eaee}
+#spinatlas-v2 .s2-result-values span{display:block;font-size:10px;color:#71818e}
+#spinatlas-v2 .s2-result-values strong{font-size:28px;line-height:1.2;letter-spacing:-.8px;font-variant-numeric:tabular-nums}
+#spinatlas-v2 .s2-result-values>div+div strong{color:#2457d6}
+#spinatlas-v2 .s2-result-values small{font-size:10px;letter-spacing:0;font-weight:400}
+#spinatlas-v2 .s2-result-stats{display:flex;justify-content:space-between;font-size:10px;color:#71818e}
+#spinatlas-v2 .s2-result-stats b{color:#304a5d;font-weight:500}
+#spinatlas-v2 .s2-result-rank{display:flex;justify-content:space-between;font-size:10px;color:#71818e;border-top:1px solid #ebf0f3;padding-top:7px;margin:7px 0}
+#spinatlas-v2 .s2-save-form{display:flex;gap:5px;height:30px}
+#spinatlas-v2 .s2-save-form input{flex:1;width:0;min-width:0;background:#fff;border:1px solid #ced9e2;border-radius:6px;padding:5px 7px;color:#304a5d;font-size:10px}
+#spinatlas-v2 .s2-save-form button{border-radius:6px;padding:4px 9px;font-size:10px;white-space:nowrap}
+#spinatlas-v2 .s2-save{background:#2457d6;border:1px solid #2457d6;color:#fff}
+#spinatlas-v2 .s2-skip{background:#fff;border:1px solid #ced9e2;color:#667c8c}
+#spinatlas-v2 .s2-saved{position:absolute;bottom:12px;left:15px;right:15px;padding:7px;background:#edf5ef;color:#216c47;border-radius:5px;font-size:11px;text-align:center}
+#spinatlas-v2 .s2-result-dismissed{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+#spinatlas-v2 .s2-confetti{position:absolute;inset:0;pointer-events:none;z-index:3;overflow:hidden}
+#spinatlas-v2 .s2-confetti>i{position:absolute;left:var(--x);top:16%;width:4px;height:6px;background:var(--c);opacity:0;animation:s2-fall 1.3s var(--delay) ease-out both}
+@keyframes s2-rise{from{opacity:0;translate:0 6px}to{opacity:1;translate:0 0}}
+@keyframes s2-glow{0%{box-shadow:inset 0 0 0 0 #2457d600}30%{box-shadow:inset 0 0 30px 1px #2457d624}100%{box-shadow:inset 0 0 0 0 #2457d600}}
+@keyframes s2-fall{0%{opacity:0;translate:0 0;rotate:0deg}15%{opacity:.85}100%{opacity:0;translate:0 150px;rotate:220deg}}
+@media(prefers-reduced-motion:reduce){#spinatlas-v2 *,#spinatlas-v2 *::before{animation:none!important;transition:none!important}}
+@container(max-width:650px){#spinatlas-v2 .s2-hud{gap:7px 9px}#spinatlas-v2 .s2-hud strong{font-size:18px}#spinatlas-v2 .s2-first-row{gap:6px;flex-wrap:wrap}#spinatlas-v2 .s2-right-top .s2-account{order:-1}#spinatlas-v2 .s2-interval{left:47px;width:158px}#spinatlas-v2 .s2-ranking{width:147px;right:48px;top:139px}}
+@container(max-width:450px){#spinatlas-v2 .s2-hud{grid-template-columns:1fr 1fr;gap:6px 7px;left:12px;width:calc(50% - 24px)}#spinatlas-v2 .s2-distance-cell{grid-column:span 2}#spinatlas-v2 .s2-hud strong{font-size:17px}#spinatlas-v2 .s2-hud small{font-size:9px}#spinatlas-v2 .s2-hud>div>span{font-size:9px}#spinatlas-v2 .s2-right-top{right:12px;width:calc(50% - 24px);gap:7px}#spinatlas-v2 .s2-first-row{gap:6px}#spinatlas-v2 .s2-right-top button{font-size:11px;padding:5px 8px}#spinatlas-v2 .s2-right-top .s2-account{min-width:101px}#spinatlas-v2 .s2-cameras{gap:4px}#spinatlas-v2 .s2-right-top .s2-cameras button{padding:5px 6px;gap:3px}#spinatlas-v2 .s2-cameras button svg{width:13px}#spinatlas-v2 .s2-mode-indicator{top:163px;font-size:9px}#spinatlas-v2 .s2-interval{left:44px;top:205px;width:124px}#spinatlas-v2 .s2-count{font-size:29px}#spinatlas-v2 .s2-rpm-value{font-size:18px}#spinatlas-v2 .s2-next{font-size:10px}#spinatlas-v2 .s2-ranking{top:205px;right:43px;width:113px;font-size:11px}#spinatlas-v2 .s2-ranking>div{gap:3px;grid-template-columns:9px 1fr auto}#spinatlas-v2 .s2-ranking b{font-size:9px}#spinatlas-v2 .s2-ranking strong{font-size:14px}#spinatlas-v2 .s2-ranking small{font-size:8px}#spinatlas-v2 .s2-ranking-title{font-size:9px}#spinatlas-v2 .s2-rank-gap{font-size:9px}#spinatlas-v2 .s2-self{left:54%;top:68%}#spinatlas-v2 .s2-pacer{left:38%;top:59%}#spinatlas-v2 .s2-moment{top:210px;left:44px;width:132px}#spinatlas-v2 .s2-moment-title{font-size:21px}#spinatlas-v2 .s2-moment-detail{font-size:10px}#spinatlas-v2 .s2-coach{font-size:12px;left:4%;right:4%}#spinatlas-v2 .s2-elevation{left:22%;width:34%}#spinatlas-v2 .s2-elevation>span{display:none}#spinatlas-v2 .s2-menu{top:192px;width:190px}#spinatlas-v2 .s2-edge-left[aria-expanded=true]{left:190px}#spinatlas-v2 .s2-result{height:auto;min-height:194px}#spinatlas-v2 .s2-result-heading>small{display:none}#spinatlas-v2 .s2-result-stats{flex-wrap:wrap;gap:5px}#spinatlas-v2 .s2-result-values{gap:8px}#spinatlas-v2 .s2-result-values>div+div{padding-left:8px}#spinatlas-v2 .s2-save-form{height:auto;flex-wrap:wrap}#spinatlas-v2 .s2-save-form input{flex-basis:100%;width:100%;height:30px}#spinatlas-v2 .s2-save-form button{min-height:30px}#spinatlas-v2 .s2-custom-fields{grid-template-columns:repeat(3,1fr)}#spinatlas-v2 .s2-custom-fields .s2-round-input{grid-column:auto}}
+@container(max-width:450px){#spinatlas-v2 .s2-screen{height:460px}#spinatlas-v2 .s2-interval{width:114px}#spinatlas-v2 .s2-ranking>div{grid-template-columns:9px minmax(0,1fr) auto}}
+@media(max-width:500px){#spinatlas-v2 .s2-preview-title>small{margin-left:0}#spinatlas-v2 .s2-preview-controls .s2-audio-label{margin-left:0}}
+@media(pointer:coarse){#spinatlas-v2 .s2-preview-controls select,#spinatlas-v2 .s2-preview-controls>button{min-height:44px}#spinatlas-v2 .s2-settings input,#spinatlas-v2 .s2-settings select{font-size:16px;min-height:36px}#spinatlas-v2 .s2-right-top button{min-height:36px}}
+</style>
+<script>
+(()=>{
+  const root=document.getElementById('spinatlas-v2');
+  const $=s=>root.querySelector(s),$$=s=>[...root.querySelectorAll(s)];
+  $$('.s2-map').forEach((el,i)=>{el.innerHTML=$('.s2-map-template').innerHTML.replaceAll('s2-blocks','s2-blocks-'+i);});
+  const presets={recovery:{warmup:300,high:60,low:120,repeats:5,cooldown:300,rounds:1,rest:180},balanced:{warmup:300,high:60,low:60,repeats:8,cooldown:300,rounds:1,rest:180},short:{warmup:600,high:20,low:10,repeats:8,cooldown:300,rounds:2,rest:180}};
+  const names={recovery:'회복형',balanced:'균형형',short:'짧은 반복'};
+  const moments={normal:{coach:'내 페이스로, 다음 길까지.'},start:{title:'새로운 길로 출발',detail:'목표 5.00 km',coach:'오늘도 내 도로망을 넓혀 볼까요?',distance:'0.00',fresh:'0.00',elapsed:'00:00'},half:{title:'벌써 절반!',detail:'2.50 / 5.00 km',coach:'지금까지 2.5km, 잘 달리고 있어요.'},waypoint:{title:'첫 경유지 통과',detail:'다음 목적지까지 이어 가요',coach:'한 구간을 해냈어요. 내 페이스로 계속!'},prepare:{phase:'준비',coach:'준비부터 차근차근 시작해요.'},countdown:{phase:'회복',coach:'곧 고강도 구간이에요.'},high:{phase:'고강도',coach:'이번 구간, 힘을 내봐요!'},low:{phase:'회복',coach:'잘했어요. 편하게 회복하세요.'},intervalEnd:{title:'인터벌 완료!',detail:'계획한 구간을 해냈어요',coach:'이제 자유롭게 달리세요.'},finish:{title:'5.00 km 완주!',detail:'새 도로 +4.99 km',coach:'달린 길이 내 도로망으로 쌓였어요.',distance:'5.00',fresh:'4.99',elapsed:'16:59'},stop:{title:'오늘 2.30 km',detail:'새 도로 +1.80 km',coach:'오늘도 달렸어요. 수고했어요.',distance:'2.30',fresh:'1.80',elapsed:'07:50'}};
+  const key='spinatlas-preview-v2';
+  let applied={preset:'recovery',custom:false,...presets.recovery},hasApplied=false,draft={...applied},mode='sensor',moment='high',paused=false,timers=[],audioContext=null;
+  const design={duration:2.4,animation:true};
+  function readSaved(){try{const h=window.openai?.widgetState?.privateContent?.spinatlasV2;if(h)return h;const s=localStorage.getItem(key);return s?JSON.parse(s):null;}catch{return null;}}
+  function validWorkout(w){return w&&names[w.preset]&&['warmup','high','low','repeats','cooldown','rounds','rest'].every(k=>Number.isFinite(w[k])&&Number.isInteger(w[k]))&&w.warmup>=0&&w.warmup<=1800&&w.cooldown>=0&&w.cooldown<=1800&&w.high>=5&&w.high<=600&&w.low>=5&&w.low<=600&&w.repeats>=1&&w.repeats<=30&&w.rounds>=1&&w.rounds<=3&&w.rest>=0&&w.rest<=1800;}
+  function restore(s){if(!s)return;if(validWorkout(s.workout)){applied={...s.workout};draft={...applied};hasApplied=!!s.hasApplied;}if(s.mode==='sensor'||s.mode==='free')mode=s.mode;if(moments[s.moment])moment=s.moment;}
+  restore(readSaved());
+  function save(){const state={workout:{...applied},hasApplied,mode,moment};try{localStorage.setItem(key,JSON.stringify(state));}catch{}try{const fn=window.openai?.setWidgetState;if(fn)Promise.resolve(fn({modelContent:{mode,moment,workout:{...applied}},privateContent:{spinatlasV2:state}})).catch(()=>{});}catch{}}
+  const form=$('.s2-settings'),units={warmup:60,high:1,low:1,repeats:1,cooldown:60,rounds:1,rest:60};
+  const seconds=s=>s>=60?(s%60?Math.floor(s/60)+'분 '+s%60+'초':s/60+'분'):s+'초';
+  const total=w=>w.warmup+w.cooldown+(w.high+w.low)*w.repeats*w.rounds+w.rest*(w.rounds-1);
+  function writeFields(){form.elements.preset.value=draft.preset;for(const[k,m]of Object.entries(units))form.elements[k].value=draft[k]/m;$('.s2-recent-label').textContent=hasApplied?'최근 설정 복원':'최근 값 유지';updateSummary();}
+  function updateSummary(){
+    const valid=validWorkout(draft)&&form.checkValidity();$('.s2-total').textContent=valid?'총 '+seconds(total(draft)):'입력 범위를 확인하세요';
+    $('.s2-brief-times').textContent='준비 '+seconds(draft.warmup)+' · 마무리 '+seconds(draft.cooldown);
+    $('.s2-brief-cycles').textContent='운동 '+seconds(draft.high)+' / 회복 '+seconds(draft.low)+' × '+draft.repeats+'회';
+    $('.s2-brief-rounds').hidden=draft.rounds===1;$('.s2-brief-rounds').textContent=draft.repeats+'회 × '+draft.rounds+'라운드 · 라운드 사이 '+seconds(draft.rest);
+    $$('.s2-round-input').forEach(el=>el.hidden=draft.preset!=='short');
+    $('.s2-custom-toggle span').textContent=draft.custom?'직접 조절 · 수정됨':'직접 조절';
+    const track=$('.s2-workout-track');track.replaceChildren();const add=(cls,n)=>{if(n<=0)return;const bar=document.createElement('span');bar.className=cls;bar.style.flex=String(n);track.append(bar);};
+    add('s2-warm',draft.warmup);if(valid){for(let j=0;j<draft.rounds;j++){for(let i=0;i<draft.repeats;i++){add('s2-work',draft.high);add('s2-recover',draft.low);}if(j<draft.rounds-1)add('s2-round-rest',draft.rest);}}add('s2-cool',draft.cooldown);
+    track.setAttribute('aria-label','운동 구성 · '+$('.s2-total').textContent);
+  }
+  function stopTimers(){timers.forEach(clearTimeout);timers=[];}
+  function later(fn,t){timers.push(setTimeout(()=>{if(!$('[data-variant="주행과 인터벌"]').hidden)fn();},t));}
+  function animate(el){el.classList.remove('s2-play');void el.offsetWidth;if(design.animation&&!matchMedia('(prefers-reduced-motion:reduce)').matches)el.classList.add('s2-play');}
+  function sound(kind){if(!$('.s2-audio').checked)return;try{audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)();audioContext.resume();const notes=kind==='low'?[523,392]:kind==='finish'||kind==='intervalEnd'?[523,659,784]:[523,659];notes.forEach((f,i)=>{const o=audioContext.createOscillator(),g=audioContext.createGain(),t=audioContext.currentTime+i*.12;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.055,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+.19);o.connect(g);g.connect(audioContext.destination);o.start(t);o.stop(t+.2);});}catch{}}
+  function renderRide(){
+    const s=moments[moment],free=mode==='free',stopped=paused||moment==='stop'||moment==='finish'||moment==='start';$('.s2-ride').dataset.mode=mode;$('.s2-mode').value=mode;$('.s2-event').value=moment;
+    $('.s2-distance').textContent=s.distance||'2.50';$('.s2-fresh').textContent=s.fresh||'2.00';$('.s2-elapsed').textContent=s.elapsed||'08:32';$('.s2-speed').textContent=stopped?'0':free?'16':moment==='low'?'15':'20';$('.s2-average').textContent=free?'16.0':'17.6';$('.s2-speed-label').textContent=free?'체험 속도':'속도';$('.s2-cadence').textContent=free?'—':stopped?'0':moment==='low'?'48':'64';
+    $('.s2-mode-indicator').textContent=free?'무센서 체험 · 16 km/h 고정':'센서 연결됨';$('.s2-account-mode').textContent=free?'무센서 체험 중':'센서 연결됨';
+    $('.s2-interval').hidden=!s.phase;$('.s2-moment').hidden=!s.title;
+    $('.s2-phase').textContent=s.phase||'';$('.s2-phase').style.color=moment==='low'||moment==='prepare'?'#18774f':'#2457d6';
+    const sec=moment==='prepare'?applied.warmup:moment==='countdown'?3:moment==='low'?applied.low:applied.high;
+    $('.s2-count').innerHTML=sec>=60?Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'):'<span>'+sec+'</span><small>초</small>';
+    $('.s2-repeat').textContent=(moment==='prepare'?'0':Math.min(3,applied.repeats))+' / '+applied.repeats+(applied.rounds>1?' · 1/'+applied.rounds:'');
+    $('.s2-rpm-value').textContent=free?'타이머':moment==='low'?'48':'64';$('.s2-rpm-label').textContent=free?'페달 강도 직접 조절':'현재 rpm';$('.s2-free-hint').hidden=!free;
+    $('.s2-next').textContent=moment==='low'||moment==='prepare'||moment==='countdown'?'다음 · 고강도 '+seconds(applied.high):'다음 · 회복 '+seconds(applied.low);
+    $('.s2-moment-title').textContent=s.title||'';$('.s2-moment-detail').textContent=s.detail||'';$('.s2-coach').textContent=paused?'잠시 쉬어 가요. 준비되면 다시 출발!':s.coach;
+    $('.s2-steps').replaceChildren();for(let i=0;i<Math.min(applied.repeats,10);i++){const bar=document.createElement('i');if(i===Math.min(2,applied.repeats-1))bar.className='s2-active-step';$('.s2-steps').append(bar);}
+  }
+  function playMoment(value,user=true){
+    stopTimers();moment=moments[value]?value:'normal';paused=false;renderRide();if(user&&moment!=='normal'){animate($('.s2-coach'));animate($('.s2-moment'));if(moment!=='low'&&moment!=='stop')animate($('.s2-glow'));sound(moment);}
+    if(moment==='countdown'&&user){later(()=>{$('.s2-count').innerHTML='<span>2</span><small>초</small>';sound('countdown');},1000);later(()=>{$('.s2-count').innerHTML='<span>1</span><small>초</small>';sound('countdown');},2000);later(()=>playMoment('high'),3000);}
+    else if(user&&moment!=='normal'){later(()=>{$('.s2-moment').hidden=true;$('.s2-coach').textContent=moment==='intervalEnd'?'이제 자유롭게 달리세요.':moment==='finish'?'5.00 km 완주 · 오늘도 해냈어요.':moment==='stop'?'오늘 2.30 km · 수고했어요.':'내 페이스로, 다음 길까지.';},design.duration*1000);}
+    if(user)save();
+  }
+  $('.s2-event').addEventListener('change',e=>playMoment(e.target.value));$('.s2-replay').addEventListener('click',()=>playMoment(moment));$('.s2-mode').addEventListener('change',e=>{mode=e.target.value;renderRide();save();});
+  function setMenu(open){$('.s2-menu').hidden=!open;$('.s2-edge-left').setAttribute('aria-expanded',String(open));}
+  function setRank(open){$('.s2-ranking').hidden=!open;$('.s2-edge-right').setAttribute('aria-expanded',String(open));}
+  function edge(el,side){let start=null,dragged=false;el.addEventListener('pointerdown',e=>{start=e.clientX;dragged=false;el.setPointerCapture(e.pointerId);});el.addEventListener('pointerup',e=>{if(start===null)return;const dx=e.clientX-start;start=null;if(Math.abs(dx)>18){dragged=true;side==='left'?setMenu(dx>0):setRank(dx<0);}});el.addEventListener('pointercancel',()=>start=null);el.addEventListener('click',()=>{if(dragged){dragged=false;return;}side==='left'?setMenu($('.s2-menu').hidden):setRank($('.s2-ranking').hidden);});}
+  edge($('.s2-edge-left'),'left');edge($('.s2-edge-right'),'right');
+  function closePops(){['.s2-account-pop','.s2-camera-pop','.s2-view-pop'].forEach(s=>$(s).hidden=true);$('.s2-account').setAttribute('aria-expanded','false');$('.s2-height-btn').setAttribute('aria-expanded','false');$('.s2-camera-btn').setAttribute('aria-expanded','false');}
+  function popToggle(selector,btn){const open=$(selector).hidden;closePops();$(selector).hidden=!open;btn.setAttribute('aria-expanded',String(open));}
+  $('.s2-account').addEventListener('click',()=>popToggle('.s2-account-pop',$('.s2-account')));$('.s2-height-btn').addEventListener('click',()=>popToggle('.s2-camera-pop',$('.s2-height-btn')));$('.s2-camera-btn').addEventListener('click',()=>popToggle('.s2-view-pop',$('.s2-camera-btn')));
+  $('.s2-sensor-info').addEventListener('click',()=>$('.s2-sensor-benefit').hidden=!$('.s2-sensor-benefit').hidden);
+  $('.s2-mode-indicator').addEventListener('click',()=>{closePops();$('.s2-account-pop').hidden=false;$('.s2-account').setAttribute('aria-expanded','true');$('.s2-sensor-benefit').hidden=false;});
+  $$('[data-height]').forEach(b=>b.addEventListener('click',()=>{$('.s2-height-btn>span').textContent=b.dataset.height;closePops();}));
+  $$('[data-camera]').forEach(b=>b.addEventListener('click',()=>{$('.s2-camera-btn>span').textContent=b.dataset.camera;closePops();}));
+  function message(text){$('.s2-message').textContent=text;$('.s2-message').hidden=false;timers.push(setTimeout(()=>$('.s2-message').hidden=true,2200));}
+  $('.s2-style-btn').addEventListener('click',()=>message('현재 카메라는 야외 지도를 사용해요.'));
+  $('.s2-zoom-in').addEventListener('click',()=>{const n=parseInt($('.s2-height-btn>span').textContent,10);$('.s2-height-btn>span').textContent=Math.max(20,Math.round(n/1.25))+'m';});$('.s2-zoom-out').addEventListener('click',()=>{const n=parseInt($('.s2-height-btn>span').textContent,10);$('.s2-height-btn>span').textContent=Math.round(n*1.25)+'m';});
+  $('.s2-address').addEventListener('click',()=>message('S 오사카 해안 → E 목적지 · 경로 5.00 km'));$('.s2-minimap').addEventListener('click',()=>message('미니맵 펼침 자리 · 주소창과 독립 동작'));
+  $('.s2-pause').addEventListener('click',()=>{stopTimers();paused=!paused;renderRide();$('.s2-pause').innerHTML=paused?'<i data-lucide="play" aria-hidden="true"></i>':'<i data-lucide="pause" aria-hidden="true"></i>';$('.s2-pause').style.background=paused?'#21935b':'';$('.s2-pause').setAttribute('aria-label',paused?'주행 재개':'일시정지');if(globalThis.lucide)lucide.createIcons({attrs:{width:16,height:16}});});$('.s2-stop').addEventListener('click',()=>playMoment('stop'));
+  $$('[data-menu]').forEach(b=>b.addEventListener('click',()=>{setMenu(false);if(b.dataset.menu==='workout')message('아래 화면 선택에서 「간단한 운동 설정」을 열어 보세요.');else if(b.dataset.menu==='sensor'){$('.s2-account-pop').hidden=false;$('.s2-sensor-benefit').hidden=false;}else message('내 경로 · 퍼블릭 · 입문 경로 선택');}));
+  form.elements.preset.addEventListener('change',e=>{draft={preset:e.target.value,custom:false,...presets[e.target.value]};writeFields();});
+  $('.s2-custom-toggle').addEventListener('click',()=>{const open=$('.s2-custom-fields').hidden;$('.s2-custom-fields').hidden=!open;$('.s2-custom-toggle').setAttribute('aria-expanded',String(open));});
+  $$('.s2-custom-fields input').forEach(input=>input.addEventListener('input',()=>{for(const[k,m]of Object.entries(units))draft[k]=Number(form.elements[k].value)*m;draft.custom=true;updateSummary();}));
+  form.addEventListener('submit',e=>{e.preventDefault();if(!form.reportValidity()||!validWorkout(draft))return;applied={...draft};hasApplied=true;save();form.hidden=true;$('.s2-settings-done').hidden=false;$('.s2-applied-description').textContent=(draft.custom?'직접 설정':names[draft.preset])+' · 총 '+seconds(total(draft));$('.s2-recent-label').textContent='최근 설정 복원';renderRide();});
+  $('.s2-settings-close').addEventListener('click',()=>{draft={...applied};writeFields();form.hidden=true;$('.s2-settings-done').hidden=false;$('.s2-settings-done>strong').textContent='현재 운동 설정';$('.s2-applied-description').textContent=names[applied.preset]+' · 총 '+seconds(total(applied));});
+  $('.s2-settings-reopen').addEventListener('click',()=>{draft={...applied};writeFields();form.hidden=false;$('.s2-settings-done').hidden=true;$('.s2-settings-done>strong').textContent='이 설정으로 준비됐어요.';});
+  function confetti(){const box=$('.s2-confetti');box.replaceChildren();if(!design.animation||matchMedia('(prefers-reduced-motion:reduce)').matches)return;for(let i=0;i<16;i++){const p=document.createElement('i');p.style.setProperty('--x',(25+(i*37%50))+'%');p.style.setProperty('--delay',(i%5*.05)+'s');p.style.setProperty('--c',['#2457d6','#85a6e6','#b4c7eb'][i%3]);box.append(p);}}
+  function result(value,celebrate=false){const manual=value==='manual';$('.s2-result-select').value=value;$('.s2-result-title').textContent=manual?'오늘도 수고했어요.':'끝까지 해냈어요!';$('.s2-result-distance').textContent=manual?'2.30':'5.00';$('.s2-result-fresh').textContent=manual?'1.80':'4.99';$('.s2-result-time').textContent=manual?'07:50':'16:59';$('.s2-result-kcal').textContent=manual?'49 kcal':'107 kcal';$('.s2-result-heading>small').textContent=manual?'오늘 9회 · 합계 9.0 km':'오늘 9회 · 합계 11.7 km';$('.s2-result').hidden=false;$('.s2-result-dismissed').hidden=true;$('.s2-save-form').hidden=false;$('.s2-saved').hidden=true;if(!manual&&celebrate)confetti();}
+  $('.s2-result-select').addEventListener('change',e=>result(e.target.value,true));$('.s2-result-replay').addEventListener('click',()=>result($('.s2-result-select').value,true));$('.s2-result-reopen').addEventListener('click',()=>result($('.s2-result-select').value));
+  $('.s2-save-form').addEventListener('submit',e=>{e.preventDefault();const name=$('.s2-save-form input').value.trim();if(!name){$('.s2-save-form input').setCustomValidity('경로 이름을 입력하세요.');$('.s2-save-form input').reportValidity();return;}$('.s2-save-form').hidden=true;$('.s2-saved').hidden=false;$('.s2-saved').textContent='“'+name+'” 저장 완료 · 시안 내 동작';});$('.s2-save-form input').addEventListener('input',e=>e.target.setCustomValidity(''));
+  $('.s2-skip').addEventListener('click',()=>{$('.s2-result').hidden=true;$('.s2-result-dismissed').hidden=false;});
+  writeFields();renderRide();
+  window.addEventListener('openai:set_globals',e=>{const next=e.detail?.globals?.widgetState?.privateContent?.spinatlasV2;const current={workout:{...applied},hasApplied,mode,moment};if(next&&JSON.stringify(next)!==JSON.stringify(current)){restore(next);writeFields();renderRide();}});
+  if(globalThis.Tweak){const t=new Tweak({container:$('.s2-ride'),onChange:()=>{}});t.addSlider(design,'duration',{label:'응원 표시 시간',min:1.5,max:4,step:.1,unit:'초'});t.addToggle(design,'animation',{label:'순간 강조 효과'});}
+})();
+</script>

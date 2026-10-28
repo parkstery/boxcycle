@@ -333,10 +333,60 @@
   .settings-surface .ride-settings-panel__calories { min-height: 45px; }
 }
 .ride-settings-sheet.settings-surface[aria-label="주행 설정"] .settings-surface__panel {
-  width: min(520px, calc(100vw - 24px)); max-width: calc(100vw - 24px);
-  max-height: calc(100dvh - 24px); padding: 16px 20px; gap: 0;
+  width: 460px; max-width: min(460px, calc(100vw - 24px));
+  max-height: calc(100dvh - 16px); padding: 6px 12px; gap: 0;
+  overflow: visible;
+}
+.ride-settings-sheet.settings-surface[aria-label="주행 설정"] .settings-surface__head {
+  min-height: 44px;
+  margin: 0;
 }
 .ride-settings-sheet.settings-surface[aria-label="주행 설정"] .ride-settings-panel { gap: 0; }
+.ride-settings-sheet.settings-surface[aria-label="주행 설정"] .ride-settings-panel__choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 24px;
+}
+.ride-settings-sheet.settings-surface[aria-label="주행 설정"] .ride-settings-panel__choice {
+  min-height: 36px;
+  gap: 6px;
+}
+.ride-settings-sheet.settings-surface[aria-label="주행 설정"] .ride-settings-panel__copy {
+  min-width: 0;
+  font-size: 13px;
+}
+.ride-settings-sheet.settings-surface[aria-label="주행 설정"] .ride-settings-panel__copy span {
+  white-space: normal;
+}
+.ride-settings-sheet.settings-surface[aria-label="주행 설정"] .ride-settings-panel__copy small {
+  font-size: 11px;
+}
+.ride-settings-sheet.settings-surface[aria-label="주행 설정"] .ride-settings-panel__interval {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 32px;
+  padding: 4px 0;
+  border-bottom: 1px solid #e9ecf1;
+}
+.ride-settings-sheet.settings-surface[aria-label="주행 설정"] .ride-settings-panel__calories {
+  min-height: 32px;
+  align-items: flex-start;
+}
+.ride-settings-sheet.settings-surface[aria-label="주행 설정"] .ride-settings-sheet__help {
+  margin: 2px 0 0;
+  font-size: 11px;
+  line-height: 1.2;
+}
+.ride-settings-panel__choice-spacer { min-height: 36px; }
 @media (max-height: 340px) {
-  .ride-settings-sheet.settings-surface[aria-label="주행 설정"] .settings-surface__panel { max-height: calc(100dvh - 16px); padding: 10px 16px; }
+  .ride-settings-sheet.settings-surface[aria-label="주행 설정"] .settings-surface__panel { max-height: calc(100dvh - 16px); padding: 6px 12px; }
+  .ride-settings-sheet.settings-surface[aria-label="주행 설정"] .ride-settings-panel__choices { column-gap: 12px; }
+}
+@media (max-width: 480px) {
+  .ride-settings-sheet.settings-surface[aria-label="주행 설정"] .ride-settings-panel__choices {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+  }
 }

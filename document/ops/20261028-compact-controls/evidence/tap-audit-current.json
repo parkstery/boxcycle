@@ -1,0 +1,18 @@
+{
+  "changed_sources": [
+    "apps/web/e2e/compact-controls.spec.ts",
+    "apps/web/e2e/ride-ui-moments.spec.ts",
+    "apps/web/e2e/ui-800x360.spec.ts",
+    "apps/web/e2e/ui-edge-live.spec.ts",
+    "apps/web/scripts/ui-800x360/preview.tsx",
+    "apps/web/src/App.tsx",
+    "apps/web/src/components/ui/EdgePanelHandle.css",
+    "apps/web/src/components/ui/EdgePanelHandle.tsx",
+    "apps/web/src/components/ui/edgePanelDocumentGesture.ts"
+  ],
+  "new_sources": [
+    "apps/web/e2e/edge-tap-cancel.spec.ts"
+  ],
+  "changed_protected_images": [],
+  "protected_image_count": 2181
+}

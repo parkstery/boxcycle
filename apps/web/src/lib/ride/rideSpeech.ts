@@ -48,7 +48,7 @@ function pickEnVoice(synth: SpeechSynthesis): SpeechSynthesisVoice | null {
 }
 
 /** 코칭·격려 멘트 읽기. `setRideTtsEnabled(false)` 이면 무음. */
-export function speakRideText(text: string): void {
+export function speakRideText(text: string, language = "en-US"): void {
   if (!ttsEnabledRef.current) return;
   const normalized = (text || "").trim();
   if (!normalized) return;
@@ -63,8 +63,8 @@ export function speakRideText(text: string): void {
     speechStartTimeout = null;
     if (speechRequestId !== requestId) return;
     const u = new SpeechSynthesisUtterance(normalized);
-    u.lang = "en-US";
-    const voice = pickEnVoice(synth);
+    u.lang = language;
+    const voice = language.startsWith("ko") ? synth.getVoices().find((v) => v.lang.toLowerCase().startsWith("ko")) : pickEnVoice(synth);
     if (voice) u.voice = voice;
     u.rate = 1;
     u.onstart = () => {

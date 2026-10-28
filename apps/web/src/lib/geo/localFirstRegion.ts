@@ -7,7 +7,7 @@ export const LOCAL_FIRST_REGION_STORAGE_KEY = "rtw.localFirst.region";
  * Recognition 줌 — 폰 가로(740×300)에서 동·구·시 라벨이 읽히는 값.
  * 후보 12/13/14 비교 캡처 후 13 채택(구·동 라벨이 뜨고 시가지가 한 화면에 잡힘).
  */
-export const LOCAL_FIRST_CAMERA_ZOOM = 13;
+const LOCAL_FIRST_CAMERA_ZOOM = 13;
 
 export type LocalFirstRegionSource = "search" | "geolocation";
 

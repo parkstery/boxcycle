@@ -1,0 +1,190 @@
+55555
+{
+  "capturedAt": "2026-10-27T10:34:47.365Z",
+  "build": "Cu0Io9Jq",
+  "mapcut": [],
+  "skinMode": "gpu",
+  "rideLabelsHidden": true,
+  "rideLabelMode": "names",
+  "rideLabelDist": 1.2,
+  "frame": {
+    "samples": 391,
+    "windowMs": 10000,
+    "fps": 39.21647292458584,
+    "p50Ms": 16.699999999953434,
+    "p95Ms": 50.0999999998603,
+    "p99Ms": 83.30000000004657,
+    "maxMs": 83.4000000001397,
+    "over33Ratio": 0.40153452685422,
+    "over50Ratio": 0.05115089514066496
+  },
+  "rider": {
+    "frames": 393,
+    "riders": 1179,
+    "msPerFrame": 0.8661577612085803,
+    "msPerRider": 0.28871925373619345,
+    "posePct": 13.160987106561212,
+    "riderCount": 3,
+    "zoom": 20.900668287729516,
+    "lod2State": "ready",
+    "lod2Used": false
+  },
+  "device": {
+    "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Mobile Safari/537.36",
+    "hardwareConcurrency": 8,
+    "deviceMemory": 8,
+    "devicePixelRatio": 3,
+    "mapPixelRatio": 2,
+    "screenWidth": 772,
+    "screenHeight": 360,
+    "innerWidth": 699,
+    "innerHeight": 273,
+    "webgl": {
+      "unmaskedRenderer": "ANGLE (Qualcomm, Adreno (TM) 730, OpenGL ES 3.2)",
+      "maxVertexUniformVectors": 256,
+      "vertexHighFloatPrecision": 23,
+      "vertexHighFloatRangeMin": 127,
+      "vertexHighFloatRangeMax": 127
+    }
+  },
+  "jitter": [
+    {
+      "id": "live-self",
+      "kind": "self",
+      "frames": 391,
+      "reverseFrames": 0,
+      "maxReverseM": 0,
+      "speedCv": 0.0029119793499574353,
+      "relStdM": 0
+    },
+    {
+      "id": "pacer-a",
+      "kind": "pacer",
+      "frames": 391,
+      "reverseFrames": 0,
+      "maxReverseM": 0,
+      "speedCv": 0.00307153699781523,
+      "relStdM": 0.00594317943922946
+    },
+    {
+      "id": "pacer-b",
+      "kind": "pacer",
+      "frames": 391,
+      "reverseFrames": 0,
+      "maxReverseM": 0,
+      "speedCv": 0.003439956448647207,
+      "relStdM": 2.6911513018497994
+    }
+  ],
+  "breakdown": {
+    "windowMs": 10000,
+    "tick": {
+      "samples": 393,
+      "meanMs": 4.213486005559222,
+      "p95Ms": 7.899999976158142,
+      "other": {
+        "samples": 393,
+        "meanMs": 0.007124682040008273,
+        "p95Ms": 0.09999999403953552
+      },
+      "phases": {
+        "self": {
+          "samples": 393,
+          "meanMs": 0.1241730290059825,
+          "p95Ms": 0.29999998211860657
+        },
+        "camera": {
+          "samples": 393,
+          "meanMs": 2.162849872697704,
+          "p95Ms": 3.800000011920929
+        },
+        "peer": {
+          "samples": 393,
+          "meanMs": 0.007124682343339799,
+          "p95Ms": 0.09999999403953552
+        },
+        "pacer": {
+          "samples": 393,
+          "meanMs": 0.02239185776419312,
+          "p95Ms": 0.10000002384185791
+        },
+        "markers": {
+          "samples": 393,
+          "meanMs": 1.6860050866925382,
+          "p95Ms": 3
+        },
+        "spec": {
+          "samples": 393,
+          "meanMs": 0.12798982267161363,
+          "p95Ms": 0.20000001788139343
+        },
+        "sync": {
+          "samples": 393,
+          "meanMs": 0.052417303087147135,
+          "p95Ms": 0.10000002384185791
+        },
+        "nametag": {
+          "samples": 393,
+          "meanMs": 0.02340966925669566,
+          "p95Ms": 0.10000002384185791
+        }
+      }
+    },
+    "map": {
+      "method": "map._render",
+      "samples": 393,
+      "meanMs": 11.586513994986774,
+      "p95Ms": 21.5,
+      "exRiderMeanMs": 10.720356233778194,
+      "exRiderP95Ms": 20.399999976158142,
+      "riderMeanMs": 0.8661577612085803,
+      "renderEvents": 65938,
+      "idleEvents": 0,
+      "limit": "지도 CPU는 map._render 한 번의 JS다. 커스텀 라이더 레이어와 render 리스너(네임태그 재투영)가 포함된다. exRiderMeanMs 는 그 호출 안의 라이더 레이어 시간을 뺀 값이다. 래핑이 실패하면 method 는 events-only 이고 시간은 없다. GPU 는 EXT_disjoint_timer_query_webgl2 로 4프레임마다 한 번이며, 실패·disjoint 샘플은 버린다."
+    },
+    "react": {
+      "commits": 0,
+      "commitsPerSec": 0,
+      "commitSumMs": 0,
+      "commitMeanMs": null
+    },
+    "loaf": {
+      "supported": true,
+      "count": 14,
+      "blockingMs": 92.39999999999999,
+      "styleAndLayoutMs": 23.600000000000005,
+      "styleAndLayoutSource": "forced",
+      "topScripts": [
+        {
+          "source": "[camera1Mode-DgOnuhkM.js](http://camera1mode-dgonuhkm.js/)",
+          "ms": 400.90000000596046
+        },
+        {
+          "source": "D @ [index-Cu0Io9Jq.js](http://index-cu0io9jq.js/)",
+          "ms": 157.80000004172325
+        },
+        {
+          "source": "r @ [index-Cu0Io9Jq.js](http://index-cu0io9jq.js/)",
+          "ms": 126.09999993443489
+        }
+      ]
+    },
+    "gpu": {
+      "supported": false,
+      "reason": "unsupported",
+      "samples": 0,
+      "meanMs": null,
+      "p95Ms": null
+    },
+    "summary": {
+      "frameMeanMs": 25.499488491048712,
+      "tickMs": 4.213486005559222,
+      "mapMs": 11.586513994986774,
+      "reactMs": 0,
+      "otherLoafMs": 0,
+      "jsMs": 15.800000000545996,
+      "waitMs": 9.699488490502716
+    },
+    "note": "js = 틱 평균 + 지도 평균 + 프레임당 React + 기타 LoAF. 기타 LoAF = max(0, LoAF blocking/프레임 − 틱 − 지도 − React). 대기 = max(0, 프레임 간격 평균 − js). React 는 틱·지도 안에 겹칠 수 있어 js 가 간격을 넘으면 대기는 0 이다."
+  }
+}

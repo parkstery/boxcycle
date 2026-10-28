@@ -178,8 +178,6 @@ export function Preview() {
         account={{ initial: 'R', isGuest: false, label: 'Ridingman12', mileageKm: 178 }}
         onOpenUserInfo={noop}
         userInfoOpen={false}
-        onOpenMapView={noop}
-        mapViewOpen={false}
         coachData={null}
         coachLineEnabled={false}
         metrics={null}

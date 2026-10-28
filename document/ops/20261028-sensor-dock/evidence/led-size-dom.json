@@ -1,0 +1,114 @@
+[
+  {
+    "width": 800,
+    "height": 360,
+    "state": "idle",
+    "led": [
+      24,
+      24
+    ],
+    "panelLed": [
+      7,
+      7
+    ],
+    "click": "PASS"
+  },
+  {
+    "width": 800,
+    "height": 360,
+    "state": "riding",
+    "led": [
+      24,
+      24
+    ],
+    "panelLed": [
+      7,
+      7
+    ],
+    "click": "PASS"
+  },
+  {
+    "width": 736,
+    "height": 300,
+    "state": "idle",
+    "led": [
+      24,
+      24
+    ],
+    "panelLed": [
+      7,
+      7
+    ],
+    "click": "PASS"
+  },
+  {
+    "width": 736,
+    "height": 300,
+    "state": "riding",
+    "led": [
+      24,
+      24
+    ],
+    "panelLed": [
+      7,
+      7
+    ],
+    "click": "PASS"
+  },
+  {
+    "width": 699,
+    "height": 273,
+    "state": "idle",
+    "led": [
+      24,
+      24
+    ],
+    "panelLed": [
+      7,
+      7
+    ],
+    "click": "PASS"
+  },
+  {
+    "width": 699,
+    "height": 273,
+    "state": "riding",
+    "led": [
+      24,
+      24
+    ],
+    "panelLed": [
+      7,
+      7
+    ],
+    "click": "PASS"
+  },
+  {
+    "width": 667,
+    "height": 300,
+    "state": "idle",
+    "led": [
+      24,
+      24
+    ],
+    "panelLed": [
+      7,
+      7
+    ],
+    "click": "PASS"
+  },
+  {
+    "width": 667,
+    "height": 300,
+    "state": "riding",
+    "led": [
+      24,
+      24
+    ],
+    "panelLed": [
+      7,
+      7
+    ],
+    "click": "PASS"
+  }
+]

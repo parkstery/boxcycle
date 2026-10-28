@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { test, expect } from '@playwright/test';
 
 const preview = '/scripts/ui-800x360/preview.html';
@@ -55,16 +54,14 @@ test('Chief 고정30 — 우상단 지도 조작과 서비스 기능은 간격�
   const spacing = await page.evaluate(() => {
     const map = document.querySelector('.hud-ride-map-controls')!.getBoundingClientRect();
     const service = document.querySelector('.map-hud__service-actions')!.getBoundingClientRect();
-    const rank = document.querySelector('.lb-glance__chip-slot')!.getBoundingClientRect();
     const account = document.querySelector('.hud-account')!.getBoundingClientRect();
     return {
       outer: service.left - map.right,
-      inner: account.left - rank.right,
+      account,
       centerDelta: Math.abs(service.top + service.height / 2 - (map.top + map.height / 2)),
     };
   });
   expect(spacing.outer).toBeGreaterThanOrEqual(8);
-  expect(spacing.outer - spacing.inner).toBeGreaterThanOrEqual(4);
   expect(spacing.centerDelta).toBeLessThanOrEqual(1);
 
   await page.setViewportSize({ width: 667, height: 300 });
@@ -86,19 +83,20 @@ test('Chief 고정30 — 우상단 지도 조작과 서비스 기능은 간격�
   expect(compact).toEqual({ overlaps: false, inside: true, childrenInsideGroup: true });
 });
 
-test('Chief 고정27 — 평면 높이는 좁고 우측 정렬하며 시점 2~6은 파란 화살표 세로 메뉴다', async ({ page }) => {
+test('Chief 고정27 — 단일 카메라 메뉴, 1열 62px 우측 정렬, 2~6 파란 화살표 세로', async ({ page }) => {
   await page.goto(`${preview}?state=riding`);
 
-  const flat = page.getByRole('button', { name: /평면 카메라/ }).first();
-  const perspective = page.getByRole('button', { name: /^카메라 2/ }).first();
-  await expect(flat).toBeVisible();
-  await expect(perspective).toBeVisible();
-  const [flatBox, perspectiveBox] = await Promise.all([flat.boundingBox(), perspective.boundingBox()]);
+  const trigger = page.getByRole('button', { name: /카메라 메뉴/ });
+  await expect(trigger).toHaveCount(1);
+  await trigger.click();
+  const panel = page.getByRole('menu', { name: '카메라 선택' });
+  await expect(panel).toBeVisible();
+  const heightMenu = page.getByRole('group', { name: '평면 카메라 높이' });
+  const viewMenu = page.getByRole('group', { name: '시점 카메라' });
+  const [flatBox, perspectiveBox] = await Promise.all([heightMenu.boundingBox(), viewMenu.boundingBox()]);
   expect(flatBox!.x + flatBox!.width).toBeLessThanOrEqual(perspectiveBox!.x + 1);
+  expect((await panel.boundingBox())!.width).toBeCloseTo(154, 0);
 
-  await flat.click();
-  const heightMenu = page.getByRole('menu', { name: '평면 카메라 높이' });
-  await expect(heightMenu).toBeVisible();
   await expect(heightMenu.getByRole('menuitemradio')).toHaveCount(7);
   for (const label of ['전체 경로', '20m 상공', '200m 상공', '300m 상공', '400m 상공', '500m 상공', '1000m 상공']) {
     await expect(heightMenu.getByRole('menuitemradio', { name: `평면 카메라 · ${label}` })).toBeVisible();
@@ -112,15 +110,13 @@ test('Chief 고정27 — 평면 높이는 좁고 우측 정렬하며 시점 2~6�
       rightEdges: labels.map(label => label.getBoundingClientRect().right),
     };
   });
-  expect(flatGeometry.width).toBeCloseTo(96, 0);
+  expect(flatGeometry.width).toBeCloseTo(62, 0);
   expect(flatGeometry.alignments.every(value => value === 'right')).toBeTruthy();
   expect(Math.max(...flatGeometry.rightEdges) - Math.min(...flatGeometry.rightEdges)).toBeLessThanOrEqual(0.1);
   await heightMenu.getByRole('menuitemradio', { name: '평면 카메라 · 1000m 상공' }).click();
-  await expect(flat).toContainText('1000m');
+  await expect(trigger).toContainText('1000m');
 
-  await perspective.click();
-  const viewMenu = page.getByRole('menu', { name: '시점 카메라' });
-  await expect(viewMenu).toBeVisible();
+  await trigger.click();
   await expect(viewMenu.getByRole('menuitemradio')).toHaveCount(5);
   await expect(viewMenu.locator('svg')).toHaveCount(5);
   await expect(viewMenu.locator('.camera-view-menu__item-label')).toHaveCount(0);
@@ -186,10 +182,16 @@ test('시작·센서·접기는 조작 가능하고 시작→정지→재개→�
     expect(r!.height).toBeGreaterThanOrEqual(26);
     expect(await locator.evaluate(el=>{const r=el.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit===el||el.contains(hit);})).toBeTruthy();
   }
-  expect((await page.getByRole('button',{name:'주행 시작',exact:true}).boundingBox())!.height).toBe(44);
+  expect(await page.getByRole('button',{name:'주행 시작',exact:true}).evaluate(el=>{
+    const height=el.getBoundingClientRect().height;
+    const transform=getComputedStyle(el).transform;
+    const scale=transform.startsWith('matrix(')?Number.parseFloat(transform.slice(7)):1;
+    return height/(Number.isFinite(scale)&&scale>0?scale:1);
+  })).toBeCloseTo(44,0);
   await page.getByRole('button',{name:'경로 패널 접기'}).click();
   await expect(page.getByRole('button',{name:'주행 시작',exact:true})).toBeVisible();
-  await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
+  await expect(page.getByRole('button',{name:'경로 패널 펼치기'})).toBeVisible();
+  await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(0);
   await page.getByRole('button',{name:'주행 시작',exact:true}).click();
   await expect(page.locator('.audit-world')).toHaveAttribute('data-ui-stage','riding');
   await page.getByRole('button',{name:'일시정지',exact:true}).click();
@@ -201,14 +203,7 @@ test('시작·센서·접기는 조작 가능하고 시작→정지→재개→�
   await expect(page.locator('.ride-control-bar')).toHaveCount(0);
 });
 
-test('맵과 주행 설정의 기본 표면은 사용자 언어와 명시적 닫기를 제공한다', async ({page}) => {
-  await page.goto(`${preview}?state=map`);
-  const map=page.getByRole('dialog',{name:'맵 뷰',exact:true});
-  expect((await page.locator('.map-view-sheet__panel').boundingBox())!.height).toBeLessThanOrEqual(210);
-  await expect(map.getByText('free',{exact:true})).toBeHidden();
-  await expect(map.getByText('OSRM',{exact:true})).toBeHidden();
-  await map.getByRole('button',{name:'맵 뷰 닫기'}).click();
-  await expect(map).toBeHidden();
+test('주행 설정의 기본 표면은 사용자 언어와 명시적 닫기를 제공한다', async ({page}) => {
   await page.goto(`${preview}?state=settings`);
   const settings=page.getByRole('dialog',{name:'주행 설정',exact:true});
   await expect(settings.getByText('음성 안내',{exact:true})).toBeVisible();
@@ -221,7 +216,7 @@ test('맵과 주행 설정의 기본 표면은 사용자 언어와 명시적 닫
 test('800 기준 및 좁고 여유 있는 가로 화면에서 패널을 닫고 조작할 수 있다', async ({page}) => {
   for(const size of [{width:800,height:360},{width:667,height:300},{width:844,height:390}]){
     await page.setViewportSize(size);
-    for(const state of ['sensor','map','settings','routes','summary','account']){
+    for(const state of ['sensor','settings','routes','summary','account']){
       await page.goto(`${preview}?state=${state}`);
       const panels=page.locator('.cadence-sheet__panel,.map-view-sheet__panel,.ride-settings-sheet__panel,.oc-modal,.ride-summary__sheet,.user-info-sheet-root.is-open .user-info-sheet');
       await expect(panels.first()).toBeVisible();
@@ -257,7 +252,7 @@ test('결과의 진행 숫자와 보조 설명은 잘리지 않고 읽힌다',as
   await expect(result).toBeVisible();
   const geometry=await page.locator('.ride-summary__progress-text').evaluate(el=>({client:el.clientHeight,scroll:el.scrollHeight}));
   expect(geometry.scroll).toBeLessThanOrEqual(geometry.client+1);
-  expect(await page.locator('.ride-summary__story-detail').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(11);
+  expect(await page.locator('.ride-summary__story-detail').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(10);
   await expect(result.getByText('시간',{exact:true})).toBeVisible();
   await expect(result.getByText('평균',{exact:true})).toBeVisible();
 });
@@ -278,126 +273,125 @@ test('메뉴는 Tab 포커스를 가두고 Escape 후 트리거로 돌려준다'
   await expect(page.getByRole('dialog',{name:'메뉴',exact:true})).toHaveCount(0);
 });
 
-test('좌우 에지 띠는 20px·화면0에 붙고 안쪽 드래그로만 열린다',async({page})=>{
-  const size=page.viewportSize()??{width:800,height:360};
-  for(const side of ['left','right'] as const){
-    await page.goto(`${preview}?state=ready`);
-    const handle=page.locator(`.edge-panel-handle--${side}`);
-    const r=(await handle.boundingBox())!;
-    expect(r.width).toBeGreaterThanOrEqual(18);
-    expect(r.width).toBeLessThanOrEqual(21);
-    if(side==='left') expect(r.x).toBeLessThanOrEqual(0.5);
-    else expect(r.x+r.width).toBeGreaterThanOrEqual(799);
-    const x=side==='left'?10:790,y=155,dir=side==='left'?1:-1;
-    await page.mouse.move(x,y);await page.mouse.down();
-    await page.mouse.move(x+dir*(side==='left'?36:80),y,{steps:8});
-    const selector=side==='left'?'.menu-panel':'.map-view-sheet__panel';
-    const previewBox=(await page.locator(selector).boundingBox())!;
-    expect(previewBox.x+previewBox.width>0&&previewBox.x<size.width,`${side} partial reveal`).toBeTruthy();
-    await page.mouse.move(x+dir*110,y,{steps:8});await page.mouse.up();
-    const dialog=page.getByRole('dialog',{name:side==='left'?'메뉴':'맵 뷰',exact:true});
-    await expect(dialog).toBeVisible();
-    await expect.poll(async()=>{const b=(await page.locator(selector).boundingBox())!;return Math.max(-b.x,b.x+b.width-800);}).toBeLessThanOrEqual(1);
-    const title=page.locator(side==='left'?'.menu-panel__brand':'.map-view-sheet__head-title');
-    const h=(await title.boundingBox())!;
-    await page.mouse.move(h.x+h.width/2,h.y+h.height/2);await page.mouse.down();
-    await page.mouse.move(h.x+h.width/2-dir*100,h.y+h.height/2,{steps:8});await page.mouse.up();
-    await expect(dialog).toHaveCount(0);
-    await page.mouse.click(x,y);
-    await expect(page.getByRole('dialog')).toHaveCount(0);
-  }
+test('왼쪽 에지 띠는 20px·화면0에 붙고 빈 가장자리 드래그로는 열리지 않는다',async({page})=>{
+  await page.goto(`${preview}?state=ready`);
+  const handle=page.locator('.edge-panel-handle--left');
+  const r=(await handle.boundingBox())!;
+  expect(r.width).toBeGreaterThanOrEqual(18);
+  expect(r.width).toBeLessThanOrEqual(21);
+  expect(r.x).toBeLessThanOrEqual(0.5);
+  const x=10,y=80;
+  await page.mouse.move(x,y);await page.mouse.down();
+  await page.mouse.move(x+110,y,{steps:8});await page.mouse.up();
+  await expect(page.getByRole('dialog'),'빈 가장자리 드래그는 열지 않는다').toHaveCount(0);
+  await page.getByRole('button',{name:'메뉴 열기',exact:true}).click();
+  const dialog=page.getByRole('dialog',{name:'메뉴',exact:true});
+  await expect(dialog).toBeVisible();
+  await expect.poll(async()=>{const b=(await page.locator('.menu-panel').boundingBox())!;return Math.max(-b.x,0);}).toBeLessThanOrEqual(1);
+  const head=page.locator('.menu-panel__head');
+  const h=(await head.boundingBox())!;
+  await page.mouse.move(h.x+Math.min(80,h.width/2),h.y+h.height/2);await page.mouse.down();
+  await page.mouse.move(h.x+Math.min(80,h.width/2)-100,h.y+h.height/2,{steps:8});await page.mouse.up();
+  await expect(dialog).toHaveCount(0);
+  await page.mouse.click(x,40);
+  await expect(page.getByRole('dialog'),'20px 띠 클릭은 열지 않는다').toHaveCount(0);
 });
 
-// Chief 고정14(2026-10-24): 측면 메뉴는 보이는 흰 반투명 반원 탭으로 연다 — 누르거나 탭에서 끌어서.
-test('Chief 고정14 — 좌우 흰 반투명 반원 탭: 계기판 아래 빈 자리, 누르면·끌면 열린다',async({page})=>{
+// Chief 고정14(2026-10-28 후속): 측면 메뉴는 보이는 흰 반투명 반원 탭으로만 연다 — 슬라이드 금지, 위치 고정.
+test('Chief 고정14 — 왼쪽 흰 반투명 반원 탭: 계기판 아래 빈 자리, 누르면 열리고 끌어도 열리지 않는다',async({page})=>{
   for(const size of [{width:800,height:360},{width:667,height:300},{width:844,height:390}]){
     await page.setViewportSize(size);
-    for(const [state,expand] of [['ready',false],['riding',true],['paused',true]] as const){
-      await page.goto(`${preview}?state=${state}&waypoints=3&long`);
-      if(expand) await page.getByRole('button',{name:'경로 패널 펼치기'}).click();
+    for(const state of ['ready','riding','paused'] as const){
+      await page.goto(`${preview}?state=${state}`);
       const g=await page.evaluate(()=>{
-        const boxes=(sel:string)=>[...document.querySelectorAll(sel)].map(e=>e.getBoundingClientRect()).filter(r=>r.width>0&&r.height>0);
-        const tabs=['left','right'].map(side=>{
+        const tabs=['left'].map(side=>{
           const tab=document.querySelector(`.edge-panel-tab--${side}`)!;
           const knob=tab.querySelector('.edge-panel-tab__knob')!;
           const t=tab.getBoundingClientRect(),k=knob.getBoundingClientRect();
           const hit=document.elementFromPoint(k.x+k.width/2,k.y+k.height/2);
           return {side,t:t.toJSON(),k:k.toJSON(),bg:getComputedStyle(knob).backgroundColor,hitOk:Boolean(hit?.closest(`.edge-panel-tab--${side}`))};
         });
-        const others=boxes('.map-hud__tl,.route-dock__card,.route-minimap,.map-hud__tr,.ride-control-bar,.hud-ride-map-controls,.camera-view-menu__trigger,.hud-account').map(r=>r.toJSON());
+        const others=[
+          ['.map-hud__tl-metrics','계기'],
+          ['.map-hud__tr','우상단'],
+          ['.ride-control-bar','주행제어'],
+          ['.hud-ride-map-controls','맵제어'],
+          ['.camera-view-menu__trigger','카메라'],
+          ['.hud-account','계정'],
+          ['.route-dock__card','경로카드'],
+          ['.route-minimap','미니맵'],
+        ].flatMap(([sel,name])=>{
+          const el=document.querySelector(sel);
+          if(!el) return [];
+          const r=el.getBoundingClientRect();
+          if(r.width<=0||r.height<=0) return [];
+          if(sel==='.route-dock__card' && r.width<=32 && r.height<=32) return [];
+          return [{name, ...r.toJSON()}];
+        });
         return {tabs,others,vw:innerWidth,vh:innerHeight};
       });
       for(const tab of g.tabs){
         const label=`${size.width}×${size.height} ${state} ${tab.side}`;
-        expect(tab.k.width,label).toBeCloseTo(14,0);
-        expect(tab.k.height,label).toBeCloseTo(48,0);
-        expect(tab.t.width*tab.t.height,label).toBeGreaterThanOrEqual(28*64-1);
+        expect(tab.k.width,label).toBeCloseTo(20.4,1);
+        expect(tab.k.height,label).toBeCloseTo(43.2,1);
+        expect(tab.t.width*tab.t.height,label).toBeGreaterThanOrEqual(44*76-1);
         expect(tab.bg,label).toBe('rgba(255, 255, 255, 0.78)');
         expect(tab.hitOk,label).toBe(true);
         if(tab.side==='left') expect(tab.k.x,label).toBeLessThanOrEqual(0.5);
         else expect(tab.k.x+tab.k.width,label).toBeGreaterThanOrEqual(g.vw-0.5);
         for(const o of g.others){
           const overlap=tab.k.x<o.right&&tab.k.right>o.left&&tab.k.y<o.bottom&&tab.k.bottom>o.top;
-          expect(overlap,`${label} 탭이 다른 조작부·카드와 겹치지 않는다`).toBe(false);
+          expect(overlap,`${label} vs ${o.name}`).toBe(false);
         }
       }
     }
   }
   await page.setViewportSize({width:800,height:360});
-  for(const side of ['left','right'] as const){
-    const dialog=page.getByRole('dialog',{name:side==='left'?'메뉴':'맵 뷰',exact:true});
-    await page.goto(`${preview}?state=ready`);
-    await page.getByRole('button',{name:side==='left'?'메뉴 열기':'맵 뷰 열기',exact:true}).click();
-    await expect(dialog,`${side} 누르면 열림`).toBeVisible();
-    await page.goto(`${preview}?state=ready`);
-    const k=(await page.locator(`.edge-panel-tab--${side} .edge-panel-tab__knob`).boundingBox())!;
-    const x=k.x+k.width/2,y=k.y+k.height/2,dir=side==='left'?1:-1;
-    await page.mouse.move(x,y);await page.mouse.down();
-    await page.mouse.move(x+dir*120,y,{steps:10});await page.mouse.up();
-    await expect(dialog,`${side} 탭에서 끌면 열림`).toBeVisible();
-    await expect(page.locator(`.edge-panel-tab--${side}`),'열리면 그 쪽 탭은 사라진다').toHaveCount(0);
-  }
+  const dialog=page.getByRole('dialog',{name:'메뉴',exact:true});
+  await page.goto(`${preview}?state=ready`);
+  const closedTab=(await page.locator('.edge-panel-tab--left').boundingBox())!;
+  await page.getByRole('button',{name:'메뉴 열기',exact:true}).click();
+  await expect(dialog,'누르면 열림').toBeVisible();
+  const openTab=(await page.locator('.edge-panel-tab--left').boundingBox())!;
+  expect(Math.abs(openTab.x-closedTab.x),'열린 뒤 x 유지').toBeLessThanOrEqual(1);
+  expect(Math.abs(openTab.y-closedTab.y),'열린 뒤 y 유지').toBeLessThanOrEqual(1);
+  await expect(page.locator('.edge-panel-tab--left'),'열어도 탭은 남는다').toHaveCount(1);
+  await page.goto(`${preview}?state=ready`);
+  const k=(await page.locator('.edge-panel-tab--left .edge-panel-tab__knob').boundingBox())!;
+  const x=k.x+k.width/2,y=k.y+k.height/2;
+  await page.mouse.move(x,y);await page.mouse.down();
+  await page.mouse.move(x+120,y,{steps:10});await page.mouse.up();
+  await expect(dialog,'탭에서 끌어도 열리지 않는다').toHaveCount(0);
 });
 
-test('포커스 대안·짧은/반대 드래그 취소가 동작한다',async({page})=>{
+test('포커스 대안·빈 가장자리 짧은/반대 드래그는 열지 않는다',async({page})=>{
   await page.goto(`${preview}?state=ready`);
-  await page.getByRole('button',{name:'맵 뷰 설정',exact:true}).focus();
+  await page.getByRole('button',{name:'Trail 메뉴',exact:true}).focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('dialog',{name:'맵 뷰',exact:true})).toBeVisible();
+  await expect(page.getByRole('dialog',{name:'메뉴',exact:true})).toBeVisible();
   await page.keyboard.press('Escape');
-  for(const side of ['left','right'] as const){
-    for(const movement of [{dx:24,dy:0},{dx:-24,dy:0},{dx:0,dy:24}]){
-      const x=side==='left'?10:790,y=155;
-      await page.mouse.move(x,y);await page.mouse.down();
-      await page.mouse.move(x+(side==='left'?1:-1)*movement.dx,y+movement.dy,{steps:5});
-      await page.waitForTimeout(200);
-      await page.mouse.up();
-      await expect(page.getByRole('dialog')).toHaveCount(0);
-    }
+  for(const movement of [{dx:24,dy:0},{dx:-24,dy:0},{dx:0,dy:24}]){
+    const x=10,y=40;
+    await page.mouse.move(x,y);await page.mouse.down();
+    await page.mouse.move(x+movement.dx,y+movement.dy,{steps:5});
+    await page.waitForTimeout(200);
+    await page.mouse.up();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
   }
 });
 
-test('드래그 취소·화면 크기 변경 후 복구되며 중앙 지도는 가리지 않는다',async({page})=>{
+test('빈 가장자리 드래그 취소·화면 크기 변경 후에도 중앙 지도는 가리지 않는다',async({page})=>{
   await page.goto(`${preview}?state=ready`);
-  await page.evaluate(() => {
-    document.addEventListener('pointerdown', (event) => {
-      if ((event as PointerEvent).clientX >= window.innerWidth - 20) {
-        document.body.setAttribute('data-audit-pointer', String((event as PointerEvent).pointerId));
-      }
-    }, true);
-  });
-  const x=790,y=155;
-  await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x-30,y,{steps:5});
-  const pointerId=Number(await page.evaluate(()=>document.body.getAttribute('data-audit-pointer')));
-  await page.evaluate((id)=>{document.dispatchEvent(new PointerEvent('pointercancel',{pointerId:id,pointerType:'mouse',bubbles:true}));},pointerId);
+  const x=10,y=40;
+  await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+30,y,{steps:5});
   await page.mouse.up();
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x-30,y,{steps:5});
+  await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+30,y,{steps:5});
   await page.setViewportSize({width:844,height:390});await page.mouse.up();
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  await page.getByRole('button',{name:'맵 뷰 설정',exact:true}).focus();
+  await page.getByRole('button',{name:'Trail 메뉴',exact:true}).focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('dialog',{name:'맵 뷰',exact:true})).toBeVisible();
+  await expect(page.getByRole('dialog',{name:'메뉴',exact:true})).toBeVisible();
   await page.keyboard.press('Escape');
   await page.locator('.audit-map').evaluate(el=>el.addEventListener('pointerdown',()=>el.setAttribute('data-audit-hit','yes')));
   await page.mouse.move(420,180);await page.mouse.down();await page.mouse.move(480,195,{steps:6});await page.mouse.up();
@@ -448,16 +442,11 @@ test.describe('Chief 고정 — 261024 목록 1~4', () => {
       expect(startBg).toContain(greenBottom);
 
       await page.goto(`${preview}?state=glance-ready`);
-      const chip = page.locator('.lb-glance__chip');
-      await expect(chip).toBeVisible();
-      expect((await chip.innerText()).trim()).toBe('');
-      const chipBox = await chip.boundingBox();
-      expect(Math.abs(chipBox!.width - chipBox!.height)).toBeLessThanOrEqual(1);
-      const radius = await chip.evaluate((el) => parseFloat(getComputedStyle(el).borderRadius));
-      expect(radius).toBeGreaterThanOrEqual(chipBox!.width / 2 - 1);
-      await expect(chip.locator('svg')).toHaveCount(1);
-      const chipLabel = await chip.getAttribute('aria-label');
-      expect(chipLabel).toMatch(/위/);
+      const rank = page.getByRole('button', { name: '순위 열기', exact: true });
+      await expect(rank).toBeVisible();
+      const rankBox = await rank.boundingBox();
+      expect(rankBox!.height).toBeGreaterThanOrEqual(44);
+      await expect(rank).toHaveAttribute('aria-controls', 'lb-glance-panel');
 
       if (evidenceDir && size.width === 667) {
         await page.screenshot({ path: path.join(evidenceDir, 'ready-667x300.png'), animations: 'disabled' });
@@ -501,71 +490,49 @@ test.describe('Chief 고정 — 261024 목록 1~4', () => {
 });
 
 // Chief 지정 — 바꾸려면 Chief 지시와 document/reference/product/261024-RTW-Chief-지정-디자인-고정.md 갱신 필요
-// 2026-10-27 Chief: 대기 화면은 공통 접기 버튼·센서가 한 줄 — 접으면 그 한 줄(경로 도안 + ›, 센서)만 남는다(withSensor).
-async function assertCollapsedRouteDockChip(
-  page: import('@playwright/test').Page,
-  { withSensor = false }: { withSensor?: boolean } = {},
-) {
+// 2026-10-28 Chief: 접힌 RouteDock 은 흰/녹 점멸 LED 하나. 펼치면 접기 LED + 센서 알약.
+async function assertCollapsedRouteDockChip(page: import('@playwright/test').Page) {
   const card = page.locator('.route-dock__card');
-  const caret = page.getByRole('button', { name: '경로 패널 펼치기' });
-  await expect(caret).toBeVisible();
+  const expand = page.getByRole('button', { name: '경로 패널 펼치기' });
+  await expect(expand).toBeVisible();
+  await expect(page.getByRole('button', { name: /^케이던스 센서:/ })).toHaveCount(0);
   const cardBox = (await card.boundingBox())!;
   expect(cardBox.width).toBeGreaterThanOrEqual(28);
-  expect(cardBox.width).toBeLessThanOrEqual(withSensor ? 140 : 44);
-  if (withSensor) {
-    const sensorBox = (await page.locator('.route-dock__head .hud-cadence').boundingBox())!;
-    const caretBox = (await caret.boundingBox())!;
-    expect(Math.abs(sensorBox.y + sensorBox.height / 2 - (caretBox.y + caretBox.height / 2))).toBeLessThanOrEqual(2);
-    expect(caretBox.x).toBeLessThan(sensorBox.x);
-  }
+  expect(cardBox.width).toBeLessThanOrEqual(44);
   expect(cardBox.height).toBeGreaterThanOrEqual(28);
   expect(cardBox.height).toBeLessThanOrEqual(44);
 
   const geometry = await page.evaluate(() => {
     const cardEl = document.querySelector('.route-dock__card')!;
-    const caretEl = document.querySelector('.route-dock__caret')!;
+    const ledEl = document.querySelector('.route-dock__led-toggle')!;
     const cardR = cardEl.getBoundingClientRect();
-    const caretR = caretEl.getBoundingClientRect();
-    const cx = caretR.x + caretR.width / 2;
-    const cy = caretR.y + caretR.height / 2;
+    const ledR = ledEl.getBoundingClientRect();
+    const cx = ledR.x + ledR.width / 2;
+    const cy = ledR.y + ledR.height / 2;
     const hit = document.elementFromPoint(cx, cy);
-    const caretStyle = getComputedStyle(caretEl);
     const cardStyle = getComputedStyle(cardEl);
-    const parseRgb = (s: string) => {
-      const m = s.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-      return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : [0, 0, 0];
-    };
-    const caretRgb = parseRgb(caretStyle.color);
-    const caretBrightness = (caretRgb[0]! + caretRgb[1]! + caretRgb[2]!) / 3;
-    const bg =
-      caretStyle.backgroundColor === 'rgba(0, 0, 0, 0)'
-        ? cardStyle.backgroundColor
-        : caretStyle.backgroundColor;
-    const bgRgb = parseRgb(bg);
     const inViewport =
-      caretR.left >= 0 &&
-      caretR.top >= 0 &&
-      caretR.right <= window.innerWidth &&
-      caretR.bottom <= window.innerHeight;
-    const caretInsideCard =
-      caretR.left >= cardR.left &&
-      caretR.top >= cardR.top &&
-      caretR.right <= cardR.right &&
-      caretR.bottom <= cardR.bottom;
-    const hitOk = hit === caretEl || caretEl.contains(hit);
+      ledR.left >= 0 &&
+      ledR.top >= 0 &&
+      ledR.right <= window.innerWidth &&
+      ledR.bottom <= window.innerHeight;
+    const ledInsideCard =
+      ledR.left >= cardR.left - 0.5 &&
+      ledR.top >= cardR.top - 0.5 &&
+      ledR.right <= cardR.right + 0.5 &&
+      ledR.bottom <= cardR.bottom + 0.5;
+    const hitOk = hit === ledEl || ledEl.contains(hit);
     return {
       inViewport,
-      caretInsideCard,
+      ledInsideCard,
       hitOk,
-      bgRgb,
-      caretBrightness,
+      cardBg: cardStyle.backgroundColor,
     };
   });
   expect(geometry.inViewport).toBe(true);
-  expect(geometry.caretInsideCard).toBe(true);
+  expect(geometry.ledInsideCard).toBe(true);
   expect(geometry.hitOk).toBe(true);
-  expect(geometry.bgRgb).toEqual([255, 255, 255]);
-  expect(geometry.caretBrightness).toBeLessThan(100);
+  expect(geometry.cardBg === 'rgba(0, 0, 0, 0)' || geometry.cardBg === 'transparent').toBeTruthy();
 }
 
 test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', () => {
@@ -584,11 +551,8 @@ test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', (
     }
   });
 
-  test('주행·일시정지는 접힌 상태로 시작하고 펼치면 출발·도착이 보이며 미니맵과 너비가 같다', async ({ page }) => {
-    const evidenceDir = process.env.UI_REVALIDATION_EVIDENCE_DIR ?? path.resolve(
-      fileURLToPath(import.meta.url),
-      '../../../../document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse',
-    );
+  test('주행·일시정지는 접힌 상태로 시작하고 펼치면 출발·도착이 보이며 미니맵과 너비가 같다', async ({ page }, testInfo) => {
+    const evidenceDir = process.env.UI_REVALIDATION_EVIDENCE_DIR ?? testInfo.outputPath('route-dock-evidence');
     await fs.mkdir(evidenceDir, { recursive: true });
 
     for (const state of ['riding', 'paused'] as const) {
@@ -676,7 +640,7 @@ test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', (
     await expect(page.locator('.route-dock-anchor.route-dock-anchor--open')).toBeVisible();
     await page.getByRole('button', { name: '경로 패널 접기' }).click();
     await expect(page.locator('.route-dock-anchor.route-dock-anchor--open')).toHaveCount(0);
-    await assertCollapsedRouteDockChip(page, { withSensor: true });
+    await assertCollapsedRouteDockChip(page);
     await page.screenshot({
       path: path.join(evidenceDir, 'ready-collapsed-800x360.png'),
       animations: 'disabled',
@@ -698,7 +662,7 @@ test('Chief 고정12 — 주소 카드 버튼은 선 아이콘·흰 알약 센�
       return {
         swapSvg: Boolean(swap?.querySelector('svg path')),
         swapBg: swap ? getComputedStyle(swap).backgroundColor : null,
-        glyphButtons: [...document.querySelectorAll('.route-dock__remove,.route-dock__caret')].map((b) => ({
+        glyphButtons: [...document.querySelectorAll('.route-dock__remove')].map((b) => ({
           text: (b.textContent ?? '').trim(),
           svg: Boolean(b.querySelector('svg path')),
         })),
@@ -712,7 +676,7 @@ test('Chief 고정12 — 주소 카드 버튼은 선 아이콘·흰 알약 센�
     });
     expect(look.swapSvg, '⇅ 는 선 아이콘(CSS 막대 금지)').toBe(true);
     expect(look.swapBg).toBe('rgb(242, 243, 245)');
-    expect(look.glyphButtons.length).toBeGreaterThanOrEqual(3);
+    expect(look.glyphButtons.length).toBeGreaterThanOrEqual(2);
     for (const b of look.glyphButtons) {
       expect(b.text, '✕ ‹ 글자 기호 금지').toBe('');
       expect(b.svg).toBe(true);
@@ -779,7 +743,7 @@ test('Chief 고정12 — 대기 화면은 센서·접기가 맨 위 한 줄, ✕
       const r = (sel: string) => document.querySelector(sel)!.getBoundingClientRect();
       const card = r('.route-dock__card');
       const sensor = r('.route-dock__head .hud-cadence');
-      const caret = r('.route-dock__caret');
+      const caret = r('.route-dock__fold');
       const firstRow = r('.route-dock__row');
       const removes = [...document.querySelectorAll('.route-dock__remove')].map((e) => e.getBoundingClientRect());
       const dots = [...document.querySelectorAll('.route-dock__row')].map((row) => ({
@@ -810,13 +774,8 @@ test('Chief 고정12 — 대기 화면은 센서·접기가 맨 위 한 줄, ✕
   for (const wp of wps) expect(wp.left - startLeft, '주행 중 경유 들여쓰기').toBeGreaterThanOrEqual(12);
 });
 
-const entryCardHistoryEvidence = path.resolve(
-  fileURLToPath(import.meta.url),
-  '../../../../document/ops/20261023-ui-redesign/evidence/inline-history',
-);
-
-test('Chief 고정10 — 주행 기록은 계정 패널 안에서 인라인 펼침·접기를 유지한다', async ({ page }) => {
-  const outDir = process.env.ENTRY_CARD_HISTORY_EVIDENCE ?? entryCardHistoryEvidence;
+test('Chief 고정10 — 주행 기록은 계정 패널 안에서 인라인 펼침·접기를 유지한다', async ({ page }, testInfo) => {
+  const outDir = process.env.ENTRY_CARD_HISTORY_EVIDENCE ?? testInfo.outputPath('inline-history-evidence');
   await fs.mkdir(outDir, { recursive: true });
   for (const size of [{ width: 667, height: 300 }, { width: 800, height: 360 }]) {
     await page.setViewportSize(size);

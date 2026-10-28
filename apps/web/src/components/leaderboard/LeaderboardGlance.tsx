@@ -28,19 +28,6 @@ function formatKmOne(valueKm: number): string {
   return t % 1 === 0 ? t.toFixed(1) : t.toFixed(1);
 }
 
-function RankChipIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path
-        d="M2 14V9h4v5M6 14V4h4v10M10 14V7h4v7"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 function stopMapTouch(e: SyntheticEvent) {
   e.stopPropagation();
 }
@@ -48,7 +35,6 @@ function stopMapTouch(e: SyntheticEvent) {
 function buildGlanceModel(props: LeaderboardGlanceViewProps) {
   const {
     mode,
-    isGuest,
     mapData,
     rideSnapshot,
     liveRows,
@@ -58,23 +44,11 @@ function buildGlanceModel(props: LeaderboardGlanceViewProps) {
   } = props;
 
   const me = mode === "riding" ? rideSnapshot?.me : mapData?.me;
-  const ranked = me?.status === "ranked" ? me.rank : null;
-  const projected = me?.status === "guest" ? me.projectedRank : null;
 
   const live =
     mode === "riding" && pedalQualified
-      ? computeLeaderboardLiveRank(liveRows, myBaseKm, addedKm)
+      ? computeLeaderboardLiveRank(liveRows, myBaseKm, addedKm, 10)
       : null;
-  const liveRank = live?.rank ?? null;
-
-  let chipA11y = "순위";
-  if (mode === "riding") {
-    if (liveRank != null) chipA11y = `주행 중 ${liveRank}위`;
-  } else if (isGuest) {
-    if (projected != null) chipA11y = `예상 ${projected}위`;
-  } else if (ranked != null) {
-    chipA11y = `이번 주 ${ranked}위`;
-  }
 
   const listRows: LeaderboardLiveRow[] =
     mode === "riding" && live
@@ -103,27 +77,7 @@ function buildGlanceModel(props: LeaderboardGlanceViewProps) {
 
   const ridingNoSensor = mode === "riding" && !pedalQualified;
 
-  return { me, mode, chipA11y, listRows, gapFooter, ridingNoSensor };
-}
-
-export function LeaderboardGlanceChip(props: LeaderboardGlanceViewProps) {
-  const { panelOpen, onTogglePanel } = props;
-  const { chipA11y } = buildGlanceModel(props);
-  return (
-    <button
-      type="button"
-      className={`lb-glance__chip${panelOpen ? " lb-glance__chip--open" : ""}`}
-      aria-expanded={panelOpen}
-      aria-controls="lb-glance-panel"
-      aria-label={chipA11y}
-      title={chipA11y}
-      onPointerDown={stopMapTouch}
-      onTouchStart={stopMapTouch}
-      onClick={onTogglePanel}
-    >
-      <RankChipIcon />
-    </button>
-  );
+  return { me, mode, listRows, gapFooter, ridingNoSensor };
 }
 
 export function LeaderboardGlancePanel(props: LeaderboardGlanceViewProps) {
@@ -135,12 +89,13 @@ export function LeaderboardGlancePanel(props: LeaderboardGlanceViewProps) {
   } = props;
   const { mode, me, listRows, gapFooter, ridingNoSensor } = buildGlanceModel(props);
   const showPanel = panelOpen && (mode === "map" || mode === "riding");
-  if (!showPanel) return null;
 
   return (
         <section
           id="lb-glance-panel"
           className="lb-glance__panel"
+          hidden={!showPanel}
+          aria-hidden={!showPanel}
           aria-label={mode === "riding" ? "주행 중 순위" : "이번 주 순위"}
           onPointerDown={stopMapTouch}
           onTouchStart={stopMapTouch}

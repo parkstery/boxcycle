@@ -6,6 +6,7 @@ import {
   readBrowserEntryLocationEnv,
   type EntryLocationSession,
   type EntryLocationSnapshot,
+  type EntryLocationTarget,
 } from "../lib/geo/entryLocation";
 import { MAP_FALLBACK_CENTER, MAP_FALLBACK_ZOOM } from "../lib/map/mapBootCenter";
 
@@ -29,16 +30,19 @@ export type EntryLocationState = EntryLocationSnapshot & {
 };
 
 /**
- * 진입 위치. enabled 가 true 일 때만 권한 조회를 시작한다.
+ * 진입 위치. 이전 주행 목적지가 있으면 권한 조회 없이 사용한다.
+ * 없으면 enabled 가 true 일 때만 권한 조회를 시작한다.
  * false·cleanup 에서는 지리 API 를 부르지 않고, 이미 보낸 요청의 늦은 콜백은 버린다.
  */
-export function useEntryLocation(enabled: boolean): EntryLocationState {
+export function useEntryLocation(enabled: boolean, lastRideTarget: EntryLocationTarget | null = null): EntryLocationState {
   const [trackedEnabled, setTrackedEnabled] = useState(enabled);
   const [snap, setSnap] = useState<EntryLocationSnapshot>(() =>
     enabled ? CHECKING_SNAPSHOT : IDLE_SNAPSHOT,
   );
   const tokenRef = useRef(0);
   const sessionRef = useRef<EntryLocationSession | null>(null);
+  const lastRideTargetRef = useRef(lastRideTarget);
+  useEffect(() => { lastRideTargetRef.current = lastRideTarget; }, [lastRideTarget]);
 
   if (trackedEnabled !== enabled) {
     setTrackedEnabled(enabled);
@@ -54,6 +58,12 @@ export function useEntryLocation(enabled: boolean): EntryLocationState {
     if (!enabled) return;
     const token = tokenRef.current + 1;
     tokenRef.current = token;
+    // 진입 때 한 번만 결정한다. 이후 주행 기록 변경은 탐색 중인 지도를 덮지 않는다.
+    const priorTarget = lastRideTargetRef.current;
+    if (priorTarget) {
+      acceptSnap(token, { phase: "ready", permission: "unknown", target: priorTarget, notice: null });
+      return () => { tokenRef.current += 1; };
+    }
     const session = createEntryLocationSession(
       readBrowserEntryLocationEnv(),
       ENTRY_LOCATION_FALLBACK_TARGET,

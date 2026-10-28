@@ -10,10 +10,12 @@ import "./CameraViewMenu.css";
 
 const PERSPECTIVE_SLOTS = [2, 3, 4, 5, 6] as const;
 type PerspectiveSlot = (typeof PERSPECTIVE_SLOTS)[number];
-type OpenMenu = "flat" | "perspective" | null;
 
 export type CameraViewMenuProps = {
   active: QuickCameraSlot | null;
+  enable3D?: boolean;
+  terrainFallback?: boolean;
+  onEnable3D?: (enabled: boolean) => void;
   camera1Mode?: Camera1Mode;
   onSelect: (n: QuickCameraSlot) => void;
   onSelectFlat: (mode: Camera1Mode) => void;
@@ -25,6 +27,14 @@ function FlatCameraIcon() {
       <rect x="4" y="4" width="16" height="16" rx="2" />
       <circle cx="12" cy="12" r="3" />
       <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+    </svg>
+  );
+}
+
+function VideoCameraIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden className="camera-view-menu__video-icon">
+      <path fill="currentColor" stroke="none" d="M2 5h12v14H2zM16 9l7-4v14l-7-4z" />
     </svg>
   );
 }
@@ -66,26 +76,35 @@ function PerspectiveCameraIcon({ slot }: { slot: PerspectiveSlot }) {
   );
 }
 
-export function CameraViewMenu({ active, camera1Mode = "routeFit", onSelect, onSelectFlat }: CameraViewMenuProps) {
-  const [open, setOpen] = useState<OpenMenu>(null);
+export function CameraViewMenu({ active, camera1Mode = "routeFit", onSelect, onSelectFlat, enable3D = false, onEnable3D, terrainFallback = false }: CameraViewMenuProps) {
+  const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const flatMenuId = useId();
-  const perspectiveMenuId = useId();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
   const currentPerspective: PerspectiveSlot =
     active === 2 || active === 3 || active === 4 || active === 5 || active === 6 ? active : 2;
+  const triggerLabel = active === 1
+    ? quickCameraMenuLabel(1, camera1Mode)
+    : String(currentPerspective);
+  const triggerAria = `카메라 메뉴 · ${active === 1 ? quickCameraMenuAriaLabel(1, camera1Mode) : quickCameraMenuAriaLabel(currentPerspective, undefined)}`;
+
+  const closeMenu = (restoreFocus: boolean) => {
+    setOpen(false);
+    if (restoreFocus) triggerRef.current?.focus();
+  };
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.stopPropagation();
-        setOpen(null);
+        closeMenu(true);
       }
     };
     const onPointer = (e: PointerEvent) => {
       const root = rootRef.current;
       if (!root || root.contains(e.target as Node)) return;
-      setOpen(null);
+      closeMenu(false);
     };
     window.addEventListener("keydown", onKey, true);
     window.addEventListener("pointerdown", onPointer, true);
@@ -104,85 +123,94 @@ export function CameraViewMenu({ active, camera1Mode = "routeFit", onSelect, onS
       onPointerDown={(e) => e.stopPropagation()}
       onTouchStart={(e) => e.stopPropagation()}
     >
-      <div className="camera-view-menu__unit camera-view-menu__unit--flat">
-        <button
-          type="button"
-          className={`camera-view-menu__trigger${active === 1 ? " is-selected" : ""}`}
-          aria-label={`평면 카메라 · ${CAMERA1_MODE_META[camera1Mode].label}`}
-          aria-pressed={active === 1}
-          data-camera1-mode={camera1Mode}
-          aria-haspopup="menu"
-          aria-expanded={open === "flat"}
-          aria-controls={flatMenuId}
-          onClick={() => setOpen((value) => value === "flat" ? null : "flat")}
-        >
-          <span className="camera-view-menu__svg"><FlatCameraIcon /></span>
-          <span className="camera-view-menu__trigger-label">{quickCameraMenuLabel(1, camera1Mode)}</span>
-          <span className="camera-view-menu__caret" aria-hidden>▾</span>
-        </button>
-        {open === "flat" ? (
-          <ul className="camera-view-menu__list camera-view-menu__list--flat" id={flatMenuId} role="menu" aria-label="평면 카메라 높이">
-            {CAMERA1_MODE_CYCLE.map((mode) => (
-              <li key={mode} role="none">
-                <button
-                  type="button"
-                  role="menuitemradio"
-                  className={`camera-view-menu__item${active === 1 && camera1Mode === mode ? " is-selected" : ""}`}
-                  aria-checked={active === 1 && camera1Mode === mode}
-                  aria-label={`평면 카메라 · ${CAMERA1_MODE_META[mode].label}`}
-                  onClick={() => {
-                    onSelectFlat(mode);
-                    setOpen(null);
-                  }}
-                >
-                  <span className="camera-view-menu__svg"><FlatCameraIcon /></span>
-                  <span className="camera-view-menu__item-label">{quickCameraMenuLabel(1, mode)}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
-
-      <div className="camera-view-menu__unit camera-view-menu__unit--perspective">
-        <button
-          type="button"
-          className={`camera-view-menu__trigger camera-view-menu__trigger--perspective${active != null && active >= 2 ? " is-selected" : ""}`}
-          aria-label={quickCameraMenuAriaLabel(currentPerspective, undefined)}
-          aria-haspopup="menu"
-          aria-expanded={open === "perspective"}
-          aria-controls={perspectiveMenuId}
-          onClick={() => setOpen((value) => value === "perspective" ? null : "perspective")}
-        >
-          <span className="camera-view-menu__item-num" aria-hidden>{currentPerspective}</span>
-          <span className="camera-view-menu__svg"><PerspectiveCameraIcon slot={currentPerspective} /></span>
-          <span className="camera-view-menu__caret" aria-hidden>▾</span>
-        </button>
-        {open === "perspective" ? (
-          <ul className="camera-view-menu__list camera-view-menu__list--perspective" id={perspectiveMenuId} role="menu" aria-label="시점 카메라">
-            {PERSPECTIVE_SLOTS.map((slot) => (
-              <li key={slot} role="none">
-                <button
-                  type="button"
-                  role="menuitemradio"
-                  className={`camera-view-menu__item camera-view-menu__item--icon${active === slot ? " is-selected" : ""}`}
-                  data-camera-slot={slot}
-                  aria-checked={active === slot}
-                  aria-label={quickCameraMenuAriaLabel(slot, undefined)}
-                  title={quickCameraMenuAriaLabel(slot, undefined)}
-                  onClick={() => {
-                    onSelect(slot);
-                    setOpen(null);
-                  }}
-                >
-                  <span className="camera-view-menu__item-num" aria-hidden>{slot}</span>
-                  <span className="camera-view-menu__svg"><PerspectiveCameraIcon slot={slot} /></span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
+      <button
+        type="button"
+        ref={triggerRef}
+        className={`camera-view-menu__trigger${active != null ? " is-selected" : ""}`}
+        aria-label={triggerAria}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-controls={menuId}
+        data-camera1-mode={active === 1 ? camera1Mode : undefined}
+        onClick={() => setOpen((value) => !value)}
+      >
+        {active === 1 ? (
+          <>
+            <span className="camera-view-menu__item-num" aria-hidden>1</span>
+            <span className="camera-view-menu__svg"><FlatCameraIcon /></span>
+            <span className="camera-view-menu__trigger-label">{triggerLabel}</span>
+          </>
+        ) : (
+          <>
+            <span className="camera-view-menu__item-num" aria-hidden>{currentPerspective}</span>
+            <span className="camera-view-menu__svg"><VideoCameraIcon /></span>
+            <span className="camera-view-menu__svg"><PerspectiveCameraIcon slot={currentPerspective} /></span>
+          </>
+        )}
+        <span className="camera-view-menu__caret" aria-hidden>▾</span>
+      </button>
+      {open ? (
+        <div className="camera-view-menu__panel" id={menuId} role="menu" aria-label="카메라 선택">
+          <div className="camera-view-menu__unit camera-view-menu__unit--flat" role="group" aria-label="평면 카메라 높이">
+            <div className="camera-view-menu__column-title">1</div>
+            <ul className="camera-view-menu__list camera-view-menu__list--flat">
+              {CAMERA1_MODE_CYCLE.map((mode) => (
+                <li key={mode} role="none">
+                  <button
+                    type="button"
+                    role="menuitemradio"
+                    className={`camera-view-menu__item${active === 1 && camera1Mode === mode ? " is-selected" : ""}`}
+                    aria-checked={active === 1 && camera1Mode === mode}
+                    aria-label={`평면 카메라 · ${CAMERA1_MODE_META[mode].label}`}
+                    onClick={() => {
+                      onSelectFlat(mode);
+                      closeMenu(true);
+                    }}
+                  >
+                    <span className="camera-view-menu__item-label">{quickCameraMenuLabel(1, mode)}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="camera-view-menu__unit camera-view-menu__unit--perspective" role="group" aria-label="시점 카메라">
+            <div className="camera-view-menu__column-title">2–6</div>
+            <ul className="camera-view-menu__list camera-view-menu__list--perspective">
+              {PERSPECTIVE_SLOTS.map((slot) => (
+                <li key={slot} role="none">
+                  <button
+                    type="button"
+                    role="menuitemradio"
+                    className={`camera-view-menu__item camera-view-menu__item--icon${active === slot ? " is-selected" : ""}`}
+                    data-camera-slot={slot}
+                    aria-checked={active === slot}
+                    aria-label={quickCameraMenuAriaLabel(slot, undefined)}
+                    title={quickCameraMenuAriaLabel(slot, undefined)}
+                    onClick={() => {
+                      onSelect(slot);
+                      closeMenu(true);
+                    }}
+                  >
+                    <span className="camera-view-menu__item-num" aria-hidden>{slot}</span>
+                    <span className="camera-view-menu__svg"><PerspectiveCameraIcon slot={slot} /></span>
+                  </button>
+                </li>
+              ))}
+              {onEnable3D ? (
+                <li role="none" className="camera-view-menu__terrain">
+                  <button type="button" role="menuitemcheckbox" aria-checked={enable3D}
+                    aria-label={terrainFallback && enable3D ? "3D 뷰 · 자동 2D로 주행 중" : "3D 뷰"}
+                    className={`camera-view-menu__item camera-view-menu__item--terrain${enable3D ? " is-selected" : ""}`}
+                    onClick={() => onEnable3D(!enable3D)}>
+                    <span>3D 뷰</span>
+                    <span aria-hidden>{enable3D ? (terrainFallback ? "자동 2D" : "켜짐") : "꺼짐"}</span>
+                  </button>
+                </li>
+              ) : null}
+            </ul>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -45,6 +45,7 @@ export function useRideCoaching(opts: {
   elevationM: readonly number[];
   sampledCoords: readonly LngLat[];
   ttsEnabled: boolean;
+  suppressed?: boolean;
 }): {
   coachData: CoachingData | null;
 } {
@@ -62,6 +63,7 @@ export function useRideCoaching(opts: {
   const speedRef = useRef(0);
   const sessionRef = useRef<RideSessionStatus>(opts.sessionStatus);
   const ttsRef = useRef(opts.ttsEnabled);
+  const suppressedRef = useRef(Boolean(opts.suppressed));
 
   const segmentRef = useRef<SegmentState | null>(null);
   const inflightRef = useRef(false);
@@ -77,12 +79,14 @@ export function useRideCoaching(opts: {
     speedRef.current = opts.speedKmh;
     sessionRef.current = opts.sessionStatus;
     ttsRef.current = opts.ttsEnabled;
+    suppressedRef.current = Boolean(opts.suppressed);
   }, [
     opts.virtualDistanceMeters,
     opts.routeDistanceMeters,
     opts.speedKmh,
     opts.sessionStatus,
     opts.ttsEnabled,
+    opts.suppressed,
   ]);
 
   useLayoutEffect(() => {
@@ -104,18 +108,22 @@ export function useRideCoaching(opts: {
     return installRideSpeechVoicesListener();
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setRideTtsEnabled(opts.ttsEnabled);
   }, [opts.ttsEnabled]);
+
+  useLayoutEffect(() => {
+    if (opts.suppressed) safeRideSpeechCancel();
+  }, [opts.suppressed]);
 
   useEffect(() => {
     const prev = prevStatusRef.current;
     prevStatusRef.current = opts.sessionStatus;
 
     if (opts.sessionStatus === "running" && prev === "idle") {
-      safeRideSpeechCancel();
+      if (!suppressedRef.current) safeRideSpeechCancel();
       const kmTotal = (routeLenRef.current / 1000).toFixed(2);
-      speakRideText(getCourseBriefingMessage(kmTotal));
+      if (!suppressedRef.current) speakRideText(getCourseBriefingMessage(kmTotal));
       skipResistanceSpeakOnceRef.current = true;
       segmentRef.current = null;
       inflightRef.current = false;
@@ -127,7 +135,7 @@ export function useRideCoaching(opts: {
       routeLenRef.current > 0
     ) {
       const km = (vdRef.current / 1000).toFixed(2);
-      speakRideText(getRideEncouragementMessage(km));
+      if (!suppressedRef.current) speakRideText(getRideEncouragementMessage(km));
       segmentRef.current = null;
       inflightRef.current = false;
       lastResistanceRef.current = null;
@@ -135,13 +143,13 @@ export function useRideCoaching(opts: {
   }, [opts.sessionStatus]);
 
   useEffect(() => {
-    if (opts.sessionStatus !== "running") return;
+    if (opts.sessionStatus !== "running" || opts.suppressed) return;
     if (!opts.routeGeometry || routeLenRef.current < 80) return;
     if (!elevationReadyForCoach(opts.elevationM)) return;
     if (coachPoints.length < 2) return;
 
     const tick = () => {
-      if (sessionRef.current !== "running") return;
+      if (sessionRef.current !== "running" || suppressedRef.current) return;
       const vd = vdRef.current;
       const routeLen = routeLenRef.current;
       const speed = speedRef.current;
@@ -178,7 +186,7 @@ export function useRideCoaching(opts: {
       ).then(
         ({ coaching, validUntilDistanceM }) => {
           inflightRef.current = false;
-          if (sessionRef.current !== "running") return;
+          if (sessionRef.current !== "running" || suppressedRef.current) return;
           segmentRef.current = { coaching, validUntilDistanceM };
           setCoachData(coaching);
 
@@ -221,7 +229,7 @@ export function useRideCoaching(opts: {
     tick();
     const id = window.setInterval(tick, COACH_TICK_MS);
     return () => clearInterval(id);
-  }, [opts.sessionStatus, opts.routeGeometry, coachPoints, opts.elevationM]);
+  }, [opts.sessionStatus, opts.routeGeometry, coachPoints, opts.elevationM, opts.suppressed]);
 
   return { coachData };
 }

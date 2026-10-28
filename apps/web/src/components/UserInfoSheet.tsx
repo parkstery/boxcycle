@@ -28,7 +28,12 @@ import "./UserInfoSheet.css";
 import { selfRiderDisplayName } from "../lib/identity/riderName";
 import { isRouteReviewer } from "../lib/route/repo/publicRouteRequests";
 
+import type { ConquestDisplayMode } from "./map/routeConquestLayers";
+
 type UserInfoSheetProps = {
+  conquestDisplayMode?: ConquestDisplayMode;
+  conquestHasRecentGeometry?: boolean;
+  onConquestDisplayMode?: (mode: ConquestDisplayMode) => void;
   open: boolean;
   onClose: () => void;
   /** 프로필 수정(닉네임·체중·체력) 열기 */
@@ -575,6 +580,16 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                     <Num v={(props.conquest.totalMeters / 1000).toFixed(1)} unit="km" />
                   </span>
                 )}
+              </div>
+            ) : null}
+
+            {!historyOpen && props.onConquestDisplayMode ? (
+              <div className="user-info-sheet__conquest-controls" role="group" aria-label="내 도로망 표시">
+                <button type="button" aria-pressed={props.conquestDisplayMode === "all"}
+                  onClick={() => props.onConquestDisplayMode?.("all")}>전체 도로망</button>
+                <button type="button" aria-pressed={props.conquestDisplayMode === "recent"}
+                  disabled={!props.conquestHasRecentGeometry}
+                  onClick={() => props.onConquestDisplayMode?.("recent")}>신규 도로만</button>
               </div>
             ) : null}
 

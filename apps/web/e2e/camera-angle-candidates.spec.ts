@@ -117,7 +117,7 @@ test.describe("지시07 각도 후보 · QC1 3단", () => {
 
     const qc1 = page.getByRole("group", { name: "Quick Camera" });
     await expect(qc1).toBeVisible({ timeout: 15_000 });
-    const btn1 = qc1.getByRole("button", { name: /평면 카메라/ });
+    const btn1 = qc1.getByRole("button", { name: /카메라 메뉴/ });
 
     // 2026-10-06 Chief: 주행 시작 기본 카메라 = QC1 500m — 누르기 전에 이미 1번·aerial500
     await page.waitForTimeout(1300);

@@ -1,47 +1,25 @@
-.lb-glance__chip {
-  pointer-events: auto;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 0;
-  background: #2457d6;
-  color: #ffffff;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.lb-glance__chip-num {
-  font-family: var(--rtw-font-num, "Saira Condensed", sans-serif);
-  font-size: 15px;
-  font-weight: 700;
-}
-
 .lb-glance__panel {
   position: absolute;
-  top: calc(var(--hud-pad-top) + 44px + 2px);
-  right: var(--hud-pad-right);
+  top: calc(var(--hud-pad-top) + 2.79rem + 0.4rem);
+  right: calc(var(--hud-pad-right) + 44px);
+  bottom: calc(var(--hud-pad-bottom) + var(--br-clock-above-scale, 26px) + var(--br-clock-height, 16px) + 56px);
   width: 220px;
-  max-height: min(200px, calc(100vh - 7.5rem));
+  max-width: min(220px, calc(100vw - 5.5rem));
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-height: 0;
   pointer-events: auto;
   z-index: 2;
 }
-
-.lb-glance__chip-slot {
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
+.lb-glance__panel[hidden] {
+  display: none;
+}
+@media (max-width: 740px) and (max-height: 560px) {
+  .lb-glance__panel {
+    top: calc(var(--hud-pad-top) + 5rem);
+    width: min(200px, calc(100vw - 5.5rem));
+  }
 }
 
 .lb-glance__panel-head {
@@ -89,7 +67,8 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: 144px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -178,4 +157,19 @@
   margin: 0;
   font-size: 12px;
   font-weight: 700;
+}
+
+/* 주행 제어 이동으로 확보된 하단까지 순위를 표시한다. */
+.map-hud--active-ride .lb-glance__panel { bottom: calc(var(--hud-pad-bottom) + 24px); }
+.map-hud--active-ride .lb-glance__row { height: 18px; }
+.map-hud--active-ride .lb-glance__rank,
+.map-hud--active-ride .lb-glance__km { font-size: 14px; line-height: 1; }
+.map-hud--active-ride .lb-glance__name { font-size: 12px; line-height: 1; }
+@media (max-height: 330px) {
+  .map-hud--active-ride .lb-glance__panel { top: calc(var(--hud-pad-top) + 4rem); }
+  .map-hud--active-ride .lb-glance__row { height: 13px; }
+  .map-hud--active-ride .lb-glance__rank,
+  .map-hud--active-ride .lb-glance__km,
+  .map-hud--active-ride .lb-glance__name { font-size: 11px; }
+  .map-hud--active-ride .lb-glance__gap-km { font-size: 14px; }
 }

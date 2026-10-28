@@ -18,18 +18,13 @@ import { coachingTipDisplayKo } from "../../lib/coach/coachingDisplayKo";
 import { CameraViewMenu } from "./CameraViewMenu";
 import "./MapHud.css";
 import "./CameraViewMenu.css";
+import { RideIntervalHud } from "../ride/RideIntervalHud";
+import type { RideIntervalView } from "../../lib/ride/rideInterval";
+import { useRideMoments } from "../../hooks/useRideMoments";
+import type { RideMomentInput } from "../../lib/ride/rideMoments";
 
 /** HUD 우상단 시계 — `26.09.29 15:09:35` (로컬, 초 단위) */
-function formatHudClock(d: Date): string {
-  const yy = String(d.getFullYear()).slice(-2);
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mi = String(d.getMinutes()).padStart(2, "0");
-  const ss = String(d.getSeconds()).padStart(2, "0");
-  // 날짜와 시간 사이 「 / 」 — 한눈에 구분되게(2026-10-06 Chief)
-  return `${yy}.${mm}.${dd} / ${hh}:${mi}:${ss}`;
-}
+
 
 export type AccountChipState = {
   initial: string;
@@ -79,9 +74,7 @@ export type MapHudProps = {
   /** 첫 진입 게이트 카드만 숨긴 뒤에도 stage 가 gate 일 때 — HUD 를 비게이트처럼 취급 */
   authGateVisualDismissed?: boolean;
 
-  // BC — 맵 뷰 시트 트리거 + 라이딩 중 코칭 라인
-  onOpenMapView: () => void;
-  mapViewOpen: boolean;
+  // BC — 라이딩 중 코칭 라인
   coachData: CoachingData | null;
   coachLineEnabled: boolean;
 
@@ -106,8 +99,10 @@ export type MapHudProps = {
       })
     | null;
 
-  /** 센서에서 실제 rpm 이 올 때만 HUD 에 표시한다. 없으면 칸을 비운다. */
-  cadenceRpm?: number | null;
+  /** 선택한 인터벌. 주행·일시정지에서만 표시한다. */
+  rideInterval?: RideIntervalView | null;
+  intervalTtsEnabled?: boolean;
+  intervalCadenceRpm?: number | null;
 
   // BL — 핀 초기화 (setup 오류 액션 등에서 사용)
   onClearPins: () => void;
@@ -142,6 +137,9 @@ export type MapHudProps = {
     onSelectFlat: (mode: Camera1Mode) => void;
     /** 1번 순환 상태 — 버튼에 작은 표식(지시07·20260924-지시01: 4단) */
     camera1Mode?: Camera1Mode;
+    enable3D?: boolean;
+    terrainFallback?: boolean;
+    onEnable3D?: (enabled: boolean) => void;
   } | null;
   /**
    * Outdoors/Satellite 토글 + 줌 + − — 카메라 유무와 무관하게 우상단 한 줄
@@ -157,9 +155,10 @@ export type MapHudProps = {
     zoomOutDisabled: boolean;
     zoomInDisabled: boolean;
   } | null;
-  /** 순위 칩(우상단 줄) · 순위판은 `leaderboardGlancePanel` */
+  /** 순위판은 오른쪽 반달 핸들이 연다. 칩은 우상단에 두지 않는다. */
   leaderboardGlanceChip?: ReactNode;
   leaderboardGlancePanel?: ReactNode;
+  rideMoments?: Omit<RideMomentInput, "interval"> & { soundEnabled: boolean } | null;
 };
 
 /** TC 지표 캡슐 셀 — 라벨 위·값 아래 (참조 TopHud) */
@@ -236,7 +235,7 @@ function HudMetricCell({
  * 8슬롯 글래스 HUD.
  *
  * - 슬롯 자체는 pointer-events: none, 내부 위젯만 다시 활성화 → 빈 영역은 항상 맵 조작 가능.
- * - 메뉴는 3개로 분리: TL Trail 메뉴(Trail·경로 주행), BC 맵 뷰, TR 사용자 정보. HUD 는 트리거만 들고 시트 자체는 외부에서 렌더.
+ * - 메뉴는 TL Trail 메뉴(Trail·경로 주행), TR 사용자 정보로 분리. HUD 는 트리거만 들고 시트 자체는 외부에서 렌더.
  */
 export function MapHud(props: MapHudProps) {
   const {
@@ -250,8 +249,6 @@ export function MapHud(props: MapHudProps) {
     userInfoOpen,
     onOpenSignedOutAuth,
     authGateVisualDismissed = false,
-    onOpenMapView,
-    mapViewOpen,
     coachData,
     coachLineEnabled,
     metrics,
@@ -265,8 +262,9 @@ export function MapHud(props: MapHudProps) {
     mapControls = null,
     leaderboardGlanceChip = null,
     leaderboardGlancePanel = null,
-    cadenceRpm = null,
+    rideMoments = null,
   } = props;
+  void leaderboardGlanceChip;
 
   const riding = stage === "riding";
   const paused = stage === "paused";
@@ -329,14 +327,6 @@ export function MapHud(props: MapHudProps) {
   const showAccount = account !== null && !isGate && !isSummary;
   const showSignedOutAuth =
     !isGate && !isSummary && account === null && typeof onOpenSignedOutAuth === "function";
-  const showClock = showAccount || showSignedOutAuth;
-  const [clockNow, setClockNow] = useState(() => new Date());
-  useEffect(() => {
-    if (!showClock) return;
-    const id = window.setInterval(() => setClockNow(new Date()), 1000);
-    return () => window.clearInterval(id);
-  }, [showClock]);
-  const clockText = formatHudClock(clockNow);
   /** 게이트·요약이 아닐 때 상시 — 카메라 유무와 무관 */
   const showMapControls = Boolean(mapControls) && !isGate && !isSummary;
   /*
@@ -348,15 +338,29 @@ export function MapHud(props: MapHudProps) {
     showAccount ||
     showSignedOutAuth ||
     Boolean(quickCamera) ||
-    showMapControls ||
-    Boolean(leaderboardGlanceChip);
-  const showMapViewTrigger = !isGate && !isSummary;
+    showMapControls;
+  const momentEvent = useRideMoments(
+    {
+      status: rideMoments?.status ?? "idle",
+      elapsedMs: rideMoments?.elapsedMs ?? 0,
+      routeMeters: rideMoments?.routeMeters ?? 0,
+      traveledMeters: rideMoments?.traveledMeters ?? 0,
+      waypointMeters: rideMoments?.waypointMeters ?? [],
+      interval: props.rideInterval ?? null,
+      intervalRunKey: rideMoments?.intervalRunKey ?? null,
+      newRoadKm: rideMoments?.newRoadKm ?? null,
+      ended: rideMoments?.ended ?? null,
+    },
+    Boolean(rideMoments?.soundEnabled),
+    Boolean(props.intervalTtsEnabled),
+  );
   const showMetrics =
     metrics !== null &&
     !isGate &&
     !isSummary &&
     (riding || paused || metrics.mode === "route-preview");
-  const showCoach = coachLineEnabled && coachData !== null && (riding || paused);
+  const intervalCoachingActive = props.rideInterval != null && props.rideInterval.phase !== "complete";
+  const showCoach = Boolean(momentEvent && (!intervalCoachingActive || momentEvent.kind.startsWith("interval"))) || (!intervalCoachingActive && coachLineEnabled && coachData !== null && (riding || paused));
   const showMc = stage === "setup" && Boolean(routeError);
 
   const companionCopy =
@@ -374,8 +378,9 @@ export function MapHud(props: MapHudProps) {
           displayedRiderCount: companionCopy.riderCount,
         })
       : null;
-  const coachTipKo =
-    coachData != null
+  const coachTipKo = momentEvent
+    ? momentEvent.coach
+    : coachData != null
       ? coachingTipDisplayKo(
           (coachData as CoachingData & { tipId?: string }).tipId,
           coachData.tip,
@@ -389,7 +394,6 @@ export function MapHud(props: MapHudProps) {
       className={`map-hud${activeRide ? " map-hud--active-ride" : ""}`}
       aria-label="라이딩 HUD"
     >
-
       {showMenuTrigger ? (
         <button
           type="button"
@@ -400,18 +404,6 @@ export function MapHud(props: MapHudProps) {
           title="Trail menu"
         >
           Trail 메뉴
-        </button>
-      ) : null}
-      {showMapViewTrigger ? (
-        <button
-          type="button"
-          className="map-hud__a11y-trigger map-hud__a11y-trigger--map"
-          onClick={onOpenMapView}
-          aria-label="맵 뷰 설정"
-          aria-expanded={mapViewOpen}
-          title="Map view"
-        >
-          맵 뷰
         </button>
       ) : null}
 
@@ -460,33 +452,9 @@ export function MapHud(props: MapHudProps) {
                     ) : null}
                     {metrics.mode === "ride" ? (
                       <>
-                    <span className="hud-metrics__divider" aria-hidden />
                     <HudMetricCell label="시간" value={metrics.elapsed} variant="time" />
-                    <span className="hud-metrics__divider" aria-hidden />
-                    <HudMetricCell label="평균" value={metrics.avgKmh} unit="km/h" variant="speed" />
-                    {riding ? (
-                      <>
-                        <span className="hud-metrics__divider" aria-hidden />
-                        <HudMetricCell label="속도" value={String(metrics.speedKmh)} unit="km/h" variant="speed" />
-                      </>
-                    ) : null}
-                    {riding && cadenceRpm != null ? (
-                      <>
-                        <span className="hud-metrics__divider" aria-hidden />
-                        <HudMetricCell
-                          label="케이던스"
-                          value={String(Math.round(cadenceRpm))}
-                          unit="rpm"
-                          variant="speed"
-                        />
-                      </>
-                    ) : null}
-                      </>
-                    ) : null}
-                    {/* null = 미무장 숨김. 0 포함 무장 후 항상 표시(이미 내 도로면 +0.00) */}
+                    <HudMetricCell label="속도" value={String(metrics.speedKmh)} unit="km/h" variant="speed" />
                     {(riding || paused) && conquestLiveMeters != null ? (
-                      <>
-                        <span className="hud-metrics__divider" aria-hidden />
                         <span
                           className={`hud-metrics__cell hud-metrics__cell--conquest${
                             conquestPulse ? " hud-metrics__cell--conquest-pulsing" : ""
@@ -507,6 +475,10 @@ export function MapHud(props: MapHudProps) {
                             </span>
                           ) : null}
                         </span>
+                    ) : (riding || paused) ? (
+                      <HudMetricCell label="새 도로" value="—" variant="speed" />
+                    ) : null}
+                    <HudMetricCell label="평균" value={metrics.avgKmh} unit="km/h" variant="speed" />
                       </>
                     ) : null}
                   </div>
@@ -602,6 +574,7 @@ export function MapHud(props: MapHudProps) {
               ) : null}
             </div>
           ) : null}
+          {activeRide && props.rideInterval ? <RideIntervalHud view={props.rideInterval} paused={paused} cadenceRpm={props.intervalCadenceRpm ?? null} /> : null}
           {paused ? (
             <p className="map-hud__paused-banner" role="status">잠깐 멈췄어요</p>
           ) : null}
@@ -613,6 +586,9 @@ export function MapHud(props: MapHudProps) {
         <div className="map-hud__tr">
           {quickCamera ? (
             <CameraViewMenu
+              enable3D={quickCamera.enable3D}
+              terrainFallback={quickCamera.terrainFallback}
+              onEnable3D={quickCamera.onEnable3D}
               active={quickCamera.active}
               camera1Mode={quickCamera.camera1Mode}
               onSelect={quickCamera.onSelect}
@@ -667,18 +643,8 @@ export function MapHud(props: MapHudProps) {
             </div>
           ) : null}
 
-          {leaderboardGlanceChip || (showAccount && account) || showSignedOutAuth ? (
+          {(showAccount && account) || showSignedOutAuth ? (
             <div className="map-hud__service-actions" role="group" aria-label="서비스 기능">
-              {leaderboardGlanceChip ? (
-                <div
-                  className="lb-glance__chip-slot"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                >
-                  {leaderboardGlanceChip}
-                </div>
-              ) : null}
-
               {showAccount && account ? (
                 <button
                   type="button"
@@ -688,16 +654,8 @@ export function MapHud(props: MapHudProps) {
                   title="Account"
                   onClick={onOpenUserInfo}
                 >
-                  <span className="hud-account__avatar" aria-hidden>
-                    {account.initial}
-                  </span>
                   <span className="hud-account__text">
                     <span className="hud-account__name">{account.label}</span>
-                    {account.mileageKm != null ? (
-                      <span className="hud-account__mileage">
-                        {account.mileageKm.toLocaleString("ko-KR")} km
-                      </span>
-                    ) : null}
                   </span>
                 </button>
               ) : null}
@@ -720,18 +678,16 @@ export function MapHud(props: MapHudProps) {
 
       {leaderboardGlancePanel}
 
-      {/* 우하단 — 고도/축척 바 바로 위, 오른쪽 정렬 */}
-      {showClock ? (
-        <time className="hud-clock" dateTime={clockNow.toISOString()} aria-label="현재 시각">
-          {clockText}
-        </time>
-      ) : null}
-
-      {/* BC 슬롯: 코칭 라인(라이딩 중). 맵 뷰는 가장자리 드래그·포커스 대안으로만 연다. */}
+      {/* BC 슬롯: 코칭 라인(라이딩 중). */}
       {showCoach ? (
         <div className="map-hud__bc">
-          {showCoach && coachData ? (
-            <div className="hud-coach hud-coach--banner" role="status" aria-live="polite">
+          {showCoach && (momentEvent || coachData) ? (
+            <div
+              className={`hud-coach hud-coach--banner${momentEvent ? " hud-coach--moment" : ""}`}
+              data-moment={momentEvent?.kind ?? undefined}
+              role="status"
+              aria-live="polite"
+            >
               <span className="hud-coach__tip">{coachTipKo}</span>
             </div>
           ) : null}

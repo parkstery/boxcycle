@@ -2,7 +2,7 @@ import { test, expect } from "./open-meteo-stub";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { guestStart as sharedGuestStart } from "./rideEntryHelpers";
+import { guestStart as sharedGuestStart, prepareManualRideInput } from "./rideEntryHelpers";
 
 /**
  * 주행 중 RouteDock 계약 — Chief 의도(2026-10-24):
@@ -60,35 +60,30 @@ test.describe("주행 중 RouteDock", () => {
 
     const collapsedGeometry = await page.evaluate(() => {
       const cardEl = document.querySelector(".route-dock__card")!;
-      const caretEl = document.querySelector(".route-dock__caret")!;
+      const ledEl = document.querySelector(".route-dock__led-toggle")!;
       const cardR = cardEl.getBoundingClientRect();
-      const caretR = caretEl.getBoundingClientRect();
-      const cx = caretR.x + caretR.width / 2;
-      const cy = caretR.y + caretR.height / 2;
+      const ledR = ledEl.getBoundingClientRect();
+      const cx = ledR.x + ledR.width / 2;
+      const cy = ledR.y + ledR.height / 2;
       const hit = document.elementFromPoint(cx, cy);
       const cardStyle = getComputedStyle(cardEl);
-      const parseRgb = (s: string) => {
-        const m = s.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-        return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : [0, 0, 0];
-      };
-      const cardBgRgb = parseRgb(cardStyle.backgroundColor);
       const inViewport =
-        caretR.left >= 0 &&
-        caretR.top >= 0 &&
-        caretR.right <= window.innerWidth &&
-        caretR.bottom <= window.innerHeight;
-      const caretInsideCard =
-        caretR.left >= cardR.left &&
-        caretR.top >= cardR.top &&
-        caretR.right <= cardR.right &&
-        caretR.bottom <= cardR.bottom;
-      const hitOk = hit === caretEl || caretEl.contains(hit);
-      return { inViewport, caretInsideCard, hitOk, cardBgRgb };
+        ledR.left >= 0 &&
+        ledR.top >= 0 &&
+        ledR.right <= window.innerWidth &&
+        ledR.bottom <= window.innerHeight;
+      const ledInsideCard =
+        ledR.left >= cardR.left - 0.5 &&
+        ledR.top >= cardR.top - 0.5 &&
+        ledR.right <= cardR.right + 0.5 &&
+        ledR.bottom <= cardR.bottom + 0.5;
+      const hitOk = hit === ledEl || ledEl.contains(hit);
+      return { inViewport, ledInsideCard, hitOk, cardBg: cardStyle.backgroundColor };
     });
     expect(collapsedGeometry.inViewport).toBe(true);
-    expect(collapsedGeometry.caretInsideCard).toBe(true);
+    expect(collapsedGeometry.ledInsideCard).toBe(true);
     expect(collapsedGeometry.hitOk).toBe(true);
-    expect(collapsedGeometry.cardBgRgb).toEqual([255, 255, 255]);
+    expect(collapsedGeometry.cardBg === "rgba(0, 0, 0, 0)" || collapsedGeometry.cardBg === "transparent").toBeTruthy();
 
     await page.screenshot({ path: path.join(OUT_DIR, "riding-collapsed.png") });
 
@@ -124,12 +119,7 @@ async function guestStart(page: import("@playwright/test").Page) {
  * 센서 시트에서 「센서 없음」를 명시적으로 고른다(ride-entry.spec 과 동일).
  */
 async function armRideInput(page: import("@playwright/test").Page) {
-  await page.getByRole("button", { name: /케이던스 센서/ }).click();
-  const sheet = page.getByRole("dialog", { name: "케이던스 센서" });
-  await expect(sheet).toBeVisible({ timeout: 15_000 });
-  await sheet.getByRole("button", { name: "센서 없음" }).click();
-  await sheet.getByRole("button", { name: "센서 설정 닫기" }).click();
-  await expect(sheet).toBeHidden({ timeout: 10_000 });
+  await prepareManualRideInput(page);
 }
 
 async function loadIntroCourse(page: import("@playwright/test").Page) {

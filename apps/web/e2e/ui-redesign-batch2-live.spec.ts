@@ -32,19 +32,23 @@ test('실제 App의 대기·주행·일시정지와 센서 접근·카메라 연
   const sensor=page.getByRole('button',{name:/케이던스 센서/});
   await expect(sensor).toHaveCount(1);await sensor.click();await expect(sheet).toBeVisible();
   await sheet.getByRole('button',{name:'센서 설정 닫기'}).click();
-  const camera=page.locator('.camera-view-menu__trigger');
-  for(let i=0;i<6;i++){
-    await camera.click();await page.getByRole('menuitemradio').nth(i).click();
-    await camera.click();await expect(page.getByRole('menuitemradio').nth(i)).toHaveAttribute('aria-checked','true');await page.keyboard.press('Escape');
+  const camera=page.getByRole('button',{name:/카메라 메뉴/});
+  const heightNames=['전체 경로','20m 상공','200m 상공','300m 상공','400m 상공','500m 상공'];
+  for(const name of heightNames){
+    await camera.click();
+    await page.getByRole('menuitemradio',{name:`평면 카메라 · ${name}`}).click();
+    await camera.click();
+    await expect(page.getByRole('menuitemradio',{name:`평면 카메라 · ${name}`})).toHaveAttribute('aria-checked','true');
+    await page.keyboard.press('Escape');
   }
   const labels=new Set<string>();
-  for(let turn=0;turn<3;turn++){
-    await camera.click();await page.getByRole('menuitemradio').first().click();
+  for(const name of ['전체 경로','20m 상공','200m 상공']){
+    await camera.click();
+    await page.getByRole('menuitemradio',{name:`평면 카메라 · ${name}`}).click();
     labels.add((await camera.innerText()).replace('▾','').trim());
   }
   expect(labels.size).toBe(3);
-  // Return to route fit after verifying all three modes for a stable comparison view.
-  await camera.click();await page.getByRole('menuitemradio').first().click();
+  await camera.click();await page.getByRole('menuitemradio',{name:'평면 카메라 · 전체 경로'}).click();
   await expect(camera).toContainText('전체');
   await capture('riding');
   await page.getByRole('button',{name:'일시정지',exact:true}).click();

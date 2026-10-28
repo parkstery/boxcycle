@@ -1,0 +1,18 @@
+[
+  {
+    "check": "account pointer opens panel",
+    "pass": true
+  },
+  {
+    "check": "keyboard Enter opens panel",
+    "pass": true
+  },
+  {
+    "check": "long metrics 800",
+    "pass": true
+  },
+  {
+    "check": "long metrics 699",
+    "pass": true
+  }
+]

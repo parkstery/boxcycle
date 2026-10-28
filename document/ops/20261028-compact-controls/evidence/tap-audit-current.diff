@@ -1,0 +1,878 @@
+--- baseline/apps/web/e2e/compact-controls.spec.ts
++++ apps/web/e2e/compact-controls.spec.ts
+@@ -430,3 +430,188 @@
+     expect(hit).toEqual({ cameraAccount: false, cameraMap: false, accountMap: false });
+   });
+ });
++
++const tapEvidenceDir = process.env.TAP_HANDLES_EVIDENCE_DIR
++  ?? path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../document/ops/20261028-compact-controls/evidence/tap-handles');
++const tapSizes = [
++  { width: 800, height: 360 },
++  { width: 699, height: 273 },
++  { width: 667, height: 300 },
++] as const;
++const LEFT_CLOSED = 'M2 1.5L5 5L2 8.5';
++const LEFT_OPEN = 'M5 1.5L2 5L5 8.5';
++const RIGHT_CLOSED = 'M5 1.5L2 5L5 8.5';
++const RIGHT_OPEN = 'M2 1.5L5 5L2 8.5';
++
++async function saveTapShot(page: Page, name: string) {
++  await fs.mkdir(tapEvidenceDir, { recursive: true });
++  await page.screenshot({ path: path.join(tapEvidenceDir, name), animations: 'disabled' });
++}
++
++async function caretPath(page: Page, side: 'left' | 'right') {
++  return page.locator(`.edge-panel-tab--${side} path`).getAttribute('d');
++}
++
++async function mouseDrag(page: Page, from: { x: number; y: number }, to: { x: number; y: number }) {
++  await page.mouse.move(from.x, from.y);
++  await page.mouse.down();
++  await page.mouse.move(to.x, to.y, { steps: 10 });
++  await page.mouse.up();
++}
++
++async function touchDrag(page: Page, from: { x: number; y: number }, to: { x: number; y: number }) {
++  const client = await page.context().newCDPSession(page);
++  const steps = 10;
++  await client.send('Input.dispatchTouchEvent', {
++    type: 'touchStart',
++    touchPoints: [{ x: from.x, y: from.y, id: 0 }],
++  });
++  for (let i = 1; i <= steps; i++) {
++    const x = from.x + ((to.x - from.x) * i) / steps;
++    const y = from.y + ((to.y - from.y) * i) / steps;
++    await client.send('Input.dispatchTouchEvent', {
++      type: 'touchMove',
++      touchPoints: [{ x, y, id: 0 }],
++    });
++  }
++  await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
++}
++
++function knobCenter(box: { x: number; y: number; width: number; height: number }) {
++  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
++}
++
++test.describe('compact-controls tap handles', () => {
++  for (const size of tapSizes) {
++    test(`양쪽 탭 열고닫기·위치·캐럿 ${size.width}×${size.height}`, async ({ page }) => {
++      await page.setViewportSize(size);
++      await page.goto(`${preview}?state=ready`);
++      const menuBtn = page.getByRole('button', { name: '메뉴 열기', exact: true });
++      const rankBtn = page.getByRole('button', { name: '순위 열기', exact: true });
++      const menu = page.getByRole('dialog', { name: '메뉴', exact: true });
++      const rank = page.locator('#lb-glance-panel');
++
++      const leftClosed = (await page.locator('.edge-panel-tab--left').boundingBox())!;
++      const rightClosed = (await page.locator('.edge-panel-tab--right').boundingBox())!;
++      expect(await caretPath(page, 'left')).toBe(LEFT_CLOSED);
++      expect(await caretPath(page, 'right')).toBe(RIGHT_CLOSED);
++
++      await menuBtn.click();
++      await expect(menu).toBeVisible();
++      const leftOpen = (await page.locator('.edge-panel-tab--left').boundingBox())!;
++      expect(Math.abs(leftOpen.x - leftClosed.x), '왼쪽 x').toBeLessThanOrEqual(1);
++      expect(Math.abs(leftOpen.y - leftClosed.y), '왼쪽 y').toBeLessThanOrEqual(1);
++      expect(await caretPath(page, 'left')).toBe(LEFT_OPEN);
++      const knob = (await page.locator('.edge-panel-tab--left .edge-panel-tab__knob').boundingBox())!;
++      const hit = await page.evaluate(({ x, y }) => {
++        const el = document.elementFromPoint(x, y);
++        return Boolean(el?.closest('.edge-panel-tab--left'));
++      }, knobCenter(knob));
++      expect(hit, '열린 왼쪽 반달이 메뉴·스크림 위').toBe(true);
++      await menuBtn.click();
++      await expect(menu).toHaveCount(0);
++      expect(await caretPath(page, 'left')).toBe(LEFT_CLOSED);
++
++      await rankBtn.click();
++      await expect(rank).toBeVisible();
++      const rightOpen = (await page.locator('.edge-panel-tab--right').boundingBox())!;
++      expect(Math.abs(rightOpen.x - rightClosed.x), '오른쪽 x').toBeLessThanOrEqual(1);
++      expect(Math.abs(rightOpen.y - rightClosed.y), '오른쪽 y').toBeLessThanOrEqual(1);
++      expect(await caretPath(page, 'right')).toBe(RIGHT_OPEN);
++      await rankBtn.click();
++      await expect(rank).toBeHidden();
++      expect(await caretPath(page, 'right')).toBe(RIGHT_CLOSED);
++
++      if (size.width === 699) {
++        await saveTapShot(page, `tap-closed-${size.width}x${size.height}.png`);
++        await menuBtn.click();
++        await saveTapShot(page, `tap-left-open-${size.width}x${size.height}.png`);
++        await menuBtn.click();
++        await rankBtn.click();
++        await saveTapShot(page, `tap-right-open-${size.width}x${size.height}.png`);
++      }
++    });
++  }
++
++  test('Enter·Space로 왼쪽 열고 닫기', async ({ page }) => {
++    await page.setViewportSize({ width: 800, height: 360 });
++    await page.goto(`${preview}?state=ready`);
++    const menuBtn = page.getByRole('button', { name: '메뉴 열기', exact: true });
++    const menu = page.getByRole('dialog', { name: '메뉴', exact: true });
++    await menuBtn.focus();
++    await page.keyboard.press('Enter');
++    await expect(menu).toBeVisible();
++    await menuBtn.focus();
++    await expect(menuBtn).toBeFocused();
++    await page.keyboard.press('Space');
++    await expect(menu).toHaveCount(0);
++  });
++
++  test('마우스: 닫힌/열린 반달·빈 가장자리 드래그는 상태 불변', async ({ page }) => {
++    await page.setViewportSize({ width: 800, height: 360 });
++    await page.goto(`${preview}?state=ready`);
++    const menu = page.getByRole('dialog', { name: '메뉴', exact: true });
++    const rank = page.locator('#lb-glance-panel');
++    const left = (await page.locator('.edge-panel-tab--left .edge-panel-tab__knob').boundingBox())!;
++    const right = (await page.locator('.edge-panel-tab--right .edge-panel-tab__knob').boundingBox())!;
++    await mouseDrag(page, knobCenter(left), { x: left.x + 140, y: left.y + left.height / 2 });
++    await expect(menu, '닫힌 왼쪽 반달 드래그').toHaveCount(0);
++    await mouseDrag(page, knobCenter(right), { x: right.x - 140, y: right.y + right.height / 2 });
++    await expect(rank, '닫힌 오른쪽 반달 드래그').toBeHidden();
++    await mouseDrag(page, { x: 10, y: 80 }, { x: 130, y: 80 });
++    await expect(menu, '닫힌 빈 가장자리 드래그').toHaveCount(0);
++
++    await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
++    await expect(menu).toBeVisible();
++    const leftOpen = (await page.locator('.edge-panel-tab--left .edge-panel-tab__knob').boundingBox())!;
++    await mouseDrag(page, knobCenter(leftOpen), { x: leftOpen.x + 140, y: leftOpen.y + leftOpen.height / 2 });
++    await expect(menu, '열린 왼쪽 반달 드래그').toBeVisible();
++    await mouseDrag(page, { x: 10, y: 80 }, { x: 130, y: 80 });
++    await expect(menu, '열린 빈 가장자리 드래그').toBeVisible();
++    await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
++
++    await page.getByRole('button', { name: '순위 열기', exact: true }).click();
++    await expect(rank).toBeVisible();
++    const rightOpen = (await page.locator('.edge-panel-tab--right .edge-panel-tab__knob').boundingBox())!;
++    await mouseDrag(page, knobCenter(rightOpen), { x: rightOpen.x - 140, y: rightOpen.y + rightOpen.height / 2 });
++    await expect(rank, '열린 오른쪽 반달 드래그').toBeVisible();
++  });
++});
++
++test.describe('compact-controls tap handles touch', () => {
++  test.use({ hasTouch: true });
++
++  test('터치: 탭으로 열고 반달·빈 가장자리 드래그는 상태 불변', async ({ page }) => {
++    await page.setViewportSize({ width: 699, height: 273 });
++    await page.goto(`${preview}?state=ready`);
++    const menu = page.getByRole('dialog', { name: '메뉴', exact: true });
++    const rank = page.locator('#lb-glance-panel');
++    const left = (await page.locator('.edge-panel-tab--left .edge-panel-tab__knob').boundingBox())!;
++    const right = (await page.locator('.edge-panel-tab--right .edge-panel-tab__knob').boundingBox())!;
++
++    await page.touchscreen.tap(left.x + left.width / 2, left.y + left.height / 2);
++    await expect(menu).toBeVisible();
++    await page.touchscreen.tap(left.x + left.width / 2, left.y + left.height / 2);
++    await expect(menu).toHaveCount(0);
++
++    await page.touchscreen.tap(right.x + right.width / 2, right.y + right.height / 2);
++    await expect(rank).toBeVisible();
++    await page.touchscreen.tap(right.x + right.width / 2, right.y + right.height / 2);
++    await expect(rank).toBeHidden();
++
++    await touchDrag(page, knobCenter(left), { x: left.x + 140, y: left.y + left.height / 2 });
++    await expect(menu, '터치 왼쪽 반달 드래그').toHaveCount(0);
++    await touchDrag(page, knobCenter(right), { x: right.x - 140, y: right.y + right.height / 2 });
++    await expect(rank, '터치 오른쪽 반달 드래그').toBeHidden();
++    await touchDrag(page, { x: 10, y: 80 }, { x: 130, y: 80 });
++    await expect(menu, '터치 빈 가장자리 드래그').toHaveCount(0);
++
++    await page.touchscreen.tap(left.x + left.width / 2, left.y + left.height / 2);
++    await expect(menu).toBeVisible();
++    const leftOpen = (await page.locator('.edge-panel-tab--left .edge-panel-tab__knob').boundingBox())!;
++    await touchDrag(page, knobCenter(leftOpen), { x: leftOpen.x + 140, y: leftOpen.y + leftOpen.height / 2 });
++    await expect(menu, '터치 열린 왼쪽 반달 드래그').toBeVisible();
++    await touchDrag(page, { x: 10, y: 80 }, { x: 130, y: 80 });
++    await expect(menu, '터치 열린 빈 가장자리 드래그').toBeVisible();
++  });
++});
+--- baseline/apps/web/e2e/ride-ui-moments.spec.ts
++++ apps/web/e2e/ride-ui-moments.spec.ts
+@@ -89,7 +89,7 @@
+     });
+   }
+ 
+-  test('좌우 탭 클릭·스와이프와 인터벌 설정 3개', async ({ page }) => {
++  test('좌우 탭 클릭만 열고 스와이프는 열지 않으며 인터벌 설정 3개', async ({ page }) => {
+     await page.setViewportSize({ width: 800, height: 360 });
+     await page.goto(`${preview}?state=ready`);
+     const menu = page.getByRole('dialog', { name: '메뉴', exact: true });
+@@ -105,7 +105,7 @@
+     await page.mouse.down();
+     await page.mouse.move(left.x + 140, left.y + left.height / 2, { steps: 10 });
+     await page.mouse.up();
+-    await expect(menu).toBeVisible();
++    await expect(menu, '왼쪽 반달 스와이프는 열지 않는다').toHaveCount(0);
+ 
+     await page.goto(`${preview}?state=ready`);
+     const rank = page.getByRole('button', { name: '순위 열기', exact: true });
+@@ -114,6 +114,8 @@
+     await page.mouse.down();
+     await page.mouse.move(right.x - 140, right.y + right.height / 2, { steps: 10 });
+     await page.mouse.up();
++    await expect(page.locator('#lb-glance-panel'), '오른쪽 반달 스와이프는 열지 않는다').toBeHidden();
++    await rank.click();
+     await expect(page.locator('#lb-glance-panel')).toBeVisible();
+     await rank.click();
+     await expect(page.locator('#lb-glance-panel')).toBeHidden();
+--- baseline/apps/web/e2e/ui-800x360.spec.ts
++++ apps/web/e2e/ui-800x360.spec.ts
+@@ -272,39 +272,31 @@
+   await expect(page.getByRole('dialog',{name:'메뉴',exact:true})).toHaveCount(0);
+ });
+ 
+-test('왼쪽 에지 띠는 20px·화면0에 붙고 안쪽 드래그로만 열린다',async({page})=>{
+-  const size=page.viewportSize()??{width:800,height:360};
+-  for(const side of ['left'] as const){
+-    await page.goto(`${preview}?state=ready`);
+-    const handle=page.locator(`.edge-panel-handle--${side}`);
+-    const r=(await handle.boundingBox())!;
+-    expect(r.width).toBeGreaterThanOrEqual(18);
+-    expect(r.width).toBeLessThanOrEqual(21);
+-    if(side==='left') expect(r.x).toBeLessThanOrEqual(0.5);
+-    else expect(r.x+r.width).toBeGreaterThanOrEqual(799);
+-    const x=side==='left'?10:790,y=155,dir=side==='left'?1:-1;
+-    await page.mouse.move(x,y);await page.mouse.down();
+-    await page.mouse.move(x+dir*(side==='left'?36:80),y,{steps:8});
+-    const selector=side==='left'?'.menu-panel':'.map-view-sheet__panel';
+-    const previewBox=(await page.locator(selector).boundingBox())!;
+-    expect(previewBox.x+previewBox.width>0&&previewBox.x<size.width,`${side} partial reveal`).toBeTruthy();
+-    await page.mouse.move(x+dir*110,y,{steps:8});await page.mouse.up();
+-    const dialog=page.getByRole('dialog',{name:side==='left'?'메뉴':'맵 뷰',exact:true});
+-    await expect(dialog).toBeVisible();
+-    await expect.poll(async()=>{const b=(await page.locator(selector).boundingBox())!;return Math.max(-b.x,b.x+b.width-800);}).toBeLessThanOrEqual(1);
+-    const title=page.locator(side==='left'?'.menu-panel__brand':'.map-view-sheet__head-title');
+-    const h=(await title.boundingBox())!;
+-    await page.mouse.move(h.x+h.width/2,h.y+h.height/2);await page.mouse.down();
+-    await page.mouse.move(h.x+h.width/2-dir*100,h.y+h.height/2,{steps:8});await page.mouse.up();
+-    await expect(dialog).toHaveCount(0);
+-    const stripY=40;
+-    await page.mouse.click(x,stripY);
+-    await expect(page.getByRole('dialog'),'20px 띠 클릭은 열지 않는다').toHaveCount(0);
+-  }
+-});
+-
+-// Chief 고정14(2026-10-24): 측면 메뉴는 보이는 흰 반투명 반원 탭으로 연다 — 누르거나 탭에서 끌어서.
+-test('Chief 고정14 — 왼쪽 흰 반투명 반원 탭: 계기판 아래 빈 자리, 누르면·끌면 열린다',async({page})=>{
++test('왼쪽 에지 띠는 20px·화면0에 붙고 빈 가장자리 드래그로는 열리지 않는다',async({page})=>{
++  await page.goto(`${preview}?state=ready`);
++  const handle=page.locator('.edge-panel-handle--left');
++  const r=(await handle.boundingBox())!;
++  expect(r.width).toBeGreaterThanOrEqual(18);
++  expect(r.width).toBeLessThanOrEqual(21);
++  expect(r.x).toBeLessThanOrEqual(0.5);
++  const x=10,y=80;
++  await page.mouse.move(x,y);await page.mouse.down();
++  await page.mouse.move(x+110,y,{steps:8});await page.mouse.up();
++  await expect(page.getByRole('dialog'),'빈 가장자리 드래그는 열지 않는다').toHaveCount(0);
++  await page.getByRole('button',{name:'메뉴 열기',exact:true}).click();
++  const dialog=page.getByRole('dialog',{name:'메뉴',exact:true});
++  await expect(dialog).toBeVisible();
++  const title=page.locator('.menu-panel__brand');
++  const h=(await title.boundingBox())!;
++  await page.mouse.move(h.x+h.width/2,h.y+h.height/2);await page.mouse.down();
++  await page.mouse.move(h.x+h.width/2-100,h.y+h.height/2,{steps:8});await page.mouse.up();
++  await expect(dialog).toHaveCount(0);
++  await page.mouse.click(x,40);
++  await expect(page.getByRole('dialog'),'20px 띠 클릭은 열지 않는다').toHaveCount(0);
++});
++
++// Chief 고정14(2026-10-28 후속): 측면 메뉴는 보이는 흰 반투명 반원 탭으로만 연다 — 슬라이드 금지, 위치 고정.
++test('Chief 고정14 — 왼쪽 흰 반투명 반원 탭: 계기판 아래 빈 자리, 누르면 열리고 끌어도 열리지 않는다',async({page})=>{
+   for(const size of [{width:800,height:360},{width:667,height:300},{width:844,height:390}]){
+     await page.setViewportSize(size);
+     for(const state of ['ready','riding','paused'] as const){
+@@ -352,52 +344,43 @@
+     }
+   }
+   await page.setViewportSize({width:800,height:360});
+-  for(const side of ['left'] as const){
+-    const dialog=page.getByRole('dialog',{name:side==='left'?'메뉴':'맵 뷰',exact:true});
+-    await page.goto(`${preview}?state=ready`);
+-    await page.getByRole('button',{name:side==='left'?'메뉴 열기':'맵 뷰 열기',exact:true}).click();
+-    await expect(dialog,`${side} 누르면 열림`).toBeVisible();
+-    await page.goto(`${preview}?state=ready`);
+-    const k=(await page.locator(`.edge-panel-tab--${side} .edge-panel-tab__knob`).boundingBox())!;
+-    const x=k.x+k.width/2,y=k.y+k.height/2,dir=side==='left'?1:-1;
+-    await page.mouse.move(x,y);await page.mouse.down();
+-    await page.mouse.move(x+dir*120,y,{steps:10});await page.mouse.up();
+-    await expect(dialog,`${side} 탭에서 끌면 열림`).toBeVisible();
+-    await expect(page.locator(`.edge-panel-tab--${side}`),'열어도 탭은 남는다').toHaveCount(1);
+-  }
+-});
+-
+-test('포커스 대안·짧은/반대 드래그 취소가 동작한다',async({page})=>{
++  const dialog=page.getByRole('dialog',{name:'메뉴',exact:true});
++  await page.goto(`${preview}?state=ready`);
++  const closedTab=(await page.locator('.edge-panel-tab--left').boundingBox())!;
++  await page.getByRole('button',{name:'메뉴 열기',exact:true}).click();
++  await expect(dialog,'누르면 열림').toBeVisible();
++  const openTab=(await page.locator('.edge-panel-tab--left').boundingBox())!;
++  expect(Math.abs(openTab.x-closedTab.x),'열린 뒤 x 유지').toBeLessThanOrEqual(1);
++  expect(Math.abs(openTab.y-closedTab.y),'열린 뒤 y 유지').toBeLessThanOrEqual(1);
++  await expect(page.locator('.edge-panel-tab--left'),'열어도 탭은 남는다').toHaveCount(1);
++  await page.goto(`${preview}?state=ready`);
++  const k=(await page.locator('.edge-panel-tab--left .edge-panel-tab__knob').boundingBox())!;
++  const x=k.x+k.width/2,y=k.y+k.height/2;
++  await page.mouse.move(x,y);await page.mouse.down();
++  await page.mouse.move(x+120,y,{steps:10});await page.mouse.up();
++  await expect(dialog,'탭에서 끌어도 열리지 않는다').toHaveCount(0);
++});
++
++test('포커스 대안·빈 가장자리 짧은/반대 드래그는 열지 않는다',async({page})=>{
+   await page.goto(`${preview}?state=ready`);
+   await page.getByRole('button',{name:'Trail 메뉴',exact:true}).focus();
+   await page.keyboard.press('Enter');
+   await expect(page.getByRole('dialog',{name:'메뉴',exact:true})).toBeVisible();
+   await page.keyboard.press('Escape');
+-  for(const side of ['left'] as const){
+-    for(const movement of [{dx:24,dy:0},{dx:-24,dy:0},{dx:0,dy:24}]){
+-      const x=side==='left'?10:790,y=40;
+-      await page.mouse.move(x,y);await page.mouse.down();
+-      await page.mouse.move(x+(side==='left'?1:-1)*movement.dx,y+movement.dy,{steps:5});
+-      await page.waitForTimeout(200);
+-      await page.mouse.up();
+-      await expect(page.getByRole('dialog')).toHaveCount(0);
+-    }
+-  }
+-});
+-
+-test('드래그 취소·화면 크기 변경 후 복구되며 중앙 지도는 가리지 않는다',async({page})=>{
++  for(const movement of [{dx:24,dy:0},{dx:-24,dy:0},{dx:0,dy:24}]){
++    const x=10,y=40;
++    await page.mouse.move(x,y);await page.mouse.down();
++    await page.mouse.move(x+movement.dx,y+movement.dy,{steps:5});
++    await page.waitForTimeout(200);
++    await page.mouse.up();
++    await expect(page.getByRole('dialog')).toHaveCount(0);
++  }
++});
++
++test('빈 가장자리 드래그 취소·화면 크기 변경 후에도 중앙 지도는 가리지 않는다',async({page})=>{
+   await page.goto(`${preview}?state=ready`);
+-  await page.evaluate(() => {
+-    document.addEventListener('pointerdown', (event) => {
+-      if ((event as PointerEvent).clientX <= 20) {
+-        document.body.setAttribute('data-audit-pointer', String((event as PointerEvent).pointerId));
+-      }
+-    }, true);
+-  });
+   const x=10,y=40;
+   await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+30,y,{steps:5});
+-  const pointerId=Number(await page.evaluate(()=>document.body.getAttribute('data-audit-pointer')));
+-  await page.evaluate((id)=>{document.dispatchEvent(new PointerEvent('pointercancel',{pointerId:id,pointerType:'mouse',bubbles:true}));},pointerId);
+   await page.mouse.up();
+   await expect(page.getByRole('dialog')).toHaveCount(0);
+   await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+30,y,{steps:5});
+--- baseline/apps/web/e2e/ui-edge-live.spec.ts
++++ apps/web/e2e/ui-edge-live.spec.ts
+@@ -32,13 +32,7 @@
+   await expect(page.locator('.mapboxgl-ctrl-top-right button')).toHaveCount(0);
+   await page.screenshot({ path: path.join(evidence, 'actual-idle-800.png'), animations: 'disabled' });
+   async function edge(side: 'left' | 'right') {
+-    const width = page.viewportSize()!.width;
+-    const x = side === 'left' ? 3 : width - 3;
+-    const dx = side === 'left' ? 115 : -115;
+-    await page.mouse.move(x, 155);
+-    await page.mouse.down();
+-    await page.mouse.move(x + dx, 155, { steps: 12 });
+-    await page.mouse.up();
++    await page.getByRole('button', { name: side === 'left' ? '메뉴 열기' : '순위 열기', exact: true }).click();
+   }
+   await prepareManualRideInput(page);
+   await page.getByRole('button',{name:/^케이던스 센서:/}).click();
+--- baseline/apps/web/scripts/ui-800x360/preview.tsx
++++ apps/web/scripts/ui-800x360/preview.tsx
+@@ -481,7 +481,6 @@
+   const sensorUiState = sensorSheet.uiState;
+   const sensorCrankRpm =
+     sensorSheet.uiState === 'connected' ? sensorSheet.crankRpm : sensorPreset ? sensorSheet.crankRpm : null;
+-  const [menuReveal,setMenuReveal] = useState<number|null>(null);
+   const [rankOpen,setRankOpen] = useState(glanceCapture && initial !== 'glance-summary');
+   const [rideMomentSoundEnabled,setRideMomentSoundEnabled] = useState(false);
+   const [lbJoinCalls,setLbJoinCalls] = useState(0);
+@@ -538,9 +537,9 @@
+     <div className="audit-map-attribution">검수용 지도 배경 · 실제 제품 컴포넌트 · 서버 기록 없음</div>
+     {panel!=='summary' && initial!=='glance-summary' ? <>
+     <EdgePanelHandle edge="left" open={panel==='menu'} panelId="menu-panel" label="메뉴 열기"
+-      onOpen={()=>setPanel('menu')} onClose={()=>setPanel('ready')} onDragProgress={setMenuReveal}/>
++      onOpen={()=>setPanel('menu')} onClose={()=>setPanel('ready')}/>
+     <EdgePanelHandle edge="right" open={rankOpen} panelId="lb-glance-panel" label="순위 열기"
+-      onOpen={()=>setRankOpen(true)} onClose={()=>setRankOpen(false)} onDragProgress={noop}/>
++      onOpen={()=>setRankOpen(true)} onClose={()=>setRankOpen(false)}/>
+     </> : null}
+     <MapBottomLeftStack>
+     <RouteDock key={hasRoute?'route':'empty'} stage={stage} stops={hasRoute?stops:stage==='setup'?[stops[0]]:[]} routeLoading={params.has('loading')}
+@@ -715,7 +714,7 @@
+     {panel==='routes'?<OfficialCourseListModal segment="intro" onClose={()=>setPanel('ready')} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
+       basicStartLoading={false} basicStartHubJoined={false} routeLoading={false} sessionIdle officialCourseCatalogAvailable publishedPublicCourses={[]}
+       publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}/>:null}
+-    <MenuPanel open={panel==='menu'} revealProgress={menuReveal} onClose={()=>setPanel('ready')}>
++    <MenuPanel open={panel==='menu'} onClose={()=>setPanel('ready')}>
+       <RideRoutePanel routeSummary="" routeLoading={false} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
+         basicStartLoading={false} basicStartHubJoined={false} officialCourseCatalogAvailable publishedPublicCourses={getBasicSharedHubSummaries()}
+         publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} authGuest signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}
+--- baseline/apps/web/src/App.tsx
++++ apps/web/src/App.tsx
+@@ -349,7 +349,6 @@
+     openAdminDashboardPanel,
+     openLeaderboardPanel,
+   } = useAppSheetNavigation();
+-  const [menuReveal, setMenuReveal] = useState<number | null>(null);
+   const [externalCameraJump, setExternalCameraJump] = useState<{
+     lngLat: LngLat;
+     zoom?: number;
+@@ -2464,23 +2463,6 @@
+       });
+     },
+     [setActiveQuickCamera, setFollowMode, setLockBaseHeading],
+-  );
+-
+-  const handleMenuReveal = useCallback(
+-    (progress: number | null) => {
+-      setMenuReveal(progress);
+-      if (progress == null) return;
+-      setPlaceSearchOpen(false);
+-      setUserInfoSheetOpen(false);
+-      setRideSettingsSheetOpen(false);
+-      setCadenceSensorSheetOpen(false);
+-    },
+-    [
+-      setPlaceSearchOpen,
+-      setUserInfoSheetOpen,
+-      setRideSettingsSheetOpen,
+-      setCadenceSensorSheetOpen,
+-    ],
+   );
+ 
+   /**
+@@ -3310,7 +3292,6 @@
+               setMenuOpen(false);
+               setPlaceSearchMarkerLngLat(null);
+             }}
+-            onDragProgress={handleMenuReveal}
+           />
+           {leaderboardGlanceView ? (
+             <EdgePanelHandle
+@@ -3324,7 +3305,6 @@
+               onClose={() => {
+                 if (leaderboardGlance.panelOpen) leaderboardGlance.togglePanel();
+               }}
+-              onDragProgress={() => {}}
+             />
+           ) : null}
+         </>
+@@ -3332,11 +3312,9 @@
+ 
+       <MenuPanel
+         open={menuOpen}
+-        revealProgress={menuReveal}
+         onClose={() => {
+           setMenuOpen(false);
+           setPlaceSearchMarkerLngLat(null);
+-          setMenuReveal(null);
+         }}
+       >
+         <RideRoutePanel
+--- baseline/apps/web/src/components/ui/EdgePanelHandle.css
++++ apps/web/src/components/ui/EdgePanelHandle.css
+@@ -1,4 +1,4 @@
+-/* 시험·레이아웃 표식만 — hit-test 없음(지시06 document capture). */
++/* 시험·레이아웃 표식만 — hit-test 없음. 가장자리 스와이프는 쓰지 않는다. */
+ .edge-panel-handle {
+   position: fixed;
+   z-index: 0;
+@@ -24,14 +24,10 @@
+   left: auto;
+ }
+ 
+-.edge-panel-handle--left.edge-panel-handle--open {
+-  left: min(300px, 92vw);
+-}
+-
+ /*
+  * 보이는 탭 — 시안 v2: visible 20.4×43.2(기존 34×72의 60%) / target 44×76, 세로 중앙.
+  * MapHud(5, 빈 영역 pointer-events none)보다 낮춰 카메라 메뉴가 탭에 가리지 않게 한다.
+- * 왼쪽이 열리면 메뉴 가장자리로 옮겨 z-index 51 로 메뉴 위에 남긴다.
++ * 열린 뒤에도 화면 가장자리 동일 위치를 유지한다. 왼쪽은 z-index 51 로 메뉴·스크림 위에 남아 탭으로 닫는다.
+  */
+ .edge-panel-tab {
+   position: fixed;
+@@ -46,7 +42,7 @@
+   display: flex;
+   align-items: center;
+   cursor: pointer;
+-  touch-action: none;
++  touch-action: manipulation;
+   -webkit-tap-highlight-color: transparent;
+ }
+ .edge-panel-tab--left {
+@@ -58,9 +54,8 @@
+   justify-content: flex-end;
+ }
+ .edge-panel-tab--left.edge-panel-tab--open {
+-  left: min(300px, 92vw);
++  left: env(safe-area-inset-left, 0px);
+   z-index: 51;
+-  transform: translateX(-100%);
+ }
+ .edge-panel-tab--right.edge-panel-tab--open {
+   right: env(safe-area-inset-right, 0px);
+--- baseline/apps/web/src/components/ui/EdgePanelHandle.tsx
++++ apps/web/src/components/ui/EdgePanelHandle.tsx
+@@ -1,8 +1,10 @@
+-import { useEffect, useRef } from "react";
+-import { registerEdgeDocumentGesture } from "./edgePanelDocumentGesture";
++import { useRef } from "react";
+ import "./EdgePanelHandle.css";
+ 
+ export type EdgeSide = "left" | "right";
++
++/** 반달 버튼 안에서의 최소 이동. 넘으면 뒤따르는 click 토글을 막는다. document 제스처는 없다. */
++const TAP_SLOP_PX = 6;
+ 
+ export type EdgePanelHandleProps = {
+   edge: EdgeSide;
+@@ -11,40 +13,16 @@
+   label: string;
+   onOpen: () => void;
+   onClose: () => void;
+-  onDragProgress: (progress: number | null) => void;
+ };
+ 
+ /**
+- * 에지 제스처 — document capture 로 시작 좌표만 판별한다(띠 표식은 hit-test 없음).
+- * 탭은 열려 있어도 남긴다. 클릭은 토글, 열린 뒤 가장자리 쪽으로 끌면 접힌다.
++ * 좌우 반달 탭 — 네이티브 버튼의 탭/클릭/Enter/Space만으로 열고 닫는다.
++ * 가장자리 스와이프·반달 끌기·손가락 추적은 없다. 열린 뒤에도 화면 가장자리 위치를 유지하고 캐럿만 반전한다.
+  */
+ export function EdgePanelHandle(props: EdgePanelHandleProps) {
+-  const { edge, open, panelId, label, onOpen, onClose, onDragProgress } = props;
+-  const markerRef = useRef<HTMLDivElement>(null);
+-  const callbacksRef = useRef({ onOpen, onClose, onDragProgress, open });
+-  const baseOpenDir = edge === "left" ? 1 : -1;
+-  const openDir = open ? -baseOpenDir : baseOpenDir;
+-
+-  useEffect(() => {
+-    callbacksRef.current = { onOpen, onClose, onDragProgress, open };
+-  }, [onOpen, onClose, onDragProgress, open]);
+-
+-  useEffect(() => {
+-    return registerEdgeDocumentGesture(edge, true, () => markerRef.current, {
+-      openDir,
+-      onOpen: () => {
+-        const current = callbacksRef.current;
+-        if (current.open) current.onClose();
+-        else current.onOpen();
+-      },
+-      onClose: () => {
+-        const current = callbacksRef.current;
+-        if (current.open) current.onOpen();
+-        else current.onClose();
+-      },
+-      onDragProgress: (progress) => callbacksRef.current.onDragProgress(progress),
+-    });
+-  }, [edge, openDir]);
++  const { edge, open, panelId, label, onOpen, onClose } = props;
++  const startRef = useRef<{ x: number; y: number } | null>(null);
++  const suppressClickRef = useRef(false);
+ 
+   const chevron = open
+     ? (edge === "left" ? "M5 1.5L2 5L5 8.5" : "M2 1.5L5 5L2 8.5")
+@@ -53,7 +31,6 @@
+   return (
+     <>
+       <div
+-        ref={markerRef}
+         className={`edge-panel-handle edge-panel-handle--${edge}${open ? " edge-panel-handle--open" : ""}`}
+         role="presentation"
+         aria-hidden="true"
+@@ -66,7 +43,35 @@
+         aria-label={label}
+         aria-controls={panelId}
+         aria-expanded={open}
+-        onClick={() => {
++        onPointerDown={(e) => {
++          if (e.pointerType === "mouse" && e.button !== 0) return;
++          if (!e.isPrimary) return;
++          startRef.current = { x: e.clientX, y: e.clientY };
++          suppressClickRef.current = false;
++          try {
++            e.currentTarget.setPointerCapture(e.pointerId);
++          } catch {
++            /* already released */
++          }
++        }}
++        onPointerMove={(e) => {
++          const start = startRef.current;
++          if (!start) return;
++          if (Math.hypot(e.clientX - start.x, e.clientY - start.y) > TAP_SLOP_PX) {
++            suppressClickRef.current = true;
++          }
++        }}
++        onPointerUp={() => {
++          startRef.current = null;
++        }}
++        onPointerCancel={() => {
++          startRef.current = null;
++          suppressClickRef.current = true;
++        }}
++        onClick={(e) => {
++          const suppressPointerClick = suppressClickRef.current && e.detail !== 0;
++          suppressClickRef.current = false;
++          if (suppressPointerClick) return;
+           if (open) onClose();
+           else onOpen();
+         }}
+--- baseline/apps/web/src/components/ui/edgePanelDocumentGesture.ts
++++ apps/web/src/components/ui/edgePanelDocumentGesture.ts
+@@ -1,246 +0,0 @@
+-import {
+-  EDGE_DRAG_AXIS_LOCK_PX,
+-  EDGE_DRAG_TAP_SLOP_PX,
+-  prefersReducedMotion,
+-  shouldCommitAxisGesture,
+-  type Point,
+-} from "./usePanelHeaderCloseDrag";
+-import type { EdgeSide } from "./EdgePanelHandle";
+-
+-const EDGE_GESTURE_BAND_PX = 20;
+-
+-const YIELD_SELECTOR =
+-  "button, a, input, select, textarea, [role='button'], .mapboxgl-control, .mapboxgl-ctrl, .mapboxgl-ctrl-group, .route-dock-anchor, .ride-control-anchor";
+-
+-type EdgeCallbacks = {
+-  openDir: number;
+-  onOpen: () => void;
+-  onClose: () => void;
+-  onDragProgress: (progress: number | null) => void;
+-};
+-
+-type ActiveSession = {
+-  edge: EdgeSide;
+-  pointerId: number;
+-  start: Point;
+-  axis: "x" | "y" | null;
+-  dragged: boolean;
+-  reject: boolean;
+-  captureEl: Element;
+-  callbacks: EdgeCallbacks;
+-  viewportWidth: number;
+-  viewportHeight: number;
+-};
+-
+-let session: ActiveSession | null = null;
+-let bound = false;
+-let registrations = 0;
+-
+-function inHorizontalBand(edge: EdgeSide, clientX: number): boolean {
+-  const w = window.innerWidth;
+-  if (edge === "left") return clientX <= EDGE_GESTURE_BAND_PX;
+-  return w - clientX <= EDGE_GESTURE_BAND_PX;
+-}
+-
+-function inVerticalBand(clientY: number, marker: HTMLElement | null): boolean {
+-  if (!marker) return true;
+-  const r = marker.getBoundingClientRect();
+-  return clientY >= r.top && clientY <= r.bottom;
+-}
+-
+-/** 그 가장자리의 보이는 탭(28px) 위인가 — 띠(20px)보다 넓어도 탭에서 시작한 끌기는 받는다. */
+-function onEdgeTab(edge: EdgeSide, clientX: number, clientY: number): boolean {
+-  const hit = document.elementFromPoint(clientX, clientY);
+-  return Boolean(hit?.closest(`.edge-panel-tab--${edge}`));
+-}
+-
+-function shouldYieldAt(clientX: number, clientY: number): boolean {
+-  const hit = document.elementFromPoint(clientX, clientY);
+-  if (!hit) return true;
+-  // 탭은 버튼이지만 끌기도 받는다 — 움직이지 않고 떼면 버튼 click 이 그대로 열어 준다.
+-  if (hit.closest(".edge-panel-tab")) return false;
+-  return Boolean(hit.closest(YIELD_SELECTOR));
+-}
+-
+-function clearSession() {
+-  if (!session) return;
+-  const { captureEl, pointerId, callbacks } = session;
+-  session = null;
+-  callbacks.onDragProgress(null);
+-  try {
+-    if (captureEl.hasPointerCapture?.(pointerId)) captureEl.releasePointerCapture(pointerId);
+-  } catch {
+-    /* already released */
+-  }
+-}
+-
+-function pickCaptureTarget(clientX: number, clientY: number): Element {
+-  const hit = document.elementFromPoint(clientX, clientY);
+-  if (!hit) return document.body;
+-  const canvas = hit.closest(".mapboxgl-canvas");
+-  if (canvas) return canvas;
+-  return hit;
+-}
+-
+-function onDocumentPointerMove(e: PointerEvent) {
+-  if (!session || session.pointerId !== e.pointerId) return;
+-  e.stopPropagation();
+-  const { start, callbacks } = session;
+-  const openDir = callbacks.openDir;
+-  const dx = e.clientX - start.x;
+-  const dy = e.clientY - start.y;
+-  const travel = Math.hypot(dx, dy);
+-  if (session.axis == null) {
+-    if (travel < EDGE_DRAG_AXIS_LOCK_PX) return;
+-    session.axis = Math.abs(dx) >= Math.abs(dy) ? "x" : "y";
+-    if (session.axis === "y") {
+-      clearSession();
+-      return;
+-    }
+-    e.preventDefault();
+-  }
+-  if (session.axis !== "x") return;
+-  const along = dx * openDir;
+-  if (along <= 0) {
+-    if (travel > EDGE_DRAG_TAP_SLOP_PX) session.reject = true;
+-    callbacks.onDragProgress(0);
+-    return;
+-  }
+-  session.dragged = true;
+-  e.preventDefault();
+-  const width = Math.max(160, Math.min(window.innerWidth * 0.4, 280));
+-  const progress = Math.max(0, Math.min(1, along / width));
+-  callbacks.onDragProgress(prefersReducedMotion() ? (progress >= 0.5 ? 1 : 0) : progress);
+-}
+-
+-function onDocumentPointerEnd(e: PointerEvent) {
+-  if (!session || session.pointerId !== e.pointerId) return;
+-  e.preventDefault();
+-  e.stopPropagation();
+-  const { start, callbacks, dragged, reject, viewportWidth, viewportHeight } = session;
+-  const viewportChanged = viewportWidth !== window.innerWidth || viewportHeight !== window.innerHeight;
+-  const along = (e.clientX - start.x) * callbacks.openDir;
+-  const dt = e.timeStamp - start.t;
+-  if (dragged) blockFollowupClick();
+-  clearSession();
+-
+-  if (!dragged) return;
+-  if (reject || viewportChanged || along <= 0) return;
+-  if (shouldCommitAxisGesture(along, dt)) callbacks.onOpen();
+-  else callbacks.onClose();
+-}
+-
+-/** Pointerup can generate a compatibility click on Mapbox after the panel opens. */
+-function blockFollowupClick() {
+-  const cleanup = () => {
+-    document.removeEventListener("click", block, true);
+-    document.removeEventListener("pointerdown", cleanup, true);
+-    window.clearTimeout(timeout);
+-  };
+-  const block = (e: MouseEvent) => {
+-    e.preventDefault();
+-    e.stopImmediatePropagation();
+-    cleanup();
+-  };
+-  const timeout = window.setTimeout(cleanup, 500);
+-  document.addEventListener("click", block, true);
+-  document.addEventListener("pointerdown", cleanup, true);
+-}
+-
+-function onDocumentPointerCancel(e: PointerEvent) {
+-  if (!session || session.pointerId !== e.pointerId) return;
+-  clearSession();
+-}
+-
+-function onResize() {
+-  clearSession();
+-}
+-
+-function onTouchStart(e: TouchEvent) {
+-  if (!session) return;
+-  e.preventDefault();
+-  e.stopPropagation();
+-}
+-
+-function ensureDocumentListeners() {
+-  if (bound) return;
+-  bound = true;
+-  document.addEventListener("pointermove", onDocumentPointerMove, true);
+-  document.addEventListener("pointerup", onDocumentPointerEnd, true);
+-  document.addEventListener("pointercancel", onDocumentPointerCancel, true);
+-  document.addEventListener("lostpointercapture", onDocumentPointerCancel, true);
+-  document.addEventListener("touchstart", onTouchStart, { capture: true, passive: false });
+-  window.addEventListener("resize", onResize);
+-}
+-
+-function tryStartEdgeGesture(
+-  edge: EdgeSide,
+-  e: PointerEvent,
+-  marker: HTMLElement | null,
+-  callbacks: EdgeCallbacks,
+-): boolean {
+-  if (session) {
+-    if (e.pointerId !== session.pointerId) clearSession();
+-    return false;
+-  }
+-  if (e.pointerType === "mouse" && e.button !== 0) return false;
+-  if (!e.isPrimary) return false;
+-  if (!inHorizontalBand(edge, e.clientX) && !onEdgeTab(edge, e.clientX, e.clientY)) return false;
+-  if (!inVerticalBand(e.clientY, marker)) return false;
+-  if (shouldYieldAt(e.clientX, e.clientY)) return false;
+-
+-  const captureEl = pickCaptureTarget(e.clientX, e.clientY);
+-  session = {
+-    edge,
+-    pointerId: e.pointerId,
+-    start: { x: e.clientX, y: e.clientY, t: e.timeStamp },
+-    axis: null,
+-    dragged: false,
+-    reject: false,
+-    captureEl,
+-    callbacks,
+-    viewportWidth: window.innerWidth,
+-    viewportHeight: window.innerHeight,
+-  };
+-
+-  try {
+-    captureEl.setPointerCapture(e.pointerId);
+-  } catch {
+-    /* ignore */
+-  }
+-
+-  e.preventDefault();
+-  e.stopPropagation();
+-  return true;
+-}
+-
+-export function registerEdgeDocumentGesture(
+-  edge: EdgeSide,
+-  enabled: boolean,
+-  getMarker: () => HTMLElement | null,
+-  callbacks: EdgeCallbacks,
+-): () => void {
+-  ensureDocumentListeners();
+-  registrations += 1;
+-
+-  const onPointerDown = (e: PointerEvent) => {
+-    if (!enabled) return;
+-    tryStartEdgeGesture(edge, e, getMarker(), callbacks);
+-  };
+-
+-  document.addEventListener("pointerdown", onPointerDown, true);
+-  return () => {
+-    document.removeEventListener("pointerdown", onPointerDown, true);
+-    if (session?.edge === edge) clearSession();
+-    registrations -= 1;
+-    if (registrations === 0) {
+-      document.removeEventListener("pointermove", onDocumentPointerMove, true);
+-      document.removeEventListener("pointerup", onDocumentPointerEnd, true);
+-      document.removeEventListener("pointercancel", onDocumentPointerCancel, true);
+-      document.removeEventListener("lostpointercapture", onDocumentPointerCancel, true);
+-      document.removeEventListener("touchstart", onTouchStart, true);
+-      window.removeEventListener("resize", onResize);
+-      bound = false;
+-    }
+-  };
+-}

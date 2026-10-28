@@ -699,3 +699,24 @@
     text-decoration: underline;
   }
 }
+
+.user-info-sheet__conquest-controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 2px 0 6px;
+  border-bottom: 1px solid #e8edf5;
+}
+.user-info-sheet__conquest-controls button {
+  min-height: 44px;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: #f2f3f5;
+  color: #4b5365;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.user-info-sheet__conquest-controls button[aria-pressed="true"] { background: #2455df; color: #fff; }
+.user-info-sheet__conquest-controls button:disabled { opacity: .45; cursor: default; }

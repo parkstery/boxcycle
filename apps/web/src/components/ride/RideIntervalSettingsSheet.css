@@ -1,0 +1,80 @@
+/* Chief 10-27: 한 화면 조절형. 내용만큼만 차지하고 배경 지도를 최대한 남긴다. */
+.ride-interval-settings { position: fixed; inset: 0; z-index: 57; display: grid; place-items: center; pointer-events: none; }
+.ride-interval-settings__scrim { position: absolute; inset: 0; border: 0; padding: 0; background: rgba(2,6,23,.18); pointer-events: auto; }
+.ride-interval-settings__panel { position: relative; width: fit-content; max-width: min(420px, calc(100vw - 20px)); max-height: calc(100dvh - 16px); display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box; padding: 8px 12px; border: 1px solid #c9d6ee; border-radius: 14px; background: #fff; color: #2a2e37; pointer-events: auto; box-shadow: 0 5px 18px rgba(0,0,0,.16); font-family: inherit; font-size: 13px; line-height: 1.3; }
+.ride-interval-settings__panel * { box-sizing: border-box; }
+.ride-interval-settings__header { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.ride-interval-settings__header h2 { margin: 0; font-size: 17px; line-height: 1.3; white-space: nowrap; }
+.ride-interval-settings__header select { flex: 1; min-width: 0; height: 40px; margin-left: auto; padding: 0 6px; border: 1px solid #d8e0ed; border-radius: 9px; background: #fff; color: #2a2e37; font: inherit; font-size: 12px; }
+.ride-interval-settings__close { flex: 0 0 36px; width: 36px; height: 36px; border: 1px solid #d8e0ed; border-radius: 50%; background: #fff; color: #5e6472; display: grid; place-items: center; cursor: pointer; }
+.ride-interval-settings__close svg { width: 16px; height: 16px; }
+.ride-interval-settings__body { margin: 3px 0; min-height: 0; overflow-y: auto; }
+.ride-interval-settings__compact { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; }
+.ride-interval-settings__compact-main { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ride-interval-settings__compact-copy { margin: 0; color: #5e6472; font-size: 12px; line-height: 1.25; }
+.ride-interval-settings__compact strong { font-size: 22px; font-variant-numeric: tabular-nums; }
+.ride-interval-settings__custom-toggle { flex-shrink: 0; min-height: 44px; padding: 4px 10px; border: 1px solid #c9d6ee; border-radius: 12px; background: #fff; color: #2457d6; font: inherit; font-size: 12px; cursor: pointer; }
+.ride-interval-settings__fields { display: flex; flex-direction: column; }
+.ride-interval-settings__field { height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 6px; border-bottom: 1px solid #edf0f5; }
+.ride-interval-settings__field:last-child { border: 0; }
+.ride-interval-settings__field label { display: flex; align-items: baseline; gap: 4px; white-space: nowrap; font-size: 13px; }
+.ride-interval-settings__field small { color: #5e6472; font-size: 11px; }
+.ride-interval-settings__field--highSec label::before, .ride-interval-settings__field--lowSec label::before { content: ""; width: 5px; height: 5px; align-self: center; border-radius: 50%; background: #eaa348; }
+.ride-interval-settings__field--lowSec label::before { background: #66b6e0; }
+.ride-interval-settings__stepper { display: flex; align-items: center; flex-shrink: 0; gap: 2px; }
+.ride-interval-settings__stepper button { width: 40px; height: 42px; padding: 0; border: 0; border-radius: 8px; background: #f5f7fb; color: #2a2e37; font: inherit; font-size: 19px; cursor: pointer; }
+.ride-interval-settings__stepper input { width: 52px; height: 40px; padding: 0 2px; border: 1px solid #d8e0ed; border-radius: 8px; background: #fff; color: #2a2e37; text-align: center; font: inherit; font-size: 20px; font-variant-numeric: tabular-nums; appearance: textfield; }
+.ride-interval-settings__stepper input::-webkit-inner-spin-button { appearance: none; }
+.ride-interval-settings__stepper input[aria-invalid="true"] { border-color: #c73a3a; }
+.ride-interval-settings__summary { border-left: 1px solid #e9ecf1; padding-left: 10px; min-width: 0; }
+.ride-interval-settings__total { display: flex; align-items: center; justify-content: space-between; gap: 4px; height: 32px; }
+.ride-interval-settings__total span { color: #5e6472; font-size: 11px; white-space: nowrap; }
+.ride-interval-settings__total strong { font-size: 25px; line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -.6px; }
+.ride-interval-settings__edge-time { display: flex; align-items: center; justify-content: space-between; gap: 6px; height: 44px; }
+.ride-interval-settings__edge-time label { display: flex; flex-direction: column; gap: 1px; font-size: 13px; }
+.ride-interval-settings__edge-time small { color: #5e6472; font-size: 11px; }
+.ride-interval-settings__edge-time input { width: 52px; height: 44px; border: 1px solid #d8e0ed; border-radius: 8px; background: #fff; color: #2a2e37; font: inherit; font-size: 16px; font-variant-numeric: tabular-nums; text-align: center; padding: 0 2px; }
+.ride-interval-settings__edge-time input[aria-invalid="true"] { border-color: #c73a3a; }
+.ride-interval-settings__timeline { display: flex; gap: 1px; height: 8px; margin-top: 4px; }
+.ride-interval-settings__timeline span { flex-basis: 0; min-width: 1px; background: #cbd7d6; }
+.ride-interval-settings__timeline [data-kind="high"] { background: #eaa348; }
+.ride-interval-settings__timeline [data-kind="low"] { background: #66b6e0; }
+.ride-interval-settings__footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; border-top: 1px solid #e9ecf1; flex-shrink: 0; position: sticky; bottom: 0; background: #fff; }
+.ride-interval-settings__footer-start { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+.ride-interval-settings__footer small { color: #5e6472; font-size: 11px; }
+.ride-interval-settings__footer [role="alert"] { color: #b52323; }
+.ride-interval-settings__apply { min-height: 40px; flex-shrink: 0; padding: 6px 14px; border: 0; border-radius: 9px; background: #2457d6; color: #fff; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.ride-interval-settings__apply:disabled { opacity: .45; cursor: default; }
+.ride-settings-panel__interval { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #e9ecf1; }
+.settings-surface .ride-settings-panel__interval > .ride-settings-panel__choice { flex: 1; min-width: 0; border: 0; gap: 8px; }
+.ride-settings-panel__interval-edit { flex-shrink: 0; min-height: 36px; padding: 4px 10px; border: 1px solid #c9d6ee; border-radius: 12px; background: #fff; color: #2457d6; font: inherit; font-size: 12px; cursor: pointer; }
+@media (pointer: coarse) {
+  .ride-interval-settings__close { width: 44px; height: 44px; flex-basis: 44px; }
+  .ride-interval-settings__stepper button { width: 44px; height: 44px; }
+  .ride-interval-settings__stepper input { height: 44px; }
+  .ride-interval-settings__header select, .ride-interval-settings__apply, .ride-interval-settings__custom-toggle, .ride-settings-panel__interval-edit { min-height: 44px; }
+}
+@media (max-width: 480px) {
+  .ride-interval-settings__panel { padding: 8px 10px; }
+  .ride-interval-settings__header { flex-wrap: wrap; }
+  .ride-interval-settings__header select { order: 3; flex-basis: 100%; }
+  .ride-interval-settings__close { margin-left: auto; }
+  .ride-interval-settings__body { gap: 6px; }
+}
+
+/* 직접 조절은 한 열을 유지하고 다른 설정 창의 밀도에 맞춘다. */
+.ride-interval-settings__panel:has(.ride-interval-settings__fields) { width: min(230px, calc(100vw - 20px)); padding: 5px 10px; }
+.ride-interval-settings__panel:has(.ride-interval-settings__fields) .ride-interval-settings__header { min-height: 34px; gap: 6px; }
+.ride-interval-settings__panel:has(.ride-interval-settings__fields) .ride-interval-settings__header h2 { font-size: 14px; }
+.ride-interval-settings__panel:has(.ride-interval-settings__fields) .ride-interval-settings__header select { height: 32px; min-height: 32px; }
+.ride-interval-settings__panel:has(.ride-interval-settings__fields) .ride-interval-settings__close { width: 32px; height: 32px; flex-basis: 32px; }
+.ride-interval-settings__fields { display: flex; flex-direction: column; }
+.ride-interval-settings__field { height: 30px; flex: 0 0 30px; justify-content: flex-start; gap: 6px; }
+.ride-interval-settings__field label { flex: 0 0 65px; font-size: 12px; }
+.ride-interval-settings__field .ride-interval-settings__stepper { margin-left: auto; }
+.ride-interval-settings__stepper button { width: 32px; height: 28px; font-size: 15px; }
+.ride-interval-settings__stepper input { width: 46px; height: 28px; font-size: 14px; }
+.ride-interval-settings__panel:has(.ride-interval-settings__fields) .ride-interval-settings__footer { min-height: 34px; }
+.ride-interval-settings__panel:has(.ride-interval-settings__fields) .ride-interval-settings__custom-toggle,
+.ride-interval-settings__panel:has(.ride-interval-settings__fields) .ride-interval-settings__apply { min-height: 32px; }
+.ride-interval-settings__panel:has(.ride-interval-settings__fields) .ride-interval-settings__total strong { font-size: 18px; }

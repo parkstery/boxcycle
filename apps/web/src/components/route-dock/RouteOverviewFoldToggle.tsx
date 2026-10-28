@@ -1,3 +1,4 @@
+import type { Ref } from "react";
 import "./RouteOverviewFoldToggle.css";
 
 type RouteOverviewFoldKind = "route" | "map";
@@ -8,6 +9,7 @@ type RouteOverviewFoldToggleProps = {
   ariaLabel: string;
   controls?: string;
   className?: string;
+  buttonRef?: Ref<HTMLButtonElement>;
   onClick: () => void;
 };
 
@@ -18,10 +20,12 @@ export function RouteOverviewFoldToggle({
   ariaLabel,
   controls,
   className,
+  buttonRef,
   onClick,
 }: RouteOverviewFoldToggleProps) {
   return (
     <button
+      ref={buttonRef}
       type="button"
       className={`route-overview-fold-toggle${className ? ` ${className}` : ""}`}
       data-fold-kind={kind}

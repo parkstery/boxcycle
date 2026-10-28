@@ -1,4 +1,4 @@
-/* 시험·레이아웃 표식만 — hit-test 없음(지시06 document capture). */
+/* 시험·레이아웃 표식만 — hit-test 없음. 가장자리 스와이프는 쓰지 않는다. */
 .edge-panel-handle {
   position: fixed;
   z-index: 0;
@@ -25,17 +25,16 @@
 }
 
 /*
- * 보이는 탭 — 2026-10-24 Chief 「반원 탭, 흰 반투명」. 위성·줌 버튼과 같은 흰색 계열.
- * 보이는 반원 14×48px, 누르는 영역 28×64px(바깥은 투명). 자리는 계기판 바로 아래
- * (위에서 84px) — 대기·주행 모두 왼쪽 아래 주소 카드·미니맵과 오른쪽 위 조작부 사이의 빈 곳.
- * z-index 5(HUD 와 같은 층) — 메뉴(50)·맵 뷰(54)·모달 아래.
+ * 보이는 탭 — 시안 v2: visible 20.4×43.2(기존 34×72의 60%) / target 44×76, 세로 중앙.
+ * MapHud(5, 빈 영역 pointer-events none)보다 낮춰 카메라 메뉴가 탭에 가리지 않게 한다.
+ * 열린 뒤에도 화면 가장자리 동일 위치를 유지한다. 왼쪽은 z-index 51 로 메뉴·스크림 위에 남아 탭으로 닫는다.
  */
 .edge-panel-tab {
   position: fixed;
-  z-index: 5;
-  top: calc(env(safe-area-inset-top, 0px) + 84px);
-  width: 28px;
-  height: 64px;
+  z-index: 4;
+  top: calc(50% - 38px);
+  width: 44px;
+  height: 76px;
   padding: 0;
   margin: 0;
   border: 0;
@@ -43,7 +42,7 @@
   display: flex;
   align-items: center;
   cursor: pointer;
-  touch-action: none;
+  touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 .edge-panel-tab--left {
@@ -54,9 +53,17 @@
   right: env(safe-area-inset-right, 0px);
   justify-content: flex-end;
 }
+.edge-panel-tab--left.edge-panel-tab--open {
+  left: env(safe-area-inset-left, 0px);
+  z-index: 51;
+}
+.edge-panel-tab--right.edge-panel-tab--open {
+  right: env(safe-area-inset-right, 0px);
+  z-index: 4;
+}
 .edge-panel-tab__knob {
-  width: 14px;
-  height: 48px;
+  width: 20.4px;
+  height: 43.2px;
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
@@ -65,8 +72,8 @@
   color: #121417;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
 }
-.edge-panel-tab--left .edge-panel-tab__knob { border-radius: 0 24px 24px 0; padding-right: 2px; }
-.edge-panel-tab--right .edge-panel-tab__knob { border-radius: 24px 0 0 24px; padding-left: 2px; }
+.edge-panel-tab--left .edge-panel-tab__knob { border-radius: 0 21.6px 21.6px 0; padding-right: 4px; }
+.edge-panel-tab--right .edge-panel-tab__knob { border-radius: 21.6px 0 0 21.6px; padding-left: 4px; }
 .edge-panel-tab:active .edge-panel-tab__knob { background: rgba(255, 255, 255, 0.95); }
 @media (hover: hover) {
   .edge-panel-tab:hover .edge-panel-tab__knob { background: rgba(255, 255, 255, 0.92); }
@@ -75,7 +82,8 @@
 .edge-panel-tab:focus-visible .edge-panel-tab__knob { outline: 2px solid #2457d6; outline-offset: 1px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .edge-panel-handle {
+  .edge-panel-handle,
+  .edge-panel-tab {
     transition: none;
   }
 }

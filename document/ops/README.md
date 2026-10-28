@@ -1,3 +1,33 @@
+2026-10-28 **접힌 RouteDock LED 3배 / LOCAL_VERIFIED·미배포**: Cursor CSS2줄로지름8→24px, Codex독립4가로×idle/riding8상태24×24실측·내부7px보존·탭PASS, sensor-dock9PASS. [결과·감리](20261028-sensor-dock/07-result-led-size.md). 기존5031유지·커밋푸시배포없음. 확인 C:\20.HDev\boxcycle\apps\web → 서버없으면 npm run dev:localhost -- --port 5031 → http://localhost:5031/ 새로고침·접힌LED탭.
+
+2026-10-28 **접힌 LED 24px / Cursor구현·Codex감리대기·미배포**: [결과](20261028-sensor-dock/07-result-led-size.md). `.route-dock__led` 8→24px 두 줄. 5031 HTTP200. 전수시험미실행.
+
+2026-10-28 **센서 RouteDock 통합 / LOCAL_VERIFIED·미배포**: [최종감리](20261028-sensor-dock/03-review.md). Cursor구현·보완종료/Codex지시감리. 접힘·무경로흰/녹점멸LED→펼침기존접기캐럿+센서알약, 중앙센서제거·키보드포커스유지. 독립화면20·단위20·selector19·tsc/lint/build/dep/diffPASS. tidy기존188>186FAIL·Cursor1차계정/카메라간격FAIL범위밖·전체quick/실폰실센서미실행. baseline3179누락0/기존PNG변경0·기존dirty보존·커밋푸시배포없음·5031유지. 확인 C:\20.HDev\boxcycle\apps\web → 기존없으면 npm run dev:localhost -- --port 5031 → http://localhost:5031/ 새로고침·LED→센서설정. 초기30분예상초과(지연·감리보완). 다음Chief실폰/실센서확인·배포별도지시。
+
+2026-10-28 [계정 버튼 오른쪽 위 정렬](20261028-edge-alignment/01-result.md): LOCAL_VERIFIED·미배포. 계정 화면/상태15·긴수치2·입력2·관련회귀5·build PASS. Chief 구현확인한 왼쪽 패널 유지, 재개 후 MapHud.css만 변경. 커밋푸시배포없음·5031재사용.
+
+2026-10-28 [주행 거리·반달·설정·카메라](20261028-compact-controls/08-review-final.md): APPROVED/LOCAL_VERIFIED. Cursor구현·보완/Codex독립감리완료. UI90·카메라102·selector19·타입/lint/build/depPASS, tidy기존188FAIL·quick미실행. 증거11장全복구·2181보존. Chief실폰확인대기·커밋푸시배포없음.
+
+2026-10-28 [주행 UI·인터벌·응원 구현](20261028-ui-moments/README.md): IN_PROGRESS. Codex 계획·감리/Cursor 구현·시험, v2 승인·기존 dirty 보존·미배포.
+
+2026-10-28 [주행 UI·인터벌·응원 배포 완료](20261028-ui-moments/10-deployment.md): DEPLOYED. Hosting only·계기판20px 한행/인터벌검정25% 포함. 최신화면54 PASS·build/selector19/dep PASS. 운영 index200·로컬 바이트일치·연결JS/CSS5개 SHA256일치·제품소스544지문불변. JS index-BxrSOZ9X.js / CSS index-CHSjW9rI.css. 커밋푸시없음·기존서버유지. 기존증거10장 원본미복구/정련기존188>186/전체quick과거4실패후개별PASS는 아래인계유효. 확인 https://boxcycle-dc2df.web.app 새로고침→인터벌켜기→주행. 사용자중단기준8% 유지.
+
+2026-10-28 [인터벌 반투명 검정 배경](20261028-ui-moments/09-result-interval-background.md): Chief 후속 지시로 검정25% 불투명도·글자 선명도 유지·안쪽6×8px/모서리8px. 관련6 PASS·고정31 갱신, 기존5031·미배포. 기존 증거10장 원본 미복구는 이전 인계 유효.
+
+2026-10-28 [계기판 한 행 후속](20261028-ui-moments/08-result-single-row-hud.md): 왼쪽20px·6개 한 행·숫자18px·간격8px. 관련 화면5 PASS(4크기+긴수치), 기존5031·미배포. 작은 화면50% 강제제한 대체.
+
+2026-10-28 [주행 UI·인터벌·응원 최종 감리](20261028-ui-moments/03-review.md): 제품 로컬 검증 완료·미배포. 화면54/빌드/타입/관련lint/selector19/의존 PASS. quick1430 PASS·4 FAIL→실패항목 개별 재검 PASS; 전체0FAIL 아님. 정련 exports188>186은 착수 baseline도188로 기존 문제. 검증 중 기존 PNG11장 덮어쓰기→1복구·10원본 미복구, 보존사고 미해결. 실제 제품 컴포넌트 캡처 evidence/final-screen, 지도·수치는 fixture. 실폰/실센서/음향청취 미실행. Cursor 모두 종료·기존5031 유지·커밋푸시배포 없음.
+
+2026-10-28 [거리·방향 첫 진입 펄스5회](20261028-distance-entry-pulse/README.md): LOCAL_VERIFIED/미배포. 여기에서계속초기진입누락교정·일반거리탭같이적용. 단위146·UI4·selector19·빌드/의존PASS.
+
+2026-10-28 [첫 지도 마지막 주행 종료점 우선](20261028-entry-last-ride/README.md): LOCAL_VERIFIED/미배포. 기록로딩후실제종료좌표우선·위치권한무관,없으면기존선택. 회귀36·셀렉터19·빌드/의존PASS.
+
+2026-10-28 [종료 후 이어 가기 고도1,000m](20261028-terrain-fallback/02-result-end-overview.md): LOCAL_VERIFIED/미배포. 중심·정북·평면 유지, 화면높이/위도별1,000m줌 적용. 단위/effect11·실제Mapbox WebGL1·빌드/의존PASS.
+
+2026-10-28 [지형 자동평면·종료2D](20261028-terrain-fallback/README.md): LOCAL_VERIFIED/미배포. 4Hz DEM/카메라 충돌감시·안정복귀·수동OFF존중, 종료지형/건물OFF·정북/pitch0. 단위·합성WebGL·UI개별PASS,연속브라우저묶음deadline실패는결과에분리기록.
+
+2026-10-27 [맵 뷰 메뉴 통합](20261027-map-menu/README.md): LOCAL_VERIFIED/미배포. 계정 내 도로망·카메라6 아래3D로 통합, 고급·맵 뷰 제거. UI26·지도156·DOM1 최종PASS.
+
 2026-10-24 10:14 KST [카드 삭제·인라인 유지 배포 완료](20261023-ui-redesign/27-result-inline-history-finalize.md): 3c3ba02c 푸시·Hosting 완료, index-BDb2hU8r.js 등 운영5자산 SHA256 일치. 단위1354/화면24/실앱8 PASS. 묶음3 지시28 Cursor 구현 중, 결과29·로컬 비교 대기.
 2026-10-24 10:09 KST [인라인 유지·카드 삭제 마감](20261023-ui-redesign/27-result-inline-history-finalize.md): Chief 인라인 확정, panel 연결 제거·고정10 등록. 단위1354/화면24/실앱8/정련·구조 PASS, 커밋·푸시·승인된 호스팅 배포 단계. 다음 묶음3 지시28.
 2026-10-24 08:4x KST [호스팅 배포·지시 24 착수](HANDOFF.md): 16ab066c 호스팅 배포(운영 번들 index-DmTMAA6G.js 일치). openclaw gateway 종료, firebase.route-list-qa.json 삭제(Chief). [지시 24](20261023-ui-redesign/24-task-entry-card-history.md) 카드 삭제·주행 기록 연결 Cursor 실행 중 — 끝나면 감리→커밋·푸시·배포(B 는 inline). [Codex 프롬프트](20261023-ui-redesign/23-first-prompt-codex-20261024.md) 갱신.
@@ -230,3 +260,5 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 | [20260927-peer-competition](20260927-peer-competition/README.md) | **대기** · PLANNING | 경쟁 판정 분리·느낌 보정의 기존 미착수 계획 | [계획](20260927-peer-competition/260927-RTW-동행-지연과-경쟁-판정.md) | 재개 시 새 지시 |
 
 종료 작업과 옛 relay 이력은 [완료 기록 색인](../archive/README.md)에 있다. 코드·시험·스킬이 경로를 사용하는 종료 묶음은 제자리에 보존하지만 현재 작업으로 표시하지 않는다.
+
+

@@ -2,12 +2,7 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
   flex: 0 0 auto;
-}
-
-.camera-view-menu__unit {
-  position: relative;
 }
 
 .camera-view-menu__trigger {
@@ -28,11 +23,6 @@
   cursor: pointer;
   touch-action: manipulation;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-}
-
-.camera-view-menu__trigger--perspective {
-  min-width: 54px;
-  padding-inline: 8px;
 }
 
 .camera-view-menu__trigger.is-selected {
@@ -76,30 +66,67 @@
   opacity: 0.75;
 }
 
-.camera-view-menu__list {
+.camera-view-menu__panel {
   position: absolute;
   top: calc(100% + 4px);
+  right: 0;
   z-index: 12;
-  list-style: none;
-  margin: 0;
+  display: grid;
+  grid-template-columns: 62px 80px;
+  width: 154px;
+  box-sizing: border-box;
   padding: 4px;
+  gap: 4px;
   border: 1px solid #c9d6ee;
   border-radius: 10px;
   background: #fff;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
 }
 
+/* 짧은 폰 가로에서도 마지막 항목까지 접근할 수 있게 패널을 화면 안에 둔다. */
+@media (max-height: 330px) {
+  .camera-view-menu__panel {
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 68px);
+    overflow-y: auto;
+  }
+}
+
+.camera-view-menu__unit {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.camera-view-menu__unit--perspective {
+  border-left: 1px solid #e3e8f2;
+  padding-left: 4px;
+}
+
+.camera-view-menu__column-title {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5e6472;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.camera-view-menu__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 .camera-view-menu__list--flat {
-  left: 0;
-  width: 96px;
+  width: 62px;
   min-width: 0;
   box-sizing: border-box;
 }
 
 .camera-view-menu__list--perspective {
-  right: 0;
   display: grid;
-  grid-template-columns: 56px;
+  grid-template-columns: 1fr;
   gap: 3px;
 }
 
@@ -108,38 +135,48 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-  min-height: 34px;
-  padding: 5px 9px;
+  min-height: 27px;
+  padding: 3px 6px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 5px;
   background: transparent;
   color: #121417;
   font: inherit;
   font-size: 12px;
   font-weight: 650;
-  text-align: left;
+  text-align: right;
   cursor: pointer;
 }
 
+.camera-view-menu__list--flat .camera-view-menu__item {
+  justify-content: flex-end;
+  font-variant-numeric: tabular-nums;
+}
+
 .camera-view-menu__item--icon {
-  width: 56px;
-  height: 38px;
-  min-height: 38px;
+  height: 27px;
+  min-height: 27px;
   padding: 3px 7px;
   flex-direction: row;
   justify-content: center;
   gap: 5px;
+  color: #2457d6;
 }
 
 .camera-view-menu__item--icon .camera-view-menu__svg {
-  width: 24px;
-  height: 24px;
-  flex-basis: 24px;
+  width: 22px;
+  height: 22px;
+  flex-basis: 22px;
 }
 
 .camera-view-menu__item.is-selected {
   background: #eef3fc;
   color: #2457d6;
+}
+
+.camera-view-menu__item--icon.is-selected {
+  background: #2457d6;
+  color: #fff;
 }
 
 .camera-view-menu__item:focus-visible {
@@ -162,19 +199,15 @@
   text-align: right;
 }
 
-@media (max-width: 700px), (max-height: 330px) {
-  .camera-view-menu {
-    gap: 3px;
-  }
+.camera-view-menu__trigger-label {
+  font-variant-numeric: tabular-nums;
+}
 
+@media (max-width: 700px), (max-height: 330px) {
   .camera-view-menu__trigger {
     height: 28px;
     min-width: 50px;
     padding-inline: 6px;
-  }
-
-  .camera-view-menu__trigger--perspective {
-    min-width: 46px;
   }
 
   .camera-view-menu__svg {
@@ -183,3 +216,22 @@
     flex-basis: 17px;
   }
 }
+
+.camera-view-menu__terrain {
+  border-top: 1px solid #e3e8f2;
+  padding-top: 3px;
+  margin-top: 5px;
+}
+.camera-view-menu__item--terrain {
+  min-height: 44px;
+  padding: 4px 2px;
+  flex-direction: column;
+  gap: 2px;
+  text-align: center;
+  font-size: 11px;
+  color: #121417;
+}
+.camera-view-menu__item--terrain.is-selected {
+  color: #2457d6;
+}
+.camera-view-menu__item--terrain > span:last-child { font-size: 10px; color: #596579; }

@@ -1,8 +1,14 @@
-import type { Map as MapboxMap } from "mapbox-gl";
+import mapboxgl, { type Map as MapboxMap } from "mapbox-gl";
 import type { LineStringGeometry } from "../geo/geo";
 
 /** 주행 종료 정북 복귀 ease 길이(ms). 500~800 범위. */
 export const RIDE_END_NORTH_UP_DURATION_MS = 600;
+
+/** 종료 후 다음 경로를 탐색할 카메라 해수면 고도(m). 지형은 호출 전에 끈다. */
+export function rideEndOverviewZoom(map: MapboxMap): number {
+  const altitude = mapboxgl.MercatorCoordinate.fromLngLat(map.getCenter(), 1000).z;
+  return Math.log2(map.transform.cameraToCenterDistance / (512 * altitude));
+}
 
 /**
  * 주행 세션 활성(running|paused) → idle 전이에서만 정북 ease 를 켠다.
@@ -42,13 +48,13 @@ export function isSameRouteLine(
 }
 
 /**
- * 주행 종료 후 bearing 을 0° 로 ease. 중심·줌은 현재값을 명시해 유지한다
+ * 주행 종료 후 bearing 을 0° 로 ease. 중심을 유지하고 지정한 줌을 적용한다
  * (fitBounds·재중심 금지). 호출부가 pitch 를 넘기면 같은 easeTo 에 합쳐
  * 정북·평면 복귀를 한 번의 애니메이션으로 처리한다.
  */
 export function easeMapNorthUpAfterRideEnd(
   map: MapboxMap,
-  opts?: { durationMs?: number; pitch?: number },
+  opts?: { durationMs?: number; pitch?: number; zoom?: number },
 ): void {
   const duration = opts?.durationMs ?? RIDE_END_NORTH_UP_DURATION_MS;
   const center = map.getCenter();
@@ -62,7 +68,7 @@ export function easeMapNorthUpAfterRideEnd(
     bearing: 0,
     duration,
     center: { lng: center.lng, lat: center.lat },
-    zoom: map.getZoom(),
+    zoom: opts?.zoom ?? map.getZoom(),
   };
   if (opts?.pitch != null && Number.isFinite(opts.pitch)) {
     next.pitch = opts.pitch;

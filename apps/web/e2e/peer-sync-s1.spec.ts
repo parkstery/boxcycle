@@ -41,7 +41,7 @@ type PeerRow = {
 /** 주행 HUD 퀵 카메라 1(routeFit) = follow free — 맵 뷰 시트 시점 칩 제거 후 대체 */
 async function setFollowFree(page: import('@playwright/test').Page) {
   await page.getByRole('button', { name: /^카메라 2/ }).click()
-  await page.getByRole('button', { name: /^평면 카메라/ }).click()
+  await page.getByRole('button', { name: /카메라 메뉴/ }).click()
   await page.getByRole('menuitemradio', { name: '평면 카메라 · 전체 경로' }).click()
 }
 

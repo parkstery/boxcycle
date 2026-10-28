@@ -1,0 +1,90 @@
+/*
+ * 좌하단 스택 — RouteDock · 입문 CTA 가 나눠 쓰는 한 자리.
+ * 좌표·여백·z-index 는 여기서만 정하고, 안쪽 anchor 들은 흐름에 맡긴다.
+ *
+ * 「다음 주행」 카드는 2026-09-17 에 여기서 빠져 **우하단**으로 갔다(Chief) — 스택이 하단
+ * 기준이라, 카드가 들고 날 때마다 그 위의 RouteDock 이 밀려 올라갔다 내려왔다 했다.
+ */
+.map-bottom-left-stack {
+  --map-bl-pad: clamp(0.45rem, 1.4vw, 0.85rem);
+  position: absolute;
+  /* 넓힌 반달 핸들의 터치 폭44px와 카드·미니맵 사이에4px를 남긴다. */
+  left: max(var(--map-bl-pad), 48px, calc(env(safe-area-inset-left, 0px) + 48px));
+  bottom: calc(
+    max(var(--map-bl-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem)
+  );
+  /* MapHud(z-index 5) 위 — 조작이 정보에 가려지면 안 된다(종전 anchor 들과 동일 근거) */
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  max-width: calc(100vw - 2rem);
+  pointer-events: none;
+}
+
+/*
+ * 안쪽 anchor 들은 자기 좌표를 버린다 — 좌표가 두 곳에 있으면 한쪽만 고쳐 놓고
+ * 다른 화면에서 겹치는 사고가 난다(이 스택이 생긴 이유 자체가 그것이다).
+ */
+.map-bottom-left-stack > .route-dock-anchor,
+.map-bottom-left-stack > .first-ride-anchor {
+  position: static;
+  left: auto;
+  bottom: auto;
+  z-index: auto;
+}
+
+/* 주행 중에는 RouteDock 위 / 미니맵 아래. 간격과 위치를 한 스택에서 소유한다. */
+.map-bottom-left-stack:has(> .route-minimap) {
+  gap: max(0.35rem, 8px);
+}
+
+.map-bottom-left-stack > .route-minimap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+/* 대기·미니맵 접힘: 주행 중 펼친 미니맵과 같은 폭(29.4vw = MINIMAP_WIDTH_RATIO, 2026-10-24 Chief). */
+.map-bottom-left-stack > .route-dock-anchor {
+  width: min(29.4vw, calc(100vw - 16px));
+  max-width: min(29.4vw, calc(100vw - 16px));
+}
+
+/* 접힘: 스택 폭 규칙보다 우선 — CSS 로드 순서에 의존하지 않는다. */
+.map-bottom-left-stack > .route-dock-anchor:not(.route-dock-anchor--open) {
+  width: auto;
+  max-width: none;
+}
+
+/* 펼친 미니맵의 실제 너비에 주소 카드의 좌우 끝을 맞춘다. */
+.map-bottom-left-stack:has(> .route-minimap:not(.route-minimap--collapsed))
+  > .route-dock-anchor.route-dock-anchor--open {
+  /* 29.4vw cap 은 스택 안·미니맵 펼침일 때만 푼다(미니맵 실제 폭이 높이 제한으로 더 좁을 수 있다). */
+  width: 0;
+  min-width: 100%;
+  max-width: none;
+}
+
+.map-bottom-left-stack:has(> .route-minimap:not(.route-minimap--collapsed))
+  > .route-dock-anchor.route-dock-anchor--open .route-dock__card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 폰 가로 — 로고 여백 회수는 종전 dock 규칙과 같은 값 */
+@media (max-height: 560px) {
+  .map-bottom-left-stack {
+    --mapbox-logo-clearance: 0.35rem;
+    gap: 0.28rem;
+  }
+
+  .map-bottom-left-stack:has(> .route-minimap) .route-dock__row {
+    min-height: 24px;
+  }
+
+  .map-bottom-left-stack:has(> .route-minimap) .route-dock__card {
+    padding-top: 4px;
+    padding-bottom: 6px;
+  }
+}

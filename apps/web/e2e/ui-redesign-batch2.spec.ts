@@ -45,30 +45,29 @@ for (const size of [{ width: 667, height: 300 }, { width: 800, height: 360 }, { 
 
 test('카메라 메뉴는 평면 높이와 시점 2~6으로 나뉘고 ESC·바깥 클릭으로 닫힌다', async ({ page }) => {
   await page.goto(`${preview}?state=riding`);
-  const flatTrigger = page.getByRole('button', { name: /평면 카메라/ });
-  const perspectiveTrigger = page.locator('.camera-view-menu__trigger--perspective');
-  await expect(flatTrigger).toBeVisible();
-  await expect(perspectiveTrigger).toBeVisible();
+  const trigger = page.getByRole('button', { name: /카메라 메뉴/ });
+  await expect(trigger).toHaveCount(1);
   await expect(page.locator('.hud-quick-camera__btn')).toHaveCount(0);
-  await flatTrigger.click();
-  const flatMenu = page.getByRole('menu', { name: '평면 카메라 높이' });
-  await expect(flatMenu.getByRole('menuitemradio')).toHaveCount(7);
+  await trigger.click();
+  const panel = page.getByRole('menu', { name: '카메라 선택' });
+  await expect(panel.getByRole('group', { name: '평면 카메라 높이' }).getByRole('menuitemradio')).toHaveCount(7);
   await page.keyboard.press('Escape');
-  await expect(flatMenu).toHaveCount(0);
+  await expect(panel).toHaveCount(0);
   for (let index = 0; index < 5; index++) {
-    await perspectiveTrigger.click();
-    const menu = page.getByRole('menu', { name: '시점 카메라' });
-    await expect(menu.getByRole('menuitemradio')).toHaveCount(5);
-    await menu.getByRole('menuitemradio').nth(index).click();
+    await trigger.click();
+    const menu = page.getByRole('menu', { name: '카메라 선택' });
+    const items = menu.getByRole('group', { name: '시점 카메라' }).getByRole('menuitemradio');
+    await expect(items).toHaveCount(5);
+    await items.nth(index).click();
     await expect(menu).toHaveCount(0);
-    await page.getByRole('button', { name: new RegExp(`^카메라 ${index + 2}`) }).click();
-    await expect(page.getByRole('menuitemradio').nth(index)).toHaveAttribute('aria-checked', 'true');
+    await trigger.click();
+    await expect(page.getByRole('menuitemradio', { name: new RegExp(`^카메라 ${index + 2}`) })).toHaveAttribute('aria-checked', 'true');
     await page.keyboard.press('Escape');
     await expect(menu).toHaveCount(0);
   }
-  await page.getByRole('button', { name: /^카메라 6/ }).click();
+  await trigger.click();
   await page.locator('.audit-map').click({ position: { x: 400, y: 200 } });
-  await expect(page.getByRole('menu', { name: '시점 카메라' })).toHaveCount(0);
+  await expect(page.getByRole('menu', { name: '카메라 선택' })).toHaveCount(0);
 });
 
 test('우하단 주행 버튼은 경로 확정 뒤 5회 펄싱하며 펄스 중에도 시작된다', async ({ page }) => {

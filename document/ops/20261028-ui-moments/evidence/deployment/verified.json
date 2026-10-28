@@ -1,0 +1,38 @@
+{
+  "origin": "https://boxcycle-dc2df.web.app",
+  "index_http": 200,
+  "index_matches_local": true,
+  "source_drift": [],
+  "assets": [
+    {
+      "path": "/assets/index-BxrSOZ9X.js",
+      "http": 200,
+      "sha256": "7fd3c830bae37edcfeae54a0485e294f27e43ac3b77a3bbb7c8acc6dc388d736",
+      "matches_local": true
+    },
+    {
+      "path": "/assets/jsx-runtime-QUjkQcTq.js",
+      "http": 200,
+      "sha256": "ebbbc54e26e97693425ce9abeabfb5b87c89e7a2d5aa4e2903727522b4f7715a",
+      "matches_local": true
+    },
+    {
+      "path": "/assets/camera1Mode-DgOnuhkM.js",
+      "http": 200,
+      "sha256": "e7c0f6523fe0fe2e15e9f9dc9e1b0aa66673ecc5d8cfce32226dc03cd88b13fd",
+      "matches_local": true
+    },
+    {
+      "path": "/assets/react-dA9wtOGr.js",
+      "http": 200,
+      "sha256": "bdf474361d2a63d906850cfd35b8b6768331fa83a0239240ad3d4e345168c947",
+      "matches_local": true
+    },
+    {
+      "path": "/assets/index-CHSjW9rI.css",
+      "http": 200,
+      "sha256": "ae95bcbe3fb01c0efb1fabd9e7402ab57a2c5ef0d636c3b24c70450c69019058",
+      "matches_local": true
+    }
+  ]
+}

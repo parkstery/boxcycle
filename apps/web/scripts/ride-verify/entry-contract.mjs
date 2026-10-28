@@ -66,7 +66,7 @@ export const ENTRY_STEPS = [
         name: "소개 조건",
         re: /const showAppIntro =\s*\(needsGuestEntry \|\| \(configured && authInitialized && !user && appUseEnded && !authOffline\)\) &&\s*!introDismissed &&\s*startScreenNotice !== "account-deleted" &&\s*expiryKind == null &&\s*!authSigningIn &&\s*!busy &&\s*!error/,
       },
-      { name: "위치 hook", re: /useEntryLocation\(entryLocationEnabled\)/ },
+      { name: "위치 hook — 최근 기록 로딩 뒤 실제 종료점 우선", re: /useEntryLocation\(entryLocationEnabled && !recentSessionsLoading, lastRideEntryTarget\)/ },
       { name: "부트 목적지", re: /bootFlyTarget: entryLocation\.target/ },
       { name: "소개에 게스트 콜백", re: /<AppIntroScreen\b[^>]*\bonStartGuest=/ },
       { name: "소개에 로그인 콜백", re: /<AppIntroScreen\b[^>]*\bonLogin=/ },
@@ -138,8 +138,8 @@ export const ENTRY_STEPS = [
   {
     step: "cadence-chip",
     desc:
-      "케이던스 센서 칩 — 센서 상세 설정 트리거. 자리는 stage 에 따라 둘 중 하나다(6A): " +
-      "ready·setup 은 RouteDock, idle·주행·일시정지는 주행바의 센서 설정 버튼. " +
+      "케이던스 센서 칩 — 센서 상세 설정 트리거. 펼친 RouteDock 한 곳에만 있다. " +
+      "접힘·무경로는 경로 패널 LED가 펼친 뒤 칩을 누른다. " +
       "셀렉터는 자리에 의존하지 않는 역할·접근성 이름이므로 이동해도 그대로 쓴다.",
     file: "src/components/maphud/CadenceHudChip.tsx",
     anchors: [
@@ -150,6 +150,16 @@ export const ENTRY_STEPS = [
     selector: `getByRole('button',{name:/케이던스 센서/})`,
   },
   {
+    step: "interval-dock-settings",
+    desc: "펼친 RouteDock 센서 오른쪽에서 인터벌 운동 설정을 연다.",
+    file: "src/components/route-dock/RouteDock.tsx",
+    anchors: [
+      { name: "인터벌 설정 버튼", re: /aria-label="인터벌 운동 설정"/ },
+      { name: "인터벌 설정 콜백", re: /onClick=\{onOpenIntervalSettings\}/ },
+    ],
+    selector: `getByRole('button',{name:'인터벌 운동 설정',exact:true})`,
+  },
+  {
     step: "cadence-chip-slot",
     desc:
       "센서 칩 자리 판정 — dock 과 우상단에 동시에 뜨면 getByRole 이 strict 위반으로 깨진다. " +
@@ -157,8 +167,7 @@ export const ENTRY_STEPS = [
     file: "src/lib/route/sensorChipSlot.ts",
     anchors: [
       { name: "슬롯 판정 함수", re: /export function sensorChipSlot\(/ },
-      // 2026-09-26(Phase 6-A): 2갈래(route-dock|none) → **3갈래**. 접힘이면 칩 대신 캐럿 LED.
-      { name: "슬롯 3갈래", re: /"route-dock" \| "ride-control-bar" \| "none"/ },
+      { name: "슬롯 2갈래", re: /"route-dock" \| "none"/ },
       { name: "게이트 및 결과 제외", re: /stage === "summary"/ },
     ],
     selector: `(렌더 자리 판정 — 셀렉터 없음)`,
@@ -254,12 +263,13 @@ export const ENTRY_STEPS = [
   },
   {
     step: "start-ride",
-    desc: "우하단 주행바·경로창 재생 — 동일한 준비 조건과 콜백으로 주행 시작",
+    desc: "RouteDock 주행바·경로창 재생 — 동일한 준비 조건과 콜백. 종료 후 경로가 남아 준비 상태면 다시 시작 가능",
     file: "src/components/ride/RideControlBar.tsx",
     anchors: [
       // 2026-09-28: 일시정지 후 같은 버튼이 「재개」로 바뀐다 — 고정 문자열 앵커는 실종로 오탐.
       // Chief 261024: 녹색 ride-media-button--play, ready·paused 공용 분기 aria-label.
       { name: "주행 시작·재개 aria-label", re: /aria-label=\{paused \? "재개" : "주행 시작"\}/ },
+      { name: "준비 상태는 종료 이력과 무관하게 시작 허용", re: /const ready = stage === "ready-to-start";/ },
       { name: "시작 콜백", re: /props\.onStartRide\(restartFromZero\)/ },
       { name: "ready-to-start 게이트", re: /stage === "ready-to-start"/ },
       { name: "주행 제어 그룹", re: /aria-label="주행 제어"/ },
@@ -338,7 +348,7 @@ export const ENTRY_STEPS = [
     // 2026-09-28 Chief/main: 종료·일시정지는 MapHud FAB 가 아니라 RouteDock transport.
     // traffic 계약은 지표(MapHud)와 종료 제어(RouteDock)를 단계로 분리한다.
     step: "ride-end-control",
-    desc: "주행 종료 — 독립 주행바(Stop/Pause)",
+    desc: "주행 종료 — RouteDock 주행바(Stop/Pause)",
     file: "src/components/ride/RideControlBar.tsx",
     anchors: [
       { name: "주행 제어 group", re: /aria-label="주행 제어"/ },

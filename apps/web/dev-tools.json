@@ -9,6 +9,17 @@
   ],
   "tools": [
     {
+      "id": "ride-moments-supervisor-layout-check",
+      "kind": "script",
+      "path": "apps/web/scripts/ride-interval/supervisor-layout-check.mjs",
+      "class": "temporary",
+      "purpose": "주행 UI·인터벌·순위 화면 배치 독립 검수",
+      "enable": "apps/web에서 node scripts/ride-interval/supervisor-layout-check.mjs",
+      "bundle": "20261028-ui-moments",
+      "added": "2026-10-28",
+      "expires": "2026-11-28"
+    },
+    {
       "id": "prepare-pre-ui-release",
       "kind": "script",
       "path": "scripts/prepare-pre-ui-release.mjs",

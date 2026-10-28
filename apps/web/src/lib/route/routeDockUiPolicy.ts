@@ -16,8 +16,9 @@ export function isRouteDockActiveRide(stage: RideUiStage): boolean {
   return stage === "riding" || stage === "paused";
 }
 
-/** 주행·일시정지 화면에서 RouteDock 이 처음 보일 때 펼침 여부 */
-export function routeDockDefaultExpanded(stage: RideUiStage): boolean {
+/** 주행·일시정지 화면에서 RouteDock 이 처음 보일 때 펼침 여부. 무경로는 LED만. */
+export function routeDockDefaultExpanded(stage: RideUiStage, stopCount = 1): boolean {
+  if (stopCount <= 0) return false;
   return !isRouteDockActiveRide(stage);
 }
 
@@ -27,9 +28,8 @@ export function routeDockDefaultExpanded(stage: RideUiStage): boolean {
  * RouteDock 자신과, 「센서 칩을 어느 슬롯에 그릴지」를 정하는 `sensorChipSlot` 이
  * 같은 판정을 쓴다. 둘이 갈라지면 칩이 두 곳에 뜨거나(중복) 어느 곳에도 안 뜬다(소실).
  *
- * 2026-09-16: `idle` 추가. 센서 칩이 dock 에 사는데 경로 없는 첫 화면에만 dock 이 없어
- * 우상단 폴백을 따로 들고 있어야 했다 — 그 stage 하나 때문에 칩이 두 자리를 오갔다.
- * 숨기는 곳은 화면을 덮는 게이트와 결과 시트뿐이다.
+ * 2026-10-28: idle 포함 주행 가능 stage 는 모두 RouteDock. 접힘·무경로는 LED만,
+ * 펼치면 접기 LED + 센서 알약. 숨기는 곳은 화면을 덮는 게이트와 결과 시트뿐이다.
  */
 export function isRouteDockVisible(stage: RideUiStage): boolean {
   return stage !== "gate" && stage !== "gate-nickname" && stage !== "summary";

@@ -1,51 +1,37 @@
-import { useEffect, useRef } from "react";
-import { registerEdgeDocumentGesture } from "./edgePanelDocumentGesture";
+import { useRef } from "react";
 import "./EdgePanelHandle.css";
 
-export type EdgeSide = "left" | "right";
+type EdgeSide = "left" | "right";
 
-export type EdgePanelHandleProps = {
+/** 반달 버튼 안에서의 최소 이동. 넘으면 뒤따르는 click 토글을 막는다. document 제스처는 없다. */
+const TAP_SLOP_PX = 6;
+
+type EdgePanelHandleProps = {
   edge: EdgeSide;
   open: boolean;
   panelId: string;
   label: string;
   onOpen: () => void;
   onClose: () => void;
-  onDragProgress: (progress: number | null) => void;
 };
 
 /**
- * 에지 제스처 — document capture 로 시작 좌표만 판별한다(띠 표식은 hit-test 없음).
- * 2026-10-24 Chief: 보이지 않으니 불편하다 → 계기판 바로 아래에 흰 반투명 반원 탭을 둔다.
- * 탭을 누르면 열리고, 탭에서 시작해 끌어도 지금처럼 손가락을 따라 열린다.
+ * 좌우 반달 탭 — 네이티브 버튼의 탭/클릭/Enter/Space만으로 열고 닫는다.
+ * 가장자리 스와이프·반달 끌기·손가락 추적은 없다. 열린 뒤에도 화면 가장자리 위치를 유지하고 캐럿만 반전한다.
  */
 export function EdgePanelHandle(props: EdgePanelHandleProps) {
-  const { edge, open, panelId, label, onOpen, onClose, onDragProgress } = props;
-  const markerRef = useRef<HTMLDivElement>(null);
-  const callbacksRef = useRef({ onOpen, onClose, onDragProgress });
-  const openDir = edge === "left" ? 1 : -1;
+  const { edge, open, panelId, label, onOpen, onClose } = props;
+  const startRef = useRef<{ x: number; y: number } | null>(null);
+  const suppressClickRef = useRef(false);
 
-  useEffect(() => {
-    callbacksRef.current = { onOpen, onClose, onDragProgress };
-  }, [onOpen, onClose, onDragProgress]);
-
-  useEffect(() => {
-    if (open) return;
-    return registerEdgeDocumentGesture(edge, true, () => markerRef.current, {
-      openDir,
-      onOpen: () => callbacksRef.current.onOpen(),
-      onClose: () => callbacksRef.current.onClose(),
-      onDragProgress: (progress) => callbacksRef.current.onDragProgress(progress),
-    });
-  }, [edge, open, openDir]);
-
-  if (open) return null;
+  const chevron = open
+    ? (edge === "left" ? "M5 1.5L2 5L5 8.5" : "M2 1.5L5 5L2 8.5")
+    : (edge === "left" ? "M2 1.5L5 5L2 8.5" : "M5 1.5L2 5L5 8.5");
 
   return (
     <>
       <div
-        ref={markerRef}
-        className={`edge-panel-handle edge-panel-handle--${edge}`}
+        className={`edge-panel-handle edge-panel-handle--${edge}${open ? " edge-panel-handle--open" : ""}`}
         role="presentation"
         aria-hidden="true"
         data-edge-panel={panelId}
@@ -53,15 +39,46 @@ export function EdgePanelHandle(props: EdgePanelHandleProps) {
       />
       <button
         type="button"
-        className={`edge-panel-tab edge-panel-tab--${edge}`}
+        className={`edge-panel-tab edge-panel-tab--${edge}${open ? " edge-panel-tab--open" : ""}`}
         aria-label={label}
         aria-controls={panelId}
-        aria-expanded={false}
-        onClick={onOpen}
+        aria-expanded={open}
+        onPointerDown={(e) => {
+          if (e.pointerType === "mouse" && e.button !== 0) return;
+          if (!e.isPrimary) return;
+          startRef.current = { x: e.clientX, y: e.clientY };
+          suppressClickRef.current = false;
+          try {
+            e.currentTarget.setPointerCapture(e.pointerId);
+          } catch {
+            /* already released */
+          }
+        }}
+        onPointerMove={(e) => {
+          const start = startRef.current;
+          if (!start) return;
+          if (Math.hypot(e.clientX - start.x, e.clientY - start.y) > TAP_SLOP_PX) {
+            suppressClickRef.current = true;
+          }
+        }}
+        onPointerUp={() => {
+          startRef.current = null;
+        }}
+        onPointerCancel={() => {
+          startRef.current = null;
+          suppressClickRef.current = true;
+        }}
+        onClick={(e) => {
+          const suppressPointerClick = suppressClickRef.current && e.detail !== 0;
+          suppressClickRef.current = false;
+          if (suppressPointerClick) return;
+          if (open) onClose();
+          else onOpen();
+        }}
       >
         <span className="edge-panel-tab__knob" aria-hidden>
           <svg width="7" height="10" viewBox="0 0 7 10" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
-            <path d={edge === "left" ? "M2 1.5L5 5L2 8.5" : "M5 1.5L2 5L5 8.5"} />
+            <path d={chevron} />
           </svg>
         </span>
       </button>

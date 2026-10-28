@@ -1,0 +1,37 @@
+{
+  "verifiedAt": "2026-10-27T09:44:47.851Z",
+  "origin": "https://boxcycle-dc2df.web.app",
+  "status": 200,
+  "assets": [
+    {
+      "path": "/assets/index-Cu0Io9Jq.js",
+      "sha256": "b7cf76051de9a7dfbf512d462fa2c323f7dfc550c2f036663a4437d588c115b8",
+      "bytes": 2022027,
+      "match": true
+    },
+    {
+      "path": "/assets/jsx-runtime-QUjkQcTq.js",
+      "sha256": "ebbbc54e26e97693425ce9abeabfb5b87c89e7a2d5aa4e2903727522b4f7715a",
+      "bytes": 977,
+      "match": true
+    },
+    {
+      "path": "/assets/camera1Mode-DgOnuhkM.js",
+      "sha256": "e7c0f6523fe0fe2e15e9f9dc9e1b0aa66673ecc5d8cfce32226dc03cd88b13fd",
+      "bytes": 1749154,
+      "match": true
+    },
+    {
+      "path": "/assets/react-dA9wtOGr.js",
+      "sha256": "bdf474361d2a63d906850cfd35b8b6768331fa83a0239240ad3d4e345168c947",
+      "bytes": 7527,
+      "match": true
+    },
+    {
+      "path": "/assets/index-BPVLCLKE.css",
+      "sha256": "6de44b28cf18d9555ebc3daa2cddf7afe61148be05bb3c212afb219e10d2614f",
+      "bytes": 264307,
+      "match": true
+    }
+  ]
+}

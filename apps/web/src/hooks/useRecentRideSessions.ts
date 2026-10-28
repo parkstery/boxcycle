@@ -26,11 +26,17 @@ export function useRecentRideSessions(options: UseRecentRideSessionsOptions) {
   const { configured, user, trailId, profile } = options;
 
   const [recentSessions, setRecentSessions] = useState<StoredRideSession[]>(() => loadRideSessions());
+  const [loadedUserId, setLoadedUserId] = useState<string | null>(null);
+  // 첫 지도는 현재 계정의 서버 기록 병합이 끝난 뒤 목적지를 결정한다.
+  const recentSessionsLoading = Boolean(configured && user && loadedUserId !== user.uid);
 
   const [prevUser, setPrevUser] = useState(user);
   if (user !== prevUser) {
     setPrevUser(user);
-    if (!user) setRecentSessions([]);
+    if (!user) {
+      setRecentSessions([]);
+      setLoadedUserId(null);
+    }
   }
 
   const reloadRecentSessionsFromLocalStorage = useCallback(() => {
@@ -77,6 +83,9 @@ export function useRecentRideSessions(options: UseRecentRideSessionsOptions) {
         if (!cancelled) {
           setRecentSessions(loadRideSessions());
         }
+      })
+      .finally(() => {
+        if (!cancelled) setLoadedUserId(user.uid);
       });
     return () => {
       cancelled = true;
@@ -85,6 +94,7 @@ export function useRecentRideSessions(options: UseRecentRideSessionsOptions) {
 
   return {
     recentSessions,
+    recentSessionsLoading,
     setRecentSessions,
     reloadRecentSessionsFromLocalStorage,
   };

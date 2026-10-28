@@ -41,12 +41,14 @@ type PulseMap = Pick<Map, "getSource">;
 
 /**
  * 거리 확정 후 「이 원 위 아무 방향이나 누르라」는 안내 — 원과 바깥 화살표를 함께 키웠다 줄이기를
- * 방향을 누를 때까지 반복한다. 원의 의미(목표 거리 D)는 멈추면 원래 크기로 복원된다.
+ * 방향을 누를 때까지 반복한다. 진입 안내는 cycles 회만 반복한다.
+ * 원의 의미(목표 거리 D)는 멈추면 원래 크기로 복원된다.
  * `getCircle` 은 매 프레임 현재 원을 돌려준다(거리를 바꾸면 새 원을 따라간다).
  */
 export function pulseDistanceCircle(
   map: PulseMap,
   getCircle: () => LineStringGeometry | null | undefined,
+  cycles = Infinity,
 ): () => void {
   let frame = 0;
   let stopped = false;
@@ -87,6 +89,10 @@ export function pulseDistanceCircle(
   const start = performance.now();
   const tick = (now: number) => {
     if (stopped) return;
+    if (now - start >= DISTANCE_CIRCLE_PULSE_PERIOD_MS * cycles) {
+      stop();
+      return;
+    }
     if (now - lastPaint >= PULSE_FRAME_INTERVAL_MS) {
       lastPaint = now;
       paint(distanceCirclePulseScale(now - start));

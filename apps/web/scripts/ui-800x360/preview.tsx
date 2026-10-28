@@ -1,5 +1,9 @@
 /** Real UI components with in-memory state only. No authentication or ride writes. */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRideInterval } from '../../src/hooks/useRideInterval';
+import { DEFAULT_RIDE_INTERVAL_CONFIG } from '../../src/lib/ride/rideInterval';
+import { RideIntervalSettingsSheet } from '../../src/components/ride/RideIntervalSettingsSheet';
+import { IntervalRouteConfirm } from '../../src/components/ride/IntervalRouteConfirm';
 import { createRoot } from 'react-dom/client';
 import '../../src/tokens.css';
 import '../../src/index.css';
@@ -16,12 +20,10 @@ import type { SavedRoute } from '../../src/lib/route/repo/firestoreSavedRoutes';
 import type { LineStringGeometry } from '../../src/lib/geo/geo';
 import { RideSettingsSheet } from '../../src/components/ride/RideSettingsSheet';
 import { CadenceSensorSheet } from '../../src/components/sensor/CadenceSensorSheet';
-import { MapViewSheet } from '../../src/components/map/MapViewSheet';
 import { ProfileEditSheet } from '../../src/components/ProfileEditSheet';
 import type { User } from 'firebase/auth';
 import type { RideInputMode } from '../../src/lib/sensor/cadenceRideInput';
 import type { BleCrankRpmUiState, RideInputReadiness } from '../../src/lib/sensor/cadenceSensorUi';
-import type { CoverageOverlayMode } from '../../src/lib/activity/coverageOverlayMode';
 import { AppIntroScreen } from '../../src/components/auth/AppIntroScreen';
 import { EntryLocationDialog } from '../../src/components/auth/EntryLocationDialog';
 import { OfficialCourseListModal } from '../../src/components/ride/OfficialCourseListModal';
@@ -38,14 +40,99 @@ import type { RideEndResult } from '../../src/lib/ride/rideEndResult';
 import type { Camera1Mode } from '../../src/lib/camera/camera1Mode';
 import type { StoredRideSession } from '../../src/lib/ride/rideSessionsStorage';
 import type { LeaderboardResponse } from '../../src/services/leaderboardApi';
-import { LeaderboardGlanceChip, LeaderboardGlancePanel } from '../../src/components/leaderboard/LeaderboardGlance';
+import { LeaderboardGlancePanel } from '../../src/components/leaderboard/LeaderboardGlance';
+import { LeaderboardSheet } from '../../src/components/leaderboard/LeaderboardSheet';
 import { buildGlanceLiveRows } from '../../src/components/leaderboard/leaderboardGlanceSnapshot';
+import type { LeaderboardBoard, LeaderboardEntry } from '../../src/services/leaderboardApi';
 import '../../src/components/leaderboard/LeaderboardGlance.css';
 import '../../src/boxcycle-theme.css';
 import './preview.css';
 
 const params = new URLSearchParams(location.search);
 const initial = params.get('state') ?? 'ready';
+const lbVariant = params.get('lb') ?? 'ten';
+const settingsStress = params.has('settingsStress');
+const STRESS_INTERVAL = {
+  highSec: 600,
+  lowSec: 600,
+  repeats: 30,
+  warmupSec: 1800,
+  cooldownSec: 1800,
+  rounds: 3,
+  roundRestSec: 1800,
+} as const;
+const LB_NAMES = ['geum','Ridingman12','homeeg','pedalday','riverider','atlasgo','slowspin','cycleon','roadmaker','morningride','nightspin','hillclimb','windrider','cityloop','parkway','bridgeway','seahill','eastend','westend','northend'];
+
+function lbEntry(rank: number, nickname: string, valueKm: number, extra?: Partial<LeaderboardEntry>): LeaderboardEntry {
+  return { rank, nickname, valueKm, uses: extra?.uses ?? null, liveTrailId: extra?.liveTrailId ?? null, isMe: extra?.isMe ?? false };
+}
+
+function lbTop(count: number, meRank: number | null): LeaderboardEntry[] {
+  return Array.from({ length: count }, (_, i) => {
+    const rank = i + 1;
+    const nickname = rank === 4 && count >= 4 ? '아주긴닉네임라이더테스트넘침확인용' : (LB_NAMES[i] ?? `rider${rank}`);
+    return lbEntry(rank, nickname, Math.max(0.1, 12 - i * 0.7), {
+      isMe: meRank === rank,
+      liveTrailId: rank === 1 ? 't1' : null,
+      uses: { riders: Math.max(1, 8 - i), km: Math.max(0.2, 4 - i * 0.3) },
+    });
+  });
+}
+
+function lbPayload(board: LeaderboardBoard, variant: string): LeaderboardResponse {
+  const period = board === 'pioneer' ? 'month' : 'week';
+  const base = {
+    generatedAt: '2026-10-28T03:00:00.000Z',
+    board,
+    period: period as LeaderboardResponse['period'],
+    scope: 'world' as const,
+    periodStartKst: '2026-10-26',
+    rule: { sensorOnly: true },
+  };
+  if (variant === 'empty') {
+    return { ...base, top: [], me: { status: 'unranked', rank: null, valueKm: 0, gapToNextKm: null, projectedRank: null, uses: null, around: [] } };
+  }
+  if (variant === 'guest') {
+    return { ...base, top: lbTop(10, null), me: { status: 'guest', rank: null, valueKm: 1.2, gapToNextKm: null, projectedRank: 8, uses: null, around: [] } };
+  }
+  if (variant === 'unranked') {
+    return { ...base, top: lbTop(10, null), me: { status: 'unranked', rank: null, valueKm: 0, gapToNextKm: null, projectedRank: null, uses: null, around: [] } };
+  }
+  if (variant === 'three') {
+    const top = lbTop(3, 2);
+    return { ...base, top, me: { status: 'ranked', rank: 2, valueKm: top[1].valueKm, gapToNextKm: 0.7, projectedRank: null, uses: board === 'pioneer' ? { riders: 2, km: 1.1 } : null, around: [] } };
+  }
+  if (variant === 'around') {
+    const top = lbTop(10, null);
+    const around = [13, 14, 15, 16, 17].map((rank) => lbEntry(rank, LB_NAMES[rank - 1] ?? `rider${rank}`, Math.max(0.1, 4 - (rank - 13) * 0.4), {
+      isMe: rank === 15,
+      uses: { riders: Math.max(1, 21 - rank), km: Math.max(0.1, 1.5 - (rank - 13) * 0.2) },
+    }));
+    return { ...base, top, me: { status: 'ranked', rank: 15, valueKm: around[2].valueKm, gapToNextKm: 0.4, projectedRank: null, uses: board === 'pioneer' ? { riders: 2, km: 0.8 } : null, around } };
+  }
+  const count = variant === 'twenty' ? 20 : 10;
+  const top = lbTop(count, 3);
+  return {
+    ...base,
+    top,
+    me: { status: 'ranked', rank: 3, valueKm: top[2].valueKm, gapToNextKm: 0.7, projectedRank: null, uses: board === 'pioneer' ? { riders: 4, km: 2.2 } : null, around: [] },
+  };
+}
+
+if (initial === 'leaderboard') {
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(typeof input === 'string' || input instanceof URL ? input : input.url);
+    if (url.includes('getLeaderboard')) {
+      if (lbVariant === 'error') return new Response('nope', { status: 500 });
+      if (lbVariant === 'loading') return new Promise<Response>(() => {});
+      const parsed = new URL(url, window.location.origin);
+      const board = (parsed.searchParams.get('board') === 'pioneer' ? 'pioneer' : 'distance') as LeaderboardBoard;
+      return new Response(JSON.stringify(lbPayload(board, lbVariant)), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    return originalFetch(input, init);
+  };
+}
 const long = params.has('long');
 const glanceCapture = initial.startsWith('glance-');
 const noop = () => {};
@@ -63,6 +150,7 @@ const mockLeaderboard: LeaderboardResponse = {
     { rank: 4, nickname: '새벽페달', valueKm: 9.8, uses: null, liveTrailId: 't2', isMe: false },
     { rank: 5, nickname: '원주토박이', valueKm: 8.7, uses: null, liveTrailId: null, isMe: false },
     { rank: 6, nickname: '달빛라이딩', valueKm: 6.3, uses: null, liveTrailId: null, isMe: false },
+    ...Array.from({length: 4}, (_, i) => ({rank: i + 7, nickname: `라이더${i + 7}`, valueKm: 5 - i, uses: null, liveTrailId: null, isMe: false})),
   ],
   me: {
     status: 'ranked',
@@ -75,11 +163,12 @@ const mockLeaderboard: LeaderboardResponse = {
   },
 };
 const summaryVariant = params.get('variant');
+const summaryCompleted = summaryVariant === 'completed' || params.has('completed');
 const result: RideEndResult = {
-  recordId:'ui-preview', endedAtIso:'2026-10-20T08:00:00Z', sessionDistanceMeters:1200,
+  recordId:'ui-preview', endedAtIso:'2026-10-20T08:00:00Z', sessionDistanceMeters:summaryCompleted?5000:1200,
   elapsedSec:420, avgSpeedKmh:18, caloriesEstimate:null, savedRouteId:null,
-  routeName:'남산공원길', hasRoute:true, previousProgressRatio:0.2, progressRatio:0.44,
-  routeCompleted:false, anchorLngLat:[126.98,37.55], anchorPlaceLabel:'남산공원길',
+  routeName:'남산공원길', hasRoute:true, previousProgressRatio:0.2, progressRatio:summaryCompleted?1:0.44,
+  routeCompleted:summaryCompleted, anchorLngLat:[126.98,37.55], anchorPlaceLabel:'남산공원길',
   profile:'cycling', routeDistanceMeters:5000,
   rideSaveStatus: summaryVariant === 'saving' ? 'pending' : 'success',
   savedRouteProgressStatus: summaryVariant === 'progress-fail' ? 'failed' : 'n/a',
@@ -210,14 +299,14 @@ const isBatch4Fixture =
   BATCH4_PROFILE_STATES.has(initial) ||
   BATCH4_SENSOR_STATES.has(initial) ||
   initial === 'settings' ||
-  initial === 'map';
+  params.has('menuFixture');
 
 function resolveInitialPanel(state: string): string {
   if (state === 'glance-summary') return 'summary';
   if (state === 'nextride-resume' || state === 'nextride-extend') return 'idle';
   if (BATCH4_PROFILE_STATES.has(state)) return 'profile';
   if (BATCH4_SENSOR_STATES.has(state)) return 'sensor';
-  if (state === 'settings' || state === 'map') return state;
+  if (state === 'settings' || state === 'leaderboard') return state;
   return state;
 }
 
@@ -309,13 +398,12 @@ function sensorSheetMemoryForState(state: string): SensorSheetMemory {
 function Preview() {
   const glanceStage: RideUiStage =
     initial === 'glance-riding' ? 'riding' : initial === 'glance-summary' ? 'idle' : 'ready-to-start';
-  const batch4RidingMap = initial === 'map' && params.has('riding');
   const [stage,setStage] = useState<RideUiStage>(
     glanceCapture
       ? glanceStage
       : isNextRidePreview
         ? 'idle'
-        : initial === 'sensor-riding-manual' || batch4RidingMap
+        : initial === 'sensor-riding-manual'
           ? 'riding'
           : initial==='riding'
             ? 'riding'
@@ -328,6 +416,27 @@ function Preview() {
                   : 'ready-to-start',
   );
   const [camera,setCamera] = useState<1|2|3|4|5|6>(1);
+  const [intervalElapsedMs, setIntervalElapsedMs] = useState(Number(params.get('intervalMs') ?? 0));
+  const interval = useRideInterval(
+    stage === 'riding' ? 'running' : stage === 'paused' ? 'paused' : 'idle',
+    intervalElapsedMs,
+    params.has('interval'),
+    settingsStress ? STRESS_INTERVAL : (params.has('persistInterval') ? undefined : DEFAULT_RIDE_INTERVAL_CONFIG),
+  );
+  const [intervalEditorOpen, setIntervalEditorOpen] = useState(false);
+  const [intervalEditorFromSettings, setIntervalEditorFromSettings] = useState(false);
+  const [intervalConfirmOpen, setIntervalConfirmOpen] = useState(false);
+  useEffect(() => {
+    if (!interval.enabled || stage !== 'riding') return;
+    let previous = performance.now();
+    const id = window.setInterval(() => {
+      const now = performance.now();
+      const delta = now - previous;
+      previous = now;
+      setIntervalElapsedMs(value => value + delta);
+    }, 200);
+    return () => window.clearInterval(id);
+  }, [stage, interval.enabled]);
   const [flatCameraMode,setFlatCameraMode] = useState<Camera1Mode>('aerial500');
   const [routeSetupToken,setRouteSetupToken] = useState<object>({});
   const [panel,setPanel] = useState(resolveInitialPanel(initial));
@@ -346,13 +455,11 @@ function Preview() {
   const batch4CalorieSeed = (isBatch4Fixture || BATCH4_PROFILE_STATES.has(initial) || initial === 'settings') && summaryVariant !== 'no-calorie';
   const [manual,setManual] = useState(false);
   const [speed,setSpeed] = useState(18);
-  const [weight,setWeight] = useState<number|null>(batch4CalorieSeed ? 64 : null);
-  const [intensity,setIntensity] = useState<CalorieIntensityId|null>(batch4CalorieSeed ? 'moderate' : null);
+  const [weight,setWeight] = useState<number|null>(settingsStress ? null : (batch4CalorieSeed ? 64 : null));
+  const [intensity,setIntensity] = useState<CalorieIntensityId|null>(settingsStress ? null : (batch4CalorieSeed ? 'moderate' : null));
   const [conquest,setConquest] = useState<ConquestDisplayMode>('all');
-  const [coverage,setCoverage] = useState<CoverageOverlayMode>('off');
   const [enable3D,setEnable3D] = useState(false);
-  const [mapRecentGeometry,setMapRecentGeometry] = useState(false);
-  const [rideCameraDistanceM,setRideCameraDistanceM] = useState(40);
+  const mapRecentGeometry = params.has('recent');
   const [rideTtsEnabled,setRideTtsEnabled] = useState(true);
   const [rideBgmEnabled,setRideBgmEnabled] = useState(true);
   const [rideCoachingBanner,setRideCoachingBanner] = useState(true);
@@ -378,43 +485,34 @@ function Preview() {
   const sensorUiState = sensorSheet.uiState;
   const sensorCrankRpm =
     sensorSheet.uiState === 'connected' ? sensorSheet.crankRpm : sensorPreset ? sensorSheet.crankRpm : null;
-  const [menuReveal,setMenuReveal] = useState<number|null>(null);
-  const [mapReveal,setMapReveal] = useState<number|null>(null);
-  const modalOpen=['menu','map','account','settings','sensor','profile','routes','summary','intro','location'].includes(panel);
+  const [rankOpen,setRankOpen] = useState(glanceCapture && initial !== 'glance-summary');
+  const [rideMomentSoundEnabled,setRideMomentSoundEnabled] = useState(false);
+  const [lbJoinCalls,setLbJoinCalls] = useState(0);
+  const lbUser = lbVariant === 'nologin' ? null : { uid: 'preview-lb', getIdToken: async () => 'preview-token' } as User;
   const profileUser = makeProfileUser(BATCH4_PROFILE_STATES.has(initial) ? initial : 'profile');
   const profileNicknameChangedAtMs = profileNicknameLockMs(initial);
   const active = stage==='riding'||stage==='paused';
   const hasRoute = stage!=='idle'&&stage!=='setup';
-  const dockSensorUi: BleCrankRpmUiState =
-    sensorPreset && panel === 'sensor'
-      ? sensorSheet.uiState
-      : active
-        ? 'connected'
-        : 'idle';
-  const dockCrankRpm =
-    sensorPreset && panel === 'sensor' && sensorSheet.uiState === 'connected'
-      ? sensorSheet.crankRpm
-      : active
-        ? 72
-        : null;
-  const sensorState = { capable: sensorCapable, uiState: dockSensorUi, crankRpm: dockCrankRpm };
+  const sensorState = {
+    capable: sensorCapable,
+    uiState: sensorUiState,
+    crankRpm: sensorUiState === 'connected' ? sensorCrankRpm : null,
+  };
   const glanceLiveRows = buildGlanceLiveRows(mockLeaderboard);
   const glanceRiding = initial === 'glance-riding';
-  const glanceView = glanceCapture
-    ? {
-        mode: glanceRiding ? ('riding' as const) : ('map' as const),
-        isGuest: false,
-        panelOpen: true,
-        onTogglePanel: noop,
-        onOpenFullLeaderboard: noop,
-        mapData: mockLeaderboard,
-        rideSnapshot: mockLeaderboard,
-        liveRows: glanceLiveRows,
-        myBaseKm: 9.43,
-        addedKm: glanceRiding ? 0.07 : 0,
-        pedalQualified: true,
-      }
-    : null;
+  const glanceView = {
+    mode: (active ? 'riding' : 'map') as 'riding' | 'map',
+    isGuest: false,
+    panelOpen: rankOpen,
+    onTogglePanel: () => setRankOpen((open) => !open),
+    onOpenFullLeaderboard: noop,
+    mapData: mockLeaderboard,
+    rideSnapshot: mockLeaderboard,
+    liveRows: glanceLiveRows,
+    myBaseKm: 9.43,
+    addedKm: glanceRiding ? 0.07 : 0,
+    pedalQualified: true,
+  };
   const summaryRank =
     initial === 'glance-summary'
       ? {
@@ -433,33 +531,36 @@ function Preview() {
       <circle cx="480" cy="270" r="9" fill="#2563eb" stroke="white" strokeWidth="3"/>
     </svg>
     <div className="audit-map-attribution">검수용 지도 배경 · 실제 제품 컴포넌트 · 서버 기록 없음</div>
-    <EdgePanelHandle edge="left" open={modalOpen} panelId="menu-panel" label="메뉴 열기"
-      onOpen={()=>setPanel('menu')} onClose={()=>setPanel('ready')} onDragProgress={setMenuReveal}/>
-    <EdgePanelHandle edge="right" open={modalOpen} panelId="map-view-sheet" label="맵 뷰 열기"
-      onOpen={()=>setPanel('map')} onClose={()=>setPanel('ready')} onDragProgress={setMapReveal}/>
+    {panel!=='summary' && initial!=='glance-summary' ? <>
+    <EdgePanelHandle edge="left" open={panel==='menu'} panelId="menu-panel" label="메뉴 열기"
+      onOpen={()=>setPanel('menu')} onClose={()=>setPanel('ready')}/>
+    <EdgePanelHandle edge="right" open={rankOpen} panelId="lb-glance-panel" label="순위 열기"
+      onOpen={()=>setRankOpen(true)} onClose={()=>setRankOpen(false)}/>
+    </> : null}
     <MapBottomLeftStack>
     <RouteDock key={hasRoute?'route':'empty'} stage={stage} stops={hasRoute?stops:stage==='setup'?[stops[0]]:[]} routeLoading={params.has('loading')}
       onRemoveStop={noop} onFocusStop={noop} onSwapEndpoints={noop}
-      cadence={{state:sensorState,open:panel==='sensor',onOpen:()=>setPanel('sensor')}} />
+      cadence={{state:sensorState,open:panel==='sensor',onOpen:()=>setPanel('sensor')}}
+      onOpenIntervalSettings={()=>{setIntervalEditorFromSettings(false);setIntervalEditorOpen(true);}} intervalEnabled={interval.enabled}
+      rideControls={(<RideControlBar stage={panel==='summary'?'summary':stage} routeLoading={params.has('loading')}
+      routeSetupToken={routeSetupToken} startPulseKey={rideStartPulseKey}
+      canStartRide={!params.has('blocked')} onStartRide={()=>params.has('shortIntervalRoute')?setIntervalConfirmOpen(true):setStage('riding')} onPauseRide={()=>setStage('paused')} onResumeRide={()=>setStage('riding')} onModifyFromPause={()=>setStage('setup')}
+      onEndRide={()=>{setIntervalElapsedMs(0);setPanel(params.has('short')?'ready':'summary');setStage('ready-to-start');}} resumeRatio={params.has('resume')?0.4:null} />)} />
     <RouteMinimap active={active} routeGeometry={{type:'LineString',coordinates:[[126.98,37.55],[126.982,37.553],[126.986,37.552],[126.99,37.56]]}} liveLngLat={[126.982,37.553]} mapboxAccessToken="" traveledMeters={420} routeMeters={2020} />
     </MapBottomLeftStack>
-    <RideControlBar stage={panel==='summary'?'summary':stage} routeLoading={params.has('loading')}
-      routeSetupToken={routeSetupToken} startPulseKey={rideStartPulseKey}
-      canStartRide={!params.has('blocked')} onStartRide={()=>setStage('riding')} onPauseRide={()=>setStage('paused')} onResumeRide={()=>setStage('riding')} onModifyFromPause={()=>setStage('setup')}
-      onEndRide={()=>{setPanel(params.has('short')?'ready':'summary');setStage(params.has('short')?'ready-to-start':'idle');}} resumeRatio={params.has('resume')?0.4:null}
-      cadence={{state:sensorState,open:panel==='sensor',onOpen:()=>setPanel('sensor')}} />
+
     {params.has('short') ? <button type="button" style={{position:'absolute',left:'45%',bottom:4,zIndex:9}} onClick={()=>setRouteSetupToken({})}>검수용 새 경로 확정</button> : null}
     <MapHud stage={stage} onOpenMenu={()=>setPanel('menu')} menuOpen={panel==='menu'}
+      rideInterval={interval.view} intervalCadenceRpm={params.has('noSensor') ? null : 92}
       account={glanceCapture?{initial:'R',isGuest:false,label:'Ridingman12',mileageKm:178}:{initial:'G',isGuest:true,label:long?'아주긴닉네임라이더테스트':'게스트 라이더',mileageKm:null}}
-      onOpenUserInfo={()=>setPanel('account')} userInfoOpen={panel==='account'} onOpenMapView={()=>setPanel('map')} mapViewOpen={panel==='map'}
+      onOpenUserInfo={()=>setPanel('account')} userInfoOpen={panel==='account'}
       coachData={active?{tip:'Relax and find your rhythm',resistance:'Resistance 3',intensity:'MODERATE',action:'PEDAL',tipId:'tip_26'}:null} coachLineEnabled={active}
-      cadenceRpm={glanceRiding?82:null}
       metrics={hasRoute?active?{mode:'ride',elapsed:glanceRiding?'00:13':'24:08',distanceKm:glanceRiding?'0.07':'4.20',cumulativeKm:glanceRiding?'0.07':long?'1234.56':'4.20',avgKmh:glanceRiding?'19.8':'18.6',speedKmh:glanceRiding?37:24,routeTotalKm:glanceRiding?'2.02':long?'9999.99':'10.00'}:{mode:'route-preview',distanceKm:long?'1234.56':'2.02',elevation:{status:'ready',startM:46,endM:30}}:null}
       conquestLiveMeters={active?420:null} onClearPins={noop} routeError={params.has('error')?'경로를 찾지 못했습니다. 다른 지점을 선택해 주세요.':null}
       onResumeFromPause={()=>setStage('riding')} onEndFromPause={()=>setPanel('summary')} onModifyFromPause={()=>setStage('setup')}
-      quickCamera={active&&!glanceRiding?{active:camera,camera1Mode:flatCameraMode,onSelect:setCamera,onSelectFlat:(mode)=>{setFlatCameraMode(mode);setCamera(1);}}:null} mapControls={{styleLabel:'위성',styleAriaLabel:'맵 스타일 위성, 클릭 시 야외',onToggleStyle:noop,onZoomOut:noop,onZoomIn:noop,zoomOutDisabled:false,zoomInDisabled:false}}
-      leaderboardGlanceChip={glanceView?<LeaderboardGlanceChip {...glanceView} />:undefined}
-      leaderboardGlancePanel={glanceView && initial!=='glance-summary'?<LeaderboardGlancePanel {...glanceView} />:undefined} />
+      quickCamera={active&&!glanceRiding?{active:camera,camera1Mode:flatCameraMode,enable3D,terrainFallback:params.has('terrainFallback'),onEnable3D:setEnable3D,onSelect:setCamera,onSelectFlat:(mode)=>{setFlatCameraMode(mode);setCamera(1);}}:null} mapControls={{styleLabel:'위성',styleAriaLabel:'맵 스타일 위성, 클릭 시 야외',onToggleStyle:noop,onZoomOut:noop,onZoomIn:noop,zoomOutDisabled:false,zoomInDisabled:false}}
+      leaderboardGlancePanel={initial!=='glance-summary'?<LeaderboardGlancePanel {...glanceView} />:undefined}
+      rideMoments={active?{status:stage==='paused'?'paused':'running',elapsedMs:intervalElapsedMs,routeMeters:2020,traveledMeters:420,waypointMeters:[700,1400],newRoadKm:0.42,ended:null,intervalRunKey:interval.runKey,soundEnabled:rideMomentSoundEnabled}:null} />
     <RideSummarySheet open={panel==='summary'||initial==='glance-summary'} result={result} arrivalCompleted={false} elapsedLabel="07:00" avgKmh="18" caloriesEstimate={null}
       story={initial==='glance-summary'?{headline:'첫 라이딩을 마치셨어요. 시작이 가장 어려운 법이에요.',detail:undefined}:{headline:'오늘도 나만의 길을 이었습니다.',detail:'남산공원길에서 1.2km를 달렸습니다.'}}
       adhocSaveAvailable={initial!=='glance-summary' && summaryVariant !== 'closed'}
@@ -512,17 +613,30 @@ function Preview() {
         ) : null}
       </div>
     ) : null}
+    <LeaderboardSheet
+      open={panel==='leaderboard'}
+      onClose={()=>setPanel('ready')}
+      user={lbUser}
+      onRegister={noop}
+      onJoinTrail={() => setLbJoinCalls((n) => n + 1)}
+    />
+    {initial === 'leaderboard' ? <div id="lb-fixture" hidden data-lb-join-calls={String(lbJoinCalls)} /> : null}
     <RideSettingsSheet open={panel==='settings'} onClose={()=>setPanel('ready')}
+      rideIntervalConfig={interval.config} onOpenRideIntervalSettings={()=>{setPanel('ready');setIntervalEditorFromSettings(true);setIntervalEditorOpen(true);}}
+      rideIntervalEnabled={interval.enabled} onRideIntervalEnabled={interval.onEnabled}
       rideTtsEnabled={rideTtsEnabled} onRideTtsEnabled={setRideTtsEnabled}
       rideBgmEnabled={rideBgmEnabled} onRideBgmEnabled={setRideBgmEnabled}
       rideCoachingBanner={rideCoachingBanner} onRideCoachingBanner={setRideCoachingBanner}
       pacerEnabled={pacerEnabled} onPacerEnabled={setPacerEnabled}
-      rideBgmCatalogConfigured rideElevationProfileLoading={false}
+      rideBgmCatalogConfigured={!settingsStress} rideElevationProfileLoading={settingsStress}
       calorieWeightKg={weight} calorieIntensityId={intensity}
+      rideMomentSoundEnabled={rideMomentSoundEnabled} onRideMomentSoundEnabled={setRideMomentSoundEnabled}
       onEditProfile={() => {
         setSettingsProfileNavCalls((n) => n + 1);
         setPanel('profile');
       }} />
+    <RideIntervalSettingsSheet open={intervalEditorOpen} config={interval.config} restartOnApply={interval.enabled && (stage==='riding'||stage==='paused')} onApply={interval.onConfig} onClose={()=>{setIntervalEditorOpen(false);if(intervalEditorFromSettings)setPanel('settings');}} />
+    <IntervalRouteConfirm open={intervalConfirmOpen} speedKmh={20} onCancel={()=>setIntervalConfirmOpen(false)} onConfirm={()=>{setIntervalConfirmOpen(false);setStage('riding');}} />
     <ProfileEditSheet
       open={panel==='profile'}
       onClose={() => setPanel(initial === 'settings' ? 'settings' : 'ready')}
@@ -545,7 +659,7 @@ function Preview() {
         return true;
       }}
     />
-    <UserInfoSheet open={panel==='account'} onClose={()=>setPanel('ready')} user={null}
+    <UserInfoSheet conquestDisplayMode={conquest} conquestHasRecentGeometry={mapRecentGeometry} onConquestDisplayMode={(mode)=>{setConquest(mode);setPanel('ready');}} open={panel==='account'} onClose={()=>setPanel('ready')} user={null}
       recentSessions={params.has('historyPreview')?previewRideSessions:[]}
       isGuest tier="anonymous" subscriptionStatus="none" isPaid={false} busy={false}
       conquest={params.has('loading')?null:params.has('historyPreview')?{totalMeters:12400,totalCells:42}:{totalMeters:0,totalCells:0}}
@@ -594,16 +708,10 @@ function Preview() {
         }));
       }}
     />
-    <MapViewSheet open={panel==='map'} revealProgress={mapReveal} onClose={()=>setPanel('ready')}
-      coverageOverlayMode={coverage} onCoverageOverlayMode={setCoverage}
-      enable3D={enable3D} onEnable3D={setEnable3D}
-      rideActive={active} rideCameraDistanceM={rideCameraDistanceM} onRideCameraDistanceM={setRideCameraDistanceM}
-      conquestDisplayMode={conquest} conquestHasRecentGeometry={mapRecentGeometry}
-      onConquestDisplayMode={setConquest} onShowAllConquest={() => setMapRecentGeometry(true)} />
     {panel==='routes'?<OfficialCourseListModal segment="intro" onClose={()=>setPanel('ready')} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
       basicStartLoading={false} basicStartHubJoined={false} routeLoading={false} sessionIdle officialCourseCatalogAvailable publishedPublicCourses={[]}
       publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}/>:null}
-    <MenuPanel open={panel==='menu'} revealProgress={menuReveal} onClose={()=>setPanel('ready')}>
+    <MenuPanel open={panel==='menu'} onClose={()=>setPanel('ready')}>
       <RideRoutePanel routeSummary="" routeLoading={false} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
         basicStartLoading={false} basicStartHubJoined={false} officialCourseCatalogAvailable publishedPublicCourses={getBasicSharedHubSummaries()}
         publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} authGuest signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}
@@ -637,10 +745,9 @@ function Preview() {
         data-profile-weight-calls={String(profilePersistCalls.weight)}
         data-profile-intensity-calls={String(profilePersistCalls.intensity)}
         data-map-enable3d={enable3D ? '1' : '0'}
-        data-map-coverage={coverage}
+        data-map-coverage="off"
         data-map-conquest={conquest}
         data-map-recent={mapRecentGeometry ? '1' : '0'}
-        data-map-camera-m={String(rideCameraDistanceM)}
       />
     ) : null}
   </main>;

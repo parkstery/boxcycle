@@ -35,7 +35,6 @@
   cursor: pointer;
 }
 .ride-control-bar button:disabled { opacity: .45; cursor: not-allowed; }
-.ride-control-bar .hud-cadence { min-width: 48px; width: auto; height: 28px; padding: 0 5px; font-size: 11px; }
 .ride-control-bar button:focus-visible { outline: 2px solid var(--rtw-ui-primary-strong, #2563eb); outline-offset: 1px; }
 .ride-control-bar__resume {
   pointer-events: auto;

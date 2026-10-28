@@ -712,7 +712,7 @@
     min-height: min(194px, calc(100dvh - 1rem));
     max-height: min(194px, calc(100dvh - 1rem));
     margin-bottom: 0;
-    padding: 0;
+    padding: 10px;
     overflow: hidden;
     border-radius: 11px;
     gap: 0;

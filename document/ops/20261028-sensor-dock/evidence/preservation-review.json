@@ -1,0 +1,30 @@
+{
+  "baselineCount": 3179,
+  "changed": [
+    "apps/web/e2e\\ui-edge-live.spec.ts",
+    "apps/web/e2e\\ui-800x360.spec.ts",
+    "apps/web/e2e\\touch-targets-44.spec.ts",
+    "apps/web/e2e\\sensor-chip-route-dock-6a.spec.ts",
+    "apps/web/e2e\\route-ride-controls.spec.ts",
+    "apps/web/e2e\\route-dock-riding-content.spec.ts",
+    "apps/web/e2e\\rideEntryHelpers.ts",
+    "apps/web/e2e\\ride-summary-compact.spec.ts",
+    "apps/web/e2e\\ride-entry.spec.ts",
+    "apps/web/e2e\\address-minimap-width.spec.ts",
+    "apps/web/scripts\\ui-800x360\\preview.tsx",
+    "apps/web/src\\lib\\route\\sensorChipSlot.ts",
+    "apps/web/src\\lib\\route\\routeDockUiPolicy.ts",
+    "apps/web/scripts\\ride-hierarchy\\sensor-chip-slot-contract.test.ts",
+    "apps/web/scripts\\ride-hierarchy\\route-dock-riding-contract.test.ts",
+    "apps/web/scripts\\ride-verify\\entry-contract.mjs",
+    "apps/web/src\\App.tsx",
+    "apps/web/src\\components\\maphud\\CadenceHudChip.tsx",
+    "apps/web/src\\components\\route-dock\\RouteOverviewFoldToggle.tsx",
+    "apps/web/src\\components\\route-dock\\RouteDock.tsx",
+    "apps/web/src\\components\\route-dock\\RouteDock.css",
+    "apps/web/src\\components\\ride\\RideControlBar.tsx",
+    "apps/web/src\\components\\ride\\RideControlBar.css"
+  ],
+  "missing": [],
+  "protectedMediaChanged": []
+}

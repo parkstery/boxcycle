@@ -2,7 +2,7 @@ import { test, expect, type Page, type Locator } from "./open-meteo-stub";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { guestStart as sharedGuestStart } from "./rideEntryHelpers";
+import { guestStart as sharedGuestStart, prepareManualRideInput } from "./rideEntryHelpers";
 
 /**
  * UI-DECLUTTER-SENSOR-6A — 센서 칩을 RouteDock 으로.
@@ -38,24 +38,20 @@ test.describe("센서 칩 — RouteDock 이전", () => {
 
     const chip = page.getByRole("button", { name: /케이던스 센서/ });
     const trChip = page.locator(".map-hud__tr .hud-cadence");
-    const dockChip = page.locator(".route-dock__top .hud-cadence");
+    const dockChip = page.locator(".route-dock__head .hud-cadence");
 
     /*
      * ── idle ────────────────────────────────────────────────────────────
      * 2026-09-16: dock 이 `idle` 까지 오면서 우상단 폴백을 없앴다.
      * 첫 화면에서도 칩은 dock 안이고, 우상단은 계정·맵 둘뿐이다.
      */
-    await expect(chip, "idle 에서도 센서 시트 입구는 있어야 한다").toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("button", { name: "경로 패널 펼치기" }), "idle 에서도 센서 입구 LED는 있어야 한다").toBeVisible({ timeout: 30_000 });
     expect(await trChip.count(), "우상단 폴백은 없다").toBe(0);
-    /*
-     * 2026-09-24 지시04 §A: idle 에서는 「SENSOR」 텍스트 칩이 아니라 주행 중 접힘과
-     * 같은 형태 — 캐럿 폭에 LED 하나만 남긴다(D7, 미니맵 라운드 형태 재사용).
-     * 텍스트 칩은 stops 가 하나라도 잡혀야(setup·ready-to-start) 돌아온다.
-     */
-    expect(await dockChip.count(), "idle 에서는 텍스트 칩이 아니라 캐럿 LED 만 보인다").toBe(0);
+    expect(await dockChip.count(), "idle 에서는 텍스트 칩이 아니라 LED 만 보인다").toBe(0);
+    expect(await chip.count(), "접힌 idle 에서는 센서 알약이 없다").toBe(0);
     expect(
-      await page.locator(".route-dock__caret .route-dock__caret-led").count(),
-      "idle 에서도 센서 LED 는 캐럿 안에 있다",
+      await page.locator(".route-dock__led-toggle").count(),
+      "idle 에서도 센서 LED 는 RouteDock 에 있다",
     ).toBe(1);
 
     /*
@@ -115,10 +111,9 @@ test.describe("센서 칩 — RouteDock 이전", () => {
       expect(p.position, `${p.sel} 는 스택에 좌표를 맡겨야 한다`).toBe("static");
     }
     // 첫 화면의 dock 은 접힌 채여야 한다 — 빈 패널로 지도를 가리지 않는다
-    // idle 캐럿은 더 이상 「펼치기」가 아니라 눌러서 바로 센서 시트를 연다(§A3).
     await expect(
-      page.getByRole("button", { name: /센서 설정 열기/ }),
-      "idle 에서는 캐럿이 접힌 채 · 누르면 바로 센서 시트",
+      page.getByRole("button", { name: "경로 패널 펼치기" }),
+      "idle 에서는 LED만 보이고 누르면 패널이 펼쳐진다",
     ).toBeVisible();
     // 부팅 직후 연결 안내가 화면을 덮은 채로 찍히지 않도록 지도가 안정된 뒤 촬영
     await expect(page.locator(".mapboxgl-canvas").first()).toBeVisible({ timeout: 30_000 });
@@ -185,8 +180,8 @@ test.describe("센서 칩 — RouteDock 이전", () => {
       };
       return {
         shell: pick(".route-dock__shell"),
-        caret: pick(".route-dock__caret"),
-        chip: pick(".route-dock__top .hud-cadence"),
+        caret: pick(".route-dock__fold"),
+        chip: pick(".route-dock__head .hud-cadence"),
         panel: pick(".route-dock__panel"),
       };
     });
@@ -244,12 +239,13 @@ test.describe("센서 칩 — RouteDock 이전", () => {
     const grid: Record<string, Record<string, boolean>> = {};
     grid["ready-to-start"] = await bothFoldStates(page, dockChip);
 
-    await startRide(page); // → riding (2026-09-28 Chief: 자동 접힘 없음 — 펼친 채 남는다)
-    await expect(page.getByRole("button", { name: "경로 패널 접기" })).toBeVisible({
+    await startRide(page); // → riding (2026-10-24 Chief: 주행 시작 자동 접힘, 펼치면 알약)
+    await expect(page.getByRole("button", { name: "경로 패널 펼치기" })).toBeVisible({
       timeout: 20_000,
     });
-    expect(await dockChip.count(), "주행 중에도 칩은 DOM 에 있다").toBe(1);
-    await expect(dockChip, "주행 중에도 센서가 보여야 한다").toBeVisible();
+    expect(await dockChip.count(), "접힌 주행 중에는 알약이 없다").toBe(0);
+    await page.getByRole("button", { name: "경로 패널 펼치기" }).click();
+    await expect(dockChip, "주행 중 펼치면 센서 알약이 있어야 한다").toBeVisible();
     await page.screenshot({ path: path.join(OUT_DIR, "03-riding-expanded.png") });
     grid.riding = await bothFoldStates(page, dockChip);
 
@@ -263,7 +259,7 @@ test.describe("센서 칩 — RouteDock 이전", () => {
     measurements.foldGrid = grid;
     for (const [stage, folds] of Object.entries(grid)) {
       for (const [fold, visible] of Object.entries(folds)) {
-        expect(visible, `${stage} · ${fold} 에서 센서 칩이 보여야 한다`).toBe(true);
+        expect(visible, `${stage} · ${fold} 에서 센서 접근이 있어야 한다`).toBe(true);
       }
     }
 
@@ -294,7 +290,7 @@ test.describe("센서 칩 — RouteDock 이전", () => {
     await expect(setStart, "지도 지점 팝업").toBeVisible({ timeout: 20_000 });
     await setStart.click();
 
-    const dockChip = page.locator(".route-dock__top .hud-cadence");
+    const dockChip = page.locator(".route-dock__head .hud-cadence");
     await expect(dockChip, "setup 에서 dock 이 센서를 그린다").toBeVisible({ timeout: 20_000 });
     expect(await page.locator(".map-hud__tr .hud-cadence").count(), "우상단 폴백 없음").toBe(0);
 
@@ -315,9 +311,10 @@ async function bothFoldStates(page: Page, dockChip: Locator) {
   const out: Record<string, boolean> = {};
   const collapse = page.getByRole("button", { name: "경로 패널 접기" });
   const expand = page.getByRole("button", { name: "경로 패널 펼치기" });
+  const led = page.locator(".route-dock__led-toggle");
 
   if (await expand.isVisible()) {
-    out.collapsed = await dockChip.isVisible();
+    out.collapsed = await led.isVisible();
     await expand.click();
     await expect(collapse).toBeVisible();
     out.expanded = await dockChip.isVisible();
@@ -327,7 +324,7 @@ async function bothFoldStates(page: Page, dockChip: Locator) {
     out.expanded = await dockChip.isVisible();
     await collapse.click();
     await expect(expand).toBeVisible();
-    out.collapsed = await dockChip.isVisible();
+    out.collapsed = await led.isVisible();
     await expand.click();
     await expect(collapse).toBeVisible();
   }
@@ -349,12 +346,7 @@ async function guestStart(page: Page) {
 }
 
 async function armRideInput(page: Page) {
-  await page.getByRole("button", { name: /케이던스 센서/ }).click();
-  const sheet = page.getByRole("dialog", { name: "케이던스 센서" });
-  await expect(sheet, "칩 클릭 → 센서 시트(동작 보존)").toBeVisible({ timeout: 15_000 });
-  await sheet.getByRole("button", { name: "센서 없음" }).click();
-  await sheet.getByRole("button", { name: "센서 설정 닫기" }).click();
-  await expect(sheet).toBeHidden({ timeout: 10_000 });
+  await prepareManualRideInput(page);
 }
 
 async function loadIntroCourse(page: Page) {

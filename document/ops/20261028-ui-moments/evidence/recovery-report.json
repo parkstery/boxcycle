@@ -1,0 +1,21 @@
+{
+  "scanned": 7737,
+  "recovered": [
+    {
+      "path": "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/riding-collapsed-zoom.png",
+      "from": "C:\\20.HDev\\boxcycle\\document\\ops\\20261027-ride-interval\\evidence\\rerun\\ui-revalidation\\riding-collapsed-zoom.png"
+    }
+  ],
+  "unrecovered": [
+    "document/ops/20261023-ui-redesign/evidence/inline-history/after-first-visit-800x360.png",
+    "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-667x300.png",
+    "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-800x360.png",
+    "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-667x300.png",
+    "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-800x360.png",
+    "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/paused-collapsed-800x360.png",
+    "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/ready-collapsed-800x360.png",
+    "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/riding-collapsed-667x300.png",
+    "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/riding-collapsed-800x360.png",
+    "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/riding-expanded-800x360.png"
+  ]
+}

@@ -52,13 +52,13 @@ test.describe("Quick Camera 캡처 (지시04)", () => {
     await expect(qc).toBeVisible({ timeout: 15_000 });
     await shot("qc-bar.png");
 
-    await qc.getByRole("button", { name: /평면 카메라/ }).click();
+    await qc.getByRole("button", { name: /카메라 메뉴/ }).click();
     await qc.getByRole("menuitemradio", { name: "평면 카메라 · 전체 경로" }).click();
     await shot("qc1-routefit.png");
-    await qc.getByRole("button", { name: /평면 카메라/ }).click();
+    await qc.getByRole("button", { name: /카메라 메뉴/ }).click();
     await qc.getByRole("menuitemradio", { name: "평면 카메라 · 500m 상공" }).click();
     await shot("qc1-aerial500.png");
-    await qc.getByRole("button", { name: /평면 카메라/ }).click();
+    await qc.getByRole("button", { name: /카메라 메뉴/ }).click();
     await qc.getByRole("menuitemradio", { name: "평면 카메라 · 20m 상공" }).click();
     await shot("qc1-aerial20.png");
 

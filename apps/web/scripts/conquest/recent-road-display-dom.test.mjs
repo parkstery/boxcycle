@@ -10,7 +10,7 @@ const fixture = `
 import React,{useState,useEffect} from "react";
 import {createRoot} from "react-dom/client";
 import {useRecentRoadDisplay} from "/src/hooks/useRecentRoadDisplay.ts";
-import {MapViewSheet} from "/src/components/map/MapViewSheet.tsx";
+import {UserInfoSheet} from "/src/components/UserInfoSheet.tsx";
 const route={type:"LineString",coordinates:[[127,37.5],[127,37.502]]};
 function App(){
  const [input,setInput]=useState({uid:"a",active:false,persisted:null,cellIds:[],route,traveled:120,from:0,ended:null});
@@ -18,14 +18,12 @@ function App(){
  const display=useRecentRoadDisplay(input);
  useEffect(()=>{window.api={setInput:(patch)=>setInput(s=>({...s,...patch})),result:display.onResult,timeout:display.onTimeout};window.shown=display.geometry;window.mode=mode;});
  const noop=()=>{};
- return React.createElement(MapViewSheet,{open:true,onClose:noop,
- coverageOverlayMode:"off",onCoverageOverlayMode:noop,enable3D:false,onEnable3D:noop,
- rideActive:input.active,rideCameraDistanceM:50,onRideCameraDistanceM:noop,
- conquestDisplayMode:mode,conquestHasRecentGeometry:display.geometry.length>0,onConquestDisplayMode:setMode,onShowAllConquest:noop});
+ return React.createElement(UserInfoSheet,{open:true,onClose:noop,user:null,recentSessions:[],isGuest:true,tier:null,subscriptionStatus:null,isPaid:false,busy:false,onServiceExit:noop,
+ conquestDisplayMode:mode,conquestHasRecentGeometry:display.geometry.length>0,onConquestDisplayMode:setMode});
 }
 createRoot(document.getElementById("root")).render(React.createElement(React.StrictMode,null,React.createElement(App)));
 `;
-test("actual React hook and map sheet retain end-of-ride roads at phone landscape sizes", { timeout: 60000 }, async () => {
+test("actual React hook and account sheet retain end-of-ride roads at phone landscape sizes", { timeout: 60000 }, async () => {
   const server = await createServer({ root, logLevel: "error", server: { host: "127.0.0.1", port: 0 }, plugins: [{
     name: "recent-road-test", enforce: "pre",
     resolveId(id) { if (id === "/recent-fixture.js") return "\0recent-fixture"; },

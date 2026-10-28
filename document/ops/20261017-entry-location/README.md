@@ -1,3 +1,5 @@
+2026-10-28 최신 [첫 지도 마지막 주행 종료점 우선](../20261028-entry-last-ride/README.md): 유효한 실제 종료 좌표가 있으면 위치 공유 없이 그곳으로 이동한다. 좌표가 없을 때 아래 기존 위치 선택 흐름을 유지. 회귀36·selector19·빌드/의존PASS, 미배포.
+
 2026-10-18 최신 [검수18](04-review-18.md): Chief세버튼거부반영, 별도native복구버튼제거·기존두줄/기본위치 두버튼만유지. 로컬36시험/실앱button2·한국도착/selector19/타입/lint PASS. 이전17복구UI대체, 커밋·배포없음.
 
 2026-10-18 최신 [검수17](04-review-17.md): 추가화면은 localhost5000·위치차단. native허용복구복원+초기2D easeTo 위치비행취소교정. 로컬PASS/Chief실기기확인대기, 단위35/Edge·Chrome브라우저/selector19/lint/build. 커밋·배포없음.

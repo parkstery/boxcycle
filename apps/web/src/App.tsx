@@ -4,6 +4,7 @@ import { peerHudLabels, type PeerHudEntry } from "./lib/peerMotion/peerHud";
 import { SignUpNicknameCard } from "./components/auth/SignUpNicknameCard";
 import { ProfileEditSheet } from "./components/ProfileEditSheet";
 import { RideRoutePanel } from "./components/ride/RideRoutePanel";
+import { IntervalRouteConfirm } from "./components/ride/IntervalRouteConfirm";
 import type { FollowMode } from "./lib/map/mapGlobeView";
 import { PublicRouteRequestModal } from "./components/PublicRouteRequestModal";
 import { useTrailSession } from "./hooks/useTrailSession";
@@ -32,6 +33,8 @@ import {
 } from "./lib/camera/rideUserZoom";
 
 import { rideDistanceAlongRoute } from "./lib/ride/liveLocationSnapshot";
+import { getRideIntervalTotalSec } from "./lib/ride/rideInterval";
+import { DISTANCE_AUTO_ROUTE_FALLBACK_KMH, isRouteShorterThanInterval, resolveUserAverageKmh } from "./lib/route/distanceAutoRouteEta";
 import { AuthGateCard } from "./components/auth/AuthGateCard";
 import { AuthSessionGate } from "./components/auth/AuthSessionGate";
 import { AppIntroScreen } from "./components/auth/AppIntroScreen";
@@ -46,8 +49,9 @@ import { startGuestActivityWatch } from "./lib/identity/guestActivity";
 import { postGuestActivity } from "./lib/identity/repo/guestLifecycleApi";
 import { useUserTier } from "./hooks/useUserTier";
 import { useRideStartPulseKey } from "./hooks/useRideStartPulseKey";
+import { useRideInterval } from "./hooks/useRideInterval";
 import { RideSummarySheet } from "./components/ride/RideSummarySheet";
-import { LeaderboardGlanceChip, LeaderboardGlancePanel } from "./components/leaderboard/LeaderboardGlance";
+import { LeaderboardGlancePanel } from "./components/leaderboard/LeaderboardGlance";
 import { buildGlanceLiveRows } from "./components/leaderboard/leaderboardGlanceSnapshot";
 import { computeRideRankChangeLine } from "./components/leaderboard/leaderboardLiveRank";
 import { useLeaderboardGlance } from "./hooks/useLeaderboardGlance";
@@ -105,12 +109,12 @@ import {
 } from "./lib/trail/trailDisplayNumberCache";
 import { RotateOverlay } from "./components/RotateOverlay";
 import { DevLabPanels } from "./components/devLabs/DevLabPanels";
-import { MapViewSheet } from "./components/map/MapViewSheet";
 import { EdgePanelHandle } from "./components/ui/EdgePanelHandle";
 import { UserInfoSheet } from "./components/UserInfoSheet";
 import { AdminDashboardSheet } from "./components/admin/AdminDashboardSheet";
 import { LeaderboardSheet } from "./components/leaderboard/LeaderboardSheet";
 import { RideSettingsSheet } from "./components/ride/RideSettingsSheet";
+import { RideIntervalSettingsSheet } from "./components/ride/RideIntervalSettingsSheet";
 import { RouteClearBlockedDialog } from "./components/ride/RouteClearBlockedDialog";
 import { isRouteClearBlockedByRide } from "./lib/route/routeClearGuard";
 import { useCalorieProfile } from "./hooks/useCalorieProfile";
@@ -146,7 +150,7 @@ import {
 import { canUserJoinTrail, resolveNewTrailVisibility } from "./lib/trail/trailAccessPolicy";
 import { replaceTrailInUrl } from "./lib/trail/trailUrl";
 import type { LngLat, LineStringGeometry } from "./lib/geo/geo";
-import { boundsFromLineCoordinates, getPointOnRouteByDistance, lineStringLengthMeters } from "./lib/geo/geo";
+import { boundsFromLineCoordinates, distanceOnRouteByProjectedPoint, getPointOnRouteByDistance, lineStringLengthMeters } from "./lib/geo/geo";
 import { MAX_ROUTE_WAYPOINTS } from "./lib/geo/routeWaypoints";
 import { lockRouteWorkspaceDuringRide } from "./lib/route/routeWorkspaceLock";
 import { resolveRideContinuationSetup } from "./lib/ride/rideContinuationSetup";
@@ -190,7 +194,6 @@ import { CadenceSensorSheet } from "./components/sensor";
 import { useConquest } from "./hooks/useConquest";
 import { useLiveConquestPaint, shouldShowAlreadyOwnedHint } from "./hooks/useLiveConquestPaint";
 import { ROUTE_COMPLETION_RATIO_THRESHOLD, resumeOffsetMetersFrom } from "./lib/ride/rideRecordPolicy";
-import type { CoverageOverlayMode } from "./lib/activity/coverageOverlayMode";
 import { type RouteProfile } from "./services/mapboxDirections";
 import { FUNCTIONS_REGION, MAPBOX_TOKEN } from "./app/env";
 import { useAppSheetNavigation } from "./app/useAppSheetNavigation";
@@ -323,11 +326,12 @@ export default function App() {
     setRideBgmEnabled,
     rideCoachingBannerVisible,
     setRideCoachingBannerVisible,
+    rideMomentSoundEnabled,
+    setRideMomentSoundEnabled,
   } = useRideFeedbackPreferences();
   const {
     menuOpen,
     placeSearchOpen,
-    mapViewSheetOpen,
     userInfoSheetOpen,
     rideSettingsSheetOpen,
     cadenceSensorSheetOpen,
@@ -335,7 +339,6 @@ export default function App() {
     leaderboardSheetOpen,
     setMenuOpen,
     setPlaceSearchOpen,
-    setMapViewSheetOpen,
     setUserInfoSheetOpen,
     setRideSettingsSheetOpen,
     setCadenceSensorSheetOpen,
@@ -343,15 +346,12 @@ export default function App() {
     setLeaderboardSheetOpen,
     openMenuPanel,
     openPlaceSearchPanel,
-    openMapViewPanel,
     openUserInfoPanel,
     openRideSettingsPanel,
     openCadenceSensorPanel,
     openAdminDashboardPanel,
     openLeaderboardPanel,
   } = useAppSheetNavigation();
-  const [menuReveal, setMenuReveal] = useState<number | null>(null);
-  const [mapViewReveal, setMapViewReveal] = useState<number | null>(null);
   const [externalCameraJump, setExternalCameraJump] = useState<{
     lngLat: LngLat;
     zoom?: number;
@@ -366,7 +366,6 @@ export default function App() {
   const menuFirestorePrimedUidRef = useRef<string | null>(null);
   const [subscriptionFlash, setSubscriptionFlash] = useState<string | null>(null);
   const [summarySheetVisible, setSummarySheetVisible] = useState(false);
-  const [coverageOverlayMode, setCoverageOverlayMode] = useState<CoverageOverlayMode>("off");
   const [conquestDisplayMode, setConquestDisplayMode] = useState<ConquestDisplayMode>("all");
   /** 미완료 쿼터 초과 유도 — 안내 배너 문구와 「내 경로」 탭 오픈 신호(nonce) */
   const [savedQuotaNotice, setSavedQuotaNotice] = useState<string | null>(null);
@@ -557,7 +556,19 @@ export default function App() {
     onRouteDirectionsErrorRef,
   });
   const leaderboardGlance = useLeaderboardGlance(user, rideStatus !== "idle");
+  const { enabled: rideIntervalEnabled, onEnabled: handleRideIntervalEnabled, view: rideInterval, config: rideIntervalConfig, onConfig: handleRideIntervalConfig, runKey: rideIntervalRunKey } =
+    useRideInterval(rideStatus, rideMetrics.accumulatedMs);
+  const [rideIntervalSettingsOpen, setRideIntervalSettingsOpen] = useState(false);
+  const [intervalSettingsFromRideSettings, setIntervalSettingsFromRideSettings] = useState(false);
+  const [intervalRouteConfirmation, setIntervalRouteConfirmation] = useState<{ fromStart: boolean; key: string; speedKmh: number } | null>(null);
+  const [coachingResumeRunKey, setCoachingResumeRunKey] = useState<string | null>(null);
+  useEffect(() => {
+    if (rideInterval?.phase !== "complete" || rideStatus !== "running") return;
+    const id = window.setTimeout(() => setCoachingResumeRunKey(rideIntervalRunKey), 4000);
+    return () => window.clearTimeout(id);
+  }, [rideInterval?.phase, rideIntervalRunKey, rideStatus]);
   const sessionPedalQualifiedRef = useRef(false);
+  const [terrainFallback, setTerrainFallback] = useState(false);
   // 주행·일시정지 동안 폰 화면이 꺼지지 않게(10-23)
   useScreenWakeLock(rideStatus !== "idle");
 
@@ -593,6 +604,8 @@ export default function App() {
     if (rideStatus === "idle" && rideCameraRestoreRef.current) {
       const { follow, zoom } = rideCameraRestoreRef.current;
       rideCameraRestoreRef.current = null;
+      setEnable3D(false);
+      setTerrainFallback(false);
       setFollowMode(follow);
       setMapZoom(zoom);
       // 주행 시작 때 들어간 퀵 카메라 1번을 놓는다 — 위성은 사용자가 바꾸지 않았으면 원래 지도로
@@ -607,7 +620,7 @@ export default function App() {
     }
   }, [rideStatus, camera1StyleBeforeEnterRef, camera1UserToggledStyleRef, followModeSnapshotRef, mapZoomSnapshotRef, rideCameraRestoreRef, setActiveQuickCamera, setCamera1Mode, setEnable3D, setFollowMode, setLockBaseHeading, setMapStyle, setMapZoom, setRideCameraDistanceM, setRideCameraSpanFloorMode, setRideFollowCameraNonce, setRideJoinBurstNonce]);
 
-  const { recentSessions, setRecentSessions, reloadRecentSessionsFromLocalStorage } =
+  const { recentSessions, recentSessionsLoading, setRecentSessions, reloadRecentSessionsFromLocalStorage } =
     useRecentRideSessions({
       configured,
       user,
@@ -1225,6 +1238,7 @@ export default function App() {
     speedKmh: rideMetrics.appliedSpeedKmh,
     rideTtsEnabled,
     rideBgmEnabled,
+    intervalCoachingActive: rideIntervalEnabled && rideStatus !== "idle" && (rideInterval?.phase !== "complete" || coachingResumeRunKey !== rideIntervalRunKey),
   });
   const rideElevationProfileLoading = rideElevationProfile.loading;
   const { arrivalToastTick, resetArrivalToast, resetArrivalGate } = useRideArrivalAutoEnd({
@@ -1446,7 +1460,7 @@ export default function App() {
       : null;
   })();
 
-  function handleStartRide(fromStart?: boolean) {
+  function handleStartRide(fromStart?: boolean, acceptedWarningKey?: string) {
     if (!routeGeometry || rideStatus !== "idle" || !user || !configured || trailStartBusy) return;
     // 이름 없는 라이더는 달리지 않는다 — 닉네임 카드부터(가입 카드를 건너뛴 경로의 마지막 확인)
     if (memberNeedsNickname(user)) {
@@ -1478,7 +1492,6 @@ export default function App() {
      * 「거리」를 끌 때와 **같은 정리**(`disarm`)를 쓴다. 팝업·도크 닫기는 그 표면을 소유한
      * MapView 가 `rideActive` 로 받아 처리한다.
      */
-    disarm();
     // MapHud FAB 등 onClick 직결 호출은 이벤트 객체가 첫 인자로 올 수 있어 `=== true` 로만 판정
     const restart = fromStart === true;
     /**
@@ -1490,6 +1503,17 @@ export default function App() {
       !restart && resumeRatio != null && loadedSavedRouteIdRef.current === resumeCandidateId && routeGeometry
         ? resumeOffsetMetersFrom(resumeRatio, routeDistanceMeters)
         : 0;
+    const estimateKmh = resolveUserAverageKmh(userTier.mileageTotalMeters, userTier.mileageTotalSec) ?? DISTANCE_AUTO_ROUTE_FALLBACK_KMH;
+    const remainingMeters = Math.max(0, routeDistanceMeters - rideStartOffsetMeters);
+    if (rideIntervalEnabled && isRouteShorterThanInterval(remainingMeters, estimateKmh, getRideIntervalTotalSec(rideIntervalConfig))) {
+      const key = JSON.stringify([routeGeometry, remainingMeters, estimateKmh, rideIntervalConfig, restart]);
+      if (acceptedWarningKey !== key) {
+        setIntervalRouteConfirmation({ fromStart: restart, key, speedKmh: estimateKmh });
+        return;
+      }
+    }
+    setCoachingResumeRunKey(null);
+    disarm();
     setTrailStartBusy(true);
     const courseId = basicActiveHubCourseId ?? activeOfficialCourseId;
     const courseTitle = courseId
@@ -1836,7 +1860,12 @@ export default function App() {
   if (!entryArmed) entryLocationSessionRef.current = false;
   else if (rideStatus === "idle") entryLocationSessionRef.current = true;
   const entryLocationEnabled = entryLocationSessionRef.current;
-  const entryLocation = useEntryLocation(entryLocationEnabled);
+  // 실제 종료 좌표 우선. 미완주 경로 슬롯의 최대 진행률 지점과는 별개다.
+  const lastRideEntryTarget = useMemo(() => {
+    const target = resolveNextRideView({ rides: recentSessions, savedRoutes: [], activeRouteId: null })?.target;
+    return target ? { center: target.anchorLngLat, zoom: MAP_FALLBACK_ZOOM } : null;
+  }, [recentSessions]);
+  const entryLocation = useEntryLocation(entryLocationEnabled && !recentSessionsLoading, lastRideEntryTarget);
   const entryLocationPrompt =
     entryLocation.phase === "checking" ||
     entryLocation.phase === "choice" ||
@@ -2078,9 +2107,9 @@ export default function App() {
       entryLocation.phase === "ready" &&
       !menuOpen &&
       !placeSearchOpen &&
-      !mapViewSheetOpen &&
       !userInfoSheetOpen &&
       !rideSettingsSheetOpen &&
+      !rideIntervalSettingsOpen &&
       !cadenceSensorSheetOpen &&
       !publicRouteRequestModalRoute &&
       !needsGuestEntry,
@@ -2458,63 +2487,6 @@ export default function App() {
     [setActiveQuickCamera, setFollowMode, setLockBaseHeading],
   );
 
-  const handleMenuReveal = useCallback(
-    (progress: number | null) => {
-      setMenuReveal(progress);
-      if (progress == null) return;
-      setMapViewSheetOpen(false);
-      setMapViewReveal(null);
-      setPlaceSearchOpen(false);
-      setUserInfoSheetOpen(false);
-      setRideSettingsSheetOpen(false);
-      setCadenceSensorSheetOpen(false);
-    },
-    [
-      setMapViewSheetOpen,
-      setPlaceSearchOpen,
-      setUserInfoSheetOpen,
-      setRideSettingsSheetOpen,
-      setCadenceSensorSheetOpen,
-    ],
-  );
-
-  const handleMapViewReveal = useCallback(
-    (progress: number | null) => {
-      setMapViewReveal(progress);
-      if (progress == null) return;
-      setMenuOpen(false);
-      setMenuReveal(null);
-      setPlaceSearchOpen(false);
-      setUserInfoSheetOpen(false);
-      setRideSettingsSheetOpen(false);
-      setCadenceSensorSheetOpen(false);
-    },
-    [
-      setMenuOpen,
-      setPlaceSearchOpen,
-      setUserInfoSheetOpen,
-      setRideSettingsSheetOpen,
-      setCadenceSensorSheetOpen,
-    ],
-  );
-
-  const openMapViewFromEdge = useCallback(() => {
-    setMenuOpen(false);
-    setMenuReveal(null);
-    setPlaceSearchOpen(false);
-    setUserInfoSheetOpen(false);
-    setRideSettingsSheetOpen(false);
-    setCadenceSensorSheetOpen(false);
-    setMapViewSheetOpen(true);
-  }, [
-    setMenuOpen,
-    setPlaceSearchOpen,
-    setUserInfoSheetOpen,
-    setRideSettingsSheetOpen,
-    setCadenceSensorSheetOpen,
-    setMapViewSheetOpen,
-  ]);
-
   /**
    * localStorage 복원 지역 — 첫 idle 진입 시 1회만 카메라 점프.
    * 사용자가 지도를 움직인 뒤 재점프하지 않는다(at 가드).
@@ -2670,6 +2642,25 @@ export default function App() {
     ],
   );
 
+  const rideControlPanel = (
+    <RideControlBar
+      stage={stage}
+      routeLoading={routeLoading}
+      routeSetupToken={routeSetupToken}
+      startPulseKey={rideStartPulseKey}
+      canStartRide={canStartRideWithInput}
+      onStartRide={handleStartRide}
+      onPauseRide={handlePause}
+      onResumeRide={handleResume}
+      onEndRide={handleEndRideWithTrailCleanup}
+      onModifyFromPause={handleModifyFromPause}
+      resumeRatio={resumeRatio}
+      onAbandonResume={resumeRatio != null ? rideResumeSlot.abandon : null}
+      editLocked={routeMenuLockedForProd}
+      nextRideVisible={Boolean(nextRideCardVisible && nextRideView)}
+    />
+  );
+
   const routeDockPanel = (
     <RouteDock
       stage={stage}
@@ -2681,27 +2672,9 @@ export default function App() {
       editLocked={routeMenuLockedForProd}
       cadence={cadenceHud}
       sensorAttention={Boolean(routeGeometry) && !routeLoading && !rideInputReady}
-    />
-  );
-
-  const rideControlPanel = (
-    <RideControlBar
-      stage={stage}
-      routeLoading={routeLoading}
-      routeSetupToken={routeSetupToken}
-      startPulseKey={rideStartPulseKey}
-      canStartRide={canStartRideWithInput}
-      sensorAttention={Boolean(routeGeometry) && !routeLoading && !rideInputReady}
-      onStartRide={handleStartRide}
-      onPauseRide={handlePause}
-      onResumeRide={handleResume}
-      onEndRide={handleEndRideWithTrailCleanup}
-      onModifyFromPause={handleModifyFromPause}
-      resumeRatio={resumeRatio}
-      onAbandonResume={resumeRatio != null ? rideResumeSlot.abandon : null}
-      editLocked={routeMenuLockedForProd}
-      cadence={cadenceHud}
-      nextRideVisible={Boolean(nextRideCardVisible && nextRideView)}
+      onOpenIntervalSettings={() => { setIntervalSettingsFromRideSettings(false); setRideIntervalSettingsOpen(true); }}
+      intervalEnabled={rideIntervalEnabled}
+      rideControls={rideControlPanel}
     />
   );
 
@@ -2867,10 +2840,42 @@ export default function App() {
   const mapHudLeaderboard = useMemo(() => {
     if (!leaderboardGlanceView) return {};
     return {
-      leaderboardGlanceChip: <LeaderboardGlanceChip {...leaderboardGlanceView} />,
       leaderboardGlancePanel: <LeaderboardGlancePanel {...leaderboardGlanceView} />,
     };
   }, [leaderboardGlanceView]);
+  const waypointMeters = useMemo(() => {
+    if (!routeGeometry || routeWaypoints.length === 0) return [];
+    return routeWaypoints
+      .map((point) => distanceOnRouteByProjectedPoint(routeGeometry, point))
+      .filter((meters): meters is number => meters != null && Number.isFinite(meters) && meters > 0);
+  }, [routeGeometry, routeWaypoints]);
+  const rideMomentsInput = useMemo(() => ({
+    status: rideStatus,
+    elapsedMs: rideMetrics.accumulatedMs,
+    routeMeters: routeDistanceMeters,
+    traveledMeters: cumulativeDistanceMeters,
+    waypointMeters,
+    newRoadKm: conquestLiveMeters != null ? conquestLiveMeters / 1000 : null,
+    intervalRunKey: rideIntervalEnabled ? rideIntervalRunKey : "",
+    ended: lastRideResult
+      ? {
+          reason: lastRideResult.routeCompleted ? ("finish" as const) : ("stop" as const),
+          sessionKm: lastRideResult.sessionDistanceMeters / 1000,
+        }
+      : null,
+    soundEnabled: rideMomentSoundEnabled,
+  }), [
+    rideStatus,
+    rideMetrics.accumulatedMs,
+    routeDistanceMeters,
+    cumulativeDistanceMeters,
+    waypointMeters,
+    conquestLiveMeters,
+    lastRideResult,
+    rideMomentSoundEnabled,
+    rideIntervalEnabled,
+    rideIntervalRunKey,
+  ]);
   const summaryRankChange = useMemo(() => {
     if (!summaryVisible || !lastRideResult || !user) return null;
     const snap = leaderboardGlance.atRideStart;
@@ -2948,11 +2953,10 @@ export default function App() {
       !needsGuestEntry &&
       !needsAuthCard &&
       !needsNicknameCard &&
-      !menuOpen &&
-      !mapViewSheetOpen &&
       !placeSearchOpen &&
       !userInfoSheetOpen &&
       !rideSettingsSheetOpen &&
+      !rideIntervalSettingsOpen &&
       !cadenceSensorSheetOpen &&
       !publicRouteRequestModalRoute &&
       !profileEditOpen,
@@ -2986,15 +2990,13 @@ export default function App() {
                 onOpenUserInfo: openUserInfoPanel,
                 userInfoOpen: userInfoSheetOpen,
                 authGateVisualDismissed: needsAuthCard,
-                onOpenMapView: openMapViewPanel,
-                mapViewOpen: mapViewSheetOpen,
                 coachData,
                 coachLineEnabled: rideCoachingBannerVisible,
+                rideInterval,
+                intervalTtsEnabled: rideTtsEnabled,
+                intervalCadenceRpm: bleCrankRpm.uiState === "connected" ? bleCrankRpm.crankRpm : null,
                 metrics: hudMetrics,
-                cadenceRpm:
-                  rideStatus === "running" && bleCrankRpm.crankRpm != null
-                    ? bleCrankRpm.crankRpm
-                    : null,
+                rideMoments: rideMomentsInput,
                 onClearPins: handleClearPins,
                 routeError: null,
                 onResumeFromPause: handleResume,
@@ -3031,7 +3033,6 @@ export default function App() {
                   (`.map-hud__br`)은 주행 중에만 뜨므로 우하단에서 부딪힐 상대가 없다.
                 */}
                 {nextRideCard}
-                {rideControlPanel}
               </>
             }
             mapView={{
@@ -3066,11 +3067,12 @@ export default function App() {
               bootFlyHold,
               followMode,
               enable3D,
+              onTerrainFallbackChange: setTerrainFallback,
               onMapZoom: setMapZoom,
               mapZoomStepRequest,
               onMapViewport,
               onMapLodViewport,
-              coverageOverlayMode,
+              coverageOverlayMode: "off",
               routeProfile: profile,
               onRouteProfile: handleMapRouteProfile,
               routeTokenInsufficient,
@@ -3174,15 +3176,13 @@ export default function App() {
               onOpenUserInfo: openUserInfoPanel,
               userInfoOpen: userInfoSheetOpen,
               authGateVisualDismissed: needsAuthCard,
-              onOpenMapView: openMapViewPanel,
-              mapViewOpen: mapViewSheetOpen,
               coachData,
               coachLineEnabled: rideCoachingBannerVisible,
+              rideInterval,
+              intervalTtsEnabled: rideTtsEnabled,
+              intervalCadenceRpm: bleCrankRpm.uiState === "connected" ? bleCrankRpm.crankRpm : null,
               metrics: hudMetrics,
-              cadenceRpm:
-                rideStatus === "running" && bleCrankRpm.crankRpm != null
-                  ? bleCrankRpm.crankRpm
-                  : null,
+              rideMoments: rideMomentsInput,
               onClearPins: handleClearPins,
               routeError: null,
               onResumeFromPause: handleResume,
@@ -3200,6 +3200,9 @@ export default function App() {
                       onSelect: handleQuickCameraSelect,
                       onSelectFlat: (mode) => handleQuickCameraSelect(1, mode),
                       camera1Mode,
+                      enable3D,
+                      terrainFallback,
+                      onEnable3D: setEnable3D,
                     }
                   : null,
               mapControls: {
@@ -3311,27 +3314,29 @@ export default function App() {
               setMenuOpen(false);
               setPlaceSearchMarkerLngLat(null);
             }}
-            onDragProgress={handleMenuReveal}
           />
-          <EdgePanelHandle
-            edge="right"
-            open={mapViewSheetOpen}
-            panelId="map-view-sheet"
-            label="맵 뷰 열기"
-            onOpen={openMapViewFromEdge}
-            onClose={() => setMapViewSheetOpen(false)}
-            onDragProgress={handleMapViewReveal}
-          />
+          {leaderboardGlanceView ? (
+            <EdgePanelHandle
+              edge="right"
+              open={leaderboardGlance.panelOpen}
+              panelId="lb-glance-panel"
+              label="순위 열기"
+              onOpen={() => {
+                if (!leaderboardGlance.panelOpen) leaderboardGlance.togglePanel();
+              }}
+              onClose={() => {
+                if (leaderboardGlance.panelOpen) leaderboardGlance.togglePanel();
+              }}
+            />
+          ) : null}
         </>
       ) : null}
 
       <MenuPanel
         open={menuOpen}
-        revealProgress={menuReveal}
         onClose={() => {
           setMenuOpen(false);
           setPlaceSearchMarkerLngLat(null);
-          setMenuReveal(null);
         }}
       >
         <RideRoutePanel
@@ -3449,6 +3454,14 @@ export default function App() {
 
       <RideSettingsSheet
         open={rideSettingsSheetOpen}
+        rideIntervalConfig={rideIntervalConfig}
+        onOpenRideIntervalSettings={() => {
+          setRideSettingsSheetOpen(false);
+          setIntervalSettingsFromRideSettings(true);
+          setRideIntervalSettingsOpen(true);
+        }}
+        rideIntervalEnabled={rideIntervalEnabled}
+        onRideIntervalEnabled={handleRideIntervalEnabled}
         onClose={() => setRideSettingsSheetOpen(false)}
         rideTtsEnabled={rideTtsEnabled}
         onRideTtsEnabled={setRideTtsEnabled}
@@ -3465,6 +3478,30 @@ export default function App() {
         onEditProfile={() => {
           setRideSettingsSheetOpen(false);
           setProfileEditOpen(true);
+        }}
+        rideMomentSoundEnabled={rideMomentSoundEnabled}
+        onRideMomentSoundEnabled={setRideMomentSoundEnabled}
+      />
+
+      <RideIntervalSettingsSheet
+        open={rideIntervalSettingsOpen}
+        config={rideIntervalConfig}
+        restartOnApply={rideIntervalEnabled && rideStatus !== "idle"}
+        onApply={handleRideIntervalConfig}
+        onClose={() => {
+          setRideIntervalSettingsOpen(false);
+          if (intervalSettingsFromRideSettings) setRideSettingsSheetOpen(true);
+        }}
+      />
+
+      <IntervalRouteConfirm
+        open={intervalRouteConfirmation !== null}
+        speedKmh={intervalRouteConfirmation?.speedKmh ?? 20}
+        onCancel={() => setIntervalRouteConfirmation(null)}
+        onConfirm={() => {
+          const pending = intervalRouteConfirmation;
+          setIntervalRouteConfirmation(null);
+          if (pending) handleStartRide(pending.fromStart, pending.key);
         }}
       />
 
@@ -3485,29 +3522,6 @@ export default function App() {
         onDisconnect={bleCrankRpm.disconnect}
         onChooseManual={switchRideInputToManual}
         onChooseCadence={switchRideInputToCadence}
-      />
-
-      <MapViewSheet
-        open={mapViewSheetOpen}
-        revealProgress={mapViewReveal}
-        onClose={() => {
-          setMapViewSheetOpen(false);
-          setMapViewReveal(null);
-        }}
-        coverageOverlayMode={coverageOverlayMode}
-        onCoverageOverlayMode={setCoverageOverlayMode}
-        enable3D={enable3D}
-        onEnable3D={setEnable3D}
-        rideActive={rideStatus === "running" || rideStatus === "paused"}
-        rideCameraDistanceM={rideCameraDistanceM}
-        onRideCameraDistanceM={handleRideCameraDistancePreset}
-        conquestDisplayMode={conquestDisplayMode}
-        conquestHasRecentGeometry={recentNewRoadGeometry.length > 0}
-        onConquestDisplayMode={(mode) => {
-          if (mode === "recent") focusConquestView(mode);
-          else setConquestDisplayMode(mode);
-        }}
-        onShowAllConquest={() => focusConquestView("all")}
       />
 
       <ProfileEditSheet
@@ -3539,6 +3553,12 @@ export default function App() {
         busy={busy}
         subscriptionFlash={subscriptionFlash}
         conquest={conquestSummary}
+        conquestDisplayMode={conquestDisplayMode}
+        conquestHasRecentGeometry={recentNewRoadGeometry.length > 0}
+        onConquestDisplayMode={(mode) => {
+          setUserInfoSheetOpen(false);
+          focusConquestView(mode);
+        }}
         mileage={
           userTier.mileageTotalMeters != null
             ? {

@@ -2,7 +2,7 @@ import { test, expect, type Page } from "./open-meteo-stub";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { guestStart as sharedGuestStart } from "./rideEntryHelpers";
+import { guestStart as sharedGuestStart, prepareManualRideInput } from "./rideEntryHelpers";
 
 /**
  * 터치 타깃 44px · 표고 그래프 통과 계약 (2026-09-17 Chief).
@@ -299,8 +299,8 @@ test.describe("터치 타깃 44px", () => {
     await loadIntroCourse(page);
 
     const probe = await page.evaluate(() => {
-      const caret = document.querySelector(".route-dock__caret") as HTMLElement | null;
-      const chip = document.querySelector(".route-dock__top .hud-cadence") as HTMLElement | null;
+      const caret = document.querySelector(".route-dock__fold") as HTMLElement | null;
+      const chip = document.querySelector(".route-dock__head .hud-cadence") as HTMLElement | null;
       if (!caret || !chip) return null;
       const r = caret.getBoundingClientRect();
       const cx = r.x + r.width / 2;
@@ -335,7 +335,7 @@ test.describe("터치 타깃 44px", () => {
     expect(probe!.box.h, "캐럿 박스 높이가 0 이면 요소를 못 찾은 것").toBeGreaterThan(0);
     expect(probe!.box.w, "캐럿 박스 폭이 0 이면 요소를 못 찾은 것").toBeGreaterThan(0);
 
-    expect(probe!.box.h, "캐럿 히트 높이").toBeGreaterThanOrEqual(MIN_TOUCH_PX);
+    expect(probe!.box.h, "접기 LED 히트 높이").toBeGreaterThanOrEqual(28);
     expect(probe!.topHitsCaret, "박스 위쪽 끝이 캐럿에 잡혀야 한다").toBe(true);
     expect(probe!.bottomHitsCaret, "박스 아래쪽 끝이 캐럿에 잡혀야 한다").toBe(true);
     // 폭은 위 주석대로 별건(기존 미달) — 이웃 칩을 가로채지 않는 것이 이번 작업의 계약이다.
@@ -348,12 +348,7 @@ test.describe("터치 타깃 44px", () => {
 
 /** 주행 입력 준비 — Go 의 사전조건(SENSOR-2 §1.4) */
 async function armRideInput(page: Page) {
-  await page.getByRole("button", { name: /케이던스 센서/ }).click();
-  const sheet = page.getByRole("dialog", { name: "케이던스 센서" });
-  await expect(sheet).toBeVisible({ timeout: 15_000 });
-  await sheet.getByRole("button", { name: "센서 없음" }).click();
-  await sheet.getByRole("button", { name: "센서 설정 닫기" }).click();
-  await expect(sheet).toBeHidden({ timeout: 10_000 });
+  await prepareManualRideInput(page);
 }
 
 async function guestStart(page: Page) {

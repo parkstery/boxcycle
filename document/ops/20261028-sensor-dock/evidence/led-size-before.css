@@ -1,0 +1,264 @@
+/* White route card — 폭은 주행 중 미니맵과 같은 29.4vw(MINIMAP_WIDTH_RATIO, 2026-10-24 Chief);
+ * 대기 화면은 센서·접기가 맨 위 한 줄. */
+.route-dock-anchor {
+  --route-dock-pad: clamp(.45rem, 1.4vw, .85rem);
+  position: absolute;
+  left: max(48px, calc(env(safe-area-inset-left, 0px) + 48px)); /* 반달 핸들44px + 여백4px(MapBottomLeftStack과 동일) */
+  bottom: calc(max(var(--route-dock-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem));
+  width: min(29.4vw, calc(100vw - 16px));
+  z-index: 6;
+  pointer-events: none;
+}
+.route-dock__card {
+  position: relative;
+  pointer-events: auto;
+  box-sizing: border-box;
+  padding: 6px 8px 8px 12px;
+  border-radius: 12px;
+  background: #fff;
+  color: #121417;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+}
+.route-dock-anchor:not(.route-dock-anchor--open) {
+  width: auto;
+}
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__grid {
+  display: none;
+}
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* 맨 위 줄: 접기 LED(왼쪽) · 센서 알약. */
+.route-dock__head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-height: 30px;
+  padding-left: 32px;
+  margin-bottom: 2px;
+}
+.route-dock__fold {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 2;
+}
+.route-dock-anchor--open .route-dock__card--head { padding-top: 3px; }
+.route-dock__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+}
+/* 센서 줄이 없으면(주행 중 등) 접기는 왼쪽 위에 겹쳐 있다 — 목록 전체에 같은 자리를 비워
+ * S·경유지 들여쓰기 관계를 보존한다. */
+.route-dock__card:not(.route-dock__card--head) .route-dock__grid { padding-left: 32px; }
+.route-dock__stops-wrap {
+  position: relative;
+  min-width: 0;
+}
+.route-dock__stops {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.route-dock__row {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  border-bottom: 1px solid #eef0f3;
+}
+.route-dock__row:last-child { border-bottom: 0; }
+.route-dock__stop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+/* 지도 핀과 같은 기호·색(mapMarkerElements·MapView.css): S #16a34a, E #dc2626, 경유 주황 원.
+ * 16px — S·E 사이에 ⇅(14px)가 들어가도록(2026-10-24 Chief 제안 A). */
+.route-dock__badge {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+}
+.route-dock__badge--start { background: #16a34a; }
+.route-dock__badge--end { background: #dc2626; }
+.route-dock__badge--waypoint {
+  background: linear-gradient(145deg, rgba(234, 179, 8, 0.95), rgba(180, 83, 9, 0.92));
+  color: #fefce8;
+}
+.route-dock__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.route-dock__remove {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #5e6472;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+@media (hover: hover) { .route-dock__remove:hover { color: #121417; } }
+/* 2026-10-24 Chief: ⇅ 를 목록 앞쪽으로 — 기호 열(중심 x=8px) 위, 목록 세로 가운데.
+ * S·E 기호 사이(줄 30px − 기호 16px ≈ 15px)에 들어가게 보이는 원은 14px,
+ * 누르는 영역은 28px(바깥 7px 는 투명). 경유 줄은 원과 겹치지 않게 20px 들여 쓴다. */
+.route-dock__swap {
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  padding: 7px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 50%;
+  background: #f2f3f5;
+  background-clip: content-box;
+  color: #2a2e37;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.route-dock__icon { display: block; flex: 0 0 auto; pointer-events: none; }
+/* 경유 줄은 대기·주행 모두 20px 들여 쓴다(2026-10-24 Chief) — ⇅ 원과도 겹치지 않는다. */
+.route-dock__row--waypoint .route-dock__stop { padding-left: 20px; }
+.route-dock__led-toggle {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.route-dock__led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f8fafc;
+  box-shadow: 0 0 0 1.5px rgba(15, 23, 42, 0.55), 0 0 6px rgba(255, 255, 255, 0.8);
+  animation: route-dock-led-pulse 1.1s ease-in-out infinite;
+}
+.route-dock__led-toggle--connected .route-dock__led {
+  background: #34d399;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.35), 0 0 8px rgba(52, 211, 153, 0.9);
+}
+@keyframes route-dock-led-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+.route-dock__led-toggle:focus-visible {
+  outline: 2px solid #2457d6;
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .route-dock__led { animation: none; }
+}
+.route-dock__stops-empty { font-size: 11px; color: #5e6472; padding: 4px 0; }
+.route-dock__card button:focus-visible { outline: 2px solid #2457d6; outline-offset: 1px; }
+@media (max-height: 560px) { .route-dock-anchor { --mapbox-logo-clearance: .35rem; } }
+
+/* Dock variant used to be a fixed bottom indicator; this card owns its sensor (head row).
+ * 2026-10-24 Chief 제안 A(시안 04): 흰 알약 + 1px line-control 테두리 + 7px 점 + 12px 굵은 글자.
+ * 선택자를 `.route-dock__head` 로 묶어 HUD 우상단·RideControlBar 칩은 건드리지 않는다.
+ * hover·open 은 `.hud-cadence--dock:hover` 와 동점이 되지 않게 한 단계 더 구체적으로 둔다. */
+.route-dock__head .hud-cadence--dock,
+.route-dock__head .hud-cadence--dock:hover {
+  position: static;
+  transform: none;
+  width: auto;
+  height: 30px;
+  min-height: 30px;
+  gap: 6px;
+  padding: 0 13px 0 11px;
+  border: 1px solid #c9d6ee;
+  border-radius: 999px;
+  background: #fff;
+  color: #2a2e37;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  backdrop-filter: none;
+}
+.route-dock__head .hud-cadence--dock.hud-cadence--open { border-color: #2457d6; background: #fff; }
+@media (hover: hover) {
+  .route-dock__head .hud-cadence--dock:hover { border-color: #2457d6; }
+}
+.route-dock__head .hud-cadence--dock .hud-cadence__text { display: inline; min-width: 0; }
+.route-dock__head .hud-cadence--dock .hud-cadence__led {
+  width: 7px;
+  height: 7px;
+  box-sizing: border-box;
+}
+.route-dock__head .hud-cadence--dock .hud-cadence__led--white {
+  background: transparent;
+  border: 1.5px solid currentColor;
+  box-shadow: none;
+}
+.route-dock__head .hud-cadence--dock .hud-cadence__led--green {
+  background: #1e9a55;
+  box-shadow: none;
+}
+/* 다음 할 일 안내(2026-09-18 Chief 깜빡임 유지) — 강조색은 accent 하나. */
+.route-dock__head .hud-cadence--dock.hud-cadence--attention {
+  animation: route-dock-sensor-attention 1.1s ease-in-out infinite;
+}
+@keyframes route-dock-sensor-attention {
+  0%, 100% { border-color: #c9d6ee; background: #fff; color: #2a2e37; }
+  50% { border-color: #2457d6; background: #eef3fc; color: #2457d6; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .route-dock__head .hud-cadence--dock.hud-cadence--attention {
+    animation: none;
+    border-color: #2457d6;
+    color: #2457d6;
+  }
+}

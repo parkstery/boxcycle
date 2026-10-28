@@ -30,7 +30,6 @@ async function shot(page: import('@playwright/test').Page, name: string, w: numb
 const batch4Panels = [
   { state: 'sensor', dialog: '케이던스 센서', panel: '.cadence-sheet__panel' },
   { state: 'settings', dialog: '주행 설정', panel: '.ride-settings-sheet__panel' },
-  { state: 'map', dialog: '맵 뷰', panel: '.map-view-sheet__panel' },
   { state: 'profile', dialog: '프로필 수정', panel: '.ride-settings-sheet__panel' },
 ];
 
@@ -41,6 +40,9 @@ for (const size of sizes) {
       await page.goto(`${preview}?state=${state}`);
       const sheet = page.getByRole('dialog', { name: dialog, exact: true });
       await expect(sheet).toBeVisible();
+      await sheet.locator(panel).evaluate(async (el) => {
+        await Promise.all(el.getAnimations().map((animation) => animation.finished));
+      });
       const box = await sheet.locator(panel).boundingBox();
       expect(box).not.toBeNull();
       expect(box!.x).toBeGreaterThanOrEqual(-1);
@@ -172,11 +174,15 @@ test('주행 설정은 체중·체력 편집 없이 switch·프로필 진입', a
   await expect(settings.getByText('체중 64 kg', { exact: false })).toBeVisible();
   await expect(settings.getByText('체력 3', { exact: false })).toBeVisible();
   const switches = settings.getByRole('switch');
-  await expect(switches).toHaveCount(4);
-  await switches.nth(0).click();
-  await switches.nth(1).click();
-  await switches.nth(2).click();
-  await switches.nth(3).click();
+  await expect(switches).toHaveCount(6);
+  const interval = settings.getByRole('switch', { name: /^인터벌/ });
+  await expect(interval).not.toBeChecked();
+  await interval.check();
+  await expect(interval).toBeChecked();
+  await settings.getByRole('switch', { name: '코칭 문구' }).click();
+  await settings.getByRole('switch', { name: '음성 안내' }).click();
+  await settings.getByRole('switch', { name: '배경 음악' }).click();
+  await settings.getByRole('switch', { name: '페이서' }).click();
   await expect(fixture).toHaveAttribute('data-ride-coaching', '0');
   await expect(fixture).toHaveAttribute('data-ride-tts', '0');
   await expect(fixture).toHaveAttribute('data-ride-bgm', '0');
@@ -186,34 +192,6 @@ test('주행 설정은 체중·체력 편집 없이 switch·프로필 진입', a
   await expect(page.getByRole('dialog', { name: '프로필 수정', exact: true })).toBeVisible();
 });
 
-test('맵 뷰 기본 높이·고급·Chief 고정9', async ({ page }) => {
-  await page.setViewportSize({ width: 800, height: 360 });
-  await page.goto(`${preview}?state=map`);
-  const fixture = page.locator('#batch4-fixture');
-  const map = page.getByRole('dialog', { name: '맵 뷰', exact: true });
-  expect((await page.locator('.map-view-sheet__panel').boundingBox())!.height).toBeLessThanOrEqual(210);
-  await expect(map.getByText('free', { exact: true })).toBeHidden();
-  await expect(map.getByText('OSRM', { exact: true })).toBeHidden();
-  await expect(map.getByText('Spinatlas Dark', { exact: true })).toBeHidden();
-  await expect(map.getByText('야외', { exact: true })).toHaveCount(0);
-  await expect(map.getByText('위성', { exact: true })).toHaveCount(0);
-  await expect(map.getByRole('button', { name: '맵 뷰 닫기', exact: true })).toBeVisible();
-  await map.locator('.map-view-sheet__check input[role="switch"]').click();
-  await expect(fixture).toHaveAttribute('data-map-enable3d', '1');
-  await map.locator('summary').filter({ hasText: '고급 설정' }).click();
-  await map.getByRole('button', { name: '도로 비교', exact: true }).click();
-  await expect(fixture).toHaveAttribute('data-map-coverage', 'osrm');
-  await map.getByRole('button', { name: '전체 도로망', exact: true }).click();
-  await map.getByRole('button', { name: '신규 도로만', exact: true }).click();
-  await expect(fixture).toHaveAttribute('data-map-conquest', 'recent');
-
-  await page.goto(`${preview}?state=map&riding`);
-  const ridingMap = page.getByRole('dialog', { name: '맵 뷰', exact: true });
-  await ridingMap.locator('summary').filter({ hasText: '고급 설정' }).click();
-  const initialDistance = Number(await fixture.getAttribute('data-map-camera-m'));
-  await ridingMap.getByRole('button', { name: '거리 한 눈금 멀게', exact: true }).click();
-  await expect.poll(async () => Number(await fixture.getAttribute('data-map-camera-m'))).toBeGreaterThan(initialDistance);
-});
 
 
 test('센서 선택 완료는 준비 상태로 닫히며 주행하지 않는다', async ({ page }) => {

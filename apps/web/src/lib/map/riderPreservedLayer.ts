@@ -36,6 +36,7 @@ import { readRequestedRiderSkinMode } from "../riderPrototype/riderSkinMode";
 import { PreservedRiderStatic } from "../riderPrototype/preservedRiderStatic";
 import { getRiderModelProfile } from "../riderPrototype/riderModelProfile";
 import { computeRiderSway, RiderSwayEnvelope, RiderSwaySpeedFollow } from "../riderPrototype/riderSway";
+import { RiderTerrainSlope, riderTerrainRotation } from "../riderPrototype/riderTerrainSlope";
 import {
   DEFAULT_AMBIENT_INTENSITY,
   DEFAULT_HEMISPHERE_INTENSITY,
@@ -81,6 +82,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
   private specs: readonly RiderGlbModelSpec[] = [];
   private readonly swayEnvelope = new RiderSwayEnvelope();
   private readonly swaySpeed = new RiderSwaySpeedFollow();
+  private readonly terrainSlope = new RiderTerrainSlope();
   private generation = 0;
   private loadState: "idle" | "loading" | "ready" | "error" = "idle";
   private loadError: string | null = null;
@@ -173,6 +175,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
 
   onRemove(): void {
     this.generation++;
+    this.terrainSlope.prune(new Set());
     unregisterRiderLightLabTarget(this);
     this.rig?.dispose();
     this.rig = null;
@@ -225,6 +228,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
     if (this.specs.length === 0) {
       this.swayEnvelope.prune(new Set());
       this.swaySpeed.prune(new Set());
+      this.terrainSlope.prune(new Set());
       if (isPerfLabEnabled()) noteRiderPerfScene(map.getZoom(), 0, this.lod2State);
       return;
     }
@@ -247,6 +251,9 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
     const swayDisabledByQuery = isRiderSwayDisabledByQuery();
     const enabled = animatePose && !swayDisabledByQuery;
     const liveIds = new Set<string>();
+    const terrainEnabled = map.getTerrain() != null;
+    const elevationAt = (lngLat: { lng: number; lat: number }) =>
+      map.queryTerrainElevation(lngLat, { exaggerated: true });
     /*
      * envelope 감쇠는 이 render 안에서만 적분한다. MapView 주행 틱(rAF)이
      * 매 프레임 syncRiderPreservedModels → setSpecs → triggerRepaint 하므로,
@@ -259,7 +266,8 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
       const [lng, lat] = spec.lngLat;
       let altitude: number;
       try {
-        altitude = map.queryTerrainElevation({ lng, lat }, { exaggerated: false }) ?? 0;
+        // 경로선이 drape된 화면 지형과 같은 높이(지형 강조 배율 포함)에 놓는다.
+        altitude = map.queryTerrainElevation({ lng, lat }, { exaggerated: true }) ?? 0;
       } catch {
         altitude = 0;
       }
@@ -267,6 +275,9 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
       const meterScale = coordinate.meterInMercatorCoordinateUnits();
       const yaw = (90 - spec.bearingDeg) * Math.PI / 180;
       const lean = (spec.leanDeg ?? 0) * Math.PI / 180;
+      const terrainPitch = this.terrainSlope.update(
+        spec.id, spec.lngLat, spec.bearingDeg, nowMs, terrainEnabled, elevationAt,
+      );
       if (animatePose) measureRiderPose(() => rig.setPhase(spec.phaseRev ?? 0));
       // 공용 rig 1개와 LOD2 정적 메시를 self/peer 순으로 그린다. 줌 < 19 이고 LOD2 가 있으면 정적 1콜.
       const staticRider = this.lod2;
@@ -290,7 +301,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
         .scale(new Vector3(meterScale, -meterScale, meterScale))
         .multiply(new Matrix4().makeRotationX(Math.PI / 2))
         .multiply(new Matrix4().makeRotationY(yaw))
-        .multiply(new Matrix4().makeRotationX(lean + bikeRoll));
+        .multiply(riderTerrainRotation(terrainPitch, lean + bikeRoll));
       liveIds.add(spec.id);
       this.camera.projectionMatrix.fromArray(matrix).multiply(local);
       this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert();
@@ -299,6 +310,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
     }, zoom, this.lod2State);
     this.swayEnvelope.prune(liveIds);
     this.swaySpeed.prune(liveIds);
+    this.terrainSlope.prune(liveIds);
   }
 
   private async loadApprovedCandidate(generation: number): Promise<void> {

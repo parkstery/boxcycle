@@ -1,7 +1,7 @@
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 
-/** Sensor has one persistent location, independent of route address disclosure. */
-export type SensorChipSlot = "route-dock" | "ride-control-bar" | "none";
+/** Sensor has one persistent location: RouteDock. The ride bar never owns it. */
+export type SensorChipSlot = "route-dock" | "none";
 export type SensorChipSlotInput = {
   stage: RideUiStage;
   hasCadence: boolean;
@@ -14,7 +14,5 @@ export function sensorChipSlot(input: SensorChipSlotInput): SensorChipSlot {
   if (!hasCadence || stage === "gate" || stage === "gate-nickname" || stage === "summary") {
     return "none";
   }
-
-  if (stage === "ready-to-start" || stage === "setup") return "route-dock";
-  return "ride-control-bar";
+  return "route-dock";
 }

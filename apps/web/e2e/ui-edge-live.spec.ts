@@ -32,13 +32,7 @@ test('실제 지도 800×360: 에지 열기·상단 지표·조밀한 도크·�
   await expect(page.locator('.mapboxgl-ctrl-top-right button')).toHaveCount(0);
   await page.screenshot({ path: path.join(evidence, 'actual-idle-800.png'), animations: 'disabled' });
   async function edge(side: 'left' | 'right') {
-    const width = page.viewportSize()!.width;
-    const x = side === 'left' ? 3 : width - 3;
-    const dx = side === 'left' ? 115 : -115;
-    await page.mouse.move(x, 155);
-    await page.mouse.down();
-    await page.mouse.move(x + dx, 155, { steps: 12 });
-    await page.mouse.up();
+    await page.getByRole('button', { name: side === 'left' ? '메뉴 열기' : '순위 열기', exact: true }).click();
   }
   await prepareManualRideInput(page);
   await page.getByRole('button',{name:/^케이던스 센서:/}).click();
@@ -104,7 +98,7 @@ test('실제 지도 800×360: 에지 열기·상단 지표·조밀한 도크·�
   await expect(page.getByRole('button', { name: '경로 패널 펼치기', exact: true })).toBeVisible();
   await expect(page.locator('.route-dock__stops')).toBeHidden();
   await expect(page.getByRole('button', { name: '주행 종료', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^케이던스 센서:/ })).toHaveCount(1);
+  await expect(page.getByRole('button', { name: /^케이던스 센서:/ })).toHaveCount(0);
   await page.getByRole('button', { name: '일시정지', exact: true }).click();
   await expect(page.getByRole('button', { name: '재개', exact: true })).toHaveCount(1);
   await page.getByRole('button', { name: '재개', exact: true }).click();
@@ -118,7 +112,7 @@ test('실제 지도 800×360: 에지 열기·상단 지표·조밀한 도크·�
     const geometry = await page.evaluate(() => {
       const metrics = document.querySelector('.hud-metrics__capsule')!.getBoundingClientRect();
       const controls = [...document.querySelectorAll('.hud-quick-camera,.hud-ride-map-controls,.hud-account')].map(e => e.getBoundingClientRect().toJSON());
-      const hits = [...document.querySelectorAll('.mapboxgl-ctrl-top-right button,.route-dock__caret,.hud-account')].filter(e => (e as HTMLElement).offsetWidth > 0).map(e => {
+      const hits = [...document.querySelectorAll('.mapboxgl-ctrl-top-right button,.route-dock__led-toggle,.hud-account')].filter(e => (e as HTMLElement).offsetWidth > 0).map(e => {
         const r = e.getBoundingClientRect();
         const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
         return { label: e.getAttribute('aria-label') ?? e.className, target: e.contains(hit), rect: r.toJSON(), hit: hit?.className };
@@ -169,9 +163,9 @@ test('실제 지도 800×360: 에지 열기·상단 지표·조밀한 도크·�
   await expect(page.getByRole('region',{name:'주행 결과',exact:true})).toBeVisible();
   await expect(page.locator('.ride-control-bar')).toHaveCount(0);
   await page.keyboard.press('Escape');
-  await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
+  await expect(page.getByRole('button',{name:'경로 패널 펼치기'})).toBeVisible();
   await expect(page.getByRole('button',{name:'주행 시작',exact:true})).toHaveCount(0);
-  await expect(page.locator('.route-dock-anchor')).toHaveCount(0);
+  await expect(page.locator('.route-dock-anchor')).toBeVisible();
   await page.screenshot({path:path.join(evidence,'actual-ended-idle-800.png'),animations:'disabled'});
   fs.writeFileSync(path.join(evidence, 'actual-geometry.json'), JSON.stringify(rows, null, 2));
 });

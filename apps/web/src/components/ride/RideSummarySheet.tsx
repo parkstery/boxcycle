@@ -394,6 +394,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                   )}
                 </div>
                 {/* 남은 거리는 막대 끝에 작게 — 해낸 거리가 먼저다(N2) */}
+                {routeCompleted ? null : (
                 <div className="ride-summary__progress-track">
                   <div className="ride-summary__progress-bar" aria-hidden>
                     <span
@@ -405,12 +406,11 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                       style={{ width: `${progressThisPct}%` }}
                     />
                   </div>
-                  {routeCompleted ? null : (
                     <span className="ride-summary__progress-left">
                       남은 {formatSheetKm(Math.max(0, routeTotalKmNum - riddenKmNum), kmDigits)}
                     </span>
-                  )}
                 </div>
+                )}
               </div>
             ) : null}
           </div>

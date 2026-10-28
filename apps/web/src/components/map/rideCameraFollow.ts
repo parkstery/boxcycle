@@ -470,6 +470,7 @@ export function apply3DState(
   enabled: boolean,
   buildingLayerId: string,
   terrainSourceId: string,
+  options?: { flatFallback?: boolean; preserveCamera?: boolean },
 ) {
   try {
   if (!enabled) {
@@ -490,7 +491,11 @@ export function apply3DState(
       maxzoom: 14,
     });
   }
-  map.setTerrain({ source: terrainSourceId, exaggeration: 1.3 });
+  map.setTerrain({ source: terrainSourceId, exaggeration: options?.flatFallback ? 0 : 1.3 });
+  if (options?.flatFallback) {
+    if (map.getLayer(buildingLayerId)) map.removeLayer(buildingLayerId);
+    return;
+  }
   if (!map.getLayer(buildingLayerId)) {
     let symbolLayer: { id: string } | undefined;
     try {
@@ -517,7 +522,7 @@ export function apply3DState(
       symbolLayer?.id,
     );
   }
-  if (map.getPitch() < 35) {
+  if (!options?.preserveCamera && map.getPitch() < 35) {
     map.easeTo({ pitch: 60, bearing: map.getBearing(), duration: 450 });
   }
   } catch (err) {

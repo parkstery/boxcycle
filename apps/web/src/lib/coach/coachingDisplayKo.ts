@@ -4,7 +4,7 @@ import { FALLBACK_TIPS } from "../../services/phraseManifest";
  * HUD·배너용 코칭 문구 한국어 표시. TTS·phraseManifest 의 영문 tip 텍스트는 그대로 둔다.
  * tip_0 … tip_31 — FALLBACK_TIPS 와 동일 순서(phraseManifest.ts).
  */
-export const COACHING_TIPS_DISPLAY_KO: readonly string[] = [
+const COACHING_TIPS_DISPLAY_KO: readonly string[] = [
   "등을 펴고 힘을 빼세요. 언덕이 알아서 올라올 거예요.",
   "코어를 잡아요. 몸이 통통 튀지 않게 해요.",
   "일어서서 밟아요. 선을 지키며 밀어 올려요.",

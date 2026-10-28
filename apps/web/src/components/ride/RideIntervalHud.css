@@ -1,0 +1,48 @@
+/* 계기판 아래 왼쪽. 지도는 비치고 글자는 구분되는 검정35% 배경. */
+.map-hud__tl > .ride-interval-hud,
+.map-hud > .ride-interval-hud {
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+  width: min(168px, 28vw);
+  max-width: 28vw;
+  margin-top: 2px;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  color: #fff;
+  --interval-color: #ffcb72;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px #111, 1px 0 #111, -1px 0 #111;
+  -webkit-text-stroke: 2.5px #142323;
+  paint-order: stroke fill;
+}
+.ride-interval-hud[data-phase="recovery"],
+.ride-interval-hud[data-phase="warmup"],
+.ride-interval-hud[data-phase="rest"] { --interval-color: #8ce2ff; }
+.ride-interval-hud[data-phase="cooldown"],
+.ride-interval-hud[data-phase="complete"] { --interval-color: #8be6b2; }
+.ride-interval-hud[data-paused="true"] { --interval-color: #fff; }
+.ride-interval-hud__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; line-height: 1.3; }
+.ride-interval-hud__phase { color: var(--interval-color); }
+.ride-interval-hud__repeat { font-size: 11px; }
+.ride-interval-hud__main { display: flex; align-items: baseline; gap: 4px; line-height: 1.15; }
+.ride-interval-hud__time { font-size: 32px; letter-spacing: -1px; }
+.ride-interval-hud__unit { font-size: 13px; }
+.ride-interval-hud__progress { display: flex; gap: 4px; margin: 4px 0 5px; }
+.ride-interval-hud__progress span { flex: 1; height: 3px; background: rgba(255,255,255,.45); }
+.ride-interval-hud__progress [data-done="true"] { background: #fff; }
+.ride-interval-hud__progress [data-active="true"] { background: var(--interval-color); }
+.ride-interval-hud__next { font-size: 11px; line-height: 1.3; }
+.ride-interval-hud[data-phase="complete"] .ride-interval-hud__time { font-size: 24px; letter-spacing: 0; }
+.ride-interval-hud__announcement { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
+@media (max-height: 340px) {
+  .map-hud__tl > .ride-interval-hud { width: min(150px, 26vw); }
+  .ride-interval-hud__time { font-size: 28px; }
+  .ride-interval-hud__head { font-size: 12px; }
+  .ride-interval-hud__next { font-size: 10px; }
+}

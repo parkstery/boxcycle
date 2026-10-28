@@ -15,6 +15,7 @@ export function useRideCoachingMedia(opts: {
   speedKmh: number;
   rideTtsEnabled: boolean;
   rideBgmEnabled: boolean;
+  intervalCoachingActive: boolean;
 }): {
   coachData: CoachingData | null;
   rideElevationProfile: RouteElevationProfileState;
@@ -30,6 +31,7 @@ export function useRideCoachingMedia(opts: {
     elevationM: rideElevationProfile.values,
     sampledCoords: rideElevationProfile.sampledCoords,
     ttsEnabled: opts.rideTtsEnabled,
+    suppressed: opts.intervalCoachingActive,
   });
   useRideBgm({
     // 지시93 — 경로가 없으면 주행 중이어도 음악을 멈춘다(기존 페이드아웃 경로).

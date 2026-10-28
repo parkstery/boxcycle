@@ -5,36 +5,39 @@ import fs from 'node:fs';
 const preview='/scripts/ui-800x360/preview.html';
 const evidence=process.env.UI_REVALIDATION_EVIDENCE_DIR ?? path.resolve('../..','.out','ui-route-ride-20261021');
 test.use({viewport:{width:800,height:360},hasTouch:true});
-test('분리된 주소/주행바: 세 크기·다섯 상태·지도정보와 겹침 없음',async({page})=>{
+test('RouteDock 주소/주행바: 세 크기·다섯 상태·지도정보와 겹침 없음',async({page})=>{
   fs.mkdirSync(evidence,{recursive:true});
   for(const size of [{width:800,height:360},{width:667,height:300},{width:844,height:390}]){
     await page.setViewportSize(size);
     for(const state of ['idle','setup','ready','riding','paused']){
       await page.goto(`${preview}?state=${state}`);
       const bar=page.locator('.ride-control-bar');
-      // Chief 고정12: setup 센서는 주소 카드 맨 위 줄, idle 센서는 독립 주행바.
-      if(state==='setup')await expect(bar).toHaveCount(0);
-      else if(state==='idle')await expect(bar).toBeAttached();
+      if(state==='idle'||state==='setup')await expect(bar).toHaveCount(0);
       else await expect(bar).toBeVisible();
+      if(state==='idle'||state==='riding'||state==='paused'){
+        await expect(page.getByRole('button',{name:'경로 패널 펼치기'})).toBeVisible();
+        await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(0);
+        await page.getByRole('button',{name:'경로 패널 펼치기'}).click();
+      }
       await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
       await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toBeVisible();
-      if(state==='idle')await expect(page.locator('.route-dock-anchor')).toHaveCount(0);
-      if(state==='setup')await expect(page.locator('.route-dock__head').getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
+      if(state==='setup'||state==='idle')await expect(page.locator('.route-dock__head').getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
       const geom=await page.evaluate((state)=>{
-        const bar=document.querySelector(state==='setup'?'.route-dock__head .hud-cadence':'.ride-control-bar')!.getBoundingClientRect();
-        const others=[...document.querySelectorAll(state==='setup'?'.hud-clock,.map-hud__tr':'.hud-clock,.map-hud__tr,.route-dock-anchor')].map(e=>e.getBoundingClientRect());
+        const sensor=document.querySelector('.route-dock__head .hud-cadence') ?? document.querySelector('.route-dock__led-toggle');
+        const bar=sensor!.getBoundingClientRect();
+        const others=[...document.querySelectorAll(state==='setup'||state==='idle'?'.hud-clock,.map-hud__tr':'.hud-clock,.map-hud__tr')].map(e=>e.getBoundingClientRect());
         const collide=others.filter(b=>b.width>0&&b.height>0&&bar.left<b.right&&bar.right>b.left&&bar.top<b.bottom&&bar.bottom>b.top);
         return {bar:bar.toJSON(),collide:collide.map(b=>b.toJSON())};
       },state);
       expect(geom.bar.height).toBeLessThanOrEqual(44);
-      if(state!=='setup')await expect(bar).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+      if(state!=='idle'&&state!=='setup')await expect(bar).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
       const media=bar.locator('.ride-media-button');
       for(const button of await media.all()){
         expect((await button.textContent())?.trim()).toBe('');
         await expect(button).toHaveCSS('border-radius','50%');
         // 준비 상태는 주행 버튼이 5회 펄스(1.1배, 지시90·91)한다 — 변형 전 레이아웃 크기를 잰다.
         const box=await button.evaluate(el=>({width:(el as HTMLElement).offsetWidth,height:(el as HTMLElement).offsetHeight}));
-        expect(box.width).toBe(44);expect(box.height).toBe(44);
+        expect(box.width).toBe(32);expect(box.height).toBe(32);
       }
       expect(geom.bar.right).toBeLessThanOrEqual(size.width);
       expect(geom.collide).toEqual([]);
@@ -42,7 +45,7 @@ test('분리된 주소/주행바: 세 크기·다섯 상태·지도정보와 겹
     }
   }
 });
-test('주소 접기 독립·이어달리기·종료 후 센서만 복귀',async({page})=>{
+test('주소 접기 독립·이어달리기·결과 닫기 후 같은 경로 재주행',async({page})=>{
   await page.goto(`${preview}?state=ready&resume&waypoints=3`);
   await expect(page.locator('.route-dock__stops > li')).toHaveCount(5);
   await page.getByRole('button',{name:'경로 패널 접기'}).click();
@@ -56,27 +59,40 @@ test('주소 접기 독립·이어달리기·종료 후 센서만 복귀',async(
   await page.getByRole('button',{name:'주행 종료',exact:true}).click();
   await expect(page.locator('.ride-control-bar')).toHaveCount(0);
   await page.keyboard.press('Escape');
+  const expandAfterResult = page.getByRole('button',{name:'경로 패널 펼치기'});
+  if (await expandAfterResult.isVisible()) await expandAfterResult.click();
   await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
-  await expect(page.getByRole('button',{name:'주행 시작',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'주행 시작',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'주행 시작',exact:true}).click();
+  await expect(page.getByRole('button',{name:'일시정지',exact:true})).toBeVisible();
 });
 test('준비되지 않은 입력으로 시작할 수 없고 경로 없이 센서 접근 가능',async({page})=>{
   await page.goto(`${preview}?state=ready&blocked`);
   await expect(page.getByRole('button',{name:'주행 시작',exact:true})).toBeDisabled();
   await page.goto(`${preview}?state=idle`);
+  await page.getByRole('button',{name:'경로 패널 펼치기'}).click();
   await page.getByRole('button',{name:/^케이던스 센서:/}).click();
   await expect(page.getByRole('dialog',{name:'케이던스 센서',exact:true})).toBeVisible();
 });
 
-test('짧은 주행 종료도 시작버튼이 되살아나지 않고 새 경로 확정시만 복귀',async({page})=>{
-  await page.goto(`${preview}?state=ready&short`);
-  await page.getByRole('button',{name:'주행 시작',exact:true}).click();
-  await page.getByRole('button',{name:'주행 종료',exact:true}).click();
-  await expect(page.getByRole('button',{name:'주행 시작',exact:true})).toHaveCount(0);
-  await expect(page.getByRole('button',{name:'주행 종료',exact:true})).toHaveCount(0);
-  await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
-  await page.getByRole('button',{name:'검수용 새 경로 확정',exact:true}).click();
-  await expect(page.getByRole('button',{name:'주행 시작',exact:true})).toBeVisible();
-});
+for (const paused of [false, true]) {
+  test(`종료 후 남은 경로를 반복 주행: ${paused ? '일시정지' : '주행'} 중 종료`, async ({page}) => {
+    await page.goto(`${preview}?state=ready&short`);
+    const start = page.getByRole('button', {name:'주행 시작', exact:true});
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await start.click();
+      await expect(page.getByRole('button', {name:'일시정지', exact:true})).toBeVisible();
+      if (paused) await page.getByRole('button', {name:'일시정지', exact:true}).click();
+      await page.getByRole('button', {name:'주행 종료', exact:true}).click();
+      await expect(start).toBeEnabled();
+      await expect(page.locator('.route-dock__stops > li')).toHaveCount(2);
+      await page.getByRole('button', {name:'경로 패널 접기'}).click();
+      await expect(start).toBeVisible();
+      await page.getByRole('button', {name:'경로 패널 펼치기'}).click();
+      await expect(start).toBeVisible();
+    }
+  });
+}
 
 for(const initial of ['empty','start-only','end-only','ready','waypoints'] as const){
   test(`경로 생성 실제 DOM: ${initial} 모드배타·값보존·수단즉시생성`,async({page})=>{

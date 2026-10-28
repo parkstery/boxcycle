@@ -2,18 +2,18 @@ import { useCallback, useEffect, useRef, type PointerEvent as ReactPointerEvent 
 
 const EDGE_DRAG_THRESHOLD_PX = 48;
 const EDGE_DRAG_MIN_INTENT_PX = 24;
-export const EDGE_DRAG_TAP_SLOP_PX = 6;
-export const EDGE_DRAG_AXIS_LOCK_PX = 10;
+const EDGE_DRAG_TAP_SLOP_PX = 6;
+const EDGE_DRAG_AXIS_LOCK_PX = 10;
 const EDGE_DRAG_VELOCITY_PX_MS = 0.35;
 
-export type Point = { x: number; y: number; t: number };
+type Point = { x: number; y: number; t: number };
 
-export function prefersReducedMotion(): boolean {
+function prefersReducedMotion(): boolean {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 }
 
 /** 48px 이상이거나 24px 이상 + 빠른 속도일 때만 확정 */
-export function shouldCommitAxisGesture(along: number, dt: number): boolean {
+function shouldCommitAxisGesture(along: number, dt: number): boolean {
   if (along < EDGE_DRAG_MIN_INTENT_PX) return false;
   const velocity = along / Math.max(1, dt);
   return along >= EDGE_DRAG_THRESHOLD_PX || velocity >= EDGE_DRAG_VELOCITY_PX_MS;

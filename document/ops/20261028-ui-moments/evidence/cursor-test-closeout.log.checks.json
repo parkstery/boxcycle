@@ -1,0 +1,51 @@
+[
+  {
+    "command": "try { $r = Invoke-WebRequest -Uri \"http://127.0.0.1:5031/\" -UseBasicParsing -TimeoutSec 5; \"HTTP $($r.StatusCode) len=$($r.RawContentLength)\" } catch { \"FAIL: $($_.Exception.Message)\" }",
+    "exit_code": 0,
+    "stdout": "HTTP 200 len=730\r\n",
+    "stderr": "",
+    "error": null
+  },
+  {
+    "command": "New-Item -ItemType Directory -Force -Path \"C:\\20.HDev\\boxcycle\\document\\ops\\20261028-ui-moments\\evidence\\final-cursor\" | Out-Null; $env:RTW_DEV_PORT='5031'; $env:UI_MOMENTS_EVIDENCE_DIR='C:\\20.HDev\\boxcycle\\document\\ops\\20261028-ui-moments\\evidence\\final-cursor'; $env:INTERVAL_SETTINGS_EVIDENCE_DIR='C:\\20.HDev\\boxcycle\\document\\ops\\20261028-ui-moments\\evidence\\final-cursor'; $env:MAP_MENU_EVIDENCE_DIR='C:\\20.HDev\\boxcycle\\document\\ops\\20261028-ui-moments\\evidence\\final-cursor'; $env:INTERVAL_EVIDENCE_DIR='C:\\20.HDev\\boxcycle\\document\\ops\\20261028-ui-moments\\evidence\\final-cursor'; npx playwright test e2e/ride-ui-moments.spec.ts e2e/ride-interval.spec.ts e2e/ride-interval-settings.spec.ts e2e/ui-800x360.spec.ts e2e/map-menu-consolidation.spec.ts --workers=1 --retries=0 *>&1 | Tee-Object -FilePath \"C:\\20.HDev\\boxcycle\\document\\ops\\20261028-ui-moments\\evidence\\final-cursor\\playwright.log\"; \"EXIT=$LASTEXITCODE\"",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "",
+    "error": null
+  },
+  {
+    "command": "npx eslint \"src/components/leaderboard/LeaderboardGlance.tsx\" \"src/components/ui/EdgePanelHandle.tsx\" \"src/components/ride/RideIntervalSettingsSheet.tsx\" \"src/components/ride/RideSummarySheet.tsx\" \"e2e/ride-ui-moments.spec.ts\" \"e2e/ride-interval.spec.ts\" \"e2e/ride-interval-settings.spec.ts\" \"e2e/ui-800x360.spec.ts\" \"e2e/map-menu-consolidation.spec.ts\"",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "",
+    "error": null
+  },
+  {
+    "command": "$env:RTW_DEV_PORT='5031'; $env:UI_MOMENTS_EVIDENCE_DIR='C:\\20.HDev\\boxcycle\\document\\ops\\20261028-ui-moments\\evidence\\final-cursor'; $env:INTERVAL_SETTINGS_EVIDENCE_DIR='C:\\20.HDev\\boxcycle\\document\\ops\\20261028-ui-moments\\evidence\\final-cursor'; $env:MAP_MENU_EVIDENCE_DIR='C:\\20.HDev\\boxcycle\\document\\ops\\20261028-ui-moments\\evidence\\final-cursor'; $env:INTERVAL_EVIDENCE_DIR='C:\\20.HDev\\boxcycle\\document\\ops\\20261028-ui-moments\\evidence\\final-cursor'; npx playwright test e2e/map-menu-consolidation.spec.ts e2e/ui-800x360.spec.ts --grep \"메뉴 통합 667|메뉴 통합 699|시작·센서·접기|패널을 닫고 조작|Chief 고정14|포커스 대안|드래그 취소\" --workers=1 --retries=0 *>&1 | Tee-Object -FilePath \"C:\\20.HDev\\boxcycle\\document\\ops\\20261028-ui-moments\\evidence\\final-cursor\\playwright-rerun.log\"; \"EXIT=$LASTEXITCODE\"",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "",
+    "error": null
+  },
+  {
+    "command": "$env:RTW_DEV_PORT='5031'; npx playwright test e2e/ui-800x360.spec.ts --grep \"Chief 고정14\" --workers=1 --retries=0",
+    "exit_code": 1,
+    "stdout": "\nRunning 1 test using 1 worker\n\n\n\n[1/1] [chromium] › e2e\\ui-800x360.spec.ts:309:1 › Chief 고정14 — 왼쪽 흰 반투명 반원 탭: 계기판 아래 빈 자리, 누르면·끌면 열린다\n  1) [chromium] › e2e\\ui-800x360.spec.ts:309:1 › Chief 고정14 — 왼쪽 흰 반투명 반원 탭: 계기판 아래 빈 자리, 누르면·끌면 열린다 \n\n    Error: 800×360 riding left 탭이 다른 조작부·카드와 겹치지 않는다\n\n    expect(received).toBe(expected) // Object.is equality\n\n    Expected: false\n    Received: true\n\n      335 |         for(const o of g.others){\n      336 |           const overlap=tab.k.x<o.right&&tab.k.right>o.left&&tab.k.y<o.bottom&&tab.k.bottom>o.top;\n    > 337 |           expect(overlap,`${label} 탭이 다른 조작부·카드와 겹치지 않는다`).toBe(false);\n          |                                                            ^\n      338 |         }\n      339 |       }\n      340 |     }\n        at C:\\20.HDev\\boxcycle\\apps\\web\\e2e\\ui-800x360.spec.ts:337:60\n\n    Error Context: test-results\\ui-800x360-Chief-고정14-—-왼쪽-흰-반투명-반원-탭-계기판-아래-빈-자리-누르면·끌면-열린다-chromium\\error-context.md\n\n\n  1 failed\n    [chromium] › e2e\\ui-800x360.spec.ts:309:1 › Chief 고정14 — 왼쪽 흰 반투명 반원 탭: 계기판 아래 빈 자리, 누르면·끌면 열린다 \n",
+    "stderr": "(node:29180) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+    "error": null
+  },
+  {
+    "command": "$env:RTW_DEV_PORT='5031'; npx playwright test e2e/ui-800x360.spec.ts --grep \"Chief 고정14\" --workers=1 --retries=0",
+    "exit_code": 1,
+    "stdout": "\nRunning 1 test using 1 worker\n\n\n\n[1/1] [chromium] › e2e\\ui-800x360.spec.ts:309:1 › Chief 고정14 — 왼쪽 흰 반투명 반원 탭: 계기판 아래 빈 자리, 누르면·끌면 열린다\n  1) [chromium] › e2e\\ui-800x360.spec.ts:309:1 › Chief 고정14 — 왼쪽 흰 반투명 반원 탭: 계기판 아래 빈 자리, 누르면·끌면 열린다 \n\n    Error: 800×360 riding left vs 경로카드\n\n    expect(received).toBe(expected) // Object.is equality\n\n    Expected: false\n    Received: true\n\n      348 |         for(const o of g.others){\n      349 |           const overlap=tab.k.x<o.right&&tab.k.right>o.left&&tab.k.y<o.bottom&&tab.k.bottom>o.top;\n    > 350 |           expect(overlap,`${label} vs ${o.name}`).toBe(false);\n          |                                                   ^\n      351 |         }\n      352 |       }\n      353 |     }\n        at C:\\20.HDev\\boxcycle\\apps\\web\\e2e\\ui-800x360.spec.ts:350:51\n\n    Error Context: test-results\\ui-800x360-Chief-고정14-—-왼쪽-흰-반투명-반원-탭-계기판-아래-빈-자리-누르면·끌면-열린다-chromium\\error-context.md\n\n\n  1 failed\n    [chromium] › e2e\\ui-800x360.spec.ts:309:1 › Chief 고정14 — 왼쪽 흰 반투명 반원 탭: 계기판 아래 빈 자리, 누르면·끌면 열린다 \n",
+    "stderr": "(node:14404) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+    "error": null
+  },
+  {
+    "command": "$env:RTW_DEV_PORT='5031'; npx playwright test e2e/ui-800x360.spec.ts --grep \"Chief 고정14\" --workers=1 --retries=0",
+    "exit_code": 0,
+    "stdout": "\nRunning 1 test using 1 worker\n\n\n\n[1/1] [chromium] › e2e\\ui-800x360.spec.ts:309:1 › Chief 고정14 — 왼쪽 흰 반투명 반원 탭: 계기판 아래 빈 자리, 누르면·끌면 열린다\n  1 passed (9.0s)\n",
+    "stderr": "(node:44536) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+    "error": null
+  }
+]

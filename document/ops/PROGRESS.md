@@ -1,4 +1,25 @@
+2026-10-28 **접힌 RouteDock LED 3배 / LOCAL_VERIFIED·미배포**: Cursor CSS2줄로지름8→24px, Codex독립4가로×idle/riding8상태24×24실측·내부7px보존·탭PASS, sensor-dock9PASS. [결과·감리](20261028-sensor-dock/07-result-led-size.md). 기존5031유지·커밋푸시배포없음. 확인 C:\20.HDev\boxcycle\apps\web → 서버없으면 npm run dev:localhost -- --port 5031 → http://localhost:5031/ 새로고침·접힌LED탭.
+
+2026-10-28 **접힌 LED 24px / Cursor구현·Codex감리대기·미배포**: [결과](20261028-sensor-dock/07-result-led-size.md). CSS 2줄 8→24px. 5031 HTTP200. DOM실측·기존시험은Codex. 커밋푸시배포없음.
+
+2026-10-28 **센서 RouteDock 통합 / LOCAL_VERIFIED·미배포**: [최종감리](20261028-sensor-dock/03-review.md). Cursor구현·보완종료/Codex지시감리. 접힘·무경로흰/녹점멸LED→펼침기존접기캐럿+센서알약, 중앙센서제거·키보드포커스유지. 독립화면20·단위20·selector19·tsc/lint/build/dep/diffPASS. tidy기존188>186FAIL·Cursor1차계정/카메라간격FAIL범위밖·전체quick/실폰실센서미실행. baseline3179누락0/기존PNG변경0·기존dirty보존·커밋푸시배포없음·5031유지. 확인 C:\20.HDev\boxcycle\apps\web → 기존없으면 npm run dev:localhost -- --port 5031 → http://localhost:5031/ 새로고침·LED→센서설정. 초기30분예상초과(지연·감리보완). 다음Chief실폰/실센서확인·배포별도지시。
+
+2026-10-28 [계정 버튼 오른쪽 위 정렬](20261028-edge-alignment/01-result.md): LOCAL_VERIFIED·미배포. 계정 화면/상태15·긴수치2·입력2·관련회귀5·build PASS. Chief 구현확인한 왼쪽 패널 유지, 재개 후 MapHud.css만 변경. 커밋푸시배포없음·5031재사용.
+
+2026-10-28 [주행 거리·반달·설정·카메라](20261028-compact-controls/08-review-final.md): APPROVED/LOCAL_VERIFIED·미배포. Cursor구현보완종료/Codex독립화면90·카메라102·selector19·타입/lint/build/depPASS. tidy기존188>186FAIL·quick/실폰미실행. 기존증거11장덮어쓰기全복구·2181해시일치, 커밋푸시배포없음. 기존5031재사용·Chief실폰확인대기.
+
 2026-10-27 09:43 KST 배포: 지시93~98 제품·시험·문서를 `c94af5c1`로 커밋해 `origin/main2` 푸시, 깨끗한 `tmp/deploy98` 복제본에서 Hosting 배포 완료. 운영 JS `index-C4woGEuF.js` SHA256 `146B5060…66177`, CSS `index-h24GKZ9N.css` SHA256 `DF96E93D…FA8AE`가 로컬과 일치. pre-push quick 1384/1384·전체 게이트 PASS. 증거 PNG/JSON·개인 파일 제외. Codex Supervisor 직접.
+
+2026-10-28 [주행 UI·인터벌·응원 배포 완료](20261028-ui-moments/10-deployment.md): DEPLOYED. Hosting only·계기판20px 한행/인터벌검정25% 포함. 최신화면54 PASS·build/selector19/dep PASS. 운영 index200·로컬 바이트일치·연결JS/CSS5개 SHA256일치·제품소스544지문불변. JS index-BxrSOZ9X.js / CSS index-CHSjW9rI.css. 커밋푸시없음·기존서버유지. 기존증거10장 원본미복구/정련기존188>186/전체quick과거4실패후개별PASS는 아래인계유효. 확인 https://boxcycle-dc2df.web.app 새로고침→인터벌켜기→주행. 사용자중단기준8% 유지.
+
+2026-10-28 [인터벌 반투명 검정 배경](20261028-ui-moments/09-result-interval-background.md): Chief 후속 지시로 검정25% 불투명도·글자 선명도 유지·안쪽6×8px/모서리8px. 관련6 PASS·고정31 갱신, 기존5031·미배포. 기존 증거10장 원본 미복구는 이전 인계 유효.
+
+2026-10-28 [계기판 한 행 후속](20261028-ui-moments/08-result-single-row-hud.md): 왼쪽20px·6개 한 행·숫자18px·간격8px. 관련 화면5 PASS(4크기+긴수치), 기존5031·미배포. 작은 화면50% 강제제한 대체.
+
+2026-10-28 [주행 UI·인터벌·응원 최종 감리](20261028-ui-moments/03-review.md): 제품 로컬 검증 완료·미배포. 화면54/빌드/타입/관련lint/selector19/의존 PASS. quick1430 PASS·4 FAIL→실패항목 개별 재검 PASS; 전체0FAIL 아님. 정련 exports188>186은 착수 baseline도188로 기존 문제. 검증 중 기존 PNG11장 덮어쓰기→1복구·10원본 미복구, 보존사고 미해결. 실제 제품 컴포넌트 캡처 evidence/final-screen, 지도·수치는 fixture. 실폰/실센서/음향청취 미실행. Cursor 모두 종료·기존5031 유지·커밋푸시배포 없음.
+
+2026-10-28 [주행 UI·인터벌·응원 구현](20261028-ui-moments/README.md): IN_PROGRESS. Codex 계획·감리/Cursor 구현·시험, v2 승인·기존 dirty 보존·미배포.
+
 
 2026-10-27 09:31 KST [지시·결과98](20261023-ui-redesign/98-task-top-right-control-group-gap.md): 우상단 지도 조작과 서비스 기능을 별도 flex 그룹으로 묶고 800×360 외부 간격 ≥8px·내부보다 ≥4px 크게 고정. 667×300 그룹 비분할·비겹침. selector19·tsc·lint PASS, 새 화면 시험 본문 PASS 뒤 기존 Playwright teardown 지연, 독립 800×360 캡처 직접 확인. 고정30·결정로그 갱신. 미커밋·미배포.
 
@@ -363,3 +384,5 @@
 2026-10-27 00:21 KST [지시·결과95](20261023-ui-redesign/95-task-result-camera-menu-arrows-vertical.md): 카메라2~6 파란 그라데이션 방향 화살표·세로 5행, 카메라1 높이 메뉴 116px·5ch 우측 정렬. tsc0·화면2/2·카메라99/99·빌드·셀렉터19·공용게이트 PASS. quick 제품군 포함1378 PASS, watchdog 권한/timeout 3 FAIL. Ego Lite 캡처 timeout 뒤 Playwright 경로로 전환. Codex Supervisor 직접, 미커밋·미푸시·미배포.
 2026-10-27 00:33 KST [지시95 후속]: 카메라1 높이 메뉴의 아이콘·값 사이 빈 공간을 줄이도록 폭 116→96px(정확히 -20px). 5ch 우측 정렬·카메라2~6 세로 화살표 유지. UI 단언1/1·타입·diff·문서 PASS, Playwright 플러그인 teardown 60초 timeout은 별도 실패 기록. Codex Supervisor 직접, 미커밋·미푸시·미배포.
 2026-10-27 00:38 KST [지시·결과96](20261023-ui-redesign/96-task-result-map-zoom-out-unbounded.md): 지도 `−`의 500m 임의 상한과 비활성화 제거. 거리 지배 주행 카메라는 ×1.25로 계속 축소, 실제 하한 Mapbox minZoom0 유지. 신규3/3·카메라99/99·quick ride879/879·빌드·타입·lint오류0·tidy/dep/selector19/doc/diff PASS. Codex Supervisor 직접, 미커밋·미푸시·미배포.
+
+

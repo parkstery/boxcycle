@@ -1,0 +1,78 @@
+{
+  "status": "UNRESOLVED",
+  "overwritten": 11,
+  "recovered_exact_hash": 1,
+  "remaining": [
+    {
+      "path": "document/ops/20261023-ui-redesign/evidence/inline-history/after-first-visit-800x360.png",
+      "baseline": "1d0a22dec407ebc77ad60b58a719609a4acc61e8c2666384881a07b0416ae918",
+      "current_sha256": "5cef2bce1c235e502f81997634163447abf1fcdb791a134a147d063baa3ba3ac",
+      "preserved_copy": "document/ops/20261028-ui-moments/evidence/superseded-captures/inline-history/after-first-visit-800x360.png",
+      "status": "ORIGINAL_NOT_RECOVERED"
+    },
+    {
+      "path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-667x300.png",
+      "baseline": "e1cbde068f30078679ffc8aa6f5ae3b5e2637f360ffbb403797c5d468a70483c",
+      "current_sha256": "084cceae164fb048b7c0aa2f40252f6f20739cd72c7dfc5df0dd698d2694e48c",
+      "preserved_copy": "document/ops/20261028-ui-moments/evidence/superseded-captures/inline-history/final-account-667x300.png",
+      "status": "ORIGINAL_NOT_RECOVERED"
+    },
+    {
+      "path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-account-800x360.png",
+      "baseline": "30a1fb72c91ce0e0bdd8588de36ed603f44de9199e573578e98ba96f0c7b4415",
+      "current_sha256": "d41d2a766043a7db1c3e9df0236630bd75cf3f294e2c17d41aa59da9205566e5",
+      "preserved_copy": "document/ops/20261028-ui-moments/evidence/superseded-captures/inline-history/final-account-800x360.png",
+      "status": "ORIGINAL_NOT_RECOVERED"
+    },
+    {
+      "path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-667x300.png",
+      "baseline": "3294429975b5b76bcf4182840c56a7d48c51aaa99902d60fe30d0850ac8d36d6",
+      "current_sha256": "9eb99ec52e04f24cd7b00fbc8bcf136d4955ae1ca944c2cd37a40e31231d74d0",
+      "preserved_copy": "document/ops/20261028-ui-moments/evidence/superseded-captures/inline-history/final-inline-667x300.png",
+      "status": "ORIGINAL_NOT_RECOVERED"
+    },
+    {
+      "path": "document/ops/20261023-ui-redesign/evidence/inline-history/final-inline-800x360.png",
+      "baseline": "8a9ee8f907f52ac495bccf38c1f707846ef4b695963c68c57c71159596d902ad",
+      "current_sha256": "2ed664192cff9e50393ce1854bf6406da9b991f776296536e8cc3089446a7e7b",
+      "preserved_copy": "document/ops/20261028-ui-moments/evidence/superseded-captures/inline-history/final-inline-800x360.png",
+      "status": "ORIGINAL_NOT_RECOVERED"
+    },
+    {
+      "path": "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/paused-collapsed-800x360.png",
+      "baseline": "1f9dacd742726eb1040ea5ba8e73c58fabce0b3165a8f86d0980f6ad5bda1f67",
+      "current_sha256": "0bb84654516d8a4de4950749fbe825e1a06371a2ae414025b5678c12eee1d1d8",
+      "preserved_copy": "document/ops/20261028-ui-moments/evidence/superseded-captures/riding-address-dock-collapse/paused-collapsed-800x360.png",
+      "status": "ORIGINAL_NOT_RECOVERED"
+    },
+    {
+      "path": "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/ready-collapsed-800x360.png",
+      "baseline": "c284e1bb4fdb4241aa9c5e5f60e2338cf4b3de000b8f40f012dd9d5e29ff8530",
+      "current_sha256": "d87be698bd758b87083a9a442780e9ab2715840e19ff5aee1b551a41809c581f",
+      "preserved_copy": "document/ops/20261028-ui-moments/evidence/superseded-captures/riding-address-dock-collapse/ready-collapsed-800x360.png",
+      "status": "ORIGINAL_NOT_RECOVERED"
+    },
+    {
+      "path": "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/riding-collapsed-667x300.png",
+      "baseline": "3d52090ccba46438abd48bb61bd674de373888326cf03a5efe3bf34f55a91460",
+      "current_sha256": "b8b2667827361df4e41f3e16209d268a8b8d79d95295070498293a6677b99a3a",
+      "preserved_copy": "document/ops/20261028-ui-moments/evidence/superseded-captures/riding-address-dock-collapse/riding-collapsed-667x300.png",
+      "status": "ORIGINAL_NOT_RECOVERED"
+    },
+    {
+      "path": "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/riding-collapsed-800x360.png",
+      "baseline": "efb5915a05dd3cddfbcdae8744e2802690500f87865ada09e674b98b7f41c299",
+      "current_sha256": "66f28670ae39fc23cf686dd3c588a6d99c379f128338848787efb20b47fba020",
+      "preserved_copy": "document/ops/20261028-ui-moments/evidence/superseded-captures/riding-address-dock-collapse/riding-collapsed-800x360.png",
+      "status": "ORIGINAL_NOT_RECOVERED"
+    },
+    {
+      "path": "document/ops/20261023-ui-redesign/evidence/riding-address-dock-collapse/riding-expanded-800x360.png",
+      "baseline": "07c484f64ed7fcb6a650e8ec73f07ef81e9371f6642ddd523249b097f4517db5",
+      "current_sha256": "d1abc128aaa5dae7d3d9c1c4ebde20b1e3ff679ec0199e2231143a8e924d9c12",
+      "preserved_copy": "document/ops/20261028-ui-moments/evidence/superseded-captures/riding-address-dock-collapse/riding-expanded-800x360.png",
+      "status": "ORIGINAL_NOT_RECOVERED"
+    }
+  ],
+  "note": "Existing files were already dirty before task; do not replace with HEAD or newly captured images."
+}

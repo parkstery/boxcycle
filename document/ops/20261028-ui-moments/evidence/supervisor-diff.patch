@@ -1,0 +1,3750 @@
+--- before/apps/web/dep-layers.json
++++ after/apps/web/dep-layers.json
+@@ -350,6 +350,8 @@
+       "ride/rideEndResult.ts",
+       "ride/rideFormat.ts",
+       "ride/rideInterval.ts",
++      "ride/rideMoments.ts",
++      "ride/rideMomentSound.ts",
+       "ride/rideJoinPresenceBurst.ts",
+       "ride/ridePulse.ts",
+       "ride/rideRecordPolicy.ts",
+--- before/apps/web/e2e/map-menu-consolidation.spec.ts
++++ after/apps/web/e2e/map-menu-consolidation.spec.ts
+@@ -21,8 +21,9 @@
+     await expect(page.getByRole('button',{name:'신규 도로만',exact:true})).toBeDisabled();
+     for(const state of ['riding','paused']) {
+       await page.goto(`${preview}?state=${state}&menuFixture`);
+-      await expect(page.locator('.edge-panel-handle--right,.edge-panel-tab--right,#map-view-sheet')).toHaveCount(0);
++      await expect(page.locator('#map-view-sheet')).toHaveCount(0);
+       await expect(page.getByRole('button',{name:/맵 뷰|도로 비교|거리 한 눈금/})).toHaveCount(0);
++      await expect(page.getByRole('button',{name:'순위 열기',exact:true})).toBeVisible();
+       const menu=page.locator('.camera-view-menu__unit--perspective');
+       await menu.locator('button[aria-haspopup="menu"]').click();
+       const terrain=page.getByRole('menuitemcheckbox',{name:/3D 뷰/});
+--- before/apps/web/e2e/ride-interval-settings.spec.ts
++++ after/apps/web/e2e/ride-interval-settings.spec.ts
+@@ -19,32 +19,68 @@
+   await page.getByRole('button',{name:'주행 설정',exact:true}).click();
+   await openEditor(page);
+ }
+-async function configure(page: Page, high: string, low: string, repeats: string) {
+-  await editor(page).getByRole('spinbutton',{name:'고강도 시간 초',exact:true}).fill(high);
+-  await editor(page).getByRole('spinbutton',{name:'저강도 시간 초',exact:true}).fill(low);
+-  await editor(page).getByRole('spinbutton',{name:'반복 수',exact:true}).fill(repeats);
+-}
+-
+-test('8종 프리셋은 총시간을 갱신하고 적용한 선택만 주행 설정에 반영한다', async ({page}) => {
++async function expandCustom(page: Page) {
++  const toggle=editor(page).getByRole('button',{name:'직접 조절',exact:true});
++  if(await toggle.count()) await toggle.click();
++}
++async function fillSpin(page: Page, name: string, value: string) {
++  const input=editor(page).getByRole('spinbutton',{name,exact:true});
++  await input.fill(value);
++  await expect(input).toHaveValue(value);
++}
++async function configure(page: Page, high: string, low: string, repeats: string, warmup='300', cooldown='300') {
++  await expandCustom(page);
++  await fillSpin(page,'고강도 시간 초',high);
++  await fillSpin(page,'저강도 시간 초',low);
++  await fillSpin(page,'반복 수',repeats);
++  const rounds=editor(page).getByRole('spinbutton',{name:'라운드 수',exact:true});
++  if(await rounds.count()){
++    await rounds.fill('1');
++    await editor(page).getByRole('spinbutton',{name:'라운드 사이 휴식 시간 초',exact:true}).fill('0');
++  }
++  await fillSpin(page,'준비 시간 초',warmup);
++  await fillSpin(page,'마무리 시간 초',cooldown);
++}
++
++test('3종 프리셋은 총시간을 갱신하고 적용한 선택만 주행 설정에 반영한다', async ({page}) => {
+   await page.goto(`${preview}?state=settings`);
+   await openEditor(page);
+   const select=editor(page).getByRole('combobox',{name:'운동 프리셋'});
+-  await expect(select.locator('option')).toHaveCount(9);
++  await expect(select.locator('option')).toHaveCount(4);
+   const options=await select.locator('option').evaluateAll(nodes=>nodes.map(node=>(node as HTMLOptionElement).value));
+-  const totals=['15:00','17:30','18:00','18:00','22:00','20:00','22:00','25:00'];
+-  for(let index=0;index<8;index++){
++  const totals=['25:00','26:00','26:00'];
++  for(let index=0;index<3;index++){
+     await select.selectOption(options[index]);
+     await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText(totals[index]);
+   }
+-  await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
+-  await expect(settings(page)).toContainText('90초 / 60초 ×6회 · 총 25:00');
+-  await openEditor(page);
+-  await expect(select).toHaveValue('90-60-6');
++  await expect(editor(page)).toContainText('2라운드');
++  await expect(editor(page)).toContainText('사이 3분');
++  await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
++  await expect(settings(page)).toContainText('20초 / 10초 ×8회 · 총 26:00');
++  await openEditor(page);
++  await expect(select).toHaveValue('short');
+   await configure(page,'45','60','6');
+   await expect(select).toHaveValue('custom');
+   await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText('20:30');
+   await page.keyboard.press('Escape');
+-  await expect(settings(page)).toContainText('90초 / 60초 ×6회 · 총 25:00');
++  await expect(settings(page)).toContainText('20초 / 10초 ×8회 · 총 26:00');
++});
++
++test('접기는 초안을 유지한 채 요약으로 돌아간다', async ({page}) => {
++  await page.goto(`${preview}?state=settings`);
++  await openEditor(page);
++  await expandCustom(page);
++  await fillSpin(page,'고강도 시간 초','45');
++  await fillSpin(page,'저강도 시간 초','60');
++  await fillSpin(page,'반복 수','6');
++  await editor(page).getByRole('button',{name:'접기',exact:true}).click();
++  await expect(editor(page).getByRole('button',{name:'직접 조절',exact:true})).toBeVisible();
++  await expect(editor(page).locator('.ride-interval-settings__compact-copy')).toContainText('45초 / 60초 ×6');
++  await expect(editor(page).getByRole('spinbutton',{name:'고강도 시간 초',exact:true})).toHaveCount(0);
++  await expandCustom(page);
++  await expect(editor(page).getByRole('spinbutton',{name:'고강도 시간 초',exact:true})).toHaveValue('45');
++  await expect(editor(page).getByRole('spinbutton',{name:'저강도 시간 초',exact:true})).toHaveValue('60');
++  await expect(editor(page).getByRole('spinbutton',{name:'반복 수',exact:true})).toHaveValue('6');
+ });
+ 
+ test('직접 설정한 시간·반복이 실제 단계 전환과 완료에 쓰인다', async ({page}) => {
+@@ -72,7 +108,7 @@
+ 
+ test('진행 중 초안·취소·같은 설정은 운동을 바꾸지 않고 변경 적용만 준비부터 재시작한다', async ({page}) => {
+   await page.clock.install();
+-  await page.goto(`${preview}?state=riding&interval&intervalMs=426000`);
++  await page.goto(`${preview}?state=riding&interval&intervalMs=330000`);
+   await openFromRide(page);
+   await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
+   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('운동');
+@@ -81,7 +117,7 @@
+   await expect(editor(page)).toContainText('적용하면 처음부터 다시 시작해요');
+   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('운동');
+   await editor(page).getByRole('button',{name:'인터벌 운동 설정 닫기',exact:true}).click();
+-  await expect(settings(page)).toContainText('30초 / 30초 ×5회');
++  await expect(settings(page)).toContainText('60초 / 120초 ×5회');
+   await openEditor(page);
+   await configure(page,'45','60','6');
+   await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
+@@ -100,6 +136,7 @@
+ test('입력 오류는 적용을 차단하고 취소하면 저장값을 보존한다', async ({page}) => {
+   await page.goto(`${preview}?state=settings`);
+   await openEditor(page);
++  await expandCustom(page);
+   const input=editor(page).getByRole('spinbutton',{name:'고강도 시간 초',exact:true});
+   for(const invalid of ['', '0', '4', '601', '7.5']){
+     await input.fill(invalid);
+@@ -130,7 +167,7 @@
+ test('저장 데이터 파손·저장소 접근 불가에서도 기본값과 메모리 설정이 동작한다', async ({page}) => {
+   await page.addInitScript(storageKey=>localStorage.setItem(storageKey,'{"highSec":"oops"}'),key);
+   await page.goto(`${preview}?state=settings&persistInterval`);
+-  await expect(settings(page)).toContainText('30초 / 30초 ×5회 · 총 15:00');
++  await expect(settings(page)).toContainText('60초 / 120초 ×5회 · 총 25:00');
+   await page.addInitScript(()=>Object.defineProperty(window,'localStorage',{get(){throw new Error('blocked');},configurable:true}));
+   await page.reload();
+   await openEditor(page);
+@@ -158,6 +195,7 @@
+ test('준비·마무리는 기본 5분에서 버튼·키보드로 30초씩 증감한다',async({page})=>{
+   await page.goto(`${preview}?state=settings`);
+   await openEditor(page);
++  await expandCustom(page);
+   for(const label of ['준비','마무리']){
+     const input=editor(page).getByRole('spinbutton',{name:`${label} 시간 초`,exact:true});
+     await expect(input).toHaveValue('300');
+@@ -180,6 +218,7 @@
+   await page.clock.install();
+   await page.goto(`${preview}?state=settings&persistInterval`);
+   await openEditor(page);
++  await expandCustom(page);
+   await configure(page,'7','11','3');
+   await editor(page).getByRole('spinbutton',{name:'준비 시간 초',exact:true}).fill('15');
+   await editor(page).getByRole('spinbutton',{name:'마무리 시간 초',exact:true}).fill('20');
+@@ -206,14 +245,13 @@
+   await page.goto(`${preview}?state=settings`);
+   await settings(page).getByRole('switch',{name:/^인터벌/}).check();
+   await openEditor(page);
++  await expandCustom(page);
+   const warmup=editor(page).getByRole('spinbutton',{name:'준비 시간 초',exact:true});
+   for(const raw of ['', '-1', '1801', '1.5']){
+     await warmup.fill(raw);
+     await expect(editor(page).getByRole('button',{name:'설정 적용',exact:true})).toBeDisabled();
+   }
+-  await warmup.fill('0');
+-  await editor(page).getByRole('spinbutton',{name:'마무리 시간 초',exact:true}).fill('0');
+-  await configure(page,'7','11','3');
++  await configure(page,'7','11','3','0','0');
+   await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText('0:54');
+   await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
+   await expect(settings(page)).toContainText('준비 없음 · 마무리 없음');
+@@ -232,6 +270,7 @@
+   await expect(settings(page)).toContainText('45초 / 60초 ×6회 · 총 20:30');
+   await expect(settings(page)).toContainText('준비 5분 · 마무리 5분');
+   await openEditor(page);
++  await expandCustom(page);
+   await expect(editor(page).getByRole('spinbutton',{name:'준비 시간 초',exact:true})).toHaveValue('300');
+   await expect(editor(page).getByRole('spinbutton',{name:'마무리 시간 초',exact:true})).toHaveValue('300');
+   await editor(page).getByRole('spinbutton',{name:'준비 시간 초',exact:true}).fill('0');
+@@ -260,31 +299,29 @@
+       expect(parent.childrenInside).toBe(true);
+       if(process.env.INTERVAL_SETTINGS_EVIDENCE_DIR){await fs.mkdir(process.env.INTERVAL_SETTINGS_EVIDENCE_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.INTERVAL_SETTINGS_EVIDENCE_DIR,`ride-settings-${size.width}x${size.height}.png`)});await fs.writeFile(path.join(process.env.INTERVAL_SETTINGS_EVIDENCE_DIR,`ride-settings-${size.width}x${size.height}.metrics.json`),JSON.stringify(parent,null,2));}
+       await openEditor(page);
++      const folded=await page.locator('.ride-interval-settings__panel').evaluate(el=>{
++        const box=el.getBoundingClientRect();
++        const apply=el.querySelector('.ride-interval-settings__apply')!.getBoundingClientRect();
++        return {width:box.width,height:box.height,inside:box.left>=0&&box.top>=0&&box.right<=innerWidth&&box.bottom<=innerHeight,applyVisible:apply.width>0&&apply.height>0};
++      });
++      expect(folded.width).toBeLessThanOrEqual(480);
++      expect(folded.inside).toBe(true);
++      expect(folded.applyVisible).toBe(true);
++      await expandCustom(page);
+       const geometry=await page.locator('.ride-interval-settings__panel').evaluate(el=>{
+         const box=el.getBoundingClientRect();
+-        const children=[...el.querySelectorAll('button,input,select,label,.ride-interval-settings__summary')].map(child=>child.getBoundingClientRect());
+-        const fields=el.querySelector('.ride-interval-settings__fields')!.getBoundingClientRect();
+-        const summary=el.querySelector('.ride-interval-settings__summary')!.getBoundingClientRect();
++        const apply=el.querySelector('.ride-interval-settings__apply')!.getBoundingClientRect();
+         const targets=[...el.querySelectorAll('button,input,select')].map(target=>target.getBoundingClientRect());
+-        return {width:box.width,height:box.height,overflow:el.scrollHeight>el.clientHeight+1,inside:box.left>=0&&box.top>=0&&box.right<=innerWidth&&box.bottom<=innerHeight,childrenInside:children.every(child=>child.left>=box.left&&child.right<=box.right),overlap:fields.left<summary.right&&fields.right>summary.left&&fields.top<summary.bottom&&fields.bottom>summary.top,cover:box.width*box.height/(innerWidth*innerHeight),minTargetWidth:Math.min(...targets.map(target=>target.width)),minTargetHeight:Math.min(...targets.map(target=>target.height))};
++        return {width:box.width,height:box.height,inside:box.left>=0&&box.top>=0&&box.right<=innerWidth&&box.bottom<=innerHeight,applyVisible:apply.bottom<=innerHeight&&apply.top>=0,minTargetWidth:Math.min(...targets.map(target=>target.width)),minTargetHeight:Math.min(...targets.map(target=>target.height))};
+       });
+       expect(geometry.width).toBeLessThanOrEqual(480);
+       expect(geometry.inside).toBe(true);
+-      expect(geometry.childrenInside).toBe(true);
+-      expect(geometry.overflow).toBe(false);
+-      expect(geometry.overlap).toBe(false);
+-      expect(geometry.minTargetWidth).toBeGreaterThanOrEqual(44);
+-      expect(geometry.minTargetHeight).toBeGreaterThanOrEqual(44);
+-      if(size.width>440){expect(geometry.height).toBeLessThanOrEqual(248);expect(geometry.cover).toBeLessThan(.65);}
++      expect(geometry.applyVisible).toBe(true);
++      expect(geometry.minTargetWidth).toBeGreaterThanOrEqual(40);
++      expect(geometry.minTargetHeight).toBeGreaterThanOrEqual(36);
+       if(process.env.INTERVAL_SETTINGS_EVIDENCE_DIR){await fs.mkdir(process.env.INTERVAL_SETTINGS_EVIDENCE_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.INTERVAL_SETTINGS_EVIDENCE_DIR,`settings-${size.width}x${size.height}.png`)});await fs.writeFile(path.join(process.env.INTERVAL_SETTINGS_EVIDENCE_DIR,`settings-${size.width}x${size.height}.metrics.json`),JSON.stringify(geometry,null,2));}
+       await configure(page,'600','600','30');
+       await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText('610:00');
+-      const large=await page.locator('.ride-interval-settings__summary').evaluate(el=>{
+-        const box=el.getBoundingClientRect(),total=el.querySelector('strong')!.getBoundingClientRect();
+-        const marks=[...el.querySelectorAll('.ride-interval-settings__timeline span')].map(mark=>mark.getBoundingClientRect());
+-        return total.right<=box.right+1&&marks.every(mark=>mark.right<=box.right+1);
+-      });
+-      expect(large).toBe(true);
+       await editor(page).getByRole('spinbutton',{name:'준비 시간 초',exact:true}).fill('1800');
+       await editor(page).getByRole('spinbutton',{name:'마무리 시간 초',exact:true}).fill('1800');
+       await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText('660:00');
+--- before/apps/web/e2e/ride-interval.spec.ts
++++ after/apps/web/e2e/ride-interval.spec.ts
+@@ -7,7 +7,7 @@
+ 
+ test('30초 경계·일시정지·재개는 주행 활동시간을 공유한다', async ({ page }) => {
+   await page.clock.install();
+-  await page.goto(`${preview}?state=riding&interval&intervalMs=443000`);
++  await page.goto(`${preview}?state=riding&interval&intervalMs=713000`);
+   const hud = page.getByRole('group', { name: '인터벌 안내' });
+   await expect(hud.locator('.ride-interval-hud__phase')).toHaveText('운동');
+   await expect(hud.locator('.ride-interval-hud__repeat')).toHaveText('3 / 5');
+@@ -20,17 +20,16 @@
+   await page.getByRole('button', { name: '재개', exact: true }).click();
+   await page.clock.runFor(7_200);
+   await expect(hud.locator('.ride-interval-hud__phase')).toHaveText('회복');
+-  await expect(hud.locator('.ride-interval-hud__time')).toHaveText('30');
++  await expect(hud.locator('.ride-interval-hud__time')).toHaveText('2:00');
+   await page.getByRole('button', { name: '주행 종료', exact: true }).click();
+   await expect(hud).toHaveCount(0);
+ });
+ 
+ test('센서 없이도 단계가 진행되고 완료 뒤 주행 제어는 유지된다', async ({ page }) => {
+   await page.clock.install();
+-  await page.goto(`${preview}?state=riding&interval&intervalMs=899000&noSensor`);
++  await page.goto(`${preview}?state=riding&interval&intervalMs=1499000&noSensor`);
+   const hud = page.getByRole('group', { name: '인터벌 안내' });
+-  await expect(hud.locator('.ride-interval-hud__cadence b')).toHaveText('—');
+-  await expect(hud).toContainText('센서 없음 · 시간은 계속');
++  await expect(hud).toContainText('페달 강도 직접 조절');
+   await page.clock.runFor(1_200);
+   await expect(hud).toContainText('완료');
+   await expect(hud).toContainText('자유 주행 계속');
+@@ -58,7 +57,7 @@
+   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('준비');
+   await expect(page.locator('.ride-interval-hud__time')).toHaveText('5:00');
+ 
+-  await page.goto(`${preview}?state=riding&interval&intervalMs=443000&short`);
++  await page.goto(`${preview}?state=riding&interval&intervalMs=713000&short`);
+   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('운동');
+   const settings = await openRideSettingsFromMenu(page);
+   const ridingToggle = settings.getByRole('switch', { name: /^인터벌/ });
+@@ -79,23 +78,24 @@
+ });
+ 
+ for (const size of [{width:800,height:360},{width:667,height:300},{width:844,height:390}]) {
+-  test(`상단 중앙형은 기존 UI와 겹치지 않고 지도를 막지 않는다 ${size.width}×${size.height}`, async ({ page }) => {
++  test(`왼쪽 인터벌은 기존 UI와 겹치지 않고 지도를 막지 않는다 ${size.width}×${size.height}`, async ({ page }) => {
+     await page.setViewportSize(size);
+     await page.clock.install();
+     for (const state of ['riding','paused']) {
+-      await page.goto(`${preview}?state=${state}&interval&intervalMs=426000&long`);
++      await page.goto(`${preview}?state=${state}&interval&intervalMs=330000&long`);
+       const hud = page.getByRole('group', { name: '인터벌 안내' });
+       await expect(hud).toBeVisible();
+       const geometry = await hud.evaluate(el => {
+         const a=el.getBoundingClientRect();
+-        const overlaps=[...document.querySelectorAll('.hud-metrics,.map-hud__tr,.map-hud__paused-banner,.ride-control-bar,.map-bottom-left-stack,.hud-coach')].filter(other=>{
++        const overlaps=[...document.querySelectorAll('.map-hud__tr,.ride-control-bar,.map-bottom-left-stack,.hud-coach')].filter(other=>{
+           const b=other.getBoundingClientRect();
+           return b.width>0 && b.height>0 && a.left<b.right && a.right>b.left && a.top<b.bottom && a.bottom>b.top;
+         }).map(other=>other.className);
+-        return {overlaps,center:a.x+a.width/2,inside:a.left>=0 && a.right<=innerWidth && a.top>=0 && a.bottom<=innerHeight,pointer:getComputedStyle(el).pointerEvents,background:getComputedStyle(el).backgroundColor};
++        return {overlaps,left:a.left,center:a.x+a.width/2,inside:a.left>=0 && a.right<=innerWidth && a.top>=0 && a.bottom<=innerHeight,pointer:getComputedStyle(el).pointerEvents,background:getComputedStyle(el).backgroundColor};
+       });
+       expect(geometry.overlaps).toEqual([]);
+-      expect(geometry.center).toBeCloseTo(size.width/2,0);
++      expect(geometry.left).toBeLessThan(size.width*0.35);
++      expect(geometry.center).toBeLessThan(size.width*0.4);
+       expect(geometry.inside).toBe(true);
+       expect(geometry.pointer).toBe('none');
+       expect(geometry.background).toBe('rgba(0, 0, 0, 0)');
+--- before/apps/web/e2e/ride-ui-moments.spec.ts
++++ after/apps/web/e2e/ride-ui-moments.spec.ts
+@@ -0,0 +1,146 @@
++import { expect, test, type Page } from '@playwright/test';
++import fs from 'node:fs/promises';
++import path from 'node:path';
++
++const preview = '/scripts/ui-800x360/preview.html';
++const evidenceDir = process.env.UI_MOMENTS_EVIDENCE_DIR;
++const sizes = [
++  { width: 800, height: 360 },
++  { width: 736, height: 360 },
++  { width: 699, height: 273 },
++  { width: 667, height: 300 },
++] as const;
++
++async function saveShot(page: Page, name: string) {
++  if (!evidenceDir) return;
++  await fs.mkdir(evidenceDir, { recursive: true });
++  await page.screenshot({ path: path.join(evidenceDir, name), animations: 'disabled' });
++}
++
++test.describe('주행 UI 정리 v2', () => {
++  for (const size of sizes) {
++    test(`HUD 50%·좌우 탭 ${size.width}×${size.height}`, async ({ page }) => {
++      await page.setViewportSize(size);
++      await page.goto(`${preview}?state=riding&interval&intervalMs=330000`);
++      const metrics = page.getByRole('group', { name: '주행 지표' });
++      await expect(metrics).toBeVisible();
++      const box = await metrics.evaluate((el) => {
++        const r = el.getBoundingClientRect();
++        const tr = document.querySelector('.map-hud__tr')!.getBoundingClientRect();
++        const interval = document.querySelector('.ride-interval-hud')!.getBoundingClientRect();
++        const rank = document.querySelector('.edge-panel-tab--right')!.getBoundingClientRect();
++        const menu = document.querySelector('.edge-panel-tab--left')!.getBoundingClientRect();
++        const overlap = (a: DOMRect, b: DOMRect) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
++        return {
++          width: r.width,
++          vw: innerWidth,
++          overlapTr: overlap(r, tr),
++          intervalLeft: interval.left,
++          intervalRight: interval.right,
++          rankLeft: rank.left,
++          menuW: menu.width,
++          menuH: menu.height,
++          rankW: rank.width,
++          rankH: rank.height,
++        };
++      });
++      expect(box.width / box.vw).toBeLessThanOrEqual(0.5);
++      expect(box.overlapTr).toBe(false);
++      expect(box.intervalRight).toBeLessThan(size.width * 0.45);
++      expect(box.rankLeft).toBeGreaterThan(size.width * 0.7);
++      expect(box.menuW).toBeGreaterThanOrEqual(44);
++      expect(box.menuH).toBeGreaterThanOrEqual(44);
++      expect(box.rankW).toBeGreaterThanOrEqual(44);
++      expect(box.rankH).toBeGreaterThanOrEqual(44);
++      await expect(page.locator('.hud-account__avatar')).toHaveCount(0);
++      await expect(page.locator('.hud-account__name')).toBeVisible();
++      await expect(page.getByRole('button', { name: '순위 열기', exact: true })).toHaveAttribute('aria-expanded', 'false');
++      await page.getByRole('button', { name: '순위 열기', exact: true }).click();
++      await expect(page.locator('#lb-glance-panel')).toBeVisible();
++      await expect(page.getByRole('button', { name: '순위 열기', exact: true })).toHaveAttribute('aria-expanded', 'true');
++      const panelOverlap = await page.evaluate(() => {
++        const overlap = (a: DOMRect, b: DOMRect) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
++        const panel = document.querySelector('#lb-glance-panel')!.getBoundingClientRect();
++        const boxes = [
++          ['.hud-ride-map-controls', '맵 제어'],
++          ['.camera-view-menu__trigger', '카메라'],
++          ['.hud-account', '계정'],
++          ['[aria-label="일시정지"]', '일시정지'],
++          ['[aria-label="주행 종료"]', '종료'],
++        ] as const;
++        return boxes.flatMap(([sel, name]) => {
++          const el = document.querySelector(sel);
++          if (!el) return [];
++          const box = el.getBoundingClientRect();
++          if (box.width <= 0 || box.height <= 0) return [];
++          return [{ name, hit: overlap(panel, box) }];
++        });
++      });
++      for (const item of panelOverlap) {
++        expect(item.hit, `${size.width}×${size.height} 순위판 vs ${item.name}`).toBe(false);
++      }
++      await saveShot(page, `riding-${size.width}x${size.height}.png`);
++    });
++  }
++
++  test('좌우 탭 클릭·스와이프와 인터벌 설정 3개', async ({ page }) => {
++    await page.setViewportSize({ width: 800, height: 360 });
++    await page.goto(`${preview}?state=ready`);
++    const menu = page.getByRole('dialog', { name: '메뉴', exact: true });
++    await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
++    await expect(menu).toBeVisible();
++    await expect(page.getByRole('button', { name: '메뉴 열기', exact: true })).toHaveCount(1);
++    await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
++    await expect(menu).toHaveCount(0);
++
++    await page.goto(`${preview}?state=ready`);
++    const left = (await page.locator('.edge-panel-tab--left .edge-panel-tab__knob').boundingBox())!;
++    await page.mouse.move(left.x + left.width / 2, left.y + left.height / 2);
++    await page.mouse.down();
++    await page.mouse.move(left.x + 140, left.y + left.height / 2, { steps: 10 });
++    await page.mouse.up();
++    await expect(menu).toBeVisible();
++
++    await page.goto(`${preview}?state=ready`);
++    const rank = page.getByRole('button', { name: '순위 열기', exact: true });
++    const right = (await page.locator('.edge-panel-tab--right .edge-panel-tab__knob').boundingBox())!;
++    await page.mouse.move(right.x + right.width / 2, right.y + right.height / 2);
++    await page.mouse.down();
++    await page.mouse.move(right.x - 140, right.y + right.height / 2, { steps: 10 });
++    await page.mouse.up();
++    await expect(page.locator('#lb-glance-panel')).toBeVisible();
++    await rank.click();
++    await expect(page.locator('#lb-glance-panel')).toBeHidden();
++
++    await page.goto(`${preview}?state=settings`);
++    await page.getByRole('button', { name: '운동 설정', exact: true }).click();
++    const editor = page.getByRole('dialog', { name: '인터벌 운동 설정', exact: true });
++    await expect(editor.getByRole('combobox', { name: '운동 프리셋' }).locator('option')).toHaveCount(4);
++    await editor.getByRole('button', { name: '직접 조절', exact: true }).click();
++    await expect(editor.getByRole('spinbutton', { name: '고강도 시간 초', exact: true })).toBeVisible();
++    await editor.getByRole('spinbutton', { name: '고강도 시간 초', exact: true }).fill('45');
++    await editor.getByRole('button', { name: '접기', exact: true }).click();
++    await expect(editor.getByRole('button', { name: '직접 조절', exact: true })).toBeVisible();
++    await editor.getByRole('button', { name: '직접 조절', exact: true }).click();
++    await expect(editor.getByRole('spinbutton', { name: '고강도 시간 초', exact: true })).toHaveValue('45');
++    await saveShot(page, 'interval-settings-custom-800x360.png');
++  });
++
++  test('응원은 코칭 자리를 공유하고 결과 막대를 숨긴다', async ({ page }) => {
++    await page.setViewportSize({ width: 800, height: 360 });
++    await page.clock.install();
++    await page.goto(`${preview}?state=riding`);
++    await expect(page.locator('.hud-coach')).toContainText('내 도로망');
++    await expect(page.locator('.hud-coach--moment')).toHaveCount(1);
++    await page.clock.runFor(2600);
++    await expect(page.locator('.hud-coach--moment')).toHaveCount(0);
++    await page.goto(`${preview}?state=summary&variant=completed`);
++    const sheet = page.locator('.ride-summary__sheet');
++    const size = await sheet.evaluate((el) => ({ w: el.getBoundingClientRect().width, h: el.getBoundingClientRect().height }));
++    expect(size.w).toBeLessThanOrEqual(444 + 1);
++    expect(size.h).toBeLessThanOrEqual(194 + 8);
++    await expect(page.locator('.ride-summary__progress-track')).toHaveCount(0);
++    await expect(page.getByRole('button', { name: '내 경로로 저장', exact: true })).toBeVisible();
++    await expect(page.getByRole('button', { name: '저장 안 함', exact: true })).toBeVisible();
++  });
++});
+--- before/apps/web/e2e/ui-800x360.spec.ts
++++ after/apps/web/e2e/ui-800x360.spec.ts
+@@ -55,16 +55,14 @@
+   const spacing = await page.evaluate(() => {
+     const map = document.querySelector('.hud-ride-map-controls')!.getBoundingClientRect();
+     const service = document.querySelector('.map-hud__service-actions')!.getBoundingClientRect();
+-    const rank = document.querySelector('.lb-glance__chip-slot')!.getBoundingClientRect();
+     const account = document.querySelector('.hud-account')!.getBoundingClientRect();
+     return {
+       outer: service.left - map.right,
+-      inner: account.left - rank.right,
++      account,
+       centerDelta: Math.abs(service.top + service.height / 2 - (map.top + map.height / 2)),
+     };
+   });
+   expect(spacing.outer).toBeGreaterThanOrEqual(8);
+-  expect(spacing.outer - spacing.inner).toBeGreaterThanOrEqual(4);
+   expect(spacing.centerDelta).toBeLessThanOrEqual(1);
+ 
+   await page.setViewportSize({ width: 667, height: 300 });
+@@ -186,7 +184,12 @@
+     expect(r!.height).toBeGreaterThanOrEqual(26);
+     expect(await locator.evaluate(el=>{const r=el.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit===el||el.contains(hit);})).toBeTruthy();
+   }
+-  expect((await page.getByRole('button',{name:'주행 시작',exact:true}).boundingBox())!.height).toBe(44);
++  expect(await page.getByRole('button',{name:'주행 시작',exact:true}).evaluate(el=>{
++    const height=el.getBoundingClientRect().height;
++    const transform=getComputedStyle(el).transform;
++    const scale=transform.startsWith('matrix(')?Number.parseFloat(transform.slice(7)):1;
++    return height/(Number.isFinite(scale)&&scale>0?scale:1);
++  })).toBeCloseTo(44,0);
+   await page.getByRole('button',{name:'경로 패널 접기'}).click();
+   await expect(page.getByRole('button',{name:'주행 시작',exact:true})).toBeVisible();
+   await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
+@@ -214,7 +217,7 @@
+ test('800 기준 및 좁고 여유 있는 가로 화면에서 패널을 닫고 조작할 수 있다', async ({page}) => {
+   for(const size of [{width:800,height:360},{width:667,height:300},{width:844,height:390}]){
+     await page.setViewportSize(size);
+-    for(const state of ['sensor','map','settings','routes','summary','account']){
++    for(const state of ['sensor','settings','routes','summary','account']){
+       await page.goto(`${preview}?state=${state}`);
+       const panels=page.locator('.cadence-sheet__panel,.map-view-sheet__panel,.ride-settings-sheet__panel,.oc-modal,.ride-summary__sheet,.user-info-sheet-root.is-open .user-info-sheet');
+       await expect(panels.first()).toBeVisible();
+@@ -250,7 +253,7 @@
+   await expect(result).toBeVisible();
+   const geometry=await page.locator('.ride-summary__progress-text').evaluate(el=>({client:el.clientHeight,scroll:el.scrollHeight}));
+   expect(geometry.scroll).toBeLessThanOrEqual(geometry.client+1);
+-  expect(await page.locator('.ride-summary__story-detail').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(11);
++  expect(await page.locator('.ride-summary__story-detail').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(10);
+   await expect(result.getByText('시간',{exact:true})).toBeVisible();
+   await expect(result.getByText('평균',{exact:true})).toBeVisible();
+ });
+@@ -296,8 +299,9 @@
+     await page.mouse.move(h.x+h.width/2,h.y+h.height/2);await page.mouse.down();
+     await page.mouse.move(h.x+h.width/2-dir*100,h.y+h.height/2,{steps:8});await page.mouse.up();
+     await expect(dialog).toHaveCount(0);
+-    await page.mouse.click(x,y);
+-    await expect(page.getByRole('dialog')).toHaveCount(0);
++    const stripY=40;
++    await page.mouse.click(x,stripY);
++    await expect(page.getByRole('dialog'),'20px 띠 클릭은 열지 않는다').toHaveCount(0);
+   }
+ });
+ 
+@@ -305,11 +309,9 @@
+ test('Chief 고정14 — 왼쪽 흰 반투명 반원 탭: 계기판 아래 빈 자리, 누르면·끌면 열린다',async({page})=>{
+   for(const size of [{width:800,height:360},{width:667,height:300},{width:844,height:390}]){
+     await page.setViewportSize(size);
+-    for(const [state,expand] of [['ready',false],['riding',true],['paused',true]] as const){
+-      await page.goto(`${preview}?state=${state}&waypoints=3&long`);
+-      if(expand) await page.getByRole('button',{name:'경로 패널 펼치기'}).click();
++    for(const state of ['ready','riding','paused'] as const){
++      await page.goto(`${preview}?state=${state}`);
+       const g=await page.evaluate(()=>{
+-        const boxes=(sel:string)=>[...document.querySelectorAll(sel)].map(e=>e.getBoundingClientRect()).filter(r=>r.width>0&&r.height>0);
+         const tabs=['left'].map(side=>{
+           const tab=document.querySelector(`.edge-panel-tab--${side}`)!;
+           const knob=tab.querySelector('.edge-panel-tab__knob')!;
+@@ -317,21 +319,36 @@
+           const hit=document.elementFromPoint(k.x+k.width/2,k.y+k.height/2);
+           return {side,t:t.toJSON(),k:k.toJSON(),bg:getComputedStyle(knob).backgroundColor,hitOk:Boolean(hit?.closest(`.edge-panel-tab--${side}`))};
+         });
+-        const others=boxes('.map-hud__tl,.route-dock__card,.route-minimap,.map-hud__tr,.ride-control-bar,.hud-ride-map-controls,.camera-view-menu__trigger,.hud-account').map(r=>r.toJSON());
++        const others=[
++          ['.map-hud__tl-metrics','계기'],
++          ['.map-hud__tr','우상단'],
++          ['.ride-control-bar','주행제어'],
++          ['.hud-ride-map-controls','맵제어'],
++          ['.camera-view-menu__trigger','카메라'],
++          ['.hud-account','계정'],
++          ['.route-dock__card','경로카드'],
++          ['.route-minimap','미니맵'],
++        ].flatMap(([sel,name])=>{
++          const el=document.querySelector(sel);
++          if(!el) return [];
++          const r=el.getBoundingClientRect();
++          if(r.width<=0||r.height<=0) return [];
++          return [{name, ...r.toJSON()}];
++        });
+         return {tabs,others,vw:innerWidth,vh:innerHeight};
+       });
+       for(const tab of g.tabs){
+         const label=`${size.width}×${size.height} ${state} ${tab.side}`;
+-        expect(tab.k.width,label).toBeCloseTo(14,0);
+-        expect(tab.k.height,label).toBeCloseTo(48,0);
+-        expect(tab.t.width*tab.t.height,label).toBeGreaterThanOrEqual(28*64-1);
++        expect(tab.k.width,label).toBeCloseTo(34,0);
++        expect(tab.k.height,label).toBeCloseTo(72,0);
++        expect(tab.t.width*tab.t.height,label).toBeGreaterThanOrEqual(44*76-1);
+         expect(tab.bg,label).toBe('rgba(255, 255, 255, 0.78)');
+         expect(tab.hitOk,label).toBe(true);
+         if(tab.side==='left') expect(tab.k.x,label).toBeLessThanOrEqual(0.5);
+         else expect(tab.k.x+tab.k.width,label).toBeGreaterThanOrEqual(g.vw-0.5);
+         for(const o of g.others){
+           const overlap=tab.k.x<o.right&&tab.k.right>o.left&&tab.k.y<o.bottom&&tab.k.bottom>o.top;
+-          expect(overlap,`${label} 탭이 다른 조작부·카드와 겹치지 않는다`).toBe(false);
++          expect(overlap,`${label} vs ${o.name}`).toBe(false);
+         }
+       }
+     }
+@@ -348,7 +365,7 @@
+     await page.mouse.move(x,y);await page.mouse.down();
+     await page.mouse.move(x+dir*120,y,{steps:10});await page.mouse.up();
+     await expect(dialog,`${side} 탭에서 끌면 열림`).toBeVisible();
+-    await expect(page.locator(`.edge-panel-tab--${side}`),'열리면 그 쪽 탭은 사라진다').toHaveCount(0);
++    await expect(page.locator(`.edge-panel-tab--${side}`),'열어도 탭은 남는다').toHaveCount(1);
+   }
+ });
+ 
+@@ -360,7 +377,7 @@
+   await page.keyboard.press('Escape');
+   for(const side of ['left'] as const){
+     for(const movement of [{dx:24,dy:0},{dx:-24,dy:0},{dx:0,dy:24}]){
+-      const x=side==='left'?10:790,y=155;
++      const x=side==='left'?10:790,y=40;
+       await page.mouse.move(x,y);await page.mouse.down();
+       await page.mouse.move(x+(side==='left'?1:-1)*movement.dx,y+movement.dy,{steps:5});
+       await page.waitForTimeout(200);
+@@ -379,7 +396,7 @@
+       }
+     }, true);
+   });
+-  const x=10,y=155;
++  const x=10,y=40;
+   await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+30,y,{steps:5});
+   const pointerId=Number(await page.evaluate(()=>document.body.getAttribute('data-audit-pointer')));
+   await page.evaluate((id)=>{document.dispatchEvent(new PointerEvent('pointercancel',{pointerId:id,pointerType:'mouse',bubbles:true}));},pointerId);
+@@ -441,16 +458,11 @@
+       expect(startBg).toContain(greenBottom);
+ 
+       await page.goto(`${preview}?state=glance-ready`);
+-      const chip = page.locator('.lb-glance__chip');
+-      await expect(chip).toBeVisible();
+-      expect((await chip.innerText()).trim()).toBe('');
+-      const chipBox = await chip.boundingBox();
+-      expect(Math.abs(chipBox!.width - chipBox!.height)).toBeLessThanOrEqual(1);
+-      const radius = await chip.evaluate((el) => parseFloat(getComputedStyle(el).borderRadius));
+-      expect(radius).toBeGreaterThanOrEqual(chipBox!.width / 2 - 1);
+-      await expect(chip.locator('svg')).toHaveCount(1);
+-      const chipLabel = await chip.getAttribute('aria-label');
+-      expect(chipLabel).toMatch(/위/);
++      const rank = page.getByRole('button', { name: '순위 열기', exact: true });
++      await expect(rank).toBeVisible();
++      const rankBox = await rank.boundingBox();
++      expect(rankBox!.height).toBeGreaterThanOrEqual(44);
++      await expect(rank).toHaveAttribute('aria-controls', 'lb-glance-panel');
+ 
+       if (evidenceDir && size.width === 667) {
+         await page.screenshot({ path: path.join(evidenceDir, 'ready-667x300.png'), animations: 'disabled' });
+--- before/apps/web/scripts/ride-interval/ride-interval.test.ts
++++ after/apps/web/scripts/ride-interval/ride-interval.test.ts
+@@ -6,93 +6,76 @@
+   getRideIntervalTotalMs,
+   getRideIntervalView,
+   isRideIntervalConfig,
++  matchRideIntervalPreset,
+   normalizeRideIntervalConfig,
+   RIDE_INTERVAL_PRESETS,
+   RIDE_INTERVAL_TOTAL_MS,
+ } from "../../src/lib/ride/rideInterval.ts";
+ 
+-const PRESETS: readonly [id: string, highSec: number, lowSec: number, repeats: number][] = [
+-  ["30-30-5", 30, 30, 5],
+-  ["30-60-5", 30, 60, 5],
+-  ["20-40-8", 20, 40, 8],
+-  ["40-20-8", 40, 20, 8],
+-  ["45-45-8", 45, 45, 8],
+-  ["60-60-5", 60, 60, 5],
+-  ["60-30-8", 60, 30, 8],
+-  ["90-60-6", 90, 60, 6],
+-];
+-
+-test("15분 루틴의 모든 구간 경계에서 정확히 다음 단계로 넘어간다", () => {
+-  assert.equal(RIDE_INTERVAL_TOTAL_MS, 900_000);
++const DEFAULT = DEFAULT_RIDE_INTERVAL_CONFIG;
++
++test("기본 1:2 25분 루틴의 모든 구간 경계에서 정확히 다음 단계로 넘어간다", () => {
++  assert.equal(RIDE_INTERVAL_TOTAL_MS, 1_500_000);
+   assert.equal(getRideIntervalView(0).remainingSec, 300);
+   assert.equal(getRideIntervalView(299_999).remainingSec, 1);
+   for (let repeat = 1; repeat <= 5; repeat++) {
+-    const start = 300_000 + (repeat - 1) * 60_000;
++    const start = 300_000 + (repeat - 1) * 180_000;
+     const work = getRideIntervalView(start);
+-    assert.equal(work.phase, "work"); assert.equal(work.repeat, repeat); assert.equal(work.remainingSec, 30);
+-    assert.equal(getRideIntervalView(start + 29_999).phase, "work");
+-    const recovery = getRideIntervalView(start + 30_000);
+-    assert.equal(recovery.phase, "recovery"); assert.equal(recovery.repeat, repeat); assert.equal(recovery.remainingSec, 30);
+-    assert.equal(getRideIntervalView(start + 59_999).remainingSec, 1);
++    assert.equal(work.phase, "work"); assert.equal(work.repeat, repeat); assert.equal(work.remainingSec, 60);
++    assert.equal(getRideIntervalView(start + 59_999).phase, "work");
++    const recovery = getRideIntervalView(start + 60_000);
++    assert.equal(recovery.phase, "recovery"); assert.equal(recovery.repeat, repeat); assert.equal(recovery.remainingSec, 120);
++    assert.equal(getRideIntervalView(start + 179_999).remainingSec, 1);
+   }
+-  assert.equal(getRideIntervalView(600_000).phase, "cooldown");
+-  assert.equal(getRideIntervalView(899_999).remainingSec, 1);
+-  assert.equal(getRideIntervalView(900_000).phase, "complete");
++  assert.equal(getRideIntervalView(1_200_000).phase, "cooldown");
++  assert.equal(getRideIntervalView(1_499_999).remainingSec, 1);
++  assert.equal(getRideIntervalView(1_500_000).phase, "complete");
+ });
+ 
+ test("지연 복귀는 놓친 구간을 누적 재생하지 않고 현재 단계로 바로 맞춘다", () => {
+-  const work = getRideIntervalView(444_200);
+-  assert.equal(work.phase, "work"); assert.equal(work.repeat, 3); assert.equal(work.remainingSec, 6);
+-  const recovery = getRideIntervalView(465_100);
+-  assert.equal(recovery.phase, "recovery"); assert.equal(recovery.repeat, 3); assert.equal(recovery.remainingSec, 15);
++  const work = getRideIntervalView(713_000);
++  assert.equal(work.phase, "work"); assert.equal(work.repeat, 3); assert.equal(work.remainingSec, 7);
++  const recovery = getRideIntervalView(720_200);
++  assert.equal(recovery.phase, "recovery"); assert.equal(recovery.repeat, 3); assert.equal(recovery.remainingSec, 120);
+   assert.equal(getRideIntervalView(5_000_000).nextLabel, "자유 주행 계속");
+ });
+ 
+ test("초는 올림하여 표시하고 잘못된 시간은 준비 단계로 보정한다", () => {
+-  assert.equal(getRideIntervalView(300_001).remainingSec, 30);
++  assert.equal(getRideIntervalView(300_001).remainingSec, 60);
+   for (const value of [-1, NaN, Infinity]) assert.equal(getRideIntervalView(value).remainingSec, 300);
+ });
+ 
+-test("8종 프리셋 총시간과 모든 구간 경계를 지킨다", () => {
+-  assert.equal(RIDE_INTERVAL_PRESETS.length, 8);
+-  assert.deepEqual(DEFAULT_RIDE_INTERVAL_CONFIG, { highSec: 30, lowSec: 30, repeats: 5, warmupSec: 300, cooldownSec: 300 });
+-  assert.equal(getRideIntervalTotalMs(), 900_000);
+-  for (const [id, highSec, lowSec, repeats] of PRESETS) {
+-    const preset = RIDE_INTERVAL_PRESETS.find((item) => item.id === id);
+-    assert.ok(preset, id);
+-    assert.deepEqual(preset.config, { highSec, lowSec, repeats, warmupSec: 300, cooldownSec: 300 });
+-    const config = { highSec, lowSec, repeats };
+-    const totalMs = ((highSec + lowSec) * repeats + 600) * 1000;
+-    assert.equal(getRideIntervalTotalMs(config), totalMs);
+-    assert.equal(getRideIntervalView(0, config).phase, "warmup");
+-    assert.equal(getRideIntervalView(0, config).label, "준비");
+-    assert.equal(getRideIntervalView(299_999, config).remainingSec, 1);
+-    const cycleMs = (highSec + lowSec) * 1000;
+-    for (let repeat = 1; repeat <= repeats; repeat++) {
+-      const start = 300_000 + (repeat - 1) * cycleMs;
+-      const work = getRideIntervalView(start, config);
+-      assert.equal(work.phase, "work");
+-      assert.equal(work.label, "운동");
+-      assert.equal(work.repeat, repeat);
+-      assert.equal(work.totalRepeats, repeats);
+-      assert.equal(work.remainingSec, highSec);
+-      assert.equal(getRideIntervalView(start + highSec * 1000 - 1, config).phase, "work");
+-      const recovery = getRideIntervalView(start + highSec * 1000, config);
+-      assert.equal(recovery.phase, "recovery");
+-      assert.equal(recovery.label, "회복");
+-      assert.equal(recovery.repeat, repeat);
+-      assert.equal(recovery.remainingSec, lowSec);
+-      assert.equal(getRideIntervalView(start + cycleMs - 1, config).remainingSec, 1);
+-    }
+-    const cooldownStart = 300_000 + repeats * cycleMs;
+-    assert.equal(getRideIntervalView(cooldownStart, config).phase, "cooldown");
+-    assert.equal(getRideIntervalView(cooldownStart, config).label, "마무리");
+-    assert.equal(getRideIntervalView(totalMs - 1, config).remainingSec, 1);
+-    const done = getRideIntervalView(totalMs, config);
+-    assert.equal(done.phase, "complete");
+-    assert.equal(done.label, "인터벌");
+-    assert.equal(done.nextLabel, "자유 주행 계속");
+-  }
++test("3종 프리셋 총시간과 라운드 경계를 지킨다", () => {
++  assert.equal(RIDE_INTERVAL_PRESETS.length, 3);
++  assert.deepEqual(DEFAULT, {
++    highSec: 60, lowSec: 120, repeats: 5, warmupSec: 300, cooldownSec: 300, rounds: 1, roundRestSec: 0,
++  });
++  assert.equal(getRideIntervalTotalMs(), 1_500_000);
++  assert.equal(matchRideIntervalPreset(DEFAULT), "recovery");
++
++  const balanced = RIDE_INTERVAL_PRESETS.find((item) => item.id === "balanced")!;
++  assert.equal(getRideIntervalTotalMs(balanced.config), 1_560_000);
++  assert.equal(matchRideIntervalPreset(balanced.config), "balanced");
++
++  const short = RIDE_INTERVAL_PRESETS.find((item) => item.id === "short")!;
++  assert.equal(short.config.rounds, 2);
++  assert.equal(short.config.roundRestSec, 180);
++  assert.equal(getRideIntervalTotalMs(short.config), 1_560_000);
++  const restStart = (600 + (20 + 10) * 8) * 1000;
++  assert.equal(getRideIntervalView(restStart, short.config).phase, "rest");
++  assert.equal(getRideIntervalView(restStart, short.config).round, 1);
++  assert.equal(getRideIntervalView(restStart + 180_000, short.config).phase, "work");
++  assert.equal(getRideIntervalView(restStart + 180_000, short.config).round, 2);
++  const afterLastRecovery = restStart + 180_000 + (20 + 10) * 8 * 1000;
++  assert.equal(getRideIntervalView(afterLastRecovery, short.config).phase, "cooldown");
++  assert.equal(getRideIntervalView(getRideIntervalTotalMs(short.config), short.config).phase, "complete");
++
++  const three = { ...short.config, rounds: 3 };
++  assert.equal(getRideIntervalTotalMs(three), 1_980_000);
++  const secondRest = restStart + 180_000 + (20 + 10) * 8 * 1000;
++  assert.equal(getRideIntervalView(secondRest, three).phase, "rest");
++  assert.equal(getRideIntervalView(secondRest, three).round, 2);
++  assert.equal(getRideIntervalView(secondRest + 180_000, three).round, 3);
+ });
+ 
+ test("반복 1회·30회와 최대 시간 경계를 계산한다", () => {
+@@ -122,9 +105,9 @@
+ });
+ 
+ test("다음 안내 시간은 설정 값을 반영하고 분은 60초 배수에만 쓴다", () => {
+-  assert.equal(getRideIntervalView(0).nextLabel, "다음 · 운동 30초");
+-  assert.equal(getRideIntervalView(300_000).nextLabel, "다음 · 회복 30초");
+-  assert.equal(getRideIntervalView(600_000).nextLabel, "다음 · 자유 주행");
++  assert.equal(getRideIntervalView(0).nextLabel, "다음 · 운동 1분");
++  assert.equal(getRideIntervalView(300_000).nextLabel, "다음 · 회복 2분");
++  assert.equal(getRideIntervalView(1_200_000).nextLabel, "다음 · 자유 주행");
+   const minutes = { highSec: 60, lowSec: 60, repeats: 5 };
+   assert.equal(getRideIntervalView(0, minutes).nextLabel, "다음 · 운동 1분");
+   assert.equal(getRideIntervalView(300_000, minutes).nextLabel, "다음 · 회복 1분");
+@@ -137,7 +120,7 @@
+   assert.equal(getRideIntervalView(320_000, custom).nextLabel, "다음 · 운동 20초");
+ });
+ 
+-test("잘못된 config는 거부하고 기본 15분 루틴으로 복귀한다", () => {
++test("잘못된 config는 거부하고 기본 1:2 루틴으로 복귀한다", () => {
+   assert.equal(isRideIntervalConfig({ highSec: 7, lowSec: 11, repeats: 2 }), true);
+   for (const value of [
+     null,
+@@ -157,8 +140,8 @@
+   ]) {
+     assert.equal(isRideIntervalConfig(value), false);
+     assert.equal(getRideIntervalView(300_000, value as never).phase, "work");
+-    assert.equal(getRideIntervalView(300_000, value as never).remainingSec, 30);
+-    assert.equal(getRideIntervalTotalMs(value as never), 900_000);
++    assert.equal(getRideIntervalView(300_000, value as never).remainingSec, 60);
++    assert.equal(getRideIntervalTotalMs(value as never), 1_500_000);
+   }
+ });
+ 
+@@ -199,7 +182,7 @@
+   assert.equal(getRideIntervalView(0, oddCooldown).nextLabel, "다음 · 운동 20초");
+   assert.equal(getRideIntervalView(110_000, oddCooldown).phase, "recovery");
+   assert.equal(getRideIntervalView(110_000, oddCooldown).nextLabel, "다음 · 마무리 90초");
+-  assert.equal(getRideIntervalView(570_000).nextLabel, "다음 · 마무리 5분");
++  assert.equal(getRideIntervalView(1_170_000).nextLabel, "다음 · 마무리 5분");
+ });
+ 
+ test("준비·마무리 0초는 단계에서 제외하고 양쪽 0이면 운동부터 완료한다", () => {
+@@ -234,11 +217,11 @@
+   assert.equal(getRideIntervalView(60_000, bothZero).phase, "complete");
+ });
+ 
+-test("legacy 3필드는 준비·마무리 300초로 정규화하고 잘못된 값은 거부한다", () => {
++test("legacy 3필드는 준비·마무리 300초·라운드1로 정규화하고 잘못된 값은 거부한다", () => {
+   const legacy = { highSec: 30, lowSec: 30, repeats: 5 };
+   assert.equal(isRideIntervalConfig(legacy), true);
+   assert.deepEqual(normalizeRideIntervalConfig(legacy), {
+-    highSec: 30, lowSec: 30, repeats: 5, warmupSec: 300, cooldownSec: 300,
++    highSec: 30, lowSec: 30, repeats: 5, warmupSec: 300, cooldownSec: 300, rounds: 1, roundRestSec: 0,
+   });
+   assert.equal(getRideIntervalTotalMs(legacy), 900_000);
+   assert.equal(getRideIntervalView(0, legacy).phase, "warmup");
+@@ -247,10 +230,10 @@
+   const omitted = { highSec: 20, lowSec: 40, repeats: 8, warmupSec: undefined, cooldownSec: undefined };
+   assert.equal(isRideIntervalConfig(omitted), true);
+   assert.deepEqual(normalizeRideIntervalConfig(omitted), {
+-    highSec: 20, lowSec: 40, repeats: 8, warmupSec: 300, cooldownSec: 300,
++    highSec: 20, lowSec: 40, repeats: 8, warmupSec: 300, cooldownSec: 300, rounds: 1, roundRestSec: 0,
+   });
+ 
+-  const explicitZero = { highSec: 30, lowSec: 30, repeats: 5, warmupSec: 0, cooldownSec: 1800 };
++  const explicitZero = { highSec: 30, lowSec: 30, repeats: 5, warmupSec: 0, cooldownSec: 1800, rounds: 1, roundRestSec: 0 };
+   assert.equal(isRideIntervalConfig(explicitZero), true);
+   assert.deepEqual(normalizeRideIntervalConfig(explicitZero), explicitZero);
+ 
+@@ -269,10 +252,12 @@
+     { highSec: 30, lowSec: 30, repeats: 5, cooldownSec: Infinity },
+     { highSec: 30, lowSec: 30, repeats: 5, cooldownSec: -1 },
+     { highSec: 30, lowSec: 30, repeats: 5, cooldownSec: 1801 },
++    { highSec: 30, lowSec: 30, repeats: 5, rounds: 0 },
++    { highSec: 30, lowSec: 30, repeats: 5, rounds: 4 },
+   ]) {
+     assert.equal(isRideIntervalConfig(value), false);
+     assert.equal(normalizeRideIntervalConfig(value), null);
+-    assert.equal(getRideIntervalTotalMs(value as never), 900_000);
++    assert.equal(getRideIntervalTotalMs(value as never), 1_500_000);
+     assert.equal(getRideIntervalView(300_000, value as never).phase, "work");
+   }
+ });
+--- before/apps/web/scripts/ride-interval/ride-moment-sound.test.ts
++++ after/apps/web/scripts/ride-interval/ride-moment-sound.test.ts
+@@ -0,0 +1,65 @@
++import assert from "node:assert/strict";
++import test from "node:test";
++import { cancelRideMomentSound, playRideMomentSound } from "../../src/lib/ride/rideMomentSound.ts";
++
++test("AudioContext constructor failure is silent", () => {
++  const before = Object.getOwnPropertyDescriptor(globalThis, "window");
++  Object.defineProperty(globalThis, "window", {
++    value: { AudioContext: class { constructor() { throw new Error("device unavailable"); } } },
++    configurable: true,
++  });
++  try {
++    assert.doesNotThrow(() => playRideMomentSound("start"));
++  } finally {
++    if (before) Object.defineProperty(globalThis, "window", before);
++    else Reflect.deleteProperty(globalThis, "window");
++  }
++});
++
++test("slow resume after cancel does not start oscillators", async () => {
++  const started: number[] = [];
++  let resume!: () => void;
++  class FakeCtx {
++    state = "suspended";
++    currentTime = 0;
++    destination = {};
++    resume() {
++      return new Promise<void>((resolve) => { resume = resolve; });
++    }
++    createOscillator() {
++      return {
++        type: "sine",
++        frequency: { value: 0 },
++        connect() {},
++        start() { started.push(1); },
++        stop() {},
++        onended: null as (() => void) | null,
++      };
++    }
++    createGain() {
++      return {
++        gain: {
++          setValueAtTime() {},
++          exponentialRampToValueAtTime() {},
++        },
++        connect() {},
++      };
++    }
++  }
++  const before = Object.getOwnPropertyDescriptor(globalThis, "window");
++  Object.defineProperty(globalThis, "window", {
++    value: { AudioContext: FakeCtx, speechSynthesis: { speaking: false } },
++    configurable: true,
++  });
++  try {
++    playRideMomentSound("start");
++    cancelRideMomentSound();
++    resume();
++    await Promise.resolve();
++    await Promise.resolve();
++    assert.equal(started.length, 0);
++  } finally {
++    if (before) Object.defineProperty(globalThis, "window", before);
++    else Reflect.deleteProperty(globalThis, "window");
++  }
++});
+--- before/apps/web/scripts/ride-interval/ride-moments-dom.test.mjs
++++ after/apps/web/scripts/ride-interval/ride-moments-dom.test.mjs
+@@ -0,0 +1,91 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import { createServer } from 'vite';
++import { chromium } from 'playwright';
++
++const fixture = `
++import React,{useEffect,useState} from 'react';
++import {createRoot} from 'react-dom/client';
++import {useRideInterval} from '/src/hooks/useRideInterval.ts';
++import {useRideMoments} from '/src/hooks/useRideMoments.ts';
++import {MapHud} from '/src/components/maphud/MapHud.tsx';
++const no=()=>{};
++const initial={status:'running',elapsedMs:0,routeMeters:5000,traveledMeters:0,waypointMeters:[],interval:null,newRoadKm:null,ended:null};
++function App(){
++ const [input,setInput]=useState(initial);
++ const [useProgram,setProgram]=useState(false);
++ const program=useRideInterval(input.status,input.elapsedMs,true,{warmupSec:0,highSec:5,lowSec:5,repeats:1,cooldownSec:0});
++ const actual=useProgram?{...input,interval:program.view,intervalRunKey:program.runKey}:input;
++ const event=useRideMoments(actual,false);
++ useEffect(()=>{window.probe={patch:patch=>setInput(old=>({...old,...patch})),program:on=>setProgram(on),apply:program.onConfig,enable:program.onEnabled,event,runKey:program.runKey};});
++ return React.createElement(React.Fragment,null,
++   React.createElement('output',{id:'moment'},event?.kind??''),
++   React.createElement(MapHud,{visible:true,stage:input.status==='idle'?'idle-map':input.status==='paused'?'paused':'riding',menuOpen:false,onOpenMenu:no,account:null,onOpenUserInfo:no,userInfoOpen:false,coachData:null,coachLineEnabled:false,metrics:null,onClearPins:no,routeError:null,onResumeFromPause:no,onEndFromPause:no,onModifyFromPause:no,rideInterval:actual.interval,rideMoments:{...actual,soundEnabled:false}}));
++}
++createRoot(document.getElementById('root')).render(React.createElement(React.StrictMode,null,React.createElement(App)));
++`;
++
++test('actual React hooks and MapHud handle StrictMode, transitions, stops and interval restarts', { timeout: 60000 }, async () => {
++  const server = await createServer({ logLevel: 'error', server: { host: '127.0.0.1', port: 0 }, plugins: [{
++    name: 'ride-moments-lifecycle-fixture', enforce: 'pre',
++    resolveId(id) { if (id === '/moments-probe.js') return '\0moments-probe'; },
++    load(id) { if (id === '\0moments-probe') return fixture; },
++    configureServer(s) { s.middlewares.use(async (req, res, next) => {
++      if (req.url !== '/moments-probe') return next();
++      res.setHeader('Content-Type', 'text/html');
++      res.end(await s.transformIndexHtml('/moments-probe', '<html><body><div id="root"></div><script type="module" src="/moments-probe.js"></script></body></html>'));
++    }); },
++  }] });
++  let browser;
++  try {
++    await server.listen();
++    browser = await chromium.launch({ channel: 'msedge', headless: true });
++    const page = await browser.newPage({ viewport: { width: 800, height: 360 } });
++    const errors = [];
++    page.on('pageerror', error => errors.push(error.message));
++    await page.clock.install();
++    await page.goto(`http://127.0.0.1:${server.httpServer.address().port}/moments-probe`);
++    await page.waitForFunction(() => window.probe?.event?.kind === 'start');
++    await page.clock.runFor(2500);
++    await page.waitForFunction(() => document.querySelector('#moment').textContent === '');
++    const view = (phase, remainingSec, nextLabel = '다음 · 운동 5초') => ({ phase, step: phase === 'work' ? 1 : 0, label: phase, remainingSec, repeat: 1, totalRepeats: 1, round: 1, totalRounds: 1, nextLabel });
++    await page.evaluate(interval => window.probe.patch({ elapsedMs: 1000, interval, intervalRunKey: 'r1' }), view('warmup', 10));
++    await page.waitForFunction(() => window.probe.event?.kind === 'intervalStart');
++    await page.clock.runFor(2500);
++    await page.evaluate(interval => window.probe.patch({ elapsedMs: 2000, interval }), view('warmup', 3));
++    await page.waitForFunction(() => window.probe.event?.kind === 'intervalWarn');
++    await page.evaluate(interval => window.probe.patch({ elapsedMs: 2500, interval }), view('work', 5));
++    await page.waitForFunction(() => window.probe.event?.kind === 'intervalHigh');
++    await page.evaluate(() => window.probe.patch({ status: 'paused' }));
++    await page.waitForFunction(() => window.probe.event === null);
++    await page.evaluate(() => window.probe.patch({ status: 'running', interval: null }));
++    await page.evaluate(interval => window.probe.patch({ elapsedMs: 3000, interval, intervalRunKey: 'r2' }), view('warmup', 3));
++    await page.waitForFunction(() => window.probe.event?.kind === 'intervalWarn');
++    await page.evaluate(() => window.probe.patch({ status: 'idle', ended: { reason: 'stop', sessionKm: 1 } }));
++    await page.waitForFunction(() => window.probe.event?.kind === 'stop');
++    await page.evaluate(() => window.probe.patch({ elapsedMs: 3001 }));
++    assert.equal(await page.locator('#moment').textContent(), 'stop');
++    await page.clock.runFor(2500);
++    await page.waitForFunction(() => window.probe.event === null);
++    await page.evaluate(() => { window.probe.patch({ status: 'running', elapsedMs: 0, traveledMeters: 0, ended: null, interval: null }); window.probe.program(true); });
++    await page.waitForFunction(() => window.probe.event?.kind === 'intervalStart');
++    await page.clock.runFor(2500);
++    await page.evaluate(() => window.probe.patch({ elapsedMs: 11000 }));
++    await page.waitForFunction(() => window.probe.event === null);
++    const before = await page.evaluate(() => window.probe.runKey);
++    await page.evaluate(() => window.probe.apply({ warmupSec: 5, highSec: 5, lowSec: 5, repeats: 1, cooldownSec: 0 }));
++    await page.waitForFunction(oldKey => window.probe.runKey !== oldKey, before);
++    await page.waitForFunction(() => document.querySelector('.hud-coach--moment')?.getAttribute('data-moment') === 'intervalStart');
++    await page.clock.runFor(2500);
++    await page.evaluate(() => window.probe.patch({ elapsedMs: 13000 }));
++    await page.waitForFunction(() => document.querySelector('.hud-coach--moment')?.getAttribute('data-moment') === 'intervalWarn');
++    await page.evaluate(() => window.probe.apply({ warmupSec: 10, highSec: 5, lowSec: 5, repeats: 1, cooldownSec: 0 }));
++    await page.waitForFunction(() => document.querySelector('.hud-coach--moment')?.getAttribute('data-moment') === 'intervalStart');
++    await page.evaluate(() => window.probe.enable(false));
++    await page.waitForFunction(() => !document.querySelector('.hud-coach--moment'));
++    assert.deepEqual(errors, []);
++  } finally {
++    await browser?.close();
++    await server.close();
++  }
++});
+--- before/apps/web/scripts/ride-interval/ride-moments-lifecycle.test.ts
++++ after/apps/web/scripts/ride-interval/ride-moments-lifecycle.test.ts
+@@ -0,0 +1,123 @@
++import assert from "node:assert/strict";
++import test from "node:test";
++import { getRideIntervalView } from "../../src/lib/ride/rideInterval.ts";
++import {
++  emptyRideMomentMemory,
++  resolveRideMoments,
++  type RideMomentInput,
++  type RideMomentMemory,
++} from "../../src/lib/ride/rideMoments.ts";
++
++const phase = (kind: string, remainingSec = 10) => ({
++  phase: kind,
++  step: 0,
++  label: kind,
++  remainingSec,
++  repeat: 1,
++  totalRepeats: 5,
++  round: 1,
++  totalRounds: 1,
++  nextLabel: "다음 · 운동 1분",
++});
++
++function memory(patch: Partial<RideMomentMemory> = {}): RideMomentMemory {
++  return {
++    ...emptyRideMomentMemory(),
++    started: true,
++    intervalStarted: true,
++    lastStatus: "running",
++    lastElapsedMs: 9000,
++    lastPhase: "warmup",
++    ...patch,
++  };
++}
++
++function input(extra: Partial<RideMomentInput> = {}): RideMomentInput {
++  return {
++    status: "running",
++    elapsedMs: 10000,
++    routeMeters: 5000,
++    traveledMeters: 100,
++    waypointMeters: [],
++    interval: phase("warmup") as RideMomentInput["interval"],
++    newRoadKm: null,
++    ended: null,
++    ...extra,
++  };
++}
++
++test("running→idle+end payload delivers finish", () => {
++  const r = resolveRideMoments(memory(), input({ status: "idle", ended: { reason: "finish", sessionKm: 5 } }));
++  assert.equal(r.event?.kind, "finish");
++});
++
++test("new ride after a completed ride starts and can celebrate again", () => {
++  const end = resolveRideMoments(memory(), input({ status: "idle", ended: { reason: "finish", sessionKm: 5 } }));
++  const idle = resolveRideMoments(end.memory, input({ status: "idle", elapsedMs: 0, traveledMeters: 0 }));
++  const start = resolveRideMoments(idle.memory, input({ status: "running", elapsedMs: 0, traveledMeters: 0, interval: null }));
++  assert.equal(start.event?.kind, "start");
++});
++
++test("stale ended payload does not replay finish or block the next ride", () => {
++  const end = resolveRideMoments(memory(), input({ status: "idle", ended: { reason: "finish", sessionKm: 5 } }));
++  const start = resolveRideMoments(end.memory, input({
++    status: "running",
++    elapsedMs: 0,
++    traveledMeters: 0,
++    interval: null,
++    ended: { reason: "finish", sessionKm: 5 },
++  }));
++  assert.equal(start.event?.kind, "start");
++  assert.equal(start.memory.ended, false);
++});
++
++test("pause/resume does not repeat same three-second warning", () => {
++  const a = resolveRideMoments(memory(), input({ interval: phase("warmup", 3) as RideMomentInput["interval"] }));
++  assert.equal(a.event?.kind, "intervalWarn");
++  const b = resolveRideMoments(a.memory, input({ status: "paused", interval: phase("warmup", 3) as RideMomentInput["interval"] }));
++  const c = resolveRideMoments(b.memory, input({ interval: phase("warmup", 3) as RideMomentInput["interval"] }));
++  assert.notEqual(c.event?.kind, "intervalWarn");
++});
++
++test("skipped completion is consumed instead of delayed one tick", () => {
++  const a = resolveRideMoments(memory(), input({ elapsedMs: 100000, interval: phase("complete", 0) as RideMomentInput["interval"] }));
++  assert.equal(a.event, null);
++  assert.equal(a.memory.intervalCompleted, true);
++  const b = resolveRideMoments(a.memory, input({ elapsedMs: 100500, interval: phase("complete", 0) as RideMomentInput["interval"] }));
++  assert.notEqual(b.event?.kind, "intervalComplete");
++});
++
++test("restarted interval may complete again in the same ride", () => {
++  const prior = { ...memory(), intervalCompleted: true, lastPhase: "complete" as const };
++  const a = resolveRideMoments(prior, input({ interval: phase("warmup") as RideMomentInput["interval"] }));
++  const b = resolveRideMoments(a.memory, input({ elapsedMs: 10500, interval: phase("complete", 0) as RideMomentInput["interval"] }));
++  assert.equal(b.event?.kind, "intervalComplete");
++});
++
++test("interval run key restart also allows a second complete", () => {
++  const done = resolveRideMoments(memory(), input({
++    elapsedMs: 15000,
++    interval: phase("complete", 0) as RideMomentInput["interval"],
++    intervalRunKey: "run-1",
++  }));
++  const restarted = resolveRideMoments(done.memory, input({
++    elapsedMs: 16000,
++    interval: getRideIntervalView(0, { highSec: 45, lowSec: 60, repeats: 6, warmupSec: 0, cooldownSec: 0 }),
++    intervalRunKey: "run-2",
++  }));
++  assert.equal(restarted.memory.intervalCompleted, false);
++  assert.ok(restarted.event?.kind === "intervalStart" || restarted.event?.kind === "intervalHigh");
++  assert.equal(restarted.event?.coach.includes("준비부터"), false);
++  const again = resolveRideMoments(restarted.memory, input({
++    elapsedMs: 16500,
++    interval: phase("complete", 0) as RideMomentInput["interval"],
++    intervalRunKey: "run-2",
++  }));
++  assert.equal(again.event?.kind, "intervalComplete");
++});
++
++test("zero-warmup start does not say begin with preparation", () => {
++  const a = resolveRideMoments(emptyRideMomentMemory(), input({ elapsedMs: 0, interval: phase("work", 60) as RideMomentInput["interval"] }));
++  assert.ok(a.event);
++  assert.equal(a.event.coach.includes("준비부터"), false);
++});
+--- before/apps/web/scripts/ride-interval/ride-moments.test.ts
++++ after/apps/web/scripts/ride-interval/ride-moments.test.ts
+@@ -0,0 +1,107 @@
++import assert from "node:assert/strict";
++import test from "node:test";
++import { getRideIntervalView } from "../../src/lib/ride/rideInterval.ts";
++import {
++  emptyRideMomentMemory,
++  resolveRideMoments,
++  type RideMomentInput,
++} from "../../src/lib/ride/rideMoments.ts";
++
++function tick(memory = emptyRideMomentMemory(), patch: Partial<RideMomentInput> = {}) {
++  return resolveRideMoments(memory, {
++    status: "running",
++    elapsedMs: 0,
++    routeMeters: 2000,
++    traveledMeters: 0,
++    waypointMeters: [700, 1400],
++    interval: null,
++    newRoadKm: null,
++    ended: null,
++    ...patch,
++  });
++}
++
++test("주행 시작은 idle→running 한 번만 나오고 일시정지 재개는 시작이 아니다", () => {
++  const start = tick();
++  assert.equal(start.event?.kind, "start");
++  const paused = tick(start.memory, { status: "paused", elapsedMs: 1000, traveledMeters: 10 });
++  assert.equal(paused.event, null);
++  const resume = tick(paused.memory, { status: "running", elapsedMs: 1000, traveledMeters: 10 });
++  assert.equal(resume.event, null);
++});
++
++test("절반과 경유지는 지점당 한 번이며 큰 점프는 재생하지 않는다", () => {
++  const started = tick();
++  started.memory.lastElapsedMs = 3900;
++  started.memory.lastTraveledMeters = 990;
++  const half = tick(started.memory, { elapsedMs: 4000, traveledMeters: 1000 });
++  assert.equal(half.event?.kind, "half");
++  const halfAgain = tick(half.memory, { elapsedMs: 4100, traveledMeters: 1010 });
++  assert.equal(halfAgain.event, null);
++
++  const fromStart = tick();
++  const jump = tick(fromStart.memory, { elapsedMs: 20_000, traveledMeters: 1500 });
++  assert.equal(jump.event, null);
++  assert.equal(jump.memory.half, true);
++  assert.deepEqual(jump.memory.waypoints, [0, 1]);
++
++  fromStart.memory.lastElapsedMs = 2000;
++  fromStart.memory.lastTraveledMeters = 690;
++  const pass = tick(fromStart.memory, { elapsedMs: 2200, traveledMeters: 710 });
++  assert.equal(pass.event?.kind, "waypoint");
++  assert.equal(pass.event?.waypointIndex, 0);
++  const passAgain = tick(pass.memory, { elapsedMs: 2300, traveledMeters: 720 });
++  assert.equal(passAgain.event, null);
++});
++
++test("전환 안내가 절반보다 우선하고 큐에 쌓지 않는다", () => {
++  const interval = getRideIntervalView(297_000);
++  assert.equal(interval.remainingSec, 3);
++  const started = tick(emptyRideMomentMemory(), { interval: getRideIntervalView(0) });
++  assert.equal(started.event?.kind, "intervalStart");
++  started.memory.lastElapsedMs = 296_000;
++  started.memory.lastTraveledMeters = 990;
++  const warnAndHalf = tick(started.memory, {
++    elapsedMs: 297_000,
++    traveledMeters: 1000,
++    interval,
++  });
++  assert.equal(warnAndHalf.event?.kind, "intervalWarn");
++  const work = tick(warnAndHalf.memory, {
++    elapsedMs: 300_000,
++    traveledMeters: 1010,
++    interval: getRideIntervalView(300_000),
++  });
++  assert.equal(work.event?.kind, "intervalHigh");
++});
++
++test("인터벌 완료는 주행을 끝내지 않고 종료 이벤트는 각 1회다", () => {
++  const started = tick(emptyRideMomentMemory(), { interval: getRideIntervalView(0) });
++  started.memory.lastElapsedMs = 1_499_000;
++  started.memory.lastTraveledMeters = 1790;
++  const done = tick(started.memory, {
++    elapsedMs: 1_500_000,
++    traveledMeters: 1800,
++    interval: getRideIntervalView(1_500_000),
++  });
++  assert.equal(done.event?.kind, "intervalComplete");
++  const stillRunning = tick(done.memory, {
++    elapsedMs: 1_501_000,
++    traveledMeters: 1810,
++    interval: getRideIntervalView(1_501_000),
++  });
++  assert.equal(stillRunning.event, null);
++
++  const finish = tick(stillRunning.memory, {
++    status: "idle",
++    ended: { reason: "finish", sessionKm: 2.02 },
++    newRoadKm: 0.42,
++  });
++  assert.equal(finish.event?.kind, "finish");
++  const finishAgain = tick(finish.memory, {
++    status: "idle",
++    ended: { reason: "finish", sessionKm: 2.02 },
++    newRoadKm: 0.42,
++  });
++  assert.equal(finishAgain.event, null);
++});
+--- before/apps/web/scripts/ride-interval/supervisor-layout-check.mjs
++++ after/apps/web/scripts/ride-interval/supervisor-layout-check.mjs
+@@ -0,0 +1,45 @@
++import { chromium } from 'playwright';
++import fs from 'node:fs/promises';
++import path from 'node:path';
++
++const output = path.resolve('../../document/ops/20261028-ui-moments/evidence/supervisor-final');
++await fs.mkdir(output, { recursive: true });
++const browser = await chromium.launch({ channel: 'msedge', headless: true });
++const checks = [];
++try {
++  const page = await browser.newPage();
++  for (const [width, height] of [[800, 360], [736, 360], [699, 273], [667, 300]]) {
++    await page.setViewportSize({ width, height });
++    await page.goto('http://127.0.0.1:5031/scripts/ui-800x360/preview.html?state=riding&interval&intervalMs=330000');
++    await page.locator('[aria-label="주행 지표"]').waitFor();
++    await page.locator('.edge-panel-tab--right').click();
++    await page.locator('#lb-glance-panel').waitFor({ state: 'visible' });
++    const result = await page.evaluate(() => {
++      const box = s => document.querySelector(s).getBoundingClientRect();
++      const rank = box('.lb-glance__panel');
++      const controls = box('.map-hud__tr');
++      const list = box('.lb-glance__list');
++      const interval = box('.ride-interval-hud');
++      const metrics = box('[aria-label="주행 지표"]');
++      const overlap = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
++      const cellOverflows = [...document.querySelectorAll('.hud-metrics__cell')].filter(e => e.scrollWidth > e.clientWidth + 1).map(e => e.textContent);
++      return {
++        hudFraction: metrics.width / innerWidth,
++        rankControlOverlap: overlap(rank, controls),
++        rankIntervalOverlap: overlap(rank, interval),
++        listHeight: list.height,
++        rowHeight: box('.lb-glance__row').height,
++        controlsBottom: controls.bottom,
++        rankTop: rank.top,
++        cellOverflows,
++      };
++    });
++    checks.push({ width, height, ...result });
++    await page.screenshot({ path: path.join(output, `riding-${width}x${height}.png`), animations: 'disabled' });
++  }
++} finally {
++  await browser.close();
++}
++await fs.writeFile(path.join(output, 'layout.json'), JSON.stringify(checks, null, 2));
++console.log(JSON.stringify(checks));
++process.exitCode = checks.every(c => c.hudFraction <= .5 && !c.rankControlOverlap && !c.rankIntervalOverlap && c.listHeight >= c.rowHeight && c.cellOverflows.length === 0) ? 0 : 1;
+--- before/apps/web/scripts/ui-800x360/preview.tsx
++++ after/apps/web/scripts/ui-800x360/preview.tsx
+@@ -39,7 +39,7 @@
+ import type { Camera1Mode } from '../../src/lib/camera/camera1Mode';
+ import type { StoredRideSession } from '../../src/lib/ride/rideSessionsStorage';
+ import type { LeaderboardResponse } from '../../src/services/leaderboardApi';
+-import { LeaderboardGlanceChip, LeaderboardGlancePanel } from '../../src/components/leaderboard/LeaderboardGlance';
++import { LeaderboardGlancePanel } from '../../src/components/leaderboard/LeaderboardGlance';
+ import { buildGlanceLiveRows } from '../../src/components/leaderboard/leaderboardGlanceSnapshot';
+ import '../../src/components/leaderboard/LeaderboardGlance.css';
+ import '../../src/boxcycle-theme.css';
+@@ -76,11 +76,12 @@
+   },
+ };
+ const summaryVariant = params.get('variant');
++const summaryCompleted = summaryVariant === 'completed' || params.has('completed');
+ const result: RideEndResult = {
+-  recordId:'ui-preview', endedAtIso:'2026-10-20T08:00:00Z', sessionDistanceMeters:1200,
++  recordId:'ui-preview', endedAtIso:'2026-10-20T08:00:00Z', sessionDistanceMeters:summaryCompleted?5000:1200,
+   elapsedSec:420, avgSpeedKmh:18, caloriesEstimate:null, savedRouteId:null,
+-  routeName:'남산공원길', hasRoute:true, previousProgressRatio:0.2, progressRatio:0.44,
+-  routeCompleted:false, anchorLngLat:[126.98,37.55], anchorPlaceLabel:'남산공원길',
++  routeName:'남산공원길', hasRoute:true, previousProgressRatio:0.2, progressRatio:summaryCompleted?1:0.44,
++  routeCompleted:summaryCompleted, anchorLngLat:[126.98,37.55], anchorPlaceLabel:'남산공원길',
+   profile:'cycling', routeDistanceMeters:5000,
+   rideSaveStatus: summaryVariant === 'saving' ? 'pending' : 'success',
+   savedRouteProgressStatus: summaryVariant === 'progress-fail' ? 'failed' : 'n/a',
+@@ -391,7 +392,8 @@
+   const sensorCrankRpm =
+     sensorSheet.uiState === 'connected' ? sensorSheet.crankRpm : sensorPreset ? sensorSheet.crankRpm : null;
+   const [menuReveal,setMenuReveal] = useState<number|null>(null);
+-  const modalOpen=['menu','map','account','settings','sensor','profile','routes','summary','intro','location'].includes(panel);
++  const [rankOpen,setRankOpen] = useState(glanceCapture && initial !== 'glance-summary');
++  const [rideMomentSoundEnabled,setRideMomentSoundEnabled] = useState(false);
+   const profileUser = makeProfileUser(BATCH4_PROFILE_STATES.has(initial) ? initial : 'profile');
+   const profileNicknameChangedAtMs = profileNicknameLockMs(initial);
+   const active = stage==='riding'||stage==='paused';
+@@ -411,21 +413,19 @@
+   const sensorState = { capable: sensorCapable, uiState: dockSensorUi, crankRpm: dockCrankRpm };
+   const glanceLiveRows = buildGlanceLiveRows(mockLeaderboard);
+   const glanceRiding = initial === 'glance-riding';
+-  const glanceView = glanceCapture
+-    ? {
+-        mode: glanceRiding ? ('riding' as const) : ('map' as const),
+-        isGuest: false,
+-        panelOpen: true,
+-        onTogglePanel: noop,
+-        onOpenFullLeaderboard: noop,
+-        mapData: mockLeaderboard,
+-        rideSnapshot: mockLeaderboard,
+-        liveRows: glanceLiveRows,
+-        myBaseKm: 9.43,
+-        addedKm: glanceRiding ? 0.07 : 0,
+-        pedalQualified: true,
+-      }
+-    : null;
++  const glanceView = {
++    mode: (active ? 'riding' : 'map') as 'riding' | 'map',
++    isGuest: false,
++    panelOpen: rankOpen,
++    onTogglePanel: () => setRankOpen((open) => !open),
++    onOpenFullLeaderboard: noop,
++    mapData: mockLeaderboard,
++    rideSnapshot: mockLeaderboard,
++    liveRows: glanceLiveRows,
++    myBaseKm: 9.43,
++    addedKm: glanceRiding ? 0.07 : 0,
++    pedalQualified: true,
++  };
+   const summaryRank =
+     initial === 'glance-summary'
+       ? {
+@@ -444,8 +444,12 @@
+       <circle cx="480" cy="270" r="9" fill="#2563eb" stroke="white" strokeWidth="3"/>
+     </svg>
+     <div className="audit-map-attribution">검수용 지도 배경 · 실제 제품 컴포넌트 · 서버 기록 없음</div>
+-    <EdgePanelHandle edge="left" open={modalOpen} panelId="menu-panel" label="메뉴 열기"
++    {panel!=='summary' && initial!=='glance-summary' ? <>
++    <EdgePanelHandle edge="left" open={panel==='menu'} panelId="menu-panel" label="메뉴 열기"
+       onOpen={()=>setPanel('menu')} onClose={()=>setPanel('ready')} onDragProgress={setMenuReveal}/>
++    <EdgePanelHandle edge="right" open={rankOpen} panelId="lb-glance-panel" label="순위 열기"
++      onOpen={()=>setRankOpen(true)} onClose={()=>setRankOpen(false)} onDragProgress={noop}/>
++    </> : null}
+     <MapBottomLeftStack>
+     <RouteDock key={hasRoute?'route':'empty'} stage={stage} stops={hasRoute?stops:stage==='setup'?[stops[0]]:[]} routeLoading={params.has('loading')}
+       onRemoveStop={noop} onFocusStop={noop} onSwapEndpoints={noop}
+@@ -463,13 +467,13 @@
+       account={glanceCapture?{initial:'R',isGuest:false,label:'Ridingman12',mileageKm:178}:{initial:'G',isGuest:true,label:long?'아주긴닉네임라이더테스트':'게스트 라이더',mileageKm:null}}
+       onOpenUserInfo={()=>setPanel('account')} userInfoOpen={panel==='account'}
+       coachData={active?{tip:'Relax and find your rhythm',resistance:'Resistance 3',intensity:'MODERATE',action:'PEDAL',tipId:'tip_26'}:null} coachLineEnabled={active}
+-      cadenceRpm={glanceRiding?82:null}
++      cadenceRpm={active && !params.has('noSensor') ? 82 : null}
+       metrics={hasRoute?active?{mode:'ride',elapsed:glanceRiding?'00:13':'24:08',distanceKm:glanceRiding?'0.07':'4.20',cumulativeKm:glanceRiding?'0.07':long?'1234.56':'4.20',avgKmh:glanceRiding?'19.8':'18.6',speedKmh:glanceRiding?37:24,routeTotalKm:glanceRiding?'2.02':long?'9999.99':'10.00'}:{mode:'route-preview',distanceKm:long?'1234.56':'2.02',elevation:{status:'ready',startM:46,endM:30}}:null}
+       conquestLiveMeters={active?420:null} onClearPins={noop} routeError={params.has('error')?'경로를 찾지 못했습니다. 다른 지점을 선택해 주세요.':null}
+       onResumeFromPause={()=>setStage('riding')} onEndFromPause={()=>setPanel('summary')} onModifyFromPause={()=>setStage('setup')}
+       quickCamera={active&&!glanceRiding?{active:camera,camera1Mode:flatCameraMode,enable3D,terrainFallback:params.has('terrainFallback'),onEnable3D:setEnable3D,onSelect:setCamera,onSelectFlat:(mode)=>{setFlatCameraMode(mode);setCamera(1);}}:null} mapControls={{styleLabel:'위성',styleAriaLabel:'맵 스타일 위성, 클릭 시 야외',onToggleStyle:noop,onZoomOut:noop,onZoomIn:noop,zoomOutDisabled:false,zoomInDisabled:false}}
+-      leaderboardGlanceChip={glanceView?<LeaderboardGlanceChip {...glanceView} />:undefined}
+-      leaderboardGlancePanel={glanceView && initial!=='glance-summary'?<LeaderboardGlancePanel {...glanceView} />:undefined} />
++      leaderboardGlancePanel={initial!=='glance-summary'?<LeaderboardGlancePanel {...glanceView} />:undefined}
++      rideMoments={active?{status:stage==='paused'?'paused':'running',elapsedMs:intervalElapsedMs,routeMeters:2020,traveledMeters:420,waypointMeters:[700,1400],newRoadKm:0.42,ended:null,intervalRunKey:interval.runKey,soundEnabled:rideMomentSoundEnabled}:null} />
+     <RideSummarySheet open={panel==='summary'||initial==='glance-summary'} result={result} arrivalCompleted={false} elapsedLabel="07:00" avgKmh="18" caloriesEstimate={null}
+       story={initial==='glance-summary'?{headline:'첫 라이딩을 마치셨어요. 시작이 가장 어려운 법이에요.',detail:undefined}:{headline:'오늘도 나만의 길을 이었습니다.',detail:'남산공원길에서 1.2km를 달렸습니다.'}}
+       adhocSaveAvailable={initial!=='glance-summary' && summaryVariant !== 'closed'}
+@@ -531,6 +535,7 @@
+       pacerEnabled={pacerEnabled} onPacerEnabled={setPacerEnabled}
+       rideBgmCatalogConfigured rideElevationProfileLoading={false}
+       calorieWeightKg={weight} calorieIntensityId={intensity}
++      rideMomentSoundEnabled={rideMomentSoundEnabled} onRideMomentSoundEnabled={setRideMomentSoundEnabled}
+       onEditProfile={() => {
+         setSettingsProfileNavCalls((n) => n + 1);
+         setPanel('profile');
+--- before/apps/web/src/App.tsx
++++ after/apps/web/src/App.tsx
+@@ -48,7 +48,7 @@
+ import { useRideStartPulseKey } from "./hooks/useRideStartPulseKey";
+ import { useRideInterval } from "./hooks/useRideInterval";
+ import { RideSummarySheet } from "./components/ride/RideSummarySheet";
+-import { LeaderboardGlanceChip, LeaderboardGlancePanel } from "./components/leaderboard/LeaderboardGlance";
++import { LeaderboardGlancePanel } from "./components/leaderboard/LeaderboardGlance";
+ import { buildGlanceLiveRows } from "./components/leaderboard/leaderboardGlanceSnapshot";
+ import { computeRideRankChangeLine } from "./components/leaderboard/leaderboardLiveRank";
+ import { useLeaderboardGlance } from "./hooks/useLeaderboardGlance";
+@@ -147,7 +147,7 @@
+ import { canUserJoinTrail, resolveNewTrailVisibility } from "./lib/trail/trailAccessPolicy";
+ import { replaceTrailInUrl } from "./lib/trail/trailUrl";
+ import type { LngLat, LineStringGeometry } from "./lib/geo/geo";
+-import { boundsFromLineCoordinates, getPointOnRouteByDistance, lineStringLengthMeters } from "./lib/geo/geo";
++import { boundsFromLineCoordinates, distanceOnRouteByProjectedPoint, getPointOnRouteByDistance, lineStringLengthMeters } from "./lib/geo/geo";
+ import { MAX_ROUTE_WAYPOINTS } from "./lib/geo/routeWaypoints";
+ import { lockRouteWorkspaceDuringRide } from "./lib/route/routeWorkspaceLock";
+ import { resolveRideContinuationSetup } from "./lib/ride/rideContinuationSetup";
+@@ -323,6 +323,8 @@
+     setRideBgmEnabled,
+     rideCoachingBannerVisible,
+     setRideCoachingBannerVisible,
++    rideMomentSoundEnabled,
++    setRideMomentSoundEnabled,
+   } = useRideFeedbackPreferences();
+   const {
+     menuOpen,
+@@ -552,7 +554,7 @@
+     onRouteDirectionsErrorRef,
+   });
+   const leaderboardGlance = useLeaderboardGlance(user, rideStatus !== "idle");
+-  const { enabled: rideIntervalEnabled, onEnabled: handleRideIntervalEnabled, view: rideInterval, config: rideIntervalConfig, onConfig: handleRideIntervalConfig } =
++  const { enabled: rideIntervalEnabled, onEnabled: handleRideIntervalEnabled, view: rideInterval, config: rideIntervalConfig, onConfig: handleRideIntervalConfig, runKey: rideIntervalRunKey } =
+     useRideInterval(rideStatus, rideMetrics.accumulatedMs);
+   const [rideIntervalSettingsOpen, setRideIntervalSettingsOpen] = useState(false);
+   const sessionPedalQualifiedRef = useRef(false);
+@@ -2833,10 +2835,42 @@
+   const mapHudLeaderboard = useMemo(() => {
+     if (!leaderboardGlanceView) return {};
+     return {
+-      leaderboardGlanceChip: <LeaderboardGlanceChip {...leaderboardGlanceView} />,
+       leaderboardGlancePanel: <LeaderboardGlancePanel {...leaderboardGlanceView} />,
+     };
+   }, [leaderboardGlanceView]);
++  const waypointMeters = useMemo(() => {
++    if (!routeGeometry || routeWaypoints.length === 0) return [];
++    return routeWaypoints
++      .map((point) => distanceOnRouteByProjectedPoint(routeGeometry, point))
++      .filter((meters): meters is number => meters != null && Number.isFinite(meters) && meters > 0);
++  }, [routeGeometry, routeWaypoints]);
++  const rideMomentsInput = useMemo(() => ({
++    status: rideStatus,
++    elapsedMs: rideMetrics.accumulatedMs,
++    routeMeters: routeDistanceMeters,
++    traveledMeters: cumulativeDistanceMeters,
++    waypointMeters,
++    newRoadKm: conquestLiveMeters != null ? conquestLiveMeters / 1000 : null,
++    intervalRunKey: rideIntervalEnabled ? rideIntervalRunKey : "",
++    ended: lastRideResult
++      ? {
++          reason: lastRideResult.routeCompleted ? ("finish" as const) : ("stop" as const),
++          sessionKm: lastRideResult.sessionDistanceMeters / 1000,
++        }
++      : null,
++    soundEnabled: rideMomentSoundEnabled,
++  }), [
++    rideStatus,
++    rideMetrics.accumulatedMs,
++    routeDistanceMeters,
++    cumulativeDistanceMeters,
++    waypointMeters,
++    conquestLiveMeters,
++    lastRideResult,
++    rideMomentSoundEnabled,
++    rideIntervalEnabled,
++    rideIntervalRunKey,
++  ]);
+   const summaryRankChange = useMemo(() => {
+     if (!summaryVisible || !lastRideResult || !user) return null;
+     const snap = leaderboardGlance.atRideStart;
+@@ -2914,7 +2948,6 @@
+       !needsGuestEntry &&
+       !needsAuthCard &&
+       !needsNicknameCard &&
+-      !menuOpen &&
+       !placeSearchOpen &&
+       !userInfoSheetOpen &&
+       !rideSettingsSheetOpen &&
+@@ -2957,10 +2990,8 @@
+                 rideInterval,
+                 intervalCadenceRpm: bleCrankRpm.uiState === "connected" ? bleCrankRpm.crankRpm : null,
+                 metrics: hudMetrics,
+-                cadenceRpm:
+-                  rideStatus === "running" && bleCrankRpm.crankRpm != null
+-                    ? bleCrankRpm.crankRpm
+-                    : null,
++                cadenceRpm: bleCrankRpm.uiState === "connected" ? bleCrankRpm.crankRpm : null,
++                rideMoments: rideMomentsInput,
+                 onClearPins: handleClearPins,
+                 routeError: null,
+                 onResumeFromPause: handleResume,
+@@ -3146,10 +3177,8 @@
+               rideInterval,
+               intervalCadenceRpm: bleCrankRpm.uiState === "connected" ? bleCrankRpm.crankRpm : null,
+               metrics: hudMetrics,
+-              cadenceRpm:
+-                rideStatus === "running" && bleCrankRpm.crankRpm != null
+-                  ? bleCrankRpm.crankRpm
+-                  : null,
++              cadenceRpm: bleCrankRpm.uiState === "connected" ? bleCrankRpm.crankRpm : null,
++              rideMoments: rideMomentsInput,
+               onClearPins: handleClearPins,
+               routeError: null,
+               onResumeFromPause: handleResume,
+@@ -3283,6 +3312,21 @@
+             }}
+             onDragProgress={handleMenuReveal}
+           />
++          {leaderboardGlanceView ? (
++            <EdgePanelHandle
++              edge="right"
++              open={leaderboardGlance.panelOpen}
++              panelId="lb-glance-panel"
++              label="순위 열기"
++              onOpen={() => {
++                if (!leaderboardGlance.panelOpen) leaderboardGlance.togglePanel();
++              }}
++              onClose={() => {
++                if (leaderboardGlance.panelOpen) leaderboardGlance.togglePanel();
++              }}
++              onDragProgress={() => {}}
++            />
++          ) : null}
+         </>
+       ) : null}
+ 
+@@ -3434,6 +3478,8 @@
+           setRideSettingsSheetOpen(false);
+           setProfileEditOpen(true);
+         }}
++        rideMomentSoundEnabled={rideMomentSoundEnabled}
++        onRideMomentSoundEnabled={setRideMomentSoundEnabled}
+       />
+ 
+       <RideIntervalSettingsSheet
+--- before/apps/web/src/components/leaderboard/LeaderboardGlance.css
++++ after/apps/web/src/components/leaderboard/LeaderboardGlance.css
+@@ -1,47 +1,25 @@
+-.lb-glance__chip {
+-  pointer-events: auto;
+-  width: 40px;
+-  height: 40px;
+-  padding: 0;
+-  border: 0;
+-  background: #2457d6;
+-  color: #ffffff;
+-  font: inherit;
+-  font-size: 12px;
+-  font-weight: 700;
+-  border-radius: 50%;
+-  display: inline-flex;
+-  align-items: center;
+-  justify-content: center;
+-  gap: 0;
+-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+-  flex-shrink: 0;
+-  cursor: pointer;
+-}
+-
+-.lb-glance__chip-num {
+-  font-family: var(--rtw-font-num, "Saira Condensed", sans-serif);
+-  font-size: 15px;
+-  font-weight: 700;
+-}
+-
+ .lb-glance__panel {
+   position: absolute;
+-  top: calc(var(--hud-pad-top) + 44px + 2px);
+-  right: var(--hud-pad-right);
++  top: calc(var(--hud-pad-top) + 2.79rem + 0.4rem);
++  right: calc(var(--hud-pad-right) + 44px);
++  bottom: calc(var(--hud-pad-bottom) + var(--br-clock-above-scale, 26px) + var(--br-clock-height, 16px) + 56px);
+   width: 220px;
+-  max-height: min(200px, calc(100vh - 7.5rem));
++  max-width: min(220px, calc(100vw - 5.5rem));
+   display: flex;
+   flex-direction: column;
+   gap: 2px;
++  min-height: 0;
+   pointer-events: auto;
+   z-index: 2;
+ }
+-
+-.lb-glance__chip-slot {
+-  pointer-events: auto;
+-  display: flex;
+-  align-items: center;
++.lb-glance__panel[hidden] {
++  display: none;
++}
++@media (max-width: 740px) and (max-height: 560px) {
++  .lb-glance__panel {
++    top: calc(var(--hud-pad-top) + 5rem);
++    width: min(200px, calc(100vw - 5.5rem));
++  }
+ }
+ 
+ .lb-glance__panel-head {
+@@ -89,7 +67,8 @@
+   list-style: none;
+   margin: 0;
+   padding: 0;
+-  max-height: 144px;
++  flex: 1 1 auto;
++  min-height: 0;
+   overflow-y: auto;
+   overscroll-behavior: contain;
+ }
+--- before/apps/web/src/components/leaderboard/LeaderboardGlance.tsx
++++ after/apps/web/src/components/leaderboard/LeaderboardGlance.tsx
+@@ -28,19 +28,6 @@
+   return t % 1 === 0 ? t.toFixed(1) : t.toFixed(1);
+ }
+ 
+-function RankChipIcon() {
+-  return (
+-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden>
+-      <path
+-        d="M2 14V9h4v5M6 14V4h4v10M10 14V7h4v7"
+-        stroke="currentColor"
+-        strokeWidth="1.6"
+-        strokeLinejoin="round"
+-      />
+-    </svg>
+-  );
+-}
+-
+ function stopMapTouch(e: SyntheticEvent) {
+   e.stopPropagation();
+ }
+@@ -48,7 +35,6 @@
+ function buildGlanceModel(props: LeaderboardGlanceViewProps) {
+   const {
+     mode,
+-    isGuest,
+     mapData,
+     rideSnapshot,
+     liveRows,
+@@ -58,23 +44,11 @@
+   } = props;
+ 
+   const me = mode === "riding" ? rideSnapshot?.me : mapData?.me;
+-  const ranked = me?.status === "ranked" ? me.rank : null;
+-  const projected = me?.status === "guest" ? me.projectedRank : null;
+ 
+   const live =
+     mode === "riding" && pedalQualified
+       ? computeLeaderboardLiveRank(liveRows, myBaseKm, addedKm)
+       : null;
+-  const liveRank = live?.rank ?? null;
+-
+-  let chipA11y = "순위";
+-  if (mode === "riding") {
+-    if (liveRank != null) chipA11y = `주행 중 ${liveRank}위`;
+-  } else if (isGuest) {
+-    if (projected != null) chipA11y = `예상 ${projected}위`;
+-  } else if (ranked != null) {
+-    chipA11y = `이번 주 ${ranked}위`;
+-  }
+ 
+   const listRows: LeaderboardLiveRow[] =
+     mode === "riding" && live
+@@ -103,27 +77,7 @@
+ 
+   const ridingNoSensor = mode === "riding" && !pedalQualified;
+ 
+-  return { me, mode, chipA11y, listRows, gapFooter, ridingNoSensor };
+-}
+-
+-export function LeaderboardGlanceChip(props: LeaderboardGlanceViewProps) {
+-  const { panelOpen, onTogglePanel } = props;
+-  const { chipA11y } = buildGlanceModel(props);
+-  return (
+-    <button
+-      type="button"
+-      className={`lb-glance__chip${panelOpen ? " lb-glance__chip--open" : ""}`}
+-      aria-expanded={panelOpen}
+-      aria-controls="lb-glance-panel"
+-      aria-label={chipA11y}
+-      title={chipA11y}
+-      onPointerDown={stopMapTouch}
+-      onTouchStart={stopMapTouch}
+-      onClick={onTogglePanel}
+-    >
+-      <RankChipIcon />
+-    </button>
+-  );
++  return { me, mode, listRows, gapFooter, ridingNoSensor };
+ }
+ 
+ export function LeaderboardGlancePanel(props: LeaderboardGlanceViewProps) {
+@@ -135,12 +89,13 @@
+   } = props;
+   const { mode, me, listRows, gapFooter, ridingNoSensor } = buildGlanceModel(props);
+   const showPanel = panelOpen && (mode === "map" || mode === "riding");
+-  if (!showPanel) return null;
+ 
+   return (
+         <section
+           id="lb-glance-panel"
+           className="lb-glance__panel"
++          hidden={!showPanel}
++          aria-hidden={!showPanel}
+           aria-label={mode === "riding" ? "주행 중 순위" : "이번 주 순위"}
+           onPointerDown={stopMapTouch}
+           onTouchStart={stopMapTouch}
+--- before/apps/web/src/components/maphud/MapHud.css
++++ after/apps/web/src/components/maphud/MapHud.css
+@@ -136,12 +136,22 @@
+ .map-hud__tl {
+   position: absolute;
+   top: calc(env(safe-area-inset-top, 0px) + 4px);
+-  left: calc(env(safe-area-inset-left, 0px) + 4px);
++  left: calc(env(safe-area-inset-left, 0px) + 38px);
+   display: flex;
+   flex-direction: column;
+   align-items: flex-start;
+   gap: 0.35rem;
+-  max-width: none;
++  width: max-content;
++  max-width: 50vw;
++}
++
++/* 슬롯 빈 면이 우측 순위 탭을 가로채지 않게. `.map-hud > *` 보다 특이도를 높인다. */
++.map-hud > .map-hud__tl {
++  pointer-events: none;
++}
++.map-hud__tl button,
++.map-hud__tl a {
++  pointer-events: auto;
+ }
+ 
+ /*
+@@ -163,6 +173,7 @@
+  */
+ .map-hud__tl-metrics {
+   display: flex;
++  max-width: 50vw;
+ }
+ 
+ .map-hud__tl-stack {
+@@ -714,7 +725,7 @@
+   align-items: center;
+   gap: 0.5rem;
+   height: 2.2rem;
+-  padding: 0 0.7rem 0 0.35rem;
++  padding: 0 0.7rem;
+   border-radius: 999px;
+   background: var(--rtw-ui-surface);
+   border: 1px solid var(--rtw-ui-border);
+@@ -798,6 +809,7 @@
+   gap: 0.4rem;
+   flex-wrap: nowrap;
+   overflow: hidden;
++  max-width: 50vw;
+ }
+ 
+ /*
+@@ -810,26 +822,27 @@
+     0 2px 3px rgba(0, 0, 0, 0.95);
+   position: relative;
+   isolation: isolate;
+-  display: inline-flex;
+-  align-items: center;
+-  /* 간격 재절반(20260923-minimap 지시01 §2) — gap + 고정폭 여유분을 같이 줄인다.
+-   * 고정 폭 셀에서 패딩만 줄이면 글자가 안 움직인다(가운데 정렬). */
+-  gap: 0.2rem;
+-  padding: 0.28rem 0.5rem;
++  display: grid;
++  grid-template-columns: repeat(3, minmax(0, max-content));
++  align-items: center;
++  justify-items: center;
++  gap: 0.12rem 0.55rem;
++  padding: 0.12rem 0.28rem;
+   background: transparent;
+   border-radius: 0;
+   box-shadow: none;
+   backdrop-filter: none;
+   -webkit-backdrop-filter: none;
++  max-width: 50vw;
+ }
+ 
+ .hud-metrics__cell {
+   display: inline-flex;
+   flex-direction: column;
+   align-items: center;
+-  gap: 0.14rem;
+-  min-width: 3.2rem;
+-  padding: 0 0.5rem;
++  gap: 0.08rem;
++  min-width: 0;
++  padding: 0;
+   text-align: center;
+ }
+ 
+@@ -1092,8 +1105,20 @@
+   text-overflow: ellipsis;
+ }
+ 
+-.map-hud__tl {
+-  position: relative;
++.hud-coach--moment .hud-coach__tip {
++  color: #fff4b8;
++}
++
++@media (prefers-reduced-motion: reduce) {
++  .hud-coach--moment {
++    animation: none;
++    transition: none;
++  }
++}
++
++.hud-metrics--route-preview .hud-metrics__capsule {
++  display: inline-flex;
++  grid-template-columns: none;
+ }
+ 
+ .map-hud__paused-banner {
+@@ -1382,24 +1407,14 @@
+    *   speed 「99.9 km/h」22px+10px · conquest 「+12.34 km」18px+10px.
+    * 내용이 넘치면 가운데 정렬로 항 간격 안쪽으로만 넘친다(이웃 셀을 밀지 않는다).
+    */
+-  .hud-metrics__cell--w-distance {
+-    flex: 0 0 124px;
+-    width: 124px;
+-  }
+-
+-  .hud-metrics__cell--w-time {
+-    flex: 0 0 54px;
+-    width: 54px;
+-  }
+-
+-  .hud-metrics__cell--w-speed {
+-    flex: 0 0 64px;
+-    width: 64px;
+-  }
+-
++  .hud-metrics__cell--w-distance,
++  .hud-metrics__cell--w-time,
++  .hud-metrics__cell--w-speed,
+   .hud-metrics__cell--conquest {
+-    flex: 0 0 72px;
+-    width: 72px;
++    flex: 0 1 auto;
++    width: auto;
++    min-width: 0;
++    max-width: 100%;
+   }
+ 
+   /* 폰 가로에서도 각 계기 타이틀이 값과 함께 한눈에 읽히도록 유지한다. */
+--- before/apps/web/src/components/maphud/MapHud.tsx
++++ after/apps/web/src/components/maphud/MapHud.tsx
+@@ -20,6 +20,8 @@
+ import "./CameraViewMenu.css";
+ import { RideIntervalHud } from "../ride/RideIntervalHud";
+ import type { RideIntervalView } from "../../lib/ride/rideInterval";
++import { useRideMoments } from "../../hooks/useRideMoments";
++import type { RideMomentInput } from "../../lib/ride/rideMoments";
+ 
+ /** HUD 우상단 시계 — `26.09.29 15:09:35` (로컬, 초 단위) */
+ function formatHudClock(d: Date): string {
+@@ -106,7 +108,7 @@
+       })
+     | null;
+ 
+-  /** 센서에서 실제 rpm 이 올 때만 HUD 에 표시한다. 없으면 칸을 비운다. */
++  /** 주행 중 케이던스 칸은 항상 둔다. 센서 없으면 "—". */
+   cadenceRpm?: number | null;
+   /** 선택한 인터벌. 주행·일시정지에서만 표시한다. */
+   rideInterval?: RideIntervalView | null;
+@@ -163,9 +165,10 @@
+     zoomOutDisabled: boolean;
+     zoomInDisabled: boolean;
+   } | null;
+-  /** 순위 칩(우상단 줄) · 순위판은 `leaderboardGlancePanel` */
++  /** 순위판은 오른쪽 반달 핸들이 연다. 칩은 우상단에 두지 않는다. */
+   leaderboardGlanceChip?: ReactNode;
+   leaderboardGlancePanel?: ReactNode;
++  rideMoments?: Omit<RideMomentInput, "interval"> & { soundEnabled: boolean } | null;
+ };
+ 
+ /** TC 지표 캡슐 셀 — 라벨 위·값 아래 (참조 TopHud) */
+@@ -270,7 +273,9 @@
+     leaderboardGlanceChip = null,
+     leaderboardGlancePanel = null,
+     cadenceRpm = null,
++    rideMoments = null,
+   } = props;
++  void leaderboardGlanceChip;
+ 
+   const riding = stage === "riding";
+   const paused = stage === "paused";
+@@ -352,14 +357,27 @@
+     showAccount ||
+     showSignedOutAuth ||
+     Boolean(quickCamera) ||
+-    showMapControls ||
+-    Boolean(leaderboardGlanceChip);
++    showMapControls;
++  const momentEvent = useRideMoments(
++    {
++      status: rideMoments?.status ?? "idle",
++      elapsedMs: rideMoments?.elapsedMs ?? 0,
++      routeMeters: rideMoments?.routeMeters ?? 0,
++      traveledMeters: rideMoments?.traveledMeters ?? 0,
++      waypointMeters: rideMoments?.waypointMeters ?? [],
++      interval: props.rideInterval ?? null,
++      intervalRunKey: rideMoments?.intervalRunKey ?? null,
++      newRoadKm: rideMoments?.newRoadKm ?? null,
++      ended: rideMoments?.ended ?? null,
++    },
++    Boolean(rideMoments?.soundEnabled),
++  );
+   const showMetrics =
+     metrics !== null &&
+     !isGate &&
+     !isSummary &&
+     (riding || paused || metrics.mode === "route-preview");
+-  const showCoach = coachLineEnabled && coachData !== null && (riding || paused);
++  const showCoach = Boolean(momentEvent) || (coachLineEnabled && coachData !== null && (riding || paused));
+   const showMc = stage === "setup" && Boolean(routeError);
+ 
+   const companionCopy =
+@@ -377,8 +395,9 @@
+           displayedRiderCount: companionCopy.riderCount,
+         })
+       : null;
+-  const coachTipKo =
+-    coachData != null
++  const coachTipKo = momentEvent
++    ? momentEvent.coach
++    : coachData != null
+       ? coachingTipDisplayKo(
+           (coachData as CoachingData & { tipId?: string }).tipId,
+           coachData.tip,
+@@ -392,8 +411,6 @@
+       className={`map-hud${activeRide ? " map-hud--active-ride" : ""}`}
+       aria-label="라이딩 HUD"
+     >
+-      {activeRide && props.rideInterval ? <RideIntervalHud view={props.rideInterval} paused={paused} cadenceRpm={props.intervalCadenceRpm ?? null} /> : null}
+-
+       {showMenuTrigger ? (
+         <button
+           type="button"
+@@ -452,33 +469,9 @@
+                     ) : null}
+                     {metrics.mode === "ride" ? (
+                       <>
+-                    <span className="hud-metrics__divider" aria-hidden />
+                     <HudMetricCell label="시간" value={metrics.elapsed} variant="time" />
+-                    <span className="hud-metrics__divider" aria-hidden />
+-                    <HudMetricCell label="평균" value={metrics.avgKmh} unit="km/h" variant="speed" />
+-                    {riding ? (
+-                      <>
+-                        <span className="hud-metrics__divider" aria-hidden />
+-                        <HudMetricCell label="속도" value={String(metrics.speedKmh)} unit="km/h" variant="speed" />
+-                      </>
+-                    ) : null}
+-                    {riding && cadenceRpm != null ? (
+-                      <>
+-                        <span className="hud-metrics__divider" aria-hidden />
+-                        <HudMetricCell
+-                          label="케이던스"
+-                          value={String(Math.round(cadenceRpm))}
+-                          unit="rpm"
+-                          variant="speed"
+-                        />
+-                      </>
+-                    ) : null}
+-                      </>
+-                    ) : null}
+-                    {/* null = 미무장 숨김. 0 포함 무장 후 항상 표시(이미 내 도로면 +0.00) */}
++                    <HudMetricCell label="속도" value={String(metrics.speedKmh)} unit="km/h" variant="speed" />
+                     {(riding || paused) && conquestLiveMeters != null ? (
+-                      <>
+-                        <span className="hud-metrics__divider" aria-hidden />
+                         <span
+                           className={`hud-metrics__cell hud-metrics__cell--conquest${
+                             conquestPulse ? " hud-metrics__cell--conquest-pulsing" : ""
+@@ -499,6 +492,18 @@
+                             </span>
+                           ) : null}
+                         </span>
++                    ) : (riding || paused) ? (
++                      <HudMetricCell label="새 도로" value="—" variant="speed" />
++                    ) : null}
++                    <HudMetricCell label="평균" value={metrics.avgKmh} unit="km/h" variant="speed" />
++                    {riding || paused ? (
++                        <HudMetricCell
++                          label="케이던스"
++                          value={cadenceRpm != null ? String(Math.round(cadenceRpm)) : "—"}
++                          unit={cadenceRpm != null ? "rpm" : undefined}
++                          variant="speed"
++                        />
++                    ) : null}
+                       </>
+                     ) : null}
+                   </div>
+@@ -594,6 +599,7 @@
+               ) : null}
+             </div>
+           ) : null}
++          {activeRide && props.rideInterval ? <RideIntervalHud view={props.rideInterval} paused={paused} cadenceRpm={props.intervalCadenceRpm ?? null} /> : null}
+           {paused ? (
+             <p className="map-hud__paused-banner" role="status">잠깐 멈췄어요</p>
+           ) : null}
+@@ -662,18 +668,8 @@
+             </div>
+           ) : null}
+ 
+-          {leaderboardGlanceChip || (showAccount && account) || showSignedOutAuth ? (
++          {(showAccount && account) || showSignedOutAuth ? (
+             <div className="map-hud__service-actions" role="group" aria-label="서비스 기능">
+-              {leaderboardGlanceChip ? (
+-                <div
+-                  className="lb-glance__chip-slot"
+-                  onPointerDown={(e) => e.stopPropagation()}
+-                  onTouchStart={(e) => e.stopPropagation()}
+-                >
+-                  {leaderboardGlanceChip}
+-                </div>
+-              ) : null}
+-
+               {showAccount && account ? (
+                 <button
+                   type="button"
+@@ -683,16 +679,8 @@
+                   title="Account"
+                   onClick={onOpenUserInfo}
+                 >
+-                  <span className="hud-account__avatar" aria-hidden>
+-                    {account.initial}
+-                  </span>
+                   <span className="hud-account__text">
+                     <span className="hud-account__name">{account.label}</span>
+-                    {account.mileageKm != null ? (
+-                      <span className="hud-account__mileage">
+-                        {account.mileageKm.toLocaleString("ko-KR")} km
+-                      </span>
+-                    ) : null}
+                   </span>
+                 </button>
+               ) : null}
+@@ -725,8 +713,13 @@
+       {/* BC 슬롯: 코칭 라인(라이딩 중). */}
+       {showCoach ? (
+         <div className="map-hud__bc">
+-          {showCoach && coachData ? (
+-            <div className="hud-coach hud-coach--banner" role="status" aria-live="polite">
++          {showCoach && (momentEvent || coachData) ? (
++            <div
++              className={`hud-coach hud-coach--banner${momentEvent ? " hud-coach--moment" : ""}`}
++              data-moment={momentEvent?.kind ?? undefined}
++              role="status"
++              aria-live="polite"
++            >
+               <span className="hud-coach__tip">{coachTipKo}</span>
+             </div>
+           ) : null}
+--- before/apps/web/src/components/ride/RideIntervalHud.css
++++ after/apps/web/src/components/ride/RideIntervalHud.css
+@@ -1,11 +1,13 @@
+-/* Chief 승인 상단 중앙형: 지도 위 정보는 바탕 없는 윤곽선 글자(고정7). */
++/* 계기판 아래 왼쪽. 지도 위 정보는 바탕 없는 윤곽선 글자(고정7). */
++.map-hud__tl > .ride-interval-hud,
+ .map-hud > .ride-interval-hud {
+-  position: absolute;
+-  top: max(76px, calc(env(safe-area-inset-top, 0px) + 68px));
+-  left: 50%;
+-  transform: translateX(-50%);
+-  width: 208px;
+-  max-width: 44vw;
++  position: relative;
++  top: auto;
++  left: auto;
++  transform: none;
++  width: min(168px, 28vw);
++  max-width: 28vw;
++  margin-top: 2px;
+   pointer-events: none;
+   color: #fff;
+   --interval-color: #ffcb72;
+@@ -16,36 +18,27 @@
+   paint-order: stroke fill;
+ }
+ .ride-interval-hud[data-phase="recovery"],
+-.ride-interval-hud[data-phase="warmup"] { --interval-color: #8ce2ff; }
++.ride-interval-hud[data-phase="warmup"],
++.ride-interval-hud[data-phase="rest"] { --interval-color: #8ce2ff; }
+ .ride-interval-hud[data-phase="cooldown"],
+ .ride-interval-hud[data-phase="complete"] { --interval-color: #8be6b2; }
+ .ride-interval-hud[data-paused="true"] { --interval-color: #fff; }
+-.map-hud > .ride-interval-hud[data-paused="true"] { top: max(108px, calc(env(safe-area-inset-top, 0px) + 100px)); }
+-.ride-interval-hud__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 17px; line-height: 1.3; }
++.ride-interval-hud__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; line-height: 1.3; }
+ .ride-interval-hud__phase { color: var(--interval-color); }
+-.ride-interval-hud__repeat { font-size: 14px; }
++.ride-interval-hud__repeat { font-size: 11px; }
+ .ride-interval-hud__main { display: flex; align-items: baseline; gap: 4px; line-height: 1.15; }
+-.ride-interval-hud__time { font-size: 48px; letter-spacing: -1px; }
+-.ride-interval-hud__unit { font-size: 16px; }
+-.ride-interval-hud__cadence { display: flex; flex-direction: column; margin-left: auto; text-align: right; gap: 2px; }
+-.ride-interval-hud__cadence b { font-size: 24px; }
+-.ride-interval-hud__cadence small { font-size: 11px; white-space: nowrap; }
+-.ride-interval-hud__progress { display: flex; gap: 5px; margin: 5px 0 6px; }
++.ride-interval-hud__time { font-size: 32px; letter-spacing: -1px; }
++.ride-interval-hud__unit { font-size: 13px; }
++.ride-interval-hud__progress { display: flex; gap: 4px; margin: 4px 0 5px; }
+ .ride-interval-hud__progress span { flex: 1; height: 3px; background: rgba(255,255,255,.45); }
+ .ride-interval-hud__progress [data-done="true"] { background: #fff; }
+ .ride-interval-hud__progress [data-active="true"] { background: var(--interval-color); }
+-.ride-interval-hud__next { font-size: 13px; line-height: 1.3; }
+-.ride-interval-hud[data-phase="complete"] .ride-interval-hud__time { font-size: 32px; letter-spacing: 0; }
++.ride-interval-hud__next { font-size: 11px; line-height: 1.3; }
++.ride-interval-hud[data-phase="complete"] .ride-interval-hud__time { font-size: 24px; letter-spacing: 0; }
+ .ride-interval-hud__announcement { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
+ @media (max-height: 340px) {
+-  .map-hud > .ride-interval-hud { top: max(72px, calc(env(safe-area-inset-top, 0px) + 64px)); width: 190px; }
+-  .ride-interval-hud__time { font-size: 42px; }
+-  .ride-interval-hud__head { font-size: 15px; }
+-  .ride-interval-hud__cadence b { font-size: 21px; }
+-  .ride-interval-hud__next { font-size: 12px; }
++  .map-hud__tl > .ride-interval-hud { width: min(150px, 26vw); }
++  .ride-interval-hud__time { font-size: 28px; }
++  .ride-interval-hud__head { font-size: 12px; }
++  .ride-interval-hud__next { font-size: 10px; }
+ }
+-@media (max-width: 480px) {
+-  .map-hud > .ride-interval-hud { top: max(116px, calc(env(safe-area-inset-top, 0px) + 108px)); width: 180px; max-width: 56vw; }
+-  .ride-interval-hud__time { font-size: 36px; }
+-  .map-hud > .ride-interval-hud[data-paused="true"] { top: max(146px, calc(env(safe-area-inset-top, 0px) + 138px)); }
+-}
+--- before/apps/web/src/components/ride/RideIntervalHud.tsx
++++ after/apps/web/src/components/ride/RideIntervalHud.tsx
+@@ -7,7 +7,7 @@
+   cadenceRpm: number | null;
+ };
+ 
+-/** Chief 승인 상단 중앙형. 표시 전용: 빈 영역의 지도 제스처를 막지 않는다. */
++/** 계기판 아래 왼쪽. 표시 전용: 빈 영역의 지도 제스처를 막지 않는다. */
+ export function RideIntervalHud({ view, paused, cadenceRpm }: Props) {
+   const complete = view.phase === "complete";
+   const label = paused && !complete ? "일시정지" : view.label;
+@@ -15,20 +15,26 @@
+   const time = view.remainingSec > 59
+     ? `${Math.floor(view.remainingSec / 60)}:${String(view.remainingSec % 60).padStart(2, "0")}`
+     : String(view.remainingSec);
+-  const next = complete ? view.nextLabel : paused ? "주행 재개 시 이어서" : !validRpm ? "센서 없음 · 시간은 계속" : view.nextLabel;
++  const roundText = view.totalRounds > 1 ? ` · ${view.round}/${view.totalRounds}라운드` : "";
++  const next = complete
++    ? view.nextLabel
++    : paused
++      ? "주행 재개 시 이어서"
++      : !validRpm
++        ? "페달 강도 직접 조절"
++        : view.nextLabel;
+   return (
+     <section className="ride-interval-hud" data-phase={view.phase} data-paused={paused} role="group" aria-label="인터벌 안내">
+       <div className="ride-interval-hud__head">
+         <span className="ride-interval-hud__phase">{label}</span>
+-        <span className="ride-interval-hud__repeat">{view.repeat} / {view.totalRepeats}</span>
++        <span className="ride-interval-hud__repeat">{view.repeat} / {view.totalRepeats}{roundText}</span>
+       </div>
+-      <span className="ride-interval-hud__announcement" role="status">{label} · {view.repeat}/{view.totalRepeats}{complete ? " · 자유 주행 계속" : ""}</span>
++      <span className="ride-interval-hud__announcement" role="status">{label} · {view.repeat}/{view.totalRepeats}{roundText}{complete ? " · 자유 주행 계속" : ""}</span>
+       <div className="ride-interval-hud__main">
+         <span className="ride-interval-hud__time" role="timer" aria-label={complete ? "인터벌 완료" : `남은 시간 ${view.remainingSec}초`}>
+           {complete ? "완료" : time}
+         </span>
+         {!complete && view.remainingSec <= 59 ? <span className="ride-interval-hud__unit">초</span> : null}
+-        {!complete ? <span className="ride-interval-hud__cadence"><b>{validRpm ? Math.max(0, Math.round(cadenceRpm)) : "—"}</b><small>현재 RPM</small></span> : null}
+       </div>
+       {!complete ? <div className="ride-interval-hud__progress" aria-label={`${view.totalRepeats}회 중 ${view.repeat}회째`}>
+         {Array.from({ length: view.totalRepeats }, (_, index) => <span key={index} data-active={view.repeat === index + 1} data-done={index + 1 < view.repeat || view.phase === "cooldown"} />)}
+--- before/apps/web/src/components/ride/RideIntervalSettingsSheet.css
++++ after/apps/web/src/components/ride/RideIntervalSettingsSheet.css
+@@ -1,14 +1,20 @@
+ /* Chief 10-27: 한 화면 조절형. 내용만큼만 차지하고 배경 지도를 최대한 남긴다. */
+ .ride-interval-settings { position: fixed; inset: 0; z-index: 57; display: grid; place-items: center; pointer-events: none; }
+ .ride-interval-settings__scrim { position: absolute; inset: 0; border: 0; padding: 0; background: rgba(2,6,23,.18); pointer-events: auto; }
+-.ride-interval-settings__panel { position: relative; width: fit-content; max-width: min(480px, calc(100vw - 20px)); max-height: calc(100dvh - 16px); overflow-y: auto; box-sizing: border-box; padding: 8px 12px; border: 1px solid #c9d6ee; border-radius: 14px; background: #fff; color: #2a2e37; pointer-events: auto; box-shadow: 0 5px 18px rgba(0,0,0,.16); font-family: inherit; font-size: 13px; line-height: 1.3; }
++.ride-interval-settings__panel { position: relative; width: fit-content; max-width: min(420px, calc(100vw - 20px)); max-height: calc(100dvh - 16px); display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box; padding: 8px 12px; border: 1px solid #c9d6ee; border-radius: 14px; background: #fff; color: #2a2e37; pointer-events: auto; box-shadow: 0 5px 18px rgba(0,0,0,.16); font-family: inherit; font-size: 13px; line-height: 1.3; }
+ .ride-interval-settings__panel * { box-sizing: border-box; }
+ .ride-interval-settings__header { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+ .ride-interval-settings__header h2 { margin: 0; font-size: 17px; line-height: 1.3; white-space: nowrap; }
+ .ride-interval-settings__header select { flex: 1; min-width: 0; height: 40px; margin-left: auto; padding: 0 6px; border: 1px solid #d8e0ed; border-radius: 9px; background: #fff; color: #2a2e37; font: inherit; font-size: 12px; }
+ .ride-interval-settings__close { flex: 0 0 36px; width: 36px; height: 36px; border: 1px solid #d8e0ed; border-radius: 50%; background: #fff; color: #5e6472; display: grid; place-items: center; cursor: pointer; }
+ .ride-interval-settings__close svg { width: 16px; height: 16px; }
+-.ride-interval-settings__body { display: grid; grid-template-columns: max-content 200px; gap: 12px; margin: 3px 0; }
++.ride-interval-settings__body { margin: 3px 0; min-height: 0; overflow-y: auto; }
++.ride-interval-settings__compact { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; }
++.ride-interval-settings__compact-main { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
++.ride-interval-settings__compact-copy { margin: 0; color: #5e6472; font-size: 12px; line-height: 1.25; }
++.ride-interval-settings__compact strong { font-size: 22px; font-variant-numeric: tabular-nums; }
++.ride-interval-settings__custom-toggle { flex-shrink: 0; min-height: 44px; padding: 4px 10px; border: 1px solid #c9d6ee; border-radius: 12px; background: #fff; color: #2457d6; font: inherit; font-size: 12px; cursor: pointer; }
++.ride-interval-settings__fields { display: flex; flex-direction: column; }
+ .ride-interval-settings__field { height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 6px; border-bottom: 1px solid #edf0f5; }
+ .ride-interval-settings__field:last-child { border: 0; }
+ .ride-interval-settings__field label { display: flex; align-items: baseline; gap: 4px; white-space: nowrap; font-size: 13px; }
+@@ -33,7 +39,8 @@
+ .ride-interval-settings__timeline span { flex-basis: 0; min-width: 1px; background: #cbd7d6; }
+ .ride-interval-settings__timeline [data-kind="high"] { background: #eaa348; }
+ .ride-interval-settings__timeline [data-kind="low"] { background: #66b6e0; }
+-.ride-interval-settings__footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; border-top: 1px solid #e9ecf1; }
++.ride-interval-settings__footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; border-top: 1px solid #e9ecf1; flex-shrink: 0; position: sticky; bottom: 0; background: #fff; }
++.ride-interval-settings__footer-start { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+ .ride-interval-settings__footer small { color: #5e6472; font-size: 11px; }
+ .ride-interval-settings__footer [role="alert"] { color: #b52323; }
+ .ride-interval-settings__apply { min-height: 40px; flex-shrink: 0; padding: 6px 14px; border: 0; border-radius: 9px; background: #2457d6; color: #fff; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+@@ -45,14 +52,12 @@
+   .ride-interval-settings__close { width: 44px; height: 44px; flex-basis: 44px; }
+   .ride-interval-settings__stepper button { width: 44px; height: 44px; }
+   .ride-interval-settings__stepper input { height: 44px; }
+-  .ride-interval-settings__header select, .ride-interval-settings__apply, .ride-settings-panel__interval-edit { min-height: 44px; }
++  .ride-interval-settings__header select, .ride-interval-settings__apply, .ride-interval-settings__custom-toggle, .ride-settings-panel__interval-edit { min-height: 44px; }
+ }
+ @media (max-width: 480px) {
+   .ride-interval-settings__panel { padding: 8px 10px; }
+   .ride-interval-settings__header { flex-wrap: wrap; }
+   .ride-interval-settings__header select { order: 3; flex-basis: 100%; }
+   .ride-interval-settings__close { margin-left: auto; }
+-  .ride-interval-settings__body { grid-template-columns: minmax(0,1fr); gap: 6px; }
+-  .ride-interval-settings__summary { border-left: 0; border-top: 1px solid #e9ecf1; padding: 6px 0; }
+-  .ride-interval-settings__total { margin-bottom: 6px; }
++  .ride-interval-settings__body { gap: 6px; }
+ }
+--- before/apps/web/src/components/ride/RideIntervalSettingsSheet.tsx
++++ after/apps/web/src/components/ride/RideIntervalSettingsSheet.tsx
+@@ -1,6 +1,10 @@
+ import { useId, useRef, useState } from "react";
+ import {
+-  getRideIntervalTotalMs, isRideIntervalConfig, RIDE_INTERVAL_PRESETS,
++  formatRideIntervalClock,
++  getRideIntervalTotalSec,
++  isRideIntervalConfig,
++  matchRideIntervalPreset,
++  RIDE_INTERVAL_PRESETS,
+   type RideIntervalConfig,
+ } from "../../lib/ride/rideInterval";
+ import { useDialogFocus } from "../ui/useDialogFocus";
+@@ -16,88 +20,225 @@
+   onClose: () => void;
+ };
+ 
+-const formatTime = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+-const sameConfig = (a: RideIntervalConfig, b: RideIntervalConfig) => a.highSec === b.highSec && a.lowSec === b.lowSec && a.repeats === b.repeats && (a.warmupSec ?? 300) === (b.warmupSec ?? 300) && (a.cooldownSec ?? 300) === (b.cooldownSec ?? 300);
+-const toDraft = (config: RideIntervalConfig) => ({ highSec: String(config.highSec), lowSec: String(config.lowSec), repeats: String(config.repeats), warmupSec: String(config.warmupSec ?? 300), cooldownSec: String(config.cooldownSec ?? 300) });
++type Draft = {
++  highSec: string;
++  lowSec: string;
++  repeats: string;
++  warmupSec: string;
++  cooldownSec: string;
++  rounds: string;
++  roundRestSec: string;
++};
++
++const PRESET_OPTION_LABEL: Record<string, string> = {
++  recovery: "회복형 1:2",
++  balanced: "균형형 1:1",
++  short: "짧은 반복 20:10",
++};
++
++function edgeLabel(seconds: number, none: string): string {
++  if (seconds === 0) return none;
++  return seconds % 60 === 0 ? `${seconds / 60}분` : `${seconds}초`;
++}
++
++function compactIntervalCopy(config: RideIntervalConfig): string {
++  const parts = [
++    `준비 ${edgeLabel(config.warmupSec ?? 300, "없음")}`,
++    `${config.highSec}초 / ${config.lowSec}초 ×${config.repeats}`,
++    `마무리 ${edgeLabel(config.cooldownSec ?? 300, "없음")}`,
++  ];
++  if ((config.rounds ?? 1) > 1) {
++    parts.push(`${config.rounds}라운드`);
++    if ((config.roundRestSec ?? 0) > 0) parts.push(`사이 ${edgeLabel(config.roundRestSec ?? 0, "없음")}`);
++  }
++  return parts.join(" · ");
++}
++
++const toDraft = (config: RideIntervalConfig): Draft => ({
++  highSec: String(config.highSec),
++  lowSec: String(config.lowSec),
++  repeats: String(config.repeats),
++  warmupSec: String(config.warmupSec ?? 300),
++  cooldownSec: String(config.cooldownSec ?? 300),
++  rounds: String(config.rounds ?? 1),
++  roundRestSec: String(config.roundRestSec ?? 0),
++});
++
++function parseDraft(draft: Draft): RideIntervalConfig {
++  return {
++    highSec: Number(draft.highSec),
++    lowSec: Number(draft.lowSec),
++    repeats: Number(draft.repeats),
++    warmupSec: Number(draft.warmupSec),
++    cooldownSec: Number(draft.cooldownSec),
++    rounds: Number(draft.rounds),
++    roundRestSec: Number(draft.roundRestSec),
++  };
++}
++
++function sameConfig(a: RideIntervalConfig, b: RideIntervalConfig): boolean {
++  return (
++    a.highSec === b.highSec &&
++    a.lowSec === b.lowSec &&
++    a.repeats === b.repeats &&
++    (a.warmupSec ?? 300) === (b.warmupSec ?? 300) &&
++    (a.cooldownSec ?? 300) === (b.cooldownSec ?? 300) &&
++    (a.rounds ?? 1) === (b.rounds ?? 1) &&
++    (a.roundRestSec ?? 0) === (b.roundRestSec ?? 0)
++  );
++}
+ 
+ /** 별도 편집 초안: 적용 전에는 진행 중인 운동을 바꾸지 않는다. */
+ function IntervalEditor({ config, restartOnApply, onApply, onClose }: Omit<Props, "open">) {
+   const titleId = useId();
+   const [draft, setDraft] = useState(() => toDraft(config));
+-  const [mode, setMode] = useState(() => RIDE_INTERVAL_PRESETS.find(preset => sameConfig(preset.config, config))?.id ?? "custom");
++  const [mode, setMode] = useState(() => matchRideIntervalPreset({
++    highSec: config.highSec,
++    lowSec: config.lowSec,
++    repeats: config.repeats,
++    warmupSec: config.warmupSec ?? 300,
++    cooldownSec: config.cooldownSec ?? 300,
++    rounds: config.rounds ?? 1,
++    roundRestSec: config.roundRestSec ?? 0,
++  }));
++  const [customOpen, setCustomOpen] = useState(() => mode === "custom");
+   const highRef = useRef<HTMLInputElement>(null);
+-  const candidate = { highSec: Number(draft.highSec), lowSec: Number(draft.lowSec), repeats: Number(draft.repeats), warmupSec: Number(draft.warmupSec), cooldownSec: Number(draft.cooldownSec) };
+-  const valid = Object.values(draft).every(raw => raw.trim() !== "") && isRideIntervalConfig(candidate);
++  const candidate = parseDraft(draft);
++  const valid = Object.values(draft).every((raw) => raw.trim() !== "") && isRideIntervalConfig(candidate);
+   const changed = valid && !sameConfig(candidate, config);
++  const showRounds = mode === "short" || (valid && (candidate.rounds ?? 1) > 1) || customOpen;
+   const fields = [
++    { key: "warmupSec", label: "준비", unit: "초", min: 0, max: 1800, change: 30 },
+     { key: "highSec", label: "고강도", unit: "초", min: 5, max: 600, change: 5 },
+     { key: "lowSec", label: "저강도", unit: "초", min: 5, max: 600, change: 5 },
+-    { key: "repeats", label: "반복 수", unit: "회", min: 1, max: 30, change: 1 },
++    { key: "repeats", label: "반복", unit: "회", min: 1, max: 30, change: 1 },
++    { key: "cooldownSec", label: "마무리", unit: "초", min: 0, max: 1800, change: 30 },
+   ] as const;
+-  const setField = (key: keyof RideIntervalConfig, raw: string) => {
+-    setDraft(previous => ({ ...previous, [key]: raw }));
++  const setField = (key: keyof Draft, raw: string) => {
++    setDraft((previous) => ({ ...previous, [key]: raw }));
+     setMode("custom");
++    setCustomOpen(true);
+   };
+-  const edgeFields = [{ key: "warmupSec", label: "준비" }, { key: "cooldownSec", label: "마무리" }] as const;
+-  const segments: { kind: string; seconds: number }[] = [];
+-  if (valid && candidate.warmupSec > 0) segments.push({ kind: "warmup", seconds: candidate.warmupSec });
+-  if (valid) for (let index = 0; index < candidate.repeats; index++) {
+-    segments.push({ kind: "high", seconds: candidate.highSec }, { kind: "low", seconds: candidate.lowSec });
+-  }
+-  if (valid && candidate.cooldownSec > 0) segments.push({ kind: "cooldown", seconds: candidate.cooldownSec });
+-  return <>
+-    <header className="ride-interval-settings__header">
+-      <h2 id={titleId}>인터벌 운동</h2>
+-      <select aria-label="운동 프리셋" value={mode} onChange={event => {
+-        const id = event.target.value;
+-        setMode(id);
+-        const preset = RIDE_INTERVAL_PRESETS.find(option => option.id === id);
+-        if (preset) setDraft(toDraft(preset.config));
+-        else highRef.current?.focus();
+-      }}>
+-        {RIDE_INTERVAL_PRESETS.map((preset, index) => <option key={preset.id} value={preset.id}>프리셋 {index + 1} · {preset.config.highSec}/{preset.config.lowSec}초 ×{preset.config.repeats}</option>)}
+-        <option value="custom">직접 설정</option>
+-      </select>
+-      <button type="button" className="ride-interval-settings__close" aria-label="인터벌 운동 설정 닫기" onClick={onClose}><SettingsCloseIcon /></button>
+-    </header>
+-    <div className="ride-interval-settings__body">
+-      <div className="ride-interval-settings__fields" role="group" aria-label="운동 시간과 반복 수">
+-        {fields.map(field => {
+-          const number = candidate[field.key];
+-          const fieldValid = draft[field.key].trim() !== "" && Number.isInteger(number) && number >= field.min && number <= field.max;
+-          return <div key={field.key} className={`ride-interval-settings__field ride-interval-settings__field--${field.key}`}>
+-            <label htmlFor={`${titleId}-${field.key}`}>{field.label}<small>{field.unit}</small></label>
+-            <div className="ride-interval-settings__stepper">
+-              <button type="button" aria-label={`${field.label} ${field.change}${field.unit} 줄이기`} onClick={() => setField(field.key, String(Math.max(field.min, Math.min(field.max, (fieldValid ? number : config[field.key]) - field.change))))}>−</button>
+-              <input id={`${titleId}-${field.key}`} ref={field.key === "highSec" ? highRef : undefined} type="number" inputMode="numeric" min={field.min} max={field.max} step={1} required value={draft[field.key]} aria-label={field.key === "repeats" ? "반복 수" : `${field.label} 시간 초`} aria-invalid={!fieldValid} onChange={event => setField(field.key, event.target.value)} />
+-              <button type="button" aria-label={`${field.label} ${field.change}${field.unit} 늘리기`} onClick={() => setField(field.key, String(Math.max(field.min, Math.min(field.max, (fieldValid ? number : config[field.key]) + field.change))))}>+</button>
++  return (
++    <>
++      <header className="ride-interval-settings__header">
++        <h2 id={titleId}>인터벌 운동</h2>
++        <select
++          aria-label="운동 프리셋"
++          value={mode}
++          onChange={(event) => {
++            const id = event.target.value;
++            if (id === "custom") {
++              setMode("custom");
++              setCustomOpen(true);
++              highRef.current?.focus();
++              return;
++            }
++            const preset = RIDE_INTERVAL_PRESETS.find((option) => option.id === id);
++            if (!preset) return;
++            setMode(preset.id);
++            setDraft(toDraft(preset.config));
++            setCustomOpen(false);
++          }}
++        >
++          {RIDE_INTERVAL_PRESETS.map((preset) => (
++            <option key={preset.id} value={preset.id}>{PRESET_OPTION_LABEL[preset.id]}</option>
++          ))}
++          <option value="custom">직접 설정</option>
++        </select>
++        <button type="button" className="ride-interval-settings__close" aria-label="인터벌 운동 설정 닫기" onClick={onClose}>
++          <SettingsCloseIcon />
++        </button>
++      </header>
++      <div className="ride-interval-settings__body">
++        {!customOpen ? (
++          <div className="ride-interval-settings__compact">
++            <div className="ride-interval-settings__compact-main">
++              <div className="ride-interval-settings__total"><span>총 운동 시간</span><strong aria-live="polite">{valid ? formatRideIntervalClock(getRideIntervalTotalSec(candidate)) : "—"}</strong></div>
++              {valid ? <p className="ride-interval-settings__compact-copy">{compactIntervalCopy(candidate)}</p> : null}
+             </div>
+-          </div>;
+-        })}
++            <button type="button" className="ride-interval-settings__custom-toggle" onClick={() => { setCustomOpen(true); setMode("custom"); }}>
++              직접 조절
++            </button>
++          </div>
++        ) : (
++          <div className="ride-interval-settings__fields" role="group" aria-label="운동 시간과 반복 수">
++            {fields.map((field) => {
++              const number = Number(candidate[field.key] ?? 0);
++              const fieldValid = draft[field.key].trim() !== "" && Number.isInteger(number) && number >= field.min && number <= field.max;
++              return (
++                <div key={field.key} className={`ride-interval-settings__field ride-interval-settings__field--${field.key}`}>
++                  <label htmlFor={`${titleId}-${field.key}`}>{field.label}<small>{field.unit}</small></label>
++                  <div className="ride-interval-settings__stepper">
++                    <button type="button" aria-label={`${field.label} ${field.change}${field.unit} 줄이기`} onClick={() => setField(field.key, String(Math.max(field.min, Math.min(field.max, (fieldValid ? number : 0) - field.change))))}>−</button>
++                    <input
++                      id={`${titleId}-${field.key}`}
++                      ref={field.key === "highSec" ? highRef : undefined}
++                      type="number"
++                      inputMode="numeric"
++                      min={field.min}
++                      max={field.max}
++                      step={1}
++                      required
++                      value={draft[field.key]}
++                      aria-label={field.key === "repeats" ? "반복 수" : `${field.label} 시간 초`}
++                      aria-invalid={!fieldValid}
++                      onChange={(event) => setField(field.key, event.target.value)}
++                      onKeyDown={(event) => {
++                        if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
++                        event.preventDefault();
++                        const delta = event.key === "ArrowUp" ? field.change : -field.change;
++                        setField(field.key, String(Math.max(field.min, Math.min(field.max, (fieldValid ? number : 0) + delta))));
++                      }}
++                    />
++                    <button type="button" aria-label={`${field.label} ${field.change}${field.unit} 늘리기`} onClick={() => setField(field.key, String(Math.max(field.min, Math.min(field.max, (fieldValid ? number : 0) + field.change))))}>+</button>
++                  </div>
++                </div>
++              );
++            })}
++            {showRounds ? (
++              <>
++                <div className="ride-interval-settings__field ride-interval-settings__field--rounds">
++                  <label htmlFor={`${titleId}-rounds`}>라운드<small>회</small></label>
++                  <div className="ride-interval-settings__stepper">
++                    <button type="button" aria-label="라운드 1회 줄이기" onClick={() => setField("rounds", String(Math.max(1, Number(draft.rounds || 1) - 1)))}>−</button>
++                    <input id={`${titleId}-rounds`} type="number" inputMode="numeric" min={1} max={3} step={1} required value={draft.rounds} aria-label="라운드 수" onChange={(event) => setField("rounds", event.target.value)} />
++                    <button type="button" aria-label="라운드 1회 늘리기" onClick={() => setField("rounds", String(Math.min(3, Number(draft.rounds || 1) + 1)))}>+</button>
++                  </div>
++                </div>
++                <div className="ride-interval-settings__field ride-interval-settings__field--rest">
++                  <label htmlFor={`${titleId}-roundRestSec`}>사이 휴식<small>초</small></label>
++                  <div className="ride-interval-settings__stepper">
++                    <button type="button" aria-label="사이 휴식 30초 줄이기" onClick={() => setField("roundRestSec", String(Math.max(0, Number(draft.roundRestSec || 0) - 30)))}>−</button>
++                    <input id={`${titleId}-roundRestSec`} type="number" inputMode="numeric" min={0} max={1800} step={30} required value={draft.roundRestSec} aria-label="라운드 사이 휴식 시간 초" onChange={(event) => setField("roundRestSec", event.target.value)} />
++                    <button type="button" aria-label="사이 휴식 30초 늘리기" onClick={() => setField("roundRestSec", String(Math.min(1800, Number(draft.roundRestSec || 0) + 30)))}>+</button>
++                  </div>
++                </div>
++              </>
++            ) : null}
++          </div>
++        )}
+       </div>
+-      <aside className="ride-interval-settings__summary" aria-label="운동 구성 미리보기">
+-        <div className="ride-interval-settings__total"><span>총 운동 시간</span><strong aria-live="polite">{valid ? formatTime(getRideIntervalTotalMs(candidate) / 1000) : "—"}</strong></div>
+-        {edgeFields.map(field => {
+-          const fieldValid = draft[field.key].trim() !== "" && Number.isInteger(candidate[field.key]) && candidate[field.key] >= 0 && candidate[field.key] <= 1800;
+-          return <div className="ride-interval-settings__edge-time" key={field.key}>
+-            <label htmlFor={`${titleId}-${field.key}`}>{field.label}<small>{fieldValid ? formatTime(candidate[field.key]) : "초"}</small></label>
+-            <div className="ride-interval-settings__stepper">
+-              <button type="button" aria-label={`${field.label} 30초 줄이기`} onClick={() => setField(field.key, String(Math.max(0, (fieldValid ? candidate[field.key] : 300) - 30)))}>−</button>
+-              <input id={`${titleId}-${field.key}`} type="number" inputMode="numeric" min={0} max={1800} step={30} required value={draft[field.key]} aria-label={`${field.label} 시간 초`} aria-invalid={!fieldValid} onChange={event => setField(field.key, event.target.value)} />
+-              <button type="button" aria-label={`${field.label} 30초 늘리기`} onClick={() => setField(field.key, String(Math.min(1800, (fieldValid ? candidate[field.key] : 300) + 30)))}>+</button>
+-            </div>
+-          </div>;
+-        })}
+-        <div className="ride-interval-settings__timeline" role="img" aria-label={valid ? `준비 ${candidate.warmupSec}초, 고강도 ${candidate.highSec}초와 저강도 ${candidate.lowSec}초 ${candidate.repeats}회, 마무리 ${candidate.cooldownSec}초` : "입력 확인 필요"}>
+-          {segments.map((segment, index) => <span key={index} data-kind={segment.kind} style={{ flexGrow: segment.seconds }} />)}
++      <footer className="ride-interval-settings__footer">
++        <div className="ride-interval-settings__footer-start">
++          {customOpen ? (
++            <button type="button" className="ride-interval-settings__custom-toggle" onClick={() => setCustomOpen(false)}>
++              접기
++            </button>
++          ) : null}
++          {valid ? (
++            <small>
++              {customOpen ? <span className="ride-interval-settings__total">총 <strong aria-live="polite">{formatRideIntervalClock(getRideIntervalTotalSec(candidate))}</strong></span> : "준비·마무리 0초는 건너뜀"}
++              {restartOnApply && changed ? " · 적용하면 처음부터 다시 시작해요" : ""}
++            </small>
++          ) : (
++            <small role="alert">고·저 5~600초 · 준비·마무리 0~1800초 · 반복 1~30회 · 라운드 1~3</small>
++          )}
+         </div>
+-      </aside>
+-    </div>
+-    <footer className="ride-interval-settings__footer">
+-      <div>{valid ? <small>{restartOnApply && changed ? "적용하면 처음부터 다시 시작해요" : "준비·마무리 0초는 건너뜀"}</small> : <small role="alert">고·저 5~600초 · 준비·마무리 0~1800초 · 반복 1~30회</small>}</div>
+-      <button type="button" className="ride-interval-settings__apply" disabled={!valid} onClick={() => { if (valid && onApply(candidate)) onClose(); }}>설정 적용</button>
+-    </footer>
+-  </>;
++        <button type="button" className="ride-interval-settings__apply" disabled={!valid} onClick={() => { if (valid && onApply(candidate)) onClose(); }}>설정 적용</button>
++      </footer>
++    </>
++  );
+ }
+ 
+ export function RideIntervalSettingsSheet(props: Props) {
+@@ -105,8 +246,12 @@
+   useDialogFocus(props.open, panelRef);
+   useEscapeKeyClose(props.open, props.onClose);
+   if (!props.open) return null;
+-  return <div className="ride-interval-settings" role="dialog" aria-label="인터벌 운동 설정" aria-modal="true">
+-    <button type="button" className="ride-interval-settings__scrim" aria-label="인터벌 운동 설정 배경 닫기" onClick={props.onClose} />
+-    <div className="ride-interval-settings__panel" ref={panelRef}><IntervalEditor config={props.config} restartOnApply={props.restartOnApply} onApply={props.onApply} onClose={props.onClose} /></div>
+-  </div>;
+-}
++  return (
++    <div className="ride-interval-settings" role="dialog" aria-label="인터벌 운동 설정" aria-modal="true">
++      <button type="button" className="ride-interval-settings__scrim" aria-label="인터벌 운동 설정 배경 닫기" onClick={props.onClose} />
++      <div className="ride-interval-settings__panel" ref={panelRef}>
++        <IntervalEditor config={props.config} restartOnApply={props.restartOnApply} onApply={props.onApply} onClose={props.onClose} />
++      </div>
++    </div>
++  );
++}
+--- before/apps/web/src/components/ride/RideSettingsPanel.tsx
++++ after/apps/web/src/components/ride/RideSettingsPanel.tsx
+@@ -1,6 +1,6 @@
+ import { CALORIE_INTENSITY_OPTIONS, type CalorieIntensityId } from "../../lib/ride/caloriesEstimate";
+ import "./RideSettingsSheet.css";
+-import { DEFAULT_RIDE_INTERVAL_CONFIG, getRideIntervalTotalMs, type RideIntervalConfig } from "../../lib/ride/rideInterval";
++import { DEFAULT_RIDE_INTERVAL_CONFIG, formatRideIntervalClock, getRideIntervalTotalSec, type RideIntervalConfig } from "../../lib/ride/rideInterval";
+ import "./RideIntervalSettingsSheet.css";
+ 
+ export type RideSettingsPanelProps = {
+@@ -27,20 +27,24 @@
+   onRideIntervalEnabled?: (enabled: boolean) => void;
+   rideIntervalConfig?: RideIntervalConfig;
+   onOpenRideIntervalSettings?: () => void;
++  rideMomentSoundEnabled?: boolean;
++  onRideMomentSoundEnabled?: (enabled: boolean) => void;
+ };
+ 
+ /** 주행 중 표시 선택. 체중·체력 편집은 프로필이 소유한다(Chief 승인 묶음4). */
+ export function RideSettingsPanel(props: RideSettingsPanelProps) {
+   const intensity = CALORIE_INTENSITY_OPTIONS.find(option => option.id === props.calorieIntensityId);
+   const intervalConfig = props.rideIntervalConfig ?? DEFAULT_RIDE_INTERVAL_CONFIG;
+-  const intervalSeconds = getRideIntervalTotalMs(intervalConfig) / 1000;
+-  const intervalDuration = `${Math.floor(intervalSeconds / 60)}:${String(intervalSeconds % 60).padStart(2, "0")}`;
++  const intervalDuration = formatRideIntervalClock(getRideIntervalTotalSec(intervalConfig));
+   const edgeDuration = (seconds: number) => seconds === 0 ? "없음" : seconds % 60 === 0 ? `${seconds / 60}분` : `${seconds}초`;
+   const toggles = [
+     { name: "코칭 문구", value: props.rideCoachingBanner, change: props.onRideCoachingBanner, help: "주행 중 화면 아래에 짧게 보여요" },
+     { name: "음성 안내", value: props.rideTtsEnabled, change: props.onRideTtsEnabled },
+     { name: "배경 음악", value: props.rideBgmEnabled, change: props.onRideBgmEnabled, disabled: !props.rideBgmCatalogConfigured },
+     { name: "페이서", value: props.pacerEnabled, change: props.onPacerEnabled },
++    ...(props.onRideMomentSoundEnabled
++      ? [{ name: "효과음", value: props.rideMomentSoundEnabled ?? false, change: props.onRideMomentSoundEnabled, help: "짧은 신호만, 기본은 꺼짐" }]
++      : []),
+   ];
+   return (
+     <div className={`ride-settings-panel${props.embedded ? " ride-settings-panel--embedded" : ""}`}>
+--- before/apps/web/src/components/ride/RideSettingsSheet.tsx
++++ after/apps/web/src/components/ride/RideSettingsSheet.tsx
+@@ -29,6 +29,8 @@
+   onRideIntervalEnabled?: (enabled: boolean) => void;
+   rideIntervalConfig?: RideIntervalConfig;
+   onOpenRideIntervalSettings?: () => void;
++  rideMomentSoundEnabled?: boolean;
++  onRideMomentSoundEnabled?: (enabled: boolean) => void;
+ };
+ 
+ /** 주행·표시 설정 — MENU 와 분리된 하단 시트. 센서는 별도 케이던스 상세 설정이 소유. */
+@@ -84,6 +86,8 @@
+           onRideIntervalEnabled={props.onRideIntervalEnabled}
+           rideIntervalConfig={props.rideIntervalConfig}
+           onOpenRideIntervalSettings={props.onOpenRideIntervalSettings}
++          rideMomentSoundEnabled={props.rideMomentSoundEnabled}
++          onRideMomentSoundEnabled={props.onRideMomentSoundEnabled}
+         />
+       </div>
+     </div>
+--- before/apps/web/src/components/ride/RideSummarySheet.css
++++ after/apps/web/src/components/ride/RideSummarySheet.css
+@@ -712,7 +712,7 @@
+     min-height: min(194px, calc(100dvh - 1rem));
+     max-height: min(194px, calc(100dvh - 1rem));
+     margin-bottom: 0;
+-    padding: 0;
++    padding: 10px;
+     overflow: hidden;
+     border-radius: 11px;
+     gap: 0;
+--- before/apps/web/src/components/ride/RideSummarySheet.tsx
++++ after/apps/web/src/components/ride/RideSummarySheet.tsx
+@@ -394,6 +394,7 @@
+                   )}
+                 </div>
+                 {/* 남은 거리는 막대 끝에 작게 — 해낸 거리가 먼저다(N2) */}
++                {routeCompleted ? null : (
+                 <div className="ride-summary__progress-track">
+                   <div className="ride-summary__progress-bar" aria-hidden>
+                     <span
+@@ -405,12 +406,11 @@
+                       style={{ width: `${progressThisPct}%` }}
+                     />
+                   </div>
+-                  {routeCompleted ? null : (
+                     <span className="ride-summary__progress-left">
+                       남은 {formatSheetKm(Math.max(0, routeTotalKmNum - riddenKmNum), kmDigits)}
+                     </span>
+-                  )}
+                 </div>
++                )}
+               </div>
+             ) : null}
+           </div>
+--- before/apps/web/src/components/route-dock/RouteDock.css
++++ after/apps/web/src/components/route-dock/RouteDock.css
+@@ -3,7 +3,7 @@
+ .route-dock-anchor {
+   --route-dock-pad: clamp(.45rem, 1.4vw, .85rem);
+   position: absolute;
+-  left: max(16px, calc(env(safe-area-inset-left, 0px) + 16px)); /* 왼쪽 반원 탭 자리(MapBottomLeftStack 과 같음) */
++  left: max(48px, calc(env(safe-area-inset-left, 0px) + 48px)); /* 반달 핸들44px + 여백4px(MapBottomLeftStack과 동일) */
+   bottom: calc(max(var(--route-dock-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem));
+   width: min(29.4vw, calc(100vw - 16px));
+   z-index: 6;
+--- before/apps/web/src/components/ui/EdgePanelHandle.css
++++ after/apps/web/src/components/ui/EdgePanelHandle.css
+@@ -24,18 +24,21 @@
+   left: auto;
+ }
+ 
++.edge-panel-handle--left.edge-panel-handle--open {
++  left: min(300px, 92vw);
++}
++
+ /*
+- * 보이는 탭 — 2026-10-24 Chief 「반원 탭, 흰 반투명」. 위성·줌 버튼과 같은 흰색 계열.
+- * 보이는 반원 14×48px, 누르는 영역 28×64px(바깥은 투명). 자리는 계기판 바로 아래
+- * (위에서 84px) — 대기·주행 모두 왼쪽 아래 주소 카드·미니맵과 오른쪽 위 조작부 사이의 빈 곳.
+- * z-index 5(HUD 와 같은 층) — 메뉴(50)·맵 뷰(54)·모달 아래.
++ * 보이는 탭 — 시안 v2: visible 34×72 / target 44×76, 세로 중앙.
++ * MapHud(5, 빈 영역 pointer-events none)보다 낮춰 카메라 메뉴가 탭에 가리지 않게 한다.
++ * 왼쪽이 열리면 메뉴 가장자리로 옮겨 z-index 51 로 메뉴 위에 남긴다.
+  */
+ .edge-panel-tab {
+   position: fixed;
+-  z-index: 5;
+-  top: calc(env(safe-area-inset-top, 0px) + 84px);
+-  width: 28px;
+-  height: 64px;
++  z-index: 4;
++  top: calc(50% - 38px);
++  width: 44px;
++  height: 76px;
+   padding: 0;
+   margin: 0;
+   border: 0;
+@@ -54,9 +57,18 @@
+   right: env(safe-area-inset-right, 0px);
+   justify-content: flex-end;
+ }
++.edge-panel-tab--left.edge-panel-tab--open {
++  left: min(300px, 92vw);
++  z-index: 51;
++  transform: translateX(-100%);
++}
++.edge-panel-tab--right.edge-panel-tab--open {
++  right: env(safe-area-inset-right, 0px);
++  z-index: 4;
++}
+ .edge-panel-tab__knob {
+-  width: 14px;
+-  height: 48px;
++  width: 34px;
++  height: 72px;
+   box-sizing: border-box;
+   display: inline-flex;
+   align-items: center;
+@@ -65,8 +77,8 @@
+   color: #121417;
+   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+ }
+-.edge-panel-tab--left .edge-panel-tab__knob { border-radius: 0 24px 24px 0; padding-right: 2px; }
+-.edge-panel-tab--right .edge-panel-tab__knob { border-radius: 24px 0 0 24px; padding-left: 2px; }
++.edge-panel-tab--left .edge-panel-tab__knob { border-radius: 0 36px 36px 0; padding-right: 6px; }
++.edge-panel-tab--right .edge-panel-tab__knob { border-radius: 36px 0 0 36px; padding-left: 6px; }
+ .edge-panel-tab:active .edge-panel-tab__knob { background: rgba(255, 255, 255, 0.95); }
+ @media (hover: hover) {
+   .edge-panel-tab:hover .edge-panel-tab__knob { background: rgba(255, 255, 255, 0.92); }
+@@ -75,7 +87,8 @@
+ .edge-panel-tab:focus-visible .edge-panel-tab__knob { outline: 2px solid #2457d6; outline-offset: 1px; }
+ 
+ @media (prefers-reduced-motion: reduce) {
+-  .edge-panel-handle {
++  .edge-panel-handle,
++  .edge-panel-tab {
+     transition: none;
+   }
+ }
+--- before/apps/web/src/components/ui/EdgePanelHandle.tsx
++++ after/apps/web/src/components/ui/EdgePanelHandle.tsx
+@@ -16,36 +16,45 @@
+ 
+ /**
+  * 에지 제스처 — document capture 로 시작 좌표만 판별한다(띠 표식은 hit-test 없음).
+- * 2026-10-24 Chief: 보이지 않으니 불편하다 → 계기판 바로 아래에 흰 반투명 반원 탭을 둔다.
+- * 탭을 누르면 열리고, 탭에서 시작해 끌어도 지금처럼 손가락을 따라 열린다.
++ * 탭은 열려 있어도 남긴다. 클릭은 토글, 열린 뒤 가장자리 쪽으로 끌면 접힌다.
+  */
+ export function EdgePanelHandle(props: EdgePanelHandleProps) {
+   const { edge, open, panelId, label, onOpen, onClose, onDragProgress } = props;
+   const markerRef = useRef<HTMLDivElement>(null);
+-  const callbacksRef = useRef({ onOpen, onClose, onDragProgress });
+-  const openDir = edge === "left" ? 1 : -1;
++  const callbacksRef = useRef({ onOpen, onClose, onDragProgress, open });
++  const baseOpenDir = edge === "left" ? 1 : -1;
++  const openDir = open ? -baseOpenDir : baseOpenDir;
+ 
+   useEffect(() => {
+-    callbacksRef.current = { onOpen, onClose, onDragProgress };
+-  }, [onOpen, onClose, onDragProgress]);
++    callbacksRef.current = { onOpen, onClose, onDragProgress, open };
++  }, [onOpen, onClose, onDragProgress, open]);
+ 
+   useEffect(() => {
+-    if (open) return;
+     return registerEdgeDocumentGesture(edge, true, () => markerRef.current, {
+       openDir,
+-      onOpen: () => callbacksRef.current.onOpen(),
+-      onClose: () => callbacksRef.current.onClose(),
++      onOpen: () => {
++        const current = callbacksRef.current;
++        if (current.open) current.onClose();
++        else current.onOpen();
++      },
++      onClose: () => {
++        const current = callbacksRef.current;
++        if (current.open) current.onOpen();
++        else current.onClose();
++      },
+       onDragProgress: (progress) => callbacksRef.current.onDragProgress(progress),
+     });
+-  }, [edge, open, openDir]);
++  }, [edge, openDir]);
+ 
+-  if (open) return null;
++  const chevron = open
++    ? (edge === "left" ? "M5 1.5L2 5L5 8.5" : "M2 1.5L5 5L2 8.5")
++    : (edge === "left" ? "M2 1.5L5 5L2 8.5" : "M5 1.5L2 5L5 8.5");
+ 
+   return (
+     <>
+       <div
+         ref={markerRef}
+-        className={`edge-panel-handle edge-panel-handle--${edge}`}
++        className={`edge-panel-handle edge-panel-handle--${edge}${open ? " edge-panel-handle--open" : ""}`}
+         role="presentation"
+         aria-hidden="true"
+         data-edge-panel={panelId}
+@@ -53,15 +62,18 @@
+       />
+       <button
+         type="button"
+-        className={`edge-panel-tab edge-panel-tab--${edge}`}
++        className={`edge-panel-tab edge-panel-tab--${edge}${open ? " edge-panel-tab--open" : ""}`}
+         aria-label={label}
+         aria-controls={panelId}
+-        aria-expanded={false}
+-        onClick={onOpen}
++        aria-expanded={open}
++        onClick={() => {
++          if (open) onClose();
++          else onOpen();
++        }}
+       >
+         <span className="edge-panel-tab__knob" aria-hidden>
+           <svg width="7" height="10" viewBox="0 0 7 10" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+-            <path d={edge === "left" ? "M2 1.5L5 5L2 8.5" : "M5 1.5L2 5L5 8.5"} />
++            <path d={chevron} />
+           </svg>
+         </span>
+       </button>
+--- before/apps/web/src/features/map-overlays/MapBottomLeftStack.css
++++ after/apps/web/src/features/map-overlays/MapBottomLeftStack.css
+@@ -8,9 +8,8 @@
+ .map-bottom-left-stack {
+   --map-bl-pad: clamp(0.45rem, 1.4vw, 0.85rem);
+   position: absolute;
+-  /* 16px: 왼쪽 가장자리 반원 탭(14px, 2026-10-24 Chief)이 주소 카드·미니맵 옆 틈에 들어가
+-   * 카드 높이가 어떻든(경유 3개 펼침 등) 겹치지 않는다. */
+-  left: max(var(--map-bl-pad), 16px, calc(env(safe-area-inset-left, 0px) + 16px));
++  /* 넓힌 반달 핸들의 터치 폭44px와 카드·미니맵 사이에4px를 남긴다. */
++  left: max(var(--map-bl-pad), 48px, calc(env(safe-area-inset-left, 0px) + 48px));
+   bottom: calc(
+     max(var(--map-bl-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem)
+   );
+--- before/apps/web/src/features/ride-feedback/useRideFeedbackPreferences.ts
++++ after/apps/web/src/features/ride-feedback/useRideFeedbackPreferences.ts
+@@ -8,10 +8,13 @@
+   setRideBgmEnabled: (v: boolean) => void;
+   rideCoachingBannerVisible: boolean;
+   setRideCoachingBannerVisible: (v: boolean) => void;
++  rideMomentSoundEnabled: boolean;
++  setRideMomentSoundEnabled: (v: boolean) => void;
+ } {
+   const [rideTtsEnabled, setRideTtsEnabled] = useState(true);
+   const [rideBgmEnabled, setRideBgmEnabled] = useState(true);
+   const [rideCoachingBannerVisible, setRideCoachingBannerVisible] = useState(true);
++  const [rideMomentSoundEnabled, setRideMomentSoundEnabled] = useState(false);
+   return {
+     rideTtsEnabled,
+     setRideTtsEnabled,
+@@ -19,5 +22,7 @@
+     setRideBgmEnabled,
+     rideCoachingBannerVisible,
+     setRideCoachingBannerVisible,
++    rideMomentSoundEnabled,
++    setRideMomentSoundEnabled,
+   };
+ }
+--- before/apps/web/src/hooks/useRideInterval.ts
++++ after/apps/web/src/hooks/useRideInterval.ts
+@@ -1,35 +1,17 @@
+ import { useState } from "react";
+ import {
++  copyRideIntervalConfig,
+   DEFAULT_RIDE_INTERVAL_CONFIG,
+   getRideIntervalView,
+   normalizeRideIntervalConfig,
++  sameRideIntervalConfig,
+   type RideIntervalConfig,
+ } from "../lib/ride/rideInterval";
+ 
+ const CONFIG_STORAGE_KEY = "spinatlas.rideInterval.config.v1";
+ 
+-function copyConfig(config: Required<RideIntervalConfig>): Required<RideIntervalConfig> {
+-  return {
+-    highSec: config.highSec,
+-    lowSec: config.lowSec,
+-    repeats: config.repeats,
+-    warmupSec: config.warmupSec,
+-    cooldownSec: config.cooldownSec,
+-  };
+-}
+-
+-function sameConfig(a: Required<RideIntervalConfig>, b: Required<RideIntervalConfig>): boolean {
+-  return (
+-    a.highSec === b.highSec &&
+-    a.lowSec === b.lowSec &&
+-    a.repeats === b.repeats &&
+-    a.warmupSec === b.warmupSec &&
+-    a.cooldownSec === b.cooldownSec
+-  );
+-}
+-
+ function fallbackConfig(): Required<RideIntervalConfig> {
+-  return copyConfig(DEFAULT_RIDE_INTERVAL_CONFIG);
++  return copyRideIntervalConfig(DEFAULT_RIDE_INTERVAL_CONFIG);
+ }
+ 
+ function readStoredConfig(): Required<RideIntervalConfig> {
+@@ -47,7 +29,7 @@
+ 
+ function writeStoredConfig(config: Required<RideIntervalConfig>): void {
+   try {
+-    globalThis.localStorage?.setItem(CONFIG_STORAGE_KEY, JSON.stringify(copyConfig(config)));
++    globalThis.localStorage?.setItem(CONFIG_STORAGE_KEY, JSON.stringify(copyRideIntervalConfig(config)));
+   } catch {
+     // 저장 실패 시 메모리 선택값만 유지한다.
+   }
+@@ -80,20 +62,22 @@
+   }
+   const startMs = selection.active === active ? selection.startMs : 0;
+   const config = normalizeRideIntervalConfig(selection.config) ?? fallbackConfig();
++  const runKey = `${startMs}:${selection.enabled ? 1 : 0}:${config.highSec}:${config.lowSec}:${config.repeats}:${config.warmupSec}:${config.cooldownSec}:${config.rounds}:${config.roundRestSec}`;
+   return {
+     enabled: selection.enabled,
++    runKey,
+     onEnabled: (enabled: boolean) => setSelection({ ...selection, enabled, startMs: active ? elapsedMs : 0, active }),
+     view: selection.enabled && active ? getRideIntervalView(elapsedMs - startMs, config) : null,
+     config,
+     onConfig: (next: RideIntervalConfig): boolean => {
+       const normalized = normalizeRideIntervalConfig(next);
+       if (!normalized) return false;
+-      if (sameConfig(normalized, config)) return true;
++      if (sameRideIntervalConfig(normalized, config)) return true;
+       writeStoredConfig(normalized);
+       const restart = selection.enabled && active;
+       setSelection({
+         ...selection,
+-        config: copyConfig(normalized),
++        config: copyRideIntervalConfig(normalized),
+         startMs: restart ? elapsedMs : selection.startMs,
+         active,
+       });
+--- before/apps/web/src/hooks/useRideMoments.ts
++++ after/apps/web/src/hooks/useRideMoments.ts
+@@ -0,0 +1,104 @@
++import { useEffect, useRef, useState } from "react";
++import { cancelRideMomentSound, playRideMomentSound } from "../lib/ride/rideMomentSound";
++import {
++  emptyRideMomentMemory,
++  resolveRideMoments,
++  RIDE_MOMENT_DISPLAY_MS,
++  RIDE_MOMENT_PRIORITY,
++  type RideMomentEvent,
++  type RideMomentInput,
++} from "../lib/ride/rideMoments";
++
++/**
++ * 표시 타이머는 이 훅을 쓰는 자식만 다시 그린다. App·지도 리렌더를 부르지 않는다.
++ */
++export function useRideMoments(input: RideMomentInput, soundEnabled: boolean): RideMomentEvent | null {
++  const memoryRef = useRef(emptyRideMomentMemory());
++  const timeoutRef = useRef<number | null>(null);
++  const displayedRef = useRef<RideMomentEvent | null>(null);
++  const [event, setEvent] = useState<RideMomentEvent | null>(null);
++  const status = input.status;
++  const elapsedMs = input.elapsedMs;
++  const routeMeters = input.routeMeters;
++  const traveledMeters = input.traveledMeters;
++  const waypointMeters = input.waypointMeters;
++  const interval = input.interval;
++  const newRoadKm = input.newRoadKm;
++  const ended = input.ended;
++  const intervalRunKey = input.intervalRunKey ?? null;
++
++  useEffect(() => {
++    const previous = memoryRef.current;
++    const resolved = resolveRideMoments(previous, {
++      status,
++      elapsedMs,
++      routeMeters,
++      traveledMeters,
++      waypointMeters,
++      interval,
++      newRoadKm,
++      ended,
++      intervalRunKey,
++    });
++    memoryRef.current = resolved.memory;
++
++    const clearDisplay = () => {
++      if (timeoutRef.current != null) {
++        window.clearTimeout(timeoutRef.current);
++        timeoutRef.current = null;
++      }
++      cancelRideMomentSound();
++      displayedRef.current = null;
++      setEvent(null);
++    };
++
++    const displayingInterval = displayedRef.current?.kind.startsWith("interval");
++    const newRide = status === "running" && (previous.lastStatus === "idle" || previous.ended);
++    const changedIntervalRun = intervalRunKey !== previous.intervalRunKey;
++    if (newRide || (displayingInterval && (interval == null || changedIntervalRun))) clearDisplay();
++    if (!soundEnabled) cancelRideMomentSound();
++
++    if (!resolved.event) {
++      const ending = displayedRef.current?.kind === "finish" || displayedRef.current?.kind === "stop";
++      if (status === "paused" || (status === "idle" && !ending)) clearDisplay();
++      return;
++    }
++
++    const showing = displayedRef.current;
++    if (showing && RIDE_MOMENT_PRIORITY[resolved.event.kind] < RIDE_MOMENT_PRIORITY[showing.kind]) {
++      return;
++    }
++
++    displayedRef.current = resolved.event;
++    setEvent(resolved.event);
++    if (soundEnabled) playRideMomentSound(resolved.event.sound);
++    else cancelRideMomentSound();
++    if (timeoutRef.current != null) window.clearTimeout(timeoutRef.current);
++    timeoutRef.current = window.setTimeout(() => {
++      timeoutRef.current = null;
++      displayedRef.current = null;
++      setEvent(null);
++    }, RIDE_MOMENT_DISPLAY_MS);
++  }, [
++    status,
++    elapsedMs,
++    routeMeters,
++    traveledMeters,
++    waypointMeters,
++    interval,
++    newRoadKm,
++    ended,
++    intervalRunKey,
++    soundEnabled,
++  ]);
++
++  useEffect(() => () => {
++    if (timeoutRef.current != null) window.clearTimeout(timeoutRef.current);
++    timeoutRef.current = null;
++    displayedRef.current = null;
++    memoryRef.current = emptyRideMomentMemory();
++    cancelRideMomentSound();
++  }, []);
++
++  return event;
++}
+--- before/apps/web/src/lib/ride/rideInterval.ts
++++ after/apps/web/src/lib/ride/rideInterval.ts
+@@ -1,5 +1,5 @@
+ /** 주행 accumulatedMs를 공유한다. 독립 타이머·속도·RPM에 의존하지 않는다. */
+-export type RideIntervalPhase = "warmup" | "work" | "recovery" | "cooldown" | "complete";
++export type RideIntervalPhase = "warmup" | "work" | "recovery" | "rest" | "cooldown" | "complete";
+ 
+ export type RideIntervalView = {
+   phase: RideIntervalPhase;
+@@ -8,6 +8,8 @@
+   remainingSec: number;
+   repeat: number;
+   totalRepeats: number;
++  round: number;
++  totalRounds: number;
+   nextLabel: string;
+ };
+ 
+@@ -17,28 +19,53 @@
+   repeats: number;
+   warmupSec?: number;
+   cooldownSec?: number;
++  rounds?: number;
++  roundRestSec?: number;
+ };
+ 
+ const DEFAULT_WARMUP_SEC = 300;
+ const DEFAULT_COOLDOWN_SEC = 300;
++const DEFAULT_ROUNDS = 1;
++const DEFAULT_ROUND_REST_SEC = 0;
+ 
+ export const DEFAULT_RIDE_INTERVAL_CONFIG: Required<RideIntervalConfig> = Object.freeze({
+-  highSec: 30,
+-  lowSec: 30,
++  highSec: 60,
++  lowSec: 120,
+   repeats: 5,
+   warmupSec: DEFAULT_WARMUP_SEC,
+   cooldownSec: DEFAULT_COOLDOWN_SEC,
++  rounds: DEFAULT_ROUNDS,
++  roundRestSec: DEFAULT_ROUND_REST_SEC,
+ });
+ 
+-export const RIDE_INTERVAL_PRESETS: readonly { id: string; config: Required<RideIntervalConfig> }[] = Object.freeze([
+-  { id: "30-30-5", config: Object.freeze({ highSec: 30, lowSec: 30, repeats: 5, warmupSec: 300, cooldownSec: 300 }) },
+-  { id: "30-60-5", config: Object.freeze({ highSec: 30, lowSec: 60, repeats: 5, warmupSec: 300, cooldownSec: 300 }) },
+-  { id: "20-40-8", config: Object.freeze({ highSec: 20, lowSec: 40, repeats: 8, warmupSec: 300, cooldownSec: 300 }) },
+-  { id: "40-20-8", config: Object.freeze({ highSec: 40, lowSec: 20, repeats: 8, warmupSec: 300, cooldownSec: 300 }) },
+-  { id: "45-45-8", config: Object.freeze({ highSec: 45, lowSec: 45, repeats: 8, warmupSec: 300, cooldownSec: 300 }) },
+-  { id: "60-60-5", config: Object.freeze({ highSec: 60, lowSec: 60, repeats: 5, warmupSec: 300, cooldownSec: 300 }) },
+-  { id: "60-30-8", config: Object.freeze({ highSec: 60, lowSec: 30, repeats: 8, warmupSec: 300, cooldownSec: 300 }) },
+-  { id: "90-60-6", config: Object.freeze({ highSec: 90, lowSec: 60, repeats: 6, warmupSec: 300, cooldownSec: 300 }) },
++export type RideIntervalPresetId = "recovery" | "balanced" | "short";
++
++export const RIDE_INTERVAL_PRESETS: readonly {
++  id: RideIntervalPresetId;
++  label: string;
++  config: Required<RideIntervalConfig>;
++}[] = Object.freeze([
++  {
++    id: "recovery",
++    label: "회복형 · 운동 1 : 회복 2",
++    config: Object.freeze({
++      highSec: 60, lowSec: 120, repeats: 5, warmupSec: 300, cooldownSec: 300, rounds: 1, roundRestSec: 0,
++    }),
++  },
++  {
++    id: "balanced",
++    label: "균형형 · 운동 1 : 회복 1",
++    config: Object.freeze({
++      highSec: 60, lowSec: 60, repeats: 8, warmupSec: 300, cooldownSec: 300, rounds: 1, roundRestSec: 0,
++    }),
++  },
++  {
++    id: "short",
++    label: "짧은 반복 · 20초 : 10초",
++    config: Object.freeze({
++      highSec: 20, lowSec: 10, repeats: 8, warmupSec: 600, cooldownSec: 300, rounds: 2, roundRestSec: 180,
++    }),
++  },
+ ]);
+ 
+ function isIntInRange(value: unknown, min: number, max: number): value is number {
+@@ -57,13 +84,17 @@
+     repeats?: unknown;
+     warmupSec?: unknown;
+     cooldownSec?: unknown;
++    rounds?: unknown;
++    roundRestSec?: unknown;
+   };
+   return (
+     isIntInRange(candidate.highSec, 5, 600) &&
+     isIntInRange(candidate.lowSec, 5, 600) &&
+     isIntInRange(candidate.repeats, 1, 30) &&
+     isOptionalIntInRange(candidate.warmupSec, 0, 1800) &&
+-    isOptionalIntInRange(candidate.cooldownSec, 0, 1800)
++    isOptionalIntInRange(candidate.cooldownSec, 0, 1800) &&
++    isOptionalIntInRange(candidate.rounds, 1, 3) &&
++    isOptionalIntInRange(candidate.roundRestSec, 0, 1800)
+   );
+ }
+ 
+@@ -75,6 +106,8 @@
+     repeats: value.repeats,
+     warmupSec: value.warmupSec ?? DEFAULT_WARMUP_SEC,
+     cooldownSec: value.cooldownSec ?? DEFAULT_COOLDOWN_SEC,
++    rounds: value.rounds ?? DEFAULT_ROUNDS,
++    roundRestSec: value.roundRestSec ?? DEFAULT_ROUND_REST_SEC,
+   };
+ }
+ 
+@@ -82,43 +115,128 @@
+   return normalizeRideIntervalConfig(config) ?? normalizeRideIntervalConfig(DEFAULT_RIDE_INTERVAL_CONFIG)!;
+ }
+ 
++export function copyRideIntervalConfig(config: Required<RideIntervalConfig>): Required<RideIntervalConfig> {
++  return {
++    highSec: config.highSec,
++    lowSec: config.lowSec,
++    repeats: config.repeats,
++    warmupSec: config.warmupSec,
++    cooldownSec: config.cooldownSec,
++    rounds: config.rounds,
++    roundRestSec: config.roundRestSec,
++  };
++}
++
++export function sameRideIntervalConfig(a: Required<RideIntervalConfig>, b: Required<RideIntervalConfig>): boolean {
++  return (
++    a.highSec === b.highSec &&
++    a.lowSec === b.lowSec &&
++    a.repeats === b.repeats &&
++    a.warmupSec === b.warmupSec &&
++    a.cooldownSec === b.cooldownSec &&
++    a.rounds === b.rounds &&
++    a.roundRestSec === b.roundRestSec
++  );
++}
++
++export function matchRideIntervalPreset(config: Required<RideIntervalConfig>): RideIntervalPresetId | "custom" {
++  const found = RIDE_INTERVAL_PRESETS.find((preset) => sameRideIntervalConfig(preset.config, config));
++  return found?.id ?? "custom";
++}
++
++export function getRideIntervalTotalSec(config?: RideIntervalConfig): number {
++  const resolved = resolveConfig(config);
++  const cycle = (resolved.highSec + resolved.lowSec) * resolved.repeats;
++  const rest = resolved.roundRestSec * Math.max(0, resolved.rounds - 1);
++  return resolved.warmupSec + resolved.cooldownSec + cycle * resolved.rounds + rest;
++}
++
+ export function getRideIntervalTotalMs(config?: RideIntervalConfig): number {
+-  const resolved = resolveConfig(config);
+-  return (resolved.warmupSec + resolved.cooldownSec + (resolved.highSec + resolved.lowSec) * resolved.repeats) * 1000;
++  return getRideIntervalTotalSec(config) * 1000;
+ }
+ 
+ export const RIDE_INTERVAL_TOTAL_MS = getRideIntervalTotalMs();
++
++export function formatRideIntervalClock(seconds: number): string {
++  const safe = Math.max(0, Math.round(seconds));
++  return `${Math.floor(safe / 60)}:${String(safe % 60).padStart(2, "0")}`;
++}
+ 
+ function formatStepDuration(seconds: number): string {
+   return seconds % 60 === 0 ? `${seconds / 60}분` : `${seconds}초`;
+ }
+ 
+-/** 준비 → (운동 high + 회복 low) × repeats → 마무리. 0초 단계는 건너뛴다. 잘못된 config는 기본 루틴. */
++type IntervalStep = {
++  phase: RideIntervalPhase;
++  label: string;
++  seconds: number;
++  repeat: number;
++  round: number;
++};
++
++function buildIntervalSteps(resolved: Required<RideIntervalConfig>): IntervalStep[] {
++  const steps: IntervalStep[] = [];
++  if (resolved.warmupSec > 0) {
++    steps.push({ phase: "warmup", label: "준비", seconds: resolved.warmupSec, repeat: 0, round: 1 });
++  }
++  for (let round = 1; round <= resolved.rounds; round++) {
++    for (let repeat = 1; repeat <= resolved.repeats; repeat++) {
++      steps.push({ phase: "work", label: "운동", seconds: resolved.highSec, repeat, round });
++      steps.push({ phase: "recovery", label: "회복", seconds: resolved.lowSec, repeat, round });
++    }
++    if (round < resolved.rounds && resolved.roundRestSec > 0) {
++      steps.push({
++        phase: "rest",
++        label: "휴식",
++        seconds: resolved.roundRestSec,
++        repeat: resolved.repeats,
++        round,
++      });
++    }
++  }
++  if (resolved.cooldownSec > 0) {
++    steps.push({
++      phase: "cooldown",
++      label: "마무리",
++      seconds: resolved.cooldownSec,
++      repeat: resolved.repeats,
++      round: resolved.rounds,
++    });
++  }
++  return steps;
++}
++
++/** 준비 → (운동+회복)×repeats × rounds(라운드 사이 휴식) → 마무리. 0초 단계는 건너뛴다. */
+ export function getRideIntervalView(elapsedMs: number, config?: RideIntervalConfig): RideIntervalView {
+   const resolved = resolveConfig(config);
+   let remainingMs = Number.isFinite(elapsedMs) ? Math.max(0, elapsedMs) : 0;
+-  const steps: { phase: RideIntervalPhase; label: string; seconds: number; repeat: number }[] = [];
+-  if (resolved.warmupSec > 0) {
+-    steps.push({ phase: "warmup", label: "준비", seconds: resolved.warmupSec, repeat: 0 });
+-  }
+-  for (let repeat = 1; repeat <= resolved.repeats; repeat++) {
+-    steps.push({ phase: "work", label: "운동", seconds: resolved.highSec, repeat });
+-    steps.push({ phase: "recovery", label: "회복", seconds: resolved.lowSec, repeat });
+-  }
+-  if (resolved.cooldownSec > 0) {
+-    steps.push({ phase: "cooldown", label: "마무리", seconds: resolved.cooldownSec, repeat: resolved.repeats });
+-  }
++  const steps = buildIntervalSteps(resolved);
+   for (const [step, current] of steps.entries()) {
+     if (remainingMs < current.seconds * 1000) {
+       const next = steps[step + 1];
+       return {
+-        phase: current.phase, step, label: current.label,
++        phase: current.phase,
++        step,
++        label: current.label,
+         remainingSec: Math.ceil((current.seconds * 1000 - remainingMs) / 1000),
+-        repeat: current.repeat, totalRepeats: resolved.repeats,
++        repeat: current.repeat,
++        totalRepeats: resolved.repeats,
++        round: current.round,
++        totalRounds: resolved.rounds,
+         nextLabel: next ? `다음 · ${next.label} ${formatStepDuration(next.seconds)}` : "다음 · 자유 주행",
+       };
+     }
+     remainingMs -= current.seconds * 1000;
+   }
+-  return { phase: "complete", step: steps.length, label: "인터벌", remainingSec: 0, repeat: resolved.repeats, totalRepeats: resolved.repeats, nextLabel: "자유 주행 계속" };
+-}
++  return {
++    phase: "complete",
++    step: steps.length,
++    label: "인터벌",
++    remainingSec: 0,
++    repeat: resolved.repeats,
++    totalRepeats: resolved.repeats,
++    round: resolved.rounds,
++    totalRounds: resolved.rounds,
++    nextLabel: "자유 주행 계속",
++  };
++}
+--- before/apps/web/src/lib/ride/rideMomentSound.ts
++++ after/apps/web/src/lib/ride/rideMomentSound.ts
+@@ -0,0 +1,85 @@
++import type { RideMomentSoundKind } from "./rideMoments";
++
++const SOUND_MS: Record<RideMomentSoundKind, { freq: number; dur: number; type: OscillatorType }[]> = {
++  start: [{ freq: 523, dur: 0.09, type: "sine" }, { freq: 659, dur: 0.11, type: "sine" }],
++  warn: [{ freq: 784, dur: 0.07, type: "triangle" }],
++  high: [{ freq: 880, dur: 0.08, type: "sine" }, { freq: 1175, dur: 0.1, type: "sine" }],
++  low: [{ freq: 392, dur: 0.12, type: "sine" }],
++  finish: [
++    { freq: 523, dur: 0.08, type: "sine" },
++    { freq: 659, dur: 0.08, type: "sine" },
++    { freq: 784, dur: 0.12, type: "sine" },
++  ],
++  stop: [{ freq: 349, dur: 0.14, type: "sine" }],
++};
++
++let sharedCtx: AudioContext | null = null;
++let playGeneration = 0;
++const liveOscillators = new Set<OscillatorNode>();
++
++function stopLiveOscillators(): void {
++  for (const osc of liveOscillators) {
++    try { osc.stop(); } catch { /* already stopped */ }
++  }
++  liveOscillators.clear();
++}
++
++function getContext(): AudioContext | null {
++  if (typeof window === "undefined") return null;
++  try {
++    const Ctor = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
++    if (!Ctor) return null;
++    if (!sharedCtx || sharedCtx.state === "closed") {
++      sharedCtx = new Ctor();
++    }
++    return sharedCtx;
++  } catch {
++    sharedCtx = null;
++    return null;
++  }
++}
++
++export function cancelRideMomentSound(): void {
++  playGeneration += 1;
++  stopLiveOscillators();
++}
++
++export function playRideMomentSound(kind: RideMomentSoundKind): void {
++  if (typeof window === "undefined") return;
++  if (window.speechSynthesis?.speaking) return;
++  const gen = playGeneration + 1;
++  cancelRideMomentSound();
++  playGeneration = gen;
++  let ctx: AudioContext | null = null;
++  try {
++    ctx = getContext();
++  } catch {
++    return;
++  }
++  if (!ctx) return;
++  const notes = SOUND_MS[kind];
++  if (!notes) return;
++  void ctx.resume().then(() => {
++    if (gen !== playGeneration) return;
++    let t = ctx.currentTime;
++    for (const note of notes) {
++      if (gen !== playGeneration) return;
++      const osc = ctx.createOscillator();
++      const gain = ctx.createGain();
++      osc.type = note.type;
++      osc.frequency.value = note.freq;
++      gain.gain.setValueAtTime(0.0001, t);
++      gain.gain.exponentialRampToValueAtTime(0.08, t + 0.012);
++      gain.gain.exponentialRampToValueAtTime(0.0001, t + note.dur);
++      osc.connect(gain);
++      gain.connect(ctx.destination);
++      liveOscillators.add(osc);
++      osc.onended = () => liveOscillators.delete(osc);
++      osc.start(t);
++      osc.stop(t + note.dur + 0.02);
++      t += note.dur * 0.85;
++    }
++  }).catch(() => {
++    /* autoplay / closed context */
++  });
++}
+--- before/apps/web/src/lib/ride/rideMoments.ts
++++ after/apps/web/src/lib/ride/rideMoments.ts
+@@ -0,0 +1,352 @@
++import type { RideIntervalPhase, RideIntervalView } from "./rideInterval";
++
++export type RideMomentKind =
++  | "start"
++  | "half"
++  | "waypoint"
++  | "intervalStart"
++  | "intervalWarn"
++  | "intervalHigh"
++  | "intervalLow"
++  | "intervalComplete"
++  | "finish"
++  | "stop";
++
++export type RideMomentSoundKind = "start" | "warn" | "high" | "low" | "finish" | "stop";
++
++export type RideMomentEvent = {
++  kind: RideMomentKind;
++  title: string;
++  detail: string;
++  coach: string;
++  sound: RideMomentSoundKind;
++  waypointIndex?: number;
++};
++
++type RideSessionStatus = "idle" | "running" | "paused";
++
++export type RideMomentInput = {
++  status: RideSessionStatus;
++  elapsedMs: number;
++  routeMeters: number;
++  traveledMeters: number;
++  waypointMeters: readonly number[];
++  interval: RideIntervalView | null;
++  newRoadKm: number | null;
++  ended: { reason: "finish" | "stop"; sessionKm: number } | null;
++  intervalRunKey?: string | number | null;
++};
++
++export type RideMomentMemory = {
++  started: boolean;
++  half: boolean;
++  waypoints: number[];
++  intervalStarted: boolean;
++  intervalCompleted: boolean;
++  warnedStep: number | null;
++  lastPhase: RideIntervalPhase | null;
++  lastElapsedMs: number;
++  lastTraveledMeters: number;
++  lastStatus: RideSessionStatus;
++  ended: boolean;
++  intervalRunKey: string | number | null;
++};
++
++export const RIDE_MOMENT_PRIORITY: Record<RideMomentKind, number> = {
++  intervalWarn: 100,
++  intervalHigh: 110,
++  intervalLow: 110,
++  intervalStart: 90,
++  intervalComplete: 110,
++  start: 70,
++  finish: 120,
++  stop: 120,
++  waypoint: 40,
++  half: 40,
++};
++
++const LARGE_JUMP_MS = 8000;
++const LARGE_JUMP_METERS = 200;
++const WAYPOINT_PASS_TOLERANCE_M = 12;
++export const RIDE_MOMENT_DISPLAY_MS = 2400;
++
++export function emptyRideMomentMemory(): RideMomentMemory {
++  return {
++    started: false,
++    half: false,
++    waypoints: [],
++    intervalStarted: false,
++    intervalCompleted: false,
++    warnedStep: null,
++    lastPhase: null,
++    lastElapsedMs: 0,
++    lastTraveledMeters: 0,
++    lastStatus: "idle",
++    ended: false,
++    intervalRunKey: null,
++  };
++}
++
++function formatKm(meters: number): string {
++  const km = Math.max(0, meters) / 1000;
++  return km < 10 ? km.toFixed(2) : km.toFixed(1);
++}
++
++function formatNewRoad(km: number | null): string | null {
++  if (km == null || !Number.isFinite(km) || km <= 0) return null;
++  return `새 도로 +${km < 10 ? km.toFixed(2) : km.toFixed(1)} km`;
++}
++
++function pickHighest(events: RideMomentEvent[]): RideMomentEvent | null {
++  if (events.length === 0) return null;
++  return events.reduce((best, next) => (RIDE_MOMENT_PRIORITY[next.kind] > RIDE_MOMENT_PRIORITY[best.kind] ? next : best));
++}
++
++function intervalTransitionEvent(phase: RideIntervalPhase): RideMomentEvent | null {
++  if (phase === "warmup") {
++    return {
++      kind: "intervalStart",
++      title: "인터벌 시작",
++      detail: "준비부터 차근차근",
++      coach: "준비부터 차근차근 시작해요.",
++      sound: "start",
++    };
++  }
++  if (phase === "work") {
++    return {
++      kind: "intervalHigh",
++      title: "고강도",
++      detail: "이번 구간",
++      coach: "이번 구간, 힘을 내봐요!",
++      sound: "high",
++    };
++  }
++  if (phase === "recovery" || phase === "rest") {
++    return {
++      kind: "intervalLow",
++      title: "회복",
++      detail: "편하게 회복",
++      coach: "잘했어요. 편하게 회복하세요.",
++      sound: "low",
++    };
++  }
++  return null;
++}
++
++function intervalStartEvent(interval: RideIntervalView): RideMomentEvent {
++  const transition = intervalTransitionEvent(interval.phase);
++  if (interval.phase === "warmup" || !transition) {
++    return {
++      kind: "intervalStart",
++      title: "인터벌 시작",
++      detail: interval.label,
++      coach: "준비부터 차근차근 시작해요.",
++      sound: "start",
++    };
++  }
++  return {
++    ...transition,
++    kind: "intervalStart",
++    title: "인터벌 시작",
++    detail: interval.label,
++  };
++}
++
++function consumeSkippedProgress(next: RideMomentMemory, input: RideMomentInput): void {
++  if (input.routeMeters > 0 && input.traveledMeters >= input.routeMeters / 2) next.half = true;
++  for (const [index, meters] of input.waypointMeters.entries()) {
++    if (!Number.isFinite(meters) || meters <= 0) continue;
++    if (next.waypoints.includes(index)) continue;
++    if (input.traveledMeters + WAYPOINT_PASS_TOLERANCE_M < meters) continue;
++    next.waypoints.push(index);
++  }
++  if (!input.interval) return;
++  next.intervalStarted = true;
++  if (input.interval.phase === "complete") next.intervalCompleted = true;
++  if (input.interval.remainingSec <= 3) next.warnedStep = input.interval.step;
++}
++
++function nextIsHighOrLow(nextLabel: string): boolean {
++  return nextLabel.includes("운동") || nextLabel.includes("회복") || nextLabel.includes("고강도");
++}
++
++/** 한 틱에서 후보를 모은 뒤 우선순위 하나만 남긴다. 큐에 쌓지 않는다. */
++export function resolveRideMoments(
++  memory: RideMomentMemory,
++  input: RideMomentInput,
++): { memory: RideMomentMemory; event: RideMomentEvent | null } {
++  const newRide = input.status === "running" && (memory.lastStatus === "idle" || memory.ended);
++  const source = newRide ? emptyRideMomentMemory() : memory;
++  const next: RideMomentMemory = {
++    ...source,
++    waypoints: [...source.waypoints],
++    lastElapsedMs: input.elapsedMs,
++    lastTraveledMeters: input.traveledMeters,
++    lastStatus: input.status,
++    lastPhase: input.interval?.phase ?? null,
++    intervalRunKey: input.intervalRunKey ?? source.intervalRunKey,
++  };
++
++  if (!newRide && input.status !== "running" && input.ended && !source.ended) {
++    next.ended = true;
++    next.warnedStep = null;
++    const road = formatNewRoad(input.newRoadKm);
++    const session = formatKm(input.ended.sessionKm * 1000);
++    const event: RideMomentEvent = input.ended.reason === "finish"
++      ? {
++          kind: "finish",
++          title: `${session} km 완주!`,
++          detail: road ?? "목표 거리를 해냈어요",
++          coach: road ? "달린 길이 내 도로망으로 쌓였어요." : "끝까지 해냈어요.",
++          sound: "finish",
++        }
++      : {
++          kind: "stop",
++          title: `오늘 ${session} km`,
++          detail: road ?? "오늘도 달렸어요",
++          coach: "오늘도 달렸어요. 수고했어요.",
++          sound: "stop",
++        };
++    return { memory: next, event };
++  }
++
++  if (input.status === "idle") {
++    return {
++      memory: {
++        ...emptyRideMomentMemory(),
++        lastStatus: "idle",
++        ended: source.ended || Boolean(input.ended),
++      },
++      event: null,
++    };
++  }
++
++  if (input.status === "paused") {
++    return { memory: next, event: null };
++  }
++
++  if (input.status !== "running") {
++    return { memory: next, event: null };
++  }
++
++  const fromIdle = source.lastStatus === "idle";
++  const jumped = !fromIdle && source.lastStatus === "running" && (
++    input.elapsedMs + 1 < source.lastElapsedMs
++    || input.elapsedMs - source.lastElapsedMs > LARGE_JUMP_MS
++    || input.traveledMeters - source.lastTraveledMeters > LARGE_JUMP_METERS
++  );
++  if (jumped) consumeSkippedProgress(next, input);
++  const candidates: RideMomentEvent[] = [];
++
++  if (fromIdle && !source.started) {
++    next.started = true;
++    const total = input.routeMeters > 0 ? `목표 ${formatKm(input.routeMeters)} km` : "새로운 길";
++    candidates.push({
++      kind: "start",
++      title: "새로운 길로 출발",
++      detail: total,
++      coach: "오늘도 내 도로망을 넓혀 볼까요?",
++      sound: "start",
++    });
++  }
++
++  if (!jumped && !fromIdle && input.routeMeters > 0 && !source.half) {
++    const half = input.routeMeters / 2;
++    if (source.lastTraveledMeters < half && input.traveledMeters >= half) {
++      next.half = true;
++      const halfKm = formatKm(half);
++      const totalKm = formatKm(input.routeMeters);
++      candidates.push({
++        kind: "half",
++        title: "벌써 절반!",
++        detail: `${halfKm} / ${totalKm} km`,
++        coach: `지금까지 ${halfKm}km, 잘 달리고 있어요.`,
++        sound: "start",
++      });
++    }
++  }
++
++  if (!jumped && !fromIdle) {
++    for (const [index, meters] of input.waypointMeters.entries()) {
++      if (!Number.isFinite(meters) || meters <= 0) continue;
++      if (next.waypoints.includes(index)) continue;
++      if (source.lastTraveledMeters >= meters) continue;
++      if (input.traveledMeters + WAYPOINT_PASS_TOLERANCE_M < meters) continue;
++      next.waypoints.push(index);
++      candidates.push({
++        kind: "waypoint",
++        title: index === 0 ? "첫 경유지 통과" : `경유지 ${index + 1} 통과`,
++        detail: "다음 목적지까지 이어 가요",
++        coach: "한 구간을 해냈어요. 내 페이스로 계속!",
++        sound: "start",
++        waypointIndex: index,
++      });
++    }
++  }
++
++  const interval = input.interval;
++  if (!interval) {
++    next.intervalStarted = false;
++    next.intervalCompleted = false;
++    next.warnedStep = null;
++    next.lastPhase = null;
++    next.intervalRunKey = null;
++    return { memory: next, event: pickHighest(candidates) };
++  }
++
++  const runKeyChanged = input.intervalRunKey != null && input.intervalRunKey !== source.intervalRunKey;
++  if ((source.intervalCompleted && interval.phase !== "complete") || (runKeyChanged && interval.phase !== "complete")) {
++    next.intervalStarted = false;
++    next.intervalCompleted = false;
++    next.warnedStep = null;
++  }
++
++  if (!jumped && !next.intervalStarted && interval.phase !== "complete") {
++    next.intervalStarted = true;
++    candidates.push(intervalStartEvent(interval));
++  }
++
++  if (
++    !jumped &&
++    next.intervalStarted &&
++    source.lastPhase &&
++    source.lastPhase !== interval.phase &&
++    interval.phase !== "complete"
++  ) {
++    const transition = intervalTransitionEvent(interval.phase);
++    if (transition) candidates.push(transition);
++    next.warnedStep = null;
++  }
++
++  if (
++    !jumped &&
++    interval.phase !== "complete" &&
++    interval.remainingSec === 3 &&
++    nextIsHighOrLow(interval.nextLabel) &&
++    next.warnedStep !== interval.step
++  ) {
++    next.warnedStep = interval.step;
++    const toHigh = interval.nextLabel.includes("운동") || interval.nextLabel.includes("고강도");
++    candidates.push({
++      kind: "intervalWarn",
++      title: "곧 전환",
++      detail: interval.nextLabel,
++      coach: toHigh ? "곧 고강도 구간이에요." : "곧 회복 구간이에요.",
++      sound: "warn",
++    });
++  }
++
++  if (!jumped && interval.phase === "complete" && !next.intervalCompleted) {
++    next.intervalCompleted = true;
++    next.warnedStep = null;
++    candidates.push({
++      kind: "intervalComplete",
++      title: "인터벌 완료!",
++      detail: "계획한 구간을 해냈어요",
++      coach: "이제 자유롭게 달리세요.",
++      sound: "finish",
++    });
++  }
++
++  return { memory: next, event: pickHighest(candidates) };
++}

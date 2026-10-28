@@ -25,6 +25,17 @@ describe("mergeLeaderboardLines", () => {
 });
 
 describe("computeLeaderboardLiveRank", () => {
+  it("10명 창은 상단·중간·마지막 내 순위를 포함하고 부족한 참가자를 만들지 않는다", () => {
+    for (const mine of [0, 7, 14]) {
+      const entries = Array.from({ length: 15 }, (_, i) => row(i + 1, `r${i}`, 20 - i, i === mine));
+      const result = computeLeaderboardLiveRank(entries, 20 - mine, 0, 10);
+      assert.equal(result.rows.length, 10);
+      assert.ok(result.rows.some(r => r.isMe));
+      assert.equal(result.rank, mine + 1);
+    }
+    const short = [row(1, "a", 10), row(2, "me", 9, true)];
+    assert.equal(computeLeaderboardLiveRank(short, 9, 0, 10).rows.length, 2);
+  });
   const board = [
     row(1, "geum", 17.1),
     row(2, "me", 16.6, true),
