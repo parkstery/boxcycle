@@ -513,12 +513,13 @@ describe("distanceAutoRoute", () => {
     assert.doesNotMatch(MOUNT_TOKEN_SOURCE, /map-view__pick-token-secondary/);
   });
 
-  it("지시94 — 경로 삭제는 탭 줄 오른쪽, 제목 행은 token+[탭·경로 삭제], 맨 아래 줄은 수단+주행", () => {
+  it("Chief 2026-10-29 — 제목·모드는 한 행, 토큰은 별도 행, 경로 삭제는 하단 주행 왼쪽", () => {
     assert.match(BUILD_PICK_POPUP_SOURCE, /map-view__pick-btn--clear-route/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /tabsRow\.append\(clearRouteBtn\)/);
-    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /profileBottomRow\.append\(clearRouteBtn\)/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /headerRow\.append\(tokenSection, tabsRow\)/);
-    assert.match(BUILD_PICK_POPUP_SOURCE, /dragHandle\.append\(headerRow, addressEl\)/);
+    assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /tabsRow\.append\(clearRouteBtn\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /profileBottomRow\.append\(clearRouteBtn\)/);
+    assert.ok(BUILD_PICK_POPUP_SOURCE.indexOf("profileBottomRow.append(clearRouteBtn)") < BUILD_PICK_POPUP_SOURCE.indexOf("profileBottomRow.append(startRideBtn)"));
+    assert.match(BUILD_PICK_POPUP_SOURCE, /headerRow\.append\(heading, tabsRow\)/);
+    assert.match(BUILD_PICK_POPUP_SOURCE, /dragHandle\.append\(headerRow, tokenSection, addressEl\)/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /headerRow\.append\(clearRouteBtn\)/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /map-view__pick-btn--create-route/);
     assert.doesNotMatch(BUILD_PICK_POPUP_SOURCE, /profileHeader/);
