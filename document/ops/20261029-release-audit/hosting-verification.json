@@ -1,0 +1,36 @@
+{
+  "url": "https://boxcycle-dc2df.web.app",
+  "files": [
+    {
+      "path": "index.html",
+      "match": true,
+      "sha256": "8732aefde1520cad65570d07e5a075bae7792aecd379e13cc38eb26d1613719d"
+    },
+    {
+      "path": "/assets/camera1Mode-DgOnuhkM.js",
+      "match": true,
+      "sha256": "e7c0f6523fe0fe2e15e9f9dc9e1b0aa66673ecc5d8cfce32226dc03cd88b13fd"
+    },
+    {
+      "path": "/assets/index-BgHivhzz.css",
+      "match": true,
+      "sha256": "e197025fdef0329bec27ca9b313b23e088ff2292ba69c25ee9a9a67a344d3fe6"
+    },
+    {
+      "path": "/assets/index-CQa0KUfe.js",
+      "match": true,
+      "sha256": "0690d67cc27b9af1ff4a66d31ca4aab02b01c63d15636c0d823b5bd4fb4158fd"
+    },
+    {
+      "path": "/assets/jsx-runtime-QUjkQcTq.js",
+      "match": true,
+      "sha256": "ebbbc54e26e97693425ce9abeabfb5b87c89e7a2d5aa4e2903727522b4f7715a"
+    },
+    {
+      "path": "/assets/react-dA9wtOGr.js",
+      "match": true,
+      "sha256": "bdf474361d2a63d906850cfd35b8b6768331fa83a0239240ad3d4e345168c947"
+    }
+  ],
+  "pass": true
+}

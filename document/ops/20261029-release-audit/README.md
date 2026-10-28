@@ -43,3 +43,25 @@ node scripts/check-document-system.mjs
 ```
 
 초기 조사 보조 명령은 root stash commit의 부모가 없어 한 차례 실패했고 root 대응 후 51개 전수 완료. Git fetch/CLI는 기본 sandbox의 config 접근 제한으로 실패 후 승인된 권한 범위에서 재실행. 문서 검사 링크 수정 후 PASS(429파일, brokenLinks0).
+
+## 최종 결과 — DEPLOYED
+
+- 제품 커밋 36d0e0ed, 구형 계약 시험 보정 dd5611e7. origin/main2 정상 훅 푸시 완료. main 안정선은 변경하지 않음.
+- 웹 build PASS, pre-commit eslint 오류0(기존 App hook 경고7), 의존 방향·개발 부산물·타입·동행 간격·셀렉터20·정련 PASS.
+- functions 시험171 PASS. 최종 test:quick 1440 PASS / 실패0 / 71.1초, 에뮬레이터·하네스 전용3파일 제외.
+- 실패 이력: 첫 push는 Git Bash의 Kimi npm 래퍼로 검증명령 실행불가. Git Bash 내부 PATH 수정 후 해결. 다음 full quick1439PASS/1FAIL(구형 탭줄 삭제 버튼 기대값) → 승인된 하단 배치로 시험 수정. 이후 1439PASS/1FAIL(도로망 DOM fixture 초기화30초 초과) → 단독6.6초PASS, 제품 수정 없이 최종 전체1440PASS.
+- 명령: `npx firebase deploy --only "functions:getLeaderboard,hosting" --project boxcycle-dc2df --non-interactive` PASS. getLeaderboard(asia-northeast3) Successful update operation, Hosting release complete.
+- 운영 https://boxcycle-dc2df.web.app index.html 및 연결 JS/CSS5개 모두 로컬 dist와 byte/SHA256 일치. hosting-verification.json 참조.
+- 실폰·실센서·인증된 운영 순위 주행 통합은 이번에 미실행. 센서 없는 순위 포함은 Chief 테스트 요청으로 유지, 출시전 true 복구 필요.
+- 진행 중 다른 작업이 공용 현황판·상태보드·결정로그·HANDOFF·PROGRESS·ops README를 수정했다. 그 변경은 이번 마감 커밋에서 제외하고 보존한다.
+
+확인: C:\20.HDev\boxcycle에서 아래 실행 후 운영 페이지 새로고침 → 경로창 제목/삭제 위치 → 계정·체험 속도 창 → 주행 결과 경로명 확인. 순위는 회원 주행 종료 후 새로고침(캐시최대5분).
+
+```powershell
+Set-Location C:\20.HDev\boxcycle
+git log -4 --oneline
+git status --short --branch
+Start-Process 'https://boxcycle-dc2df.web.app'
+```
+
+상세 로그는 .out/release-push-pass-20261029.log 및 .out/release-deploy-20261029.log에 보존한다.

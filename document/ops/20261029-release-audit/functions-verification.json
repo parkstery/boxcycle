@@ -1,0 +1,9 @@
+[
+  {
+    "id": "getLeaderboard",
+    "region": "asia-northeast3",
+    "state": "ACTIVE",
+    "runtime": "nodejs24",
+    "platform": "gcfv2"
+  }
+]

@@ -1,4 +1,4 @@
-2026-10-29 **커밋·푸시·배포 및 잔류 코드 점검 / 진행 중**: Chief 명시 요청. Codex 직접, 최근 UI/순위 변경 일괄 릴리스. build PASS. 개발 브랜치 대부분 main2 조상·backup은 대형zip 제외 동일제품, 과거worktree/stash/댕글링51커밋 보존·조사. [기록](20261029-release-audit/README.md). Hosting+getLeaderboard 배포 및 정상push게이트 확인 예정. .out/log/190MB zip 두개 커밋제외.
+2026-10-29 **커밋·푸시·배포 및 잔류 코드 점검 / DEPLOYED**: Codex 직접. 제품36d0e0ed·계약시험dd5611e7 정상훅 origin/main2 푸시, Hosting+getLeaderboard 운영배포PASS. 웹1440/서버171·build·selector20·타입/의존/정련/문서PASS. 구형계약1FAIL보정·DOM초기화timeout1건단독PASS후전체PASS. 운영index+JS/CSS5개 byte/SHA256일치. 개발브랜치조상·backup제품동일, 추가worktree1/stash1/댕글링51커밋 조사: 채택누락기능미발견·과거실험보존. [상세](20261029-release-audit/README.md). 실폰/실센서/회원운영주행미실행, 순위무센서테스트상수 출시전복구. 타작업공용문서dirty·.out/log/zip보존. 실행 C:\20.HDev\boxcycle → git status --short --branch → https://boxcycle-dc2df.web.app 새로고침 → 경로/계정/체험/결과확인.
 
 2026-10-29 **거리·방향 출발 미지정 안내 문구 변경 / 로컬·미배포**: Chief 지정「지도에서 출발 위치를 길게 누르세요」로 mapPopupElements.ts 및 기존 e2e 기대문구 갱신. rg 문자열 대조·대상 git diff --check PASS. 문구만 변경하여 빌드/브라우저 시험 미실행. 기존dirty보존·커밋푸시배포없음. 확인 C:\20.HDev\boxcycle\apps\web → npm run dev:localhost -- --port 5031(기존재사용) → http://localhost:5031/ 새로고침·출발미지정 거리/방향 창.
 
