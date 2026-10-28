@@ -1,3 +1,21 @@
+2026-10-29 **커밋·푸시·배포 및 잔류 코드 점검 / 진행 중**: Chief 명시 요청. Codex 직접, 최근 UI/순위 변경 일괄 릴리스. build PASS. 개발 브랜치 대부분 main2 조상·backup은 대형zip 제외 동일제품, 과거worktree/stash/댕글링51커밋 보존·조사. [기록](20261029-release-audit/README.md). Hosting+getLeaderboard 배포 및 정상push게이트 확인 예정. .out/log/190MB zip 두개 커밋제외.
+
+2026-10-29 **거리·방향 출발 미지정 안내 문구 변경 / 로컬·미배포**: Chief 지정「지도에서 출발 위치를 길게 누르세요」로 mapPopupElements.ts 및 기존 e2e 기대문구 갱신. rg 문자열 대조·대상 git diff --check PASS. 문구만 변경하여 빌드/브라우저 시험 미실행. 기존dirty보존·커밋푸시배포없음. 확인 C:\20.HDev\boxcycle\apps\web → npm run dev:localhost -- --port 5031(기존재사용) → http://localhost:5031/ 새로고침·출발미지정 거리/방향 창.
+
+2026-10-29 **경로 생성 재배치 / LOCAL_VERIFIED·미배포**: Chief「구현해」최신시안반영. 제목「경로」·모드·닫기한행/삭제하단주행왼쪽/지점66px·gap3/목표거리14px·bold/칩양끝. 기본228×160/194px·토큰안내별도행보존. [결과](20261029-route-header-layout/01-result.md). 화면40PASS·1FAIL(이전하단순서)→수정후영향분4PASS, 최초넘침2FAIL은수단width:auto로해결. selector20·tsc·eslint·build·dep/tidy/diffPASS. 캡처눈검수·실폰/실Firebase미실행·기존dirty/5031보존·커밋푸시배포없음. 확인 C:\20.HDev\boxcycle\apps\web → npm run dev:localhost -- --port 5031(기존재사용) → http://localhost:5031/ 새로고침·지도길게누름·두모드/하단확인.
+
+2026-10-29 **경로 재배치 후속 시안 / 확인대기·제품미변경**: Chief제목「경로」·Start/+WP/End폭66/간격3px·목표거리현재시안+2pt(14px)요청반영. 228×160/194유지·실측/넘침/거리상호작용PASS. [시안](20261029-route-header-layout/README.md). 다음시안확인후구현, 제품코드/커밋푸시배포없음.
+
+2026-10-29 **경로 생성 상단·하단 재배치 / 시안 확인대기·제품 미변경**: Chief6항목·시안우선. 모드제목/닫기사이, 삭제하단재생왼쪽, 기존2행제거, Start/+WP/End·거리칩양끝배분, 목표거리10px+1pt/bold. 폭228유지·시안실측160/194px높이·헤더/넘침/칩±PASS. [시안](20261029-route-header-layout/README.md). 대화inline표시·리포사본보존, 제품코드/배포없음. 다음Chief확인후구현.
+
+2026-10-29 **주행 기록·체험 속도 실제 창 축소 / 로컬 검증완료·미배포**: Chief 두첨부 후속지시. 계정740×324→520×250/왼쪽164, 센서560→420·체험속도실측211px높이. 팔레트/인라인기록/속도조절유지. [결과](20261029-account-sensor-compact/02-result.md). 5크기×5상태25PASS·기록열닫기/속도입력±/빌드타입/diffPASS. Ego캡처실패→headless최종눈검수PASS, space11종료. 이전계정시안을이번제품반영. 실폰/실회원미검증·기존dirty보존·커밋푸시배포없음. 확인 C:\20.HDev\boxcycle\apps\web → npm run dev:localhost -- --port 5031(기존재사용) → http://localhost:5031/ 새로고침·계정/센서.
+
+2026-10-29 **순위 무센서 테스트 임시 허용 / 로컬 검증완료·미배포**: Chief 요청으로 t0+t1 집계·회원조회·주행중/결과/안내를 서버 rule.sensorOnly에 일치. 서버 LEADERBOARD_SENSOR_ONLY=false 한곳, 출시전 true복구·캐시조건 자동무효화·체크리스트§6. 서버171/순위8/실제컴포넌트SSR4·타입/빌드/변경lint(웹기존경고7)/의존/정련/diff PASS. [결과](20261029-leaderboard-sensor-test/02-result.md). 기존 주소창 변경/산출물 보존·커밋푸시배포없음. 실폰/실Firebase/브라우저통합 미실행. 확인 C:\20.HDev\boxcycle\functions → npm test; 운영반영은 getLeaderboard+Hosting 배포 승인 후.
+
+2026-10-29 **주행결과 주소 상단행·일반텍스트 / 로컬검증완료·미배포**: Chief 기존색유지·첨부주소버튼모양/저장행이동지적. RideSummarySheet 입력편집보존·테두리/배경/라운드제거·항상버튼윗행·aria/title추가. 빈상태행제거/게스트안내간격보정으로444×194유지. [결과](20261029-summary-address/README.md). Playwright최종8PASS(신규6화면×짧고긴이름/편집저장), tsc/eslint/build/diffPASS. 최초게스트3FAIL46px→보정2px→최종0. 기존증거보존·커밋푸시배포없음·실폰/실Firebase미실행. 계정시안은520×251유지·기존#FFFFFF/#EEF3FC/#2457D6고정(계정제품미구현). 고정50추가. 확인 C:\20.HDev\boxcycle\apps\web → npm run dev:localhost -- --port 5031(기존재사용) → http://localhost:5031/ 새로고침·주행종료 또는 /scripts/ui-800x360/preview.html?state=summary.
+
+2026-10-29 **前경로창 검증기록 커밋 / 계정창 축소 시안 대기**: Chief 커밋지시로 이전제품1fda2af0확인·독립검증기록/캡처c743b4b9커밋완료(푸시·배포없음). 첨부계정창925×405급→시안520×251.33px(면적약35%)·왼쪽164요약/오른쪽내용·기간/도로망/누적/마지막주행인라인/플랜/하단기능유지. [시안묶음](20261029-account-compact/README.md). 시안QA736/520/320너비3건overflow0/버튼가로잘림0·최근기록열닫기PASS(최초import경로실패→수정후PASS). 계정제품코드변경없음·Chief시안확인다음. inline C:\Users\kdrea\.codex\visualizations\2026\10\28\01a1833b-fe9f-7270-978e-b5b41d12fb04\compact-account-dialog.html, 리포mockups사본. 서버필요없이대화시안열기·마지막주행눌러확인.
+
 2026-10-29 **경로 생성 창 축소 / Codex 재개 독립검증 PASS**: Cursor 구현완료 exit0·기존 Claude03검증/1fda2af0커밋 보존. Codex tsc·selector20·핵심Playwright8건(42초)·dep/tidy/diff PASS, 4가로228폭/50·46·30버튼/기능/실제MapView경계·새캡처 눈검수. [결과](20261029-route-popup-compact/04-review-codex.md). 첫wrapper검색명령 실패→직접실행 통과; Ego기존공간없음은Playwright전환. 실폰·실Firebase·emulator요구1건 미실행. 이세션 커밋푸시배포실행없음·5031유지. 확인 C:\20.HDev\boxcycle\apps\web → npm run dev:localhost -- --port 5031(기존서버재사용) → http://localhost:5031/ 새로고침·지도길게누름·아이콘탭/거리칩확인.
 
 2026-10-29 01:40 **경로 생성 창 축소 / Claude Code 검증 PASS·커밋·푸시(배포 없음)**: Codex 토큰 소진으로 Claude Code가 Supervisor 교대. Cursor 구현(창300→228px·모드 아이콘50px·Start/+WP/End46px·거리칩30px) 종료 후 Claude Code 직접 재검증: tsc·selector20·변경eslint 오류0·Playwright 관련4종 51 PASS·dep·tidy·diff check PASS, 커밋된 증거 PNG 변화0. [결과](20261029-route-popup-compact/03-review.md). 에뮬레이터 필요한 ride-summary-compact 1건·실폰·실Firebase 미실행. Codex가 앞선 3커밋을 190MB zip 2개를 빼고 `0b9b5abf`로 합쳐 푸시해 둔 상태라, Chief 「검증 끝나면 커밋·푸시」에 따라 로컬 main2를 origin/main2에 맞춘 뒤(작업 파일 그대로, zip은 비추적으로 디스크에 남김) 이번 변경을 그 위에 커밋·푸시. Hosting 배포는 Chief 지시대로 보류 — 운영은 10-28 18:16(49d770f8) 버전. 아래 「시안 / Chief 확인 대기」는 이미 승인·구현되어 지난 항목. quick 시험 잔여 hang-with-child.mjs 프로세스 2개 남음. 확인 C:\20.HDev\boxcycle\apps\web → 5031 재사용(없으면 npm run dev:localhost -- --port 5031) → http://localhost:5031/ 새로고침 → 지도 길게 눌러 경로 생성 창.
@@ -231,4 +249,6 @@
 최종 열람: 2026-10-25 08:24 KST Codex가 comparison-batch5-final.html을 Start-Process로 직접 열기 완료(exit0). 기록용 전체 경로 C:\20.HDev\boxcycle\document\ops\20261023-ui-redesign\comparison-batch5-final.html.
 
 
+
+2026-10-29 **경로 생성 UI 중단 상태 확인·보고**: 최신 묶음 `20261029-route-header-layout` README·시안 사본과 git 상태/로그 대조. 이전228px축소는1fda2af0구현·c743b4b9검증기록까지 완료. 최신제목「경로」/모드헤더이동/삭제하단이동/Start·+WP·End66px·gap3px/목표거리14px은시안만 존재·AWAITING_CHIEF, 제품미반영. 시안README본문의46px·11.33px은이전안이고맨윗줄/실제HTML이최신. 이번은상태조사만: 제품수정·시험재실행·커밋푸시배포없음, 기존dirty보존. 다음최신시안확인후제품구현·관련검증. 확인파일 `C:\20.HDev\boxcycle\document\ops\20261029-route-header-layout\mockups\proposal.html`.
 

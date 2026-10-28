@@ -1,0 +1,10 @@
+const task=await taskSpace(10);const page=task.page('p1');
+await page.cdp('Emulation.setDeviceMetricsOverride',{width:699,height:273,deviceScaleFactor:1,mobile:false});
+await page.goto('http://127.0.0.1:5031/scripts/ui-redesign-batch5/fixture.html?state=location');
+console.log(await page.snapshot());
+console.log(await page.evaluate(()=>{const el=document.querySelector('.map-view__pick');const panel=el.getBoundingClientRect();const rects=sel=>[...el.querySelectorAll(sel)].filter(n=>n.getBoundingClientRect().width).map(n=>({label:n.getAttribute('aria-label'),text:n.textContent.trim(),...n.getBoundingClientRect().toJSON()}));return {panel:panel.toJSON(),tabs:rects('[role=tab]'),pins:rects('.map-view__pick-actions--pin-row button'),clipped:[...el.querySelectorAll('button')].filter(n=>{const r=n.getBoundingClientRect();return r.width&&(r.left<panel.left||r.right>panel.right||r.bottom>innerHeight||r.top<0)}).map(n=>n.outerHTML)};}));
+console.log(await page.screenshot({path:'C:/20.HDev/boxcycle/document/ops/20261029-route-popup-compact/evidence/codex-location-699.png'}));
+await page.click('loc=role:tab[name="거리·방향"]');
+console.log(await page.snapshot());
+console.log(await page.evaluate(()=>{const el=document.querySelector('.map-view__pick');const panel=el.getBoundingClientRect();return {panel:panel.toJSON(),chips:[...el.querySelectorAll('.map-view__pick-distance-chip')].map(n=>({text:n.textContent,rect:n.getBoundingClientRect().toJSON()})),clipped:[...el.querySelectorAll('button,input')].filter(n=>{const r=n.getBoundingClientRect();return r.width&&(r.left<panel.left||r.right>panel.right||r.bottom>innerHeight||r.top<0)}).map(n=>n.outerHTML)};}));
+console.log(await page.screenshot({path:'C:/20.HDev/boxcycle/document/ops/20261029-route-popup-compact/evidence/codex-distance-699.png'}));

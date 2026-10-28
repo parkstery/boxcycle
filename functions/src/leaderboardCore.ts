@@ -24,6 +24,9 @@ export const LEADERBOARD_CACHE_COLLECTION = "leaderboardCache";
 export const LEADERBOARD_CACHE_TTL_MS = 5 * 60 * 1000;
 export const LEADERBOARD_LIVE_WINDOW_MS = 30 * 1000;
 export const LEADERBOARD_TOP_N = 20;
+// TODO(release): 테스트 종료 후 true 로 복원. document/출시 전 확인사항.md §6.
+// 클라이언트는 응답 rule.sensorOnly 를 따라가므로 이 설정 한 곳에서 복구한다.
+const LEADERBOARD_SENSOR_ONLY = false;
 const AROUND_SPAN = 3;
 const FALLBACK_NICKNAME = "라이더";
 
@@ -51,7 +54,8 @@ export type BoardSnapshot = {
   /** 기간 시작 KST 날짜(YYYY-MM-DD). `all` 은 null. */
   periodStartKst: string | null;
   generatedAtMs: number;
-  /** 기간 안 t1 값이 0 보다 큰 모든 계정(게스트 포함 — 예상 순위 계산용). */
+  /** 기간 안 인정 값이 0 보다 큰 모든 계정(게스트 포함 — 예상 순위 계산용). */
+  sensorOnly: boolean;
   entries: BoardEntry[];
   /** pioneer 만: 개척자 uid → 그 사람의 퍼블릭을 다른 사람이 기간 안에 달린 사람 수·거리(m). */
   uses: Record<string, { riders: number; meters: number }>;
@@ -72,7 +76,7 @@ export type LeaderboardResponse = {
   period: LeaderboardPeriod;
   scope: "world";
   periodStartKst: string | null;
-  rule: { sensorOnly: true };
+  rule: { sensorOnly: boolean };
   top: LeaderboardRow[];
   me: {
     status: "ranked" | "unranked" | "guest";
@@ -109,13 +113,17 @@ function kstDateKey(ms: number): string {
 // 순수 집계
 // ---------------------------------------------------------------------------
 
+function isLeaderboardTierEligible(tier: string | null, sensorOnly: boolean): boolean {
+  return tier === "t1" || (!sensorOnly && tier === "t0");
+}
+
 function finiteNonNegative(n: unknown): number {
   const v = Number(n);
   return Number.isFinite(v) && v > 0 ? v : 0;
 }
 
 /**
- * 기간 안 t1 주행만 모아 계정별 값(m)과 개척 이용(uses)을 만든다. 회원 여부는 `memberUids` 로 표시만 하고 거르지 않는다.
+ * 기간 안 인정 주행(t1, 테스트 중에는 t0 포함)을 모아 계정별 값(m)과 개척 이용(uses)을 만든다. 회원 여부는 `memberUids` 로 표시만 하고 거르지 않는다.
  * @param publicationOwners 퍼블릭 id → applicantUid (탈퇴로 익명화된 퍼블릭은 빈 문자열이거나 없음)
  */
 export function computeBoardSnapshot(input: {
@@ -125,16 +133,18 @@ export function computeBoardSnapshot(input: {
   board: LeaderboardBoard;
   period: LeaderboardPeriod;
   nowMs: number;
+  sensorOnly?: boolean;
 }): BoardSnapshot {
   const { board, period, nowMs } = input;
   const startMs = periodStartMs(period, nowMs);
+  const sensorOnly = input.sensorOnly ?? LEADERBOARD_SENSOR_ONLY;
 
   const totals = new Map<string, number>();
   const useRiders = new Map<string, Set<string>>();
   const useMeters = new Map<string, number>();
 
   for (const r of input.rows) {
-    if (r.tier !== "t1" || !r.uid) continue;
+    if (!isLeaderboardTierEligible(r.tier, sensorOnly) || !r.uid) continue;
     if (r.endedAtMs == null || !Number.isFinite(r.endedAtMs)) continue;
     if (startMs != null && r.endedAtMs < startMs) continue;
 
@@ -168,6 +178,7 @@ export function computeBoardSnapshot(input: {
     period,
     periodStartKst: startMs == null ? null : kstDateKey(startMs),
     generatedAtMs: nowMs,
+    sensorOnly,
     entries,
     uses,
   };
@@ -312,7 +323,7 @@ export function renderLeaderboard(
     period: snapshot.period,
     scope: "world",
     periodStartKst: snapshot.periodStartKst,
-    rule: { sensorOnly: true },
+    rule: { sensorOnly: snapshot.sensorOnly },
     top: layout.top.map(toRow),
     me: { ...layout.me, around: layout.around.map(toRow) },
   };
@@ -341,7 +352,8 @@ export function leaderboardCacheDocId(board: LeaderboardBoard, period: Leaderboa
 /** Firestore 문서에 넣을 모양(배열 안 배열 금지 → 맵 배열). */
 export function snapshotToCacheData(s: BoardSnapshot): Record<string, unknown> {
   return {
-    v: 1,
+    v: 2,
+    sensorOnly: s.sensorOnly,
     board: s.board,
     period: s.period,
     periodStartKst: s.periodStartKst,
@@ -359,7 +371,8 @@ export function cacheDataToSnapshot(
   board: LeaderboardBoard,
   period: LeaderboardPeriod,
 ): BoardSnapshot | null {
-  if (!data || data.v !== 1 || data.board !== board || data.period !== period) return null;
+  if (!data || data.v !== 2 || data.sensorOnly !== LEADERBOARD_SENSOR_ONLY ||
+      data.board !== board || data.period !== period) return null;
   const generatedAtMs = data.generatedAtMs;
   if (typeof generatedAtMs !== "number" || !Number.isFinite(generatedAtMs)) return null;
   if (!Array.isArray(data.entries)) return null;
@@ -375,7 +388,7 @@ export function cacheDataToSnapshot(
     if (typeof u?.r === "number" && typeof u.m === "number") uses[uid] = { riders: u.r, meters: u.m };
   }
   const periodStartKst = typeof data.periodStartKst === "string" ? data.periodStartKst : null;
-  return { board, period, periodStartKst, generatedAtMs, entries, uses };
+  return { board, period, periodStartKst, generatedAtMs, sensorOnly: data.sensorOnly, entries, uses };
 }
 
 /** 캐시가 아직 쓸 만한가 — 5분 안이고, 기간 시작이 지금 기준과 같다(주·달이 바뀌면 버린다). */
@@ -518,16 +531,16 @@ export async function getBoardSnapshot(
 
   const rows = await loadLeaderboardRideRows(db, periodStartMs(period, nowMs));
   const startMs = periodStartMs(period, nowMs);
-  const t1Uids = new Set<string>();
+  const eligibleUids = new Set<string>();
   const publicationIds = new Set<string>();
   for (const r of rows) {
-    if (r.tier !== "t1") continue;
+    if (!isLeaderboardTierEligible(r.tier, LEADERBOARD_SENSOR_ONLY)) continue;
     if (startMs != null && (r.endedAtMs == null || r.endedAtMs < startMs)) continue;
-    t1Uids.add(r.uid);
+    eligibleUids.add(r.uid);
     if (board === "pioneer" && r.publicationId) publicationIds.add(r.publicationId);
   }
   const [memberUids, publicationOwners] = await Promise.all([
-    loadMemberUids([...t1Uids]),
+    loadMemberUids([...eligibleUids]),
     board === "pioneer" ? loadPublicationOwners(db, [...publicationIds]) : Promise.resolve(new Map<string, string>()),
   ]);
   const snapshot = computeBoardSnapshot({ rows, memberUids, publicationOwners, board, period, nowMs });

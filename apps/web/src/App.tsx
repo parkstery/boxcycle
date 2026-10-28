@@ -2807,7 +2807,8 @@ export default function App() {
   const leaderboardGlanceView = useMemo(() => {
     if (!user) return null;
     const riding = rideStatus === "running" || rideStatus === "paused";
-    const pedalQualifiedLive = pedalActiveSecRef.current != null;
+    const snapshot = leaderboardGlance.atRideStart ?? leaderboardGlance.data;
+    const pedalQualifiedLive = snapshot?.rule.sensorOnly === false || pedalActiveSecRef.current != null;
     const liveRows = buildGlanceLiveRows(
       leaderboardGlance.atRideStart ?? leaderboardGlance.data,
     );
@@ -2890,6 +2891,7 @@ export default function App() {
       Boolean(user.isAnonymous),
       snap.me.status === "ranked" ? snap.me.rank : null,
       snap.me.status === "guest" ? snap.me.projectedRank : null,
+      snap.rule.sensorOnly,
     );
   }, [summaryVisible, lastRideResult, user, leaderboardGlance.atRideStart]);
 
@@ -3507,6 +3509,7 @@ export default function App() {
 
       <CadenceSensorSheet
         open={cadenceSensorSheetOpen}
+        leaderboardSensorOnly={leaderboardGlance.data?.rule.sensorOnly ?? true}
         onClose={() => setCadenceSensorSheetOpen(false)}
         capable={bleCrankRpm.capable}
         uiState={bleCrankRpm.uiState}

@@ -198,7 +198,9 @@ export function LeaderboardGlancePanel(props: LeaderboardGlanceViewProps) {
             </button>
           ) : null}
           {mode === "map" && !isGuest && me?.status === "unranked" ? (
-            <p className="lb-glance__outline lb-glance__hint">센서로 달리면 순위에 올라가요</p>
+            <p className="lb-glance__outline lb-glance__hint">
+              {props.mapData?.rule.sensorOnly === false ? "달리면 순위에 올라가요" : "센서로 달리면 순위에 올라가요"}
+            </p>
           ) : null}
         </section>
   );

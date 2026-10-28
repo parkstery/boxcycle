@@ -588,12 +588,14 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
           <>
             {/*
               ad-hoc 저장은 보조 액션이다 — 저장하지 않아도 Ride 기록과 다음 출발점은 남는다.
-              입력창 + 버튼 2개를 한 행으로 — 690px 가로 기준 한 줄, 좁으면 flex-wrap 으로 대응.
+              경로명은 일반 텍스트처럼 표시하고, 화면 폭과 관계없이 저장 버튼 윗줄에 둔다.
             */}
             <div className="ride-summary__form">
               <input
                 type="text"
                 className="ride-summary__input"
+                aria-label="저장할 경로 이름"
+                title={name}
                 placeholder={`경로 이름 (최대 ${props.maxNameLength}자)`}
                 maxLength={props.maxNameLength}
                 value={name}

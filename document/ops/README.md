@@ -1,3 +1,13 @@
+2026-10-29 [경로 생성 상단·하단 재배치](20261029-route-header-layout/README.md): LOCAL_VERIFIED·미배포. 제목/모드한행·삭제하단·지점66px·목표거리14px, 화면40PASS 후 영향분4PASS·buildPASS.
+
+2026-10-29 [주행 기록·체험 속도 실제 창 축소](20261029-account-sensor-compact/README.md): LOCAL_VERIFIED·미배포, 계정520×250·체험420×211, UI25/빌드PASS.
+
+2026-10-29 [순위 센서 조건 임시 완화](20261029-leaderboard-sensor-test/README.md): LOCAL_VERIFIED·미배포, 서버171/순위8/SSR4 PASS. 출시전 서버상수 true복구, 체크리스트§6.
+
+2026-10-29 **주행결과 주소 상단행·일반텍스트 / 로컬검증완료·미배포**: Chief 기존색유지·첨부주소버튼모양/저장행이동지적. RideSummarySheet 입력편집보존·테두리/배경/라운드제거·항상버튼윗행·aria/title추가. 빈상태행제거/게스트안내간격보정으로444×194유지. [결과](20261029-summary-address/README.md). Playwright최종8PASS(신규6화면×짧고긴이름/편집저장), tsc/eslint/build/diffPASS. 최초게스트3FAIL46px→보정2px→최종0. 기존증거보존·커밋푸시배포없음·실폰/실Firebase미실행. 계정시안은520×251유지·기존#FFFFFF/#EEF3FC/#2457D6고정(계정제품미구현). 고정50추가. 확인 C:\20.HDev\boxcycle\apps\web → npm run dev:localhost -- --port 5031(기존재사용) → http://localhost:5031/ 새로고침·주행종료 또는 /scripts/ui-800x360/preview.html?state=summary.
+
+2026-10-29 **前경로창 검증기록 커밋 / 계정창 축소 시안 대기**: Chief 커밋지시로 이전제품1fda2af0확인·독립검증기록/캡처c743b4b9커밋완료(푸시·배포없음). 첨부계정창925×405급→시안520×251.33px(면적약35%)·왼쪽164요약/오른쪽내용·기간/도로망/누적/마지막주행인라인/플랜/하단기능유지. [시안묶음](20261029-account-compact/README.md). 시안QA736/520/320너비3건overflow0/버튼가로잘림0·최근기록열닫기PASS(최초import경로실패→수정후PASS). 계정제품코드변경없음·Chief시안확인다음. inline C:\Users\kdrea\.codex\visualizations\2026\10\28\01a1833b-fe9f-7270-978e-b5b41d12fb04\compact-account-dialog.html, 리포mockups사본. 서버필요없이대화시안열기·마지막주행눌러확인.
+
 2026-10-29 **경로 생성 창 축소 / Codex 재개 독립검증 PASS**: Cursor 구현완료 exit0·기존 Claude03검증/1fda2af0커밋 보존. Codex tsc·selector20·핵심Playwright8건(42초)·dep/tidy/diff PASS, 4가로228폭/50·46·30버튼/기능/실제MapView경계·새캡처 눈검수. [결과](20261029-route-popup-compact/04-review-codex.md). 첫wrapper검색명령 실패→직접실행 통과; Ego기존공간없음은Playwright전환. 실폰·실Firebase·emulator요구1건 미실행. 이세션 커밋푸시배포실행없음·5031유지. 확인 C:\20.HDev\boxcycle\apps\web → npm run dev:localhost -- --port 5031(기존서버재사용) → http://localhost:5031/ 새로고침·지도길게누름·아이콘탭/거리칩확인.
 
 2026-10-28 **접힌 RouteDock LED 3배 / LOCAL_VERIFIED·미배포**: Cursor CSS2줄로지름8→24px, Codex독립4가로×idle/riding8상태24×24실측·내부7px보존·탭PASS, sensor-dock9PASS. [결과·감리](20261028-sensor-dock/07-result-led-size.md). 기존5031유지·커밋푸시배포없음. 확인 C:\20.HDev\boxcycle\apps\web → 서버없으면 npm run dev:localhost -- --port 5031 → http://localhost:5031/ 새로고침·접힌LED탭.

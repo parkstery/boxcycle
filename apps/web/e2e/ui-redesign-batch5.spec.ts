@@ -65,7 +65,7 @@ for (const size of sizes) {
       expect(box!.y).toBeGreaterThanOrEqual(-1);
       expect(box!.x + box!.width).toBeLessThanOrEqual(size.width + 1);
       expect(box!.y + box!.height).toBeLessThanOrEqual(size.height + 1);
-      const titleLine = panel.locator('[data-testid="route-token-holding"]');
+      const titleLine = panel.locator('.map-view__pick-title');
       await expect(titleLine).toBeVisible();
       const titleSize = parsePx(await titleLine.evaluate((el) => getComputedStyle(el).fontSize));
       expect(titleSize).toBeGreaterThanOrEqual(11);
@@ -167,7 +167,7 @@ test('이동수단 선택·경유 최대·실제 콜백', async ({ page }) => {
   await expect(pickHost(page)).toHaveAttribute('data-clear-route-calls', '1');
 });
 
-test('Chief 고정15 — 준비 완료 「▶ 주행」 알약·주행은 버튼으로만', async ({ page }) => {
+test('Chief 고정15 — 하단 삭제·녹색 주행·주행은 버튼으로만', async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 360 });
   await page.goto(`${fixtureUrl}?state=ready-start`);
   const host = pickHost(page);
@@ -175,7 +175,7 @@ test('Chief 고정15 — 준비 완료 「▶ 주행」 알약·주행은 버튼
   const play = popup.getByRole('button', { name: '주행 시작', exact: true });
   await expect(host).toHaveAttribute('data-start-ride-calls', '0');
   await expect(play).toBeEnabled();
-  // 지시94(10-26 Chief): 맨 아래 줄 오른쪽 끝 녹색 원 재생 버튼만 — 알약 테두리·글자 없음, 경로 삭제는 탭 줄.
+  // Chief 10-29: 맨 아래 줄 오른쪽 끝 녹색 원 재생, 삭제는 바로 왼쪽.
   expect((await play.textContent())?.trim()).toBe('');
   const look = await popup.evaluate((el) => {
     const ride = el.querySelector<HTMLElement>('.map-view__pick-btn--start-ride')!;
@@ -185,15 +185,15 @@ test('Chief 고정15 — 준비 완료 「▶ 주행」 알약·주행은 버튼
     const row = el.querySelector<HTMLElement>('.map-view__pick-profile-bottom-row')!.getBoundingClientRect();
     return { iconBg: getComputedStyle(icon).backgroundImage, rideBorderW: parseFloat(getComputedStyle(ride).borderTopWidth),
       rideBg: getComputedStyle(ride).backgroundColor, rightGap: row.right - r.right,
-      clearInTabs: !!clear.closest('.map-view__pick-tabs-row'), clearBorder: getComputedStyle(clear).borderTopColor, clearAbove: c.bottom < r.top };
+      clearInFooter: !!clear.closest('.map-view__pick-profile-bottom-row'), clearBorder: getComputedStyle(clear).borderTopColor, clearBefore: c.right < r.left && Math.abs(c.top + c.height / 2 - r.top - r.height / 2) < 1 };
   });
   expect(look.iconBg).toContain('rgb(35, 214, 92)');
   expect(look.rideBorderW).toBe(0);
   expect(look.rideBg).toBe('rgba(0, 0, 0, 0)');
   expect(look.rightGap).toBeLessThan(1);
-  expect(look.clearInTabs).toBe(true);
+  expect(look.clearInFooter).toBe(true);
   expect(look.clearBorder).toBe('rgb(220, 38, 38)');
-  expect(look.clearAbove).toBe(true);
+  expect(look.clearBefore).toBe(true);
   await play.click();
   await expect(host).toHaveAttribute('data-start-ride-calls', '1');
   await popup.getByRole('button', { name: '자전거 경로', exact: true }).click();
@@ -231,9 +231,10 @@ const compactSizes = [
   { width: 736, height: 300 },
   { width: 699, height: 273 },
   { width: 667, height: 300 },
+  { width: 320, height: 568 },
 ];
 
-test('승인 시안 — 두 모드 228·50/46/30·한줄 비겹침', async ({ page }) => {
+test('승인 시안 — 두 모드 228·헤더 한줄·하단 삭제·66px 지점', async ({ page }) => {
   for (const size of compactSizes) {
     for (const state of ['location', 'distance', 'no-start'] as const) {
       await page.setViewportSize(size);
@@ -278,7 +279,13 @@ test('승인 시안 — 두 모드 228·50/46/30·한줄 비겹침', async ({ pa
           tabs,
           pins,
           chips,
-          clearInTabs: !!el.querySelector('.map-view__pick-tabs-row .map-view__pick-btn--clear-route'),
+          clearInFooter: !!el.querySelector('.map-view__pick-profile-bottom-row .map-view__pick-btn--clear-route'),
+          clearBefore: clear.right < playBox.left && Math.abs(clear.top + clear.height / 2 - playBox.top - playBox.height / 2) < 1,
+          heading: rect(el.querySelector('.map-view__pick-title'))!,
+          header: rect(el.querySelector('.map-view__pick-header-row'))!,
+          tabsBox: rect(el.querySelector('.map-view__pick-route-tabs'))!,
+          close: rect(el.parentElement!.querySelector('.map-view__pick-dock-close, .mapboxgl-popup-close-button'))!,
+          captionFont: caption ? getComputedStyle(caption).fontSize : '',
           tabsClearOverlap: overlap(tabsBox, clear),
           tabsRowWrap: tabsRow.height > 40,
           footerWrap: footer.height > 40,
@@ -299,8 +306,13 @@ test('승인 시안 — 두 모드 228·50/46/30·한줄 비겹침', async ({ pa
       expect(Math.abs(geom.panel.w - 228), `${state} ${size.width} 폭`).toBeLessThanOrEqual(1);
       expect(geom.overflowX, `${state} ${size.width} overflow`).toBeLessThanOrEqual(1);
       expect(geom.tabs).toHaveLength(2);
-      expect(geom.tabs.every((t) => Math.abs(t.w - 50) <= 1 && Math.abs(t.h - 28) <= 1)).toBe(true);
-      expect(geom.clearInTabs).toBe(true);
+      expect(geom.tabs.every((t) => Math.abs(t.w - 38) <= 1 && Math.abs(t.h - 26) <= 1)).toBe(true);
+      expect(geom.clearInFooter).toBe(true);
+      expect(geom.clearBefore).toBe(true);
+      expect(geom.heading.r).toBeLessThanOrEqual(geom.tabsBox.x);
+      expect(geom.tabsBox.r).toBeLessThanOrEqual(geom.close.x);
+      expect(geom.header.h).toBeLessThanOrEqual(32);
+      await expect(popup.locator('.map-view__pick-title')).toHaveText('경로');
       expect(geom.tabsClearOverlap).toBe(false);
       expect(geom.tabsRowWrap).toBe(false);
       expect(geom.footerWrap).toBe(false);
@@ -310,13 +322,14 @@ test('승인 시안 — 두 모드 228·50/46/30·한줄 비겹침', async ({ pa
       expect(geom.footerRight - geom.play.r).toBeLessThan(1);
       if (state !== 'distance') {
         expect(geom.pins).toHaveLength(3);
-        expect(geom.pins.every((p) => Math.abs(p.w - 46) <= 1 && Math.abs(p.h - 28) <= 1)).toBe(true);
+        expect(geom.pins.every((p) => Math.abs(p.w - 66) <= 1 && Math.abs(p.h - 28) <= 1)).toBe(true);
       } else {
         expect(geom.chips).toHaveLength(5);
         expect(geom.chips.every((c) => Math.abs(c.w - 30) <= 1 && Math.abs(c.h - 28) <= 1)).toBe(true);
         expect(geom.distanceVisible).toBe(true);
+        expect(geom.captionFont).toBe('14px');
         const row = geom.distanceRow!;
-        expect(row.row!.w).toBeLessThanOrEqual(198 + 1);
+        expect(row.row!.w).toBeLessThanOrEqual(204 + 1);
         expect(row.caption!.btm - 1).toBeLessThanOrEqual(row.minus!.y + row.minus!.h);
         expect(row.minus!.r).toBeLessThanOrEqual(row.number!.x + 1);
         expect(row.number!.r).toBeLessThanOrEqual(row.unit!.x + 1);
@@ -362,7 +375,7 @@ test('긴 주소·큰 거리 입력은 228 안에서 줄바꿈·서식 유지', 
     };
   });
   expect(distGeom.overflowX).toBeLessThanOrEqual(1);
-  expect(distGeom.rowW).toBeLessThanOrEqual(198 + 1);
+  expect(distGeom.rowW).toBeLessThanOrEqual(204 + 1);
   expect(distGeom.numberRight).toBeLessThanOrEqual(distGeom.plusLeft + 1);
 });
 
@@ -383,4 +396,36 @@ test('실제 지도 첫 팝업은 낮은 화면에서도 제목·닫기까지 �
     await expect(popup.locator('.mapboxgl-popup-close-button')).toBeVisible();
     await shot(page, 'batch5-real-first-popup', size.width, size.height);
   }
+});
+
+
+test('재배치 후 토큰 안내·양끝 정렬·시안 높이', async ({ page }) => {
+  await page.setViewportSize({ width: 667, height: 300 });
+  for (const state of ['location', 'distance']) {
+    await page.goto(`${fixtureUrl}?state=${state}`);
+    const popup = pick(page);
+    await expect(popup).toBeVisible();
+    const geometry = await popup.evaluate((el, state) => {
+      const row = el.querySelector(state === 'location' ? '.map-view__pick-actions--pin-row' : '.map-view__pick-distance-chips')!;
+      const buttons = [...row.querySelectorAll('button')].map(b => b.getBoundingClientRect());
+      const r = row.getBoundingClientRect();
+      return { h: el.getBoundingClientRect().height, left: buttons[0].left - r.left, right: r.right - buttons.at(-1)!.right };
+    }, state);
+    expect(geometry.h).toBe(state === 'location' ? 160 : 194);
+    expect(Math.abs(geometry.left)).toBeLessThan(1);
+    expect(Math.abs(geometry.right)).toBeLessThan(1);
+  }
+  await page.evaluate(() => { window.__rtwForceGenerateCostBase = 1; });
+  const popup = pick(page);
+  const feedback = popup.getByTestId('route-token-popup-feedback');
+  await expect(feedback).toBeVisible();
+  await expect(feedback).toContainText('잔여 토큰 8개');
+  const bounds = await popup.evaluate(el => {
+    const header = el.querySelector('.map-view__pick-header-row')!.getBoundingClientRect();
+    const feedback = el.querySelector('.map-view__pick-token')!.getBoundingClientRect();
+    return { headerBottom: header.bottom, feedbackTop: feedback.top, overflow: el.scrollWidth - el.clientWidth };
+  });
+  expect(bounds.feedbackTop).toBeGreaterThanOrEqual(bounds.headerBottom);
+  expect(bounds.overflow).toBe(0);
+  await expect(popup.getByRole('tab', { name: '거리·방향', exact: true })).toBeVisible();
 });

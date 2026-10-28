@@ -1,0 +1,69 @@
+<div id="compact-account-preview" class="viz-dotted-background">
+  <article class="account" aria-label="콤팩트 계정 창 시안">
+    <header class="identity"><div><strong>Ridingman12</strong><span class="email">googiden@gmail.com</span></div><button class="close cursor-interaction" aria-label="닫기"><i data-lucide="x" aria-hidden="true"></i></button></header>
+    <div class="account-body">
+      <section class="summary" aria-label="기간별 주행 요약">
+        <div class="periods" role="group" aria-label="집계 기간"><button class="active cursor-interaction" aria-pressed="true">오늘</button><button class="cursor-interaction" aria-pressed="false">주간</button><button class="cursor-interaction" aria-pressed="false">월간</button><button class="cursor-interaction" aria-pressed="false">연간</button></div>
+        <div class="date">10월 29일 · 주행 1회</div>
+        <div class="distance"><strong>0.86</strong><span>km</span></div>
+        <div class="pace"><b>1분</b><span>평균 <b>34.0</b> km/h</span></div>
+        <div class="calories">칼로리 <button class="link cursor-interaction">체중 입력</button> 후 표시</div>
+      </section>
+      <section class="details" aria-label="계정과 도로망">
+        <div class="road"><span>내 도로망</span><strong>233.0 <small>km</small></strong></div>
+        <div class="road-options" role="group" aria-label="내 도로망 표시"><button class="active cursor-interaction" aria-pressed="true">전체 도로망</button><button class="cursor-interaction" aria-pressed="false">신규 도로만</button></div>
+        <div class="row total"><span>누적</span><span><b>549.9</b> km · <b>616</b>회 · <b>47</b>시간<b>42</b>분</span></div>
+        <button class="row recent cursor-interaction" aria-expanded="false"><span>마지막 주행 <small>1분 전</small></span><span><b>0.86</b> km · <b>1</b>분 <span class="chevron">›</span></span></button>
+        <div class="history" hidden><div>10.29 · 0.86 km · 1분 · 평균 34.0 km/h</div></div>
+        <div class="row plan"><span>플랜</span><span>Free <span class="dot">·</span> <button class="link cursor-interaction">업그레이드</button></span></div>
+      </section>
+    </div>
+    <footer><button class="pill cursor-interaction">프로필 수정</button><button class="pill cursor-interaction">관리</button><button class="logout cursor-interaction">로그아웃</button></footer>
+  </article>
+  <style>
+    #compact-account-preview{padding:18px 0 24px;color-scheme:light;--account-paper:#FFFFFF;--account-ink:#121417;--account-muted:#4B5160;--account-line:#E7EDF6;--account-blue:#2457D6;--account-blue-ink:#FFFFFF;--account-wash:#EEF3FC;--account-quiet:#F2F3F5;font-family:'Gothic A1',system-ui,sans-serif}
+    #compact-account-preview *{box-sizing:border-box}
+    #compact-account-preview .account{width:520px;max-width:100%;padding:12px 14px;border-radius:16px;background:var(--account-paper);color:var(--account-ink);box-shadow:0 4px 16px #0002;font-size:12px;line-height:1.35}
+    #compact-account-preview button{font:inherit;color:inherit;border:0;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+    #compact-account-preview button:focus-visible{outline:2px solid var(--account-blue);outline-offset:2px}
+    #compact-account-preview .identity{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;min-height:28px}
+    #compact-account-preview .identity>div{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+    #compact-account-preview .identity strong{font-size:15px;font-weight:600}
+    #compact-account-preview .email{font-size:11px;color:var(--account-muted)}
+    #compact-account-preview .close{height:28px;width:28px;padding:0;border-radius:50%;background:var(--account-quiet);flex-shrink:0}
+    #compact-account-preview .close svg{height:16px;width:16px}
+    #compact-account-preview .account-body{display:grid;grid-template-columns:164px minmax(0,1fr);gap:14px}
+    #compact-account-preview .summary{background:var(--account-wash);border-radius:10px;padding:8px}
+    #compact-account-preview .periods{display:flex;gap:2px}
+    #compact-account-preview .periods button{flex:1;height:26px;padding:0 4px;border-radius:6px;background:transparent;font-size:11px}
+    #compact-account-preview .periods button.active{background:var(--account-blue);color:var(--account-blue-ink)}
+    #compact-account-preview .date{font-size:11px;color:var(--account-muted);margin-top:7px}
+    #compact-account-preview .distance{display:flex;align-items:baseline;gap:5px;color:var(--account-blue);margin-top:2px}
+    #compact-account-preview .distance strong{font-size:38px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+    #compact-account-preview .distance>span{font-size:16px}
+    #compact-account-preview .pace{display:flex;gap:8px;margin-top:3px;font-size:11px}
+    #compact-account-preview .calories{margin-top:5px;font-size:11px;color:var(--account-muted)}
+    #compact-account-preview .link{background:transparent;color:var(--account-blue);padding:0}
+    #compact-account-preview .road{display:flex;justify-content:space-between;align-items:center;height:27px;color:var(--account-muted)}
+    #compact-account-preview .road strong{color:var(--account-blue);font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+    #compact-account-preview small{font-size:11px;font-weight:400}
+    #compact-account-preview .road-options{display:flex;gap:4px;justify-content:flex-end;padding-bottom:5px}
+    #compact-account-preview .road-options button{height:26px;padding:0 10px;border-radius:6px;background:var(--account-quiet);font-size:11px}
+    #compact-account-preview .road-options button.active{background:var(--account-blue);color:var(--account-blue-ink)}
+    #compact-account-preview .row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:29px;border-top:1px solid var(--account-line);font-size:11px}
+    #compact-account-preview .row>span:first-child{color:var(--account-muted)}
+    #compact-account-preview .row b{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+    #compact-account-preview .recent{background:transparent;padding:0;text-align:left}
+    #compact-account-preview .recent small{font-size:10px}
+    #compact-account-preview .chevron{padding-left:4px;font-size:17px;color:var(--account-muted)}
+    #compact-account-preview .history{padding:7px 0;color:var(--account-muted);font-size:11px;border-top:1px solid var(--account-line)}
+    #compact-account-preview .dot{padding:0 4px;color:var(--account-muted)}
+    #compact-account-preview footer{display:flex;gap:6px;justify-content:flex-end;border-top:1px solid var(--account-line);padding-top:8px;margin-top:8px}
+    #compact-account-preview .pill{height:28px;padding:0 12px;background:var(--account-paper);border:1px solid #C9D6EE;border-radius:16px}
+    #compact-account-preview .logout{height:28px;padding:0 6px;background:transparent;color:var(--account-muted)}
+    @media(max-width:430px){#compact-account-preview .account-body{grid-template-columns:1fr}#compact-account-preview .summary{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}#compact-account-preview .periods{grid-column:1/-1}#compact-account-preview .date{grid-column:1/-1;margin:0}#compact-account-preview .distance{grid-row:3/5}#compact-account-preview .pace{flex-wrap:wrap;gap:0 8px}#compact-account-preview .identity>div{gap:1px 8px}#compact-account-preview .email{font-size:10px}}
+  </style>
+  <script>
+    (()=>{const root=document.getElementById('compact-account-preview');for(const group of root.querySelectorAll('.periods,.road-options')){group.querySelectorAll('button').forEach(button=>button.addEventListener('click',()=>{for(const peer of group.querySelectorAll('button')){const active=peer===button;peer.classList.toggle('active',active);peer.setAttribute('aria-pressed',String(active));}}));}const recent=root.querySelector('.recent');recent.addEventListener('click',()=>{const expanded=recent.getAttribute('aria-expanded')!=='true';recent.setAttribute('aria-expanded',String(expanded));root.querySelector('.history').hidden=!expanded;root.querySelector('.chevron').textContent=expanded?'⌄':'›';});if(globalThis.Tweak){const state={width:520};const panel=root.querySelector('.account');const tweak=new Tweak({container:panel,onChange:()=>{panel.style.width=state.width+'px';}});tweak.addSlider(state,'width',{label:'창 가로 폭',min:480,max:560,step:4,unit:'px'});}})();
+  </script>
+</div>

@@ -14,6 +14,8 @@ import { useDialogFocus } from "../ui/useDialogFocus";
 
 export type CadenceSensorSheetProps = {
   open: boolean;
+  /** 서버 순위 인정 조건. 응답 전에는 기존 센서 전용 안내를 유지한다. */
+  leaderboardSensorOnly?: boolean;
   onClose: () => void;
   capable: boolean;
   uiState: BleCrankRpmUiState;
@@ -78,6 +80,8 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
   const blockedReason = rideInputBlockedReason(props.readiness);
   // 체험 속도가 명시 선택된 상태에서는 제목 표기만 바꾼다 — dialog aria-label·콜백·조건 불변.
   const manualSelected = manualReady && !cadenceMode;
+  const sensorOnly = props.leaderboardSensorOnly ?? true;
+  const manualRankLabel = sensorOnly ? "센서 없이 달리기 · 순위 제외" : "센서 없이 달리기 · 테스트 중 순위 포함";
 
   return (
     <div className="cadence-sheet settings-surface" role="dialog" aria-label="케이던스 센서">
@@ -118,7 +122,7 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
           </button>
         </div>
 
-        <p className="cadence-sheet__intro">페달을 돌리면 왼쪽 숫자가 바뀌어요.<br />센서로 달린 주행만 순위에 올라가요.</p>
+        <p className="cadence-sheet__intro">페달을 돌리면 왼쪽 숫자가 바뀌어요.<br />{sensorOnly ? "센서로 달린 주행만 순위에 올라가요." : "테스트 중에는 센서 없는 주행도 순위에 올라가요."}</p>
 
         {/* Go 가 잠긴 이유는 실제로 해소할 수 있는 이 자리에서만 말한다(RouteDock 에 두지 않는다) */}
         {/* 「센서를 연결해 페달을 확인하거나 체험 속도를 선택하세요」(choice-required)는
@@ -191,7 +195,7 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
               !cadenceMode && !manualReady ? " cadence-sheet__btn--primary" : ""
             }${manualReady ? " cadence-sheet__btn--on" : ""}`}
             aria-pressed={manualReady}
-            title="센서 없이 달리기 · 순위 제외"
+            title={manualRankLabel}
             onClick={props.onChooseManual}
           >
             센서 없음
@@ -215,7 +219,7 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
         */}
         {!cadenceMode && (!props.riding || ALLOW_MANUAL_SPEED_WHILE_RIDING) ? (
           <div className="cadence-sheet__speed">
-            <span className="cadence-sheet__speed-label">센서 없이 달리기 · 순위 제외</span>
+            <span className="cadence-sheet__speed-label">{manualRankLabel}</span>
             <SessionSpeedControl
               speedKmh={props.manualSpeedKmh}
               onSpeedKmh={props.onManualSpeedKmh}

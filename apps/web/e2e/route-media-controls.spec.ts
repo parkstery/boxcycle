@@ -64,10 +64,11 @@ test('다섯 위치의 추가·교체 및 열린 경로창의 시작 준비상�
       return {buttons:buttons.map(b=>({width:b.width,height:b.height,top:b.top,right:b.right})),profiles,play:play.toJSON(),clear:clear.toJSON(),panel:panel.toJSON()};
     });
     expect(geometry.buttons).toHaveLength(3);
-    expect(geometry.buttons.every(b=>Math.abs(b.width-46)<=1&&b.height>=28&&b.height<=30)).toBe(true);
+    expect(geometry.buttons.every(b=>Math.abs(b.width-66)<=1&&b.height>=28&&b.height<=30)).toBe(true);
     expect(new Set(geometry.buttons.map(b=>b.top)).size).toBe(1);
     // 지시94: 경로 삭제는 탭 줄(주행 버튼보다 위), 주행은 맨 아래 줄 오른쪽 끝
-    expect(geometry.clear.bottom).toBeLessThan(geometry.play.top);
+    expect(geometry.clear.right).toBeLessThan(geometry.play.x);
+    expect(Math.abs(geometry.clear.y+geometry.clear.height/2-geometry.play.y-geometry.play.height/2)).toBeLessThan(1);
     expect(geometry.panel.right-geometry.play.right).toBeLessThan(24);
     expect(geometry.profiles).toHaveLength(3);
     expect(geometry.profiles[2].right).toBeLessThan(geometry.play.x);

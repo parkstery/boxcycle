@@ -1,0 +1,104 @@
+<div id="route-header-compact" class="viz-dotted-background">
+  <div class="route-samples">
+    <section class="route-sample" aria-label="Start/End 배치 시안">
+      <div class="sample-label">Start / End</div>
+      <article class="route-dialog" aria-label="Start/End 경로 생성">
+        <header class="route-heading">
+          <strong>경로</strong>
+          <div class="route-modes" role="group" aria-label="경로 생성 방식">
+            <button type="button" class="route-mode selected cursor-interaction" aria-pressed="true" aria-label="Start/End" data-tooltip="Start / End"><i data-lucide="route" aria-hidden="true"></i></button>
+            <button type="button" class="route-mode cursor-interaction" aria-pressed="false" aria-label="거리/방향" data-tooltip="거리 / 방향"><i data-lucide="ruler" aria-hidden="true"></i><i data-lucide="navigation-2" aria-hidden="true"></i></button>
+          </div>
+          <button type="button" class="route-close cursor-interaction" aria-label="닫기"><i data-lucide="x" aria-hidden="true"></i></button>
+        </header>
+        <div class="route-address">대한민국 대구광역시 중구 동성로3길 91</div>
+        <div class="route-pins" role="group" aria-label="경로 지점">
+          <button type="button" class="route-pin cursor-interaction">Start</button>
+          <button type="button" class="route-pin cursor-interaction">+WP</button>
+          <button type="button" class="route-pin cursor-interaction">End</button>
+        </div>
+        <footer class="route-footer">
+          <div class="route-profiles" role="group" aria-label="이동 수단">
+            <button type="button" class="route-profile cursor-interaction" aria-label="자동차" aria-pressed="true"><i data-lucide="car-front" aria-hidden="true"></i></button>
+            <button type="button" class="route-profile cursor-interaction" aria-label="자전거" aria-pressed="false"><i data-lucide="bike" aria-hidden="true"></i></button>
+            <button type="button" class="route-profile cursor-interaction" aria-label="도보" aria-pressed="false"><i data-lucide="footprints" aria-hidden="true"></i></button>
+          </div>
+          <div class="route-actions"><button type="button" class="route-delete cursor-interaction">경로 삭제</button><button type="button" class="route-play cursor-interaction" aria-label="주행 시작"><i data-lucide="play" aria-hidden="true"></i></button></div>
+        </footer>
+      </article>
+    </section>
+    <section class="route-sample" aria-label="거리/방향 배치 시안">
+      <div class="sample-label">거리 / 방향</div>
+      <article class="route-dialog" aria-label="거리/방향 경로 생성">
+        <header class="route-heading">
+          <strong>경로</strong>
+          <div class="route-modes" role="group" aria-label="경로 생성 방식">
+            <button type="button" class="route-mode cursor-interaction" aria-pressed="false" aria-label="Start/End" data-tooltip="Start / End"><i data-lucide="route" aria-hidden="true"></i></button>
+            <button type="button" class="route-mode selected cursor-interaction" aria-pressed="true" aria-label="거리/방향" data-tooltip="거리 / 방향"><i data-lucide="ruler" aria-hidden="true"></i><i data-lucide="navigation-2" aria-hidden="true"></i></button>
+          </div>
+          <button type="button" class="route-close cursor-interaction" aria-label="닫기"><i data-lucide="x" aria-hidden="true"></i></button>
+        </header>
+        <div class="route-address">대한민국 대구광역시 중구 동성로3길 91</div>
+        <div class="route-distance"><label>목표 거리</label><button type="button" class="route-step cursor-interaction" aria-label="거리 감소">−</button><output aria-live="polite">0.5</output><span>km</span><button type="button" class="route-step cursor-interaction" aria-label="거리 증가">+</button></div>
+        <div class="route-chips" role="group" aria-label="목표 거리 선택">
+          <button type="button" class="route-chip cursor-interaction" aria-pressed="false">1</button><button type="button" class="route-chip cursor-interaction" aria-pressed="false">3</button><button type="button" class="route-chip cursor-interaction" aria-pressed="false">5</button><button type="button" class="route-chip cursor-interaction" aria-pressed="false">10</button><button type="button" class="route-chip cursor-interaction" aria-pressed="false">20</button>
+        </div>
+        <footer class="route-footer">
+          <div class="route-profiles" role="group" aria-label="이동 수단">
+            <button type="button" class="route-profile cursor-interaction" aria-label="자동차" aria-pressed="true"><i data-lucide="car-front" aria-hidden="true"></i></button>
+            <button type="button" class="route-profile cursor-interaction" aria-label="자전거" aria-pressed="false"><i data-lucide="bike" aria-hidden="true"></i></button>
+            <button type="button" class="route-profile cursor-interaction" aria-label="도보" aria-pressed="false"><i data-lucide="footprints" aria-hidden="true"></i></button>
+          </div>
+          <div class="route-actions"><button type="button" class="route-delete cursor-interaction">경로 삭제</button><button type="button" class="route-play cursor-interaction" aria-label="주행 시작"><i data-lucide="play" aria-hidden="true"></i></button></div>
+        </footer>
+      </article>
+    </section>
+  </div>
+  <style>
+    #route-header-compact{color-scheme:light;--route-paper:#fff;--route-ink:#121417;--route-muted:#4b5160;--route-quiet:#f2f3f5;--route-blue:#2457d6;--route-line:#c9d6ee;font-family:'Gothic A1',system-ui,sans-serif}
+    #route-header-compact *{box-sizing:border-box}
+    #route-header-compact .route-samples{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:center;gap:24px;padding:16px 0 20px}
+    #route-header-compact .sample-label{font-size:12px;color:var(--route-muted);margin:0 0 8px 4px}
+    #route-header-compact .route-dialog{width:228px;padding:10px 12px;border-radius:18px;background:var(--route-paper);color:var(--route-ink);box-shadow:0 3px 14px #0f172a20;font-size:12px;line-height:1.35}
+    #route-header-compact button{font:inherit;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;color:inherit}
+    #route-header-compact svg{width:16px;height:16px}
+    #route-header-compact .route-heading{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:8px;height:32px}
+    #route-header-compact .route-heading strong{font-size:17px;font-weight:700;letter-spacing:-.5px;white-space:nowrap}
+    #route-header-compact .route-modes{display:flex;gap:2px;padding:3px;background:var(--route-quiet);border-radius:9px}
+    #route-header-compact .route-mode{width:38px;height:26px;border:0;border-radius:7px;background:transparent;gap:1px;color:var(--route-muted)}
+    #route-header-compact .route-mode.selected{background:var(--route-blue);color:#fff}
+    #route-header-compact .route-mode:has(i+i) svg,#route-header-compact .route-mode:has(svg+svg) svg{width:15px;height:15px}
+    #route-header-compact .route-close{width:28px;height:28px;border:0;border-radius:50%;background:var(--route-quiet)}
+    #route-header-compact .route-address{font-size:11px;line-height:1.4;color:var(--route-muted);margin-bottom:8px;overflow-wrap:anywhere}
+    #route-header-compact .route-pins,#route-header-compact .route-chips{display:flex;justify-content:space-between;align-items:center}
+    #route-header-compact .route-pins{gap:3px}
+    #route-header-compact .route-pin{flex:1;min-width:0;height:28px;border:1px solid var(--route-line);border-radius:8px;background:#fff;font-size:12px}
+    #route-header-compact .route-distance{display:flex;align-items:center;gap:5px;margin-bottom:8px}
+    #route-header-compact .route-distance label{font-size:calc(10px + 3pt);font-weight:700;white-space:nowrap;margin-right:auto}
+    #route-header-compact .route-distance output{font-size:20px;line-height:1;font-weight:700;color:var(--route-blue);font-variant-numeric:tabular-nums;min-width:36px;text-align:right}
+    #route-header-compact .route-distance>span{font-size:11px;color:var(--route-blue)}
+    #route-header-compact .route-step{width:26px;height:26px;border:1px solid var(--route-line);background:#fff;border-radius:50%;color:var(--route-blue)}
+    #route-header-compact .route-chip{width:30px;height:28px;border:1px solid var(--route-line);border-radius:20px;background:#fff;font-size:12px}
+    #route-header-compact .route-chip.selected,#route-header-compact .route-pin.selected{background:#eef3fc;color:var(--route-blue);border-color:var(--route-blue)}
+    #route-header-compact .route-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid #e9ecf1}
+    #route-header-compact .route-profiles{display:flex;gap:4px}
+    #route-header-compact .route-profile{width:28px;height:28px;border:0;border-radius:50%;background:var(--route-quiet);color:var(--route-muted)}
+    #route-header-compact .route-profile[aria-pressed=true]{color:var(--route-blue)}
+    #route-header-compact .route-actions{display:flex;align-items:center;gap:6px}
+    #route-header-compact .route-delete{height:28px;padding:0 6px;border:1.5px solid #dc2626;border-radius:20px;background:#fff;font-size:11px;white-space:nowrap}
+    #route-header-compact .route-play{width:32px;height:32px;border:0;border-radius:50%;background:linear-gradient(145deg,#23d65c,#009627);color:#fff;box-shadow:inset 0 1px 2px #ffffff80,0 1px 3px #0002}
+    #route-header-compact .route-play svg{width:16px;height:16px;fill:currentColor}
+    @media(max-width:510px){#route-header-compact .route-samples{gap:20px}}
+  </style>
+  <script>
+    (()=>{
+      const root=document.getElementById('route-header-compact');
+      for(const group of root.querySelectorAll('.route-profiles,.route-pins')){
+        for(const button of group.querySelectorAll('button'))button.addEventListener('click',()=>{for(const peer of group.querySelectorAll('button')){const active=peer===button;peer.setAttribute('aria-pressed',String(active));peer.classList.toggle('selected',active);}});
+      }
+      const output=root.querySelector('output');
+      for(const chip of root.querySelectorAll('.route-chip'))chip.addEventListener('click',()=>{output.textContent=chip.textContent;for(const peer of root.querySelectorAll('.route-chip')){const active=peer===chip;peer.classList.toggle('selected',active);peer.setAttribute('aria-pressed',String(active));}});
+      for(const step of root.querySelectorAll('.route-step'))step.addEventListener('click',()=>{output.textContent=String(Math.max(.5,Number(output.textContent)+(step.textContent==='+'?.5:-.5)));for(const chip of root.querySelectorAll('.route-chip')){const active=Number(chip.textContent)===Number(output.textContent);chip.classList.toggle('selected',active);chip.setAttribute('aria-pressed',String(active));}});
+    })();
+  </script>
+</div>

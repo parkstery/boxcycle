@@ -1,0 +1,402 @@
+[
+  {
+    "state": "account",
+    "width": 800,
+    "height": 360,
+    "metrics": {
+      "width": 520,
+      "height": 250,
+      "viewport": [
+        800,
+        360
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-riding-manual",
+    "width": 800,
+    "height": 360,
+    "metrics": {
+      "width": 420,
+      "height": 211.15625,
+      "viewport": [
+        800,
+        360
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-connected",
+    "width": 800,
+    "height": 360,
+    "metrics": {
+      "width": 420,
+      "height": 131.5,
+      "viewport": [
+        800,
+        360
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-disconnected",
+    "width": 800,
+    "height": 360,
+    "metrics": {
+      "width": 420,
+      "height": 134.265625,
+      "viewport": [
+        800,
+        360
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-unsupported",
+    "width": 800,
+    "height": 360,
+    "metrics": {
+      "width": 420,
+      "height": 226.546875,
+      "viewport": [
+        800,
+        360
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "account",
+    "width": 736,
+    "height": 300,
+    "metrics": {
+      "width": 520,
+      "height": 250,
+      "viewport": [
+        736,
+        300
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-riding-manual",
+    "width": 736,
+    "height": 300,
+    "metrics": {
+      "width": 420,
+      "height": 211.15625,
+      "viewport": [
+        736,
+        300
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-connected",
+    "width": 736,
+    "height": 300,
+    "metrics": {
+      "width": 420,
+      "height": 131.5,
+      "viewport": [
+        736,
+        300
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-disconnected",
+    "width": 736,
+    "height": 300,
+    "metrics": {
+      "width": 420,
+      "height": 134.265625,
+      "viewport": [
+        736,
+        300
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-unsupported",
+    "width": 736,
+    "height": 300,
+    "metrics": {
+      "width": 420,
+      "height": 226.546875,
+      "viewport": [
+        736,
+        300
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "account",
+    "width": 699,
+    "height": 273,
+    "metrics": {
+      "width": 520,
+      "height": 250,
+      "viewport": [
+        699,
+        273
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-riding-manual",
+    "width": 699,
+    "height": 273,
+    "metrics": {
+      "width": 420,
+      "height": 211.15625,
+      "viewport": [
+        699,
+        273
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-connected",
+    "width": 699,
+    "height": 273,
+    "metrics": {
+      "width": 420,
+      "height": 131.5,
+      "viewport": [
+        699,
+        273
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-disconnected",
+    "width": 699,
+    "height": 273,
+    "metrics": {
+      "width": 420,
+      "height": 134.265625,
+      "viewport": [
+        699,
+        273
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-unsupported",
+    "width": 699,
+    "height": 273,
+    "metrics": {
+      "width": 420,
+      "height": 226.546875,
+      "viewport": [
+        699,
+        273
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "account",
+    "width": 667,
+    "height": 300,
+    "metrics": {
+      "width": 520,
+      "height": 250,
+      "viewport": [
+        667,
+        300
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-riding-manual",
+    "width": 667,
+    "height": 300,
+    "metrics": {
+      "width": 420,
+      "height": 211.15625,
+      "viewport": [
+        667,
+        300
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-connected",
+    "width": 667,
+    "height": 300,
+    "metrics": {
+      "width": 420,
+      "height": 131.5,
+      "viewport": [
+        667,
+        300
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-disconnected",
+    "width": 667,
+    "height": 300,
+    "metrics": {
+      "width": 420,
+      "height": 134.265625,
+      "viewport": [
+        667,
+        300
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-unsupported",
+    "width": 667,
+    "height": 300,
+    "metrics": {
+      "width": 420,
+      "height": 226.546875,
+      "viewport": [
+        667,
+        300
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "account",
+    "width": 320,
+    "height": 568,
+    "metrics": {
+      "width": 304,
+      "height": 356,
+      "viewport": [
+        320,
+        568
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-riding-manual",
+    "width": 320,
+    "height": 568,
+    "metrics": {
+      "width": 296,
+      "height": 264.15625,
+      "viewport": [
+        320,
+        568
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-connected",
+    "width": 320,
+    "height": 568,
+    "metrics": {
+      "width": 296,
+      "height": 191.375,
+      "viewport": [
+        320,
+        568
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-disconnected",
+    "width": 320,
+    "height": 568,
+    "metrics": {
+      "width": 296,
+      "height": 211.765625,
+      "viewport": [
+        320,
+        568
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  },
+  {
+    "state": "sensor-unsupported",
+    "width": 320,
+    "height": 568,
+    "metrics": {
+      "width": 296,
+      "height": 279.546875,
+      "viewport": [
+        320,
+        568
+      ],
+      "inside": true,
+      "overflow": [],
+      "clipped": []
+    }
+  }
+]

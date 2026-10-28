@@ -223,49 +223,48 @@
   font-size: 0.72rem;
   line-height: 1.35;
 }
-/* 승인 시안12: 한 판 안의 케이던스 요약과 준비 행동. */
+/* Chief 2026-10-29: 체험 속도·센서 설정을 같은 콤팩트 판으로 유지. */
 .cadence-sheet.settings-surface .cadence-sheet__panel {
-  width: min(560px, calc(100vw - 24px)); display: grid; grid-template-columns: 39% minmax(0, 1fr);
-  padding: 0; min-height: 204px; overflow: hidden;
+  width: min(420px, calc(100vw - 24px));
+  display: grid; grid-template-columns: 30% minmax(0, 1fr);
+  padding: 0; min-height: 0; overflow: hidden;
 }
-.cadence-sheet__hero { background: #eef3fc; padding: 30px 20px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
-.cadence-sheet__hero-label { color: #5e6472; font-size: 11px; letter-spacing: .12em; }
-.cadence-sheet__hero-value { color: #2457d6; font: 600 72px/1 var(--rtw-font-num, sans-serif); margin: 8px 0; white-space: nowrap; }
-.cadence-sheet__hero-value small { font-size: 22px; margin-left: 6px; }
-.cadence-sheet__hero-value--empty { font-size: 17px; font-weight: 700; line-height: 1.4; white-space: normal; margin: 16px 0; }
-.cadence-sheet__status { display: flex; align-items: center; gap: 6px; margin: 0; color: #4b5160; font-size: 13px; }
-.cadence-sheet__status > span { width: 7px; height: 7px; border-radius: 50%; background: #9ba6b9; }
+.cadence-sheet__hero { background: #eef3fc; padding: 12px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.cadence-sheet__hero-label { color: #5e6472; font-size: 11px; letter-spacing: .04em; }
+.cadence-sheet__hero-value { color: #2457d6; font: 600 42px/1 var(--rtw-font-num, sans-serif); margin: 6px 0; white-space: nowrap; }
+.cadence-sheet__hero-value small { font-size: 14px; margin-left: 3px; }
+.cadence-sheet__hero-value--empty { font-size: 14px; font-weight: 700; line-height: 1.4; white-space: normal; margin: 8px 0; }
+.cadence-sheet__status { display: flex; align-items: center; gap: 4px; margin: 0; color: #4b5160; font-size: 11px; }
+.cadence-sheet__status > span { flex: 0 0 6px; width: 6px; height: 6px; border-radius: 50%; background: #9ba6b9; }
 .cadence-sheet__status > .is-connected { background: #1e9a55; }
 .cadence-sheet.settings-surface .cadence-sheet__device { font-size: 11px; margin-top: 4px; }
-.cadence-sheet__detail { min-width: 0; padding: 12px 14px 14px 18px; display: flex; flex-direction: column; gap: 7px; overflow: auto; }
-.cadence-sheet.settings-surface .cadence-sheet__head { margin: 0; }
-.cadence-sheet__intro { font-size: 13px; line-height: 1.5; margin: 0; }
+.cadence-sheet__detail { min-width: 0; padding: 8px 10px; display: flex; flex-direction: column; gap: 5px; overflow: auto; }
+.cadence-sheet.settings-surface .cadence-sheet__head { margin: 0; min-height: 28px; gap: 6px; }
+.cadence-sheet.settings-surface .cadence-sheet__title { font-size: 14px; }
+.cadence-sheet.settings-surface .cadence-sheet__close { flex-basis: 28px; width: 28px; height: 28px; min-height: 28px; }
+.cadence-sheet__intro { font-size: 11px; line-height: 1.45; margin: 0; }
 .cadence-sheet.settings-surface .cadence-sheet__help,
 .cadence-sheet.settings-surface .cadence-sheet__notice,
 .cadence-sheet.settings-surface .cadence-sheet__error,
 .cadence-sheet.settings-surface .cadence-sheet__blocked { font-size: 11px; line-height: 1.4; }
 .cadence-sheet.settings-surface .cadence-sheet__blocked { border: 0; background: transparent; padding: 0; }
-.cadence-sheet.settings-surface .cadence-sheet__actions { order: 2; justify-content: flex-end; gap: 6px; margin-top: auto; }
-.cadence-sheet.settings-surface .cadence-sheet__btn { min-height: 34px; padding: 6px 10px; border: 1px solid #c9d6ee; border-radius: 12px; background: #fff; color: #4b5160; font-size: 13px; }
+.cadence-sheet.settings-surface .cadence-sheet__actions { order: 2; justify-content: flex-end; gap: 5px; margin-top: 0; }
+.cadence-sheet.settings-surface .cadence-sheet__btn { min-height: 28px; padding: 5px 8px; border: 1px solid #c9d6ee; border-radius: 8px; background: #fff; color: #4b5160; font-size: 11px; }
 .cadence-sheet.settings-surface .cadence-sheet__btn--primary,
 .cadence-sheet.settings-surface .cadence-sheet__btn--on { color: #fff; background: #2457d6; border-color: #2457d6; }
-.cadence-sheet.settings-surface .cadence-sheet__speed { order: 1; padding-top: 8px; border-top: 1px solid #e9ecf1; }
-.cadence-sheet__speed-label { display: block; color: #5e6472; font-size: 11px; margin-bottom: 5px; }
+.cadence-sheet.settings-surface .cadence-sheet__speed { order: 1; padding-top: 5px; border-top: 1px solid #e9ecf1; }
+.cadence-sheet__speed-label { display: block; color: #5e6472; font-size: 11px; margin-bottom: 4px; }
 .cadence-sheet .ride-speed-kicker { display: none; }
-.cadence-sheet .ride-speed-row { gap: 6px; flex-wrap: wrap; }
-.cadence-sheet .ride-speed-step { width: 30px; height: 30px; flex-basis: 30px; border-radius: 50%; background: #fff; border-color: #c9d6ee; }
-.cadence-sheet .ride-speed-number { font: 600 26px/1 var(--rtw-font-num, sans-serif); width: 52px; flex-basis: 52px; border: 0; padding: 0; order: 1; }
+.cadence-sheet .ride-speed-row { gap: 5px; flex-wrap: nowrap; }
+.cadence-sheet .ride-speed-step { width: 28px; height: 28px; flex-basis: 28px; border-radius: 50%; background: #fff; border-color: #c9d6ee; }
+.cadence-sheet .ride-speed-number { font: 600 22px/1 var(--rtw-font-num, sans-serif); width: 40px; flex-basis: 40px; border: 0; padding: 0; order: 1; }
 .cadence-sheet .ride-speed-range { flex: 1; min-width: 40px; accent-color: #2457d6; }
 .cadence-sheet .ride-speed-row::after { content: 'km/h'; font-size: 11px; order: 2; }
-@media (max-height: 340px) {
-  .cadence-sheet.settings-surface .cadence-sheet__panel { min-height: 200px; }
-  .cadence-sheet__detail { padding: 8px 12px; gap: 5px; }
-  .cadence-sheet__hero { padding: 20px 16px; }
-}
-@media (max-width: 500px) {
+@media (max-width: 400px) {
   .cadence-sheet.settings-surface .cadence-sheet__panel { display: flex; }
-  .cadence-sheet__hero { padding: 12px 20px; }
-  .cadence-sheet__hero-value { font-size: 48px; }
+  .cadence-sheet__hero { padding: 8px 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; align-items: center; }
+  .cadence-sheet__hero-value { grid-column: 2; grid-row: 1 / 3; margin: 0; font-size: 32px; }
+  .cadence-sheet__hero-value--empty { font-size: 14px; }
   .cadence-sheet__detail { max-height: 65dvh; }
 }
 @media (hover: hover) {

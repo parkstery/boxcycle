@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   computeLeaderboardLiveRank,
+  computeRideRankChangeLine,
   mergeLeaderboardLines,
   type LeaderboardLiveRow,
 } from "../../src/components/leaderboard/leaderboardLiveRank.ts";
@@ -94,5 +95,20 @@ describe("computeLeaderboardLiveRank", () => {
     assert.equal(r.rows.find((x) => x.isMe)?.valueKm, 16.6);
     assert.equal(r.gapToNextKm, 0.5);
     assert.equal(r.aheadRank, 1);
+  });
+});
+
+describe("결과 순위 인정 조건", () => {
+  it("센서 없는 주행도 테스트 조건에서 회원·게스트 결과에 포함하고 출시 조건에서는 제외한다", () => {
+    const rows = [row(1, "other", 10), row(2, "me", 9, true)];
+    assert.equal(computeRideRankChangeLine(rows, 9, 2, false, false, 2, null), null);
+    assert.equal(computeRideRankChangeLine(rows, 9, 2, false, false, 2, null, true), null);
+    assert.deepEqual(computeRideRankChangeLine(rows, 9, 2, false, false, 2, null, false), {
+      kind: "member-change", beforeRank: 2, afterRank: 1, delta: 1, gapToFirstKm: null,
+    });
+    assert.deepEqual(computeRideRankChangeLine(rows, 9, 2, false, true, null, 2, false), {
+      kind: "guest-projected", projectedRank: 1,
+    });
+    assert.equal(computeRideRankChangeLine(rows, 9, 0, false, false, 2, null, false), null);
   });
 });

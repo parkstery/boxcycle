@@ -184,7 +184,7 @@ test('10-25 Chief — 거리·방향 방향 전 수단 선택은 다음 방향 �
   await popup.getByRole('button',{name:'자동차 경로',exact:true}).click();
   await expect(page.locator('#runtime-state')).toContainText('"picks":2');
   await expect(page.locator('#runtime-state')).toContainText('"requestedProfile":"driving"');
-  // 두 탭의 맨 아래 줄은 같은 구조·같은 자리. 경로 삭제는 탭 줄(지시94).
+  // 두 탭의 맨 아래 줄은 같은 구조·같은 자리. 경로 삭제는 하단 주행 왼쪽(10-29 후속).
   const bottomRow=()=>popup.evaluate(el=>{
     const box=el.getBoundingClientRect();
     const row=el.querySelector('.map-view__pick-profile-bottom-row')!;
@@ -194,7 +194,7 @@ test('10-25 Chief — 거리·방향 방향 전 수단 선택은 다음 방향 �
     });
   });
   const distanceRow=await bottomRow();
-  expect(distanceRow.map(b=>b.label)).toEqual(['자동차 경로','자전거 경로','보행 경로','주행 시작']);
+  expect(distanceRow.map(b=>b.label)).toEqual(['자동차 경로','자전거 경로','보행 경로','경로 전체 삭제','주행 시작']);
   await popup.getByRole('tab',{name:'출발·도착',exact:true}).click();
   const locationRow=await bottomRow();
   expect(locationRow.map(b=>b.label)).toEqual(distanceRow.map(b=>b.label));

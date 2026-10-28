@@ -230,7 +230,7 @@ function LeaderboardPanel({ onClose, user, onRegister, onJoinTrail }: Omit<Leade
                   <span className="leaderboard-sheet__unranked-rank">순위 없음</span>
                   <p className="leaderboard-sheet__unranked-desc">
                     {board === "distance"
-                      ? `${PERIOD_LABELS[period].label} 센서 주행이 있으면 순위에 올라요`
+                      ? `${PERIOD_LABELS[period].label} ${data?.rule.sensorOnly === false ? "주행" : "센서 주행"}이 있으면 순위에 올라요`
                       : `${PERIOD_LABELS[period].label} 새 도로를 달리면 순위에 올라요`}
                   </p>
                 </div>
@@ -328,7 +328,7 @@ function LeaderboardPanel({ onClose, user, onRegister, onJoinTrail }: Omit<Leade
 
         <p className="leaderboard-sheet__footnote">
           {board === "distance"
-            ? "케이던스 센서 주행 · 월요일 0시 초기화"
+            ? `${data?.rule.sensorOnly === false ? "테스트 중 센서 없는 주행 포함" : "케이던스 센서 주행"} · 월요일 0시 초기화`
             : "새 도로 = 처음 달린 실제 도로 · 같은 길 반복은 세지 않음"}
         </p>
       </div>

@@ -66,7 +66,7 @@ test('실제 hook: 여기에서 계속→방향 자동생성·수단 변경·삭
   await expect(state).toContainText('"start":null');
   await expect(popup.getByRole('tab',{name:'거리·방향',exact:true})).toHaveAttribute('aria-selected','true');
   await expect(popup.getByRole('button',{name:'출발 지점으로 설정',exact:true})).toBeHidden();
-  await expect(popup.getByText('출발 위치를 지도에서 위치 길게 누르세요.',{exact:true})).toBeVisible();
+  await expect(popup.getByText('지도에서 출발 위치를 길게 누르세요',{exact:true})).toBeVisible();
   await popup.getByRole('tab',{name:'출발·도착',exact:true}).click();
   await expect(popup.getByRole('button',{name:'출발 지점으로 설정',exact:true})).toBeVisible();
   await popup.getByRole('tab',{name:'거리·방향',exact:true}).click();

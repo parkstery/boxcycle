@@ -447,7 +447,7 @@ export function buildPickPopup(deps: {
   const startRideBtn = document.createElement("button");
   startRideBtn.type = "button";
   /*
-   * 10-26 Chief(지시94) — 「경로 삭제」가 탭 줄로 올라가 맨 아래 줄 오른쪽 끝에 녹색 원 재생 버튼만 둔다.
+   * 10-29 Chief — 맨 아래 줄에 이동 수단·경로 삭제·녹색 원 재생 버튼을 둔다.
    * 알약 테두리·「주행」 글자 없음(화면 읽기 이름은 「주행 시작」). 두 탭 공통.
    */
   startRideBtn.className = "map-view__pick-btn map-view__pick-btn--start-ride map-view__pick-start-ride";
@@ -475,6 +475,7 @@ export function buildPickPopup(deps: {
     deps.onStartRide?.();
   };
   syncRideStart();
+  if (clearRouteBtn) profileBottomRow.append(clearRouteBtn);
   profileBottomRow.append(startRideBtn);
   profileSection.append(profileBottomRow);
   syncProfileUi();
@@ -882,7 +883,7 @@ export function buildPickPopup(deps: {
   // 출발점이 없는 상태에서만 필요한 조작 안내를 남긴다.
   const distanceStartHint = document.createElement("p");
   distanceStartHint.className = "map-view__pick-route-distance-prereq";
-  distanceStartHint.textContent = "출발 위치를 지도에서 위치 길게 누르세요.";
+  distanceStartHint.textContent = "지도에서 출발 위치를 길게 누르세요";
 
   autoRouteSection.append(
     distanceStartHint,
@@ -932,12 +933,11 @@ export function buildPickPopup(deps: {
     tabDistance.focus();
   });
   routePickTabs.append(tabLocation, tabDistance);
-  // 탭 + 경로 삭제 한 줄(지시94). 머리는 끌어 옮길 수 있지만 이 줄의 버튼은 눌러야 한다.
+  // 제목과 닫기 사이의 모드 버튼은 드래그 대신 클릭으로 동작한다.
   const tabsRow = document.createElement("div");
   tabsRow.className = "map-view__pick-tabs-row";
   tabsRow.addEventListener("pointerdown", (event) => event.stopPropagation());
   tabsRow.append(routePickTabs);
-  if (clearRouteBtn) tabsRow.append(clearRouteBtn);
 
   function syncRoutePickView() {
     const onLocation = routePickView === "location";
@@ -994,12 +994,15 @@ export function buildPickPopup(deps: {
   const dragHandle = document.createElement("div");
   dragHandle.className = "map-view__pick-drag-handle";
   /*
-   * headerRow: 제목(token) 한 줄 + [탭 · 경로 삭제] 한 줄(지시94). 닫기 ✕ 자리는 제목 padding.
+   * 제목·모드·닫기 한 줄. 과금 상태 안내는 필요할 때 아래 독립 행에 보존한다.
    */
   const headerRow = document.createElement("div");
   headerRow.className = "map-view__pick-header-row";
-  headerRow.append(tokenSection, tabsRow);
-  dragHandle.append(headerRow, addressEl);
+  const heading = document.createElement("h2");
+  heading.className = "map-view__pick-title";
+  heading.textContent = "경로";
+  headerRow.append(heading, tabsRow);
+  dragHandle.append(headerRow, tokenSection, addressEl);
 
   wrap.append(dragHandle, routeLocationView, autoRouteSection, profileSection);
 

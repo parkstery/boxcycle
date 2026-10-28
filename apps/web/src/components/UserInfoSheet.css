@@ -1,5 +1,5 @@
 /*
- * 계정 패널 — 리더보드와 같은 두 칸 판(화면 가운데 740×324).
+ * 계정 패널 — 리더보드와 같은 두 칸 판(화면 가운데 520×250).
  * 규칙(document/ops/20261023-leaderboard/design-system): 판 하나에 주인공 숫자 하나, 강조색은 #2457D6 하나,
  * 선은 줄 사이에만·판 안에 상자 없음, hover 는 @media (hover: hover) 안에만.
  * 폰트: 본문 Gothic A1, 숫자 Saira Condensed(index.html 에서 로드).
@@ -40,14 +40,14 @@
   position: relative;
   z-index: 1;
   box-sizing: border-box;
-  width: 740px;
+  width: 520px;
   max-width: calc(100vw - 1rem);
-  height: 324px;
+  height: 250px;
   max-height: calc(100vh - 1rem);
   max-height: calc(100dvh - 1rem);
   overflow: hidden;
   display: grid;
-  grid-template-columns: 268px minmax(0, 1fr);
+  grid-template-columns: 164px minmax(0, 1fr);
   border-radius: 18px;
   background: #FFFFFF;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
@@ -66,27 +66,29 @@
 /* ── 왼쪽 요약판 ───────────────────────────────────────────── */
 .user-info-sheet__left {
   background: #EEF3FC;
-  padding: 16px 20px 14px;
+  padding: 12px 10px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
   overflow: hidden;
 }
 
 .user-info-sheet__stats-head {
   display: flex;
-  gap: 4px;
+  gap: 2px;
   background: #FFFFFF;
   border-radius: 10px;
-  padding: 3px;
-  align-self: flex-start;
+  padding: 2px;
+  align-self: stretch;
 }
 
 .user-info-sheet__stats-tab {
   appearance: none;
-  height: 30px;
-  padding: 0 12px;
+  flex: 1;
+  min-width: 0;
+  height: 26px;
+  padding: 0 4px;
   border: 0;
   background: transparent;
   color: #4B5160;
@@ -131,18 +133,18 @@
 
 .user-info-sheet__stats-hero strong {
   font-family: 'Saira Condensed', sans-serif;
-  font-size: 72px;
+  font-size: 42px;
   font-weight: 700;
   line-height: 0.95;
 }
 
 .user-info-sheet__stats-hero strong.is-long {
-  font-size: 54px;
+  font-size: 34px;
 }
 
 .user-info-sheet__stats-hero span {
   font-family: 'Saira Condensed', sans-serif;
-  font-size: 22px;
+  font-size: 16px;
   font-weight: 600;
 }
 
@@ -235,7 +237,7 @@
 
 /* ── 오른쪽: 이름·닫기 + 줄 + 버튼 ─────────────────────────────── */
 .user-info-sheet__right {
-  padding: 12px 16px 12px 18px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -279,8 +281,8 @@
 .user-info-sheet__close {
   appearance: none;
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border: 0;
   background: #F2F3F5;
@@ -304,12 +306,12 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
+  gap: 6px;
   box-sizing: border-box;
   width: 100%;
-  min-height: 34px;
+  min-height: 29px;
   margin: 0;
-  padding: 7px 0;
+  padding: 4px 0;
   border: 0;
   border-bottom: 1px solid #EEF0F3;
   background: transparent;
@@ -576,8 +578,8 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  padding-top: 8px;
+  gap: 6px;
+  padding-top: 6px;
 }
 
 /* 보조 버튼 — 흰 바탕, line-control 테두리, 알약 */
@@ -708,8 +710,8 @@
   border-bottom: 1px solid #e8edf5;
 }
 .user-info-sheet__conquest-controls button {
-  min-height: 44px;
-  padding: 4px 12px;
+  min-height: 26px;
+  padding: 3px 8px;
   border: 0;
   border-radius: 9px;
   background: #f2f3f5;
@@ -720,3 +722,27 @@
 }
 .user-info-sheet__conquest-controls button[aria-pressed="true"] { background: #2455df; color: #fff; }
 .user-info-sheet__conquest-controls button:disabled { opacity: .45; cursor: default; }
+
+/* Chief 2026-10-29: 이전 축소 시안을 실제 계정·주행 기록 창에 적용. */
+.user-info-sheet__stats-tab { font-size: 11px; }
+.user-info-sheet__stats { font-size: 11px; line-height: 17px; }
+.user-info-sheet__stats .user-info-sheet__num { font-size: 15px; }
+.user-info-sheet__stats-meta { letter-spacing: .03em; }
+.user-info-sheet__row-k { font-size: 11px; line-height: 16px; }
+.user-info-sheet__row-v { font-size: 11px; line-height: 16px; }
+.user-info-sheet__row-v .user-info-sheet__num { font-size: 15px; }
+.user-info-sheet__last-ride .user-info-sheet__row-k { flex-wrap: wrap; gap: 0 4px; }
+.user-info-sheet__rows { overflow-y: auto; overflow-x: hidden; }
+.user-info-sheet__btn { height: 28px; padding: 0 10px; font-size: 11px; }
+.user-info-sheet__btn--primary { height: 32px; }
+.user-info-sheet__row-v.is-accent .user-info-sheet__num { font-size: 20px; }
+@media (max-width: 480px) {
+  .user-info-sheet { grid-template-columns: minmax(0, 1fr); height: auto; overflow-y: auto; }
+  .user-info-sheet__left { padding: 10px 12px; gap: 6px; overflow: visible; }
+  .user-info-sheet__stats-head { align-self: stretch; }
+  .user-info-sheet__summary { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; }
+  .user-info-sheet__stats-meta { grid-column: 1 / -1; }
+  .user-info-sheet__stats-hero { align-self: center; }
+  .user-info-sheet__right { overflow: visible; }
+  .user-info-sheet__rows { max-height: 45dvh; }
+}

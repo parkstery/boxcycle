@@ -86,6 +86,41 @@ for (const size of sizes) {
   });
 }
 
+test('경로명은 주소 텍스트처럼 보이고 모든 화면에서 저장 버튼 윗줄에 유지된다', async ({ page }) => {
+  for (const size of [{width:1770,height:800},{width:1015,height:458},{width:800,height:360},
+    {width:699,height:273},{width:667,height:300},{width:390,height:844}]) {
+    await page.setViewportSize(size);
+    await page.goto(`${preview}?state=summary`);
+    const sheet = page.getByRole('region', {name:'주행 결과',exact:true});
+    const input = sheet.getByRole('textbox', {name:'저장할 경로 이름',exact:true});
+    for (const name of ['일본 후쿠오카현 후쿠오카시', '일본 후쿠오카현 후쿠오카시 히가시구 箱崎ふ頭4丁目2番1']) {
+      await input.fill(name);
+      await input.press('Tab');
+      await expect(input).toHaveValue(name);
+      await expect(input).toHaveAttribute('title',name);
+      const geometry = await sheet.evaluate(el=>{
+        const input=el.querySelector('.ride-summary__input')!;
+        const row=el.querySelector('.ride-summary__form-btns')!;
+        const detail=el.querySelector('.ride-summary__col--detail')!;
+        const a=input.getBoundingClientRect(),b=row.getBoundingClientRect(),c=detail.getBoundingClientRect();
+        const style=getComputedStyle(input);
+        return {input:a.toJSON(),buttons:b.toJSON(),detail:c.toJSON(),border:style.borderTopWidth,
+          background:style.backgroundColor,radius:style.borderRadius,overflow:detail.scrollHeight-detail.clientHeight};
+      });
+      expect(geometry.input.bottom).toBeLessThanOrEqual(geometry.buttons.top+1);
+      expect(geometry.input.left).toBeGreaterThanOrEqual(geometry.detail.left-1);
+      expect(geometry.input.right).toBeLessThanOrEqual(geometry.detail.right+1);
+      expect(geometry.overflow).toBeLessThanOrEqual(1);
+      expect(geometry.border).toBe('0px');
+      expect(geometry.background).toBe('rgba(0, 0, 0, 0)');
+      expect(geometry.radius).toBe('0px');
+    }
+    await shot(page,'address-above-save',size.width,size.height);
+    await sheet.getByRole('button',{name:'내 경로로 저장',exact:true}).click();
+    await expect(sheet).not.toBeVisible();
+  }
+});
+
 test('주행 결과 저장 중·진행률 실패 문구와 닫기', async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 360 });
   await page.goto(`${preview}?state=summary&variant=saving`);

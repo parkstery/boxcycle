@@ -1,0 +1,439 @@
+[
+  {
+    "commit": "05010b08b94dcff88548f1389ed4d46305bb8702",
+    "metadata": "2026-10-20T00:00:00+09:00 index on main2: e64d9697 docs(ops): record verified Guest lifecycle production deployment",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "1e01a5bcd83ff087e92f98e9aa009196c65f639e",
+    "metadata": "2026-10-16T17:43:39+09:00 WIP on perf/map-cut-lab: 9acb5d6 docs: record the tick diet and pixel ratio cap deploys",
+    "changedProductFiles": [
+      "apps/web/src/components/map/MapView.tsx",
+      "apps/web/src/components/perfLab/PerfLabPanel.tsx",
+      "apps/web/src/features/map-overlays/RouteMinimap.tsx"
+    ],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "a008728099cc2ea918c51db1504f6313b6389600",
+    "metadata": "2026-10-22T05:40:05+09:00 On codex/map-route-long-press-20261022: codex-release18-preserve-existing-ops",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "2a095fd10f494ff0e2011c6d5f3c5a7ee76eea88",
+    "metadata": "2026-10-22T06:36:22+09:00 index on codex/route-panel-trim-20261022: 5b6cc8a4 fix(ui): remove redundant route panel explanations",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "740a973e9e1df9f375574e8ff4f4115ecad30c17",
+    "metadata": "2026-09-11T05:43:02+09:00 index on main2: 9dd6b06 docs(ride): 0A Ride 결과 데이터계약",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "82123ec7b582fd171ecd90be69601fefe75ac802",
+    "metadata": "2026-10-20T14:19:00+09:00 index on codex/new-road-display-release: 35280f30 fix(conquest): retain and restore latest-day new road highlights",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "af15ef7ccd8119374b8d03e262ddca3c9ffed672",
+    "metadata": "2026-08-16T03:34:17+09:00 docs(orchestrator): 1단계 자동감리 해결 보고서를 남긴다",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "33161fe03995028fb6a3898b1132019f617ded0d",
+    "metadata": "2026-10-03T05:28:00+09:00 index on codex/focus-read-spike: ae498b7 docs(ops): approve main2 traffic followup merge",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "fd1738c9ca4f52f3a9c4dbba2dd1105b55d118b1",
+    "metadata": "2026-10-20T00:51:13+09:00 WIP on main2: 35e0526c docs(ops): record centered location dialog deployment",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "781e0c5be795219584209685067d9ec12e1db8ab",
+    "metadata": "2026-10-03T05:28:00+09:00 On codex/focus-read-spike: wip-stale-focus-read-spike-before-TASK05",
+    "changedProductFiles": [
+      "apps/web/src/App.tsx",
+      "apps/web/src/features/map-overlays/useActivityWorldDataSync.ts",
+      "apps/web/src/features/map-overlays/useAppMapOverlays.ts",
+      "apps/web/src/hooks/useActivityWorldAdaptivePoll.ts",
+      "apps/web/src/hooks/usePublicationCatalogHub.ts",
+      "apps/web/src/hooks/useRouteActivity.ts",
+      "apps/web/src/main.tsx"
+    ],
+    "productBlobsAbsentFromReachableHistory": [
+      "apps/web/src/App.tsx",
+      "apps/web/src/features/map-overlays/useActivityWorldDataSync.ts",
+      "apps/web/src/features/map-overlays/useAppMapOverlays.ts",
+      "apps/web/src/hooks/useActivityWorldAdaptivePoll.ts",
+      "apps/web/src/hooks/usePublicationCatalogHub.ts",
+      "apps/web/src/hooks/useRouteActivity.ts",
+      "apps/web/src/main.tsx"
+    ]
+  },
+  {
+    "commit": "732491ee8cc68c27053324a45f3cf015ab859c76",
+    "metadata": "2026-10-15T14:31:24+09:00 index on main2: f0bd27c docs(ops): review ride dashboard visual refresh",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "ec2714aeceae5733bdbc2ba67fcbb1a3515c9602",
+    "metadata": "2026-10-01T20:06:32+09:00 untracked files on codex/public-trail-traffic: beb22b1 Stabilize TASK-33 SHA report and record TASK-34 post-commit verify.",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "a8328dc61fcc46b746098c1482c8e7337d702cd8",
+    "metadata": "2026-09-07T13:26:04+09:00 docs(ride): RTW 거리 종류 · 코드 표현 카탈로그 (2026-09-07)",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "9b3423bc95b6cb184f58bcd98e281f3551df396f",
+    "metadata": "2026-10-22T06:36:22+09:00 On codex/route-panel-trim-20261022: codex-panel20-preserve-existing-ops",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "f237d8a2db0437e440dda9d257fd17e9901da528",
+    "metadata": "2026-10-20T00:51:13+09:00 index on main2: 35e0526c docs(ops): record centered location dialog deployment",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "f13895d32e364c2e1e0e1ecb3d7e308d0a2c30e3",
+    "metadata": "2026-09-10T21:36:25+09:00 index on (no branch): c23c65a docs(0B): clarify RC13 is §6 C13 evidence; CF-LIVE is not C14",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "1a3927781dc8569eb46ca21f2145b823660436c7",
+    "metadata": "2026-08-13T05:48:02+09:00 fix(orchestrator): 실행 상한과 lock 소유권으로 중단 복구를 보장한다",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "ff3bd3b74aed7fc0bc154a21da843d6643150ed7",
+    "metadata": "2026-10-20T14:19:00+09:00 WIP on main2: 6952a279 feat(profile): expand weight slider and fitness controls",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "714094bf49eda2e58c14ce82c0c32326171a1fc1",
+    "metadata": "2026-10-16T17:43:39+09:00 untracked files on perf/map-cut-lab: 9acb5d6 docs: record the tick diet and pixel ratio cap deploys",
+    "changedProductFiles": [
+      "apps/web/src/lib/map/mapCut.ts"
+    ],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "b949acfc87e38d99a402ec2ba110a590321141af",
+    "metadata": "2026-10-20T14:19:00+09:00 index on main2: 6952a279 feat(profile): expand weight slider and fitness controls",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "4c5e147aad1bfba042f8e7710a5435d071227259",
+    "metadata": "2026-10-17T02:20:47+09:00 WIP on chore/dev-byproducts: f2007e7 docs(ops): 개발 부산물 관리 규칙 + T1 삭제 지시, 10-16 묶음 ops 목록 등록",
+    "changedProductFiles": [
+      "apps/web/src/components/map/MapView.tsx",
+      "apps/web/src/components/map/TickTestOffBadge.tsx",
+      "apps/web/src/components/map/rideCameraFollow.ts",
+      "apps/web/src/components/ride/LocalFirstEntryCard.tsx",
+      "apps/web/src/lib/debug/localFirstGeoProbe.ts",
+      "apps/web/src/lib/debug/peerSmoothnessProbe.ts",
+      "apps/web/src/lib/debug/tickTestSwitches.ts",
+      "apps/web/src/lib/peerMotion/PeerMotionRegistry.ts",
+      "apps/web/src/lib/weather/openMeteoWeather.ts"
+    ],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "a464bd5b7c80cd5e824d966d1f7a983172d88800",
+    "metadata": "2026-10-20T00:00:00+09:00 WIP on main2: e64d9697 docs(ops): record verified Guest lifecycle production deployment",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "2767fb4823ef279cc8c64e12b5d3a42bc50b7704",
+    "metadata": "2026-10-16T08:05:24+09:00 Merge branch 'feat/rider14-lod2' into HEAD",
+    "changedProductFiles": [
+      "apps/web/src/lib/map/riderPreservedLayer.ts",
+      "apps/web/src/lib/rider/riderDetailLod.ts",
+      "apps/web/src/lib/riderPrototype/config.ts",
+      "apps/web/src/lib/riderPrototype/preservedRiderStatic.ts"
+    ],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "ab6fc1dfec4a8729dda0554a55ffedd188004884",
+    "metadata": "2026-10-19T23:19:33+09:00 WIP on main2: b6c99179 fix(web): 위치 선택 버튼 문구를 두 줄로 정리",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "98723ab48be0d7f4385501794bce9b95961ad42e",
+    "metadata": "2026-09-28T14:32:51+09:00 refactor: 도메인 경계를 포트·재배정으로 바로잡는다 — 방향 위반 4 → 0",
+    "changedProductFiles": [
+      "apps/web/src/lib/map/riderPreservedLayer.ts",
+      "apps/web/src/lib/riderPrototype/riderLightRig.ts",
+      "apps/web/src/lib/route/routeIdentityPort.ts",
+      "apps/web/src/lib/sensor/crankRpm.ts"
+    ],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "e0738e99b44d0dcec3d7912a972c902e68e3a97e",
+    "metadata": "2026-10-22T05:40:05+09:00 index on codex/map-route-long-press-20261022: e7fd5acf test(map): align direction pick contract with gesture callback",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "24789f324b660c3328c6ee54b1999874bd525ea5",
+    "metadata": "2026-10-20T14:19:00+09:00 On codex/new-road-display-release: new-road-release-preserve-ops",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "4382d70dbbd96c0b0c9fe4ea8a06786dc341698e",
+    "metadata": "2026-10-22T15:18:46+09:00 chore(route): register circle attention domain and record git status",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "4e83561a4875070e07b56affec55529f6df62e44",
+    "metadata": "2026-09-11T05:43:02+09:00 On main2: wip-before-main2-sync-260911",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "098b76c75e5157bcc44572e7a9c5bdfc4653ad50",
+    "metadata": "2026-09-11T05:43:02+09:00 untracked files on main2: 9dd6b06 docs(ride): 0A Ride 결과 데이터계약",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "cf8c5c82858ba7c2eda181ff4c5d9a4f9f201532",
+    "metadata": "2026-10-20T18:20:33+09:00 WIP on main2: 6cd54e27 Merge latest-day new road display fixes",
+    "changedProductFiles": [
+      "apps/web/src/components/maphud/CadenceHudChip.css",
+      "apps/web/src/components/maphud/CadenceHudChip.tsx",
+      "apps/web/src/components/maphud/MapHud.css",
+      "apps/web/src/components/route-dock/RouteDock.css",
+      "apps/web/src/components/route-dock/RouteDock.tsx",
+      "apps/web/src/tokens.css"
+    ],
+    "productBlobsAbsentFromReachableHistory": [
+      "apps/web/src/components/maphud/CadenceHudChip.css",
+      "apps/web/src/components/maphud/MapHud.css",
+      "apps/web/src/components/route-dock/RouteDock.css",
+      "apps/web/src/components/route-dock/RouteDock.tsx"
+    ]
+  },
+  {
+    "commit": "238ea25027b858bdcb28d2c37a1170a3bd22abc7",
+    "metadata": "2026-09-10T21:36:25+09:00 untracked files on (no branch): c23c65a docs(0B): clarify RC13 is §6 C13 evidence; CF-LIVE is not C14",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "519f76a13e9e89adad48d4776212ab79148023cd",
+    "metadata": "2026-09-11T05:06:45+09:00 WIP on fix/live-new-road-hud-attempt-1: dfd531d test(conquest): A2/A3/A5 live new-road unit coverage",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "dea9e8cab4e23a19a2159ade76c40f563c81e640",
+    "metadata": "2026-10-01T20:06:32+09:00 index on codex/public-trail-traffic: beb22b1 Stabilize TASK-33 SHA report and record TASK-34 post-commit verify.",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "16af9fc7d8bd66d5f4c012f40fb0bd71e95a1670",
+    "metadata": "2026-10-19T23:19:33+09:00 index on main2: b6c99179 fix(web): 위치 선택 버튼 문구를 두 줄로 정리",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "5faf80cfaa92d5e8490e32a0cc89c458e285ad07",
+    "metadata": "2026-08-14T05:34:12+09:00 feat(orchestrator): RTW Channel 로 실행 중 Claude Sync 감리를 자동 기동한다",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "adb5e85f2745bb53d716caf8c4ddbc06fc5c140b",
+    "metadata": "2026-10-17T02:20:47+09:00 index on chore/dev-byproducts: f2007e7 docs(ops): 개발 부산물 관리 규칙 + T1 삭제 지시, 10-16 묶음 ops 목록 등록",
+    "changedProductFiles": [
+      "apps/web/src/components/map/TickTestOffBadge.tsx",
+      "apps/web/src/lib/debug/localFirstGeoProbe.ts",
+      "apps/web/src/lib/debug/peerSmoothnessProbe.ts",
+      "apps/web/src/lib/debug/tickTestSwitches.ts"
+    ],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "cbba286c909adfc271d7e849dae238cc5082e520",
+    "metadata": "2026-10-20T00:33:25+09:00 index on main2: f6b4fd29 docs(ops): record exit intro deployment and Guest reuse verification",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "61c2613083046e988f392a4091d634634f38f77c",
+    "metadata": "2026-10-03T05:28:00+09:00 untracked files on codex/focus-read-spike: ae498b7 docs(ops): approve main2 traffic followup merge",
+    "changedProductFiles": [
+      "apps/web/src/lib/activity/visibilityResumePolicy.ts",
+      "apps/web/src/lib/debug/focusReadFetchMeters.ts",
+      "apps/web/src/lib/debug/installFocusReadFetchDebug.ts"
+    ],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "6cc532e18401c0d9b7401d79a6baeafb03dcf702",
+    "metadata": "2026-08-16T02:38:37+09:00 fix(orchestrator): ACK 뒤 감리가 끊겨도 자동으로 판정까지 복구한다",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "a4c61dddf1e15357276a25f833c9500c689e2e2b",
+    "metadata": "2026-09-11T05:06:45+09:00 index on fix/live-new-road-hud-attempt-1: dfd531d test(conquest): A2/A3/A5 live new-road unit coverage",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "90d2d8adda6036ecaf789324127ba350680561e6",
+    "metadata": "2026-10-20T00:33:25+09:00 WIP on main2: f6b4fd29 docs(ops): record exit intro deployment and Guest reuse verification",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "dfd325dab1b7090c798c0a51852446636c6ff87a",
+    "metadata": "2026-10-19T23:09:38+09:00 feat(auth): preserve Guest sessions and deploy lifecycle guards",
+    "changedProductFiles": [
+      "apps/web/src/App.tsx",
+      "apps/web/src/components/RotateOverlay.tsx",
+      "apps/web/src/components/UserInfoSheet.tsx",
+      "apps/web/src/components/auth/AppIntroScreen.css",
+      "apps/web/src/components/auth/AppIntroScreen.tsx",
+      "apps/web/src/components/auth/AuthExpiryNotice.tsx",
+      "apps/web/src/components/auth/AuthGateCard.css",
+      "apps/web/src/components/auth/AuthGateCard.tsx",
+      "apps/web/src/components/auth/AuthSessionGate.tsx",
+      "apps/web/src/components/auth/EntryLocationDialog.css",
+      "apps/web/src/components/auth/EntryLocationDialog.tsx",
+      "apps/web/src/components/auth/GuestEntryCard.css",
+      "apps/web/src/components/auth/GuestEntryCard.tsx",
+      "apps/web/src/components/map/MapView.tsx",
+      "apps/web/src/components/map/MapViewSheet.tsx",
+      "apps/web/src/components/map/rideCameraFollow.ts",
+      "apps/web/src/components/maphud/MapHud.tsx",
+      "apps/web/src/components/ride/LocalFirstEntryCard.tsx",
+      "apps/web/src/hooks/useAppAuth.ts",
+      "apps/web/src/hooks/useEntryLocation.ts",
+      "apps/web/src/lib/account/accountDeletion.ts",
+      "apps/web/src/lib/account/repo/firestoreRouteToken.ts",
+      "apps/web/src/lib/firebase/app.ts",
+      "apps/web/src/lib/geo/entryLocation.ts",
+      "apps/web/src/lib/identity/authPersistence.ts",
+      "apps/web/src/lib/identity/authRestore.ts",
+      "apps/web/src/lib/identity/guestActivity.ts",
+      "apps/web/src/lib/identity/guestGoogleLink.ts",
+      "apps/web/src/lib/identity/guestResume.ts",
+      "apps/web/src/lib/identity/lastVerifiedGuest.ts",
+      "apps/web/src/lib/identity/repo/guestLifecycleApi.ts",
+      "apps/web/src/lib/identity/uidLocalCache.ts",
+      "apps/web/src/lib/map/mapBootCenter.ts",
+      "apps/web/src/lib/map/rtwMapConfig.ts",
+      "apps/web/src/lib/storage/appSessionKeys.ts",
+      "functions/src/accountDeletionCore.test.ts",
+      "functions/src/accountDeletionCore.ts",
+      "functions/src/conquestOnRideCreated.ts",
+      "functions/src/distanceAutoRouteHttp.ts",
+      "functions/src/guestAdminFakeFirestore.ts",
+      "functions/src/guestLifecycleAdmin.ts",
+      "functions/src/guestLifecycleCore.test.ts",
+      "functions/src/guestLifecycleCore.ts",
+      "functions/src/guestLifecycleDelete.test.ts",
+      "functions/src/guestLifecycleGuard.test.ts",
+      "functions/src/guestLifecycleGuard.ts",
+      "functions/src/guestLifecycleHandlers.test.ts",
+      "functions/src/guestLifecycleHandlers.ts",
+      "functions/src/guestLifecycleHttp.ts",
+      "functions/src/guestLifecycleHttpGate.test.ts",
+      "functions/src/guestLifecycleScheduled.ts",
+      "functions/src/guestLifecycleTriggersGuard.test.ts",
+      "functions/src/index.ts",
+      "functions/src/mileageOnRideCreated.ts",
+      "functions/src/purgeGuestUsersCore.ts",
+      "functions/src/routeAutoRouteCacheDeletion.test.ts",
+      "functions/src/routeTokenCore.ts",
+      "functions/src/routeTokenEnsureOnboarding.ts",
+      "functions/src/routeTokenOnRideCreated.ts",
+      "functions/src/tierQuotaHttp.ts",
+      "functions/src/userTierCore.ts"
+    ],
+    "productBlobsAbsentFromReachableHistory": [
+      "functions/src/guestLifecycleHttp.ts"
+    ]
+  },
+  {
+    "commit": "dfd531d115ca5df72432fa182bee814a05f48bf1",
+    "metadata": "2026-09-11T05:03:38+09:00 test(conquest): A2/A3/A5 live new-road unit coverage",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "9dd6b06480eedb51162d818d6b5c6175de611e41",
+    "metadata": "2026-09-07T14:35:09+09:00 docs(ride): 0A Ride 결과 데이터계약",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "2cdd283fe6446a1f516f2347abe5d0e172e09a56",
+    "metadata": "2026-09-07T12:51:37+09:00 docs(ride): Ride state inventory + SoT (2026-09-07)",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "8cea951362397a5f77fc0da51a8901b81d60ac03",
+    "metadata": "2026-10-16T17:43:39+09:00 index on perf/map-cut-lab: 9acb5d6 docs: record the tick diet and pixel ratio cap deploys",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "58ecf4bef93d30f751772bfa6de794134a39a41d",
+    "metadata": "2026-10-15T14:31:24+09:00 WIP on main2: f0bd27c docs(ops): review ride dashboard visual refresh",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "acf2c4990d814fa0dc10f00996f2bdec0d5074ac",
+    "metadata": "2026-08-12T22:17:53+09:00 feat(orchestrator): 대상 저장소를 읽기 전용으로 감리하는 shadow 러너",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "61fbc978afbf351ce1e81315a9c687ba114617ab",
+    "metadata": "2026-09-10T21:36:25+09:00 On (no branch): pre-stage1 local",
+    "changedProductFiles": [],
+    "productBlobsAbsentFromReachableHistory": []
+  },
+  {
+    "commit": "b9fe54e221b3002ee7b935ac5780992de3685e97",
+    "metadata": "2026-10-01T20:06:32+09:00 On codex/public-trail-traffic: preserve-public-trail-traffic-worktree-20261001",
+    "changedProductFiles": [
+      "apps/web/src/boxcycle-theme.css",
+      "apps/web/src/components/maphud/MapHud.css",
+      "apps/web/src/components/maphud/MapHud.tsx"
+    ],
+    "productBlobsAbsentFromReachableHistory": []
+  }
+]

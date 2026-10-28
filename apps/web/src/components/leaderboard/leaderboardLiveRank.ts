@@ -101,7 +101,7 @@ function rankRows(rows: InternalRow[]): LeaderboardLiveRow[] {
 /**
  * @param inputRows — `top` ∪ `around` (중복 제거된 줄)
  * @param myBaseKm — 주행 시작 시점 내 주간 거리(km)
- * @param addedKm — 이번 세션에서 더할 km(센서 주행만 >0 으로 넘긴다)
+ * @param addedKm — 이번 세션에서 더할 km(서버 인정 조건에 맞는 주행만 >0 으로 넘긴다)
  */
 export function computeLeaderboardLiveRank(
   inputRows: LeaderboardLiveRow[],
@@ -180,7 +180,7 @@ export type RideRankChangeLine =
       projectedRank: number;
     };
 
-/** 주행 결과 한 줄 — 센서·데이터 없으면 null */
+/** 주행 결과 한 줄 — 서버 인정 조건·거리·데이터를 확인한다. */
 export function computeRideRankChangeLine(
   inputRows: LeaderboardLiveRow[],
   myBaseKm: number,
@@ -189,8 +189,9 @@ export function computeRideRankChangeLine(
   isGuest: boolean,
   beforeRank: number | null,
   beforeProjectedRank: number | null,
+  sensorOnly = true,
 ): RideRankChangeLine | null {
-  if (!pedalQualified || sessionKm <= 0) return null;
+  if ((sensorOnly && !pedalQualified) || sessionKm <= 0) return null;
   const after = computeLeaderboardLiveRank(inputRows, myBaseKm, sessionKm);
   if (isGuest) {
     const projected = after.rank ?? beforeProjectedRank;

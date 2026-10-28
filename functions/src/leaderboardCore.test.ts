@@ -16,7 +16,7 @@ import {
 /**
  * 리더보드 집계 계약.
  *
- * 무엇을 막는가 — 이 계산이 틀리면 에러가 나지 않는다. 체험 속도 주행이 순위에 섞이거나, 주 경계가
+ * 무엇을 막는가 — 이 계산이 틀리면 에러가 나지 않는다. 센서 인정 조건이 잘못 적용되거나, 주 경계가
  * 하루 밀리거나, 응답에 uid 가 새도 화면은 멀쩡히 뜬다.
  */
 
@@ -46,6 +46,7 @@ function snapshot(
     board?: LeaderboardBoard;
     period?: LeaderboardPeriod;
     nowMs?: number;
+    sensorOnly?: boolean;
   } = {},
 ): BoardSnapshot {
   const uids = new Set(rows.map((r) => r.uid));
@@ -56,6 +57,7 @@ function snapshot(
     board: opts.board ?? "distance",
     period: opts.period ?? "all",
     nowMs: opts.nowMs ?? NOW,
+    sensorOnly: opts.sensorOnly,
   });
 }
 
@@ -109,14 +111,29 @@ describe("periodStartMs — KST 경계", () => {
 });
 
 describe("computeBoardSnapshot — 집계 규칙", () => {
-  it("t0 와 tier 없는 주행은 값에 들어가지 않는다", () => {
+  it("출시 조건으로 복원하면 t0 와 tier 없는 주행은 값에 들어가지 않는다", () => {
     const s = snapshot([
       ride("a", { tier: "t1", distanceMeters: 5000 }),
       ride("a", { tier: "t0", distanceMeters: 99_000 }),
       ride("a", { tier: null, distanceMeters: 99_000 }),
       ride("b", { tier: "t0" }),
-    ]);
+    ], { sensorOnly: true });
     assert.deepEqual(s.entries, [{ uid: "a", meters: 5000, member: true }]);
+  });
+
+  it("테스트 중 t0·t1을 합산하고 미처리·알 수 없는 tier는 제외한다", () => {
+    const rows = [ride("a", { distanceMeters: 1000, newMeters: 100 }),
+      ride("a", { tier: "t0", distanceMeters: 2000, newMeters: 200 }),
+      ride("manual", { tier: "t0", distanceMeters: 4000, newMeters: 400 }),
+      ride("pending", { tier: null }), ride("unknown", { tier: "other" })];
+    for (const board of ["distance", "pioneer"] as const) {
+      const s = snapshot(rows, { board, sensorOnly: false });
+      assert.deepEqual(s.entries.map(e => e.uid), ["a", "manual"]);
+      assert.equal(s.entries[0]!.meters, board === "distance" ? 3000 : 300);
+      const response = respond(s, "manual");
+      assert.equal(response.me.status, "ranked");
+      assert.equal(response.rule.sensorOnly, false);
+    }
   });
 
   it("distance 는 distanceMeters 합, pioneer 는 newMeters 합", () => {
@@ -191,7 +208,7 @@ describe("순위·동점·회원/게스트", () => {
   });
 
   it("회원인데 기간 안 t1 주행이 없으면 unranked", () => {
-    const s = snapshot([ride("a"), ride("me", { tier: "t0" })]);
+    const s = snapshot([ride("a"), ride("me", { tier: "t0" })], { sensorOnly: true });
     const r = respond(s, "me");
     assert.equal(r.me.status, "unranked");
     assert.equal(r.me.rank, null);
@@ -254,7 +271,7 @@ describe("pioneer uses", () => {
         ride("b", { publicationId: "pub-other", distanceMeters: 99_000 }), // 남의 퍼블릭
         ride("c", { publicationId: "pub-mine", distanceMeters: 77_000, tier: "t0" }), // t0 제외
       ],
-      { board: "pioneer", owners },
+      { board: "pioneer", owners, sensorOnly: true },
     );
     const r = respond(s, "me");
     assert.deepEqual(r.me.uses, { riders: 2, km: 42 });
@@ -330,6 +347,14 @@ describe("캐시", () => {
     });
     const back = cacheDataToSnapshot(snapshotToCacheData(s), "pioneer", "week");
     assert.deepEqual(back, s);
+  });
+
+  it("이전 버전·다른 센서 조건의 캐시는 재사용하지 않는다", () => {
+    const s = snapshot([ride("manual", { tier: "t0" })]);
+    const cache = snapshotToCacheData(s);
+    assert.equal(cacheDataToSnapshot({ ...cache, v: 1 }, "distance", "all"), null);
+    assert.equal(cacheDataToSnapshot({ ...cache, sensorOnly: !cache.sensorOnly }, "distance", "all"), null);
+    assert.equal(respond(snapshot([ride("a")], { sensorOnly: true }), "a").rule.sensorOnly, true);
   });
 
   it("5분 안이면 신선, 5분이 지나거나 주가 바뀌면 낡음, board/period 가 다르면 버림", () => {
