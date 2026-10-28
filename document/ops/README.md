@@ -1,3 +1,5 @@
+2026-10-29 **경로 생성 창 축소 / Codex 재개 독립검증 PASS**: Cursor 구현완료 exit0·기존 Claude03검증/1fda2af0커밋 보존. Codex tsc·selector20·핵심Playwright8건(42초)·dep/tidy/diff PASS, 4가로228폭/50·46·30버튼/기능/실제MapView경계·새캡처 눈검수. [결과](20261029-route-popup-compact/04-review-codex.md). 첫wrapper검색명령 실패→직접실행 통과; Ego기존공간없음은Playwright전환. 실폰·실Firebase·emulator요구1건 미실행. 이세션 커밋푸시배포실행없음·5031유지. 확인 C:\20.HDev\boxcycle\apps\web → npm run dev:localhost -- --port 5031(기존서버재사용) → http://localhost:5031/ 새로고침·지도길게누름·아이콘탭/거리칩확인.
+
 2026-10-28 **접힌 RouteDock LED 3배 / LOCAL_VERIFIED·미배포**: Cursor CSS2줄로지름8→24px, Codex독립4가로×idle/riding8상태24×24실측·내부7px보존·탭PASS, sensor-dock9PASS. [결과·감리](20261028-sensor-dock/07-result-led-size.md). 기존5031유지·커밋푸시배포없음. 확인 C:\20.HDev\boxcycle\apps\web → 서버없으면 npm run dev:localhost -- --port 5031 → http://localhost:5031/ 새로고침·접힌LED탭.
 
 2026-10-28 **접힌 LED 24px / Cursor구현·Codex감리대기·미배포**: [결과](20261028-sensor-dock/07-result-led-size.md). `.route-dock__led` 8→24px 두 줄. 5031 HTTP200. 전수시험미실행.
