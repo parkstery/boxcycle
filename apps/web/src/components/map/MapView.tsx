@@ -1569,7 +1569,7 @@ export function MapView({
         closeOnClick: false,
         closeOnMove: false,
         className: "map-view__pick-popup",
-        maxWidth: "min(300px, calc(100vw - 1.5rem))",
+        maxWidth: "min(228px, calc(100vw - 1.5rem))",
         anchor,
         offset: 18,
       })

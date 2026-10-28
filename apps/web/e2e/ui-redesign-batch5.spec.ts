@@ -74,13 +74,20 @@ for (const size of sizes) {
   }
 }
 
-test('Chief 고정13 — Start · +WP · End와 Start·End 탭', async ({ page }) => {
+test('Chief 고정13 — Start · +WP · End와 아이콘 탭', async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 360 });
   await page.goto(`${fixtureUrl}?state=location`);
   const popup = pick(page);
   await expect(popup.locator('.map-view__pick-actions--pin-row button')).toHaveText(['Start', '+WP', 'End']);
-  await expect(popup.getByRole('tab', { name: '출발·도착', exact: true })).toHaveAttribute('aria-selected', 'true');
-  await expect(popup.getByRole('tab', { name: '출발·도착', exact: true })).toHaveText('Start·End');
+  const locationTab = popup.getByRole('tab', { name: '출발·도착', exact: true });
+  const distanceTab = popup.getByRole('tab', { name: '거리·방향', exact: true });
+  await expect(locationTab).toHaveAttribute('aria-selected', 'true');
+  await expect(locationTab).toHaveAttribute('title', '출발·도착');
+  await expect(distanceTab).toHaveAttribute('title', '거리·방향');
+  await expect(locationTab.locator('svg')).toHaveCount(1);
+  await expect(distanceTab.locator('svg')).toHaveCount(2);
+  await expect(locationTab).not.toHaveText(/Start|End|출발|도착/);
+  await expect(distanceTab).not.toHaveText(/거리|방향/);
 });
 
 test('거리 탭 — ±·숫자·프리셋 칩·파란 거리 숫자', async ({ page }) => {
@@ -217,6 +224,146 @@ test('준비 전 재생 비활성·키보드 탭 전환·거리 숫자 입력', 
   await expect(number).toHaveValue('7.5');
   await expect(pickHost(page)).toHaveAttribute('data-start-ride-calls', '0');
   await expect.poll(async () => Number(await pickHost(page).getAttribute('data-arm-direction-calls'))).toBeGreaterThan(0);
+});
+
+const compactSizes = [
+  { width: 800, height: 360 },
+  { width: 736, height: 300 },
+  { width: 699, height: 273 },
+  { width: 667, height: 300 },
+];
+
+test('승인 시안 — 두 모드 228·50/46/30·한줄 비겹침', async ({ page }) => {
+  for (const size of compactSizes) {
+    for (const state of ['location', 'distance', 'no-start'] as const) {
+      await page.setViewportSize(size);
+      await page.goto(`${fixtureUrl}?state=${state}`);
+      await expect(pickHost(page)).toHaveAttribute('data-fixture-ready', '1');
+      const popup = pick(page);
+      await expect(popup).toBeVisible();
+      if (state === 'no-start') {
+        await expect(pickHost(page).locator('.map-view__pick-popup')).toBeVisible();
+      } else {
+        await expect(pickHost(page).locator('.map-view__pick-dock-panel')).toBeVisible();
+      }
+      const geom = await popup.evaluate((el) => {
+        const rect = (node: Element | null) => {
+          if (!node) return null;
+          const b = node.getBoundingClientRect();
+          return { x: b.x, y: b.y, w: b.width, h: b.height, r: b.right, btm: b.bottom };
+        };
+        const overlap = (a: DOMRect, b: DOMRect) =>
+          a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+        const sizeOf = (n: HTMLElement) => ({ w: n.offsetWidth, h: n.offsetHeight });
+        const tabs = [...el.querySelectorAll<HTMLElement>('.map-view__pick-route-tab')].map(sizeOf);
+        const pins = [...el.querySelectorAll<HTMLElement>('.map-view__pick-actions--pin-row .map-view__pick-btn')].map(sizeOf);
+        const chips = [...el.querySelectorAll<HTMLElement>('.map-view__pick-distance-chip')].map(sizeOf);
+        const clear = el.querySelector<HTMLElement>('.map-view__pick-btn--clear-route')!.getBoundingClientRect();
+        const tabsBox = el.querySelector<HTMLElement>('.map-view__pick-route-tabs')!.getBoundingClientRect();
+        const tabsRow = el.querySelector<HTMLElement>('.map-view__pick-tabs-row')!.getBoundingClientRect();
+        const footer = el.querySelector<HTMLElement>('.map-view__pick-profile-bottom-row')!.getBoundingClientRect();
+        const profiles = [...el.querySelectorAll<HTMLElement>('.map-view__pick-btn--profile')].map(sizeOf);
+        const playEl = el.querySelector<HTMLElement>('.map-view__pick-btn--start-ride')!;
+        const playBox = playEl.getBoundingClientRect();
+        const play = { w: playEl.offsetWidth, h: playEl.offsetHeight, r: playBox.right };
+        const distanceRow = el.querySelector<HTMLElement>('.map-view__pick-distance-row');
+        const caption = el.querySelector<HTMLElement>('.map-view__pick-distance-caption');
+        const minus = el.querySelector<HTMLElement>('.map-view__pick-distance-step--minus');
+        const number = el.querySelector<HTMLElement>('.map-view__pick-distance-number');
+        const unit = el.querySelector<HTMLElement>('.map-view__pick-distance-unit');
+        const plus = el.querySelector<HTMLElement>('.map-view__pick-distance-step--plus');
+        return {
+          panel: rect(el)!,
+          overflowX: el.scrollWidth - el.clientWidth,
+          tabs,
+          pins,
+          chips,
+          clearInTabs: !!el.querySelector('.map-view__pick-tabs-row .map-view__pick-btn--clear-route'),
+          tabsClearOverlap: overlap(tabsBox, clear),
+          tabsRowWrap: tabsRow.height > 40,
+          footerWrap: footer.height > 40,
+          profiles,
+          play,
+          footerRight: footer.right,
+          distanceVisible: distanceRow ? getComputedStyle(distanceRow).display !== 'none' && !(distanceRow as HTMLElement).hidden : false,
+          distanceRow: distanceRow && !distanceRow.hidden ? {
+            row: rect(distanceRow),
+            caption: rect(caption),
+            minus: rect(minus),
+            number: rect(number),
+            unit: rect(unit),
+            plus: rect(plus),
+          } : null,
+        };
+      });
+      expect(Math.abs(geom.panel.w - 228), `${state} ${size.width} 폭`).toBeLessThanOrEqual(1);
+      expect(geom.overflowX, `${state} ${size.width} overflow`).toBeLessThanOrEqual(1);
+      expect(geom.tabs).toHaveLength(2);
+      expect(geom.tabs.every((t) => Math.abs(t.w - 50) <= 1 && Math.abs(t.h - 28) <= 1)).toBe(true);
+      expect(geom.clearInTabs).toBe(true);
+      expect(geom.tabsClearOverlap).toBe(false);
+      expect(geom.tabsRowWrap).toBe(false);
+      expect(geom.footerWrap).toBe(false);
+      expect(geom.profiles, `${state} ${size.width} 수단 ${JSON.stringify(geom.profiles)}`).toHaveLength(3);
+      expect(geom.profiles.every((p) => Math.abs(p.w - 28) <= 1 && Math.abs(p.h - 28) <= 1), `${state} ${size.width} 수단 ${JSON.stringify(geom.profiles)}`).toBe(true);
+      expect(Math.abs(geom.play.w - 32) <= 1 && Math.abs(geom.play.h - 32) <= 1).toBe(true);
+      expect(geom.footerRight - geom.play.r).toBeLessThan(1);
+      if (state !== 'distance') {
+        expect(geom.pins).toHaveLength(3);
+        expect(geom.pins.every((p) => Math.abs(p.w - 46) <= 1 && Math.abs(p.h - 28) <= 1)).toBe(true);
+      } else {
+        expect(geom.chips).toHaveLength(5);
+        expect(geom.chips.every((c) => Math.abs(c.w - 30) <= 1 && Math.abs(c.h - 28) <= 1)).toBe(true);
+        expect(geom.distanceVisible).toBe(true);
+        const row = geom.distanceRow!;
+        expect(row.row!.w).toBeLessThanOrEqual(198 + 1);
+        expect(row.caption!.btm - 1).toBeLessThanOrEqual(row.minus!.y + row.minus!.h);
+        expect(row.minus!.r).toBeLessThanOrEqual(row.number!.x + 1);
+        expect(row.number!.r).toBeLessThanOrEqual(row.unit!.x + 1);
+        expect(row.unit!.r).toBeLessThanOrEqual(row.plus!.x + 1);
+      }
+      await shot(page, `compact-${state}`, size.width, size.height);
+    }
+  }
+});
+
+test('긴 주소·큰 거리 입력은 228 안에서 줄바꿈·서식 유지', async ({ page }) => {
+  await page.setViewportSize({ width: 699, height: 273 });
+  await page.goto(`${fixtureUrl}?state=location`);
+  const popup = pick(page);
+  await popup.evaluate((el) => {
+    const address = el.querySelector<HTMLElement>('.map-view__pick-address')!;
+    address.textContent = '서울특별시 종로구 세종대로 209 서울특별시청 본관 앞';
+    address.title = address.textContent;
+  });
+  const locGeom = await popup.evaluate((el) => {
+    const address = el.querySelector<HTMLElement>('.map-view__pick-address')!;
+    return { overflowX: el.scrollWidth - el.clientWidth, wrap: address.scrollHeight > 18, title: address.title };
+  });
+  expect(locGeom.overflowX).toBeLessThanOrEqual(1);
+  expect(locGeom.wrap).toBe(true);
+  expect(locGeom.title).toContain('세종대로');
+
+  await page.goto(`${fixtureUrl}?state=distance`);
+  const dist = pick(page);
+  const number = dist.getByRole('textbox', { name: '목표거리 km', exact: true });
+  await number.fill('120');
+  await number.press('Enter');
+  await expect(number).toHaveValue('120.0');
+  const distGeom = await dist.evaluate((el) => {
+    const row = el.querySelector<HTMLElement>('.map-view__pick-distance-row')!;
+    const numberEl = el.querySelector<HTMLElement>('.map-view__pick-distance-number')!;
+    const plus = el.querySelector<HTMLElement>('.map-view__pick-distance-step--plus')!;
+    return {
+      overflowX: el.scrollWidth - el.clientWidth,
+      rowW: row.getBoundingClientRect().width,
+      numberRight: numberEl.getBoundingClientRect().right,
+      plusLeft: plus.getBoundingClientRect().left,
+    };
+  });
+  expect(distGeom.overflowX).toBeLessThanOrEqual(1);
+  expect(distGeom.rowW).toBeLessThanOrEqual(198 + 1);
+  expect(distGeom.numberRight).toBeLessThanOrEqual(distGeom.plusLeft + 1);
 });
 
 test('실제 지도 첫 팝업은 낮은 화면에서도 제목·닫기까지 화면 안', async ({ page }) => {

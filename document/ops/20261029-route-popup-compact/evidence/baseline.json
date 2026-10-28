@@ -1,0 +1,12 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "3ECFBA9E16311C8382D3A26ABAA9ABCD6D735F9C2052A07029D77B5123AE23CD",
+    "Path": "C:\\20.HDev\\boxcycle\\apps\\web\\src\\components\\map\\mapPopupElements.ts"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "E5ADF9A48ECBA5898BB8D8526F64BFAC6C30DFEE2467ABB98DB8276C36EE0C7B",
+    "Path": "C:\\20.HDev\\boxcycle\\apps\\web\\src\\components\\map\\RoutePickPopup.css"
+  }
+]

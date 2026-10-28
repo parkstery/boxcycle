@@ -32,7 +32,7 @@
   position: absolute;
   pointer-events: auto;
   box-sizing: border-box;
-  max-width: min(300px, calc(100vw - 1.5rem));
+  max-width: min(228px, calc(100vw - 1.5rem));
   border-radius: 12px;
   background: #FFFFFF;
   border: 1px solid #CBD5E1;
@@ -196,7 +196,7 @@
 .map-view__pick {
   padding: 0.45rem 0.55rem 0.5rem;
   /* 10-23 Chief: 거리 버튼을 2/3(50→33px)로 줄이고 창도 그만큼 좁힌다 */
-  width: min(220px, calc(100vw - 1.5rem));
+  width: min(228px, calc(100vw - 1.5rem));
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;

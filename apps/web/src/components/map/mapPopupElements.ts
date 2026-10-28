@@ -23,6 +23,21 @@ import { buildPickPopupProfileIconSvg } from "../../lib/route/routeProfileIcons"
 import type { RouteProfile } from "../../services/mapboxDirections";
 import { fetchMapboxReverseGeocodePlaceName } from "../../services/mapboxReverseGeocode";
 
+/**
+ * 경로 생성 탭 아이콘. Lucide `route` / `ruler` / `navigation-2` path (ISC).
+ * 새 의존성 없이 기존 팝업 SVG 스트로크 규약을 쓴다.
+ */
+const PICK_TAB_SVG_OPEN =
+  'xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"';
+
+function buildPickPopupLocationModeIconSvg(): string {
+  return `<svg class="map-view__pick-route-tab-ico" ${PICK_TAB_SVG_OPEN} aria-hidden="true"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>`;
+}
+
+function buildPickPopupDistanceModeIconSvg(): string {
+  return `<svg class="map-view__pick-route-tab-ico" ${PICK_TAB_SVG_OPEN} aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg><svg class="map-view__pick-route-tab-ico map-view__pick-route-tab-ico--nav" ${PICK_TAB_SVG_OPEN} aria-hidden="true"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>`;
+}
+
 /** 마커·활동 팝업 제조기는 `mapMarkerElements` 로 옮겼다(2026-10-22) — 옛 import 경로 유지용 재내보내기. */
 export {
   pickPickPopupAnchor,
@@ -184,7 +199,11 @@ export function buildPickPopup(deps: {
 
   const addressEl = document.createElement("div");
   addressEl.className = "map-view__pick-address";
-  addressEl.textContent = "주소를 불러오는 중…";
+  const setAddressText = (text: string) => {
+    addressEl.textContent = text;
+    addressEl.title = text;
+  };
+  setAddressText("주소를 불러오는 중…");
 
 
   const pinRow = document.createElement("div");
@@ -881,9 +900,10 @@ export function buildPickPopup(deps: {
   tabLocation.className = "map-view__pick-route-tab";
   tabLocation.id = "map-view-pick-tab-location";
   tabLocation.setAttribute("role", "tab");
-  /* 2026-10-24 Chief: 보이는 글자는 Start·End(영어 통일), 화면 읽기 이름은 한국어 유지 — 버튼 aria-label 과 같은 방침 */
-  tabLocation.textContent = "Start·End";
+  /* 2026-10-29 Chief: 보이는 글자는 경로 두 지점·자+화살표 아이콘, 화면 읽기 이름은 한국어 유지 */
+  tabLocation.innerHTML = buildPickPopupLocationModeIconSvg();
   tabLocation.setAttribute("aria-label", "출발·도착");
+  tabLocation.title = "출발·도착";
   tabLocation.setAttribute("aria-controls", routeLocationView.id);
 
   const tabDistance = document.createElement("button");
@@ -891,7 +911,9 @@ export function buildPickPopup(deps: {
   tabDistance.className = "map-view__pick-route-tab";
   tabDistance.id = "map-view-pick-tab-distance";
   tabDistance.setAttribute("role", "tab");
-  tabDistance.textContent = "거리·방향";
+  tabDistance.innerHTML = buildPickPopupDistanceModeIconSvg();
+  tabDistance.setAttribute("aria-label", "거리·방향");
+  tabDistance.title = "거리·방향";
   tabDistance.setAttribute("aria-controls", autoRouteSection.id);
 
   tabLocation.onclick = () => setRoutePickTab("location");
@@ -987,14 +1009,14 @@ export function buildPickPopup(deps: {
       try {
         const place = await fetchMapboxReverseGeocodePlaceName(lngLat, token, signal);
         if (signal.aborted) return;
-        addressEl.textContent = place ?? "주소를 찾을 수 없습니다";
+        setAddressText(place ?? "주소를 찾을 수 없습니다");
       } catch {
         if (signal.aborted) return;
-        addressEl.textContent = "주소를 불러오지 못했습니다";
+        setAddressText("주소를 불러오지 못했습니다");
       }
     })();
   } else {
-    addressEl.textContent = "지도 토큰이 없어 주소를 표시할 수 없습니다";
+    setAddressText("지도 토큰이 없어 주소를 표시할 수 없습니다");
   }
 
   // App 측 armDirectionPick(anchor extend) 이 popup DOM 보다 먼저 커밋되면 checkbox 가 한 틱 늦게 맞춰진다.

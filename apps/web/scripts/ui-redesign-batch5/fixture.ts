@@ -72,7 +72,7 @@ function mountFloatingPopup(mapView: HTMLElement, pickContent: HTMLElement, onCl
   shell.style.position = 'absolute';
   shell.style.left = '12px';
   shell.style.top = '12px';
-  shell.style.maxWidth = 'min(300px, calc(100vw - 1.5rem))';
+  shell.style.maxWidth = 'min(228px, calc(100vw - 1.5rem))';
   const surface = document.createElement('div');
   surface.className = 'mapboxgl-popup-content';
   surface.style.position = 'relative';

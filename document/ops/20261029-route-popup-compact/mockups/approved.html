@@ -1,0 +1,57 @@
+<div id="compact-route-demo">
+  <div class="samples">
+    <section><div class="text-small caption">출발·도착</div><div class="dialog">
+      <div class="heading"><strong>경로 생성</strong><button class="close cursor-interaction" aria-label="닫기"><i data-lucide="x"></i></button></div>
+      <div class="mode-row"><div class="modes"><button class="mode selected cursor-interaction" aria-label="출발·도착" data-tooltip="출발·도착"><i data-lucide="route"></i></button><button class="mode cursor-interaction" aria-label="거리·방향" data-tooltip="거리·방향"><i data-lucide="ruler"></i><i data-lucide="navigation-2"></i></button></div><button class="clear cursor-interaction">경로 삭제</button></div>
+      <div class="text-small address">서울특별시 종로구 세종대로</div>
+      <div class="pins"><button class="pin cursor-interaction">Start</button><button class="pin cursor-interaction">+WP</button><button class="pin cursor-interaction">End</button></div>
+      <div class="footer"><div class="profiles"><button class="profile chosen cursor-interaction" aria-label="자동차"><i data-lucide="car-front"></i></button><button class="profile cursor-interaction" aria-label="자전거"><i data-lucide="bike"></i></button><button class="profile cursor-interaction" aria-label="도보"><i data-lucide="footprints"></i></button></div><button class="play cursor-interaction" aria-label="주행 시작"><i data-lucide="play"></i></button></div>
+    </div></section>
+    <section><div class="text-small caption">거리·방향</div><div class="dialog">
+      <div class="heading"><strong>경로 생성</strong><button class="close cursor-interaction" aria-label="닫기"><i data-lucide="x"></i></button></div>
+      <div class="mode-row"><div class="modes"><button class="mode cursor-interaction" aria-label="출발·도착" data-tooltip="출발·도착"><i data-lucide="route"></i></button><button class="mode selected cursor-interaction" aria-label="거리·방향" data-tooltip="거리·방향"><i data-lucide="ruler"></i><i data-lucide="navigation-2"></i></button></div><button class="clear cursor-interaction">경로 삭제</button></div>
+      <div class="distance"><span class="text-small">목표 거리</span><button class="step cursor-interaction" aria-label="거리 감소">−</button><output>3</output><span class="text-small">km</span><button class="step cursor-interaction" aria-label="거리 증가">+</button></div>
+      <div class="chips"><button class="chip cursor-interaction">1</button><button class="chip chosen cursor-interaction">3</button><button class="chip cursor-interaction">5</button><button class="chip cursor-interaction">10</button><button class="chip cursor-interaction">20</button></div>
+      <div class="text-small status">지도에서 방향을 선택하세요.</div>
+      <div class="footer"><div class="profiles"><button class="profile chosen cursor-interaction" aria-label="자동차"><i data-lucide="car-front"></i></button><button class="profile cursor-interaction" aria-label="자전거"><i data-lucide="bike"></i></button><button class="profile cursor-interaction" aria-label="도보"><i data-lucide="footprints"></i></button></div><button class="play cursor-interaction" aria-label="주행 시작"><i data-lucide="play"></i></button></div>
+    </div></section>
+  </div>
+  <style>
+    #compact-route-demo{color:var(--foreground)}
+    #compact-route-demo .samples{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start;padding:8px 0 18px}
+    #compact-route-demo .caption{margin-bottom:10px;color:var(--muted-foreground)}
+    #compact-route-demo .dialog{box-sizing:border-box;width:228px;padding:12px 14px 12px 16px;border:1px solid var(--border);border-radius:18px;background:var(--card);color:var(--card-foreground);box-shadow:0 5px 18px color-mix(in srgb,var(--foreground) 12%,transparent)}
+    #compact-route-demo button{font:inherit;display:inline-flex;align-items:center;justify-content:center;color:inherit;flex-shrink:0}
+    #compact-route-demo .heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    #compact-route-demo strong{font-weight:500}
+    #compact-route-demo .close{width:28px;height:28px;background:var(--muted);border:0;border-radius:50%}
+    #compact-route-demo svg{width:16px;height:16px}
+    #compact-route-demo .mode-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+    #compact-route-demo .modes{display:flex;gap:4px;background:var(--muted);padding:3px;border-radius:10px}
+    #compact-route-demo .mode{width:50px;height:28px;padding:0;gap:2px;background:transparent;border:0;border-radius:8px}
+    #compact-route-demo .mode.selected{background:var(--blue);color:var(--primary-foreground)}
+    #compact-route-demo .mode svg{width:18px;height:18px}
+    #compact-route-demo .mode:has(svg+svg) svg{width:16px;height:16px}
+    #compact-route-demo .clear{height:30px;border:1.5px solid var(--red);border-radius:20px;background:var(--card);padding:0 7px;font-size:12px;white-space:nowrap}
+    #compact-route-demo .address{margin-bottom:8px;color:var(--muted-foreground)}
+    #compact-route-demo .pins{display:flex;gap:6px}
+    #compact-route-demo .pin{width:46px;height:28px;border:1px solid var(--border);background:var(--card);border-radius:8px;font-size:12px;padding:0}
+    #compact-route-demo .footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);margin-top:8px;padding-top:8px}
+    #compact-route-demo .profiles{display:flex;gap:6px}
+    #compact-route-demo .profile{width:28px;height:28px;background:var(--muted);border:0;border-radius:50%;padding:0}
+    #compact-route-demo .chosen{color:var(--blue);background:color-mix(in srgb,var(--blue) 10%,var(--card));border-color:var(--blue)}
+    #compact-route-demo .profile.chosen{background:var(--blue);color:var(--primary-foreground)}
+    #compact-route-demo .play{width:32px;height:32px;border:0;border-radius:50%;background:var(--green);color:var(--primary-foreground)}
+    #compact-route-demo .play svg{fill:currentColor;width:15px;height:15px}
+    #compact-route-demo .distance{display:flex;align-items:center;gap:6px;justify-content:space-between;margin-bottom:8px}
+    #compact-route-demo .step{width:28px;height:28px;border:1px solid var(--border);border-radius:50%;background:var(--card);padding:0}
+    #compact-route-demo output{color:var(--blue);font-variant-numeric:tabular-nums}
+    #compact-route-demo .chips{display:flex;gap:4px}
+    #compact-route-demo .chip{width:30px;height:28px;border:1px solid var(--border);border-radius:20px;background:var(--card);padding:0;font-size:12px}
+    #compact-route-demo .chip.chosen{border-color:var(--blue);color:var(--blue);background:color-mix(in srgb,var(--blue) 10%,var(--card))}
+    #compact-route-demo .status{margin-top:8px;color:var(--muted-foreground)}
+  </style>
+  <script>
+    (()=>{const root=document.getElementById('compact-route-demo');root.querySelectorAll('.chips .chip').forEach(button=>button.addEventListener('click',()=>{root.querySelectorAll('.chips .chip').forEach(chip=>chip.classList.remove('chosen'));button.classList.add('chosen');root.querySelector('output').textContent=button.textContent;}));root.querySelectorAll('.step').forEach(button=>button.addEventListener('click',()=>{const output=root.querySelector('output');output.textContent=String(Math.max(.5,Number(output.textContent)+(button.textContent==='+'?.5:-.5)));}));})();
+  </script>
+</div>
