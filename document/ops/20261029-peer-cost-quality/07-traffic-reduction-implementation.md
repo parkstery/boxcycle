@@ -51,7 +51,8 @@ DB경로·wire최종스키마·Rules·Functions를변경하지않았다. RTDB200
 - `npm run test:peer-spacing`:기본11셀·소스전환7셀·residual10셀PASS. 이전거리/시각짝수정의1.2cm재생값보존.
 - 실제RTDB에뮬레이터:1개통합시험PASS·정상표본40개상태동일/Rules/복구포함.
 - 루트의의존방향·정련·개발부산물검사PASS.
-- 전체pre-push동일게이트는원격에접속하지않고로컬실행중이며최종결과를본보고후속에기록한다.
+- 전체pre-push동일게이트는원격접속없이로컬실행해 **exit0·전체1,449PASS/0FAIL**를확인했다. 진입selector20·타입·의존·정련·개발부산물·동행재생도PASS다.
+- 최초전체실행은옛「항상set」계측계약1건과sandbox의프로세스종료권한때문인watchdog3건실패(1,445PASS/4FAIL)했다. 계측계약을실제full/update요청/재시도계측으로갱신후관련58PASS,종료권한을갖춘로컬게이트재실행에서1,449PASS/0FAIL이다. 기준완화나훅우회없음.
 - 실폰/실운영두창·운영TLS전송량·청구전후·Firestore저감은미실행이다.
 
 Firestore의반복위치구독/함수호출은다음과제로남는다. 현재FS4초를무작정늘리거나정상FS구독을끊으면기존stale/명단/장애fallback이깨진다. 품질을유지하려면안정명단과동적위치소비자를분리하고장애전환행렬을먼저고정해야한다. 이번저감효과와혼합하거나미구현을완료로표시하지않는다.
@@ -59,6 +60,8 @@ Firestore의반복위치구독/함수호출은다음과제로남는다. 현재FS
 ## 배포 준비·자동승인 차단
 
 `78f0dd19`만`git archive`로추출한폴더 `C:\20.HDev\boxcycle\.out\peer-release-78f0dd19`를준비했다. 다른작업UI dirty는포함하지않는다. 로컬의기존의존성junction과`.env`를복사해격리빌드하며환경값은문서/커밋에포함하지않는다. Hosting설정은 `.out/peer-hosting-deploy-78f0dd19.json`에준비했다.
+
+격리빌드PASS,배포대기main번들은 `index-BZ3jLtJM.js`(2,045,862B)다. [로컬자산manifest](evidence/motion-delta-release-manifest.json)에index+참조자산5개의hash를기록했다. **운영해시대조가아니며이새번들은아직운영에없다.** 계측계약·보고서후속커밋은`7483402a`이며제품차이는없다. 전체게이트로그 `.out/motion-delta-local-gates-authorized.log`,격리빌드로그 `.out/motion-delta-clean-build.log`.
 
 원격푸시명령은자동승인검토에서실행전차단됐다. 사유는이번새저감구현을사설저장소 `https://github.com/parkstery/boxcycle.git`의`origin/main2`로푸시하는명시적승인이없다는것이다. 우회/간접실행하지않았고원격푸시·운영배포는보류했다. 이전시각짝수정8101ead2배포는이미완료된별개릴리스다. 새커밋의푸시와Hosting배포에대한Chief명시승인후재개한다.
 
