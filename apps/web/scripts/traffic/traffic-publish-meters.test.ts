@@ -188,22 +188,29 @@ describe("trafficPublishMeters", () => {
     assert.equal(between.includes("await setDoc"), false);
   });
 
-  it("RTDB set meters wrap the actual set only; DEV fault stays before attempt", () => {
+  it("RTDB request meters wrap both full and delta writes; DEV fault precedes the writer", () => {
     const src = readSrc("src/lib/peerMotion/repo/rtdbTrailMotion.ts");
     const fnStart = src.indexOf("export async function mergeTrailMotionSnapshot");
     assert.ok(fnStart >= 0);
     const body = src.slice(fnStart, src.indexOf("export async function deleteTrailMotion"));
     const idxFault = body.indexOf("__rtwMotionWriteFaultOnce");
-    const idxAttempt = body.indexOf("const writeTicket = noteRtdbMotionWriteAttempt();");
-    const idxSet = body.indexOf("await set(motionRef(db, trailId, user.uid), payload);");
-    const idxOk = body.indexOf("noteRtdbMotionWriteOk(writeTicket, payload);");
-    const idxErr = body.indexOf("noteRtdbMotionWriteError(writeTicket);");
-    assert.ok(idxFault >= 0 && idxAttempt >= 0 && idxSet >= 0 && idxOk >= 0 && idxErr >= 0);
-    assert.ok(idxFault < idxAttempt, "DEV fault injection must precede set-attempt meter");
-    assert.ok(idxAttempt < idxSet, "attempt must precede actual set()");
-    assert.ok(idxSet < idxOk, "ok must follow set()");
+    const idxWrite = body.indexOf("await motionDeltaWriter.write(motionPath(trailId, user.uid), payload);");
+    assert.ok(idxFault >= 0 && idxWrite > idxFault);
+    const requestStart = src.indexOf("async function writeMotionRequest");
+    const request = src.slice(requestStart, src.indexOf("const motionDeltaWriter", requestStart));
+    const idxAttempt = request.indexOf("const ticket = noteRtdbMotionWriteAttempt();");
+    const idxUpdate = request.indexOf("await update(target, value);");
+    const idxSet = request.indexOf("await set(target, value);");
+    const idxOk = request.indexOf("noteRtdbMotionWriteOk(ticket, value);");
+    const idxErr = request.indexOf("noteRtdbMotionWriteError(ticket);");
+    assert.ok(idxAttempt >= 0 && idxUpdate >= 0 && idxSet >= 0 && idxOk >= 0 && idxErr >= 0);
+    assert.ok(idxAttempt < idxSet && idxAttempt < idxUpdate, "attempt precedes either actual request");
+    assert.ok(idxSet < idxOk && idxUpdate < idxOk, "ok follows the awaited request");
     assert.ok(idxOk < idxErr, "error note stays in catch after ok path");
-    const betweenFaultAndAttempt = body.slice(idxFault, idxAttempt);
+    assert.match(src, /set: \(key, value\) => writeMotionRequest\(key, value, false\)/);
+    assert.match(src, /update: \(key, value\) => writeMotionRequest\(key, value, true\)/);
+    assert.equal(body.includes("noteRtdbMotionWriteAttempt"), false, "each retry is metered at the request, not the snapshot");
+    const betweenFaultAndAttempt = body.slice(idxFault, idxWrite);
     assert.ok(
       betweenFaultAndAttempt.includes('throw new Error("rtw-motion-write-fault-once")'),
       "fault must still throw before meters",

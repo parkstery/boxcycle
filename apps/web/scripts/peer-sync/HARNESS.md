@@ -23,6 +23,9 @@
 
 ## 실행
 
+동일5Hz변경필드전송: `node --test scripts/peer-sync/motion-delta-writer.test.mjs`.
+실제RTDB전송량/Rules/원격상태동일검사는 `motion-delta-wire.emulator.test.mjs`이며빠른묶음에서제외한다. 루트에서demoRTDB9019를실행하는명령과측정범위는 [저감 구현보고](../../../../document/ops/20261029-peer-cost-quality/07-traffic-reduction-implementation.md)를따른다. 로컬비암호TCP감소율을운영청구절감률로쓰지않는다.
+
 동속 저속의 작은 진동 확인: `node scripts/peer-sync/residual-peer-jitter-harness.mjs --scenario low5equal,low5equalIrregular`.
 두 라이더5km/h·송신위상차80ms·네트워크지터에서 일정/불규칙프레임을 비교한다. 이 두셀은 상대거리오차변동폭3cm상한을 사용한다(일반0.8m상한과별개). 실제Mapbox/GLB화면·송신시점의낡은거리표본은이재생의검증범위밖이다.
 

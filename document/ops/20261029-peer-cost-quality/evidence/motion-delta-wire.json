@@ -1,0 +1,24 @@
+{
+  "generatedAt": "2026-10-29T05:28:11.013Z",
+  "project": "demo-peer-traffic",
+  "rules": "repository database.rules.json",
+  "transport": "local unencrypted TCP including WebSocket protocol; not production billed bandwidth",
+  "results": [
+    {
+      "mode": "full",
+      "samples": 20,
+      "fullJsonBytes": 2016,
+      "submittedJsonBytes": 2016,
+      "tcpUpBytes": 3771,
+      "tcpDownBytes": 4451
+    },
+    {
+      "mode": "delta",
+      "samples": 20,
+      "fullJsonBytes": 2016,
+      "submittedJsonBytes": 1066,
+      "tcpUpBytes": 2841,
+      "tcpDownBytes": 3483
+    }
+  ]
+}
