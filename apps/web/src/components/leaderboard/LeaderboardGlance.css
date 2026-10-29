@@ -1,23 +1,31 @@
 .lb-glance__panel {
   position: absolute;
   top: calc(var(--hud-pad-top) + 2.79rem + 0.4rem);
-  right: calc(var(--hud-pad-right) + 44px);
-  bottom: calc(var(--hud-pad-bottom) + var(--br-clock-above-scale, 26px) + var(--br-clock-height, 16px) + 56px);
+  right: var(--hud-pad-right);
+  max-height: calc(100% - var(--hud-pad-top) - 3.19rem - var(--hud-pad-bottom) - var(--br-clock-above-scale, 26px) - var(--br-clock-height, 16px) - 56px);
   width: 220px;
   max-width: min(220px, calc(100vw - 5.5rem));
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-height: 0;
-  pointer-events: auto;
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(6, 14, 20, 0.82);
+  /* 배경 가장자리는 지도·반달 탭에 통과, 목록과 버튼만 입력을 받는다. */
+  pointer-events: none;
   z-index: 2;
 }
+.lb-glance__panel :is(ol, button) { pointer-events: auto; }
 .lb-glance__panel[hidden] {
   display: none;
 }
 @media (max-width: 740px) and (max-height: 560px) {
   .lb-glance__panel {
     top: calc(var(--hud-pad-top) + 5rem);
+    max-height: calc(100% - var(--hud-pad-top) - 5rem - var(--hud-pad-bottom) - var(--br-clock-above-scale, 26px) - var(--br-clock-height, 16px) - 56px);
     width: min(200px, calc(100vw - 5.5rem));
   }
 }
@@ -31,8 +39,8 @@
 
 .lb-glance__outline {
   paint-order: stroke fill;
-  -webkit-text-stroke: 3px #000000;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+  -webkit-text-stroke: 0;
+  text-shadow: none;
   color: #f8fafc;
 }
 
@@ -49,25 +57,25 @@
   font-size: 12px;
   font-weight: 700;
   color: #52c9ff;
-  -webkit-text-stroke: 3px #000000;
+  -webkit-text-stroke: 0;
   cursor: pointer;
 }
 
 .lb-glance__outline--accent {
   color: #52c9ff;
-  -webkit-text-stroke: 4px #000000;
+  -webkit-text-stroke: 0;
 }
 
 .lb-glance__outline--hero {
-  color: #a8dcff;
-  -webkit-text-stroke: 4px #000000;
+  color: #67e8f9;
+  -webkit-text-stroke: 0;
 }
 
 .lb-glance__list {
   list-style: none;
   margin: 0;
   padding: 0;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -75,9 +83,9 @@
 
 .lb-glance__row {
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) 10px 64px;
+  grid-template-columns: 18px minmax(0, 1fr) 8px max-content;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   height: 24px;
 }
 
@@ -87,6 +95,7 @@
   font-size: 17px;
   font-weight: 700;
   text-align: right;
+  white-space: nowrap;
 }
 
 .lb-glance__name {
@@ -147,7 +156,7 @@
   font-size: 12px;
   font-weight: 700;
   color: #52c9ff;
-  -webkit-text-stroke: 3px #000000;
+  -webkit-text-stroke: 0;
   paint-order: stroke fill;
   text-align: left;
   cursor: pointer;
@@ -160,16 +169,21 @@
 }
 
 /* 주행 제어 이동으로 확보된 하단까지 순위를 표시한다. */
-.map-hud--active-ride .lb-glance__panel { bottom: calc(var(--hud-pad-bottom) + 24px); }
+.map-hud--active-ride .lb-glance__panel { max-height: calc(100% - var(--hud-pad-top) - 3.19rem - var(--hud-pad-bottom) - 24px); }
+@media (max-width: 740px) and (max-height: 560px) {
+  .map-hud--active-ride .lb-glance__panel { max-height: calc(100% - var(--hud-pad-top) - 5rem - var(--hud-pad-bottom) - 24px); }
+}
 .map-hud--active-ride .lb-glance__row { height: 18px; }
 .map-hud--active-ride .lb-glance__rank,
 .map-hud--active-ride .lb-glance__km { font-size: 14px; line-height: 1; }
 .map-hud--active-ride .lb-glance__name { font-size: 12px; line-height: 1; }
 @media (max-height: 330px) {
-  .map-hud--active-ride .lb-glance__panel { top: calc(var(--hud-pad-top) + 4rem); }
+  .map-hud--active-ride .lb-glance__panel { top: calc(var(--hud-pad-top) + 4rem); max-height: calc(100% - var(--hud-pad-top) - 4rem - var(--hud-pad-bottom) - 24px); padding: 4px 8px; gap: 0; }
+  .map-hud--active-ride .lb-glance__panel-head { font-size: 10px; line-height: 1; }
+  .map-hud--active-ride .lb-glance__footer { font-size: 11px; line-height: 1; }
   .map-hud--active-ride .lb-glance__row { height: 13px; }
   .map-hud--active-ride .lb-glance__rank,
   .map-hud--active-ride .lb-glance__km,
   .map-hud--active-ride .lb-glance__name { font-size: 11px; }
-  .map-hud--active-ride .lb-glance__gap-km { font-size: 14px; }
+  .map-hud--active-ride .lb-glance__gap-km { font-size: 14px; line-height: 1; }
 }

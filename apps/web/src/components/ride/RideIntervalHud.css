@@ -1,24 +1,25 @@
-/* 계기판 아래 왼쪽. 지도는 비치고 글자는 구분되는 검정35% 배경. */
+/* Chief B안: 계기판 아래 정보 범위만 짙은 반투명 배경. */
 .map-hud__tl > .ride-interval-hud,
 .map-hud > .ride-interval-hud {
   position: relative;
   top: auto;
   left: auto;
   transform: none;
-  width: min(168px, 28vw);
+  width: min(205px, 28vw);
   max-width: 28vw;
   margin-top: 2px;
   box-sizing: border-box;
   padding: 6px 8px;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(6, 14, 20, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   pointer-events: none;
   color: #fff;
   --interval-color: #ffcb72;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 1px 2px #111, 1px 0 #111, -1px 0 #111;
-  -webkit-text-stroke: 2.5px #142323;
+  text-shadow: none;
+  -webkit-text-stroke: 0;
   paint-order: stroke fill;
 }
 .ride-interval-hud[data-phase="recovery"],
@@ -31,7 +32,7 @@
 .ride-interval-hud__phase { color: var(--interval-color); }
 .ride-interval-hud__repeat { font-size: 11px; }
 .ride-interval-hud__main { display: flex; align-items: baseline; gap: 4px; line-height: 1.15; }
-.ride-interval-hud__time { font-size: 32px; letter-spacing: -1px; }
+.ride-interval-hud__time { font-size: 32px; letter-spacing: -1px; color: var(--interval-color); }
 .ride-interval-hud__unit { font-size: 13px; }
 .ride-interval-hud__progress { display: flex; gap: 4px; margin: 4px 0 5px; }
 .ride-interval-hud__progress span { flex: 1; height: 3px; background: rgba(255,255,255,.45); }

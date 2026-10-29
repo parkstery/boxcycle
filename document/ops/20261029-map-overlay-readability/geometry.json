@@ -1,0 +1,97 @@
+[
+  {
+    "width": 1040,
+    "height": 475,
+    "panel": {
+      "x": 808.53125,
+      "y": 54.53125,
+      "width": 220,
+      "height": 248.5,
+      "rightGap": 11.46875
+    },
+    "rows": 10,
+    "visible": 10,
+    "scrollHeight": 180,
+    "clientHeight": 180,
+    "background": "rgba(6, 14, 20, 0.82)",
+    "knobHit": true,
+    "intervalBackground": "rgba(6, 14, 20, 0.82)",
+    "intervalInside": true
+  },
+  {
+    "width": 800,
+    "height": 360,
+    "panel": {
+      "x": 568.8125,
+      "y": 54.25,
+      "width": 220,
+      "height": 248.5,
+      "rightGap": 11.1875
+    },
+    "rows": 10,
+    "visible": 10,
+    "scrollHeight": 180,
+    "clientHeight": 180,
+    "background": "rgba(6, 14, 20, 0.82)",
+    "knobHit": true,
+    "intervalBackground": "rgba(6, 14, 20, 0.82)",
+    "intervalInside": true
+  },
+  {
+    "width": 736,
+    "height": 300,
+    "panel": {
+      "x": 525.703125,
+      "y": 64.296875,
+      "width": 200,
+      "height": 164,
+      "rightGap": 10.296875
+    },
+    "rows": 10,
+    "visible": 10,
+    "scrollHeight": 130,
+    "clientHeight": 130,
+    "background": "rgba(6, 14, 20, 0.82)",
+    "knobHit": true,
+    "intervalBackground": "rgba(6, 14, 20, 0.82)",
+    "intervalInside": true
+  },
+  {
+    "width": 699,
+    "height": 273,
+    "panel": {
+      "x": 489.21875,
+      "y": 63.78125,
+      "width": 200,
+      "height": 164,
+      "rightGap": 9.78125
+    },
+    "rows": 10,
+    "visible": 10,
+    "scrollHeight": 130,
+    "clientHeight": 130,
+    "background": "rgba(6, 14, 20, 0.82)",
+    "knobHit": true,
+    "intervalBackground": "rgba(6, 14, 20, 0.82)",
+    "intervalInside": true
+  },
+  {
+    "width": 667,
+    "height": 300,
+    "panel": {
+      "x": 457.671875,
+      "y": 63.328125,
+      "width": 200,
+      "height": 164,
+      "rightGap": 9.328125
+    },
+    "rows": 10,
+    "visible": 10,
+    "scrollHeight": 130,
+    "clientHeight": 130,
+    "background": "rgba(6, 14, 20, 0.82)",
+    "knobHit": true,
+    "intervalBackground": "rgba(6, 14, 20, 0.82)",
+    "intervalInside": true
+  }
+]

@@ -100,7 +100,7 @@ for (const size of [{width:800,height:360},{width:667,height:300},{width:844,hei
       expect(geometry.center).toBeLessThan(size.width*0.4);
       expect(geometry.inside).toBe(true);
       expect(geometry.pointer).toBe('none');
-      expect(geometry.background).toBe('rgba(0, 0, 0, 0.35)');
+      expect(geometry.background).toBe('rgba(6, 14, 20, 0.82)');
       if (process.env.INTERVAL_EVIDENCE_DIR) {
         await fs.mkdir(process.env.INTERVAL_EVIDENCE_DIR,{recursive:true});
         await page.screenshot({path:path.join(process.env.INTERVAL_EVIDENCE_DIR,`${state}-${size.width}x${size.height}.png`)});

@@ -1,0 +1,16 @@
+[
+  {
+    "case": "20-row-scroll-css-fixture",
+    "rows": 20,
+    "scrollTop": 349,
+    "lastVisible": true,
+    "panelHeight": 196.53125
+  },
+  {
+    "case": "5-row-content-height-css-fixture",
+    "before": 196.53125,
+    "after": 184,
+    "scrollHeight": 122,
+    "clientHeight": 120
+  }
+]
