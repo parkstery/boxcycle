@@ -296,13 +296,14 @@
 .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__tool { background: #fff; box-shadow: 0 1px 4px rgba(15, 23, 42, .25); }
 .route-dock__tool:focus-visible { outline: 2px solid #2457d6; outline-offset: 2px; }
 @media (hover: hover) { .route-dock__tool:hover { background: #eef3fc; } }
-/* 700px 이하(카드 약 196px): 주행 중 펼침 「LED+rpm · ⚙ · ⏸ · ⏹」이 카드 안에 들도록 간격만 줄인다. */
+/* 700px 이하(카드 약 196px): 주행·일시정지 펼침 「LED+rpm · ⚙/INT · ⏸ · ⏹」이 카드 안에 들도록 간격만 줄인다. */
 @media (max-width: 700px) {
   .route-dock__head .hud-cadence--dock, .route-dock__head .hud-cadence--dock:hover { padding: 0; gap: 2px; }
-  .route-dock-anchor--open .route-dock__head:not(:has(.route-dock__interval)) .hud-cadence--dock { font-size: 11px; }
+  .route-dock-anchor--open .route-dock__head--active .hud-cadence--dock { font-size: 11px; }
   .route-dock__tool { flex-basis: 26px; width: 26px; }
   .route-dock-anchor .ride-control-bar { gap: 4px; min-width: 0; }
-  .route-dock-anchor--open .route-dock__head:not(:has(.route-dock__interval)) { gap: 2px; }
+  .route-dock-anchor--open .route-dock__head--active:has(:is(.route-dock__interval, .route-dock__tool)) { gap: 2px; }
+  .route-dock__head--active .route-dock__interval { flex-basis: 26px; width: 26px; }
 }
 .route-dock-anchor .ride-control-bar__resume { right: 0; left: auto; }
 .route-dock-anchor .ride-control-bar { min-width: 70px; min-height: 32px; }

@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 // 10-30 Chief — RouteDock 도구줄.
 // 주행 전: [센서 LED] INT · 지도 핀(경로 목록) · ⚙(주행 설정) · ▶ / 주행 중: [센서 LED+rpm] ⚙ · ⏸ · ⏹ (⚙ 가 INT 자리).
+// 일시정지: ⚙ 자리에 INT — 인터벌은 멈춘 뒤에만 바꾼다(주행 중 변경 불가는 Chief 의도).
 // 센서 칩은 「센서」 글자·테두리 없이 LED 원만(7px 의 세 배 = 21px). 왼쪽 메뉴는 Trail 전용.
 const preview = '/scripts/ui-800x360/preview.html';
 const sizes = [{ width: 800, height: 360 }, { width: 699, height: 273 }, { width: 667, height: 300 }];
@@ -30,18 +31,21 @@ async function expectInsideCard(page: Page, label: string) {
   expect(r, label).toEqual({ overlap: false, outside: false });
 }
 
-test('주행 전 INT·핀·⚙·주행 시작 순서, 주행 중엔 ⚙ 가 INT 자리 — 접힘·펼침 모두', async ({ page }) => {
+test('주행 전 INT·핀·⚙·주행 시작 순서, 주행 중엔 ⚙·일시정지엔 INT 가 그 자리 — 접힘·펼침 모두', async ({ page }) => {
   for (const size of sizes) {
     await page.setViewportSize(size);
     for (const state of ['idle', 'setup', 'ready', 'riding', 'paused'] as const) {
       await page.goto(`${preview}?state=${state}`);
-      const active = state === 'riding' || state === 'paused';
       for (let pass = 0; pass < 2; pass += 1) {
         const label = `${size.width} ${state} ${pass}`;
         const order = (await headOrder(page)).filter((name) => !/^경로 패널|^케이던스 센서/.test(name));
-        if (active) {
+        if (state === 'riding') {
           expect(order[0], label).toBe('주행 설정');
           expect(order, label).not.toContain('인터벌 운동 설정');
+          expect(order, label).not.toContain('경로 목록');
+        } else if (state === 'paused') {
+          expect(order[0], label).toBe('인터벌 운동 설정');
+          expect(order, label).not.toContain('주행 설정');
           expect(order, label).not.toContain('경로 목록');
         } else {
           expect(order.slice(0, 3), label).toEqual(['인터벌 운동 설정', '경로 목록', '주행 설정']);

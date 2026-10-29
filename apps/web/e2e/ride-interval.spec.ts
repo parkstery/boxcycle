@@ -44,7 +44,7 @@ async function openIntervalEditorFromMenu(page: import('@playwright/test').Page)
   return page.getByRole('dialog', { name: '인터벌 운동 설정', exact: true });
 }
 
-test('기본은 끔이며 설정에서 선택하고 주행 중 다시 켜면 준비부터 시작한다', async ({ page }) => {
+test('기본은 끔이며 설정에서 선택하고, 주행 중엔 못 바꾸며 일시정지에서 다시 켜면 준비부터 시작한다', async ({ page }) => {
   await page.clock.install();
   await page.goto(preview);
   const editor = await openIntervalEditorFromMenu(page);
@@ -59,6 +59,9 @@ test('기본은 끔이며 설정에서 선택하고 주행 중 다시 켜면 준
 
   await page.goto(`${preview}?state=riding&interval&intervalMs=713000&short`);
   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('운동');
+  // 10-30 Chief: 주행 중에는 인터벌을 열 수 없다(의도) — 일시정지한 뒤 INT 로 바꾼다.
+  await expect(page.getByRole('button', { name: '인터벌 운동 설정', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: '일시정지', exact: true }).click();
   const settings = await openIntervalEditorFromMenu(page);
   const ridingToggle = settings.getByRole('switch', { name: /^인터벌/ });
   await expect(ridingToggle).toBeChecked();
@@ -66,6 +69,7 @@ test('기본은 끔이며 설정에서 선택하고 주행 중 다시 켜면 준
   await expect(page.getByRole('group', { name: '인터벌 안내' })).toHaveCount(0);
   await ridingToggle.check();
   await settings.getByRole('button', { name: '인터벌 운동 설정 닫기', exact: true }).click();
+  await page.getByRole('button', { name: '재개', exact: true }).click();
   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('준비');
   await expect(page.locator('.ride-interval-hud__time')).toHaveText('5:00');
   await page.getByRole('button', { name: '주행 종료', exact: true }).click();

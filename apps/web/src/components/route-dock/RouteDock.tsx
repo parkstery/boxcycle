@@ -149,8 +149,10 @@ export function RouteDock({
       />
     ) : null;
   // 10-30 Chief: 인터벌·경로 목록·주행 설정은 메인 메뉴에서 빠지고 여기서 연다(펼침·접힘 모두).
-  // 주행 전: INT · 지도 핀 · ⚙ · 주행 시작 / 주행 중: INT 자리에 ⚙ 만.
-  const intervalButton = onOpenIntervalSettings && !activeRide ? (
+  // 주행 전: INT · 지도 핀 · ⚙ · 주행 시작 / 주행 중: INT 자리에 ⚙ 만(인터벌 변경 불가 — 의도).
+  // 일시정지: ⚙ 자리에 INT 가 돌아온다 — 인터벌은 멈춘 뒤에만 바꾸고, 바꾸면 준비부터 다시 시작한다.
+  const paused = stage === "paused";
+  const intervalButton = onOpenIntervalSettings && (!activeRide || paused) ? (
     <button type="button" className={`route-dock__interval${intervalEnabled ? " route-dock__interval--active" : ""}`} aria-label="인터벌 운동 설정" title="인터벌 운동 설정" onClick={onOpenIntervalSettings}>
       INT
     </button>
@@ -163,7 +165,7 @@ export function RouteDock({
       </svg>
     </button>
   ) : null;
-  const settingsButton = onOpenSettings ? (
+  const settingsButton = onOpenSettings && !paused ? (
     <button type="button" className="route-dock__tool route-dock__tool--settings" aria-label="주행 설정" title="주행 설정" onClick={onOpenSettings}>
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
         <path fillRule="evenodd" d="M10.3 2h3.4l.5 2.6a7.8 7.8 0 0 1 1.9 1.1l2.5-.9 1.7 2.9-2 1.7a7.9 7.9 0 0 1 0 2.2l2 1.7-1.7 2.9-2.5-.9a7.8 7.8 0 0 1-1.9 1.1l-.5 2.6h-3.4l-.5-2.6a7.8 7.8 0 0 1-1.9-1.1l-2.5.9-1.7-2.9 2-1.7a7.9 7.9 0 0 1 0-2.2l-2-1.7 1.7-2.9 2.5.9a7.8 7.8 0 0 1 1.9-1.1zM12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8z" />
@@ -192,7 +194,7 @@ export function RouteDock({
       <div
         className={`route-dock__card${expanded ? " route-dock__card--head" : " route-dock__card--led"}`}
       >
-        <div className="route-dock__head">
+        <div className={`route-dock__head${activeRide ? " route-dock__head--active" : ""}`}>
           {expanded ? (
             <>
               {sensorChip}

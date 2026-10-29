@@ -135,21 +135,26 @@ test('직접 설정한 시간·반복이 실제 단계 전환과 완료에 쓰�
   await expect(page.getByRole('button',{name:'일시정지',exact:true})).toBeVisible();
 });
 
-test('진행 중 초안·취소·같은 설정은 운동을 바꾸지 않고 변경 적용만 준비부터 재시작한다', async ({page}) => {
+test('주행 중엔 못 열고, 일시정지 중 초안·취소·같은 설정은 운동을 바꾸지 않고 변경 적용만 준비부터 재시작한다', async ({page}) => {
   await page.clock.install();
   await page.goto(`${preview}?state=riding&interval&intervalMs=330000`);
+  // 10-30 Chief: 주행 중 인터벌 변경 불가(의도) — 일시정지하면 ⚙ 자리에 INT 가 돌아온다.
+  await expect(page.getByRole('button',{name:'인터벌 운동 설정',exact:true})).toHaveCount(0);
+  await page.getByRole('button',{name:'일시정지',exact:true}).click();
   await openFromRide(page);
   await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
-  await expect(page.locator('.ride-interval-hud__phase')).toHaveText('운동');
+  await expect(page.locator('.ride-interval-hud__phase')).toHaveText('일시정지');
+  await expect(page.locator('.ride-interval-hud__time')).not.toHaveText('5:00');
   await openEditor(page);
   await configure(page,'45','60','6');
   await expect(editor(page)).toContainText('적용하면 처음부터 다시 시작해요');
-  await expect(page.locator('.ride-interval-hud__phase')).toHaveText('운동');
+  await expect(page.locator('.ride-interval-hud__time')).not.toHaveText('5:00');
   await editor(page).getByRole('button',{name:'인터벌 운동 설정 닫기',exact:true}).click();
   await openEditor(page);
   await expect(editor(page)).toContainText('60초 / 120초 ×5');
   await configure(page,'45','60','6');
   await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
+  await page.getByRole('button',{name:'재개',exact:true}).click();
   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('준비');
   await expect(page.locator('.ride-interval-hud__time')).toHaveText('5:00');
   await page.getByRole('button',{name:'일시정지',exact:true}).click();

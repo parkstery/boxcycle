@@ -465,6 +465,9 @@ function placeAutoRouteClickDebugMarkerOnMap(
     .addTo(map);
 }
 
+/** 10-30 Chief: 거리·방향 안내 원은 경로선(#ef4444)보다 밝은 빨강 — 원과 원 위 방향 화살표에 함께 쓴다. */
+const DISTANCE_TARGET_CIRCLE_COLOR = "#f87171";
+
 export function MapView({
   accessToken,
   routeElevationProfile,
@@ -2023,7 +2026,8 @@ export function MapView({
             source: DISTANCE_TARGET_CIRCLE_SRC,
             paint: {
               "line-color": "#111827",
-              "line-width": 4,
+              // 10-30 Chief: 거리·방향 안내 원(펄스) 선 두께 3배 — 4→12, 본선 3→9.
+              "line-width": 12,
               "line-dasharray": [2, 2],
               "line-opacity": 0.2,
             },
@@ -2036,8 +2040,8 @@ export function MapView({
             type: "line",
             source: DISTANCE_TARGET_CIRCLE_SRC,
             paint: {
-              "line-color": ROUTE_LINE_COLOR,
-              "line-width": 3,
+              "line-color": DISTANCE_TARGET_CIRCLE_COLOR,
+              "line-width": 9,
               "line-opacity": 0.95,
               "line-dasharray": [2, 2],
             },
@@ -2072,7 +2076,7 @@ export function MapView({
               type: "line",
               source: DISTANCE_TARGET_CIRCLE_ARROWS_SRC,
               paint: {
-                "line-color": ROUTE_LINE_COLOR,
+                "line-color": DISTANCE_TARGET_CIRCLE_COLOR,
                 "line-width": 3,
                 "line-opacity": 0.95,
               },
