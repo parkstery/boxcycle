@@ -14,6 +14,7 @@
 | 릴리스 | [06 배포 검증](06-release-verification.md) — 제품8101ead2·보고187ddf9c푸시·Hosting완료·전체1443/운영6자산PASS |
 | 저감 구현 | [07 변경필드 전송 구현](07-traffic-reduction-implementation.md) — Codex직접·로컬TCP하향21.7%감소·동일상태·78f0dd19커밋/푸시자동승인차단 |
 | 저감 배포 | [08 트래픽 저감 릴리스](08-traffic-release.md) — 명시승인후푸시·Hosting완료·전체1449/운영6자산PASS·Codex직접 |
+| Firestore 읽기 | [09 자기 문서 서버 제외](09-firestore-read-reduction.md) — 타인 상시 백업 유지·서버 전달20→0·표시/복구4재생동일·다인fanout 잔여·Codex직접 |
 | 선행 | [트래픽 후속](../20261002-public-trail-traffic-followup/README.md) · [동행 진동](../20261005-peer-spacing-jitter/README.md) |
 
 조사와 오프라인 검증 및 후속요청에따른거리/시각짝결함수정은자율수행했다. Firestore/RTDB역할·장애시제품동작을바꾸는구현은Chief결정대상이다. 운영구조·전송주기·Rules는변경하지않았다. 과거묶음의CLOSED는당시검증범위이며이번관측의해결을뜻하지않는다.

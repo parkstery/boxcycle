@@ -1,0 +1,63 @@
+{
+  "scope": "Firestore emulator remote SDK listeners; document changes, NOT production billing",
+  "solo": {
+    "baselineChanges": 20,
+    "filteredChanges": 0,
+    "baselineDeliveries": 20,
+    "filteredDeliveries": 0
+  },
+  "peerPackets": [
+    {
+      "uid": "bob",
+      "publicationId": "publication-a",
+      "distM": 21,
+      "speedMps": 1.3888888888888888,
+      "phase": "live",
+      "serverAtMs": 1700000084000
+    },
+    {
+      "uid": "bob",
+      "publicationId": "publication-a",
+      "distM": 22,
+      "speedMps": 1.3888888888888888,
+      "phase": "live",
+      "serverAtMs": 1700000088000
+    },
+    {
+      "uid": "bob",
+      "publicationId": "publication-a",
+      "distM": 23,
+      "speedMps": 0,
+      "phase": "paused",
+      "serverAtMs": 1700000092000
+    },
+    {
+      "uid": "bob",
+      "publicationId": "publication-a",
+      "distM": 24,
+      "speedMps": 1.3888888888888888,
+      "phase": "live",
+      "serverAtMs": 1700000096000
+    },
+    {
+      "uid": "bob",
+      "publicationId": "publication-a",
+      "distM": 25,
+      "speedMps": 0,
+      "phase": "completed",
+      "serverAtMs": 1700000100000
+    },
+    {
+      "uid": "bob",
+      "publicationId": "publication-b",
+      "distM": 26,
+      "speedMps": 1.3888888888888888,
+      "phase": "live",
+      "serverAtMs": 1700000104000
+    }
+  ],
+  "peerEventsCompared": 6,
+  "deletion": true,
+  "offlineReconnect": true,
+  "rulesNegative": true
+}

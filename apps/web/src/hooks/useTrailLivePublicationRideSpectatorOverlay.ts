@@ -65,6 +65,7 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
       (err) => {
         if (!cancelled) setError(err.message);
       },
+      user.uid,
     );
 
     return () => {

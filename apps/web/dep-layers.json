@@ -277,6 +277,7 @@
       "trail/repo/firestoreTrailLivePublicationRides.ts",
       "trail/repo/firestoreTrailPaths.ts",
       "trail/repo/livePublicationRidesSubscriptionHub.ts",
+      "trail/repo/livePublicationRidesQuery.ts",
       "trail/repo/trailDocParse.ts"
     ],
     "route": [

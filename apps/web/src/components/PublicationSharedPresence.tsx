@@ -268,6 +268,7 @@ export function PublicationSharedPresence({
       () => {
         /* live ride 구독 오류는 멤버 presence 와 분리 — 맵 동행만 생략 */
       },
+      user.uid,
     );
 
     return () => {
@@ -276,7 +277,7 @@ export function PublicationSharedPresence({
       publishOtherLiveRiderCount(0);
       release();
     };
-  }, [pageVisible, trailId]);
+  }, [pageVisible, trailId, user.uid]);
 
   useEffect(() => {
     if (!pageVisible || !isFirebaseDatabaseConfigured()) {

@@ -126,13 +126,14 @@ export function useWorldLivePublicationRideMapOverlay(opts: {
             console.warn("[WorldLivePublicationRide] subscribe failed", tid, err.message);
           }
         },
+        myUid,
       ),
     );
 
     return () => {
       for (const release of releases) release();
     };
-  }, [enabled, trailIdsKey]);
+  }, [enabled, trailIdsKey, myUid]);
 
   const aggregates = useMemo(() => {
     const exclude = excludePublicationId?.trim() ?? "";

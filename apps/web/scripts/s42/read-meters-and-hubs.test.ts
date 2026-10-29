@@ -175,6 +175,38 @@ describe("livePublicationRidesSubscriptionHub", () => {
     resetUnderlyingReadMeters();
   });
 
+  it("같은 viewer의 세 소비자는 공유하고 다른 계정·전체 조회의 cache는 격리한다", () => {
+    const calls: Array<{ trailId: string; excludeUid: string | null | undefined }> = [];
+    const callbacks: Array<(rows: TrailLivePublicationRideRow[]) => void> = [];
+    let closed = 0;
+    resetTrailLivePublicationRidesSubscriptionHubForTests((trailId, onRows, _onError, excludeUid) => {
+      calls.push({ trailId, excludeUid });
+      callbacks.push(onRows);
+      return () => { closed += 1; };
+    });
+    const seen: string[][] = [];
+    const a = acquireTrailLivePublicationRidesSubscription("trail-a", (rows) => seen.push(rows.map((r) => r.uid)), undefined, "alice");
+    callbacks[0]!([{ uid: "bob" } as TrailLivePublicationRideRow]);
+    const b = acquireTrailLivePublicationRidesSubscription("trail-a", (rows) => seen.push(rows.map((r) => r.uid)), undefined, "alice");
+    const c = acquireTrailLivePublicationRidesSubscription("trail-a", () => {}, undefined, "alice");
+    assert.deepEqual(calls, [{ trailId: "trail-a", excludeUid: "alice" }]);
+    assert.deepEqual(seen.at(-1), ["bob"], "later consumers receive the shared peer cache");
+    const other: string[][] = [];
+    const d = acquireTrailLivePublicationRidesSubscription("trail-a", (rows) => other.push(rows.map((r) => r.uid)), undefined, "bob");
+    const e = acquireTrailLivePublicationRidesSubscription("trail-a", () => {});
+    assert.deepEqual(other, [[]], "account switch must not inherit alice's query cache");
+    assert.deepEqual(calls.slice(1), [
+      { trailId: "trail-a", excludeUid: "bob" },
+      { trailId: "trail-a", excludeUid: null },
+    ]);
+    assert.equal(debugTrailLivePublicationRidesSubscriptionHub().slots[0]?.excludeUid, "alice");
+    a(); b();
+    assert.equal(closed, 0);
+    c(); d(); e();
+    assert.equal(closed, 3);
+    assert.equal(debugTrailLivePublicationRidesSubscriptionHub().slotCount, 0);
+  });
+
   it("consumer 2개여도 underlyingOpen 1, 마지막 release 에서만 unsubCallTotal +1", () => {
     const a = acquireTrailLivePublicationRidesSubscription("trail-a", () => {}, () => {});
     const b = acquireTrailLivePublicationRidesSubscription("trail-a", () => {}, () => {});

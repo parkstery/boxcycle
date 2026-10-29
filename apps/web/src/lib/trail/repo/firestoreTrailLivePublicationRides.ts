@@ -27,6 +27,7 @@ import {
   TRAILS_COLLECTION,
 } from "./firestoreTrailPaths";
 import { resolvePublicationIdFromDoc } from "../../firebase/converters";
+import { livePublicationRidesQuery } from "./livePublicationRidesQuery";
 import {
   PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS,
   PEER_LIVE_RIDE_FINAL_BURST_MS,
@@ -68,6 +69,7 @@ export function subscribeTrailLivePublicationRides(
   trailId: string,
   onChange: (rows: TrailLivePublicationRideRow[]) => void,
   onError?: (e: FirestoreError) => void,
+  excludeUid?: string | null,
 ): Unsubscribe {
   const rid = sanitizeTrailId(trailId);
   return trackVisibilityListener(
@@ -75,7 +77,7 @@ export function subscribeTrailLivePublicationRides(
     trackUnderlyingReadSubscription(
       "trailOnSnapshot",
       onSnapshot(
-        liveRidesCollectionRef(rid),
+        livePublicationRidesQuery(liveRidesCollectionRef(rid), excludeUid),
         (snap) => {
           noteFsLiveRideUnderlyingDocChanges(snap.docChanges().length);
           const rows: TrailLivePublicationRideRow[] = [];
