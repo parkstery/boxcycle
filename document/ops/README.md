@@ -1,3 +1,5 @@
+2026-10-29 **동행 표본시각 수정 릴리스 승인·진행**: 제품8101ead2·거리/실제적분시각짝수정, 합성6→1.2cm(현장미확정), 75시험/spacing/빌드PASS. [해결보고](20261029-peer-cost-quality/04-solution-and-local-fix.md)·[품질보존 트래픽검토](20261029-peer-cost-quality/05-quality-preserving-traffic-review.md). 큰공백미해결·4초예측실험정지오차로미채택. Chief커밋푸시Hosting배포승인, 다른UI dirty제외한커밋소스로격리빌드중. RTDB200ms/FS4s/Rules/Functions불변, 최적화는검토만. 실행 C:\20.HDev\boxcycle\apps\web → node --test scripts/peer-sync/motion-capture-timeline.test.mjs; 운영배포후 https://boxcycle-dc2df.web.app 새로고침(현재배포완료아님)。
+
 2026-10-29 [경로 생성 상단·하단 재배치](20261029-route-header-layout/README.md): LOCAL_VERIFIED·미배포. 제목/모드한행·삭제하단·지점66px·목표거리14px, 화면40PASS 후 영향분4PASS·buildPASS.
 
 2026-10-29 [주행 기록·체험 속도 실제 창 축소](20261029-account-sensor-compact/README.md): LOCAL_VERIFIED·미배포, 계정520×250·체험420×211, UI25/빌드PASS.

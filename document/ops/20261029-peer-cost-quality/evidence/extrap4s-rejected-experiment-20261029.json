@@ -1,0 +1,81 @@
+{
+  "generatedAt": "2026-10-29T04:14:12.476Z",
+  "elapsedMs": 4204,
+  "gates": {
+    "residualPpFailM": 0.8,
+    "frameJumpFailM": 0.45,
+    "backFailM": 0.35
+  },
+  "results": [
+    {
+      "scenario": "low5bothStreamsGap",
+      "label": "5 vs 5 km/h, B RTDB + FS silent 8–12s then recover",
+      "rtdbMs": 200,
+      "fsMs": 4000,
+      "frameDtsMs": [
+        16.666666666666668
+      ],
+      "bPublishPhaseMs": 80,
+      "delayMs": 600,
+      "frames": 1140,
+      "residualPpM": 4.579,
+      "residualPpFailM": 0.03,
+      "residualPpAllM": 4.579,
+      "maxBehindTruthM": 4.572,
+      "maxAheadTruthM": 0.007,
+      "finalResidualM": -0.004,
+      "residualStdM": 1.58,
+      "residualMeanM": 0.992,
+      "maxPeerJumpM": 0.058,
+      "maxSelfJumpM": 0.023,
+      "maxBackM": 0.058,
+      "reverseFrames": 0,
+      "maxFrameVelMps": 3.475,
+      "axisFlipCount": 0,
+      "fsPickFrames": 241,
+      "stallLimit": false,
+      "residualExcludeMs": null,
+      "residualGateNote": "all gates use full window",
+      "violations": [
+        "residualPp 4.579m > 0.03m"
+      ],
+      "pass": false
+    },
+    {
+      "scenario": "low5bothStreamsStop",
+      "label": "5km/h B stops while both receive streams are silent",
+      "rtdbMs": 200,
+      "fsMs": 4000,
+      "frameDtsMs": [
+        16.666666666666668
+      ],
+      "bPublishPhaseMs": 80,
+      "delayMs": 600,
+      "frames": 1140,
+      "residualPpM": 4.825,
+      "residualPpFailM": 0.03,
+      "residualPpAllM": 4.825,
+      "maxBehindTruthM": 0.006,
+      "maxAheadTruthM": 4.819,
+      "finalResidualM": 0.001,
+      "residualStdM": 1.289,
+      "residualMeanM": -0.617,
+      "maxPeerJumpM": 0.058,
+      "maxSelfJumpM": 0.023,
+      "maxBackM": 0.058,
+      "reverseFrames": 0,
+      "maxFrameVelMps": 3.475,
+      "axisFlipCount": 0,
+      "fsPickFrames": 241,
+      "stallLimit": false,
+      "residualExcludeMs": null,
+      "residualGateNote": "all gates use full window",
+      "violations": [
+        "residualPp 4.825m > 0.03m"
+      ],
+      "pass": false
+    }
+  ],
+  "requiredFail": 2,
+  "pass": false
+}

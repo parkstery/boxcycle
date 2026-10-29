@@ -1,0 +1,5741 @@
+{
+  "task": "20261005-peer-spacing-jitter A2 source transitions",
+  "at": "2026-10-29T00:47:28.294Z",
+  "note": "RTDB-only → dual → FS-only (RTDB frozen/cleared past stale) → dual. Gate = stable window per phase (post-warmup); warmupWindow recorded separately. FS interval 1s so speed band is meaningful (4s FS > 3s delay cap ⇒ extrapolate/hold is policy, not stamp). Single-source packets also go through stampDualSourceIngestPacket (TASK-03 A2) so RTDB-only→dual keeps receiver axis.",
+  "phases": [
+    {
+      "name": "rtdb-only",
+      "fromMs": 0,
+      "toMs": 20000,
+      "warmupMs": 12000,
+      "expectPick": "rtdb"
+    },
+    {
+      "name": "dual",
+      "fromMs": 20000,
+      "toMs": 36000,
+      "warmupMs": 4000,
+      "expectPick": "rtdb"
+    },
+    {
+      "name": "fs-only",
+      "fromMs": 36000,
+      "toMs": 60000,
+      "warmupMs": 6000,
+      "expectPick": "fs"
+    },
+    {
+      "name": "dual-again",
+      "fromMs": 60000,
+      "toMs": 84000,
+      "warmupMs": 6000,
+      "expectPick": "rtdb"
+    }
+  ],
+  "silenceFromMs": 36000,
+  "silenceToMs": 60000,
+  "fsAppearsMs": 20000,
+  "strict": false,
+  "results": [
+    {
+      "senderOffsetMs": -30000,
+      "withSeq": true,
+      "silenceMode": "frozen",
+      "fsIntervalMs": 1000,
+      "speedMps": 5.555555555555555,
+      "perSecond": [
+        {
+          "s": 0,
+          "pick": "rtdb",
+          "minSpeedMps": 0,
+          "maxSpeedMps": 66.667,
+          "delayMs": 499,
+          "lagM": 2.213
+        },
+        {
+          "s": 1,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6,
+          "delayMs": 454,
+          "lagM": 2.482
+        },
+        {
+          "s": 2,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 423,
+          "lagM": 3.046
+        },
+        {
+          "s": 3,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 458,
+          "lagM": 3.39
+        },
+        {
+          "s": 4,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 441,
+          "lagM": 3.283
+        },
+        {
+          "s": 5,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 420,
+          "lagM": 3.177
+        },
+        {
+          "s": 6,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 3.382
+        },
+        {
+          "s": 7,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.29
+        },
+        {
+          "s": 8,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.186
+        },
+        {
+          "s": 9,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 439,
+          "lagM": 3.376
+        },
+        {
+          "s": 10,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 448,
+          "lagM": 3.325
+        },
+        {
+          "s": 11,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 422,
+          "lagM": 3.178
+        },
+        {
+          "s": 12,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 438,
+          "lagM": 3.369
+        },
+        {
+          "s": 13,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 447,
+          "lagM": 3.322
+        },
+        {
+          "s": 14,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.184
+        },
+        {
+          "s": 15,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 3.32
+        },
+        {
+          "s": 16,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 450,
+          "lagM": 3.336
+        },
+        {
+          "s": 17,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 3.199
+        },
+        {
+          "s": 18,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 3.31
+        },
+        {
+          "s": 19,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 3.366
+        },
+        {
+          "s": 20,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 3.182
+        },
+        {
+          "s": 21,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 3.317
+        },
+        {
+          "s": 22,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 3.366
+        },
+        {
+          "s": 23,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 3.182
+        },
+        {
+          "s": 24,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.308
+        },
+        {
+          "s": 25,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 3.37
+        },
+        {
+          "s": 26,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 434,
+          "lagM": 3.203
+        },
+        {
+          "s": 27,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 424,
+          "lagM": 3.274
+        },
+        {
+          "s": 28,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.402
+        },
+        {
+          "s": 29,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.187
+        },
+        {
+          "s": 30,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.267
+        },
+        {
+          "s": 31,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 32,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.186
+        },
+        {
+          "s": 33,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 418,
+          "lagM": 3.257
+        },
+        {
+          "s": 34,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 462,
+          "lagM": 3.408
+        },
+        {
+          "s": 35,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.2
+        },
+        {
+          "s": 36,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 442,
+          "lagM": 3.292
+        },
+        {
+          "s": 37,
+          "pick": "rtdb",
+          "minSpeedMps": 0,
+          "maxSpeedMps": 5.556,
+          "delayMs": 442,
+          "lagM": 5.463
+        },
+        {
+          "s": 38,
+          "pick": "fs",
+          "minSpeedMps": 0,
+          "maxSpeedMps": 13.889,
+          "delayMs": 1461,
+          "lagM": 5.821
+        },
+        {
+          "s": 39,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 13.889,
+          "delayMs": 1433,
+          "lagM": 4.079
+        },
+        {
+          "s": 40,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1594,
+          "lagM": 4.634
+        },
+        {
+          "s": 41,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1722,
+          "lagM": 5.19
+        },
+        {
+          "s": 42,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1825,
+          "lagM": 5.746
+        },
+        {
+          "s": 43,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1907,
+          "lagM": 6.301
+        },
+        {
+          "s": 44,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1973,
+          "lagM": 6.857
+        },
+        {
+          "s": 45,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2026,
+          "lagM": 7.412
+        },
+        {
+          "s": 46,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2068,
+          "lagM": 7.968
+        },
+        {
+          "s": 47,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2102,
+          "lagM": 8.524
+        },
+        {
+          "s": 48,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2129,
+          "lagM": 9.079
+        },
+        {
+          "s": 49,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2150,
+          "lagM": 9.635
+        },
+        {
+          "s": 50,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2168,
+          "lagM": 10.19
+        },
+        {
+          "s": 51,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2181,
+          "lagM": 10.746
+        },
+        {
+          "s": 52,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2192,
+          "lagM": 11.301
+        },
+        {
+          "s": 53,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2201,
+          "lagM": 11.857
+        },
+        {
+          "s": 54,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2208,
+          "lagM": 12.413
+        },
+        {
+          "s": 55,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2214,
+          "lagM": 12.968
+        },
+        {
+          "s": 56,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2219,
+          "lagM": 13.103
+        },
+        {
+          "s": 57,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2222,
+          "lagM": 13.123
+        },
+        {
+          "s": 58,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2225,
+          "lagM": 13.139
+        },
+        {
+          "s": 59,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2227,
+          "lagM": 13.152
+        },
+        {
+          "s": 60,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 943,
+          "lagM": 12.606
+        },
+        {
+          "s": 61,
+          "pick": "rtdb",
+          "minSpeedMps": 5.16,
+          "maxSpeedMps": 6.111,
+          "delayMs": 602,
+          "lagM": 12.515
+        },
+        {
+          "s": 62,
+          "pick": "rtdb",
+          "minSpeedMps": 5.16,
+          "maxSpeedMps": 8.148,
+          "delayMs": 520,
+          "lagM": 11.55
+        },
+        {
+          "s": 63,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 450,
+          "lagM": 10.995
+        },
+        {
+          "s": 64,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 437,
+          "lagM": 10.439
+        },
+        {
+          "s": 65,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 458,
+          "lagM": 9.884
+        },
+        {
+          "s": 66,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 9.328
+        },
+        {
+          "s": 67,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 8.772
+        },
+        {
+          "s": 68,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 8.217
+        },
+        {
+          "s": 69,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 7.661
+        },
+        {
+          "s": 70,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 7.106
+        },
+        {
+          "s": 71,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 6.55
+        },
+        {
+          "s": 72,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 434,
+          "lagM": 5.994
+        },
+        {
+          "s": 73,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 424,
+          "lagM": 5.439
+        },
+        {
+          "s": 74,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 4.883
+        },
+        {
+          "s": 75,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 4.328
+        },
+        {
+          "s": 76,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.772
+        },
+        {
+          "s": 77,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 78,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.186
+        },
+        {
+          "s": 79,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.266
+        },
+        {
+          "s": 80,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 81,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.198
+        },
+        {
+          "s": 82,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 419,
+          "lagM": 3.223
+        },
+        {
+          "s": 83,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.404
+        }
+      ],
+      "phases": [
+        {
+          "name": "rtdb-only",
+          "stableFromMs": 12000,
+          "toMs": 20000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.153,
+            "spacingMaxM": 3.411,
+            "spacingMeanM": 3.281,
+            "spacingPpM": 0.258,
+            "spacingStdM": 0.08,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 0,
+            "maxSpeedMps": 66.667,
+            "maxBackM": 0,
+            "maxJumpM": 1.111,
+            "reverseFrames": 0,
+            "teleportFrames": 1
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "dual",
+          "stableFromMs": 24000,
+          "toMs": 36000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.152,
+            "spacingMaxM": 3.408,
+            "spacingMeanM": 3.282,
+            "spacingPpM": 0.256,
+            "spacingStdM": 0.081,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "fs-only",
+          "stableFromMs": 42000,
+          "toMs": 60000,
+          "expectPick": "fs",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 5.556,
+            "maxBackM": 0,
+            "maxJumpM": 0.093,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 5.209,
+            "spacingMaxM": 13.152,
+            "spacingMeanM": 9.985,
+            "spacingPpM": 7.944,
+            "spacingStdM": 2.593,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 0,
+            "maxSpeedMps": 13.889,
+            "maxBackM": 0,
+            "maxJumpM": 0.231,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "dual-again",
+          "stableFromMs": 66000,
+          "toMs": 84000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.152,
+            "spacingMaxM": 9.865,
+            "spacingMeanM": 5.456,
+            "spacingPpM": 6.713,
+            "spacingStdM": 2.196,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5.16,
+            "maxSpeedMps": 8.148,
+            "maxBackM": 0,
+            "maxJumpM": 0.136,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        }
+      ],
+      "violations": [],
+      "pass": true,
+      "status": "pass"
+    },
+    {
+      "senderOffsetMs": 0,
+      "withSeq": true,
+      "silenceMode": "frozen",
+      "fsIntervalMs": 1000,
+      "speedMps": 5.555555555555555,
+      "perSecond": [
+        {
+          "s": 0,
+          "pick": "rtdb",
+          "minSpeedMps": 0,
+          "maxSpeedMps": 66.667,
+          "delayMs": 499,
+          "lagM": 2.213
+        },
+        {
+          "s": 1,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6,
+          "delayMs": 454,
+          "lagM": 2.482
+        },
+        {
+          "s": 2,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 423,
+          "lagM": 3.046
+        },
+        {
+          "s": 3,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 458,
+          "lagM": 3.39
+        },
+        {
+          "s": 4,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 441,
+          "lagM": 3.283
+        },
+        {
+          "s": 5,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 420,
+          "lagM": 3.177
+        },
+        {
+          "s": 6,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 3.382
+        },
+        {
+          "s": 7,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.29
+        },
+        {
+          "s": 8,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.186
+        },
+        {
+          "s": 9,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 439,
+          "lagM": 3.376
+        },
+        {
+          "s": 10,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 448,
+          "lagM": 3.325
+        },
+        {
+          "s": 11,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 422,
+          "lagM": 3.178
+        },
+        {
+          "s": 12,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 438,
+          "lagM": 3.369
+        },
+        {
+          "s": 13,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 447,
+          "lagM": 3.322
+        },
+        {
+          "s": 14,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.184
+        },
+        {
+          "s": 15,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 3.32
+        },
+        {
+          "s": 16,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 450,
+          "lagM": 3.336
+        },
+        {
+          "s": 17,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 3.199
+        },
+        {
+          "s": 18,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 3.31
+        },
+        {
+          "s": 19,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 3.366
+        },
+        {
+          "s": 20,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 3.182
+        },
+        {
+          "s": 21,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 3.317
+        },
+        {
+          "s": 22,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 3.366
+        },
+        {
+          "s": 23,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 3.182
+        },
+        {
+          "s": 24,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.308
+        },
+        {
+          "s": 25,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 3.37
+        },
+        {
+          "s": 26,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 434,
+          "lagM": 3.203
+        },
+        {
+          "s": 27,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 424,
+          "lagM": 3.274
+        },
+        {
+          "s": 28,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.402
+        },
+        {
+          "s": 29,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.187
+        },
+        {
+          "s": 30,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.267
+        },
+        {
+          "s": 31,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 32,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.186
+        },
+        {
+          "s": 33,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 418,
+          "lagM": 3.257
+        },
+        {
+          "s": 34,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 462,
+          "lagM": 3.408
+        },
+        {
+          "s": 35,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.2
+        },
+        {
+          "s": 36,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 442,
+          "lagM": 3.292
+        },
+        {
+          "s": 37,
+          "pick": "rtdb",
+          "minSpeedMps": 0,
+          "maxSpeedMps": 5.556,
+          "delayMs": 442,
+          "lagM": 5.463
+        },
+        {
+          "s": 38,
+          "pick": "fs",
+          "minSpeedMps": 0,
+          "maxSpeedMps": 13.889,
+          "delayMs": 1461,
+          "lagM": 5.821
+        },
+        {
+          "s": 39,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 13.889,
+          "delayMs": 1433,
+          "lagM": 4.079
+        },
+        {
+          "s": 40,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1594,
+          "lagM": 4.634
+        },
+        {
+          "s": 41,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1722,
+          "lagM": 5.19
+        },
+        {
+          "s": 42,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1825,
+          "lagM": 5.746
+        },
+        {
+          "s": 43,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1907,
+          "lagM": 6.301
+        },
+        {
+          "s": 44,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1973,
+          "lagM": 6.857
+        },
+        {
+          "s": 45,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2026,
+          "lagM": 7.412
+        },
+        {
+          "s": 46,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2068,
+          "lagM": 7.968
+        },
+        {
+          "s": 47,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2102,
+          "lagM": 8.524
+        },
+        {
+          "s": 48,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2129,
+          "lagM": 9.079
+        },
+        {
+          "s": 49,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2150,
+          "lagM": 9.635
+        },
+        {
+          "s": 50,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2168,
+          "lagM": 10.19
+        },
+        {
+          "s": 51,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2181,
+          "lagM": 10.746
+        },
+        {
+          "s": 52,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2192,
+          "lagM": 11.301
+        },
+        {
+          "s": 53,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2201,
+          "lagM": 11.857
+        },
+        {
+          "s": 54,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2208,
+          "lagM": 12.413
+        },
+        {
+          "s": 55,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2214,
+          "lagM": 12.968
+        },
+        {
+          "s": 56,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2219,
+          "lagM": 13.103
+        },
+        {
+          "s": 57,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2222,
+          "lagM": 13.123
+        },
+        {
+          "s": 58,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2225,
+          "lagM": 13.139
+        },
+        {
+          "s": 59,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2227,
+          "lagM": 13.152
+        },
+        {
+          "s": 60,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 943,
+          "lagM": 12.606
+        },
+        {
+          "s": 61,
+          "pick": "rtdb",
+          "minSpeedMps": 5.16,
+          "maxSpeedMps": 6.111,
+          "delayMs": 602,
+          "lagM": 12.515
+        },
+        {
+          "s": 62,
+          "pick": "rtdb",
+          "minSpeedMps": 5.16,
+          "maxSpeedMps": 8.148,
+          "delayMs": 520,
+          "lagM": 11.55
+        },
+        {
+          "s": 63,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 450,
+          "lagM": 10.995
+        },
+        {
+          "s": 64,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 437,
+          "lagM": 10.439
+        },
+        {
+          "s": 65,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 458,
+          "lagM": 9.884
+        },
+        {
+          "s": 66,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 9.328
+        },
+        {
+          "s": 67,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 8.772
+        },
+        {
+          "s": 68,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 8.217
+        },
+        {
+          "s": 69,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 7.661
+        },
+        {
+          "s": 70,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 7.106
+        },
+        {
+          "s": 71,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 6.55
+        },
+        {
+          "s": 72,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 434,
+          "lagM": 5.994
+        },
+        {
+          "s": 73,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 424,
+          "lagM": 5.439
+        },
+        {
+          "s": 74,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 4.883
+        },
+        {
+          "s": 75,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 4.328
+        },
+        {
+          "s": 76,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.772
+        },
+        {
+          "s": 77,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 78,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.186
+        },
+        {
+          "s": 79,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.266
+        },
+        {
+          "s": 80,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 81,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.198
+        },
+        {
+          "s": 82,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 419,
+          "lagM": 3.223
+        },
+        {
+          "s": 83,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.404
+        }
+      ],
+      "phases": [
+        {
+          "name": "rtdb-only",
+          "stableFromMs": 12000,
+          "toMs": 20000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.153,
+            "spacingMaxM": 3.411,
+            "spacingMeanM": 3.281,
+            "spacingPpM": 0.258,
+            "spacingStdM": 0.08,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 0,
+            "maxSpeedMps": 66.667,
+            "maxBackM": 0,
+            "maxJumpM": 1.111,
+            "reverseFrames": 0,
+            "teleportFrames": 1
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "dual",
+          "stableFromMs": 24000,
+          "toMs": 36000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.152,
+            "spacingMaxM": 3.408,
+            "spacingMeanM": 3.282,
+            "spacingPpM": 0.256,
+            "spacingStdM": 0.081,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "fs-only",
+          "stableFromMs": 42000,
+          "toMs": 60000,
+          "expectPick": "fs",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 5.556,
+            "maxBackM": 0,
+            "maxJumpM": 0.093,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 5.209,
+            "spacingMaxM": 13.152,
+            "spacingMeanM": 9.985,
+            "spacingPpM": 7.944,
+            "spacingStdM": 2.593,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 0,
+            "maxSpeedMps": 13.889,
+            "maxBackM": 0,
+            "maxJumpM": 0.231,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "dual-again",
+          "stableFromMs": 66000,
+          "toMs": 84000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.152,
+            "spacingMaxM": 9.865,
+            "spacingMeanM": 5.456,
+            "spacingPpM": 6.713,
+            "spacingStdM": 2.196,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5.16,
+            "maxSpeedMps": 8.148,
+            "maxBackM": 0,
+            "maxJumpM": 0.136,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        }
+      ],
+      "violations": [],
+      "pass": true,
+      "status": "pass"
+    },
+    {
+      "senderOffsetMs": 30000,
+      "withSeq": true,
+      "silenceMode": "frozen",
+      "fsIntervalMs": 1000,
+      "speedMps": 5.555555555555555,
+      "perSecond": [
+        {
+          "s": 0,
+          "pick": "rtdb",
+          "minSpeedMps": 0,
+          "maxSpeedMps": 66.667,
+          "delayMs": 499,
+          "lagM": 2.213
+        },
+        {
+          "s": 1,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6,
+          "delayMs": 454,
+          "lagM": 2.482
+        },
+        {
+          "s": 2,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 423,
+          "lagM": 3.046
+        },
+        {
+          "s": 3,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 458,
+          "lagM": 3.39
+        },
+        {
+          "s": 4,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 441,
+          "lagM": 3.283
+        },
+        {
+          "s": 5,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 420,
+          "lagM": 3.177
+        },
+        {
+          "s": 6,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 3.382
+        },
+        {
+          "s": 7,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.29
+        },
+        {
+          "s": 8,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.186
+        },
+        {
+          "s": 9,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 439,
+          "lagM": 3.376
+        },
+        {
+          "s": 10,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 448,
+          "lagM": 3.325
+        },
+        {
+          "s": 11,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 422,
+          "lagM": 3.178
+        },
+        {
+          "s": 12,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 438,
+          "lagM": 3.369
+        },
+        {
+          "s": 13,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 447,
+          "lagM": 3.322
+        },
+        {
+          "s": 14,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.184
+        },
+        {
+          "s": 15,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 3.32
+        },
+        {
+          "s": 16,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 450,
+          "lagM": 3.336
+        },
+        {
+          "s": 17,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 3.199
+        },
+        {
+          "s": 18,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 3.31
+        },
+        {
+          "s": 19,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 3.366
+        },
+        {
+          "s": 20,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 3.182
+        },
+        {
+          "s": 21,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 3.317
+        },
+        {
+          "s": 22,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 3.366
+        },
+        {
+          "s": 23,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 3.182
+        },
+        {
+          "s": 24,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.308
+        },
+        {
+          "s": 25,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 3.37
+        },
+        {
+          "s": 26,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 434,
+          "lagM": 3.203
+        },
+        {
+          "s": 27,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 424,
+          "lagM": 3.274
+        },
+        {
+          "s": 28,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.402
+        },
+        {
+          "s": 29,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.187
+        },
+        {
+          "s": 30,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.267
+        },
+        {
+          "s": 31,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 32,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.186
+        },
+        {
+          "s": 33,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 418,
+          "lagM": 3.257
+        },
+        {
+          "s": 34,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 462,
+          "lagM": 3.408
+        },
+        {
+          "s": 35,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.2
+        },
+        {
+          "s": 36,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 442,
+          "lagM": 3.292
+        },
+        {
+          "s": 37,
+          "pick": "rtdb",
+          "minSpeedMps": 0,
+          "maxSpeedMps": 5.556,
+          "delayMs": 442,
+          "lagM": 5.463
+        },
+        {
+          "s": 38,
+          "pick": "fs",
+          "minSpeedMps": 0,
+          "maxSpeedMps": 13.889,
+          "delayMs": 1461,
+          "lagM": 5.821
+        },
+        {
+          "s": 39,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 13.889,
+          "delayMs": 1433,
+          "lagM": 4.079
+        },
+        {
+          "s": 40,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1594,
+          "lagM": 4.634
+        },
+        {
+          "s": 41,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1722,
+          "lagM": 5.19
+        },
+        {
+          "s": 42,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1825,
+          "lagM": 5.746
+        },
+        {
+          "s": 43,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1907,
+          "lagM": 6.301
+        },
+        {
+          "s": 44,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1973,
+          "lagM": 6.857
+        },
+        {
+          "s": 45,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2026,
+          "lagM": 7.412
+        },
+        {
+          "s": 46,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2068,
+          "lagM": 7.968
+        },
+        {
+          "s": 47,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2102,
+          "lagM": 8.524
+        },
+        {
+          "s": 48,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2129,
+          "lagM": 9.079
+        },
+        {
+          "s": 49,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2150,
+          "lagM": 9.635
+        },
+        {
+          "s": 50,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2168,
+          "lagM": 10.19
+        },
+        {
+          "s": 51,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2181,
+          "lagM": 10.746
+        },
+        {
+          "s": 52,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2192,
+          "lagM": 11.301
+        },
+        {
+          "s": 53,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2201,
+          "lagM": 11.857
+        },
+        {
+          "s": 54,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2208,
+          "lagM": 12.413
+        },
+        {
+          "s": 55,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2214,
+          "lagM": 12.968
+        },
+        {
+          "s": 56,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2219,
+          "lagM": 13.103
+        },
+        {
+          "s": 57,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2222,
+          "lagM": 13.123
+        },
+        {
+          "s": 58,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2225,
+          "lagM": 13.139
+        },
+        {
+          "s": 59,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2227,
+          "lagM": 13.152
+        },
+        {
+          "s": 60,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 943,
+          "lagM": 12.606
+        },
+        {
+          "s": 61,
+          "pick": "rtdb",
+          "minSpeedMps": 5.16,
+          "maxSpeedMps": 6.111,
+          "delayMs": 602,
+          "lagM": 12.515
+        },
+        {
+          "s": 62,
+          "pick": "rtdb",
+          "minSpeedMps": 5.16,
+          "maxSpeedMps": 8.148,
+          "delayMs": 520,
+          "lagM": 11.55
+        },
+        {
+          "s": 63,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 450,
+          "lagM": 10.995
+        },
+        {
+          "s": 64,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 437,
+          "lagM": 10.439
+        },
+        {
+          "s": 65,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 458,
+          "lagM": 9.884
+        },
+        {
+          "s": 66,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 9.328
+        },
+        {
+          "s": 67,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 8.772
+        },
+        {
+          "s": 68,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 8.217
+        },
+        {
+          "s": 69,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 7.661
+        },
+        {
+          "s": 70,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 7.106
+        },
+        {
+          "s": 71,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 6.55
+        },
+        {
+          "s": 72,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 434,
+          "lagM": 5.994
+        },
+        {
+          "s": 73,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 424,
+          "lagM": 5.439
+        },
+        {
+          "s": 74,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 4.883
+        },
+        {
+          "s": 75,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 4.328
+        },
+        {
+          "s": 76,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.772
+        },
+        {
+          "s": 77,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 78,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.186
+        },
+        {
+          "s": 79,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.266
+        },
+        {
+          "s": 80,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 81,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.198
+        },
+        {
+          "s": 82,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 419,
+          "lagM": 3.223
+        },
+        {
+          "s": 83,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.404
+        }
+      ],
+      "phases": [
+        {
+          "name": "rtdb-only",
+          "stableFromMs": 12000,
+          "toMs": 20000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.153,
+            "spacingMaxM": 3.411,
+            "spacingMeanM": 3.281,
+            "spacingPpM": 0.258,
+            "spacingStdM": 0.08,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 0,
+            "maxSpeedMps": 66.667,
+            "maxBackM": 0,
+            "maxJumpM": 1.111,
+            "reverseFrames": 0,
+            "teleportFrames": 1
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "dual",
+          "stableFromMs": 24000,
+          "toMs": 36000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.152,
+            "spacingMaxM": 3.408,
+            "spacingMeanM": 3.282,
+            "spacingPpM": 0.256,
+            "spacingStdM": 0.081,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "fs-only",
+          "stableFromMs": 42000,
+          "toMs": 60000,
+          "expectPick": "fs",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 5.556,
+            "maxBackM": 0,
+            "maxJumpM": 0.093,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 5.209,
+            "spacingMaxM": 13.152,
+            "spacingMeanM": 9.985,
+            "spacingPpM": 7.944,
+            "spacingStdM": 2.593,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 0,
+            "maxSpeedMps": 13.889,
+            "maxBackM": 0,
+            "maxJumpM": 0.231,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "dual-again",
+          "stableFromMs": 66000,
+          "toMs": 84000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.152,
+            "spacingMaxM": 9.865,
+            "spacingMeanM": 5.456,
+            "spacingPpM": 6.713,
+            "spacingStdM": 2.196,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5.16,
+            "maxSpeedMps": 8.148,
+            "maxBackM": 0,
+            "maxJumpM": 0.136,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        }
+      ],
+      "violations": [],
+      "pass": true,
+      "status": "pass"
+    },
+    {
+      "senderOffsetMs": -30000,
+      "withSeq": true,
+      "silenceMode": "cleared",
+      "fsIntervalMs": 1000,
+      "speedMps": 5.555555555555555,
+      "perSecond": [
+        {
+          "s": 0,
+          "pick": "rtdb",
+          "minSpeedMps": 0,
+          "maxSpeedMps": 66.667,
+          "delayMs": 499,
+          "lagM": 2.213
+        },
+        {
+          "s": 1,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6,
+          "delayMs": 454,
+          "lagM": 2.482
+        },
+        {
+          "s": 2,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 423,
+          "lagM": 3.046
+        },
+        {
+          "s": 3,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 458,
+          "lagM": 3.39
+        },
+        {
+          "s": 4,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 441,
+          "lagM": 3.283
+        },
+        {
+          "s": 5,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 420,
+          "lagM": 3.177
+        },
+        {
+          "s": 6,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 3.382
+        },
+        {
+          "s": 7,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.29
+        },
+        {
+          "s": 8,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.186
+        },
+        {
+          "s": 9,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 439,
+          "lagM": 3.376
+        },
+        {
+          "s": 10,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 448,
+          "lagM": 3.325
+        },
+        {
+          "s": 11,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 422,
+          "lagM": 3.178
+        },
+        {
+          "s": 12,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 438,
+          "lagM": 3.369
+        },
+        {
+          "s": 13,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 447,
+          "lagM": 3.322
+        },
+        {
+          "s": 14,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.184
+        },
+        {
+          "s": 15,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 3.32
+        },
+        {
+          "s": 16,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 450,
+          "lagM": 3.336
+        },
+        {
+          "s": 17,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 3.199
+        },
+        {
+          "s": 18,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 3.31
+        },
+        {
+          "s": 19,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 3.366
+        },
+        {
+          "s": 20,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 3.182
+        },
+        {
+          "s": 21,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 3.317
+        },
+        {
+          "s": 22,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 3.366
+        },
+        {
+          "s": 23,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 3.182
+        },
+        {
+          "s": 24,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.308
+        },
+        {
+          "s": 25,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 3.37
+        },
+        {
+          "s": 26,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 434,
+          "lagM": 3.203
+        },
+        {
+          "s": 27,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 424,
+          "lagM": 3.274
+        },
+        {
+          "s": 28,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.402
+        },
+        {
+          "s": 29,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.187
+        },
+        {
+          "s": 30,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.267
+        },
+        {
+          "s": 31,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 32,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.186
+        },
+        {
+          "s": 33,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 418,
+          "lagM": 3.257
+        },
+        {
+          "s": 34,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 462,
+          "lagM": 3.408
+        },
+        {
+          "s": 35,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.2
+        },
+        {
+          "s": 36,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.722,
+          "delayMs": 383,
+          "lagM": 2.906
+        },
+        {
+          "s": 37,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 754,
+          "lagM": 3.425
+        },
+        {
+          "s": 38,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1050,
+          "lagM": 3.98
+        },
+        {
+          "s": 39,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1288,
+          "lagM": 4.545
+        },
+        {
+          "s": 40,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1477,
+          "lagM": 5.101
+        },
+        {
+          "s": 41,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1629,
+          "lagM": 5.656
+        },
+        {
+          "s": 42,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1751,
+          "lagM": 6.212
+        },
+        {
+          "s": 43,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1848,
+          "lagM": 6.767
+        },
+        {
+          "s": 44,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1926,
+          "lagM": 7.323
+        },
+        {
+          "s": 45,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1988,
+          "lagM": 7.879
+        },
+        {
+          "s": 46,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2038,
+          "lagM": 8.434
+        },
+        {
+          "s": 47,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2077,
+          "lagM": 8.99
+        },
+        {
+          "s": 48,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2109,
+          "lagM": 9.545
+        },
+        {
+          "s": 49,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2135,
+          "lagM": 10.101
+        },
+        {
+          "s": 50,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2155,
+          "lagM": 10.656
+        },
+        {
+          "s": 51,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2171,
+          "lagM": 11.212
+        },
+        {
+          "s": 52,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2184,
+          "lagM": 11.768
+        },
+        {
+          "s": 53,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2195,
+          "lagM": 12.323
+        },
+        {
+          "s": 54,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2203,
+          "lagM": 12.879
+        },
+        {
+          "s": 55,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2210,
+          "lagM": 13.055
+        },
+        {
+          "s": 56,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2215,
+          "lagM": 13.085
+        },
+        {
+          "s": 57,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2220,
+          "lagM": 13.109
+        },
+        {
+          "s": 58,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2223,
+          "lagM": 13.128
+        },
+        {
+          "s": 59,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2226,
+          "lagM": 13.143
+        },
+        {
+          "s": 60,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 942,
+          "lagM": 12.597
+        },
+        {
+          "s": 61,
+          "pick": "rtdb",
+          "minSpeedMps": 5.16,
+          "maxSpeedMps": 6.111,
+          "delayMs": 602,
+          "lagM": 12.507
+        },
+        {
+          "s": 62,
+          "pick": "rtdb",
+          "minSpeedMps": 5.16,
+          "maxSpeedMps": 8.148,
+          "delayMs": 519,
+          "lagM": 11.541
+        },
+        {
+          "s": 63,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 450,
+          "lagM": 10.985
+        },
+        {
+          "s": 64,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 437,
+          "lagM": 10.43
+        },
+        {
+          "s": 65,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 458,
+          "lagM": 9.874
+        },
+        {
+          "s": 66,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 9.319
+        },
+        {
+          "s": 67,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 8.763
+        },
+        {
+          "s": 68,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 8.207
+        },
+        {
+          "s": 69,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 7.652
+        },
+        {
+          "s": 70,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 7.096
+        },
+        {
+          "s": 71,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 6.541
+        },
+        {
+          "s": 72,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 434,
+          "lagM": 5.985
+        },
+        {
+          "s": 73,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 424,
+          "lagM": 5.43
+        },
+        {
+          "s": 74,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 4.874
+        },
+        {
+          "s": 75,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 4.318
+        },
+        {
+          "s": 76,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.763
+        },
+        {
+          "s": 77,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 78,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.186
+        },
+        {
+          "s": 79,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.266
+        },
+        {
+          "s": 80,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 81,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.198
+        },
+        {
+          "s": 82,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 419,
+          "lagM": 3.223
+        },
+        {
+          "s": 83,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.404
+        }
+      ],
+      "phases": [
+        {
+          "name": "rtdb-only",
+          "stableFromMs": 12000,
+          "toMs": 20000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.153,
+            "spacingMaxM": 3.411,
+            "spacingMeanM": 3.281,
+            "spacingPpM": 0.258,
+            "spacingStdM": 0.08,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 0,
+            "maxSpeedMps": 66.667,
+            "maxBackM": 0,
+            "maxJumpM": 1.111,
+            "reverseFrames": 0,
+            "teleportFrames": 1
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "dual",
+          "stableFromMs": 24000,
+          "toMs": 36000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.152,
+            "spacingMaxM": 3.408,
+            "spacingMeanM": 3.282,
+            "spacingPpM": 0.256,
+            "spacingStdM": 0.081,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "fs-only",
+          "stableFromMs": 42000,
+          "toMs": 60000,
+          "expectPick": "fs",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 5.556,
+            "maxBackM": 0,
+            "maxJumpM": 0.093,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 5.675,
+            "spacingMaxM": 13.143,
+            "spacingMeanM": 10.337,
+            "spacingPpM": 7.468,
+            "spacingStdM": 2.46,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.722,
+            "maxBackM": 0,
+            "maxJumpM": 0.112,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "dual-again",
+          "stableFromMs": 66000,
+          "toMs": 84000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.152,
+            "spacingMaxM": 9.856,
+            "spacingMeanM": 5.45,
+            "spacingPpM": 6.704,
+            "spacingStdM": 2.193,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5.16,
+            "maxSpeedMps": 8.148,
+            "maxBackM": 0,
+            "maxJumpM": 0.136,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        }
+      ],
+      "violations": [],
+      "pass": true,
+      "status": "pass"
+    },
+    {
+      "senderOffsetMs": 0,
+      "withSeq": true,
+      "silenceMode": "cleared",
+      "fsIntervalMs": 1000,
+      "speedMps": 5.555555555555555,
+      "perSecond": [
+        {
+          "s": 0,
+          "pick": "rtdb",
+          "minSpeedMps": 0,
+          "maxSpeedMps": 66.667,
+          "delayMs": 499,
+          "lagM": 2.213
+        },
+        {
+          "s": 1,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6,
+          "delayMs": 454,
+          "lagM": 2.482
+        },
+        {
+          "s": 2,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 423,
+          "lagM": 3.046
+        },
+        {
+          "s": 3,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 458,
+          "lagM": 3.39
+        },
+        {
+          "s": 4,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 441,
+          "lagM": 3.283
+        },
+        {
+          "s": 5,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 420,
+          "lagM": 3.177
+        },
+        {
+          "s": 6,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 3.382
+        },
+        {
+          "s": 7,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.29
+        },
+        {
+          "s": 8,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.186
+        },
+        {
+          "s": 9,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 439,
+          "lagM": 3.376
+        },
+        {
+          "s": 10,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 448,
+          "lagM": 3.325
+        },
+        {
+          "s": 11,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 422,
+          "lagM": 3.178
+        },
+        {
+          "s": 12,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 438,
+          "lagM": 3.369
+        },
+        {
+          "s": 13,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 447,
+          "lagM": 3.322
+        },
+        {
+          "s": 14,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.184
+        },
+        {
+          "s": 15,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 3.32
+        },
+        {
+          "s": 16,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 450,
+          "lagM": 3.336
+        },
+        {
+          "s": 17,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 3.199
+        },
+        {
+          "s": 18,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 3.31
+        },
+        {
+          "s": 19,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 3.366
+        },
+        {
+          "s": 20,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 3.182
+        },
+        {
+          "s": 21,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 3.317
+        },
+        {
+          "s": 22,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 3.366
+        },
+        {
+          "s": 23,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 3.182
+        },
+        {
+          "s": 24,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.308
+        },
+        {
+          "s": 25,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 3.37
+        },
+        {
+          "s": 26,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 434,
+          "lagM": 3.203
+        },
+        {
+          "s": 27,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 424,
+          "lagM": 3.274
+        },
+        {
+          "s": 28,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.402
+        },
+        {
+          "s": 29,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.187
+        },
+        {
+          "s": 30,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.267
+        },
+        {
+          "s": 31,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 32,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.186
+        },
+        {
+          "s": 33,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 418,
+          "lagM": 3.257
+        },
+        {
+          "s": 34,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 462,
+          "lagM": 3.408
+        },
+        {
+          "s": 35,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.2
+        },
+        {
+          "s": 36,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.722,
+          "delayMs": 383,
+          "lagM": 2.906
+        },
+        {
+          "s": 37,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 754,
+          "lagM": 3.425
+        },
+        {
+          "s": 38,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1050,
+          "lagM": 3.98
+        },
+        {
+          "s": 39,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1288,
+          "lagM": 4.545
+        },
+        {
+          "s": 40,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1477,
+          "lagM": 5.101
+        },
+        {
+          "s": 41,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1629,
+          "lagM": 5.656
+        },
+        {
+          "s": 42,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1751,
+          "lagM": 6.212
+        },
+        {
+          "s": 43,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1848,
+          "lagM": 6.767
+        },
+        {
+          "s": 44,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1926,
+          "lagM": 7.323
+        },
+        {
+          "s": 45,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1988,
+          "lagM": 7.879
+        },
+        {
+          "s": 46,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2038,
+          "lagM": 8.434
+        },
+        {
+          "s": 47,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2077,
+          "lagM": 8.99
+        },
+        {
+          "s": 48,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2109,
+          "lagM": 9.545
+        },
+        {
+          "s": 49,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2135,
+          "lagM": 10.101
+        },
+        {
+          "s": 50,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2155,
+          "lagM": 10.656
+        },
+        {
+          "s": 51,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2171,
+          "lagM": 11.212
+        },
+        {
+          "s": 52,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2184,
+          "lagM": 11.768
+        },
+        {
+          "s": 53,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2195,
+          "lagM": 12.323
+        },
+        {
+          "s": 54,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2203,
+          "lagM": 12.879
+        },
+        {
+          "s": 55,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2210,
+          "lagM": 13.055
+        },
+        {
+          "s": 56,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2215,
+          "lagM": 13.085
+        },
+        {
+          "s": 57,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2220,
+          "lagM": 13.109
+        },
+        {
+          "s": 58,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2223,
+          "lagM": 13.128
+        },
+        {
+          "s": 59,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2226,
+          "lagM": 13.143
+        },
+        {
+          "s": 60,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 942,
+          "lagM": 12.597
+        },
+        {
+          "s": 61,
+          "pick": "rtdb",
+          "minSpeedMps": 5.16,
+          "maxSpeedMps": 6.111,
+          "delayMs": 602,
+          "lagM": 12.507
+        },
+        {
+          "s": 62,
+          "pick": "rtdb",
+          "minSpeedMps": 5.16,
+          "maxSpeedMps": 8.148,
+          "delayMs": 519,
+          "lagM": 11.541
+        },
+        {
+          "s": 63,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 450,
+          "lagM": 10.985
+        },
+        {
+          "s": 64,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 437,
+          "lagM": 10.43
+        },
+        {
+          "s": 65,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 458,
+          "lagM": 9.874
+        },
+        {
+          "s": 66,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 9.319
+        },
+        {
+          "s": 67,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 8.763
+        },
+        {
+          "s": 68,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 8.207
+        },
+        {
+          "s": 69,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 7.652
+        },
+        {
+          "s": 70,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 7.096
+        },
+        {
+          "s": 71,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 6.541
+        },
+        {
+          "s": 72,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 434,
+          "lagM": 5.985
+        },
+        {
+          "s": 73,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 424,
+          "lagM": 5.43
+        },
+        {
+          "s": 74,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 4.874
+        },
+        {
+          "s": 75,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 4.318
+        },
+        {
+          "s": 76,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.763
+        },
+        {
+          "s": 77,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 78,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.186
+        },
+        {
+          "s": 79,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.266
+        },
+        {
+          "s": 80,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 81,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.198
+        },
+        {
+          "s": 82,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 419,
+          "lagM": 3.223
+        },
+        {
+          "s": 83,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.404
+        }
+      ],
+      "phases": [
+        {
+          "name": "rtdb-only",
+          "stableFromMs": 12000,
+          "toMs": 20000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.153,
+            "spacingMaxM": 3.411,
+            "spacingMeanM": 3.281,
+            "spacingPpM": 0.258,
+            "spacingStdM": 0.08,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 0,
+            "maxSpeedMps": 66.667,
+            "maxBackM": 0,
+            "maxJumpM": 1.111,
+            "reverseFrames": 0,
+            "teleportFrames": 1
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "dual",
+          "stableFromMs": 24000,
+          "toMs": 36000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.152,
+            "spacingMaxM": 3.408,
+            "spacingMeanM": 3.282,
+            "spacingPpM": 0.256,
+            "spacingStdM": 0.081,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "fs-only",
+          "stableFromMs": 42000,
+          "toMs": 60000,
+          "expectPick": "fs",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 5.556,
+            "maxBackM": 0,
+            "maxJumpM": 0.093,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 5.675,
+            "spacingMaxM": 13.143,
+            "spacingMeanM": 10.337,
+            "spacingPpM": 7.468,
+            "spacingStdM": 2.46,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.722,
+            "maxBackM": 0,
+            "maxJumpM": 0.112,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "dual-again",
+          "stableFromMs": 66000,
+          "toMs": 84000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.152,
+            "spacingMaxM": 9.856,
+            "spacingMeanM": 5.45,
+            "spacingPpM": 6.704,
+            "spacingStdM": 2.193,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5.16,
+            "maxSpeedMps": 8.148,
+            "maxBackM": 0,
+            "maxJumpM": 0.136,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        }
+      ],
+      "violations": [],
+      "pass": true,
+      "status": "pass"
+    },
+    {
+      "senderOffsetMs": 30000,
+      "withSeq": true,
+      "silenceMode": "cleared",
+      "fsIntervalMs": 1000,
+      "speedMps": 5.555555555555555,
+      "perSecond": [
+        {
+          "s": 0,
+          "pick": "rtdb",
+          "minSpeedMps": 0,
+          "maxSpeedMps": 66.667,
+          "delayMs": 499,
+          "lagM": 2.213
+        },
+        {
+          "s": 1,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6,
+          "delayMs": 454,
+          "lagM": 2.482
+        },
+        {
+          "s": 2,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 423,
+          "lagM": 3.046
+        },
+        {
+          "s": 3,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 458,
+          "lagM": 3.39
+        },
+        {
+          "s": 4,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 441,
+          "lagM": 3.283
+        },
+        {
+          "s": 5,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 420,
+          "lagM": 3.177
+        },
+        {
+          "s": 6,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 3.382
+        },
+        {
+          "s": 7,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.29
+        },
+        {
+          "s": 8,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.186
+        },
+        {
+          "s": 9,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 439,
+          "lagM": 3.376
+        },
+        {
+          "s": 10,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 448,
+          "lagM": 3.325
+        },
+        {
+          "s": 11,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 422,
+          "lagM": 3.178
+        },
+        {
+          "s": 12,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 438,
+          "lagM": 3.369
+        },
+        {
+          "s": 13,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 447,
+          "lagM": 3.322
+        },
+        {
+          "s": 14,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.184
+        },
+        {
+          "s": 15,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 3.32
+        },
+        {
+          "s": 16,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 450,
+          "lagM": 3.336
+        },
+        {
+          "s": 17,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 3.199
+        },
+        {
+          "s": 18,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 3.31
+        },
+        {
+          "s": 19,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 3.366
+        },
+        {
+          "s": 20,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 3.182
+        },
+        {
+          "s": 21,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 3.317
+        },
+        {
+          "s": 22,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 3.366
+        },
+        {
+          "s": 23,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 3.182
+        },
+        {
+          "s": 24,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.308
+        },
+        {
+          "s": 25,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 3.37
+        },
+        {
+          "s": 26,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 434,
+          "lagM": 3.203
+        },
+        {
+          "s": 27,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 424,
+          "lagM": 3.274
+        },
+        {
+          "s": 28,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.402
+        },
+        {
+          "s": 29,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.187
+        },
+        {
+          "s": 30,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.267
+        },
+        {
+          "s": 31,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 32,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.186
+        },
+        {
+          "s": 33,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 418,
+          "lagM": 3.257
+        },
+        {
+          "s": 34,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 462,
+          "lagM": 3.408
+        },
+        {
+          "s": 35,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.2
+        },
+        {
+          "s": 36,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.722,
+          "delayMs": 383,
+          "lagM": 2.906
+        },
+        {
+          "s": 37,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 754,
+          "lagM": 3.425
+        },
+        {
+          "s": 38,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1050,
+          "lagM": 3.98
+        },
+        {
+          "s": 39,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1288,
+          "lagM": 4.545
+        },
+        {
+          "s": 40,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1477,
+          "lagM": 5.101
+        },
+        {
+          "s": 41,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1629,
+          "lagM": 5.656
+        },
+        {
+          "s": 42,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1751,
+          "lagM": 6.212
+        },
+        {
+          "s": 43,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1848,
+          "lagM": 6.767
+        },
+        {
+          "s": 44,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1926,
+          "lagM": 7.323
+        },
+        {
+          "s": 45,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1988,
+          "lagM": 7.879
+        },
+        {
+          "s": 46,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2038,
+          "lagM": 8.434
+        },
+        {
+          "s": 47,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2077,
+          "lagM": 8.99
+        },
+        {
+          "s": 48,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2109,
+          "lagM": 9.545
+        },
+        {
+          "s": 49,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2135,
+          "lagM": 10.101
+        },
+        {
+          "s": 50,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2155,
+          "lagM": 10.656
+        },
+        {
+          "s": 51,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2171,
+          "lagM": 11.212
+        },
+        {
+          "s": 52,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2184,
+          "lagM": 11.768
+        },
+        {
+          "s": 53,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2195,
+          "lagM": 12.323
+        },
+        {
+          "s": 54,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2203,
+          "lagM": 12.879
+        },
+        {
+          "s": 55,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2210,
+          "lagM": 13.055
+        },
+        {
+          "s": 56,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2215,
+          "lagM": 13.085
+        },
+        {
+          "s": 57,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2220,
+          "lagM": 13.109
+        },
+        {
+          "s": 58,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2223,
+          "lagM": 13.128
+        },
+        {
+          "s": 59,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2226,
+          "lagM": 13.143
+        },
+        {
+          "s": 60,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 942,
+          "lagM": 12.597
+        },
+        {
+          "s": 61,
+          "pick": "rtdb",
+          "minSpeedMps": 5.16,
+          "maxSpeedMps": 6.111,
+          "delayMs": 602,
+          "lagM": 12.507
+        },
+        {
+          "s": 62,
+          "pick": "rtdb",
+          "minSpeedMps": 5.16,
+          "maxSpeedMps": 8.148,
+          "delayMs": 519,
+          "lagM": 11.541
+        },
+        {
+          "s": 63,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 450,
+          "lagM": 10.985
+        },
+        {
+          "s": 64,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 437,
+          "lagM": 10.43
+        },
+        {
+          "s": 65,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 458,
+          "lagM": 9.874
+        },
+        {
+          "s": 66,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 9.319
+        },
+        {
+          "s": 67,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 8.763
+        },
+        {
+          "s": 68,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 8.207
+        },
+        {
+          "s": 69,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 7.652
+        },
+        {
+          "s": 70,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 7.096
+        },
+        {
+          "s": 71,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 6.541
+        },
+        {
+          "s": 72,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 434,
+          "lagM": 5.985
+        },
+        {
+          "s": 73,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 424,
+          "lagM": 5.43
+        },
+        {
+          "s": 74,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 4.874
+        },
+        {
+          "s": 75,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 4.318
+        },
+        {
+          "s": 76,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.763
+        },
+        {
+          "s": 77,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 78,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.186
+        },
+        {
+          "s": 79,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.266
+        },
+        {
+          "s": 80,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 81,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.198
+        },
+        {
+          "s": 82,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 419,
+          "lagM": 3.223
+        },
+        {
+          "s": 83,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.404
+        }
+      ],
+      "phases": [
+        {
+          "name": "rtdb-only",
+          "stableFromMs": 12000,
+          "toMs": 20000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.153,
+            "spacingMaxM": 3.411,
+            "spacingMeanM": 3.281,
+            "spacingPpM": 0.258,
+            "spacingStdM": 0.08,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 0,
+            "maxSpeedMps": 66.667,
+            "maxBackM": 0,
+            "maxJumpM": 1.111,
+            "reverseFrames": 0,
+            "teleportFrames": 1
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "dual",
+          "stableFromMs": 24000,
+          "toMs": 36000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.152,
+            "spacingMaxM": 3.408,
+            "spacingMeanM": 3.282,
+            "spacingPpM": 0.256,
+            "spacingStdM": 0.081,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "fs-only",
+          "stableFromMs": 42000,
+          "toMs": 60000,
+          "expectPick": "fs",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 5.556,
+            "maxBackM": 0,
+            "maxJumpM": 0.093,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 5.675,
+            "spacingMaxM": 13.143,
+            "spacingMeanM": 10.337,
+            "spacingPpM": 7.468,
+            "spacingStdM": 2.46,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.722,
+            "maxBackM": 0,
+            "maxJumpM": 0.112,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "dual-again",
+          "stableFromMs": 66000,
+          "toMs": 84000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.152,
+            "spacingMaxM": 9.856,
+            "spacingMeanM": 5.45,
+            "spacingPpM": 6.704,
+            "spacingStdM": 2.193,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5.16,
+            "maxSpeedMps": 8.148,
+            "maxBackM": 0,
+            "maxJumpM": 0.136,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        }
+      ],
+      "violations": [],
+      "pass": true,
+      "status": "pass"
+    },
+    {
+      "senderOffsetMs": 0,
+      "withSeq": false,
+      "silenceMode": "frozen",
+      "fsIntervalMs": 1000,
+      "speedMps": 5.555555555555555,
+      "perSecond": [
+        {
+          "s": 0,
+          "pick": "rtdb",
+          "minSpeedMps": 0,
+          "maxSpeedMps": 66.667,
+          "delayMs": 499,
+          "lagM": 2.213
+        },
+        {
+          "s": 1,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6,
+          "delayMs": 454,
+          "lagM": 2.482
+        },
+        {
+          "s": 2,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 423,
+          "lagM": 3.046
+        },
+        {
+          "s": 3,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 458,
+          "lagM": 3.39
+        },
+        {
+          "s": 4,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 441,
+          "lagM": 3.283
+        },
+        {
+          "s": 5,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 420,
+          "lagM": 3.177
+        },
+        {
+          "s": 6,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 3.382
+        },
+        {
+          "s": 7,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.29
+        },
+        {
+          "s": 8,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.186
+        },
+        {
+          "s": 9,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 439,
+          "lagM": 3.376
+        },
+        {
+          "s": 10,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 448,
+          "lagM": 3.325
+        },
+        {
+          "s": 11,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 422,
+          "lagM": 3.178
+        },
+        {
+          "s": 12,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 438,
+          "lagM": 3.369
+        },
+        {
+          "s": 13,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 447,
+          "lagM": 3.322
+        },
+        {
+          "s": 14,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.184
+        },
+        {
+          "s": 15,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 3.32
+        },
+        {
+          "s": 16,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 450,
+          "lagM": 3.336
+        },
+        {
+          "s": 17,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 3.199
+        },
+        {
+          "s": 18,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 3.31
+        },
+        {
+          "s": 19,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 3.366
+        },
+        {
+          "s": 20,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 3.182
+        },
+        {
+          "s": 21,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 3.317
+        },
+        {
+          "s": 22,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 3.366
+        },
+        {
+          "s": 23,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 3.182
+        },
+        {
+          "s": 24,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.308
+        },
+        {
+          "s": 25,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 3.37
+        },
+        {
+          "s": 26,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 434,
+          "lagM": 3.203
+        },
+        {
+          "s": 27,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 424,
+          "lagM": 3.274
+        },
+        {
+          "s": 28,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.402
+        },
+        {
+          "s": 29,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.187
+        },
+        {
+          "s": 30,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.267
+        },
+        {
+          "s": 31,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 32,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.186
+        },
+        {
+          "s": 33,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 418,
+          "lagM": 3.257
+        },
+        {
+          "s": 34,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 462,
+          "lagM": 3.408
+        },
+        {
+          "s": 35,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.2
+        },
+        {
+          "s": 36,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 442,
+          "lagM": 3.292
+        },
+        {
+          "s": 37,
+          "pick": "rtdb",
+          "minSpeedMps": 0,
+          "maxSpeedMps": 5.556,
+          "delayMs": 442,
+          "lagM": 5.463
+        },
+        {
+          "s": 38,
+          "pick": "fs",
+          "minSpeedMps": 0,
+          "maxSpeedMps": 13.889,
+          "delayMs": 1461,
+          "lagM": 5.821
+        },
+        {
+          "s": 39,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 13.889,
+          "delayMs": 1433,
+          "lagM": 4.079
+        },
+        {
+          "s": 40,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1594,
+          "lagM": 4.634
+        },
+        {
+          "s": 41,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1722,
+          "lagM": 5.19
+        },
+        {
+          "s": 42,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1825,
+          "lagM": 5.746
+        },
+        {
+          "s": 43,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1907,
+          "lagM": 6.301
+        },
+        {
+          "s": 44,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 1973,
+          "lagM": 6.857
+        },
+        {
+          "s": 45,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2026,
+          "lagM": 7.412
+        },
+        {
+          "s": 46,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2068,
+          "lagM": 7.968
+        },
+        {
+          "s": 47,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2102,
+          "lagM": 8.524
+        },
+        {
+          "s": 48,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2129,
+          "lagM": 9.079
+        },
+        {
+          "s": 49,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2150,
+          "lagM": 9.635
+        },
+        {
+          "s": 50,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2168,
+          "lagM": 10.19
+        },
+        {
+          "s": 51,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2181,
+          "lagM": 10.746
+        },
+        {
+          "s": 52,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2192,
+          "lagM": 11.301
+        },
+        {
+          "s": 53,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2201,
+          "lagM": 11.857
+        },
+        {
+          "s": 54,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2208,
+          "lagM": 12.413
+        },
+        {
+          "s": 55,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5,
+          "delayMs": 2214,
+          "lagM": 12.968
+        },
+        {
+          "s": 56,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2219,
+          "lagM": 13.103
+        },
+        {
+          "s": 57,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2222,
+          "lagM": 13.123
+        },
+        {
+          "s": 58,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2225,
+          "lagM": 13.139
+        },
+        {
+          "s": 59,
+          "pick": "fs",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 5.556,
+          "delayMs": 2227,
+          "lagM": 13.152
+        },
+        {
+          "s": 60,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 943,
+          "lagM": 12.606
+        },
+        {
+          "s": 61,
+          "pick": "rtdb",
+          "minSpeedMps": 5.16,
+          "maxSpeedMps": 6.111,
+          "delayMs": 602,
+          "lagM": 12.515
+        },
+        {
+          "s": 62,
+          "pick": "rtdb",
+          "minSpeedMps": 5.16,
+          "maxSpeedMps": 8.148,
+          "delayMs": 520,
+          "lagM": 11.55
+        },
+        {
+          "s": 63,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 450,
+          "lagM": 10.995
+        },
+        {
+          "s": 64,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 437,
+          "lagM": 10.439
+        },
+        {
+          "s": 65,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 458,
+          "lagM": 9.884
+        },
+        {
+          "s": 66,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 432,
+          "lagM": 9.328
+        },
+        {
+          "s": 67,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 430,
+          "lagM": 8.772
+        },
+        {
+          "s": 68,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 455,
+          "lagM": 8.217
+        },
+        {
+          "s": 69,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 431,
+          "lagM": 7.661
+        },
+        {
+          "s": 70,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 7.106
+        },
+        {
+          "s": 71,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 456,
+          "lagM": 6.55
+        },
+        {
+          "s": 72,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 434,
+          "lagM": 5.994
+        },
+        {
+          "s": 73,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 424,
+          "lagM": 5.439
+        },
+        {
+          "s": 74,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 4.883
+        },
+        {
+          "s": 75,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 4.328
+        },
+        {
+          "s": 76,
+          "pick": "rtdb",
+          "minSpeedMps": 6.111,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.772
+        },
+        {
+          "s": 77,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 78,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 440,
+          "lagM": 3.186
+        },
+        {
+          "s": 79,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 423,
+          "lagM": 3.266
+        },
+        {
+          "s": 80,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.4
+        },
+        {
+          "s": 81,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 442,
+          "lagM": 3.198
+        },
+        {
+          "s": 82,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 419,
+          "lagM": 3.223
+        },
+        {
+          "s": 83,
+          "pick": "rtdb",
+          "minSpeedMps": 5,
+          "maxSpeedMps": 6.111,
+          "delayMs": 461,
+          "lagM": 3.404
+        }
+      ],
+      "phases": [
+        {
+          "name": "rtdb-only",
+          "stableFromMs": 12000,
+          "toMs": 20000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.153,
+            "spacingMaxM": 3.411,
+            "spacingMeanM": 3.281,
+            "spacingPpM": 0.258,
+            "spacingStdM": 0.08,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 0,
+            "maxSpeedMps": 66.667,
+            "maxBackM": 0,
+            "maxJumpM": 1.111,
+            "reverseFrames": 0,
+            "teleportFrames": 1
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "dual",
+          "stableFromMs": 24000,
+          "toMs": 36000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.152,
+            "spacingMaxM": 3.408,
+            "spacingMeanM": 3.282,
+            "spacingPpM": 0.256,
+            "spacingStdM": 0.081,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "fs-only",
+          "stableFromMs": 42000,
+          "toMs": 60000,
+          "expectPick": "fs",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 5.556,
+            "maxBackM": 0,
+            "maxJumpM": 0.093,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 5.209,
+            "spacingMaxM": 13.152,
+            "spacingMeanM": 9.985,
+            "spacingPpM": 7.944,
+            "spacingStdM": 2.593,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 0,
+            "maxSpeedMps": 13.889,
+            "maxBackM": 0,
+            "maxJumpM": 0.231,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        },
+        {
+          "name": "dual-again",
+          "stableFromMs": 66000,
+          "toMs": 84000,
+          "expectPick": "rtdb",
+          "pickShare": 1,
+          "stable": {
+            "minSpeedMps": 5,
+            "maxSpeedMps": 6.111,
+            "maxBackM": 0,
+            "maxJumpM": 0.102,
+            "reverseFrames": 0,
+            "teleportFrames": 0,
+            "spacingMinM": 3.152,
+            "spacingMaxM": 9.865,
+            "spacingMeanM": 5.456,
+            "spacingPpM": 6.713,
+            "spacingStdM": 2.196,
+            "violations": [],
+            "pass": true
+          },
+          "warmupWindow": {
+            "minSpeedMps": 5.16,
+            "maxSpeedMps": 8.148,
+            "maxBackM": 0,
+            "maxJumpM": 0.136,
+            "reverseFrames": 0,
+            "teleportFrames": 0
+          },
+          "violations": [],
+          "pass": true
+        }
+      ],
+      "violations": [],
+      "pass": true,
+      "status": "pass"
+    }
+  ],
+  "requiredFailCount": 0,
+  "requiredAllPass": true
+}

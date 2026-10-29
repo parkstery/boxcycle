@@ -1,0 +1,113 @@
+{
+  "generatedAt": "2026-10-29T04:07:11.987Z",
+  "elapsedMs": 2697,
+  "gates": {
+    "residualPpFailM": 0.8,
+    "frameJumpFailM": 0.45,
+    "backFailM": 0.35
+  },
+  "results": [
+    {
+      "scenario": "low5equal",
+      "label": "5 vs 5 km/h, fixed relative gap",
+      "rtdbMs": 200,
+      "fsMs": 4000,
+      "frameDtsMs": [
+        16.666666666666668
+      ],
+      "bPublishPhaseMs": 80,
+      "delayMs": 600,
+      "frames": 1140,
+      "residualPpM": 0.01,
+      "residualPpFailM": 0.03,
+      "residualPpAllM": 0.01,
+      "maxBehindTruthM": 0.006,
+      "maxAheadTruthM": 0.004,
+      "finalResidualM": -0.004,
+      "residualStdM": 0.004,
+      "residualMeanM": 0,
+      "maxPeerJumpM": 0.023,
+      "maxSelfJumpM": 0.023,
+      "maxBackM": 0,
+      "reverseFrames": 0,
+      "maxFrameVelMps": 1.4,
+      "axisFlipCount": 0,
+      "fsPickFrames": 0,
+      "stallLimit": false,
+      "residualExcludeMs": null,
+      "residualGateNote": "all gates use full window",
+      "violations": [],
+      "pass": true
+    },
+    {
+      "scenario": "low5networkGap",
+      "label": "5 vs 5 km/h, B RTDB silent 8–12s, FS fallback retained",
+      "rtdbMs": 200,
+      "fsMs": 4000,
+      "frameDtsMs": [
+        16.666666666666668
+      ],
+      "bPublishPhaseMs": 80,
+      "delayMs": 600,
+      "frames": 1140,
+      "residualPpM": 3.313,
+      "residualPpFailM": 0.03,
+      "residualPpAllM": 3.313,
+      "maxBehindTruthM": 3.307,
+      "maxAheadTruthM": 0.007,
+      "finalResidualM": -0.004,
+      "residualStdM": 0.802,
+      "residualMeanM": 0.345,
+      "maxPeerJumpM": 0.058,
+      "maxSelfJumpM": 0.023,
+      "maxBackM": 0.001,
+      "reverseFrames": 0,
+      "maxFrameVelMps": 3.475,
+      "axisFlipCount": 0,
+      "fsPickFrames": 241,
+      "stallLimit": false,
+      "residualExcludeMs": null,
+      "residualGateNote": "all gates use full window",
+      "violations": [
+        "residualPp 3.313m > 0.03m"
+      ],
+      "pass": false
+    },
+    {
+      "scenario": "low5bothStreamsGap",
+      "label": "5 vs 5 km/h, B RTDB + FS silent 8–12s then recover",
+      "rtdbMs": 200,
+      "fsMs": 4000,
+      "frameDtsMs": [
+        16.666666666666668
+      ],
+      "bPublishPhaseMs": 80,
+      "delayMs": 600,
+      "frames": 1140,
+      "residualPpM": 4.579,
+      "residualPpFailM": 0.03,
+      "residualPpAllM": 4.579,
+      "maxBehindTruthM": 4.572,
+      "maxAheadTruthM": 0.007,
+      "finalResidualM": -0.004,
+      "residualStdM": 1.601,
+      "residualMeanM": 1.245,
+      "maxPeerJumpM": 0.058,
+      "maxSelfJumpM": 0.023,
+      "maxBackM": 0.001,
+      "reverseFrames": 0,
+      "maxFrameVelMps": 3.475,
+      "axisFlipCount": 0,
+      "fsPickFrames": 241,
+      "stallLimit": false,
+      "residualExcludeMs": null,
+      "residualGateNote": "all gates use full window",
+      "violations": [
+        "residualPp 4.579m > 0.03m"
+      ],
+      "pass": false
+    }
+  ],
+  "requiredFail": 2,
+  "pass": false
+}

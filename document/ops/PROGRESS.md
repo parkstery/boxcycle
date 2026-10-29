@@ -1,3 +1,5 @@
+2026-10-29 **동행 표본시각 수정 릴리스 승인·진행**: 제품8101ead2·거리/실제적분시각짝수정, 합성6→1.2cm(현장미확정), 75시험/spacing/빌드PASS. [해결보고](20261029-peer-cost-quality/04-solution-and-local-fix.md)·[품질보존 트래픽검토](20261029-peer-cost-quality/05-quality-preserving-traffic-review.md). 큰공백미해결·4초예측실험정지오차로미채택. Chief커밋푸시Hosting배포승인, 다른UI dirty제외한커밋소스로격리빌드중. RTDB200ms/FS4s/Rules/Functions불변, 최적화는검토만. 실행 C:\20.HDev\boxcycle\apps\web → node --test scripts/peer-sync/motion-capture-timeline.test.mjs; 운영배포후 https://boxcycle-dc2df.web.app 새로고침(현재배포완료아님)。
+
 2026-10-29 **경로 생성 재배치 / LOCAL_VERIFIED·미배포**: Chief「구현해」최신시안반영. 제목「경로」·모드·닫기한행/삭제하단/지점66px·gap3/목표거리14px·bold/칩양끝. 기본228×160/194px. 화면40PASS·1FAIL(옛하단순서)→갱신후영향분4PASS, selector20·tsc·eslint·build·dep/tidy/diffPASS. 실폰/실Firebase미실행·기존dirty보존·커밋푸시배포없음. [결과](20261029-route-header-layout/01-result.md).
 
 2026-10-29 **경로 재배치 후속 시안 / 확인대기·제품미변경**: Chief제목「경로」·Start/+WP/End폭66/간격3px·목표거리현재시안+2pt(14px)요청반영. 228×160/194유지·실측/넘침/거리상호작용PASS. [시안](20261029-route-header-layout/README.md). 다음시안확인후구현, 제품코드/커밋푸시배포없음.

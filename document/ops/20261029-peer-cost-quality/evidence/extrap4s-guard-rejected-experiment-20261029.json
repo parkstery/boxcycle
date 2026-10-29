@@ -1,0 +1,79 @@
+{
+  "generatedAt": "2026-10-29T04:14:40.243Z",
+  "elapsedMs": 2824,
+  "gates": {
+    "residualPpFailM": 0.8,
+    "frameJumpFailM": 0.45,
+    "backFailM": 0.35
+  },
+  "results": [
+    {
+      "scenario": "low5bothStreamsGap",
+      "label": "5 vs 5 km/h, B RTDB + FS silent 8–12s then recover",
+      "rtdbMs": 200,
+      "fsMs": 4000,
+      "frameDtsMs": [
+        16.666666666666668
+      ],
+      "bPublishPhaseMs": 80,
+      "delayMs": 600,
+      "frames": 1140,
+      "residualPpM": 0.015,
+      "residualPpFailM": 0.03,
+      "residualPpAllM": 0.015,
+      "maxBehindTruthM": 0.006,
+      "maxAheadTruthM": 0.009,
+      "finalResidualM": -0.004,
+      "residualStdM": 0.004,
+      "residualMeanM": -0.001,
+      "maxPeerJumpM": 0.023,
+      "maxSelfJumpM": 0.023,
+      "maxBackM": 0,
+      "reverseFrames": 0,
+      "maxFrameVelMps": 1.4,
+      "axisFlipCount": 0,
+      "fsPickFrames": 241,
+      "stallLimit": false,
+      "residualExcludeMs": null,
+      "residualGateNote": "all gates use full window",
+      "violations": [],
+      "pass": true
+    },
+    {
+      "scenario": "low5bothStreamsStop",
+      "label": "5km/h B stops while both receive streams are silent",
+      "rtdbMs": 200,
+      "fsMs": 4000,
+      "frameDtsMs": [
+        16.666666666666668
+      ],
+      "bPublishPhaseMs": 80,
+      "delayMs": 600,
+      "frames": 1140,
+      "residualPpM": 4.829,
+      "residualPpFailM": 0.03,
+      "residualPpAllM": 4.829,
+      "maxBehindTruthM": 0.006,
+      "maxAheadTruthM": 4.823,
+      "finalResidualM": 0.001,
+      "residualStdM": 1.29,
+      "residualMeanM": -0.618,
+      "maxPeerJumpM": 0.058,
+      "maxSelfJumpM": 0.023,
+      "maxBackM": 0.058,
+      "reverseFrames": 0,
+      "maxFrameVelMps": 3.475,
+      "axisFlipCount": 0,
+      "fsPickFrames": 241,
+      "stallLimit": false,
+      "residualExcludeMs": null,
+      "residualGateNote": "all gates use full window",
+      "violations": [
+        "residualPp 4.829m > 0.03m"
+      ],
+      "pass": false
+    }
+  ],
+  "requiredFail": 1,
+  "pass": false
+}
