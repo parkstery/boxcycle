@@ -27,6 +27,9 @@ export function EdgePanelHandle(props: EdgePanelHandleProps) {
   const chevron = open
     ? (edge === "left" ? "M5 1.5L2 5L5 8.5" : "M2 1.5L5 5L2 8.5")
     : (edge === "left" ? "M2 1.5L5 5L2 8.5" : "M5 1.5L2 5L5 8.5");
+  const title = open
+    ? (edge === "left" ? "메뉴 닫기" : "순위 목록 닫기")
+    : (edge === "left" ? "메뉴 열기" : "순위 목록 열기");
 
   return (
     <>
@@ -41,6 +44,7 @@ export function EdgePanelHandle(props: EdgePanelHandleProps) {
         type="button"
         className={`edge-panel-tab edge-panel-tab--${edge}${open ? " edge-panel-tab--open" : ""}`}
         aria-label={label}
+        title={title}
         aria-controls={panelId}
         aria-expanded={open}
         onPointerDown={(e) => {

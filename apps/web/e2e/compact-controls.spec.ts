@@ -259,8 +259,9 @@ test.describe('compact-controls v2', () => {
       expect(geometry.inside).toBe(true);
       expect(geometry.width).toBeLessThanOrEqual(460 + 1);
       expect(geometry.scroll).toBeLessThanOrEqual(geometry.client + 1);
-      expect(geometry.labels).toEqual(expect.arrayContaining(['코칭 문구', '음성 안내', '배경 음악', '페이서', '효과음', '인터벌']));
-      await expect(dialog.getByRole('button', { name: '운동 설정', exact: true })).toBeVisible();
+      expect(geometry.labels).toEqual(expect.arrayContaining(['코칭 문구', '음성 안내', '배경 음악', '페이서', '효과음']));
+      await expect(dialog.getByRole('button', { name: '운동 설정', exact: true })).toHaveCount(0);
+      await expect(dialog.getByRole('switch', { name: '인터벌' })).toHaveCount(0);
       await expect(dialog.getByRole('button', { name: '프로필 수정', exact: true })).toBeVisible();
       if (size.width === 699) await saveShot(page, `settings-${size.width}x${size.height}.png`);
     });
@@ -270,12 +271,18 @@ test.describe('compact-controls v2', () => {
     await page.setViewportSize({ width: 699, height: 273 });
     await page.goto(`${preview}?state=settings`);
     const settings = page.getByRole('dialog', { name: '주행 설정', exact: true });
-    await settings.getByRole('switch', { name: '인터벌' }).check();
-    await settings.getByRole('button', { name: '운동 설정', exact: true }).click();
+    await settings.getByRole('button', { name: '주행 설정 닫기', exact: true }).click();
+    await page.getByRole('button', { name: 'Trail 메뉴', exact: true }).focus();
+    await page.keyboard.press('Enter');
+    await page.getByRole('button', { name: '인터벌', exact: true }).click();
     const editor = page.getByRole('dialog', { name: '인터벌 운동 설정', exact: true });
     await expect(editor).toBeVisible();
-    await expect(settings).toHaveCount(0);
+    await editor.getByRole('switch', { name: '인터벌' }).check();
+    await expect(editor.getByRole('switch', { name: '인터벌' })).toBeChecked();
     await editor.getByRole('button', { name: '인터벌 운동 설정 닫기', exact: true }).click();
+    await page.getByRole('button', { name: 'Trail 메뉴', exact: true }).focus();
+    await page.keyboard.press('Enter');
+    await page.getByRole('button', { name: '주행 설정', exact: true }).click();
     await expect(settings).toBeVisible();
     await settings.getByRole('button', { name: '프로필 수정', exact: true }).click();
     const profile = page.getByRole('dialog', { name: '프로필 수정', exact: true });
@@ -301,17 +308,23 @@ test.describe('compact-controls v2', () => {
       await expect(settings.getByRole('switch', { name: '배경 음악' })).toBeDisabled();
       await expect(settings.getByText('준비 중')).toBeVisible();
       await expect(settings.getByText('고도 프로필 로드 중…')).toBeVisible();
-      await expect(settings.getByText(/600초 \/ 600초 ×30회/)).toBeVisible();
-      await expect(settings.getByText(/3라운드/)).toBeVisible();
-      await expect(settings.getByText(/준비 30분/)).toBeVisible();
-      await expect(settings.getByText(/마무리 30분/)).toBeVisible();
       await expect(settings.getByText('프로필에 체중을 입력하세요')).toBeVisible();
       await expect(settings.getByText(/체력을 선택하세요/)).toBeVisible();
       if (size.width === 699) await saveShot(page, 'settings-stress-699x273.png');
 
-      await settings.getByRole('button', { name: '운동 설정', exact: true }).click();
+      await settings.getByRole('button', { name: '주행 설정 닫기', exact: true }).click();
+      await page.getByRole('button', { name: 'Trail 메뉴', exact: true }).focus();
+      await page.keyboard.press('Enter');
+      await page.getByRole('button', { name: '인터벌', exact: true }).click();
       const editor = page.getByRole('dialog', { name: '인터벌 운동 설정', exact: true });
       await expect(editor).toBeVisible();
+      const fold = editor.getByRole('button', { name: '접기', exact: true });
+      if (await fold.count()) await fold.click();
+      await expect(editor.getByText(/600초 \/ 600초 ×30/)).toBeVisible();
+      await expect(editor.getByText(/3라운드/)).toBeVisible();
+      await expect(editor.getByText(/준비 30분/)).toBeVisible();
+      await expect(editor.getByText(/마무리 30분/)).toBeVisible();
+      await editor.getByRole('button', { name: '직접 조절', exact: true }).click();
       const editorBox = await editor.locator('.ride-interval-settings__panel').evaluate((el) => {
         const box = el.getBoundingClientRect();
         return {
@@ -322,6 +335,9 @@ test.describe('compact-controls v2', () => {
       });
       expect(editorBox.inside).toBe(true);
       await editor.getByRole('button', { name: '인터벌 운동 설정 닫기', exact: true }).click();
+      await page.getByRole('button', { name: 'Trail 메뉴', exact: true }).focus();
+      await page.keyboard.press('Enter');
+      await page.getByRole('button', { name: '주행 설정', exact: true }).click();
       await expect(settings).toBeVisible();
 
       await settings.getByRole('button', { name: '프로필 수정', exact: true }).click();

@@ -94,23 +94,36 @@
   white-space: nowrap;
 }
 
+.menu-panel__search,
 .menu-panel__close {
   appearance: none;
   border: 0;
-  background: #f2f3f5;
-  color: #2a2e37;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   padding: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+}
+
+.menu-panel__search {
+  background: transparent;
+  color: #2a2e37;
+  margin-left: 2px;
+}
+
+.menu-panel__close {
+  background: #f2f3f5;
+  color: #2a2e37;
 }
 
 @media (hover: hover) {
+  .menu-panel__search:hover {
+    background: #eef2ff;
+  }
   .menu-panel__close:hover {
     background: #e8eaee;
   }

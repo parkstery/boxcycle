@@ -60,7 +60,7 @@ export function CadenceHudChip({
       }`}
       aria-label={view.ariaLabel}
       aria-expanded={open}
-      title="Cadence sensor"
+      title={view.ariaLabel}
       onClick={onOpen}
     >
       <span

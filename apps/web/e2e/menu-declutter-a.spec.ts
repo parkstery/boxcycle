@@ -54,8 +54,10 @@ test.describe("MENU 정리 A단계", () => {
     await expect(panel.getByRole("button", { name: "이벤트" }), "이벤트 칩").toHaveCount(0);
     expect(await page.locator(".ride-panel__kicker").count(), "「공식」 키커").toBe(0);
 
-    // ── 경로 출처 세 행 대신 통합 진입점 하나 ───────────────────────────
-    const routePicker = panel.getByRole("button", { name: "경로 선택", exact: true });
+    // ── 경로 선택 제목 아래 출처 세 버튼 ───────────────────────────
+    const sources = panel.getByRole("group", { name: "경로 목록 열기" });
+    await expect(sources.getByRole("button")).toHaveText(["내 경로", "퍼블릭", "입문"]);
+    const routePicker = sources.getByRole("button", { name: "내 경로", exact: true });
     await expect(routePicker).toHaveCount(1);
 
     // ── 높이 배분 실측 ──────────────────────────────────────────────────
@@ -146,8 +148,7 @@ test.describe("MENU 정리 A단계", () => {
      * 물러나므로 Basic 1·2·3 의 의도된 난이도 순서가 그대로 지켜진다 —
      * 「최근순으로 두면 입문이 섞이지 않을까」를 실제로 확인하는 것이 아래 왕복이다.
      */
-    await page.getByRole("button", { name: "경로 선택", exact: true }).click();
-    await page.getByRole("dialog", { name: "내 경로" }).getByRole("button", { name: "입문", exact: true }).click();
+    await panel.getByRole("group", { name: "경로 목록 열기" }).getByRole("button", { name: "입문", exact: true }).click();
     const introDialog = page.getByRole("dialog", { name: "입문 경로" });
     await expect(introDialog).toBeVisible({ timeout: 20_000 });
     const introTitles = () =>

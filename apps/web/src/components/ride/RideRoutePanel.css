@@ -29,11 +29,43 @@
 /* ── MENU 경로 6행 (시안 06) ── */
 .menu-route-nav__section-label {
   display: block;
-  margin-top: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  margin: 4px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: normal;
   color: #5e6472;
+}
+
+.menu-route-nav__sources {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0 0 10px;
+}
+
+.menu-route-nav__source {
+  min-height: 38px;
+  padding: 6px 0;
+  border: 1px solid #d9e2f7;
+  border-radius: 8px;
+  background: #f0f4ff;
+  color: #2457d6;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.menu-route-nav__source.is-active,
+.menu-route-nav__source:hover {
+  background: #e3ebff;
+}
+
+@media (pointer: coarse) {
+  .menu-route-nav__source {
+    min-height: 44px;
+  }
 }
 
 .menu-route-nav {

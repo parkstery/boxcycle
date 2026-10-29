@@ -214,7 +214,7 @@ async function openTrailMenu(page: Page): Promise<void> {
     await page.getByRole("button", { name: "Trail 메뉴" }).click();
   }
   await expect(menuOpenRoot(page)).toHaveCount(1, { timeout: 15_000 });
-  await expect(page.getByRole("button", { name: "경로 선택", exact: true })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("button", { name: "입문", exact: true })).toBeVisible({ timeout: 15_000 });
 }
 
 async function closeTrailMenu(page: Page): Promise<void> {
@@ -273,7 +273,7 @@ test.describe("listener-scope ride release/reacquire (emulator)", () => {
     await openTrailMenu(page);
     states.rideMenuOpen = await pollCgOpen(page, 1, "rideMenuOpen");
     await expect(menuOpenRoot(page)).toHaveCount(1);
-    await expect(page.getByRole("button", { name: "경로 선택", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "입문", exact: true })).toBeVisible();
 
     // 4) Close menu → CG release again
     await closeTrailMenu(page);

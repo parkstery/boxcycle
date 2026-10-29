@@ -30,6 +30,7 @@ export function RouteOverviewFoldToggle({
       className={`route-overview-fold-toggle${className ? ` ${className}` : ""}`}
       data-fold-kind={kind}
       aria-label={ariaLabel}
+      title={ariaLabel}
       aria-expanded={expanded}
       aria-controls={controls}
       onClick={onClick}

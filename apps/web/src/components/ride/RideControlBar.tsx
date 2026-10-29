@@ -57,6 +57,7 @@ export function RideControlBar(props: RideControlBarProps) {
             type="button"
             className="ride-control-bar__resume-trigger"
             aria-label="이어 달리기 선택"
+            title="이어 달리기 선택"
             aria-expanded={resumeOpen}
             onClick={() => setResumeOpen((v) => !v)}
           >
@@ -70,6 +71,7 @@ export function RideControlBar(props: RideControlBarProps) {
             className="ride-media-button ride-media-button--play ride-control-bar__primary"
             disabled={ready && startDisabled}
             aria-label={paused ? "재개" : "주행 시작"}
+            title={paused ? "재개" : "주행 시작"}
             onClick={(event) => {
               setResumeOpen(false);
               setPauseOptionsOpen(false);
@@ -86,6 +88,7 @@ export function RideControlBar(props: RideControlBarProps) {
             type="button"
             className="ride-media-button ride-media-button--pause"
             aria-label="일시정지"
+            title="일시정지"
             onClick={props.onPauseRide}
           >
             <span className="ride-media-button__icon" aria-hidden="true" />
@@ -96,6 +99,7 @@ export function RideControlBar(props: RideControlBarProps) {
             type="button"
             className="ride-media-button ride-media-button--stop ride-control-bar__end"
             aria-label="주행 종료"
+            title="주행 종료"
             onClick={() => {
               setResumeOpen(false);
               setPauseOptionsOpen(false);
@@ -109,6 +113,7 @@ export function RideControlBar(props: RideControlBarProps) {
           <button
             type="button"
             aria-label="일시정지 옵션"
+            title="일시정지 옵션"
             aria-expanded={pauseOptionsOpen}
             onClick={() => setPauseOptionsOpen((v) => !v)}
           >
@@ -127,7 +132,7 @@ export function RideControlBar(props: RideControlBarProps) {
           >
             경로 변경
           </button>
-          <button type="button" aria-label="일시정지 옵션 닫기" onClick={() => setPauseOptionsOpen(false)}>
+          <button type="button" aria-label="일시정지 옵션 닫기" title="일시정지 옵션 닫기" onClick={() => setPauseOptionsOpen(false)}>
             닫기
           </button>
         </div>
@@ -138,6 +143,7 @@ export function RideControlBar(props: RideControlBarProps) {
             type="button"
             className="ride-control-bar__resume-close"
             aria-label="이어 달리기 선택 닫기"
+            title="이어 달리기 선택 닫기"
             onClick={() => setResumeOpen(false)}
           >
             ✕
@@ -164,6 +170,7 @@ export function RideControlBar(props: RideControlBarProps) {
             <button
               type="button"
               aria-label="이어달리기 종료"
+              title="이어달리기 종료"
               onClick={() => {
                 setResumeOpen(false);
                 props.onAbandonResume?.();

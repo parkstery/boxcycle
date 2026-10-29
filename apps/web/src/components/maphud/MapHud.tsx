@@ -401,7 +401,7 @@ export function MapHud(props: MapHudProps) {
           onClick={onOpenMenu}
           aria-label="Trail 메뉴"
           aria-expanded={menuOpen}
-          title="Trail menu"
+          title="Trail 메뉴"
         >
           Trail 메뉴
         </button>
@@ -643,7 +643,7 @@ export function MapHud(props: MapHudProps) {
                 type="button"
                 className="hud-ride-map-controls__zoom"
                 aria-label="줌 확대"
-                title="확대"
+                title="줌 확대"
                 disabled={mapControls.zoomInDisabled}
                 onPointerDown={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
@@ -655,7 +655,7 @@ export function MapHud(props: MapHudProps) {
                 type="button"
                 className="hud-ride-map-controls__zoom"
                 aria-label="줌 축소"
-                title="축소"
+                title="줌 축소"
                 disabled={mapControls.zoomOutDisabled}
                 onPointerDown={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
@@ -674,7 +674,7 @@ export function MapHud(props: MapHudProps) {
                   className={`hud-account ${account.isGuest ? "hud-account--guest" : ""}`}
                   aria-label="사용자 정보"
                   aria-expanded={userInfoOpen}
-                  title="Account"
+                  title="사용자 정보"
                   onClick={onOpenUserInfo}
                 >
                   <span className="hud-account__text">
@@ -688,7 +688,7 @@ export function MapHud(props: MapHudProps) {
                   type="button"
                   className="hud-signin-pill"
                   aria-label="로그인 또는 게스트로 시작"
-                  title="Sign in"
+                  title="로그인"
                   onClick={onOpenSignedOutAuth}
                 >
                   로그인

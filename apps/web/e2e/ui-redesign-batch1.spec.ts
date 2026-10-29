@@ -86,13 +86,14 @@ for (const size of [{ width: 667, height: 300 }, { width: 800, height: 360 }, { 
   test(`메뉴·출처·검색·저장 경로 관리 ${size.width}×${size.height}`, async ({ page }, info) => {
     await page.setViewportSize(size);
     const menu = await openMenu(page);
-    await expect(menu.locator('.menu-route-nav > li')).toHaveCount(4);
+    await expect(menu.locator('.menu-route-nav > li')).toHaveCount(2);
+    await expect(menu.getByRole('group', { name: '경로 목록 열기' }).getByRole('button')).toHaveText(['내 경로', '퍼블릭', '입문']);
     await expect(menu.locator('.trail-hub__live-join')).toHaveCount(2);
     await withinViewport(menu, size.width, size.height);
     expect((await menu.boundingBox())!.width).toBe(300);
     if (size.height >= 360) await expect(menu.locator('.trail-hub__live-join').last()).toBeInViewport({ ratio: 1 });
     await capture(page, info, `batch1-preview-menu-${size.width}x${size.height}.png`);
-    await menu.getByRole('button', { name: '경로 선택', exact: true }).click();
+    await menu.getByRole('button', { name: '내 경로', exact: true }).click();
     const sourceNav = page.getByRole('navigation', { name: '경로 출처' });
     await expect(sourceNav.getByRole('button')).toHaveText(['내 경로', '퍼블릭', '입문']);
     await expect(page.getByRole('dialog', { name: '내 경로', exact: true })).toBeVisible();
@@ -161,7 +162,7 @@ test('긴 이름·빈 목록·로딩에도 출처 전환과 닫기가 가능하�
   await page.setViewportSize({ width: 667, height: 300 });
   for (const query of ['?long', '?empty', '?loading']) {
     const menu = await openMenu(page, query);
-    await menu.getByRole('button', { name: '경로 선택', exact: true }).click();
+    await menu.getByRole('button', { name: '퍼블릭', exact: true }).click();
     await page.getByRole('navigation', { name: '경로 출처' }).getByRole('button', { name: '퍼블릭', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: '퍼블릭 경로', exact: true });
     await withinViewport(dialog, 667, 300);
@@ -194,13 +195,13 @@ test('행 선택·이어달리기·합류·설정 콜백을 실제 제품 버튼
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Trail 메뉴', exact: true }).focus();
   await page.keyboard.press('Enter');
-  await menu.getByRole('button', { name: '경로 선택', exact: true }).click();
-  await page.getByRole('dialog', { name: '내 경로', exact: true }).getByRole('button', { name: '입문', exact: true }).click();
+  await menu.getByRole('button', { name: '입문', exact: true }).click();
+  await page.getByRole('dialog', { name: '입문 경로', exact: true }).getByRole('button', { name: '입문', exact: true }).click();
   await page.getByRole('dialog', { name: '입문 경로', exact: true }).locator('.oc-modal__item').first().click();
   await expect(page.getByRole('dialog', { name: '입문 경로', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Trail 메뉴', exact: true }).focus();
   await page.keyboard.press('Enter');
-  await menu.getByRole('button', { name: '경로 선택', exact: true }).click();
+  await menu.getByRole('button', { name: '내 경로', exact: true }).click();
   const saved = page.getByRole('dialog', { name: '내 경로', exact: true });
   await saved.getByRole('listbox', { name: '사용자 경로 목록' }).getByRole('option').filter({ hasText: '한강 이어달리기' }).click();
   await saved.getByRole('button', { name: '이어 달리기', exact: true }).click();

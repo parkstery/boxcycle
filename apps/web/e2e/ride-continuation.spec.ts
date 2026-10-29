@@ -252,7 +252,7 @@ async function loadSavedRouteFromMenu(page: Page, routeName: string, action: '�
   await openTrailMenu(page)
   // 2026-09-16: 탭 계층을 없애고 경로 출처 칩 한 줄로 합쳤다.
   // 통합 진입점은 기본으로 「내 경로」를 연다.
-  await page.getByRole('button', { name: '경로 선택' }).click()
+  await page.getByRole('button', { name: '내 경로' }).click()
   const modal = page.getByRole('dialog', { name: '내 경로', exact: true })
   const row = modal.getByRole('option').filter({ hasText: routeName })
   await expect(row).toBeVisible({ timeout: 15_000 })
@@ -558,7 +558,6 @@ test.describe('다음 주행 · 이어 달리기', () => {
 
     // 입문 코스는 SavedRoute 가 아니다 → 종료 시 ad-hoc 컨텍스트가 된다
     await openTrailMenu(page)
-    await page.getByRole('button', { name: '경로 선택', exact: true }).click()
     await page.getByRole('button', { name: '입문', exact: true }).click()
     const modal = page.getByRole('dialog').filter({ has: page.locator('#oc-modal-title') })
     await expect(modal).toBeVisible()

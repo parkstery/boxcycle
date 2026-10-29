@@ -3340,24 +3340,18 @@ export default function App() {
           setMenuOpen(false);
           setPlaceSearchMarkerLngLat(null);
         }}
+        onOpenPlaceSearch={() => {
+          placeSearchIntentRef.current = "menu";
+          openPlaceSearchPanel();
+        }}
       >
         <RideRoutePanel
           onOpenSettings={openRideSettingsPanel}
-          onOpenPlaceSearch={() => {
-            placeSearchIntentRef.current = "menu";
-            openPlaceSearchPanel();
+          onOpenIntervalSettings={() => {
+            setMenuOpen(false);
+            setIntervalSettingsFromRideSettings(false);
+            setRideIntervalSettingsOpen(true);
           }}
-          onOpenLeaderboard={openLeaderboardPanel}
-          leaderboardMenuAside={
-            leaderboardGlance.data?.me.status === "ranked" &&
-            leaderboardGlance.data.me.rank != null
-              ? (
-                  <>
-                    이번 주 <b>{leaderboardGlance.data.me.rank}</b>위
-                  </>
-                )
-              : undefined
-          }
           routeSummary={routeSummary}
           routeLoading={routeLoading || isSearching}
           basicSharedHubs={BASIC_SHARED_HUB_SUMMARIES}
@@ -3456,14 +3450,6 @@ export default function App() {
 
       <RideSettingsSheet
         open={rideSettingsSheetOpen}
-        rideIntervalConfig={rideIntervalConfig}
-        onOpenRideIntervalSettings={() => {
-          setRideSettingsSheetOpen(false);
-          setIntervalSettingsFromRideSettings(true);
-          setRideIntervalSettingsOpen(true);
-        }}
-        rideIntervalEnabled={rideIntervalEnabled}
-        onRideIntervalEnabled={handleRideIntervalEnabled}
         onClose={() => setRideSettingsSheetOpen(false)}
         rideTtsEnabled={rideTtsEnabled}
         onRideTtsEnabled={setRideTtsEnabled}
@@ -3489,6 +3475,8 @@ export default function App() {
         open={rideIntervalSettingsOpen}
         config={rideIntervalConfig}
         restartOnApply={rideIntervalEnabled && rideStatus !== "idle"}
+        enabled={rideIntervalEnabled}
+        onEnabled={handleRideIntervalEnabled}
         onApply={handleRideIntervalConfig}
         onClose={() => {
           setRideIntervalSettingsOpen(false);

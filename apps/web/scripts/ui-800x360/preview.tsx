@@ -623,8 +623,6 @@ function Preview() {
     />
     {initial === 'leaderboard' ? <div id="lb-fixture" hidden data-lb-join-calls={String(lbJoinCalls)} /> : null}
     <RideSettingsSheet open={panel==='settings'} onClose={()=>setPanel('ready')}
-      rideIntervalConfig={interval.config} onOpenRideIntervalSettings={()=>{setPanel('ready');setIntervalEditorFromSettings(true);setIntervalEditorOpen(true);}}
-      rideIntervalEnabled={interval.enabled} onRideIntervalEnabled={interval.onEnabled}
       rideTtsEnabled={rideTtsEnabled} onRideTtsEnabled={setRideTtsEnabled}
       rideBgmEnabled={rideBgmEnabled} onRideBgmEnabled={setRideBgmEnabled}
       rideCoachingBanner={rideCoachingBanner} onRideCoachingBanner={setRideCoachingBanner}
@@ -636,7 +634,7 @@ function Preview() {
         setSettingsProfileNavCalls((n) => n + 1);
         setPanel('profile');
       }} />
-    <RideIntervalSettingsSheet open={intervalEditorOpen} config={interval.config} restartOnApply={interval.enabled && (stage==='riding'||stage==='paused')} onApply={interval.onConfig} onClose={()=>{setIntervalEditorOpen(false);if(intervalEditorFromSettings)setPanel('settings');}} />
+    <RideIntervalSettingsSheet open={intervalEditorOpen} config={interval.config} restartOnApply={interval.enabled && (stage==='riding'||stage==='paused')} enabled={interval.enabled} onEnabled={interval.onEnabled} onApply={interval.onConfig} onClose={()=>{setIntervalEditorOpen(false);if(intervalEditorFromSettings)setPanel('settings');}} />
     <IntervalRouteConfirm open={intervalConfirmOpen} speedKmh={20} onCancel={()=>setIntervalConfirmOpen(false)} onConfirm={()=>{setIntervalConfirmOpen(false);setStage('riding');}} />
     <ProfileEditSheet
       open={panel==='profile'}
@@ -712,7 +710,7 @@ function Preview() {
     {panel==='routes'?<OfficialCourseListModal segment="intro" onClose={()=>setPanel('ready')} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
       basicStartLoading={false} basicStartHubJoined={false} routeLoading={false} sessionIdle officialCourseCatalogAvailable publishedPublicCourses={[]}
       publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}/>:null}
-    <MenuPanel open={panel==='menu'} onClose={()=>setPanel('ready')}>
+    <MenuPanel open={panel==='menu'} onClose={()=>setPanel('ready')} onOpenPlaceSearch={noop}>
       <RideRoutePanel routeSummary="" routeLoading={false} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
         basicStartLoading={false} basicStartHubJoined={false} officialCourseCatalogAvailable publishedPublicCourses={getBasicSharedHubSummaries()}
         publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} authGuest signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}
@@ -720,8 +718,7 @@ function Preview() {
         arrivalToastVisible={false} adhocSaveAvailable={false} onSaveAdhocAsUserRoute={noop} onDismissAdhocSave={noop}
         rideTtsEnabled onRideTtsEnabled={noop} rideBgmEnabled onRideBgmEnabled={noop} rideCoachingBanner onRideCoachingBanner={noop}
         pacerEnabled onPacerEnabled={noop} rideElevationProfileLoading={false} rideBgmCatalogConfigured
-        onOpenSettings={()=>setPanel('settings')} onOpenPlaceSearch={noop} onOpenLeaderboard={noop}
-        leaderboardMenuAside={<>이번 주 <b>2</b>위</>} />
+        onOpenSettings={()=>setPanel('settings')} onOpenIntervalSettings={()=>{setPanel('ready');setIntervalEditorFromSettings(false);setIntervalEditorOpen(true);}} />
     </MenuPanel>
     {panel==='intro'?<AppIntroScreen onStartGuest={()=>setPanel('location')} onLogin={()=>setPanel('location')}/>:null}
     {panel==='location'?<EntryLocationDialog phase="choice" permission="prompt" onChooseRome={()=>setPanel('ready')} onChooseCurrent={()=>setPanel('ready')} onPosition={noop}/>:null}

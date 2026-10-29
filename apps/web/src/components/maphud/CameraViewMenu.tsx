@@ -128,6 +128,7 @@ export function CameraViewMenu({ active, camera1Mode = "routeFit", onSelect, onS
         ref={triggerRef}
         className={`camera-view-menu__trigger${active != null ? " is-selected" : ""}`}
         aria-label={triggerAria}
+        title={triggerAria}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={menuId}
@@ -162,6 +163,7 @@ export function CameraViewMenu({ active, camera1Mode = "routeFit", onSelect, onS
                     className={`camera-view-menu__item${active === 1 && camera1Mode === mode ? " is-selected" : ""}`}
                     aria-checked={active === 1 && camera1Mode === mode}
                     aria-label={`평면 카메라 · ${CAMERA1_MODE_META[mode].label}`}
+                    title={`평면 카메라 · ${CAMERA1_MODE_META[mode].label}`}
                     onClick={() => {
                       onSelectFlat(mode);
                       closeMenu(true);
@@ -200,6 +202,7 @@ export function CameraViewMenu({ active, camera1Mode = "routeFit", onSelect, onS
                 <li role="none" className="camera-view-menu__terrain">
                   <button type="button" role="menuitemcheckbox" aria-checked={enable3D}
                     aria-label={terrainFallback && enable3D ? "3D 뷰 · 자동 2D로 주행 중" : "3D 뷰"}
+                    title={terrainFallback && enable3D ? "3D 뷰 · 자동 2D로 주행 중" : "3D 뷰"}
                     className={`camera-view-menu__item camera-view-menu__item--terrain${enable3D ? " is-selected" : ""}`}
                     onClick={() => onEnable3D(!enable3D)}>
                     <span>3D 뷰</span>

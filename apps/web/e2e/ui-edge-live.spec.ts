@@ -46,8 +46,7 @@ test('실제 지도 800×360: 에지 열기·상단 지표·조밀한 도크·�
   await expect(menu).toBeVisible();
   await expect(page.locator('.map-view__pick-popup')).toHaveCount(0);
   await page.screenshot({ path: path.join(evidence, 'actual-menu-800.png'), animations: 'disabled' });
-  await menu.getByRole('button', { name: '경로 선택', exact: true }).click();
-  await page.getByRole('button', { name: '입문', exact: true }).click();
+  await menu.getByRole('button', { name: '입문', exact: true }).click();
   const routes = page.getByRole('dialog').filter({ has: page.locator('#oc-modal-title') });
   await expect(routes).toBeVisible();
   await routes.locator('button.oc-modal__item').first().click();

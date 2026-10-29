@@ -219,16 +219,11 @@ export function Preview() {
         onClose={() => {
           setMenuOpen(false);
         }}
+        onOpenPlaceSearch={() => setLastAction('지명 검색')}
       >
         <RideRoutePanel
           onOpenSettings={() => { setMenuOpen(false); setSettingsOpen(true); }}
-          onOpenPlaceSearch={() => setLastAction('지명 검색')}
-          onOpenLeaderboard={() => setLastAction('순위')}
-          leaderboardMenuAside={
-            <span>
-              이번 주 <b>3</b>위
-            </span>
-          }
+          onOpenIntervalSettings={() => { setMenuOpen(false); setLastAction('인터벌'); }}
           routeSummary=""
           routeLoading={false}
           basicSharedHubs={basicSharedHubs}

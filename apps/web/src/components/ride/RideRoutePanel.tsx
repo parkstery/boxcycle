@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import type { RouteListSource } from "./RouteListModalShell";
 import type { PublishedPublicCourseSummary } from "../../lib/route/repo/firestoreCourses";
 import type { RouteActivitySnapshot } from "../../lib/activity/repo/firestoreRouteActivity";
@@ -90,11 +90,8 @@ type RideRoutePanelProps = {
   rideElevationProfileLoading: boolean;
   /** BGM 재생 URL 카탈로그 존재(내장·환경변수) */
   rideBgmCatalogConfigured: boolean;
-  onOpenPlaceSearch?: () => void;
-  onOpenLeaderboard?: () => void;
   onOpenSettings?: () => void;
-  /** 순위 행 오른쪽 보조 문구 — API·glance 에서 온 실제 값만 */
-  leaderboardMenuAside?: ReactNode;
+  onOpenIntervalSettings?: () => void;
 };
 
 function MenuNavChevron() {
@@ -117,38 +114,11 @@ function MenuNavChevron() {
   );
 }
 
-function MenuNavIconRoutes() {
+function MenuNavIconInterval() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path
-        d="M2 13l4-9 4 6 2-3 2 6"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function MenuNavIconSearch() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function MenuNavIconRank() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path
-        d="M2 14V9h4v5M6 14V4h4v10M10 14V7h4v7"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
+      <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M8 5v3.2l2 1.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }
@@ -248,65 +218,55 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
     }
   }
 
-  const savedCount = props.savedRoutes.length;
-
   return (
     <aside className="ride-panel" aria-label="경로 및 라이딩">
-      <span className="menu-route-nav__section-label">경로</span>
+      <span className="menu-route-nav__section-label">경로 선택</span>
+      <div className="menu-route-nav__sources" role="group" aria-label="경로 목록 열기">
+        <button
+          type="button"
+          className={`menu-route-nav__source${listSource === "saved" ? " is-active" : ""}`}
+          title="내 경로 목록 열기"
+          aria-haspopup="dialog"
+          aria-expanded={listSource === "saved"}
+          onClick={() => selectSource("saved")}
+        >
+          내 경로
+        </button>
+        <button
+          type="button"
+          className={`menu-route-nav__source${listSource === "public" ? " is-active" : ""}`}
+          title="퍼블릭 경로 목록 열기"
+          aria-haspopup="dialog"
+          aria-expanded={listSource === "public"}
+          onClick={() => selectSource("public")}
+        >
+          퍼블릭
+        </button>
+        <button
+          type="button"
+          className={`menu-route-nav__source${listSource === "intro" ? " is-active" : ""}`}
+          title="입문 경로 목록 열기"
+          aria-haspopup="dialog"
+          aria-expanded={listSource === "intro"}
+          onClick={() => selectSource("intro")}
+        >
+          입문
+        </button>
+      </div>
       <ul className="menu-route-nav" aria-label="경로 메뉴">
-        <li className="menu-route-nav__item">
-          <button
-            type="button"
-            className={`menu-route-nav__row${listSource != null ? " is-active" : ""}`}
-            aria-label="경로 선택"
-            title="주행할 경로 선택"
-            aria-haspopup="dialog"
-            aria-expanded={listSource != null}
-            onClick={() => selectSource("saved")}
-          >
-            <span className="menu-route-nav__icon" aria-hidden>
-              <MenuNavIconRoutes />
-            </span>
-            <span className="menu-route-nav__label">경로 선택</span>
-            {savedCount > 0 ? (
-              <span className="menu-route-nav__count" aria-hidden>{savedCount}</span>
-            ) : null}
-            <MenuNavChevron />
-          </button>
-        </li>
-        {props.onOpenPlaceSearch ? (
+        {props.onOpenIntervalSettings ? (
           <li className="menu-route-nav__item">
             <button
               type="button"
               className="menu-route-nav__row"
-              aria-label="지명 검색"
-              title="지명으로 찾기"
-              onClick={props.onOpenPlaceSearch}
+              aria-label="인터벌"
+              title="인터벌 운동 설정 열기"
+              onClick={props.onOpenIntervalSettings}
             >
               <span className="menu-route-nav__icon" aria-hidden>
-                <MenuNavIconSearch />
+                <MenuNavIconInterval />
               </span>
-              <span className="menu-route-nav__label">지명 검색</span>
-              <MenuNavChevron />
-            </button>
-          </li>
-        ) : null}
-        {props.onOpenLeaderboard ? (
-          <li className="menu-route-nav__item">
-            <button
-              type="button"
-              className="menu-route-nav__row"
-              aria-label="순위"
-              title="순위 보기"
-              onClick={props.onOpenLeaderboard}
-            >
-              <span className="menu-route-nav__icon" aria-hidden>
-                <MenuNavIconRank />
-              </span>
-              <span className="menu-route-nav__label">순위</span>
-              {props.leaderboardMenuAside ? (
-                <span className="menu-route-nav__aside">{props.leaderboardMenuAside}</span>
-              ) : null}
+              <span className="menu-route-nav__label">인터벌</span>
               <MenuNavChevron />
             </button>
           </li>
@@ -317,7 +277,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
               type="button"
               className="menu-route-nav__row"
               aria-label="주행 설정"
-              title="BLE·TTS·BGM 등"
+              title="주행 설정 열기"
               onClick={props.onOpenSettings}
             >
               <span className="menu-route-nav__icon" aria-hidden>

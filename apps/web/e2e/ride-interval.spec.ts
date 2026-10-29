@@ -37,21 +37,23 @@ test('센서 없이도 단계가 진행되고 완료 뒤 주행 제어는 유지
   await expect(page.getByRole('button', { name: '주행 종료', exact: true })).toBeVisible();
 });
 
-async function openRideSettingsFromMenu(page: import('@playwright/test').Page) {
+// 2026-10-29 Chief 왼쪽 메뉴 정비: 인터벌 사용 스위치는 주행 설정에서 메뉴 「인터벌」 → 인터벌 운동 설정 창으로 옮겨졌다(고정42).
+async function openIntervalEditorFromMenu(page: import('@playwright/test').Page) {
   const menu = page.getByRole('button', { name: 'Trail 메뉴', exact: true });
   await menu.focus();
   await page.keyboard.press('Enter');
-  await page.getByRole('button', { name: '주행 설정', exact: true }).click();
-  return page.getByRole('dialog', { name: '주행 설정', exact: true });
+  await page.getByRole('button', { name: '인터벌', exact: true }).click();
+  return page.getByRole('dialog', { name: '인터벌 운동 설정', exact: true });
 }
 
 test('기본은 끔이며 설정에서 선택하고 주행 중 다시 켜면 준비부터 시작한다', async ({ page }) => {
   await page.clock.install();
-  await page.goto(`${preview}?state=settings`);
-  const toggle = page.getByRole('switch', { name: /^인터벌/ });
+  await page.goto(preview);
+  const editor = await openIntervalEditorFromMenu(page);
+  const toggle = editor.getByRole('switch', { name: /^인터벌/ });
   await expect(toggle).not.toBeChecked();
   await toggle.check();
-  await page.getByRole('button', { name: '주행 설정 닫기', exact: true }).click();
+  await editor.getByRole('button', { name: '인터벌 운동 설정 닫기', exact: true }).click();
   await expect(page.getByRole('group', { name: '인터벌 안내' })).toHaveCount(0);
   await page.getByRole('button', { name: '주행 시작', exact: true }).click();
   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('준비');
@@ -59,13 +61,13 @@ test('기본은 끔이며 설정에서 선택하고 주행 중 다시 켜면 준
 
   await page.goto(`${preview}?state=riding&interval&intervalMs=713000&short`);
   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('운동');
-  const settings = await openRideSettingsFromMenu(page);
+  const settings = await openIntervalEditorFromMenu(page);
   const ridingToggle = settings.getByRole('switch', { name: /^인터벌/ });
   await expect(ridingToggle).toBeChecked();
   await ridingToggle.uncheck();
   await expect(page.getByRole('group', { name: '인터벌 안내' })).toHaveCount(0);
   await ridingToggle.check();
-  await settings.getByRole('button', { name: '주행 설정 닫기', exact: true }).click();
+  await settings.getByRole('button', { name: '인터벌 운동 설정 닫기', exact: true }).click();
   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('준비');
   await expect(page.locator('.ride-interval-hud__time')).toHaveText('5:00');
   await page.getByRole('button', { name: '주행 종료', exact: true }).click();

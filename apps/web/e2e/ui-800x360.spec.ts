@@ -401,7 +401,7 @@ test('빈 가장자리 드래그 취소·화면 크기 변경 후에도 중앙 �
 
 test('경로 모달에서 세 출처를 전환해도 목록은 하나이며 닫으면 메뉴로 돌아온다', async ({page})=>{
   await page.goto(`${preview}?state=menu`);
-  await page.getByRole('button',{name:'경로 선택',exact:true}).click();
+  await page.getByRole('button',{name:'내 경로',exact:true}).click();
   const savedDefault=page.getByRole('dialog',{name:'내 경로',exact:true});
   await expect(savedDefault).toBeVisible();
   const sourceButtons=savedDefault.getByRole('navigation',{name:'경로 출처'}).getByRole('button');

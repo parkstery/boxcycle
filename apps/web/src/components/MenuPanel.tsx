@@ -11,17 +11,28 @@ type MenuPanelProps = {
   locked?: boolean;
   children: ReactNode;
   revealProgress?: number | null;
+  onOpenPlaceSearch?: () => void;
 };
 
 /**
  * 좌측 흰 판 메뉴(시안 06) — 경로 6행은 RideRoutePanel, Trail 목록은 TrailHubPanel.
  */
+function MenuSearchIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function MenuPanel({
   open,
   onClose,
   locked: _locked,
   children,
   revealProgress = null,
+  onOpenPlaceSearch,
 }: MenuPanelProps) {
   void _locked;
   const panelRef = useRef<HTMLElement>(null);
@@ -91,7 +102,7 @@ export function MenuPanel({
         type="button"
         className="menu-panel__scrim"
         aria-label="메뉴 닫기"
-        title="Close menu"
+        title="메뉴 닫기"
         onClick={onClose}
         tabIndex={open && !overlayOpen ? 0 : -1}
       />
@@ -108,13 +119,24 @@ export function MenuPanel({
               <SpinatlasMark className="menu-panel__brand-svg" />
             </span>
             <span className="menu-panel__brand">Spinatlas</span>
+            {onOpenPlaceSearch ? (
+              <button
+                type="button"
+                className="menu-panel__search"
+                onClick={onOpenPlaceSearch}
+                aria-label="지명 검색"
+                title="지명 검색"
+              >
+                <MenuSearchIcon />
+              </button>
+            ) : null}
           </div>
           <button
             type="button"
             className="menu-panel__close"
             onClick={onClose}
             aria-label="메뉴 닫기"
-            title="Close menu"
+            title="메뉴 닫기"
           >
             <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden>
               <path

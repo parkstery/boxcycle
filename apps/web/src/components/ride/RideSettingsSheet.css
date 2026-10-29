@@ -361,15 +361,6 @@
 .ride-settings-sheet.settings-surface[aria-label="주행 설정"] .ride-settings-panel__copy small {
   font-size: 11px;
 }
-.ride-settings-sheet.settings-surface[aria-label="주행 설정"] .ride-settings-panel__interval {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 32px;
-  padding: 4px 0;
-  border-bottom: 1px solid #e9ecf1;
-}
 .ride-settings-sheet.settings-surface[aria-label="주행 설정"] .ride-settings-panel__calories {
   min-height: 32px;
   align-items: flex-start;

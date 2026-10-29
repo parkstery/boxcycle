@@ -121,10 +121,10 @@ test.describe('주행 UI 정리 v2', () => {
     await rank.click();
     await expect(page.locator('#lb-glance-panel')).toBeHidden();
 
-    await page.goto(`${preview}?state=settings`);
-    await page.getByRole('button', { name: '운동 설정', exact: true }).click();
+    await page.goto(`${preview}?state=menu`);
+    await page.getByRole('button', { name: '인터벌', exact: true }).click();
     const editor = page.getByRole('dialog', { name: '인터벌 운동 설정', exact: true });
-    await expect(editor.getByRole('combobox', { name: '운동 프리셋' }).locator('option')).toHaveCount(4);
+    await expect(editor.getByRole('combobox', { name: '운동 프리셋' }).locator('option')).toHaveCount(9);
     await editor.getByRole('button', { name: '직접 조절', exact: true }).click();
     await expect(editor.getByRole('spinbutton', { name: '고강도 시간 초', exact: true })).toBeVisible();
     await editor.getByRole('spinbutton', { name: '고강도 시간 초', exact: true }).fill('45');

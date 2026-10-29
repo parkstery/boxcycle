@@ -124,7 +124,7 @@ async function seedInProgressRoute(uid: string, routeId: string): Promise<void> 
 
 async function loadSavedRouteFromMenu(page: Page, routeName: string) {
   await page.getByRole("button", { name: "Trail 메뉴" }).click();
-  await page.getByRole("button", { name: "경로 선택" }).click();
+  await page.getByRole("button", { name: "내 경로" }).click();
   const row = page.getByText(routeName, { exact: false }).first();
   await expect(row).toBeVisible({ timeout: 15_000 });
   await row.click();
@@ -167,7 +167,6 @@ async function armRideInput(page: Page, speedKmh: number) {
 
 async function loadIntroCourse(page: Page) {
   await page.getByRole("button", { name: "Trail 메뉴" }).click();
-  await page.getByRole("button", { name: "경로 선택", exact: true }).click();
   await page.getByRole("button", { name: "입문", exact: true }).click();
   const modal = page.getByRole("dialog").filter({ has: page.locator("#oc-modal-title") });
   await expect(modal).toBeVisible({ timeout: 15_000 });

@@ -182,6 +182,7 @@ export function RouteDock({
               type="button"
               className={`route-dock__led-toggle${ledConnected ? " route-dock__led-toggle--connected" : ""}`}
               aria-label="경로 패널 펼치기"
+              title="경로 패널 펼치기"
               aria-expanded={false}
               aria-controls={ROUTE_DOCK_PANEL_ID}
               data-led={ledConnected ? "green" : "white"}
@@ -224,6 +225,7 @@ export function RouteDock({
                         type="button"
                         className="route-dock__remove"
                         aria-label={`${stopName(stop)} 삭제`}
+                        title={`${stopName(stop)} 삭제`}
                         onClick={() => onRemoveStop(stop.id)}
                       >
                         <DockIcon d={ICON_REMOVE} size={11} />
@@ -239,6 +241,7 @@ export function RouteDock({
                 type="button"
                 className="route-dock__swap"
                 aria-label="Start·End 바꾸기"
+                title="Start·End 바꾸기"
                 onClick={onSwapEndpoints}
               >
                 <DockIcon d={ICON_SWAP} size={12} />

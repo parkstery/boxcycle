@@ -18,6 +18,8 @@ type Props = {
   restartOnApply: boolean;
   onApply: (config: RideIntervalConfig) => boolean;
   onClose: () => void;
+  enabled?: boolean;
+  onEnabled?: (enabled: boolean) => void;
 };
 
 type Draft = {
@@ -94,7 +96,7 @@ function sameConfig(a: RideIntervalConfig, b: RideIntervalConfig): boolean {
 }
 
 /** 별도 편집 초안: 적용 전에는 진행 중인 운동을 바꾸지 않는다. */
-function IntervalEditor({ config, restartOnApply, onApply, onClose }: Omit<Props, "open">) {
+function IntervalEditor({ config, restartOnApply, onApply, onClose, enabled, onEnabled }: Omit<Props, "open">) {
   const titleId = useId();
   const [draft, setDraft] = useState(() => toDraft(config));
   const [mode, setMode] = useState(() => matchRideIntervalPreset({
@@ -128,7 +130,21 @@ function IntervalEditor({ config, restartOnApply, onApply, onClose }: Omit<Props
     <>
       <header className="ride-interval-settings__header">
         <h2 id={titleId}>인터벌 운동</h2>
-        <select
+        {onEnabled ? (
+          <label className="ride-interval-settings__enable">
+            <span>사용</span>
+            <input
+              type="checkbox"
+              role="switch"
+              checked={enabled ?? false}
+              aria-label="인터벌"
+              title="인터벌 사용"
+              onChange={(event) => onEnabled(event.target.checked)}
+            />
+          </label>
+        ) : null}
+        {/* Chief 10-29 A안: 직접 조절의 230px 머리줄은 제목·사용·닫기만 둔다. 프리셋은 「접기」 뒤에 고른다. */}
+        {!customOpen ? <select
           aria-label="운동 프리셋"
           value={mode}
           onChange={(event) => {
@@ -150,8 +166,8 @@ function IntervalEditor({ config, restartOnApply, onApply, onClose }: Omit<Props
             <option key={preset.id} value={preset.id}>{PRESET_OPTION_LABEL[preset.id]}</option>
           ))}
           <option value="custom">직접 설정</option>
-        </select>
-        <button type="button" className="ride-interval-settings__close" aria-label="인터벌 운동 설정 닫기" onClick={onClose}>
+        </select> : null}
+        <button type="button" className="ride-interval-settings__close" aria-label="인터벌 운동 설정 닫기" title="인터벌 운동 설정 닫기" onClick={onClose}>
           <SettingsCloseIcon />
         </button>
       </header>
@@ -253,9 +269,9 @@ export function RideIntervalSettingsSheet(props: Props) {
   if (!props.open) return null;
   return (
     <div className="ride-interval-settings" role="dialog" aria-label="인터벌 운동 설정" aria-modal="true">
-      <button type="button" className="ride-interval-settings__scrim" aria-label="인터벌 운동 설정 배경 닫기" onClick={props.onClose} />
+      <button type="button" className="ride-interval-settings__scrim" aria-label="인터벌 운동 설정 배경 닫기" title="인터벌 운동 설정 닫기" onClick={props.onClose} />
       <div className="ride-interval-settings__panel" ref={panelRef}>
-        <IntervalEditor config={props.config} restartOnApply={props.restartOnApply} onApply={props.onApply} onClose={props.onClose} />
+        <IntervalEditor config={props.config} restartOnApply={props.restartOnApply} onApply={props.onApply} onClose={props.onClose} enabled={props.enabled} onEnabled={props.onEnabled} />
       </div>
     </div>
   );

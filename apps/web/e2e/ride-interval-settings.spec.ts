@@ -9,14 +9,19 @@ const settings = (page: Page) => page.getByRole('dialog', {name:'주행 설정',
 test.use({viewport:{width:699,height:273},reducedMotion:'reduce'});
 
 async function openEditor(page: Page) {
-  await settings(page).getByRole('button',{name:'운동 설정',exact:true}).click();
-  await expect(editor(page)).toBeVisible();
-  await expect(settings(page)).toHaveCount(0);
-}
-async function openFromRide(page: Page) {
+  if (await settings(page).count()) {
+    await settings(page).getByRole('button',{name:'주행 설정 닫기',exact:true}).click();
+  }
+  if (await editor(page).count()) {
+    await expect(editor(page)).toBeVisible();
+    return;
+  }
   await page.getByRole('button',{name:'Trail 메뉴',exact:true}).focus();
   await page.keyboard.press('Enter');
-  await page.getByRole('button',{name:'주행 설정',exact:true}).click();
+  await page.getByRole('button',{name:'인터벌',exact:true}).click();
+  await expect(editor(page)).toBeVisible();
+}
+async function openFromRide(page: Page) {
   await openEditor(page);
 }
 async function expandCustom(page: Page) {
@@ -56,14 +61,21 @@ test('3종 프리셋은 총시간을 갱신하고 적용한 선택만 주행 설
   await expect(editor(page)).toContainText('2라운드');
   await expect(editor(page)).toContainText('사이 3분');
   await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
-  await expect(settings(page)).toContainText('20초 / 10초 ×8회 · 2라운드 · 총 26:00');
   await openEditor(page);
+  await expect(editor(page)).toContainText('20초 / 10초 ×8');
+  await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText('26:00');
   await expect(select).toHaveValue('short');
   await configure(page,'45','60','6');
+  // Chief 10-29 A안: 직접 조절 중에는 프리셋 칸을 숨기고, 「접기」 뒤에 「직접 설정」으로 보인다.
+  await expect(select).toHaveCount(0);
+  await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText('20:30');
+  await editor(page).getByRole('button',{name:'접기',exact:true}).click();
   await expect(select).toHaveValue('custom');
   await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText('20:30');
   await page.keyboard.press('Escape');
-  await expect(settings(page)).toContainText('20초 / 10초 ×8회 · 2라운드 · 총 26:00');
+  await openEditor(page);
+  await expect(editor(page)).toContainText('20초 / 10초 ×8');
+  await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText('26:00');
 });
 
 test('시간별 프리셋을 조절해 적용하면 새로고침 뒤에도 유지된다', async ({page}) => {
@@ -105,11 +117,10 @@ test('접기는 초안을 유지한 채 요약으로 돌아간다', async ({page
 test('직접 설정한 시간·반복이 실제 단계 전환과 완료에 쓰인다', async ({page}) => {
   await page.clock.install();
   await page.goto(`${preview}?state=settings`);
-  await settings(page).getByRole('switch',{name:/^인터벌/}).check();
   await openEditor(page);
+  await editor(page).getByRole('switch',{name:/^인터벌/}).check();
   await configure(page,'45','60','6');
   await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
-  await settings(page).getByRole('button',{name:'주행 설정 닫기',exact:true}).click();
   await page.getByRole('button',{name:'주행 시작',exact:true}).click();
   await page.clock.fastForward(300_000);
   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('운동');
@@ -136,13 +147,12 @@ test('진행 중 초안·취소·같은 설정은 운동을 바꾸지 않고 변
   await expect(editor(page)).toContainText('적용하면 처음부터 다시 시작해요');
   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('운동');
   await editor(page).getByRole('button',{name:'인터벌 운동 설정 닫기',exact:true}).click();
-  await expect(settings(page)).toContainText('60초 / 120초 ×5회');
   await openEditor(page);
+  await expect(editor(page)).toContainText('60초 / 120초 ×5');
   await configure(page,'45','60','6');
   await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('준비');
   await expect(page.locator('.ride-interval-hud__time')).toHaveText('5:00');
-  await settings(page).getByRole('button',{name:'주행 설정 닫기',exact:true}).click();
   await page.getByRole('button',{name:'일시정지',exact:true}).click();
   await openFromRide(page);
   await configure(page,'20','40','8');
@@ -179,20 +189,35 @@ test('설정은 새로고침 후 복원되고 인터벌 사용은 자동으로 �
   await configure(page,'45','60','6');
   await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
   await page.reload();
-  await expect(settings(page)).toContainText('45초 / 60초 ×6회 · 총 20:30');
-  await expect(settings(page).getByRole('switch',{name:/^인터벌/})).not.toBeChecked();
+  await openEditor(page);
+  await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText('20:30');
+  await expandCustom(page);
+  await expect(editor(page).getByRole('spinbutton',{name:'고강도 시간 초',exact:true})).toHaveValue('45');
+  await expect(editor(page).getByRole('spinbutton',{name:'저강도 시간 초',exact:true})).toHaveValue('60');
+  await expect(editor(page).getByRole('spinbutton',{name:'반복 수',exact:true})).toHaveValue('6');
+  await expect(editor(page).getByRole('switch',{name:/^인터벌/})).not.toBeChecked();
 });
 
 test('저장 데이터 파손·저장소 접근 불가에서도 기본값과 메모리 설정이 동작한다', async ({page}) => {
   await page.addInitScript(storageKey=>localStorage.setItem(storageKey,'{"highSec":"oops"}'),key);
   await page.goto(`${preview}?state=settings&persistInterval`);
-  await expect(settings(page)).toContainText('60초 / 120초 ×5회 · 총 25:00');
+  await openEditor(page);
+  await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText('25:00');
+  await expandCustom(page);
+  await expect(editor(page).getByRole('spinbutton',{name:'고강도 시간 초',exact:true})).toHaveValue('60');
+  await expect(editor(page).getByRole('spinbutton',{name:'저강도 시간 초',exact:true})).toHaveValue('120');
+  await expect(editor(page).getByRole('spinbutton',{name:'반복 수',exact:true})).toHaveValue('5');
   await page.addInitScript(()=>Object.defineProperty(window,'localStorage',{get(){throw new Error('blocked');},configurable:true}));
   await page.reload();
   await openEditor(page);
   await configure(page,'20','40','8');
   await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
-  await expect(settings(page)).toContainText('20초 / 40초 ×8회 · 총 18:00');
+  await openEditor(page);
+  await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText('18:00');
+  await expandCustom(page);
+  await expect(editor(page).getByRole('spinbutton',{name:'고강도 시간 초',exact:true})).toHaveValue('20');
+  await expect(editor(page).getByRole('spinbutton',{name:'저강도 시간 초',exact:true})).toHaveValue('40');
+  await expect(editor(page).getByRole('spinbutton',{name:'반복 수',exact:true})).toHaveValue('8');
 });
 
 test('주행 중 설정 복원용 저장소 읽기는 매 프레임 반복하지 않는다', async ({page}) => {
@@ -244,9 +269,12 @@ test('준비·마무리 설정과 총시간을 저장하고 해당 시간대로 
   await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText('1:29');
   await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
   await page.reload();
-  await expect(settings(page)).toContainText('준비 15초 · 마무리 20초');
-  await settings(page).getByRole('switch',{name:/^인터벌/}).check();
-  await settings(page).getByRole('button',{name:'주행 설정 닫기',exact:true}).click();
+  await openEditor(page);
+  await expandCustom(page);
+  await expect(editor(page).getByRole('spinbutton',{name:'준비 시간 초',exact:true})).toHaveValue('15');
+  await expect(editor(page).getByRole('spinbutton',{name:'마무리 시간 초',exact:true})).toHaveValue('20');
+  await editor(page).getByRole('switch',{name:/^인터벌/}).check();
+  await editor(page).getByRole('button',{name:'인터벌 운동 설정 닫기',exact:true}).click();
   await page.getByRole('button',{name:'주행 시작',exact:true}).click();
   await expect(page.locator('.ride-interval-hud__time')).toHaveText('15');
   await page.clock.fastForward(15_000);
@@ -262,8 +290,8 @@ test('준비·마무리 설정과 총시간을 저장하고 해당 시간대로 
 test('준비·마무리 0초는 건너뛰고 잘못된 시간은 적용을 막는다',async({page})=>{
   await page.clock.install();
   await page.goto(`${preview}?state=settings`);
-  await settings(page).getByRole('switch',{name:/^인터벌/}).check();
   await openEditor(page);
+  await editor(page).getByRole('switch',{name:/^인터벌/}).check();
   await expandCustom(page);
   const warmup=editor(page).getByRole('spinbutton',{name:'준비 시간 초',exact:true});
   for(const raw of ['', '-1', '1801', '1.5']){
@@ -273,8 +301,11 @@ test('준비·마무리 0초는 건너뛰고 잘못된 시간은 적용을 막�
   await configure(page,'7','11','3','0','0');
   await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText('0:54');
   await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
-  await expect(settings(page)).toContainText('준비 없음 · 마무리 없음');
-  await settings(page).getByRole('button',{name:'주행 설정 닫기',exact:true}).click();
+  await openEditor(page);
+  await expandCustom(page);
+  await expect(editor(page).getByRole('spinbutton',{name:'준비 시간 초',exact:true})).toHaveValue('0');
+  await expect(editor(page).getByRole('spinbutton',{name:'마무리 시간 초',exact:true})).toHaveValue('0');
+  await editor(page).getByRole('button',{name:'인터벌 운동 설정 닫기',exact:true}).click();
   await page.getByRole('button',{name:'주행 시작',exact:true}).click();
   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('운동');
   await expect(page.locator('.ride-interval-hud__time')).toHaveText('7');
@@ -286,18 +317,26 @@ test('기존 세 필드 저장값의 운동은 보존하고 준비·마무리는
   await page.goto(`${preview}?state=settings&persistInterval`);
   await page.evaluate(storageKey=>localStorage.setItem(storageKey,JSON.stringify({highSec:45,lowSec:60,repeats:6})),key);
   await page.reload();
-  await expect(settings(page)).toContainText('45초 / 60초 ×6회 · 총 20:30');
-  await expect(settings(page)).toContainText('준비 5분 · 마무리 5분');
   await openEditor(page);
+  await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText('20:30');
   await expandCustom(page);
+  await expect(editor(page).getByRole('spinbutton',{name:'고강도 시간 초',exact:true})).toHaveValue('45');
+  await expect(editor(page).getByRole('spinbutton',{name:'저강도 시간 초',exact:true})).toHaveValue('60');
+  await expect(editor(page).getByRole('spinbutton',{name:'반복 수',exact:true})).toHaveValue('6');
   await expect(editor(page).getByRole('spinbutton',{name:'준비 시간 초',exact:true})).toHaveValue('300');
   await expect(editor(page).getByRole('spinbutton',{name:'마무리 시간 초',exact:true})).toHaveValue('300');
   await editor(page).getByRole('spinbutton',{name:'준비 시간 초',exact:true}).fill('0');
   await editor(page).getByRole('spinbutton',{name:'마무리 시간 초',exact:true}).fill('60');
   await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
   await page.reload();
-  await expect(settings(page)).toContainText('45초 / 60초 ×6회 · 총 11:30');
-  await expect(settings(page)).toContainText('준비 없음 · 마무리 1분');
+  await openEditor(page);
+  await expect(editor(page).locator('.ride-interval-settings__total strong')).toHaveText('11:30');
+  await expandCustom(page);
+  await expect(editor(page).getByRole('spinbutton',{name:'고강도 시간 초',exact:true})).toHaveValue('45');
+  await expect(editor(page).getByRole('spinbutton',{name:'저강도 시간 초',exact:true})).toHaveValue('60');
+  await expect(editor(page).getByRole('spinbutton',{name:'반복 수',exact:true})).toHaveValue('6');
+  await expect(editor(page).getByRole('spinbutton',{name:'준비 시간 초',exact:true})).toHaveValue('0');
+  await expect(editor(page).getByRole('spinbutton',{name:'마무리 시간 초',exact:true})).toHaveValue('60');
 });
 
 test.describe('지도 가림 최소화',()=>{
