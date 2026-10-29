@@ -214,7 +214,7 @@ test.describe("미니맵 정지 지도", () => {
     // 지금 스타일과 다른 스타일(위성↔야외) 두 장 — 펄스가 둘 다에서 읽히는지
     const styleBtn = page.locator(".hud-ride-map-controls__style");
     for (let i = 0; i < 2; i++) {
-      const label = (await styleBtn.innerText()).trim() === "위성" ? "satellite" : "outdoors";
+      const label = await styleBtn.locator('[data-map-style]').getAttribute('data-map-style');
       await freezePulse();
       await zoomShot(page, await markerBox(), `07-pulse-${label}.png`);
       await page.screenshot({ path: path.join(OUT_DIR, `08-${label}-740x300.png`) });

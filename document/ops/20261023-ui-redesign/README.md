@@ -1,3 +1,5 @@
+2026-10-29 [지도 스타일 아이콘 지시99](99-task-map-style-icons.md) → [결과100](100-result-map-style-icons.md): LOCAL_VERIFIED·미배포. 위성/야외 글자를 인공위성/접힌 지도 SVG로 대체·기존 접근성/토글/카메라잠금 유지. 가로4크기×3상태·기존화면계약·타입/lint/build PASS.
+
 # 전체 화면 디자인 변경 (2026-10-23~)
 
 2026-10-27 09:43 KST: **지시93~98 커밋·푸시·Hosting 배포 완료.** 제품 커밋 `c94af5c1`(`main2`·`origin/main2`), 깨끗한 복제본 빌드 후 `boxcycle-dc2df.web.app` 배포. 운영 `index-C4woGEuF.js`·`index-h24GKZ9N.css` 이름과 SHA256이 로컬 배포본과 일치. pre-push quick 1384/1384 및 전체 게이트 PASS. 기존 증거 PNG/JSON·`.out`·개인 파일은 커밋에서 제외.

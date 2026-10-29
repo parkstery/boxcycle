@@ -480,6 +480,15 @@ test.describe('Chief 고정 — 261024 목록 1~4', () => {
       await page.goto(`${preview}?state=${state}`);
       await expect(page.locator('.hud-ride-map-controls')).toBeVisible();
       await expect(page.getByRole('button', { name: /야외|위성/ })).toBeVisible();
+      const style = page.locator('.hud-ride-map-controls__style');
+      await expect(style).toHaveText('');
+      await expect(style.locator('svg')).toHaveAttribute('aria-hidden', 'true');
+      await expect(style.locator('svg')).toHaveAttribute('data-map-style', 'satellite');
+      await style.click();
+      await expect(style).toHaveAccessibleName('맵 스타일 야외, 클릭 시 위성');
+      await expect(style.locator('svg')).toHaveAttribute('data-map-style', 'outdoors');
+      await style.click();
+      await expect(style.locator('svg')).toHaveAttribute('data-map-style', 'satellite');
       await expect(page.locator('.hud-ride-map-controls__zoom').first()).toBeVisible();
     }
     if (evidenceDir) {

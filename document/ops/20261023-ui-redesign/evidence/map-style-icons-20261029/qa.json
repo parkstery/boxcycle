@@ -1,0 +1,182 @@
+[
+  {
+    "viewport": {
+      "width": 800,
+      "height": 360
+    },
+    "state": "ready",
+    "box": {
+      "x": 620.84375,
+      "y": 0,
+      "width": 33.15625,
+      "height": 25.109375
+    },
+    "icon": "outdoors",
+    "back": "satellite"
+  },
+  {
+    "viewport": {
+      "width": 800,
+      "height": 360
+    },
+    "state": "riding",
+    "box": {
+      "x": 620.84375,
+      "y": 0,
+      "width": 33.15625,
+      "height": 25.109375
+    },
+    "icon": "outdoors",
+    "back": "satellite"
+  },
+  {
+    "viewport": {
+      "width": 800,
+      "height": 360
+    },
+    "state": "paused",
+    "box": {
+      "x": 620.84375,
+      "y": 0,
+      "width": 33.15625,
+      "height": 25.109375
+    },
+    "icon": "outdoors",
+    "back": "satellite"
+  },
+  {
+    "viewport": {
+      "width": 736,
+      "height": 300
+    },
+    "state": "ready",
+    "box": {
+      "x": 556.84375,
+      "y": 0,
+      "width": 33.15625,
+      "height": 25.109375
+    },
+    "icon": "outdoors",
+    "back": "satellite"
+  },
+  {
+    "viewport": {
+      "width": 736,
+      "height": 300
+    },
+    "state": "riding",
+    "box": {
+      "x": 556.84375,
+      "y": 0,
+      "width": 33.15625,
+      "height": 25.109375
+    },
+    "icon": "outdoors",
+    "back": "satellite"
+  },
+  {
+    "viewport": {
+      "width": 736,
+      "height": 300
+    },
+    "state": "paused",
+    "box": {
+      "x": 556.84375,
+      "y": 0,
+      "width": 33.15625,
+      "height": 25.109375
+    },
+    "icon": "outdoors",
+    "back": "satellite"
+  },
+  {
+    "viewport": {
+      "width": 699,
+      "height": 273
+    },
+    "state": "ready",
+    "box": {
+      "x": 519.84375,
+      "y": 0,
+      "width": 33.15625,
+      "height": 25.109375
+    },
+    "icon": "outdoors",
+    "back": "satellite"
+  },
+  {
+    "viewport": {
+      "width": 699,
+      "height": 273
+    },
+    "state": "riding",
+    "box": {
+      "x": 519.84375,
+      "y": 0,
+      "width": 33.15625,
+      "height": 25.109375
+    },
+    "icon": "outdoors",
+    "back": "satellite"
+  },
+  {
+    "viewport": {
+      "width": 699,
+      "height": 273
+    },
+    "state": "paused",
+    "box": {
+      "x": 519.84375,
+      "y": 0,
+      "width": 33.15625,
+      "height": 25.109375
+    },
+    "icon": "outdoors",
+    "back": "satellite"
+  },
+  {
+    "viewport": {
+      "width": 667,
+      "height": 300
+    },
+    "state": "ready",
+    "box": {
+      "x": 487.84375,
+      "y": 0,
+      "width": 33.15625,
+      "height": 25.109375
+    },
+    "icon": "outdoors",
+    "back": "satellite"
+  },
+  {
+    "viewport": {
+      "width": 667,
+      "height": 300
+    },
+    "state": "riding",
+    "box": {
+      "x": 487.84375,
+      "y": 0,
+      "width": 33.15625,
+      "height": 25.109375
+    },
+    "icon": "outdoors",
+    "back": "satellite"
+  },
+  {
+    "viewport": {
+      "width": 667,
+      "height": 300
+    },
+    "state": "paused",
+    "box": {
+      "x": 487.84375,
+      "y": 0,
+      "width": 33.15625,
+      "height": 25.109375
+    },
+    "icon": "outdoors",
+    "back": "satellite"
+  }
+]

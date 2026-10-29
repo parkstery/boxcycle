@@ -614,7 +614,30 @@ export function MapHud(props: MapHudProps) {
                 onTouchStart={(e) => e.stopPropagation()}
                 onClick={mapControls.onToggleStyle}
               >
-                {mapControls.styleLabel}
+                <svg
+                  className="hud-ride-map-controls__style-icon"
+                  data-map-style={mapControls.styleLabel === "위성" ? "satellite" : "outdoors"}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  {mapControls.styleLabel === "위성" ? (
+                    <>
+                      <path d="m13 7-4-4-6 6 4 4m10-2 4 4-6 6-4-4M8 12l4 4 6-6-4-4Z" />
+                      <path d="m16 8 3-3M9 21a6 6 0 0 0-6-6m0 6h.01" />
+                    </>
+                  ) : (
+                    <>
+                      <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z" />
+                      <path d="M9 3v15m6-12v15" />
+                    </>
+                  )}
+                </svg>
               </button>
               <button
                 type="button"
