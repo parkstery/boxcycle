@@ -129,7 +129,7 @@ export function NextRideCard(props: NextRideCardProps) {
           ) : null}
           <button
             type="button"
-            className={`next-ride__btn ${resumeTarget ? "next-ride__btn--ghost" : "next-ride__btn--primary"}`}
+            className={`next-ride__btn next-ride__btn--compact ${resumeTarget ? "next-ride__btn--ghost" : "next-ride__btn--primary"}`}
             title="New route from here"
             onClick={() => props.onExtend(view.target.anchorLngLat)}
           >
@@ -138,7 +138,7 @@ export function NextRideCard(props: NextRideCardProps) {
           {!resumeTarget ? (
             <button
               type="button"
-              className="next-ride__btn next-ride__btn--ghost"
+              className="next-ride__btn next-ride__btn--ghost next-ride__btn--compact"
               title="Show on map"
               onClick={() => props.onShowOnMap(view.target.anchorLngLat)}
             >

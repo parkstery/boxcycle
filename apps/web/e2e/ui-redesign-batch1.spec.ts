@@ -258,6 +258,7 @@ for (const viewport of [{ width: 667, height: 300 }, { width: 800, height: 360 }
     await page.goto(preview + '?long');
     await page.getByRole('button', { name: '경로 목록', exact: true }).click();
     const saved = page.getByRole('dialog', { name: '내 경로', exact: true });
+    await saved.getByRole('listbox').getByRole('option').first().click();
     await saved.locator('.saved-routes__filter-btn').evaluateAll(buttons => {
       ['전체 (50)', '완주 (41)', '미완주 (3)', '대기 (6)'].forEach((text, i) => {
         buttons[i].querySelectorAll('span').forEach(span => { span.textContent = text; });

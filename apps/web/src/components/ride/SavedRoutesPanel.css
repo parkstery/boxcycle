@@ -365,18 +365,34 @@
   gap: 0.2rem;
 }
 
+/* Hidden sizing text reserves about 1.4 times the original width (font rounding compensated).
+   The visible label has its independently requested +2pt font size. */
 .saved-routes--map .saved-routes__controls--map-line .saved-routes__filter-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  flex: 0 0 auto;
   min-height: 28px;
   height: 28px;
-  padding: 0 0.38rem;
-  font-size: 0.68rem;
+  padding: 0 calc(0.38rem * 1.4 - 0.2px);
+  font-size: calc(0.68rem + 2pt);
   line-height: 1;
   white-space: nowrap;
 }
+
+.saved-routes__filter-size { display: none; }
+.saved-routes--map .saved-routes__filter-size {
+  display: inline;
+  visibility: hidden;
+  font-size: 0.68rem;
+  zoom: 1.4;
+}
+.saved-routes--map .saved-routes__filter-label {
+  position: absolute;
+}
+
 
 .saved-routes--map .saved-routes__controls-actions {
   display: flex;
@@ -402,9 +418,10 @@
   min-height: 28px;
   height: 28px;
   padding: 0 0.25rem;
-  font-size: 0.68rem;
+  font-size: calc(0.68rem + 2pt);
   line-height: 1;
-  max-width: 4.6rem;
+  width: 66.9px;
+  max-width: none;
 }
 
 .saved-routes--map .saved-routes__controls--map-line .saved-routes__toolbar {

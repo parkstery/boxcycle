@@ -318,7 +318,8 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
         title="Show all"
         onClick={() => setFilter("all")}
       >
-        전체 ({props.routes.length})
+        <span className="saved-routes__filter-size" aria-hidden="true">전체 ({props.routes.length})</span>
+        <span className="saved-routes__filter-label">전체 ({props.routes.length})</span>
       </button>
       <button
         type="button"
@@ -328,7 +329,8 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
         title="Completed only"
         onClick={() => setFilter("completed")}
       >
-        완주 ({stateCounts.completed})
+        <span className="saved-routes__filter-size" aria-hidden="true">완주 ({stateCounts.completed})</span>
+        <span className="saved-routes__filter-label">완주 ({stateCounts.completed})</span>
       </button>
       <button
         type="button"
@@ -338,7 +340,8 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
         title="Ridden but not completed"
         onClick={() => setFilter("incomplete")}
       >
-        미완주 ({stateCounts.incomplete})
+        <span className="saved-routes__filter-size" aria-hidden="true">미완주 ({stateCounts.incomplete})</span>
+        <span className="saved-routes__filter-label">미완주 ({stateCounts.incomplete})</span>
       </button>
       <button
         type="button"
@@ -348,7 +351,8 @@ export function SavedRoutesPanel(props: SavedRoutesPanelProps) {
         title="Pending only"
         onClick={() => setFilter("pending")}
       >
-        대기 ({stateCounts.pending})
+        <span className="saved-routes__filter-size" aria-hidden="true">대기 ({stateCounts.pending})</span>
+        <span className="saved-routes__filter-label">대기 ({stateCounts.pending})</span>
       </button>
     </div>
   );

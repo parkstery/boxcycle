@@ -210,6 +210,10 @@ test('다음 주행 끝점 연장·지도 보기·숨기기', async ({ page }) =
   const card = fixture.locator('.next-ride-anchor');
   await expect(card.getByRole('button', { name: '여기에서 계속', exact: true })).toBeVisible();
   await expect(card.getByRole('button', { name: '지도에서 보기', exact: true })).toBeVisible();
+  for (const name of ['여기에서 계속', '지도에서 보기']) {
+    expect((await card.getByRole('button', { name, exact: true }).boundingBox())!.height).toBe(32);
+  }
+
   await card.getByRole('button', { name: '지도에서 보기', exact: true }).click();
   await expect(fixture).toHaveAttribute('data-map-calls', '1');
   await card.getByRole('button', { name: '다음 주행 숨기기', exact: true }).click();
