@@ -35,7 +35,7 @@ Chief는 Firestore 읽기 비용 저감과 동행 표시 품질·장애 복구 �
 | 제품 빌드 | `npm run build` — PASS, 기존 large chunk 경고 |
 | 변경 소스 ESLint | 0 error·9 warning. 기존 overlay hook 의존성과 eslint-disable 경고이며 해당 구간 수정 안 함 |
 | 도메인 방향 | 루트 `node scripts/check-dep-direction.mjs --check` — 신규 query 파일 등록 후 PASS, 방향 위반·순환 0 |
-| 전체 빠른 시험 | 진행 중 — 확정 후 아래 릴리스 상태에 갱신 |
+| 전체 빠른 시험 | 커밋 스냅샷 `node apps/web/scripts/test-quick.mjs` — **1454 PASS / 0 FAIL**, 4 TODO(기존), 5파일 제외 중 FS emulator 별도 1 PASS |
 
 재생은 기존 `syncPeerMotionFromPresence → PeerMotionRegistry.step` 제품 코드로 정상·RTDB 무응답·명시적 오류·Firestore 단독을 각각 22초 실행한다. 자기 Firestore 갱신 콜백이 제거되는 조건도 포함했다. 각 20ms 프레임의 **반올림 전 표시 거리**와 연속 중복을 제거한 실제 선택 패킷을 기존과 비교해 전부 동일했다. RTDB 정상 주기·보간 알고리즘을 수정하지 않아 새 보간 그래프는 만들지 않았다.
 
@@ -47,6 +47,7 @@ emulator에서는 원격 타인의 주행·일시정지·재출발·완주·publ
 cd C:\20.HDev\boxcycle\apps\web
 node --test scripts/peer-sync/live-ride-query-fallback.test.mjs
 node scripts/test-quick.mjs meters
+New-Item -ItemType Directory -Force .out | Out-Null
 $fsReadConfig = @{firestore=@{rules='C:/20.HDev/boxcycle/firestore.rules'};emulators=@{firestore=@{host='127.0.0.1';port=8089};ui=@{enabled=$false};singleProjectMode=$true}}
 $fsReadConfig | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 .out/fs-read-emulator.json
 & 'C:\Users\kdrea\AppData\Roaming\npm\firebase.cmd' emulators:exec --only firestore --project demo-peer-fs-read --config .out/fs-read-emulator.json "node --test scripts/peer-sync/live-ride-query.emulator.test.mjs"
@@ -62,4 +63,6 @@ $fsReadConfig | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 .out/fs-rea
 
 ## 릴리스 상태
 
-로컬 구현·관련 시험 완료, 전체 시험 진행 중. 커밋·푸시·Hosting 결과는 완료 후 기록한다. 타인의 UI·문서 변경은 보존한다.
+제품·시험·최초 보고서 로컬 커밋: `36d6d728`. 타인의 미커밋 UI·슬림화 문서는 포함하지 않았다. 전체 시험 첫 실행은 1453 PASS·1 cancelled(timeout)·4 TODO, exit 1로 **미통과**였다. 원인은 변경하지 않은 `scripts/identity/entry-location-dom.test.mjs`의 초기 위치 UI 시험 60초 timeout이며, 전체 결과를 단순 1453/0으로 합격 처리하지 않았다.
+
+`.out/fs-read-release-36d6d728`에 해당 커밋만 추출한 결과, 전체 시험 **1454 PASS / 0 FAIL**, 4 TODO(기존), exit 0·79.3초다. 처음 시간 초과한 초기 위치 UI 시험도 통과했다. 개발 부산물 게이트 PASS·WARN 0. 작업 트리의 미등록 handoff 도구 실패와 구분했다. 격리 스냅샷의 `npm run build`도 PASS, main bundle `index-qovLMWuI.js`. 푸시·Hosting 결과는 완료 후 기록한다.
