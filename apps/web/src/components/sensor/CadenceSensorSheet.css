@@ -238,7 +238,7 @@
 .cadence-sheet__status > span { flex: 0 0 6px; width: 6px; height: 6px; border-radius: 50%; background: #9ba6b9; }
 .cadence-sheet__status > .is-connected { background: #1e9a55; }
 .cadence-sheet.settings-surface .cadence-sheet__device { font-size: 11px; margin-top: 4px; }
-.cadence-sheet__detail { min-width: 0; padding: 8px 10px; display: flex; flex-direction: column; gap: 5px; overflow: auto; }
+.cadence-sheet__detail { min-width: 0; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; overflow: auto; }
 .cadence-sheet.settings-surface .cadence-sheet__head { margin: 0; min-height: 28px; gap: 6px; }
 .cadence-sheet.settings-surface .cadence-sheet__title { font-size: 14px; }
 .cadence-sheet.settings-surface .cadence-sheet__close { flex-basis: 28px; width: 28px; height: 28px; min-height: 28px; }
@@ -254,17 +254,29 @@
 .cadence-sheet.settings-surface .cadence-sheet__btn--on { color: #fff; background: #2457d6; border-color: #2457d6; }
 .cadence-sheet.settings-surface .cadence-sheet__speed { order: 1; padding-top: 5px; border-top: 1px solid #e9ecf1; }
 .cadence-sheet__speed-label { display: block; color: #5e6472; font-size: 11px; margin-bottom: 4px; }
-.cadence-sheet .ride-speed-kicker { display: none; }
-.cadence-sheet .ride-speed-row { gap: 5px; flex-wrap: nowrap; }
-.cadence-sheet .ride-speed-step { width: 28px; height: 28px; flex-basis: 28px; border-radius: 50%; background: #fff; border-color: #c9d6ee; }
-.cadence-sheet .ride-speed-number { font: 600 22px/1 var(--rtw-font-num, sans-serif); width: 40px; flex-basis: 40px; border: 0; padding: 0; order: 1; }
-.cadence-sheet .ride-speed-range { flex: 1; min-width: 40px; accent-color: #2457d6; }
-.cadence-sheet .ride-speed-row::after { content: 'km/h'; font-size: 11px; order: 2; }
+.cadence-sheet.settings-surface .cadence-sheet__speed { border-top: 0; padding: 0; }
+.cadence-sheet__check { width: 14px; height: 14px; flex: 0 0 auto; }
+.cadence-sheet.settings-surface .cadence-sheet__btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+.cadence-sheet__rank-note { order: 2; border-top: 1px solid #e1e8f3; padding-top: 5px; margin: 0; font-size: 10px; line-height: 1.4; color: #64748b; }
+.cadence-sheet--manual.settings-surface .cadence-sheet__actions { order: 3; }
+.cadence-sheet:not(.cadence-sheet--manual) .ride-speed { gap: 4px; }
+.cadence-sheet:not(.cadence-sheet--manual) .ride-speed-readout { height: 32px; }
+.cadence-sheet:not(.cadence-sheet--manual) .ride-speed-number { height: 32px; font-size: 32px; }
+.cadence-sheet:not(.cadence-sheet--manual) .ride-speed-gauge { width: 32px; height: 32px; }
+.cadence-sheet--manual .cadence-sheet__hero-value { display: flex; align-items: center; gap: 7px; margin: 12px -12px 14px; padding: 9px 8px; border-left: 3px solid #2457d6; background: #e3edff; }
+.cadence-sheet__mode-icon { width: 20px; height: 20px; flex: 0 0 auto; }
+.cadence-sheet--manual .cadence-sheet__hero-label { color: #7c8aa0; }
+.cadence-sheet--manual .cadence-sheet__status { font-size: 10px; letter-spacing: -.025em; }
+.cadence-sheet--manual .cadence-sheet__intro { color: #64748b; font-size: 10px; }
+.cadence-sheet--manual.settings-surface .cadence-sheet__title { color: #071c30; font-size: 17px; font-weight: 800; letter-spacing: -.04em; }
+.cadence-sheet--manual.settings-surface .cadence-sheet__btn { border-color: #2457d6; color: #2457d6; }
+.cadence-sheet--manual.settings-surface .cadence-sheet__btn--on { background: #2457d6; color: #fff; }
 @media (max-width: 400px) {
   .cadence-sheet.settings-surface .cadence-sheet__panel { display: flex; }
   .cadence-sheet__hero { padding: 8px 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; align-items: center; }
   .cadence-sheet__hero-value { grid-column: 2; grid-row: 1 / 3; margin: 0; font-size: 32px; }
   .cadence-sheet__hero-value--empty { font-size: 14px; }
+  .cadence-sheet--manual .cadence-sheet__hero-value { margin: 0; padding: 5px; border-radius: 6px; }
   .cadence-sheet__detail { max-height: 65dvh; }
 }
 @media (hover: hover) {

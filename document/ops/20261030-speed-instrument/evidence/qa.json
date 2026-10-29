@@ -1,0 +1,1157 @@
+[
+  {
+    "width": 800,
+    "height": 360,
+    "state": "sensor",
+    "layout": {
+      "x": 190,
+      "y": 78.8125,
+      "width": 420,
+      "height": 202.375,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 86.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 800,
+    "height": 360,
+    "state": "manual",
+    "layout": {
+      "x": 190,
+      "y": 72.75,
+      "width": 420,
+      "height": 214.5,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 14.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 92,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__rank-note",
+          "height": 20,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 800,
+    "height": 360,
+    "state": "sensor-connected",
+    "layout": {
+      "x": 190,
+      "y": 114.25,
+      "width": 420,
+      "height": 131.5,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 800,
+    "height": 360,
+    "state": "sensor-disconnected",
+    "layout": {
+      "x": 190,
+      "y": 113.65625,
+      "width": 420,
+      "height": 132.6875,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__notice",
+          "height": 15.390625,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 800,
+    "height": 360,
+    "state": "sensor-unsupported",
+    "layout": {
+      "x": 190,
+      "y": 53.71875,
+      "width": 420,
+      "height": 252.546875,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__help",
+          "height": 46.171875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 86.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 800,
+    "height": 360,
+    "state": "sensor-riding-manual",
+    "layout": {
+      "x": 190,
+      "y": 55.359375,
+      "width": 420,
+      "height": 249.28125,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 14.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__help",
+          "height": 30.78125,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 92,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__rank-note",
+          "height": 20,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 736,
+    "height": 300,
+    "state": "sensor",
+    "layout": {
+      "x": 158,
+      "y": 48.8125,
+      "width": 420,
+      "height": 202.375,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 86.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 736,
+    "height": 300,
+    "state": "manual",
+    "layout": {
+      "x": 158,
+      "y": 42.75,
+      "width": 420,
+      "height": 214.5,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 14.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 92,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__rank-note",
+          "height": 20,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 736,
+    "height": 300,
+    "state": "sensor-connected",
+    "layout": {
+      "x": 158,
+      "y": 84.25,
+      "width": 420,
+      "height": 131.5,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 736,
+    "height": 300,
+    "state": "sensor-disconnected",
+    "layout": {
+      "x": 158,
+      "y": 83.65625,
+      "width": 420,
+      "height": 132.6875,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__notice",
+          "height": 15.390625,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 736,
+    "height": 300,
+    "state": "sensor-unsupported",
+    "layout": {
+      "x": 158,
+      "y": 23.71875,
+      "width": 420,
+      "height": 252.546875,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__help",
+          "height": 46.171875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 86.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 736,
+    "height": 300,
+    "state": "sensor-riding-manual",
+    "layout": {
+      "x": 158,
+      "y": 25.359375,
+      "width": 420,
+      "height": 249.28125,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 14.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__help",
+          "height": 30.78125,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 92,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__rank-note",
+          "height": 20,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 699,
+    "height": 273,
+    "state": "sensor",
+    "layout": {
+      "x": 139.5,
+      "y": 35.3125,
+      "width": 420,
+      "height": 202.375,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 86.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 699,
+    "height": 273,
+    "state": "manual",
+    "layout": {
+      "x": 139.5,
+      "y": 29.25,
+      "width": 420,
+      "height": 214.5,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 14.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 92,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__rank-note",
+          "height": 20,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 699,
+    "height": 273,
+    "state": "sensor-connected",
+    "layout": {
+      "x": 139.5,
+      "y": 70.75,
+      "width": 420,
+      "height": 131.5,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 699,
+    "height": 273,
+    "state": "sensor-disconnected",
+    "layout": {
+      "x": 139.5,
+      "y": 70.15625,
+      "width": 420,
+      "height": 132.6875,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__notice",
+          "height": 15.390625,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 699,
+    "height": 273,
+    "state": "sensor-unsupported",
+    "layout": {
+      "x": 139.5,
+      "y": 10.21875,
+      "width": 420,
+      "height": 252.546875,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__help",
+          "height": 46.171875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 86.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 699,
+    "height": 273,
+    "state": "sensor-riding-manual",
+    "layout": {
+      "x": 139.5,
+      "y": 11.859375,
+      "width": 420,
+      "height": 249.28125,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 14.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__help",
+          "height": 30.78125,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 92,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__rank-note",
+          "height": 20,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 667,
+    "height": 300,
+    "state": "sensor",
+    "layout": {
+      "x": 123.5,
+      "y": 48.8125,
+      "width": 420,
+      "height": 202.375,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 86.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 667,
+    "height": 300,
+    "state": "manual",
+    "layout": {
+      "x": 123.5,
+      "y": 42.75,
+      "width": 420,
+      "height": 214.5,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 14.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 92,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__rank-note",
+          "height": 20,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 667,
+    "height": 300,
+    "state": "sensor-connected",
+    "layout": {
+      "x": 123.5,
+      "y": 84.25,
+      "width": 420,
+      "height": 131.5,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 667,
+    "height": 300,
+    "state": "sensor-disconnected",
+    "layout": {
+      "x": 123.5,
+      "y": 83.65625,
+      "width": 420,
+      "height": 132.6875,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__notice",
+          "height": 15.390625,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 667,
+    "height": 300,
+    "state": "sensor-unsupported",
+    "layout": {
+      "x": 123.5,
+      "y": 23.71875,
+      "width": 420,
+      "height": 252.546875,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__help",
+          "height": 46.171875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 86.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 667,
+    "height": 300,
+    "state": "sensor-riding-manual",
+    "layout": {
+      "x": 123.5,
+      "y": 25.359375,
+      "width": 420,
+      "height": 249.28125,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 14.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__help",
+          "height": 30.78125,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 92,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__rank-note",
+          "height": 20,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "state": "sensor",
+    "layout": {
+      "x": 12,
+      "y": 156.3125,
+      "width": 296,
+      "height": 255.375,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 86.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "state": "manual",
+    "layout": {
+      "x": 12,
+      "y": 151,
+      "width": 296,
+      "height": 266,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 14.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 92,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__rank-note",
+          "height": 20,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "state": "sensor-connected",
+    "layout": {
+      "x": 12,
+      "y": 189.3125,
+      "width": 296,
+      "height": 189.375,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "state": "sensor-disconnected",
+    "layout": {
+      "x": 12,
+      "y": 179.609375,
+      "width": 296,
+      "height": 208.765625,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__notice",
+          "height": 15.390625,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "state": "sensor-unsupported",
+    "layout": {
+      "x": 12,
+      "y": 131.21875,
+      "width": 296,
+      "height": 305.546875,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 31.875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__help",
+          "height": 46.171875,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 86.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "state": "sensor-riding-manual",
+    "layout": {
+      "x": 12,
+      "y": 133.609375,
+      "width": 296,
+      "height": 300.78125,
+      "overflow": 0,
+      "detailOverflow": 0,
+      "children": [
+        {
+          "cls": "cadence-sheet__head settings-surface__head",
+          "height": 28,
+          "gap": "6px"
+        },
+        {
+          "cls": "cadence-sheet__intro",
+          "height": 14.5,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__help",
+          "height": 30.78125,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__speed",
+          "height": 92,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__rank-note",
+          "height": 20,
+          "gap": "normal"
+        },
+        {
+          "cls": "cadence-sheet__actions",
+          "height": 28,
+          "gap": "5px"
+        }
+      ],
+      "clipped": []
+    }
+  }
+]

@@ -251,14 +251,15 @@ test.describe("Start·End 탭이 거리 방향 대기를 끝낸다", () => {
 test.describe("센서 설정 시트 레이아웃", () => {
   /*
    * 2026-09-18 Chief 6건 중 지금도 유효한 것: ② 버튼 이름 「센서 연결」·「센서 없음」
-   * ③ 「현재 입력」 줄과 choice-required 안내 제거 ⑤ 숫자 입력의 증감(스피너) 제거 ⑥ 「＋」 가 숫자 입력 왼쪽.
+   * ③ 「현재 입력」 줄과 choice-required 안내 제거 ⑤ 숫자 입력의 증감(스피너) 제거.
+   * ⑥ 10-30 Chief 승인 계기판: 직접입력 숫자는 ±·슬라이더 위.
    *
    * 바뀐 것(10-25 Claude Code, 감리 지시76): ① 제목 한 줄 상태·④ SPD/km/h 두 줄·버튼 22px·
    * 시트 255px·스피드 바 70% 는 Chief 승인 묶음4 시안12(두 칸 시트, 상태는 왼쪽 hero)로 대체됐다 —
    * 패널 경계·글자는 `ui-redesign-batch4.spec.ts` 가 잠근다. 기본 입력은 2026-09-28 Chief 「센서 없음」이라
    * 제목은 「체험 속도」, 상태는 hero 의 「센서 없이 달리기」다.
    */
-  test("기본 체험 속도 제목·hero 상태 · 버튼 이름 · 불필요 줄 제거 · 스피너 없음 · ＋/숫자 교체", async ({
+  test("기본 체험 속도 제목·hero 상태 · 버튼 이름 · 불필요 줄 제거 · 스피너 없음 · 계기판 숫자", async ({
     page,
   }) => {
     test.setTimeout(120_000);
@@ -330,8 +331,8 @@ test.describe("센서 설정 시트 레이아웃", () => {
       layout.numberAppearance,
     );
 
-    // ⑥ ＋ 가 숫자 입력보다 왼쪽
-    expect(layout.plus!.x, "＋ 가 숫자 입력 왼쪽이어야 한다").toBeLessThan(layout.number!.x);
+    // ⑥ Chief 10-30 승인: 큰 숫자가 조절부 위에 있는 계기판 스타일.
+    expect(layout.number!.y + layout.number!.height, "숫자 입력은 ＋ 버튼 위에 있어야 한다").toBeLessThanOrEqual(layout.plus!.y);
   });
 });
 

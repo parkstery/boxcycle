@@ -84,7 +84,7 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
   const manualRankLabel = sensorOnly ? "센서 없이 달리기 · 순위 제외" : "센서 없이 달리기 · 테스트 중 순위 포함";
 
   return (
-    <div className="cadence-sheet settings-surface" role="dialog" aria-label="케이던스 센서">
+    <div className={`cadence-sheet settings-surface${manualSelected ? " cadence-sheet--manual" : ""}`} role="dialog" aria-label="케이던스 센서">
       <button
         type="button"
         className="cadence-sheet__scrim"
@@ -96,6 +96,7 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
         <section className="cadence-sheet__hero" aria-label="센서 상태">
           <span className="cadence-sheet__hero-label">케이던스</span>
           <p className={`cadence-sheet__hero-value${connected && props.crankRpm != null ? "" : " cadence-sheet__hero-value--empty"}`} aria-label={rpm ?? "센서를 연결해 페달을 확인하세요"}>
+            {manualSelected ? <svg className="cadence-sheet__mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M4 19a9 9 0 1 1 16 0M12 4v3M5 8l2 2M19 8l-2 2M12 15l3-4" /><circle cx="12" cy="15" r="1.5" /></svg> : null}
             {connected && props.crankRpm != null ? <>{Math.max(0, Math.round(props.crankRpm))}{" "}<small>rpm</small></> : connected ? "페달을 돌려 보세요" : manualSelected ? "체험 속도" : "센서를 연결하세요"}
           </p>
           <p className="cadence-sheet__status"><span className={connected ? "is-connected" : ""} />{manualSelected ? "센서 없이 달리기" : cadenceSensorShortStatus(props)}</p>
@@ -122,7 +123,7 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
           </button>
         </div>
 
-        <p className="cadence-sheet__intro">페달을 돌리면 왼쪽 숫자가 바뀌어요.<br />{sensorOnly ? "센서로 달린 주행만 순위에 올라가요." : "테스트 중에는 센서 없는 주행도 순위에 올라가요."}</p>
+        <p className="cadence-sheet__intro">{manualSelected ? "원하는 속도로 가볍게 달려보세요." : <>페달을 돌리면 왼쪽 숫자가 바뀌어요.<br />{sensorOnly ? "센서로 달린 주행만 순위에 올라가요." : "테스트 중에는 센서 없는 주행도 순위에 올라가요."}</>}</p>
 
         {/* Go 가 잠긴 이유는 실제로 해소할 수 있는 이 자리에서만 말한다(RouteDock 에 두지 않는다) */}
         {/* 「센서를 연결해 페달을 확인하거나 체험 속도를 선택하세요」(choice-required)는
@@ -145,6 +146,32 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
             체험 속도로 주행 중입니다 — 센서는 다음 주행 전에 설정하세요.
           </p>
         ) : null}
+
+        {props.errorMessage ? (
+          <p
+            className={reconnecting ? "cadence-sheet__notice" : "cadence-sheet__error"}
+            role={reconnecting ? "status" : "alert"}
+          >
+            {props.errorMessage}
+          </p>
+        ) : null}
+
+        {/*
+          체험 속도는 Go 전에 여기서 정한다 — 주행 중 재튜닝 흐름은 만들지 않는다.
+          → 지시06: 개발 편의로 한시 허용, 출시 전 정리(출시 전 확인사항 §5).
+          스위치는 `ALLOW_MANUAL_SPEED_WHILE_RIDING` 한 곳(false = 종전 Go 전에만).
+          센서 연결(cadence) 중에는 노출하지 않는다 — 진실은 케이던스다.
+        */}
+        {!cadenceMode && (!props.riding || ALLOW_MANUAL_SPEED_WHILE_RIDING) ? (
+          <div className="cadence-sheet__speed">
+            {!manualSelected ? <span className="cadence-sheet__speed-label">{manualRankLabel}</span> : null}
+            <SessionSpeedControl
+              speedKmh={props.manualSpeedKmh}
+              onSpeedKmh={props.onManualSpeedKmh}
+            />
+          </div>
+        ) : null}
+        {manualSelected ? <p className="cadence-sheet__rank-note">{sensorOnly ? "센서로 달린 주행만 순위에 올라가요." : "테스트 중에는 센서 없이도 순위에 올라가요."}</p> : null}
 
         <div className="cadence-sheet__actions">
           {connecting ? <span className="cadence-sheet__help">검색·연결 중…</span> : null}
@@ -198,34 +225,11 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
             title={manualRankLabel}
             onClick={props.onChooseManual}
           >
+            {manualReady ? <svg className="cadence-sheet__check" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m3 8 3 3 7-7" /></svg> : null}
             센서 없음
           </button>
         </div>
 
-        {props.errorMessage ? (
-          <p
-            className={reconnecting ? "cadence-sheet__notice" : "cadence-sheet__error"}
-            role={reconnecting ? "status" : "alert"}
-          >
-            {props.errorMessage}
-          </p>
-        ) : null}
-
-        {/*
-          체험 속도는 Go 전에 여기서 정한다 — 주행 중 재튜닝 흐름은 만들지 않는다.
-          → 지시06: 개발 편의로 한시 허용, 출시 전 정리(출시 전 확인사항 §5).
-          스위치는 `ALLOW_MANUAL_SPEED_WHILE_RIDING` 한 곳(false = 종전 Go 전에만).
-          센서 연결(cadence) 중에는 노출하지 않는다 — 진실은 케이던스다.
-        */}
-        {!cadenceMode && (!props.riding || ALLOW_MANUAL_SPEED_WHILE_RIDING) ? (
-          <div className="cadence-sheet__speed">
-            <span className="cadence-sheet__speed-label">{manualRankLabel}</span>
-            <SessionSpeedControl
-              speedKmh={props.manualSpeedKmh}
-              onSpeedKmh={props.onManualSpeedKmh}
-            />
-          </div>
-        ) : null}
         </div>
       </div>
     </div>

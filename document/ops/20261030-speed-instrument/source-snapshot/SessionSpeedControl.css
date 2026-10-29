@@ -1,0 +1,41 @@
+/* Chief 2026-10-30 승인: 직접 입력 가능한 계기판과 같은 값을 표시하는 조절부. */
+.ride-speed { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ride-speed-readout { display: flex; align-items: center; justify-content: center; gap: 4px; min-width: 0; height: 56px; }
+.ride-speed-number {
+  width: 2.3ch; height: 56px; min-width: 0; padding: 0; margin: 0; box-sizing: border-box;
+  border: 0; border-radius: 6px; background: transparent; color: #071c30;
+  font: 750 56px/1 var(--rtw-font-num, sans-serif);
+  font-variant-numeric: tabular-nums; letter-spacing: -.06em; text-align: center;
+  appearance: textfield; -moz-appearance: textfield;
+}
+.ride-speed-number::-webkit-outer-spin-button,
+.ride-speed-number::-webkit-inner-spin-button { appearance: none; -webkit-appearance: none; margin: 0; }
+.ride-speed-unit { color: #526078; font-size: 12px; font-weight: 650; white-space: nowrap; align-self: flex-end; margin-bottom: 6px; }
+.ride-speed-gauge { width: 53px; height: 53px; align-self: center; flex: 0 0 auto; margin-left: 4px; }
+.ride-speed-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ride-speed-step {
+  flex: 0 0 30px; width: 30px; height: 30px; padding: 0;
+  border-radius: 50%; border: 1px solid #d8e2f3; background: #f4f7fc;
+  color: #2457d6; font: 500 23px/1 sans-serif; cursor: pointer;
+  display: grid; place-items: center;
+}
+.ride-speed-step:hover:not(:disabled) { background: #eef3fc; border-color: #2457d6; }
+.ride-speed-step:disabled { opacity: .35; cursor: not-allowed; }
+.ride-speed-range {
+  flex: 1 1 auto; min-width: 0; width: 0; height: 8px; margin: 0; border-radius: 99px;
+  appearance: none; -webkit-appearance: none; cursor: pointer;
+  background: linear-gradient(to right, #2457d6 var(--speed-progress), #d5e0f3 var(--speed-progress));
+}
+.ride-speed-range::-webkit-slider-thumb {
+  appearance: none; -webkit-appearance: none; width: 22px; height: 22px;
+  border: 3px solid #fff; border-radius: 50%; background: #2457d6;
+  box-shadow: 0 2px 6px #17345c30;
+}
+.ride-speed-range::-moz-range-thumb {
+  width: 16px; height: 16px; border: 3px solid #fff; border-radius: 50%;
+  background: #2457d6; box-shadow: 0 2px 6px #17345c30;
+}
+.ride-speed-number:focus-visible,
+.ride-speed-range:focus-visible,
+.ride-speed-step:focus-visible { outline: 2px solid #2457d6; outline-offset: 3px; }
+.ride-speed-range:disabled { opacity: .35; cursor: not-allowed; }
