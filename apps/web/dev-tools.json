@@ -9,6 +9,27 @@
   ],
   "tools": [
     {
+      "id": "handoff-check",
+      "kind": "script",
+      "path": "scripts/handoff-check.mjs",
+      "class": "permanent",
+      "purpose": "Supervisor 시작 시 HANDOFF 크기·최신성·변경 파일 요약 점검(CLAUDE.md·AGENTS.md 지침)",
+      "enable": "루트에서 node scripts/handoff-check.mjs (--check 는 12KB 초과·낡음이면 exit 1)",
+      "bundle": "ops",
+      "added": "2026-10-29"
+    },
+    {
+      "id": "overlay-readability-review",
+      "kind": "script",
+      "path": "apps/web/scripts/overlay-readability-review.mjs",
+      "class": "temporary",
+      "purpose": "지도 위 인터벌·순위 B안 가독성 배치 검수 캡처(5031 미리보기)",
+      "enable": "apps/web에서 node scripts/overlay-readability-review.mjs (5031 dev 서버 필요)",
+      "bundle": "20261029-map-overlay-readability",
+      "added": "2026-10-29",
+      "expires": "2026-11-29"
+    },
+    {
       "id": "ride-moments-supervisor-layout-check",
       "kind": "script",
       "path": "apps/web/scripts/ride-interval/supervisor-layout-check.mjs",
