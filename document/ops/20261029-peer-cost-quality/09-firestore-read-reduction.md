@@ -65,4 +65,10 @@ $fsReadConfig | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 .out/fs-rea
 
 제품·시험·최초 보고서 로컬 커밋: `36d6d728`. 타인의 미커밋 UI·슬림화 문서는 포함하지 않았다. 전체 시험 첫 실행은 1453 PASS·1 cancelled(timeout)·4 TODO, exit 1로 **미통과**였다. 원인은 변경하지 않은 `scripts/identity/entry-location-dom.test.mjs`의 초기 위치 UI 시험 60초 timeout이며, 전체 결과를 단순 1453/0으로 합격 처리하지 않았다.
 
-`.out/fs-read-release-36d6d728`에 해당 커밋만 추출한 결과, 전체 시험 **1454 PASS / 0 FAIL**, 4 TODO(기존), exit 0·79.3초다. 처음 시간 초과한 초기 위치 UI 시험도 통과했다. 개발 부산물 게이트 PASS·WARN 0. 작업 트리의 미등록 handoff 도구 실패와 구분했다. 격리 스냅샷의 `npm run build`도 PASS, main bundle `index-qovLMWuI.js`. 푸시·Hosting 결과는 완료 후 기록한다.
+`.out/fs-read-release-36d6d728`에 해당 커밋만 추출한 결과, 전체 시험 **1454 PASS / 0 FAIL**, 4 TODO(기존), exit 0·79.3초다. 처음 시간 초과한 초기 위치 UI 시험도 통과했다. 개발 부산물 게이트 PASS·WARN 0. 작업 트리의 미등록 handoff 도구 실패와 구분했다. 격리 스냅샷의 `npm run build`도 PASS, main bundle `index-qovLMWuI.js`.
+
+**2026-10-29 Hosting 배포 완료.** `36d6d728`과 검증 보고서 `102fc178`을 `parkstery/boxcycle origin/main2`에 정상 훅으로 푸시했다. 정식 pre-push에서도 타입·도메인·부산물·코드 정련·동행 간격/전환·저속 residual·진입 셀렉터와 전체 **1454 PASS / 0 FAIL**(78.7초)을 통과했다. 훅 생략 없음. 타인의 미커밋 UI·도구를 포함하지 않은 커밋 스냅샷에서 실행했다.
+
+`firebase deploy --only hosting --project boxcycle-dc2df --config .out/fs-read-hosting-36d6d728.json --non-interactive` 성공. Rules·Functions 배포·데이터 마이그레이션 없음. 운영 `index.html`과 직접 참조 JS/CSS 총6개가 HTTP200·bytes·SHA256 모두 일치했다. main bundle 2,046,099 B, SHA256 `23C0B26D7BAE789AC8E5A5E432B62730FD987EC944B488A4B73B59C7AA3BAE07`. [운영 검증 증거](evidence/firestore-read-hosting-verification.json).
+
+접속: <https://boxcycle-dc2df.web.app>. 확인이 필요할 때 새로고침하면 이번 빌드를 받는다. Chief에게 추가 실주행을 요청하지 않는다. 운영 청구 감소율·실제 두 기기 시각 품질·기존 큰 공백 문제의 해결은 미확정이다.

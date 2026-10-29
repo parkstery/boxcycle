@@ -1,0 +1,51 @@
+{
+  "scope": "Hosting only; no Rules/Functions deployment",
+  "pushedThrough": "102fc178",
+  "assets": [
+    {
+      "sha256": "F98BBEBA79122F2B9863940F8DA04A40B1A6A132A743454828B083704A089768",
+      "path": "/index.html",
+      "status": 200,
+      "bytes": 797,
+      "matches": true
+    },
+    {
+      "sha256": "23C0B26D7BAE789AC8E5A5E432B62730FD987EC944B488A4B73B59C7AA3BAE07",
+      "path": "/assets/index-qovLMWuI.js",
+      "status": 200,
+      "bytes": 2046099,
+      "matches": true
+    },
+    {
+      "sha256": "EBBBC54E26E97693425CE9ABEABFB5B87C89E7A2D5AA4E2903727522B4F7715A",
+      "path": "/assets/jsx-runtime-QUjkQcTq.js",
+      "status": 200,
+      "bytes": 977,
+      "matches": true
+    },
+    {
+      "sha256": "E7C0F6523FE0FE2E15E9F9DC9E1B0AA66673ECC5D8CFCE32226DC03CD88B13FD",
+      "path": "/assets/camera1Mode-DgOnuhkM.js",
+      "status": 200,
+      "bytes": 1749154,
+      "matches": true
+    },
+    {
+      "sha256": "BDF474361D2A63D906850CFD35B8B6768331FA83A0239240AD3D4E345168C947",
+      "path": "/assets/react-dA9wtOGr.js",
+      "status": 200,
+      "bytes": 7527,
+      "matches": true
+    },
+    {
+      "sha256": "E197025FDEF0329BEC27CA9B313B23E088FF2292BA69C25EE9A9A67A344D3FE6",
+      "path": "/assets/index-BgHivhzz.css",
+      "status": 200,
+      "bytes": 273166,
+      "matches": true
+    }
+  ],
+  "productCommit": "36d6d728",
+  "at": "2026-10-29T15:43:01.1064394+09:00",
+  "hosting": "https://boxcycle-dc2df.web.app"
+}
