@@ -51,6 +51,8 @@ test('RouteDock LED와 미니맵 접기는 독립적으로 접힌다', async ({ 
   await expect(routeExpand).toHaveAttribute('aria-expanded', 'false');
   await expect(minimapCollapse).toHaveAttribute('data-fold-kind', 'map');
   await expect(minimapCollapse).toHaveAttribute('aria-expanded', 'true');
+  await expect(minimapCollapse.locator('.route-overview-fold-toggle__identity')).toHaveCount(0);
+  await expect(minimapCollapse.locator('.route-overview-fold-toggle__chevron')).toHaveCount(1);
   await expect(page.locator('.route-dock__led-toggle')).toHaveCount(1);
 
   await routeExpand.click();
@@ -82,4 +84,10 @@ test('RouteDock LED와 미니맵 접기는 독립적으로 접힌다', async ({ 
     && collapsed.led.top < collapsed.map.bottom && collapsed.led.bottom > collapsed.map.top;
   expect(overlaps).toBe(false);
   await expect(page.getByRole('button', { name: '미니맵 펼치기' })).toHaveAttribute('aria-expanded', 'false');
+  const minimapExpand = page.getByRole('button', { name: '미니맵 펼치기' });
+  await expect(minimapExpand.locator('.route-overview-fold-toggle__identity')).toHaveCount(1);
+  await expect(minimapExpand.locator('.route-overview-fold-toggle__chevron')).toHaveCount(0);
+  await minimapExpand.click();
+  await expect(minimapCollapse.locator('.route-overview-fold-toggle__identity')).toHaveCount(0);
+  await expect(minimapCollapse.locator('.route-overview-fold-toggle__chevron')).toHaveCount(1);
 });

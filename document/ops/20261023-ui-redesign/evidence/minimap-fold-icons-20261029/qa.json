@@ -1,0 +1,226 @@
+[
+  {
+    "viewport": {
+      "width": 800,
+      "height": 360
+    },
+    "state": "riding",
+    "expanded": true,
+    "map": false,
+    "caret": true,
+    "width": 28,
+    "height": 28,
+    "centerError": 0,
+    "inside": true
+  },
+  {
+    "viewport": {
+      "width": 800,
+      "height": 360
+    },
+    "state": "riding",
+    "expanded": false,
+    "map": true,
+    "caret": false,
+    "width": 28,
+    "height": 28,
+    "centerError": 4.76837158203125e-7,
+    "inside": true
+  },
+  {
+    "viewport": {
+      "width": 800,
+      "height": 360
+    },
+    "state": "paused",
+    "expanded": true,
+    "map": false,
+    "caret": true,
+    "width": 28,
+    "height": 28,
+    "centerError": 0,
+    "inside": true
+  },
+  {
+    "viewport": {
+      "width": 800,
+      "height": 360
+    },
+    "state": "paused",
+    "expanded": false,
+    "map": true,
+    "caret": false,
+    "width": 28,
+    "height": 28,
+    "centerError": 4.76837158203125e-7,
+    "inside": true
+  },
+  {
+    "viewport": {
+      "width": 736,
+      "height": 300
+    },
+    "state": "riding",
+    "expanded": true,
+    "map": false,
+    "caret": true,
+    "width": 28,
+    "height": 28,
+    "centerError": 0,
+    "inside": true
+  },
+  {
+    "viewport": {
+      "width": 736,
+      "height": 300
+    },
+    "state": "riding",
+    "expanded": false,
+    "map": true,
+    "caret": false,
+    "width": 28,
+    "height": 28,
+    "centerError": 4.76837158203125e-7,
+    "inside": true
+  },
+  {
+    "viewport": {
+      "width": 736,
+      "height": 300
+    },
+    "state": "paused",
+    "expanded": true,
+    "map": false,
+    "caret": true,
+    "width": 28,
+    "height": 28,
+    "centerError": 0,
+    "inside": true
+  },
+  {
+    "viewport": {
+      "width": 736,
+      "height": 300
+    },
+    "state": "paused",
+    "expanded": false,
+    "map": true,
+    "caret": false,
+    "width": 28,
+    "height": 28,
+    "centerError": 4.76837158203125e-7,
+    "inside": true
+  },
+  {
+    "viewport": {
+      "width": 699,
+      "height": 273
+    },
+    "state": "riding",
+    "expanded": true,
+    "map": false,
+    "caret": true,
+    "width": 28,
+    "height": 28,
+    "centerError": 0,
+    "inside": true
+  },
+  {
+    "viewport": {
+      "width": 699,
+      "height": 273
+    },
+    "state": "riding",
+    "expanded": false,
+    "map": true,
+    "caret": false,
+    "width": 28,
+    "height": 28,
+    "centerError": 4.76837158203125e-7,
+    "inside": true
+  },
+  {
+    "viewport": {
+      "width": 699,
+      "height": 273
+    },
+    "state": "paused",
+    "expanded": true,
+    "map": false,
+    "caret": true,
+    "width": 28,
+    "height": 28,
+    "centerError": 0,
+    "inside": true
+  },
+  {
+    "viewport": {
+      "width": 699,
+      "height": 273
+    },
+    "state": "paused",
+    "expanded": false,
+    "map": true,
+    "caret": false,
+    "width": 28,
+    "height": 28,
+    "centerError": 4.76837158203125e-7,
+    "inside": true
+  },
+  {
+    "viewport": {
+      "width": 667,
+      "height": 300
+    },
+    "state": "riding",
+    "expanded": true,
+    "map": false,
+    "caret": true,
+    "width": 28,
+    "height": 28,
+    "centerError": 0,
+    "inside": true
+  },
+  {
+    "viewport": {
+      "width": 667,
+      "height": 300
+    },
+    "state": "riding",
+    "expanded": false,
+    "map": true,
+    "caret": false,
+    "width": 28,
+    "height": 28,
+    "centerError": 4.76837158203125e-7,
+    "inside": true
+  },
+  {
+    "viewport": {
+      "width": 667,
+      "height": 300
+    },
+    "state": "paused",
+    "expanded": true,
+    "map": false,
+    "caret": true,
+    "width": 28,
+    "height": 28,
+    "centerError": 0,
+    "inside": true
+  },
+  {
+    "viewport": {
+      "width": 667,
+      "height": 300
+    },
+    "state": "paused",
+    "expanded": false,
+    "map": true,
+    "caret": false,
+    "width": 28,
+    "height": 28,
+    "centerError": 4.76837158203125e-7,
+    "inside": true
+  }
+]

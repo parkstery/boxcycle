@@ -1,3 +1,5 @@
+2026-10-29 [미니맵 접기 표시 지시101](101-task-minimap-fold-icons.md) → [결과102](102-result-minimap-fold-icons.md): LOCAL_VERIFIED·미배포. 접힘지도만/펼침캐럿만·중앙정렬. 기존독립접힘2건·가로16상태·build/lint PASS·고정53.
+
 2026-10-29 [지도 스타일 아이콘 지시99](99-task-map-style-icons.md) → [결과100](100-result-map-style-icons.md): LOCAL_VERIFIED·미배포. 위성/야외 글자를 인공위성/접힌 지도 SVG로 대체·기존 접근성/토글/카메라잠금 유지. 가로4크기×3상태·기존화면계약·타입/lint/build PASS.
 
 # 전체 화면 디자인 변경 (2026-10-23~)
