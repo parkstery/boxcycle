@@ -40,7 +40,7 @@ const BACK_FAIL_M = 0.35;
 function parseArgs(argv) {
   const out = {
     scenario:
-      "low5v6,cruise20,pauseResumeLow,rtdbStallFs,stallStopResume,stallAccelResume,lateBundle",
+      "low5equal,low5equalIrregular,low5captureAge,low5v6,cruise20,pauseResumeLow,rtdbStallFs,stallStopResume,stallAccelResume,lateBundle",
     jsonOut: null,
   };
   for (let i = 2; i < argv.length; i++) {
@@ -70,6 +70,73 @@ function delayAt(pattern, k, intervalMs) {
 }
 
 const SCENARIOS = {
+  low5equal: {
+    label: "5 vs 5 km/h, fixed relative gap",
+    aSpeed: vKmh(5),
+    bSpeed: vKmh(5),
+    a0: 100,
+    b0: 95,
+    jitter: "sin",
+    // Chief reports 20–30cm oscillation at equal speed. The general 0.8m
+    // gate cannot detect that regression; these normal-stream cells use 3cm.
+    residualPpFailM: 0.03,
+    bPublishPhaseMs: 80,
+  },
+  low5equalIrregular: {
+    label: "5 vs 5 km/h, irregular 20/30/16.7/33.3ms frames",
+    aSpeed: vKmh(5),
+    bSpeed: vKmh(5),
+    a0: 100,
+    b0: 95,
+    jitter: "sin",
+    frameDtsMs: [20, 30, 1000 / 60, 1000 / 30],
+    residualPpFailM: 0.03,
+    bPublishPhaseMs: 80,
+  },
+  low5captureAge: {
+    label: "5 vs 5 km/h, B raw frame age alternates 0/40ms",
+    aSpeed: vKmh(5), bSpeed: vKmh(5), a0: 100, b0: 95,
+    jitter: "sin", bPublishPhaseMs: 80,
+    captureAgesBMs: [0, 40], residualPpFailM: 0.03,
+  },
+  low5captureRetagged: {
+    label: "old bug model: B old distance retagged at publish time",
+    aSpeed: vKmh(5), bSpeed: vKmh(5), a0: 100, b0: 95,
+    jitter: "sin", bPublishPhaseMs: 80,
+    captureAgesBMs: [0, 40], retagOldCapture: true, residualPpFailM: 0.03,
+  },
+  // Diagnostic-only: intentionally outside the default passing gate. No
+  // residual exclusions: expose the actual gap during a receive interruption.
+  low5networkGap: {
+    label: "5 vs 5 km/h, B RTDB silent 8–12s, FS fallback retained",
+    aSpeed: vKmh(5),
+    bSpeed: vKmh(5),
+    a0: 100,
+    b0: 95,
+    jitter: "sin",
+    bPublishPhaseMs: 80,
+    stallBRtdb: [8_000, 12_000],
+    residualPpFailM: 0.03,
+  },
+  low5bothStreamsGap: {
+    label: "5 vs 5 km/h, B RTDB + FS silent 8–12s then recover",
+    aSpeed: vKmh(5),
+    bSpeed: vKmh(5),
+    a0: 100,
+    b0: 95,
+    jitter: "sin",
+    bPublishPhaseMs: 80,
+    stallBRtdb: [8_000, 12_000],
+    stallBFs: [8_000, 12_000],
+    residualPpFailM: 0.03,
+  },
+  low5bothStreamsStop: {
+    label: "5km/h B stops while both receive streams are silent",
+    aSpeed: vKmh(5), bSpeed: vKmh(5), a0: 100, b0: 95,
+    jitter: "sin", bPublishPhaseMs: 80,
+    stallBRtdb: [8_000, 12_000], stallBFs: [8_000, 12_000],
+    pauseB: [8_000, 12_000], residualPpFailM: 0.03,
+  },
   low5v6: {
     label: "5 vs 6 km/h dual",
     aSpeed: vKmh(5),
@@ -153,6 +220,8 @@ async function loadView(vite) {
     clock: await vite.ssrLoadModule("/src/lib/peerMotion/repo/serverClockOffset.ts"),
     selfBuf: await vite.ssrLoadModule("/src/lib/peerMotion/selfDisplayBuffer.ts"),
     disp: await vite.ssrLoadModule("/src/lib/peerMotion/commonDisplayClock.ts"),
+    snapshot: await vite.ssrLoadModule("/src/lib/ride/liveLocationSnapshot.ts"),
+    samplers: await vite.ssrLoadModule("/src/lib/peerMotion/peerSyncDistanceSamplers.ts"),
     select: null,
   };
 }
@@ -269,14 +338,21 @@ function summarize(frames, sc = {}) {
     violations.push(`reverseFrames=${reverse} back>${BACK_FAIL_M}m`);
   }
   // 위치 residual — 정상 구간(excl 밖). residualPpAll 은 보고만(합격 완화에 쓰지 않음).
-  if (residualPp > RESIDUAL_PP_FAIL_M) {
-    violations.push(`residualPp ${residualPp.toFixed(3)}m > ${RESIDUAL_PP_FAIL_M}m`);
+  const residualLimitM = sc.residualPpFailM ?? RESIDUAL_PP_FAIL_M;
+  if (residualPp > residualLimitM) {
+    violations.push(`residualPp ${residualPp.toFixed(3)}m > ${residualLimitM}m`);
   }
 
   return {
     frames: frames.length,
     residualPpM: round3(residualPp),
+    residualPpFailM: residualLimitM,
     residualPpAllM: round3(residualPpAll),
+    maxBehindTruthM: round3(Math.max(0, residualMaxAll)),
+    maxAheadTruthM: round3(Math.max(0, -residualMinAll)),
+    finalResidualM: frames.length
+      ? round3(frames.at(-1).gapA - frames.at(-1).truthGap)
+      : null,
     residualStdM: round3(residualStd),
     residualMeanM: round3(mean),
     maxPeerJumpM: round3(maxPeerJump),
@@ -321,7 +397,8 @@ async function runScenario(viteA, viteB, key) {
   const pending = [];
   let seqA = 0;
   let seqB = 0;
-  let lastSend = -RTDB_MS;
+  const lastSendBy = { a: -RTDB_MS, b: -RTDB_MS + (sc.bPublishPhaseMs ?? 0) };
+  const sendKBy = { a: 0, b: 0 };
   let nextFs = FS_MS;
   let lastFsCapA = 0;
   let lastFsCapB = 0;
@@ -353,10 +430,12 @@ async function runScenario(viteA, viteB, key) {
   const liveB = { rows: [] };
 
   function encodeRow(who, t, wall) {
-    const dist = distAt(sc, who, t);
+    const age = who === "b" && sc.captureAgesBMs
+      ? sc.captureAgesBMs[(sendKBy.b - 1) % sc.captureAgesBMs.length] : 0;
+    const dist = distAt(sc, who, t - age);
     const speed = speedAt(sc, who, t);
     const phase = speed <= 0.02 && sc.pauseB ? "paused" : "live";
-    const tSrv = wall; // offset 0
+    let tSrv = wall; // offset 0
     const snap = {
       publicationId: PUB,
       distM: dist,
@@ -365,6 +444,24 @@ async function runScenario(viteA, viteB, key) {
       tSrv,
     };
     const mod = who === "a" ? A : B;
+    if (sc.captureAgesBMs) {
+      mod.samplers.registerPeerSyncDistanceSamplers({
+        sampleVirtualDistanceM: () => dist,
+        sampleAppliedSpeedKmh: () => speed * 3.6,
+        sampleMotionSnapshot: () => ({
+          distM: dist, speedKmh: speed * 3.6,
+          capturedAtLocalMs: sc.retagOldCapture ? wall : wall - age,
+        }),
+      });
+      const captured = mod.snapshot.buildLiveLocationSnapshot({
+        lngLat: [0, 0], trailId: "replay", publicationId: PUB,
+        routeGeometry: { type: "LineString", coordinates: [[0, 0], [0.1, 0]] },
+        routeDistanceMeters: ROUTE_LEN, virtualDistanceMeters: dist,
+        speedKmh: speed * 3.6, routeRidePhase: "live",
+      });
+      tSrv = captured.tSrv;
+      snap.tSrv = tSrv;
+    }
     const pay = mod.encode.encodePayload(snap);
     const uid = who === "a" ? UID_A : UID_B;
     const row = mod.encode.decodeTrailMotionPayload(uid, pay);
@@ -404,39 +501,35 @@ async function runScenario(viteA, viteB, key) {
   }
 
   try {
-    let sendK = 0;
-    for (let t = 0; t <= RUN_MS; t += STEP_MS) {
+    let previousFrameT = 0;
+    for (
+      let t = 0, frameIndex = 0;
+      t <= RUN_MS;
+      t += sc.frameDtsMs?.[frameIndex++ % sc.frameDtsMs.length] ?? STEP_MS
+    ) {
+      const frameDtMs = t === 0 ? STEP_MS : t - previousFrameT;
+      previousFrameT = t;
       const wall = WALL + t;
       activeNow = wall;
 
-      if (t - lastSend >= RTDB_MS - 1e-6) {
-        lastSend = t;
-        sendK += 1;
-        const encA = encodeRow("a", t, wall);
-        const encB = encodeRow("b", t, wall);
-
-        // self enqueue (fanout)
-        A.selfBuf.pushSelfDisplaySample({
-          tSrv: encA.tSrv,
-          distM: encA.dist,
-          speedMps: encA.speed,
+      for (const who of ["a", "b"]) {
+        if (t - lastSendBy[who] < RTDB_MS - 1e-6) continue;
+        lastSendBy[who] = t;
+        sendKBy[who] += 1;
+        const encoded = encodeRow(who, t, wall);
+        const view = who === "a" ? A : B;
+        view.selfBuf.pushSelfDisplaySample({
+          tSrv: encoded.tSrv,
+          distM: encoded.dist,
+          speedMps: encoded.speed,
         });
-        B.selfBuf.pushSelfDisplaySample({
-          tSrv: encB.tSrv,
-          distM: encB.dist,
-          speedMps: encB.speed,
-        });
-
-        const dly = delayAt(sc.jitter, sendK, RTDB_MS);
-        const arriveAtoB = t + RTT_MS + dly;
-        const arriveBtoA = t + RTT_MS + delayAt(sc.jitter, sendK + 17, RTDB_MS);
-
-        const stallB =
+        const arrival = t + RTT_MS + delayAt(
+          sc.jitter, sendKBy[who] + (who === "b" ? 17 : 0), RTDB_MS,
+        );
+        const stalled = who === "b" &&
           sc.stallBRtdb && t >= sc.stallBRtdb[0] && t < sc.stallBRtdb[1];
-
-        pending.push({ at: arriveAtoB, to: "B", row: encA.row, kind: "rtdb" });
-        if (!stallB) {
-          pending.push({ at: arriveBtoA, to: "A", row: encB.row, kind: "rtdb" });
+        if (!stalled) {
+          pending.push({ at: arrival, to: who === "a" ? "B" : "A", row: encoded.row, kind: "rtdb" });
         }
       }
 
@@ -446,12 +539,14 @@ async function runScenario(viteA, viteB, key) {
         const cap = Math.max(0, t - RTT_MS);
         lastFsCapA = cap;
         lastFsCapB = cap;
-        pending.push({
-          at: t + 40,
-          to: "A",
-          row: makeFsRow("b", lastFsCapB, t),
-          kind: "fs",
-        });
+        if (!(sc.stallBFs && t >= sc.stallBFs[0] && t < sc.stallBFs[1])) {
+          pending.push({
+            at: t + 40,
+            to: "A",
+            row: makeFsRow("b", lastFsCapB, t),
+            kind: "fs",
+          });
+        }
         pending.push({
           at: t + 40,
           to: "B",
@@ -491,8 +586,8 @@ async function runScenario(viteA, viteB, key) {
       const selfB =
         delayedB != null && B.disp.companionDisplayDelayMs() > 0 ? delayedB : distAt(sc, "b", t);
 
-      regA.step(STEP_MS / 1000, null, wall);
-      regB.step(STEP_MS / 1000, null, wall);
+      regA.step(frameDtMs / 1000, null, wall);
+      regB.step(frameDtMs / 1000, null, wall);
 
       if (t < WARMUP_MS) continue;
 
@@ -538,7 +633,12 @@ async function runScenario(viteA, viteB, key) {
     label: sc.label,
     rtdbMs: RTDB_MS,
     fsMs: FS_MS,
+    frameDtsMs: sc.frameDtsMs ?? [STEP_MS],
+    bPublishPhaseMs: sc.bPublishPhaseMs ?? 0,
     delayMs: D,
+    ...(sc.captureAgesBMs ? {
+      trace: frames.map((f) => ({ t: round3(f.t), residualM: f.gapA - f.truthGap })),
+    } : {}),
     ...metrics,
   };
 }

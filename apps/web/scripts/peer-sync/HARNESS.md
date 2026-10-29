@@ -23,6 +23,15 @@
 
 ## 실행
 
+동속 저속의 작은 진동 확인: `node scripts/peer-sync/residual-peer-jitter-harness.mjs --scenario low5equal,low5equalIrregular`.
+두 라이더5km/h·송신위상차80ms·네트워크지터에서 일정/불규칙프레임을 비교한다. 이 두셀은 상대거리오차변동폭3cm상한을 사용한다(일반0.8m상한과별개). 실제Mapbox/GLB화면·송신시점의낡은거리표본은이재생의검증범위밖이다.
+
+송신표본시각회귀: `node --test scripts/peer-sync/motion-capture-timeline.test.mjs` 및 `node scripts/peer-sync/residual-peer-jitter-harness.mjs --scenario low5captureAge`.
+실제snapshot작성함수에표본나이0/40ms를주입해거리와적분시각을함께전달하는지확인한다. `low5captureAge`는기본게이트에포함한다. `low5captureRetagged`는예전태깅을복원하는진단셀(현재3cm상한FAIL)이다. 합성6→1.2cm이며실화면개선율로쓰지않는다.
+
+수신공백 진단: `node scripts/peer-sync/residual-peer-jitter-harness.mjs --scenario low5equal,low5networkGap,low5bothStreamsGap`.
+후자2셀은 B의RTDB/양소스4초수신공백을주입하며 default게이트에는포함하지않는다. 현재3cm품질기준에FAIL(exit1)하는미해결진단이며 expectFail로통과시키지않는다. 상대추가뒤처짐·복구후오차를JSON에기록한다. 전송계층의실제패킷손실재현이나현장원인확정은아니다.
+
 ```bash
 cd apps/web && node scripts/peer-sync/replay.mjs [--check] [--graph] [--scenario <name|path>] [--out <dir>]
 ```

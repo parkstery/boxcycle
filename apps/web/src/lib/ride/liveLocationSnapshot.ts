@@ -15,6 +15,7 @@ import {
   peekSampleAppliedSpeedKmh,
   peekSampleTargetSpeedKmh,
   peekSampleVirtualDistanceM,
+  peekMotionCaptureSample,
 } from "../peerMotion/peerSyncDistanceSamplers";
 import { captureEstimatedServerNowMs } from "../peerMotion/commonDisplayClock";
 
@@ -48,7 +49,10 @@ export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): Live
   const geoLen =
     hasGeometry && input.routeGeometry ? lineStringLengthMeters(input.routeGeometry) : 0;
   // S3B-1 D-0: 발행 거리는 rAF 원본. 미등록·idle(NaN) 만 React 200 ms 상태에 폴백.
-  const sampled = peekSampleVirtualDistanceM();
+  const capture = peekMotionCaptureSample();
+  const captureValid = capture != null && Number.isFinite(capture.distM) &&
+    Number.isFinite(capture.speedKmh) && Number.isFinite(capture.capturedAtLocalMs);
+  const sampled = captureValid ? capture.distM : peekSampleVirtualDistanceM();
   const virtualDistanceMeters = Number.isFinite(sampled) ? sampled : input.virtualDistanceMeters;
   const distMetersAlongRoute = rideDistanceAlongRoute(
     virtualDistanceMeters,
@@ -56,7 +60,7 @@ export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): Live
     geoLen,
   );
   // S3B-2 D-1: 발행 속도는 rAF 적용속도. 미등록·idle(NaN) 만 슬라이더 목표에 폴백.
-  const sampledSpeed = peekSampleAppliedSpeedKmh();
+  const sampledSpeed = captureValid ? capture.speedKmh : peekSampleAppliedSpeedKmh();
   const speedKmh = Number.isFinite(sampledSpeed) ? sampledSpeed : (input.speedKmh ?? 0);
   const speedMps =
     input.routeRidePhase === "paused"
@@ -64,8 +68,11 @@ export function buildLiveLocationSnapshot(input: LiveLocationPublishInput): Live
       : Number.isFinite(speedKmh)
         ? Math.max(0, speedKmh / 3.6)
         : 0;
-  // 캡처 순간 추정 서버시각 — encode/큐에서 재샘플하지 않도록 스냅샷에 고정.
-  const tSrv = captureEstimatedServerNowMs() ?? undefined;
+  // 거리 표본의 실제 적분 시각. rAF 이후의 송신 시각을 붙이면 표본 나이의
+  // 변화가 원격 보간 속도/간격 진동으로 바뀐다. encode/큐에서도 재샘플하지 않는다.
+  const tSrv = captureEstimatedServerNowMs(
+    captureValid ? capture.capturedAtLocalMs : Date.now(),
+  ) ?? undefined;
   return {
     lngLat: roundLngLatForLiveShare(input.lngLat),
     trailId: sanitizeTrailId(input.trailId),

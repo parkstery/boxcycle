@@ -275,10 +275,22 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
   /** rAF 적용속도(km/h) — ① 로그용 */
   const sampleAppliedSpeedKmh = useCallback((): number => appliedSpeedRef.current, []);
 
+  const sampleMotionSnapshot = useCallback(() => ({
+    distM: virtualDistanceRef.current,
+    speedKmh: appliedSpeedRef.current,
+    // 송신 Worker 는 rAF 사이에도 돈다. 오래된 거리에 새 송신 시각을 붙이면
+    // 5km/h·프레임 나이40ms만으로도 상대거리 약5.6cm 오차가 생긴다.
+    capturedAtLocalMs:
+      statusRef.current === "running" && lastAnimTsRef.current != null
+        ? performance.timeOrigin + lastAnimTsRef.current
+        : Date.now(),
+  }), []);
+
   useEffect(() => {
     registerPeerSyncDistanceSamplers({
       sampleVirtualDistanceM,
       sampleAppliedSpeedKmh,
+      sampleMotionSnapshot,
       sampleTargetSpeedKmh: () => speedRef.current,
       sampleRouteLens: () => {
         const geom = routeGeometryRef.current;
@@ -292,10 +304,11 @@ export function useVirtualRideSession(options: UseVirtualRideSessionOptions) {
       registerPeerSyncDistanceSamplers({
         sampleVirtualDistanceM: null,
         sampleAppliedSpeedKmh: null,
+        sampleMotionSnapshot: null,
         sampleTargetSpeedKmh: null,
         sampleRouteLens: null,
       });
-  }, [sampleVirtualDistanceM, sampleAppliedSpeedKmh]);
+  }, [sampleVirtualDistanceM, sampleAppliedSpeedKmh, sampleMotionSnapshot]);
 
   return {
     status,
