@@ -4,6 +4,7 @@ import {
   ref,
   remove,
   set,
+  update,
   type Database,
   type Unsubscribe,
 } from "firebase/database";
@@ -27,6 +28,7 @@ import {
   quantizeMotionWireDistM,
   quantizeMotionWireSpeedMps,
 } from "../motionWireQuantize";
+import { createMotionDeltaWriter } from "./motionDeltaWriter";
 
 /** RTDB `/trails/{trailId}/motion/{uid}` */
 const RTDB_TRAIL_MOTION_SEGMENT = "motion";
@@ -88,10 +90,49 @@ type RtdbMotionPayload = {
 };
 
 const onDisconnectArmed = new Set<string>();
+const trackedMotionKeys = new Set<string>();
+let motionConnectionDb: Database | null = null;
+let releaseMotionConnection: Unsubscribe | null = null;
+
+async function writeMotionRequest(key: string, value: object, partial: boolean): Promise<void> {
+  const ticket = noteRtdbMotionWriteAttempt();
+  try {
+    const target = ref(getFirebaseDatabase(), key);
+    if (partial) await update(target, value);
+    else await set(target, value);
+    // Meter the actual submitted body, not the reconstructed full state.
+    noteRtdbMotionWriteOk(ticket, value);
+  } catch (error) {
+    noteRtdbMotionWriteError(ticket);
+    throw error;
+  }
+}
+
+const motionDeltaWriter = createMotionDeltaWriter<RtdbMotionPayload>({
+  set: (key, value) => writeMotionRequest(key, value, false),
+  update: (key, value) => writeMotionRequest(key, value, true),
+});
+
+function ensureMotionConnection(db: Database): void {
+  if (motionConnectionDb === db && releaseMotionConnection) return;
+  releaseMotionConnection?.();
+  motionConnectionDb = db;
+  motionDeltaWriter.invalidate();
+  onDisconnectArmed.clear();
+  // This is SDK connection metadata, not another application-data download.
+  releaseMotionConnection = onValue(ref(db, ".info/connected"), () => {
+    motionDeltaWriter.invalidate();
+    onDisconnectArmed.clear();
+  });
+}
+
+function motionPath(trailId: string, uid: string): string {
+  return `trails/${sanitizeTrailId(trailId)}/${RTDB_TRAIL_MOTION_SEGMENT}/${uid}`;
+}
 
 function motionRef(db: Database, trailId: string, uid: string) {
   const tid = sanitizeTrailId(trailId);
-  return ref(db, `trails/${tid}/${RTDB_TRAIL_MOTION_SEGMENT}/${uid}`);
+  return ref(db, motionPath(tid, uid));
 }
 
 function trailMotionCollectionRef(db: Database, trailId: string) {
@@ -164,6 +205,7 @@ async function ensureMotionOnDisconnect(trailId: string, uid: string): Promise<v
   const key = disconnectKey(trailId, uid);
   if (onDisconnectArmed.has(key)) return;
   const db = getFirebaseDatabase();
+  ensureMotionConnection(db);
   const r = motionRef(db, trailId, uid);
   await onDisconnect(r).remove();
   onDisconnectArmed.add(key);
@@ -187,8 +229,8 @@ export async function mergeTrailMotionSnapshot(
   beginMotionInFlight();
   try {
     getFirebaseApp();
+    trackedMotionKeys.add(motionPath(trailId, user.uid));
     await ensureMotionOnDisconnect(trailId, user.uid);
-    const db = getFirebaseDatabase();
     const motionWriteStartAt = Date.now();
     // DEV fault injection stays before meters — synthetic throw must not count as a set attempt/error.
     if (import.meta.env.DEV && typeof window !== "undefined") {
@@ -198,14 +240,7 @@ export async function mergeTrailMotionSnapshot(
         throw new Error("rtw-motion-write-fault-once");
       }
     }
-    const writeTicket = noteRtdbMotionWriteAttempt();
-    try {
-      await set(motionRef(db, trailId, user.uid), payload);
-      noteRtdbMotionWriteOk(writeTicket, payload);
-    } catch (writeErr) {
-      noteRtdbMotionWriteError(writeTicket);
-      throw writeErr;
-    }
+    await motionDeltaWriter.write(motionPath(trailId, user.uid), payload);
     const motionWriteDoneAt = Date.now();
     const writeRttMs = motionWriteDoneAt - motionWriteStartAt;
     const capturedAt = opts?.snapshotCapturedAt;
@@ -247,6 +282,14 @@ export async function mergeTrailMotionSnapshot(
 export async function deleteTrailMotion(uid: string, trailId: string): Promise<void> {
   if (!isFirebaseDatabaseConfigured()) return;
   onDisconnectArmed.delete(disconnectKey(trailId, uid));
+  const key = motionPath(trailId, uid);
+  motionDeltaWriter.invalidate(key);
+  trackedMotionKeys.delete(key);
+  if (trackedMotionKeys.size === 0) {
+    releaseMotionConnection?.();
+    releaseMotionConnection = null;
+    motionConnectionDb = null;
+  }
   const db = getFirebaseDatabase();
   await remove(motionRef(db, trailId, uid)).catch((e) => {
     if (import.meta.env.DEV) {
