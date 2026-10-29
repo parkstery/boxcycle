@@ -2,7 +2,7 @@
 
 실내 자전거로 실제 도로를 달리며 내 도로망을 쌓는 웹앱. 브랜드는 Spinatlas, 코드·리포·Firebase projectId는 `boxcycle`.
 
-- Supervisor는 시작 시 [HANDOFF](document/ops/HANDOFF.md)를 읽고 작업 단위 종료·중단 전에 갱신한다. 작업 묶음의 README와 최신 지시를 확인한다.
+- Supervisor는 시작 시 `node scripts/handoff-check.mjs`를 실행하고 [HANDOFF](document/ops/HANDOFF.md)(8KB 이내 유지, 로그 금지)를 읽어 작업 단위 종료·중단 전에 갱신한다. 큰 단계(여러 파일 수정·긴 시험·배포) 시작 직전에 HANDOFF 「진행 중」에 무엇/파일/다음 명령 두 줄을 먼저 적는다. 작업 묶음의 README와 최신 지시를 확인한다.
 - 작업에 필요한 파일만 탐색하고 수정 위치를 확인하면 구현·관련 검증으로 진행한다. 실패나 불명확한 계약이 있을 때 탐색을 넓힌다. 테스트 결과는 명령·통과·실패·미실행 이유를 구분한다.
 - UI·문서·신규 식별자는 [Ontology](document/reference/product/260714-RTW-Ontology.md)를 따른다. 기존 식별자·Firestore 경로의 일괄 rename은 별도 결정·계획이 필요하다.
 - 화면 변경 시 [Chief 지정 디자인 고정 목록](document/reference/product/261024-RTW-Chief-지정-디자인-고정.md)을 확인하고 Chief의 명시적 지시 없이 변경하지 않는다. 스마트폰 가로 화면을 우선한다.

@@ -65,3 +65,19 @@ Start-Process 'https://boxcycle-dc2df.web.app'
 ```
 
 상세 로그는 .out/release-push-pass-20261029.log 및 .out/release-deploy-20261029.log에 보존한다.
+
+## Chief 후속 요청 — getLeaderboard 재배포 완료
+
+2026-10-29 기존 배포 완료 후 Chief가 재배포를 요청해 함수만 다시 배포했다. 소스 변경 없음.
+
+```powershell
+Set-Location C:\20.HDev\boxcycle
+npx firebase deploy --only "functions:getLeaderboard" --project boxcycle-dc2df --non-interactive --force
+```
+
+- PASS: predeploy `tsc`, 함수 `Successful update operation`, `Deploy complete!`, CLI exit0.
+- 최초 기본 sandbox 실행은 로그인설정 파일 접근 EPERM으로 실패. 권한확장 재실행으로 완료했다.
+- 기존 firebase-functions 버전 안내 경고가 있었으나 배포 성공. 이번에 의존성을 변경하지 않았다.
+- Hosting·Rules·제품소스 변경 및 커밋·푸시 없음. 서버171시험은 직전 동일소스 PASS 기록을 재사용했다.
+- 로그: `.out/leaderboard-redeploy-20261029-authorized.log` (첫 실패 `.out/leaderboard-redeploy-20261029.log`).
+- 인증된 회원 순위 조회는 미실행. https://boxcycle-dc2df.web.app/ 새로고침 → 순위 조회. 새 주행 반영은 캐시 최대5분.
