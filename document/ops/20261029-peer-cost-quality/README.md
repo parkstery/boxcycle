@@ -4,13 +4,14 @@
 |---|---|
 | 최초 작성 | 2026-10-29 |
 | 독자 | Chief · AI |
-| 상태 | 송신표본시각 결함 로컬수정·검증 / 큰수신공백 미해결 / 구조안 미채택·미배포 |
+| 상태 | 송신표본시각 수정 Hosting 배포완료·운영자산검증 / 큰수신공백 미해결 / 최적화후보 미구현 |
 | 요청 | 소규모 테스트에서도 발생하는 비용과 동행 앞뒤 진동을 함께 줄일 방법 |
 | 결과 | [01 분석·권고](01-analysis.md) |
 | 동속 후속 | [02 프레임 회귀 가설·5km/h 재생](02-equal-speed-frame-investigation.md) — rAF8·residual9 PASS, 실화면 원인 미확정 |
 | 공백 후속 | [03 수신 공백 재생](03-receive-gap-investigation.md) — 정상1PASS·진단2FAIL, 추가뒤처짐3.3/4.6m후복귀·현장원인미확정 |
 | 해결 후속 | [04 해결 방향·로컬 수정](04-solution-and-local-fix.md) — 거리/시각짝수정·합성6→1.2cm·peer75/spacing/build PASS·큰공백은별도 |
 | 비용 검토 | [05 품질보존 트래픽 저감 검토](05-quality-preserving-traffic-review.md) — 동일5Hz변경필드update 후보·FS위치fanout역할분리·절감률미확정 |
+| 릴리스 | [06 배포 검증](06-release-verification.md) — 제품8101ead2·보고187ddf9c푸시·Hosting완료·전체1443/운영6자산PASS |
 | 선행 | [트래픽 후속](../20261002-public-trail-traffic-followup/README.md) · [동행 진동](../20261005-peer-spacing-jitter/README.md) |
 
 조사와 오프라인 검증 및 후속요청에따른거리/시각짝결함수정은자율수행했다. Firestore/RTDB역할·장애시제품동작을바꾸는구현은Chief결정대상이다. 운영구조·전송주기·Rules는변경하지않았다. 과거묶음의CLOSED는당시검증범위이며이번관측의해결을뜻하지않는다.
