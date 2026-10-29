@@ -10,8 +10,8 @@
 
 ## 진행 중
 
-체험 속도(10-30 Chief 시안 승인, Codex 구현 중): 숫자·게이지·슬라이더 스타일. 파일: CadenceSensorSheet.tsx/.css·SessionSpeedControl.tsx/.css·고정51.
-다음: apps/web에서 npx tsc -b; 센서 UI 시험·5크기 캡처. 커밋·푸시·배포 없음.
+체험속도·시안 커밋(10-30 Chief, Codex): 구현·검증자료3fd2b4e7,8화면/우상단/Trail 시안3묶음 커밋。
+build/ESLint/센서9·화면30PASS,커밋훅PASS。다음:Chief 시안검토,푸시배포 별도。결과:20261030-speed-instrument/02-result.md·시안3묶음README。
 
 일시정지 INT·거리 원(10-30 Chief, 미커밋·미배포, Claude Code): 주행 중 인터벌 변경 불가는 의도 확정, 일시정지하면 ⚙ 자리에 INT(바꾸면 준비부터). 거리·방향 원 선 3→9px·외곽 4→12px, 색 #ef4444→#f87171(화살표 포함). 파일: RouteDock.tsx/.css·MapView.tsx·e2e route-dock-tools·ride-interval·ride-interval-settings·sensor-dock·고정42/49. tsc 0·eslint 경고 HEAD와 동일·test:quick 1467/0·관련 e2e 80/81(남은 1 = sensor-dock 종료 후 펼침, HEAD 동일 기존 실패).
 
