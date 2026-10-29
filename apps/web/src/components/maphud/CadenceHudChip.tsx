@@ -51,7 +51,8 @@ export function CadenceHudChip({
   attention = false,
 }: CadenceHudChipProps) {
   const view = cadenceChipView(state, riding);
-  const chipText = view.text === SENSOR_IDLE_LABEL ? "센서" : view.text;
+  // 10-30 Chief: 연결 전 「센서」 글자는 빼고 LED 원만 보인다(이름은 aria-label·title 이 가진다). RPM 은 그대로.
+  const chipText = view.text === SENSOR_IDLE_LABEL ? null : view.text;
   return (
     <button
       type="button"
@@ -69,7 +70,7 @@ export function CadenceHudChip({
         }`}
         aria-hidden
       />
-      <span className="hud-cadence__text">{chipText}</span>
+      {chipText ? <span className="hud-cadence__text">{chipText}</span> : null}
     </button>
   );
 }

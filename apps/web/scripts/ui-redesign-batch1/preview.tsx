@@ -154,6 +154,7 @@ export function Preview() {
   const [menuOpen, setMenuOpen] = useState(params.get('state') === 'menu');
   const [lastAction, setLastAction] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [reopenSaved, setReopenSaved] = useState(0);
   const [rideTtsEnabled, setRideTtsEnabled] = useState(true);
   const [rideBgmEnabled, setRideBgmEnabled] = useState(true);
   const [rideCoachingBanner, setRideCoachingBanner] = useState(false);
@@ -196,6 +197,11 @@ export function Preview() {
           zoomInDisabled: false,
         }}
       />
+      {/* 10-30 Chief: 경로 목록·주행 설정은 메뉴가 아니라 RouteDock 지도 핀·⚙ 에서 연다 — 같은 접근성 이름의 대역 버튼. */}
+      <div style={{ position: 'absolute', left: 52, bottom: 48, display: 'flex', gap: 6, zIndex: 5 }}>
+        <button type="button" aria-label="경로 목록" onClick={() => setReopenSaved((n) => n + 1)}>핀</button>
+        <button type="button" aria-label="주행 설정" onClick={() => setSettingsOpen(true)}>⚙</button>
+      </div>
       <RideSettingsSheet
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
@@ -222,8 +228,7 @@ export function Preview() {
         onOpenPlaceSearch={() => setLastAction('지명 검색')}
       >
         <RideRoutePanel
-          onOpenSettings={() => { setMenuOpen(false); setSettingsOpen(true); }}
-          onOpenIntervalSettings={() => { setMenuOpen(false); setLastAction('인터벌'); }}
+          reopenSavedSignal={reopenSaved}
           routeSummary=""
           routeLoading={false}
           basicSharedHubs={basicSharedHubs}

@@ -90,49 +90,7 @@ type RideRoutePanelProps = {
   rideElevationProfileLoading: boolean;
   /** BGM 재생 URL 카탈로그 존재(내장·환경변수) */
   rideBgmCatalogConfigured: boolean;
-  onOpenSettings?: () => void;
-  onOpenIntervalSettings?: () => void;
 };
-
-function MenuNavChevron() {
-  return (
-    <svg
-      className="menu-route-nav__chevron"
-      width="10"
-      height="10"
-      viewBox="0 0 16 16"
-      fill="none"
-      aria-hidden
-    >
-      <path
-        d="M6 3l5 5-5 5"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function MenuNavIconInterval() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M8 5v3.2l2 1.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function MenuNavIconSettings() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-      <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <circle cx="5" cy="4" r="1.6" fill="#ffffff" />
-      <circle cx="11" cy="8" r="1.6" fill="#ffffff" />
-      <circle cx="7" cy="12" r="1.6" fill="#ffffff" />
-    </svg>
-  );
-}
 
 export function RideRoutePanel(props: RideRoutePanelProps) {
   /**
@@ -220,75 +178,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
 
   return (
     <aside className="ride-panel" aria-label="경로 및 라이딩">
-      <span className="menu-route-nav__section-label">경로 선택</span>
-      <div className="menu-route-nav__sources" role="group" aria-label="경로 목록 열기">
-        <button
-          type="button"
-          className={`menu-route-nav__source${listSource === "saved" ? " is-active" : ""}`}
-          title="내 경로 목록 열기"
-          aria-haspopup="dialog"
-          aria-expanded={listSource === "saved"}
-          onClick={() => selectSource("saved")}
-        >
-          내 경로
-        </button>
-        <button
-          type="button"
-          className={`menu-route-nav__source${listSource === "public" ? " is-active" : ""}`}
-          title="퍼블릭 경로 목록 열기"
-          aria-haspopup="dialog"
-          aria-expanded={listSource === "public"}
-          onClick={() => selectSource("public")}
-        >
-          퍼블릭
-        </button>
-        <button
-          type="button"
-          className={`menu-route-nav__source${listSource === "intro" ? " is-active" : ""}`}
-          title="입문 경로 목록 열기"
-          aria-haspopup="dialog"
-          aria-expanded={listSource === "intro"}
-          onClick={() => selectSource("intro")}
-        >
-          입문
-        </button>
-      </div>
-      <ul className="menu-route-nav" aria-label="경로 메뉴">
-        {props.onOpenIntervalSettings ? (
-          <li className="menu-route-nav__item">
-            <button
-              type="button"
-              className="menu-route-nav__row"
-              aria-label="인터벌"
-              title="인터벌 운동 설정 열기"
-              onClick={props.onOpenIntervalSettings}
-            >
-              <span className="menu-route-nav__icon" aria-hidden>
-                <MenuNavIconInterval />
-              </span>
-              <span className="menu-route-nav__label">인터벌</span>
-              <MenuNavChevron />
-            </button>
-          </li>
-        ) : null}
-        {props.onOpenSettings ? (
-          <li className="menu-route-nav__item">
-            <button
-              type="button"
-              className="menu-route-nav__row"
-              aria-label="주행 설정"
-              title="주행 설정 열기"
-              onClick={props.onOpenSettings}
-            >
-              <span className="menu-route-nav__icon" aria-hidden>
-                <MenuNavIconSettings />
-              </span>
-              <span className="menu-route-nav__label">주행 설정</span>
-              <MenuNavChevron />
-            </button>
-          </li>
-        ) : null}
-      </ul>
+      {/* 10-30 Chief: 왼쪽 메뉴는 Trail 전용 — 경로 목록은 RouteDock 지도 핀, 주행 설정·인터벌은 RouteDock ⚙·INT 에서 연다. */}
 
       {activeOfficialTitle ? (
         <p className="ride-panel__official-active" role="status">

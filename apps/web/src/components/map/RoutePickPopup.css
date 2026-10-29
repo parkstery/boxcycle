@@ -34,6 +34,9 @@
 :is(.map-view, .map-view-shell) .map-view__pick-title {
   margin: 0; font-size: 17px; font-weight: 700; line-height: 1.3; letter-spacing: -.5px; white-space: nowrap;
 }
+/* 10-30 Chief A안: 제목은 파란 지도 핀 아이콘(22px), 글자는 낭독용으로만 남긴다. */
+:is(.map-view, .map-view-shell) .map-view__pick-title { position: relative; display: flex; align-items: center; color: #2457d6; }
+:is(.map-view, .map-view-shell) .map-view__pick-title-ico { width: 22px; height: 22px; flex: 0 0 auto; display: block; }
 :is(.map-view, .map-view-shell) .map-view__pick-drag-handle > .map-view__pick-token {
   padding: 0; margin: 0 0 8px; border: 0;
 }
@@ -58,7 +61,8 @@
 :is(.map-view, .map-view-shell) .map-view__pick-profile-bottom-row .map-view__pick-btn--clear-route:active { transform: scale(.97); }
 :is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-route-tab {
   display: inline-flex; align-items: center; justify-content: center; gap: 2px;
-  flex: 0 0 38px; width: 38px; min-width: 38px; max-width: 38px; height: 26px; min-height: 26px;
+  /* 10-30 Chief: 38px 의 1.5배. 창 폭은 그대로, 제목 아이콘화로 생긴 왼쪽 공간을 쓴다. */
+  flex: 0 0 57px; width: 57px; min-width: 57px; max-width: 57px; height: 26px; min-height: 26px;
   padding: 0; border: 0; border-radius: 8px; color: #4b5160; background: transparent;
 }
 :is(.map-view, .map-view-shell) .map-view__pick .map-view__pick-route-tab-ico {
@@ -139,7 +143,10 @@
   background: #fff; clip-path: polygon(12% 0, 100% 50%, 12% 100%);
 }
 :is(.map-view, .map-view-shell) .map-view__pick-auto-route-status { font-size: 11px; line-height: 1.4; }
-:is(.map-view, .map-view-shell) .map-view__pick-route-distance-prereq { font-size: 12px; line-height: 1.5; }
+/* 10-30 Chief: 출발 없음 안내 줄은 Start·+WP·End 줄(28px)과 같은 높이 — 모드를 바꿔도 창 높이가 변하지 않는다. */
+:is(.map-view, .map-view-shell) .map-view__pick-route-distance-prereq {
+  display: flex; align-items: center; min-height: 28px; margin: 0; font-size: 12px; line-height: 1.5;
+}
 :is(.map-view, .map-view-shell) .map-view__pick button:focus-visible,
 :is(.map-view, .map-view-shell) .map-view__pick input:focus-visible,
 :is(.map-view, .map-view-shell) .map-view__pick-dock-close:focus-visible { outline: 2px solid #2457d6; outline-offset: 2px; }

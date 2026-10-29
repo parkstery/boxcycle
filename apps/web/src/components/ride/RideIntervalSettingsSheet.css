@@ -13,6 +13,8 @@
 .ride-interval-settings__enable input[role="switch"]:checked::after { left: 20px; }
 .ride-interval-settings__enable input[role="switch"]:focus-visible { outline: 2px solid #2457d6; outline-offset: 2px; }
 .ride-interval-settings__header select { flex: 1; min-width: 0; height: 40px; margin-left: auto; padding: 0 6px; border: 1px solid #d8e0ed; border-radius: 9px; background: #fff; color: #2a2e37; font: inherit; font-size: 12px; }
+/* 10-30 Chief: 고른 값(「15분」 등) 글자를 펼친 목록 글자와 같은 크기로 — 둘 다 16px 로 고정한다. */
+.ride-interval-settings__header select, .ride-interval-settings__header select option { font-size: 16px; }
 .ride-interval-settings__close { margin-left: auto; flex: 0 0 36px; width: 36px; height: 36px; border: 1px solid #d8e0ed; border-radius: 50%; background: #fff; color: #5e6472; display: grid; place-items: center; cursor: pointer; }
 .ride-interval-settings__close svg { width: 16px; height: 16px; }
 .ride-interval-settings__body { margin: 3px 0; min-height: 0; overflow-y: auto; }
@@ -52,11 +54,14 @@
 .ride-interval-settings__footer [role="alert"] { color: #b52323; }
 .ride-interval-settings__apply { min-height: 40px; flex-shrink: 0; padding: 6px 14px; border: 0; border-radius: 9px; background: #2457d6; color: #fff; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
 .ride-interval-settings__apply:disabled { opacity: .45; cursor: default; }
+/* 10-30 Chief: 「간편 인터벌」은 메뉴에서 이 줄 「설정 적용」 왼쪽으로 옮겼다. 적용 버튼과 같은 크기의 윤곽선 버튼. */
+.ride-interval-settings__quick { min-height: 40px; flex-shrink: 0; padding: 6px 12px; border: 1px solid #2457d6; border-radius: 9px; background: #fff; color: #2457d6; font: inherit; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.ride-interval-settings__quick:disabled { opacity: .45; cursor: not-allowed; }
 @media (pointer: coarse) {
   .ride-interval-settings__close { width: 44px; height: 44px; flex-basis: 44px; }
   .ride-interval-settings__stepper button { width: 44px; height: 44px; }
   .ride-interval-settings__stepper input { height: 44px; }
-  .ride-interval-settings__header select, .ride-interval-settings__apply, .ride-interval-settings__custom-toggle { min-height: 44px; }
+  .ride-interval-settings__header select, .ride-interval-settings__apply, .ride-interval-settings__quick, .ride-interval-settings__custom-toggle { min-height: 44px; }
 }
 @media (max-width: 480px) {
   .ride-interval-settings__panel { padding: 8px 10px; }
@@ -81,5 +86,6 @@
 .ride-interval-settings__stepper input { width: 46px; height: 28px; font-size: 14px; }
 .ride-interval-settings__panel:has(.ride-interval-settings__fields) .ride-interval-settings__footer { min-height: 34px; }
 .ride-interval-settings__panel:has(.ride-interval-settings__fields) .ride-interval-settings__custom-toggle,
+.ride-interval-settings__panel:has(.ride-interval-settings__fields) .ride-interval-settings__quick,
 .ride-interval-settings__panel:has(.ride-interval-settings__fields) .ride-interval-settings__apply { min-height: 32px; }
 .ride-interval-settings__panel:has(.ride-interval-settings__fields) .ride-interval-settings__total strong { font-size: 18px; }

@@ -26,6 +26,10 @@ export type RouteDockProps = {
   cadence?: CadenceChipBinding | null;
   sensorAttention?: boolean;
   onOpenIntervalSettings?: () => void;
+  /** 지도 핀 — 경로 목록 창(기본 「내 경로」)을 연다. 주행 전에만 보인다(10-30 Chief) */
+  onOpenRouteList?: () => void;
+  /** ⚙ — 주행 설정 창을 연다. 주행 전엔 핀 오른쪽, 주행 중엔 INT 자리(10-30 Chief) */
+  onOpenSettings?: () => void;
   intervalEnabled?: boolean;
   rideControls?: ReactNode;
 };
@@ -79,6 +83,8 @@ export function RouteDock({
   cadence = null,
   sensorAttention = false,
   onOpenIntervalSettings,
+  onOpenRouteList,
+  onOpenSettings,
   intervalEnabled = false,
   rideControls,
 }: RouteDockProps) {
@@ -123,8 +129,8 @@ export function RouteDock({
   if (!isRouteDockVisible(stage)) return null;
   const sensorInDock =
     sensorChipSlot({ stage, hasCadence: Boolean(cadence), expanded }) === "route-dock";
-  // 지시10: 빈 경로에서는 주소 판을 남기지 않는다. 센서가 실제 이 카드에 배치될 때만 예외다.
-  if (stops.length === 0 && !sensorInDock) return null;
+  // 지시10: 빈 경로에서는 주소 판을 남기지 않는다. 센서·INT 가 이 카드에 배치될 때만 예외다.
+  if (stops.length === 0 && !sensorInDock && !onOpenIntervalSettings && !onOpenRouteList && !onOpenSettings) return null;
 
   const canSwap =
     Boolean(onSwapEndpoints) &&
@@ -142,6 +148,35 @@ export function RouteDock({
         attention={sensorAttention}
       />
     ) : null;
+  // 10-30 Chief: 인터벌·경로 목록·주행 설정은 메인 메뉴에서 빠지고 여기서 연다(펼침·접힘 모두).
+  // 주행 전: INT · 지도 핀 · ⚙ · 주행 시작 / 주행 중: INT 자리에 ⚙ 만.
+  const intervalButton = onOpenIntervalSettings && !activeRide ? (
+    <button type="button" className={`route-dock__interval${intervalEnabled ? " route-dock__interval--active" : ""}`} aria-label="인터벌 운동 설정" title="인터벌 운동 설정" onClick={onOpenIntervalSettings}>
+      INT
+    </button>
+  ) : null;
+  const routeListButton = onOpenRouteList && !activeRide ? (
+    <button type="button" className="route-dock__tool route-dock__tool--routes" aria-label="경로 목록" title="경로 목록" onClick={onOpenRouteList}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M12 21s-6.5-5.8-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.2 12 21 12 21z" />
+        <circle cx="12" cy="10.5" r="2.3" />
+      </svg>
+    </button>
+  ) : null;
+  const settingsButton = onOpenSettings ? (
+    <button type="button" className="route-dock__tool route-dock__tool--settings" aria-label="주행 설정" title="주행 설정" onClick={onOpenSettings}>
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+        <path fillRule="evenodd" d="M10.3 2h3.4l.5 2.6a7.8 7.8 0 0 1 1.9 1.1l2.5-.9 1.7 2.9-2 1.7a7.9 7.9 0 0 1 0 2.2l2 1.7-1.7 2.9-2.5-.9a7.8 7.8 0 0 1-1.9 1.1l-.5 2.6h-3.4l-.5-2.6a7.8 7.8 0 0 1-1.9-1.1l-2.5.9-1.7-2.9 2-1.7a7.9 7.9 0 0 1 0-2.2l-2-1.7 1.7-2.9 2.5.9a7.8 7.8 0 0 1 1.9-1.1zM12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8z" />
+      </svg>
+    </button>
+  ) : null;
+  const toolButtons = (
+    <>
+      {intervalButton}
+      {routeListButton}
+      {settingsButton}
+    </>
+  );
   const ledConnected = cadence != null && cadenceChipView(cadence.state, false).led === "green";
   const setUserExpanded = (next: boolean) => {
     focusAfterToggle.current = next ? "fold" : "led";
@@ -161,11 +196,7 @@ export function RouteDock({
           {expanded ? (
             <>
               {sensorChip}
-              {sensorChip && onOpenIntervalSettings ? (
-                <button type="button" className={`route-dock__interval${intervalEnabled ? " route-dock__interval--active" : ""}`} aria-label="인터벌 운동 설정" title="인터벌 운동 설정" onClick={onOpenIntervalSettings}>
-                  INT
-                </button>
-              ) : null}
+              {toolButtons}
               <RouteOverviewFoldToggle
                 kind="route"
                 expanded
@@ -191,6 +222,7 @@ export function RouteDock({
               <span className="route-dock__led" aria-hidden />
             </button>
           )}
+          {!expanded ? toolButtons : null}
           {rideControls}
         </div>
         <div

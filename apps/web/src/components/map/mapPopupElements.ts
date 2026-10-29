@@ -34,6 +34,11 @@ function buildPickPopupLocationModeIconSvg(): string {
   return `<svg class="map-view__pick-route-tab-ico" ${PICK_TAB_SVG_OPEN} aria-hidden="true"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg>`;
 }
 
+/** 10-30 Chief A안 — 제목 「경로」 글자 대신 지도 핀. 낭독은 sr-only 「경로」. */
+function buildPickPopupTitleIconSvg(): string {
+  return `<svg class="map-view__pick-title-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.8-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.2 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.3"/></svg>`;
+}
+
 function buildPickPopupDistanceModeIconSvg(): string {
   return `<svg class="map-view__pick-route-tab-ico" ${PICK_TAB_SVG_OPEN} aria-hidden="true"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg><svg class="map-view__pick-route-tab-ico map-view__pick-route-tab-ico--nav" ${PICK_TAB_SVG_OPEN} aria-hidden="true"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>`;
 }
@@ -1000,7 +1005,7 @@ export function buildPickPopup(deps: {
   headerRow.className = "map-view__pick-header-row";
   const heading = document.createElement("h2");
   heading.className = "map-view__pick-title";
-  heading.textContent = "경로";
+  heading.innerHTML = `${buildPickPopupTitleIconSvg()}<span class="map-view__pick-sr-only">경로</span>`;
   headerRow.append(heading, tabsRow);
   dragHandle.append(headerRow, tokenSection, addressEl);
 

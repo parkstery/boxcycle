@@ -238,21 +238,10 @@ async function seedLegacyRide(uid: string, rideId: string): Promise<void> {
   expect(res.ok, `legacy ride seed 실패: ${res.status}`).toBe(true)
 }
 
-/** MENU → 「내 경로」 칩에서 fixture 를 불러온다(카드가 없는 최초 진입용 경로) */
-async function openTrailMenu(page: Page) {
-  // Trail 메뉴는 키보드·스크린리더용 고정 트리거다. 포인터 클릭은 실제 HUD가 위에
-  // 겹치는 화면에서 막히므로, 제품이 보장하는 focus + Enter 계약으로 연다.
-  const menu = page.getByRole('button', { name: 'Trail 메뉴' })
-  await menu.focus()
-  await expect(menu).toBeFocused({ timeout: 15_000 })
-  await page.keyboard.press('Enter')
-}
-
+/** RouteDock 지도 핀 → 「내 경로」 창에서 fixture 를 불러온다(카드가 없는 최초 진입용 경로) */
 async function loadSavedRouteFromMenu(page: Page, routeName: string, action: '열기' | '이어 달리기' = '열기') {
-  await openTrailMenu(page)
-  // 2026-09-16: 탭 계층을 없애고 경로 출처 칩 한 줄로 합쳤다.
-  // 통합 진입점은 기본으로 「내 경로」를 연다.
-  await page.getByRole('button', { name: '내 경로' }).click()
+  // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀(「경로 목록」) — 「내 경로」부터 연다.
+  await page.getByRole('button', { name: '경로 목록', exact: true }).click()
   const modal = page.getByRole('dialog', { name: '내 경로', exact: true })
   const row = modal.getByRole('option').filter({ hasText: routeName })
   await expect(row).toBeVisible({ timeout: 15_000 })
@@ -557,8 +546,9 @@ test.describe('다음 주행 · 이어 달리기', () => {
     await prepareManualRideInput(page)
 
     // 입문 코스는 SavedRoute 가 아니다 → 종료 시 ad-hoc 컨텍스트가 된다
-    await openTrailMenu(page)
-    await page.getByRole('button', { name: '입문', exact: true }).click()
+    // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀 → 「내 경로」 창 → 출처 「입문」.
+    await page.getByRole('button', { name: '경로 목록', exact: true }).click()
+    await page.getByRole('navigation', { name: '경로 출처' }).getByRole('button', { name: '입문', exact: true }).click()
     const modal = page.getByRole('dialog').filter({ has: page.locator('#oc-modal-title') })
     await expect(modal).toBeVisible()
     await modal.locator('button.oc-modal__item').first().click()

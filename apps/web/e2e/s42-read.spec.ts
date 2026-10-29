@@ -95,7 +95,8 @@ test.describe("S4-2 읽기 구독 계측", () => {
     states.A = pickUnderlying(await readSubs(page));
 
     await page.getByRole("button", { name: "Trail 메뉴" }).click();
-    await expect(page.getByRole("button", { name: "입문", exact: true })).toBeVisible({ timeout: 15_000 });
+    // 10-30 Chief: 메뉴는 Trail 전용 — 「입문」 출처 버튼이 없어 메뉴 dialog 로 열림을 본다.
+    await expect(page.getByRole("dialog", { name: "메뉴", exact: true })).toBeVisible({ timeout: 15_000 });
     await page.waitForTimeout(1_000);
     states.B = pickUnderlying(await readSubs(page));
 
@@ -133,8 +134,9 @@ test.describe("S4-2 읽기 구독 계측", () => {
       await page.screenshot({ path: path.join(SHOT_DIR, "spectator.png"), fullPage: false });
     }
 
-    await page.getByRole("button", { name: "Trail 메뉴" }).click();
-    await page.getByRole("button", { name: "입문", exact: true }).click();
+    // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀 → 「내 경로」 창 → 출처 「입문」.
+    await page.getByRole("button", { name: "경로 목록", exact: true }).click();
+    await page.getByRole("navigation", { name: "경로 출처" }).getByRole("button", { name: "입문", exact: true }).click();
     const modal = page.getByRole("dialog").filter({ has: page.locator("#oc-modal-title") });
     await expect(modal).toBeVisible({ timeout: 15_000 });
     await modal.locator("button.oc-modal__item").first().click();

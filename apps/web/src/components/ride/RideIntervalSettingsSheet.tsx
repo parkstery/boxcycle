@@ -20,6 +20,10 @@ type Props = {
   onClose: () => void;
   enabled?: boolean;
   onEnabled?: (enabled: boolean) => void;
+  /** 「간편 인터벌」 — 고른 값을 적용한 뒤 그 총 시간에 맞는 경로를 자동 생성(10-30 Chief: 메뉴에서 이 창 하단으로 이동) */
+  onQuickIntervalRide?: (intervalTotalSec: number) => void;
+  /** 값이 있으면 「간편 인터벌」을 끄고 이 문구를 title 에 보여 준다(주행 중·Route Token 부족·기록 로딩) */
+  quickIntervalDisabledReason?: string | null;
 };
 
 type Draft = {
@@ -96,7 +100,7 @@ function sameConfig(a: RideIntervalConfig, b: RideIntervalConfig): boolean {
 }
 
 /** 별도 편집 초안: 적용 전에는 진행 중인 운동을 바꾸지 않는다. */
-function IntervalEditor({ config, restartOnApply, onApply, onClose, enabled, onEnabled }: Omit<Props, "open">) {
+function IntervalEditor({ config, restartOnApply, onApply, onClose, enabled, onEnabled, onQuickIntervalRide, quickIntervalDisabledReason }: Omit<Props, "open">) {
   const titleId = useId();
   const [draft, setDraft] = useState(() => toDraft(config));
   const [mode, setMode] = useState(() => matchRideIntervalPreset({
@@ -256,6 +260,23 @@ function IntervalEditor({ config, restartOnApply, onApply, onClose, enabled, onE
             <small role="alert">고·저 5~600초 · 준비·마무리 0~1800초 · 반복 1~30회 · 라운드 1~3</small>
           )}
         </div>
+        {/* 직접 조절(폭 230px)에서는 「총 시간」 자리가 없어 숨긴다 — 「접기」 후 프리셋 화면에서 쓴다. */}
+        {onQuickIntervalRide && !customOpen ? (
+          <button
+            type="button"
+            className="ride-interval-settings__quick"
+            aria-label="간편 인터벌 주행"
+            title={quickIntervalDisabledReason ?? "고른 인터벌 길이에 맞는 경로를 자동으로 만들기"}
+            disabled={!valid || Boolean(quickIntervalDisabledReason)}
+            onClick={() => {
+              if (!valid) return;
+              if (changed && !onApply(candidate)) return;
+              onQuickIntervalRide(getRideIntervalTotalSec(candidate));
+            }}
+          >
+            간편 인터벌
+          </button>
+        ) : null}
         <button type="button" className="ride-interval-settings__apply" disabled={!valid} onClick={() => { if (valid && onApply(candidate)) onClose(); }}>설정 적용</button>
       </footer>
     </>
@@ -271,7 +292,7 @@ export function RideIntervalSettingsSheet(props: Props) {
     <div className="ride-interval-settings" role="dialog" aria-label="인터벌 운동 설정" aria-modal="true">
       <button type="button" className="ride-interval-settings__scrim" aria-label="인터벌 운동 설정 배경 닫기" title="인터벌 운동 설정 닫기" onClick={props.onClose} />
       <div className="ride-interval-settings__panel" ref={panelRef}>
-        <IntervalEditor config={props.config} restartOnApply={props.restartOnApply} onApply={props.onApply} onClose={props.onClose} enabled={props.enabled} onEnabled={props.onEnabled} />
+        <IntervalEditor config={props.config} restartOnApply={props.restartOnApply} onApply={props.onApply} onClose={props.onClose} enabled={props.enabled} onEnabled={props.onEnabled} onQuickIntervalRide={props.onQuickIntervalRide} quickIntervalDisabledReason={props.quickIntervalDisabledReason} />
       </div>
     </div>
   );

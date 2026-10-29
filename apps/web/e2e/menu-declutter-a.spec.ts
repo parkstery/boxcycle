@@ -55,10 +55,9 @@ test.describe("MENU 정리 A단계", () => {
     expect(await page.locator(".ride-panel__kicker").count(), "「공식」 키커").toBe(0);
 
     // ── 경로 선택 제목 아래 출처 세 버튼 ───────────────────────────
-    const sources = panel.getByRole("group", { name: "경로 목록 열기" });
-    await expect(sources.getByRole("button")).toHaveText(["내 경로", "퍼블릭", "입문"]);
-    const routePicker = sources.getByRole("button", { name: "내 경로", exact: true });
-    await expect(routePicker).toHaveCount(1);
+    // 10-30 Chief: 왼쪽 메뉴는 Trail 전용 — 경로 선택은 RouteDock 지도 핀(「경로 목록」)이 「내 경로」부터 연다.
+    await expect(panel.getByRole("group", { name: "경로 목록 열기" })).toHaveCount(0);
+    const routePicker = page.getByRole("button", { name: "경로 목록", exact: true });
 
     // ── 높이 배분 실측 ──────────────────────────────────────────────────
     const rows = await page.evaluate(() => {
@@ -82,6 +81,9 @@ test.describe("MENU 정리 A단계", () => {
      * 종전에는 좁은 사이드 패널 안 탭이라 목록 가용 높이가 61px 뿐이었다.
      * 공식 코스와 같은 껍데기(oc-modal)를 쓰므로 「경로 고르는 자리」로 함께 읽힌다.
      */
+    await page.keyboard.press("Escape");
+    // 닫힌 메뉴는 화면 밖으로 밀려 DOM 에 남는다 — 역할(aria-hidden)로 닫힘을 본다.
+    await expect(page.getByRole("dialog", { name: "메뉴", exact: true })).toBeHidden();
     await routePicker.click();
     const savedDialog = page.getByRole("dialog", { name: "내 경로" });
     await expect(savedDialog, "내 경로 모달").toBeVisible({ timeout: 20_000 });
@@ -137,10 +139,10 @@ test.describe("MENU 정리 A단계", () => {
       await expect(savedSort, "내 경로 기본 정렬은 최근순").toHaveValue("recent");
     }
 
-    // 닫으면 MENU 로 돌아온다
+    // 닫은 뒤 지도 핀으로 다시 열어 출처를 바꾼다
     await savedDialog.getByRole("button", { name: "닫기" }).click();
     await expect(savedDialog).toBeHidden({ timeout: 10_000 });
-    await expect(panel).toBeVisible();
+    await routePicker.click();
 
     /*
      * ── 정렬을 입문·퍼블릭에도 (2026-09-16 Chief) ─────────────────────────
@@ -148,7 +150,7 @@ test.describe("MENU 정리 A단계", () => {
      * 물러나므로 Basic 1·2·3 의 의도된 난이도 순서가 그대로 지켜진다 —
      * 「최근순으로 두면 입문이 섞이지 않을까」를 실제로 확인하는 것이 아래 왕복이다.
      */
-    await panel.getByRole("group", { name: "경로 목록 열기" }).getByRole("button", { name: "입문", exact: true }).click();
+    await page.getByRole("navigation", { name: "경로 출처" }).getByRole("button", { name: "입문", exact: true }).click();
     const introDialog = page.getByRole("dialog", { name: "입문 경로" });
     await expect(introDialog).toBeVisible({ timeout: 20_000 });
     const introTitles = () =>

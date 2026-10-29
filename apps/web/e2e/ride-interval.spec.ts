@@ -37,12 +37,10 @@ test('센서 없이도 단계가 진행되고 완료 뒤 주행 제어는 유지
   await expect(page.getByRole('button', { name: '주행 종료', exact: true })).toBeVisible();
 });
 
-// 2026-10-29 Chief 왼쪽 메뉴 정비: 인터벌 사용 스위치는 주행 설정에서 메뉴 「인터벌」 → 인터벌 운동 설정 창으로 옮겨졌다(고정42).
+// 2026-10-29 Chief: 인터벌 사용 스위치는 인터벌 운동 설정 창에 있다(고정42).
+// 10-30 Chief: 메뉴 「인터벌」 행은 빠졌다 — RouteDock 「INT」에서만 연다.
 async function openIntervalEditorFromMenu(page: import('@playwright/test').Page) {
-  const menu = page.getByRole('button', { name: 'Trail 메뉴', exact: true });
-  await menu.focus();
-  await page.keyboard.press('Enter');
-  await page.getByRole('button', { name: '인터벌', exact: true }).click();
+  await page.getByRole('button', { name: '인터벌 운동 설정', exact: true }).click();
   return page.getByRole('dialog', { name: '인터벌 운동 설정', exact: true });
 }
 

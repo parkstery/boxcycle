@@ -183,6 +183,8 @@ import { useRecentRoadDisplay } from "./hooks/useRecentRoadDisplay";
 import { computeConquestOverviewFrame } from "./lib/conquest/conquestOverviewFrame";
 import type { ConquestDisplayMode } from "./components/map/routeConquestLayers";
 import { useDistanceAutoRoute } from "./hooks/useDistanceAutoRoute";
+import { useQuickIntervalRide } from "./hooks/useQuickIntervalRide";
+import { QuickIntervalStatus } from "./components/ride/QuickIntervalStatus";
 import {
   DEFAULT_MAP_STYLE,
   MAP_STYLE_SATELLITE,
@@ -1965,6 +1967,8 @@ export default function App() {
     armDirectionPick,
     getLastSessionPrefs,
     handleMapPick,
+    searchTowardPoint,
+    armStartPick,
     retryDirection,
     isSearching,
     setProfile: setAutoRouteProfile,
@@ -2381,9 +2385,13 @@ export default function App() {
     }
   }, [lastRideResult]);
 
-  const handleStartRouteFromAnchor = useCallback(
-    (anchorLngLat: LngLat) => {
-      if (routeMenuLockedForProd) return;
+  /**
+   * 이어 달리기·간편 인터벌 주행이 함께 쓰는 진입 — Route 작업대를 정리하고 Start·이동수단을
+   * 승계해 방향 선택을 arm 한다. `targetKmOverride` 가 없으면 승계된 목표 거리를 쓴다.
+   */
+  const beginRouteFromAnchor = useCallback(
+    (anchorLngLat: LngLat, targetKmOverride?: number) => {
+      if (routeMenuLockedForProd) return null;
       setSummarySheetVisible(false);
       resetArrivalToast();
       setLastRideResult(null);
@@ -2416,8 +2424,34 @@ export default function App() {
       const result = armDirectionPick({
         start: continuation.startLngLat,
         profile: continuation.profile,
-        targetKm: continuation.targetKm,
+        targetKm: targetKmOverride ?? continuation.targetKm,
       });
+
+      return { continuation, result };
+    },
+    [
+      routeMenuLockedForProd,
+      resetArrivalToast,
+      dismissResult,
+      clearCirclePreview,
+      clearRoutePins,
+      setBasicActiveHubCourseId,
+      getLastSessionPrefs,
+      profile,
+      routeDistanceMeters,
+      setStartLngLat,
+      setEndLngLat,
+      setProfile,
+      armDirectionPick,
+      setUserInfoSheetOpen,
+    ],
+  );
+
+  const handleStartRouteFromAnchor = useCallback(
+    (anchorLngLat: LngLat) => {
+      const begun = beginRouteFromAnchor(anchorLngLat);
+      if (!begun) return;
+      const { result } = begun;
 
       if (result.ok) {
         anchorFixedStartRef.current = anchorLngLat;
@@ -2438,24 +2472,39 @@ export default function App() {
       focusAnchorOnMap(anchorLngLat);
     },
     [
-      routeMenuLockedForProd,
-      resetArrivalToast,
-      dismissResult,
-      clearCirclePreview,
-      clearRoutePins,
-      setBasicActiveHubCourseId,
-      getLastSessionPrefs,
-      profile,
-      routeDistanceMeters,
-      setStartLngLat,
-      setEndLngLat,
-      setProfile,
-      armDirectionPick,
+      beginRouteFromAnchor,
       setRouteSummary,
       focusAnchorOnMap,
-      setUserInfoSheetOpen,
     ],
   );
+
+  const quickInterval = useQuickIntervalRide({
+    intervalTotalSec: getRideIntervalTotalSec(rideIntervalConfig),
+    lastRideEnd: lastRideEntryTarget?.center ?? null,
+    autoRouteStep: distanceAutoRoute.step,
+    blockedReason: {
+      rideLocked: routeMenuLockedForProd,
+      routeTokenInsufficient,
+      signedOut: !user,
+      historyLoading: recentSessionsLoading,
+    },
+    prepareStart: (anchor, km) => {
+      const begun = beginRouteFromAnchor(anchor, km);
+      if (!begun) return { ok: false, message: "주행 중에는 자동 경로를 만들 수 없습니다." };
+      return begun.result.ok
+        ? { ok: true, profile: begun.continuation.profile }
+        : { ok: false, message: begun.result.message };
+    },
+    onBeforeStart: (anchor) => {
+      setMenuOpen(false);
+      setPlaceSearchMarkerLngLat(null);
+      if (anchor) focusAnchorOnMap(anchor);
+    },
+    armStartPick,
+    searchTowardPoint,
+    disarm,
+    onFound: () => handleRideIntervalEnabled(true),
+  });
 
   const nextRideCard =
     nextRideCardVisible && nextRideView ? (
@@ -2673,6 +2722,9 @@ export default function App() {
       cadence={cadenceHud}
       sensorAttention={Boolean(routeGeometry) && !routeLoading && !rideInputReady}
       onOpenIntervalSettings={() => { setIntervalSettingsFromRideSettings(false); setRideIntervalSettingsOpen(true); }}
+      // 10-30 Chief: 메뉴의 「경로 선택」·「주행 설정」을 RouteDock 지도 핀·⚙ 로 옮겼다. 핀은 「내 경로」 창부터 연다.
+      onOpenRouteList={() => setReopenSavedNonce((n) => n + 1)}
+      onOpenSettings={openRideSettingsPanel}
       intervalEnabled={rideIntervalEnabled}
       rideControls={rideControlPanel}
     />
@@ -3334,6 +3386,8 @@ export default function App() {
         </>
       ) : null}
 
+      <QuickIntervalStatus message={quickInterval.message} failed={quickInterval.phase === "failed"} onDismiss={quickInterval.cancel} />
+
       <MenuPanel
         open={menuOpen}
         onClose={() => {
@@ -3346,12 +3400,6 @@ export default function App() {
         }}
       >
         <RideRoutePanel
-          onOpenSettings={openRideSettingsPanel}
-          onOpenIntervalSettings={() => {
-            setMenuOpen(false);
-            setIntervalSettingsFromRideSettings(false);
-            setRideIntervalSettingsOpen(true);
-          }}
           routeSummary={routeSummary}
           routeLoading={routeLoading || isSearching}
           basicSharedHubs={BASIC_SHARED_HUB_SUMMARIES}
@@ -3461,12 +3509,6 @@ export default function App() {
         onPacerEnabled={setPacerEnabled}
         rideBgmCatalogConfigured={rideBgmCatalogConfigured}
         rideElevationProfileLoading={rideElevationProfileLoading}
-        calorieWeightKg={calorieProfile.weightKg}
-        calorieIntensityId={calorieProfile.intensityId}
-        onEditProfile={() => {
-          setRideSettingsSheetOpen(false);
-          setProfileEditOpen(true);
-        }}
         rideMomentSoundEnabled={rideMomentSoundEnabled}
         onRideMomentSoundEnabled={setRideMomentSoundEnabled}
       />
@@ -3478,6 +3520,13 @@ export default function App() {
         enabled={rideIntervalEnabled}
         onEnabled={handleRideIntervalEnabled}
         onApply={handleRideIntervalConfig}
+        onQuickIntervalRide={(intervalTotalSec) => {
+          // 지도에서 출발을 고를 수 있게 창을 닫는다 — 주행 설정 창으로 되돌아가지 않는다.
+          setRideIntervalSettingsOpen(false);
+          setIntervalSettingsFromRideSettings(false);
+          quickInterval.start(intervalTotalSec);
+        }}
+        quickIntervalDisabledReason={quickInterval.disabledReason}
         onClose={() => {
           setRideIntervalSettingsOpen(false);
           if (intervalSettingsFromRideSettings) setRideSettingsSheetOpen(true);

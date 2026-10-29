@@ -158,9 +158,9 @@ async function armRideInput(page: Page, speedKmh: number) {
 
 async function loadIntroCourse(page: Page) {
   // 메뉴 진입 버튼은 지도 아래 숨은 접근성 버튼이라 클릭이 안 닿는다 — ride-entry 와 같이 포커스 후 Enter
-  await page.getByRole("button", { name: "Trail 메뉴" }).focus();
-  await page.keyboard.press("Enter");
-  await page.getByRole("button", { name: "입문", exact: true }).click();
+  // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀 → 「내 경로」 창 → 출처 「입문」.
+  await page.getByRole("button", { name: "경로 목록", exact: true }).click();
+  await page.getByRole("navigation", { name: "경로 출처" }).getByRole("button", { name: "입문", exact: true }).click();
   const modal = page.getByRole("dialog").filter({ has: page.locator("#oc-modal-title") });
   await expect(modal).toBeVisible({ timeout: 15_000 });
   const items = modal.locator("button.oc-modal__item");

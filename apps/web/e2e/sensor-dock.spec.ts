@@ -45,8 +45,9 @@ async function assertLedOnly(page: Page, color: 'white' | 'green') {
   expect(box.height).toBeGreaterThanOrEqual(28);
   expect(box.width).toBeLessThanOrEqual(44);
   expect(box.height).toBeLessThanOrEqual(44);
+  // 10-30 Chief: 접혀도 LED 오른쪽에 도구(주행 전 INT·지도 핀·⚙ / 주행 중 ⚙)가 한 줄로 보인다 — 높이만 LED 한 줄.
+  await expect(page.locator('.route-dock__card .route-dock__tool--settings')).toBeVisible();
   const card = (await page.locator('.route-dock__card').boundingBox())!;
-  expect(card.width).toBeLessThanOrEqual(44);
   expect(card.height).toBeLessThanOrEqual(44);
 }
 

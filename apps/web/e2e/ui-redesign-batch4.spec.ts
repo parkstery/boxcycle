@@ -164,29 +164,27 @@ test('체중이 비어 있으면 70kg 에서 시작하고 체력은 약함 1~5 �
   await expect(fixture).toHaveAttribute('data-intensity-id', 'light');
 });
 
-test('주행 설정은 체중·체력 편집 없이 switch·프로필 진입', async ({ page }) => {
+test('주행 설정은 switch 만 — 칼로리·프로필 수정 없음(Chief 10-30)', async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 360 });
   await page.goto(`${preview}?state=settings`);
   const fixture = page.locator('#batch4-fixture');
   const settings = page.getByRole('dialog', { name: '주행 설정', exact: true });
   await expect(settings.getByRole('spinbutton')).toHaveCount(0);
   await expect(settings.getByRole('group', { name: /^체력/ })).toHaveCount(0);
-  await expect(settings.getByText('체중 64 kg', { exact: false })).toBeVisible();
-  await expect(settings.getByText('체력 3', { exact: false })).toBeVisible();
+  await expect(settings.getByText('칼로리 계산')).toHaveCount(0);
+  await expect(settings.getByRole('button', { name: '프로필 수정', exact: true })).toHaveCount(0);
   const switches = settings.getByRole('switch');
   await expect(switches).toHaveCount(5);
   await expect(settings.getByRole('switch', { name: /^인터벌/ })).toHaveCount(0);
   await settings.getByRole('button', { name: '주행 설정 닫기', exact: true }).click();
-  await page.getByRole('button', { name: 'Trail 메뉴', exact: true }).focus();
-  await page.keyboard.press('Enter');
-  await page.getByRole('button', { name: '인터벌', exact: true }).click();
+  // 10-30 Chief: 인터벌은 메뉴 행이 없고 RouteDock 「INT」에서만 연다.
+  await page.getByRole('button', { name: '인터벌 운동 설정', exact: true }).click();
   const interval = page.getByRole('dialog', { name: '인터벌 운동 설정', exact: true }).getByRole('switch', { name: /^인터벌/ });
   await expect(interval).not.toBeChecked();
   await interval.check();
   await expect(interval).toBeChecked();
   await page.getByRole('button', { name: '인터벌 운동 설정 닫기', exact: true }).click();
-  await page.getByRole('button', { name: 'Trail 메뉴', exact: true }).focus();
-  await page.keyboard.press('Enter');
+  // 10-30 Chief: 주행 설정은 메뉴 행이 아니라 RouteDock ⚙ 에서 연다.
   await page.getByRole('button', { name: '주행 설정', exact: true }).click();
   await settings.getByRole('switch', { name: '코칭 문구' }).click();
   await settings.getByRole('switch', { name: '음성 안내' }).click();
@@ -196,9 +194,6 @@ test('주행 설정은 체중·체력 편집 없이 switch·프로필 진입', a
   await expect(fixture).toHaveAttribute('data-ride-tts', '0');
   await expect(fixture).toHaveAttribute('data-ride-bgm', '0');
   await expect(fixture).toHaveAttribute('data-pacer', '0');
-  await settings.getByRole('button', { name: '프로필 수정', exact: true }).click();
-  await expect(fixture).toHaveAttribute('data-settings-profile-nav-calls', '1');
-  await expect(page.getByRole('dialog', { name: '프로필 수정', exact: true })).toBeVisible();
 });
 
 

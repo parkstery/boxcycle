@@ -1,5 +1,4 @@
 import { useRef } from "react";
-import type { CalorieIntensityId } from "../../lib/ride/caloriesEstimate";
 import { useDialogFocus } from "../ui/useDialogFocus";
 import { useEscapeKeyClose } from "../ui/useEscapeKeyClose";
 import { RideSettingsPanel } from "./RideSettingsPanel";
@@ -19,11 +18,6 @@ type RideSettingsSheetProps = {
   onPacerEnabled: (enabled: boolean) => void;
   rideBgmCatalogConfigured: boolean;
   rideElevationProfileLoading: boolean;
-  calorieWeightKg?: number | null;
-  onCalorieWeightKg?: (raw: string) => boolean | void;
-  calorieIntensityId?: CalorieIntensityId | null;
-  onCalorieIntensityId?: (id: CalorieIntensityId) => boolean | void;
-  onEditProfile?: () => void;
   rideMomentSoundEnabled?: boolean;
   onRideMomentSoundEnabled?: (enabled: boolean) => void;
 };
@@ -72,11 +66,6 @@ export function RideSettingsSheet(props: RideSettingsSheetProps) {
           onPacerEnabled={props.onPacerEnabled}
           rideBgmCatalogConfigured={props.rideBgmCatalogConfigured}
           rideElevationProfileLoading={props.rideElevationProfileLoading}
-          calorieWeightKg={props.calorieWeightKg}
-          onCalorieWeightKg={props.onCalorieWeightKg}
-          calorieIntensityId={props.calorieIntensityId}
-          onCalorieIntensityId={props.onCalorieIntensityId}
-          onEditProfile={props.onEditProfile}
           rideMomentSoundEnabled={props.rideMomentSoundEnabled}
           onRideMomentSoundEnabled={props.onRideMomentSoundEnabled}
         />

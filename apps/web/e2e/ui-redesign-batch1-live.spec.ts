@@ -25,11 +25,16 @@ test('실제 App에서 MENU와 세 경로 출처를 열고 캡처한다', async 
   const menu = page.getByRole('dialog', { name: '메뉴', exact: true });
   await expect(menu).toBeVisible();
   await expect(menu.getByRole('button', { name: '지명 검색', exact: true })).toBeVisible();
-  await expect(menu.getByRole('button', { name: '주행 설정', exact: true })).toBeVisible();
-  await expect(menu.locator('.menu-route-nav > li')).toHaveCount(2);
+  // 10-30 Chief: 메뉴는 Trail 전용 — 경로 선택·주행 설정은 RouteDock 지도 핀·⚙.
+  await expect(menu.getByRole('button', { name: '주행 설정', exact: true })).toHaveCount(0);
+  await expect(menu.locator('.menu-route-nav > li')).toHaveCount(0);
   await capture('batch1-live-menu-800x360.png');
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
 
-  await menu.getByRole('button', { name: '입문', exact: true }).click();
+  await page.getByRole('button', { name: '경로 목록', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: '내 경로', exact: true })).toBeVisible();
+  await page.getByRole('navigation', { name: '경로 출처' }).getByRole('button', { name: '입문', exact: true }).click();
   const intro = page.getByRole('dialog', { name: '입문 경로', exact: true });
   await expect(intro).toBeVisible();
   await expect(intro.locator('.oc-modal__item')).toHaveCount(4);
@@ -44,8 +49,4 @@ test('실제 App에서 MENU와 세 경로 출처를 열고 캡처한다', async 
   await capture('batch1-live-saved-800x360.png');
   await page.keyboard.press('Escape');
   await expect(saved).toHaveCount(0);
-  await expect(menu).toBeVisible();
-  await page.keyboard.press('Escape');
-  await expect(menu).toBeHidden();
-  await expect(page.getByRole('button', { name: 'Trail 메뉴', exact: true })).toBeFocused();
 });

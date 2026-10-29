@@ -160,6 +160,26 @@ export const ENTRY_STEPS = [
     selector: `getByRole('button',{name:'인터벌 운동 설정',exact:true})`,
   },
   {
+    step: "quick-interval-sheet-button",
+    desc: "인터벌 운동 창 하단 「설정 적용」 왼쪽 「간편 인터벌」 — 고른 값을 적용하고 그 길이에 맞는 경로를 자동 생성한다(10-30 Chief: 메뉴 행에서 이동).",
+    file: "src/components/ride/RideIntervalSettingsSheet.tsx",
+    anchors: [
+      { name: "간편 인터벌 접근성 이름", re: /aria-label="간편 인터벌 주행"/ },
+      { name: "적용 후 총 시간으로 시작", re: /onQuickIntervalRide\(getRideIntervalTotalSec\(candidate\)\)/ },
+      { name: "비활성 사유 title", re: /quickIntervalDisabledReason \?\? / },
+    ],
+    also: [
+      {
+        file: "src/App.tsx",
+        anchors: [
+          { name: "창 콜백 연결", re: /quickInterval\.start\(intervalTotalSec\)/ },
+          { name: "비활성 사유 연결", re: /quickIntervalDisabledReason=\{quickInterval\.disabledReason\}/ },
+        ],
+      },
+    ],
+    selector: `getByRole('button',{name:'간편 인터벌 주행',exact:true})`,
+  },
+  {
     step: "cadence-chip-slot",
     desc:
       "센서 칩 자리 판정 — dock 과 우상단에 동시에 뜨면 getByRole 이 strict 위반으로 깨진다. " +
@@ -237,14 +257,26 @@ export const ENTRY_STEPS = [
   },
   {
     step: "open-basic-courses",
-    desc: "RideRoutePanel 경로 선택 제목 → 입문 출처 직접 열기",
-    file: "src/components/ride/RideRoutePanel.tsx",
+    desc: "RouteDock 지도 핀(「경로 목록」) → 「내 경로」 창 → 출처 탭 「입문」(10-30 Chief: 메뉴의 경로 선택 제거)",
+    file: "src/components/route-dock/RouteDock.tsx",
     anchors: [
-      { name: "경로 선택 제목", re: />경로 선택</ },
-      { name: "입문 출처 버튼", re: />\s*입문\s*</ },
-      { name: "입문 직접 진입", re: /onClick=\{\(\) => selectSource\("intro"\)\}/ },
+      { name: "지도 핀 접근성 이름", re: /aria-label="경로 목록"/ },
+      { name: "지도 핀 콜백", re: /onClick=\{onOpenRouteList\}/ },
     ],
-    selector: `getByRole('button',{name:'입문'})`,
+    also: [
+      {
+        file: "src/components/ride/RouteListModalShell.tsx",
+        anchors: [
+          { name: "출처 탭 navigation", re: /role="navigation" aria-label="경로 출처"/ },
+          { name: "입문 출처", re: /\{ id: "intro", label: "입문" \}/ },
+        ],
+      },
+      {
+        file: "src/App.tsx",
+        anchors: [{ name: "핀 → 내 경로 창", re: /onOpenRouteList=\{\(\) => setReopenSavedNonce\(/ }],
+      },
+    ],
+    selector: `getByRole('button',{name:'경로 목록',exact:true}) → getByRole('navigation',{name:'경로 출처'}).getByRole('button',{name:'입문',exact:true})`,
   },
   {
     step: "course-modal",

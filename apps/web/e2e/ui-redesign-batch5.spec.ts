@@ -306,13 +306,17 @@ test('승인 시안 — 두 모드 228·헤더 한줄·하단 삭제·66px 지�
       expect(Math.abs(geom.panel.w - 228), `${state} ${size.width} 폭`).toBeLessThanOrEqual(1);
       expect(geom.overflowX, `${state} ${size.width} overflow`).toBeLessThanOrEqual(1);
       expect(geom.tabs).toHaveLength(2);
-      expect(geom.tabs.every((t) => Math.abs(t.w - 38) <= 1 && Math.abs(t.h - 26) <= 1)).toBe(true);
+      // 10-30 Chief: 모드 버튼 38→57px(1.5배), 창 228 유지
+      expect(geom.tabs.every((t) => Math.abs(t.w - 57) <= 1 && Math.abs(t.h - 26) <= 1)).toBe(true);
       expect(geom.clearInFooter).toBe(true);
       expect(geom.clearBefore).toBe(true);
       expect(geom.heading.r).toBeLessThanOrEqual(geom.tabsBox.x);
       expect(geom.tabsBox.r).toBeLessThanOrEqual(geom.close.x);
       expect(geom.header.h).toBeLessThanOrEqual(32);
-      await expect(popup.locator('.map-view__pick-title')).toHaveText('경로');
+      // 10-30 Chief A안: 보이는 건 지도 핀 아이콘, 낭독 이름은 「경로」
+      await expect(popup.getByRole('heading', { name: '경로', exact: true })).toBeVisible();
+      await expect(popup.locator('.map-view__pick-title > svg.map-view__pick-title-ico')).toBeVisible();
+      expect(geom.heading.w).toBeLessThanOrEqual(24);
       expect(geom.tabsClearOverlap).toBe(false);
       expect(geom.tabsRowWrap).toBe(false);
       expect(geom.footerWrap).toBe(false);
@@ -428,4 +432,18 @@ test('재배치 후 토큰 안내·양끝 정렬·시안 높이', async ({ page 
   expect(bounds.feedbackTop).toBeGreaterThanOrEqual(bounds.headerBottom);
   expect(bounds.overflow).toBe(0);
   await expect(popup.getByRole('tab', { name: '거리·방향', exact: true })).toBeVisible();
+});
+
+test('10-30 Chief — 출발 없음에서 모드를 바꿔도 창 높이 같음', async ({ page }) => {
+  for (const size of sizes) {
+    await page.setViewportSize(size);
+    await page.goto(`${fixtureUrl}?state=no-start`);
+    await expect(pickHost(page)).toHaveAttribute('data-fixture-ready', '1');
+    const popup = pick(page);
+    const location = await popup.evaluate((el) => el.getBoundingClientRect().height);
+    await popup.getByRole('tab', { name: '거리·방향', exact: true }).click();
+    await expect(popup.locator('.map-view__pick-route-distance-prereq')).toBeVisible();
+    const distance = await popup.evaluate((el) => el.getBoundingClientRect().height);
+    expect(Math.abs(distance - location), `${size.width} 출발/도착 ${location} · 거리/방향 ${distance}`).toBeLessThanOrEqual(0.5);
+  }
 });

@@ -441,6 +441,7 @@ function Preview() {
   const [flatCameraMode,setFlatCameraMode] = useState<Camera1Mode>('aerial500');
   const [routeSetupToken,setRouteSetupToken] = useState<object>({});
   const [panel,setPanel] = useState(resolveInitialPanel(initial));
+  const [reopenSaved,setReopenSaved] = useState(0);
   const rideStartPulseKey = useRideStartPulseKey(routeSetupToken, stage==='ready-to-start' && panel!=='summary' && !params.has('loading') && !params.has('blocked'));
   const [nextRideHidden, setNextRideHidden] = useState(false);
   const [nextRideCalls, setNextRideCalls] = useState({
@@ -465,7 +466,6 @@ function Preview() {
   const [rideBgmEnabled,setRideBgmEnabled] = useState(true);
   const [rideCoachingBanner,setRideCoachingBanner] = useState(true);
   const [pacerEnabled,setPacerEnabled] = useState(true);
-  const [settingsProfileNavCalls,setSettingsProfileNavCalls] = useState(0);
   const [sensorCalls,setSensorCalls] = useState({ connect: 0, disconnect: 0, manual: 0, cadence: 0 });
   const bumpSensorCall = (key: keyof typeof sensorCalls) => {
     setSensorCalls((prev) => ({ ...prev, [key]: prev[key] + 1 }));
@@ -543,6 +543,7 @@ function Preview() {
       onRemoveStop={noop} onFocusStop={noop} onSwapEndpoints={noop}
       cadence={{state:sensorState,open:panel==='sensor',onOpen:()=>setPanel('sensor')}}
       onOpenIntervalSettings={()=>{setIntervalEditorFromSettings(false);setIntervalEditorOpen(true);}} intervalEnabled={interval.enabled}
+      onOpenRouteList={()=>setReopenSaved(n=>n+1)} onOpenSettings={()=>setPanel('settings')}
       rideControls={(<RideControlBar stage={panel==='summary'?'summary':stage} routeLoading={params.has('loading')}
       routeSetupToken={routeSetupToken} startPulseKey={rideStartPulseKey}
       canStartRide={!params.has('blocked')} onStartRide={()=>params.has('shortIntervalRoute')?setIntervalConfirmOpen(true):setStage('riding')} onPauseRide={()=>setStage('paused')} onResumeRide={()=>setStage('riding')} onModifyFromPause={()=>setStage('setup')}
@@ -628,13 +629,8 @@ function Preview() {
       rideCoachingBanner={rideCoachingBanner} onRideCoachingBanner={setRideCoachingBanner}
       pacerEnabled={pacerEnabled} onPacerEnabled={setPacerEnabled}
       rideBgmCatalogConfigured={!settingsStress} rideElevationProfileLoading={settingsStress}
-      calorieWeightKg={weight} calorieIntensityId={intensity}
-      rideMomentSoundEnabled={rideMomentSoundEnabled} onRideMomentSoundEnabled={setRideMomentSoundEnabled}
-      onEditProfile={() => {
-        setSettingsProfileNavCalls((n) => n + 1);
-        setPanel('profile');
-      }} />
-    <RideIntervalSettingsSheet open={intervalEditorOpen} config={interval.config} restartOnApply={interval.enabled && (stage==='riding'||stage==='paused')} enabled={interval.enabled} onEnabled={interval.onEnabled} onApply={interval.onConfig} onClose={()=>{setIntervalEditorOpen(false);if(intervalEditorFromSettings)setPanel('settings');}} />
+      rideMomentSoundEnabled={rideMomentSoundEnabled} onRideMomentSoundEnabled={setRideMomentSoundEnabled} />
+    <RideIntervalSettingsSheet open={intervalEditorOpen} config={interval.config} restartOnApply={interval.enabled && (stage==='riding'||stage==='paused')} enabled={interval.enabled} onEnabled={interval.onEnabled} onApply={interval.onConfig} onClose={()=>{setIntervalEditorOpen(false);if(intervalEditorFromSettings)setPanel('settings');}} onQuickIntervalRide={(sec)=>{setIntervalEditorOpen(false);document.body.dataset.quickIntervalSec=String(sec);}} quickIntervalDisabledReason={null} />
     <IntervalRouteConfirm open={intervalConfirmOpen} speedKmh={20} onCancel={()=>setIntervalConfirmOpen(false)} onConfirm={()=>{setIntervalConfirmOpen(false);setStage('riding');}} />
     <ProfileEditSheet
       open={panel==='profile'}
@@ -718,7 +714,7 @@ function Preview() {
         arrivalToastVisible={false} adhocSaveAvailable={false} onSaveAdhocAsUserRoute={noop} onDismissAdhocSave={noop}
         rideTtsEnabled onRideTtsEnabled={noop} rideBgmEnabled onRideBgmEnabled={noop} rideCoachingBanner onRideCoachingBanner={noop}
         pacerEnabled onPacerEnabled={noop} rideElevationProfileLoading={false} rideBgmCatalogConfigured
-        onOpenSettings={()=>setPanel('settings')} onOpenIntervalSettings={()=>{setPanel('ready');setIntervalEditorFromSettings(false);setIntervalEditorOpen(true);}} />
+        reopenSavedSignal={reopenSaved} />
     </MenuPanel>
     {panel==='intro'?<AppIntroScreen onStartGuest={()=>setPanel('location')} onLogin={()=>setPanel('location')}/>:null}
     {panel==='location'?<EntryLocationDialog phase="choice" permission="prompt" onChooseRome={()=>setPanel('ready')} onChooseCurrent={()=>setPanel('ready')} onPosition={noop}/>:null}
@@ -732,7 +728,6 @@ function Preview() {
         data-sensor-disconnect-calls={String(sensorCalls.disconnect)}
         data-sensor-manual-calls={String(sensorCalls.manual)}
         data-sensor-cadence-calls={String(sensorCalls.cadence)}
-        data-settings-profile-nav-calls={String(settingsProfileNavCalls)}
         data-ride-tts={rideTtsEnabled ? '1' : '0'}
         data-ride-bgm={rideBgmEnabled ? '1' : '0'}
         data-ride-coaching={rideCoachingBanner ? '1' : '0'}

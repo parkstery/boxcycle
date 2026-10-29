@@ -1657,6 +1657,15 @@ export function MapView({
         });
     };
 
+    const runStartMapPick = (picked: LngLat) => {
+      if (autoRouteSearchBusyRef.current || routePickDockDraggingRef.current) return;
+      if (autoRouteMapPickRef.current !== "start" || !onAutoRouteMapPickRef.current) return;
+      autoRouteSearchBusyRef.current = true;
+      void onAutoRouteMapPickRef.current(picked).finally(() => {
+        autoRouteSearchBusyRef.current = false;
+      });
+    };
+
     const runDirectionMapPick = (picked: LngLat) => {
       if (autoRouteSearchBusyRef.current || routePickDockDraggingRef.current) return;
       if (pickPopupAutoRouteUiRef.current?.stageDirectionPick(picked)) return;
@@ -1710,6 +1719,7 @@ export function MapView({
         routePickDockDraggingRef.current || autoRouteSearchBusyRef.current,
       onLongPressPick: runLongPressRoutePick,
       onDirectionShortTap: (commit) => runDirectionMapPick(commit.lngLat),
+      onStartShortTap: (commit) => runStartMapPick(commit.lngLat),
       onActivityPinShortTap: (commit) => {
         const pinLabel = getActivityWorldPinLabelRef.current;
         if (!pinLabel) return false;

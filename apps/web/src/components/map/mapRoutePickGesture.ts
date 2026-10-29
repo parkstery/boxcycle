@@ -49,6 +49,8 @@ export type MapRoutePickGestureAttachOptions = {
   shouldBlockPick: () => boolean;
   onLongPressPick: (commit: MapRoutePickCommit) => void;
   onDirectionShortTap: (commit: MapRoutePickCommit) => void;
+  /** 출발 지점 클릭 대기(`pick_start`) 중의 짧은 탭 — 간편 인터벌 주행이 쓴다 */
+  onStartShortTap?: (commit: MapRoutePickCommit) => void;
   onShortTapNoPick?: () => void;
   onActivityPinShortTap?: (commit: MapRoutePickCommit) => boolean;
   now?: () => number;
@@ -221,6 +223,10 @@ export function attachMapRoutePickGesture(
     const pickMode = options.getAutoRouteMapPick();
     if (pickMode === "direction") {
       options.onDirectionShortTap(commit);
+      return;
+    }
+    if (pickMode === "start" && options.onStartShortTap) {
+      options.onStartShortTap(commit);
       return;
     }
 

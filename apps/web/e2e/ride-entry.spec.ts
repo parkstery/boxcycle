@@ -40,11 +40,10 @@ async function enterAsGuest(page: import('@playwright/test').Page) {
   await guestStart(page)
 }
 
-/** Trail 메뉴 → '입문' → 코스 모달 */
+/** RouteDock 지도 핀 → 「내 경로」 창 → 출처 '입문' → 코스 모달 (10-30 Chief: 메뉴의 경로 선택 제거) */
 async function openBasicCourseModal(page: import('@playwright/test').Page) {
-  await page.getByRole('button', { name: 'Trail 메뉴' }).focus()
-  await page.keyboard.press('Enter')
-  await page.getByRole('button', { name: '입문', exact: true }).click()
+  await page.getByRole('button', { name: '경로 목록', exact: true }).click()
+  await page.getByRole('navigation', { name: '경로 출처' }).getByRole('button', { name: '입문', exact: true }).click()
   const modal = page.getByRole('dialog').filter({ has: page.locator('#oc-modal-title') })
   await expect(modal).toBeVisible()
   return modal

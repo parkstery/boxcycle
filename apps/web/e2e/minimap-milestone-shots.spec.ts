@@ -123,8 +123,8 @@ async function seedInProgressRoute(uid: string, routeId: string): Promise<void> 
 }
 
 async function loadSavedRouteFromMenu(page: Page, routeName: string) {
-  await page.getByRole("button", { name: "Trail 메뉴" }).click();
-  await page.getByRole("button", { name: "내 경로" }).click();
+  // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀(「경로 목록」) — 「내 경로」부터 연다.
+  await page.getByRole("button", { name: "경로 목록", exact: true }).click();
   const row = page.getByText(routeName, { exact: false }).first();
   await expect(row).toBeVisible({ timeout: 15_000 });
   await row.click();
@@ -166,8 +166,9 @@ async function armRideInput(page: Page, speedKmh: number) {
 }
 
 async function loadIntroCourse(page: Page) {
-  await page.getByRole("button", { name: "Trail 메뉴" }).click();
-  await page.getByRole("button", { name: "입문", exact: true }).click();
+  // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀 → 「내 경로」 창 → 출처 「입문」.
+  await page.getByRole("button", { name: "경로 목록", exact: true }).click();
+  await page.getByRole("navigation", { name: "경로 출처" }).getByRole("button", { name: "입문", exact: true }).click();
   const modal = page.getByRole("dialog").filter({ has: page.locator("#oc-modal-title") });
   await expect(modal).toBeVisible({ timeout: 15_000 });
   const items = modal.locator("button.oc-modal__item");

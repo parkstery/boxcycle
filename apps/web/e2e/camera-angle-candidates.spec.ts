@@ -198,8 +198,9 @@ async function armRideInput(page: Page) {
 }
 
 async function loadIntroCourse(page: Page) {
-  await page.getByRole("button", { name: "Trail 메뉴" }).click();
-  await page.getByRole("button", { name: "입문", exact: true }).click();
+  // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀 → 「내 경로」 창 → 출처 「입문」.
+  await page.getByRole("button", { name: "경로 목록", exact: true }).click();
+  await page.getByRole("navigation", { name: "경로 출처" }).getByRole("button", { name: "입문", exact: true }).click();
   const modal = page.getByRole("dialog").filter({ has: page.locator("#oc-modal-title") });
   await expect(modal).toBeVisible({ timeout: 15_000 });
   await modal.locator("button.oc-modal__item").first().click();

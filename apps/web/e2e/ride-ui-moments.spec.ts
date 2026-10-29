@@ -121,8 +121,9 @@ test.describe('주행 UI 정리 v2', () => {
     await rank.click();
     await expect(page.locator('#lb-glance-panel')).toBeHidden();
 
-    await page.goto(`${preview}?state=menu`);
-    await page.getByRole('button', { name: '인터벌', exact: true }).click();
+    // 10-30 Chief: 인터벌은 메뉴 행이 없고 RouteDock 「INT」에서만 연다.
+    await page.goto(`${preview}?state=ready`);
+    await page.getByRole('button', { name: '인터벌 운동 설정', exact: true }).click();
     const editor = page.getByRole('dialog', { name: '인터벌 운동 설정', exact: true });
     await expect(editor.getByRole('combobox', { name: '운동 프리셋' }).locator('option')).toHaveCount(9);
     await editor.getByRole('button', { name: '직접 조절', exact: true }).click();

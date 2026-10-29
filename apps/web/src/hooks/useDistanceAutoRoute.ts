@@ -107,6 +107,8 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
   /** armDirectionPick 이 고른 Start — React state 커밋 전 map pick 이 와도 API 에 같은 좌표를 쓴다 */
   const pickStartRef = useRef<LngLat | null>(null);
   const overrideTargetKmRef = useRef<number | null>(null);
+  /** `pick_start` 에서 클릭을 받으면 이어서 실행할 콜백 — 간편 인터벌 주행이 등록한다 */
+  const startPickedRef = useRef<((lngLat: LngLat) => Promise<DistanceAutoRouteSearchResult | null>) | null>(null);
   /** 직전 자동 Route 세션의 이동수단·목표 거리 — 이어 달리기 anchor 진입 시 승계 */
   const lastSessionPrefsRef = useRef<{ profile: RouteProfile; targetKm: number }>({
     profile: "driving",
@@ -156,6 +158,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     activeRequestIdRef.current = null;
     lastClickRef.current = null;
     pickStartRef.current = null;
+    startPickedRef.current = null;
     clearDistanceAutoRouteClickDebugMarker();
   }, []);
 
@@ -258,6 +261,144 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     activeRequestIdRef.current = null;
   }, [distanceDirectionMode, hasSuccessfulRoute, sessionActive, start, targetKm]);
 
+  /**
+   * 한 방향 지점으로 탐색 요청을 보내고 결과를 적용하는 **단일 경로**.
+   * 지도 클릭(`handleMapPick`)과 간편 인터벌 주행이 같은 요청·적용 코드를 쓴다.
+   * 늦게 도착한 응답은 `activeRequestIdRef` 로 걸러 새 상태를 덮지 않는다(null 반환).
+   */
+  const searchTowardPoint = useCallback(
+    async (input: {
+      start: LngLat;
+      point: LngLat;
+      targetKm: number;
+      profile: RouteProfile;
+    }): Promise<DistanceAutoRouteSearchResult | null> => {
+      const effectiveStart = input.start;
+      const lngLat = input.point;
+      const effectiveTargetKm = input.targetKm;
+      const effectiveProfile = input.profile;
+      const effectiveTargetMeters = effectiveTargetKm * 1000;
+
+      if (routeTokenInsufficient) {
+        const message = "Route Token 이 부족합니다.";
+        setStatusMessage(message);
+        return { status: "failed", message };
+      }
+
+      const bearing = bearingFromOriginToPoint(effectiveStart, lngLat);
+      setBearingDeg(bearing);
+      lastClickRef.current = lngLat;
+      setStep("searching");
+      setOfferedState(null);
+      setStatusMessage(`목표 ${(effectiveTargetMeters / 1000).toFixed(1)} km에 맞는 경로를 찾는 중입니다…`);
+
+      const requestId = createRequestId();
+      activeRequestIdRef.current = requestId;
+
+      const functions = getFunctions(getFirebaseApp(), functionsRegion);
+
+      try {
+        const response = await fetchDistanceAutoRoute(functions, user!, {
+          start: effectiveStart,
+          targetRoadPoint: lngLat,
+          // 수단 클릭에서 arm 직후 탐색해도 React 커밋 전 기본값으로 요청하지 않는다.
+          profile: effectiveProfile,
+          targetDistanceMeters: effectiveTargetMeters,
+          bearingDeg: bearing,
+          requestId,
+        });
+
+        if (activeRequestIdRef.current !== requestId) return null;
+        activeRequestIdRef.current = null;
+
+        if (response.status === "failed") {
+          const message = response.message;
+          setStatusMessage(
+            hasSuccessfulRoute ? DISTANCE_AUTO_ROUTE_REROUTE_HINT : message,
+          );
+          setStep("pick_direction");
+          return { status: "failed", message };
+        }
+
+        if (import.meta.env.DEV) {
+          console.info("[distanceAutoRoute]", {
+            algorithmVersion: response.algorithmVersion ?? "(unknown — 프로덕션 Functions?)",
+            endMissMeters: response.endMissMeters,
+            directRoadMeters: response.directRoadMeters,
+            outcome: response.outcome,
+            targetRoadPoint: lngLat,
+            end: response.end,
+            emulator: import.meta.env.VITE_USE_EMULATOR === "1",
+          });
+        }
+
+        onClearRouteArtifacts();
+        onApplyRoute({
+          start: effectiveStart,
+          end: response.end,
+          profile: effectiveProfile,
+          distanceMeters: response.distance,
+          durationSec: response.duration,
+          geometry: response.geometry,
+          summary: response.summary,
+        });
+
+        const isOffered = response.outcome === "offered";
+        const isShortfall = response.outcome === "shortfall";
+        if (isShortfall) {
+          const shortfallMessage = formatDistanceAutoRouteShortfallMessage(
+            effectiveTargetKm,
+            response.distance,
+          );
+          setHasSuccessfulRoute(true);
+          setStatusMessage(shortfallMessage);
+          setStep("pick_direction");
+          setBearingDeg(bearing);
+          setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
+          return { status: "found", message: shortfallMessage };
+        }
+        if (isOffered && response.directRoadMeters != null) {
+          const directKm = response.directRoadMeters / 1000;
+          const offeredMessage = formatDistanceAutoRouteOfferedMessage(
+            response.directRoadMeters,
+            effectiveTargetKm,
+          );
+          setOfferedState({ clickLngLat: lngLat, directKm, targetKm: effectiveTargetKm });
+          setHasSuccessfulRoute(true);
+          setStatusMessage(offeredMessage);
+          setStep("pick_direction");
+          setBearingDeg(bearing);
+          setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
+          return { status: "found", message: offeredMessage };
+        }
+
+        setHasSuccessfulRoute(true);
+        setStatusMessage(DISTANCE_AUTO_ROUTE_REROUTE_HINT);
+        setStep("pick_direction");
+        setBearingDeg(bearing);
+        setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
+        return { status: "found", message: DISTANCE_AUTO_ROUTE_REROUTE_HINT };
+      } catch (e) {
+        if (activeRequestIdRef.current !== requestId) return null;
+        activeRequestIdRef.current = null;
+        const message = formatDistanceAutoRouteClientError(e);
+        setStatusMessage(
+          hasSuccessfulRoute ? DISTANCE_AUTO_ROUTE_REROUTE_HINT : message,
+        );
+        setStep("pick_direction");
+        return { status: "failed", message };
+      }
+    },
+    [
+      user,
+      functionsRegion,
+      routeTokenInsufficient,
+      hasSuccessfulRoute,
+      onApplyRoute,
+      onClearRouteArtifacts,
+    ],
+  );
+
   const handleMapPick = useCallback(
     async (lngLat: LngLat): Promise<DistanceAutoRouteSearchResult | null> => {
       if (step === "searching") {
@@ -267,7 +408,9 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
         pickStartRef.current = lngLat;
         setStart(lngLat);
         setStatusMessage(`출발: ${formatLngLat(lngLat)}`);
-        return null;
+        const onPicked = startPickedRef.current;
+        startPickedRef.current = null;
+        return onPicked ? onPicked(lngLat) : null;
       }
       const effectiveStart = pickStartRef.current ?? start;
       if (step === "pick_direction" && popupPickBound && effectiveStart && distanceDirectionMode) {
@@ -279,112 +422,14 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
 
         const effectiveTargetKm = overrideTargetKmRef.current ?? lastSessionPrefsRef.current?.targetKm ?? targetKm;
         const effectiveProfile = lastSessionPrefsRef.current?.profile ?? profile;
-        const effectiveTargetMeters = effectiveTargetKm * 1000;
         overrideTargetKmRef.current = null;
 
-        const bearing = bearingFromOriginToPoint(effectiveStart, lngLat);
-        setBearingDeg(bearing);
-        lastClickRef.current = lngLat;
-        setStep("searching");
-        setOfferedState(null);
-        setStatusMessage(`목표 ${(effectiveTargetMeters / 1000).toFixed(1)} km에 맞는 경로를 찾는 중입니다…`);
-
-        const requestId = createRequestId();
-        activeRequestIdRef.current = requestId;
-
-        const functions = getFunctions(getFirebaseApp(), functionsRegion);
-
-        try {
-          const response = await fetchDistanceAutoRoute(functions, user!, {
-            start: effectiveStart,
-            targetRoadPoint: lngLat,
-            // 수단 클릭에서 arm 직후 탐색해도 React 커밋 전 기본값으로 요청하지 않는다.
-            profile: effectiveProfile,
-            targetDistanceMeters: effectiveTargetMeters,
-            bearingDeg: bearing,
-            requestId,
-          });
-
-          if (activeRequestIdRef.current !== requestId) return null;
-          activeRequestIdRef.current = null;
-
-          if (response.status === "failed") {
-            const message = response.message;
-            setStatusMessage(
-              hasSuccessfulRoute ? DISTANCE_AUTO_ROUTE_REROUTE_HINT : message,
-            );
-            setStep("pick_direction");
-            return { status: "failed", message };
-          }
-
-          if (import.meta.env.DEV) {
-            console.info("[distanceAutoRoute]", {
-              algorithmVersion: response.algorithmVersion ?? "(unknown — 프로덕션 Functions?)",
-              endMissMeters: response.endMissMeters,
-              directRoadMeters: response.directRoadMeters,
-              outcome: response.outcome,
-              targetRoadPoint: lngLat,
-              end: response.end,
-              emulator: import.meta.env.VITE_USE_EMULATOR === "1",
-            });
-          }
-
-          onClearRouteArtifacts();
-          onApplyRoute({
-            start: effectiveStart,
-            end: response.end,
-            profile: effectiveProfile,
-            distanceMeters: response.distance,
-            durationSec: response.duration,
-            geometry: response.geometry,
-            summary: response.summary,
-          });
-
-          const isOffered = response.outcome === "offered";
-          const isShortfall = response.outcome === "shortfall";
-          if (isShortfall) {
-            const shortfallMessage = formatDistanceAutoRouteShortfallMessage(
-              effectiveTargetKm,
-              response.distance,
-            );
-            setHasSuccessfulRoute(true);
-            setStatusMessage(shortfallMessage);
-            setStep("pick_direction");
-            setBearingDeg(bearing);
-            setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
-            return { status: "found", message: shortfallMessage };
-          }
-          if (isOffered && response.directRoadMeters != null) {
-            const directKm = response.directRoadMeters / 1000;
-            const offeredMessage = formatDistanceAutoRouteOfferedMessage(
-              response.directRoadMeters,
-              effectiveTargetKm,
-            );
-            setOfferedState({ clickLngLat: lngLat, directKm, targetKm: effectiveTargetKm });
-            setHasSuccessfulRoute(true);
-            setStatusMessage(offeredMessage);
-            setStep("pick_direction");
-            setBearingDeg(bearing);
-            setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
-            return { status: "found", message: offeredMessage };
-          }
-
-          setHasSuccessfulRoute(true);
-          setStatusMessage(DISTANCE_AUTO_ROUTE_REROUTE_HINT);
-          setStep("pick_direction");
-          setBearingDeg(bearing);
-          setCirclePreviewState((prev) => ({ preview: null, fitToken: prev.fitToken }));
-          return { status: "found", message: DISTANCE_AUTO_ROUTE_REROUTE_HINT };
-        } catch (e) {
-          if (activeRequestIdRef.current !== requestId) return null;
-          activeRequestIdRef.current = null;
-          const message = formatDistanceAutoRouteClientError(e);
-          setStatusMessage(
-            hasSuccessfulRoute ? DISTANCE_AUTO_ROUTE_REROUTE_HINT : message,
-          );
-          setStep("pick_direction");
-          return { status: "failed", message };
-        }
+        return searchTowardPoint({
+          start: effectiveStart,
+          point: lngLat,
+          targetKm: effectiveTargetKm,
+          profile: effectiveProfile,
+        });
       }
       return null;
     },
@@ -394,14 +439,42 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
       start,
       targetKm,
       profile,
-      user,
-      functionsRegion,
       routeTokenInsufficient,
-      hasSuccessfulRoute,
       distanceDirectionMode,
-      onApplyRoute,
-      onClearRouteArtifacts,
+      searchTowardPoint,
     ],
+  );
+
+  /**
+   * 출발 지점 클릭 대기(`pick_start`) — 간편 인터벌 주행에서 마지막 주행 기록이 없을 때 쓴다.
+   * 지도를 클릭하면 `onPicked` 가 바로 이어서 탐색한다(방향 클릭 단계는 건너뛴다).
+   */
+  const armStartPick = useCallback(
+    (input: {
+      message: string;
+      onPicked: (lngLat: LngLat) => Promise<DistanceAutoRouteSearchResult | null>;
+    }): DistanceAutoRouteArmResult => {
+      if (rideLocked) {
+        return { ok: false, message: "주행 중에는 자동 경로를 만들 수 없습니다." };
+      }
+      if (!user) {
+        return { ok: false, message: "게스트 또는 로그인 세션에서 사용할 수 있습니다." };
+      }
+      if (routeTokenInsufficient) {
+        return { ok: false, message: "Route Token 이 부족합니다." };
+      }
+      prewarmRouteFunctions(user, "getDistanceAutoRoute");
+      pickStartRef.current = null;
+      activeRequestIdRef.current = null;
+      startPickedRef.current = input.onPicked;
+      setStart(null);
+      setBearingDeg(null);
+      setOfferedState(null);
+      setStatusMessage(input.message);
+      setStep("pick_start");
+      return { ok: true };
+    },
+    [rideLocked, routeTokenInsufficient, user],
   );
 
   const retryDirection = useCallback(() => {
@@ -470,6 +543,8 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
     clearCirclePreview,
     mapPickMode,
     handleMapPick,
+    searchTowardPoint,
+    armStartPick,
     armDirectionPick,
     getLastSessionPrefs,
     setDistanceDirectionMode,

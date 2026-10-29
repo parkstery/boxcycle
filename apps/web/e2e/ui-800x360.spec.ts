@@ -399,9 +399,10 @@ test('빈 가장자리 드래그 취소·화면 크기 변경 후에도 중앙 �
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
-test('경로 모달에서 세 출처를 전환해도 목록은 하나이며 닫으면 메뉴로 돌아온다', async ({page})=>{
-  await page.goto(`${preview}?state=menu`);
-  await page.getByRole('button',{name:'내 경로',exact:true}).click();
+test('경로 모달에서 세 출처를 전환해도 목록은 하나이며 닫으면 지도로 돌아온다', async ({page})=>{
+  // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀(「경로 목록」) — 「내 경로」부터 연다.
+  await page.goto(`${preview}?state=ready`);
+  await page.getByRole('button',{name:'경로 목록',exact:true}).click();
   const savedDefault=page.getByRole('dialog',{name:'내 경로',exact:true});
   await expect(savedDefault).toBeVisible();
   const sourceButtons=savedDefault.getByRole('navigation',{name:'경로 출처'}).getByRole('button');
@@ -419,7 +420,7 @@ test('경로 모달에서 세 출처를 전환해도 목록은 하나이며 닫�
   await expect(page.getByRole('dialog',{name:'퍼블릭 경로',exact:true})).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(saved).toHaveCount(0);
-  await expect(page.getByRole('dialog',{name:'메뉴',exact:true})).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
 // Chief 지정 — 바꾸려면 Chief 지시와 document/reference/product/261024-RTW-Chief-지정-디자인-고정.md 갱신 필요
@@ -657,7 +658,7 @@ test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', (
   });
 });
 
-test('Chief 고정12 — 주소 카드 버튼은 선 아이콘·흰 알약 센서(제안 A)다', async ({ page }) => {
+test('Chief 고정12 — 주소 카드 버튼은 선 아이콘·센서는 테두리·글자 없는 21px LED(10-30 Chief)', async ({ page }) => {
   for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }]) {
     await page.setViewportSize(size);
     await page.goto(`${preview}?state=ready`);
@@ -692,10 +693,11 @@ test('Chief 고정12 — 주소 카드 버튼은 선 아이콘·흰 알약 센�
     }
     expect(look.sensorH).toBeCloseTo(30, 0);
     expect(look.sensorBg).toBe('rgb(255, 255, 255)');
-    expect(look.sensorBorder).toBe('1px rgb(201, 214, 238)');
+    // 10-30 Chief: 센서 글자·테두리 제거, LED 원은 세 배(7→21px).
+    expect(look.sensorBorder).toBe('1px rgba(0, 0, 0, 0)');
     expect(look.sensorRadius).toBeGreaterThanOrEqual(15);
     expect(look.sensorFont).toBe('12px 700');
-    expect(look.ledW).toBeCloseTo(7, 0);
+    expect(look.ledW).toBeCloseTo(21, 0);
   }
 });
 

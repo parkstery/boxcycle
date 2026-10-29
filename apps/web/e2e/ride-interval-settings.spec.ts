@@ -16,9 +16,8 @@ async function openEditor(page: Page) {
     await expect(editor(page)).toBeVisible();
     return;
   }
-  await page.getByRole('button',{name:'Trail 메뉴',exact:true}).focus();
-  await page.keyboard.press('Enter');
-  await page.getByRole('button',{name:'인터벌',exact:true}).click();
+  // 10-30 Chief: 인터벌은 메뉴 행이 없고 RouteDock 「INT」에서만 연다.
+  await page.getByRole('button',{name:'인터벌 운동 설정',exact:true}).click();
   await expect(editor(page)).toBeVisible();
 }
 async function openFromRide(page: Page) {
@@ -352,7 +351,7 @@ test.describe('지도 가림 최소화',()=>{
         const children=[...el.querySelectorAll('button,input,label')].map(child=>child.getBoundingClientRect());
         return {width:box.width,height:box.height,inside:box.left>=0&&box.right<=innerWidth&&box.top>=0&&box.bottom<=innerHeight,childrenInside:children.every(child=>child.left>=box.left&&child.right<=box.right)};
       });
-      expect(parent.width).toBeLessThanOrEqual(460);
+      expect(parent.width).toBeLessThanOrEqual(276);
       expect(parent.inside).toBe(true);
       expect(parent.childrenInside).toBe(true);
       if(process.env.INTERVAL_SETTINGS_EVIDENCE_DIR){await fs.mkdir(process.env.INTERVAL_SETTINGS_EVIDENCE_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.INTERVAL_SETTINGS_EVIDENCE_DIR,`ride-settings-${size.width}x${size.height}.png`)});await fs.writeFile(path.join(process.env.INTERVAL_SETTINGS_EVIDENCE_DIR,`ride-settings-${size.width}x${size.height}.metrics.json`),JSON.stringify(parent,null,2));}

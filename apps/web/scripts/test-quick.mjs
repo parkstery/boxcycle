@@ -48,7 +48,7 @@ const GROUPS = {
     "rider-preserve",
     "sensor-cadence",
   ],
-  route: ["distance-auto-route", "route-token", "geo"],
+  route: ["distance-auto-route", "quick-interval", "route-token", "geo"],
   map: ["map", "focus-read-spike"],
   peer: ["peer-sync"],
   meters: ["traffic", "s42", "s43"],
