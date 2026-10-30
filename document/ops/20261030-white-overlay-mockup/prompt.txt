@@ -1,0 +1,19 @@
+Use case: precise-object-edit / ui-mockup.
+Edit the attached ACTUAL Spinatlas cycling map screenshot to preview a restrained white translucent panel design. Keep the same entire smartphone-landscape composition and image proportions, same map satellite details, map labels, magenta route, rider/marker, minimap, HUD metrics at upper left, all existing circular ride buttons, camera/style/zoom/account at top right, map attribution and scale. Do not redesign, move, enlarge or add any controls. Change ONLY TWO rectangular dark translucent overlays: the LEFT INTERVAL info at approximately x20..278 y76..192 and RIGHT LEADERBOARD at approximately x709..984 y70..229 in the original999x455 screenshot. Keep their positions, sizes, row counts and contents intact. Return one full edited screenshot, no external headings, captions, device frame, alternatives or explanation.
+
+Replace those two black panels with elegant WHITE TRANSLUCENT surfaces at roughly90% opacity: white glass, only faint map details visible through surface, extremely subtle backdrop blur to suppress map noise, thin white/light-slate edge, corner radius12, very restrained soft neutral shadow. White tone must coordinate with the existing top right white controls and minimap. Not muddy gray, not completely opaque, no dark backing, no heavy glass effect, no blue gradients.
+
+Crucial typography inside BOTH panels: remove ALL black outlines, heavy text shadows and neon cyan from the old panels. Use crisp modern legible font with dark navy #142c46 standard text, subdued slate #64748b secondary information, cobalt #2457d6 ONLY for actual focal state and the current user. No rainbow rank coloring, gold medals, new icons or garish colored text. Preserve compact spacing and room for the map.
+
+LEFT interval: same lines: header left "준비" in small semibold cobalt, center "빠른음" in slate, top-right "0 / 2" in dark slate. Main countdown "3:19" in strong clean cobalt condensed tabular numbers without stroke/shadow, same size as original. Below countdown a thin pale-blue-gray progress track with a cobalt filled portion, replacing the existing gray bar but same position. Bottom instruction "페달 강도 직접 조절" dark slate, single compact line. No extra chart, gauge, button or interval card.
+
+RIGHT leaderboard: header "이번 주 순위 · 달리는 동안 갱신" in small navy semibold. Keep5 rows, names and km right aligned. First/current row has a very subtle pale-cobalt rounded background confined to that row, cobalt semibold rank/name/value:
+"1 Ridingman12 나" right "65.7 km".
+Other rows ALL dark navy readable with normal weight, no neon:
+"2 geum" right "12.1 km"
+"3 soft" right "6.0 km"
+"4 iden" right "3.9 km"
+"5 homeeg" right "1.1 km".
+The header is clearly smaller than rows. Existing tiny corner icon can be light slate, do not add another. Retain same5row density. Thin row highlight instead of decorative badges. Tiny '나' may be subdued blue. No change to underlying data.
+
+The result should look like an implementable lightweight production UI overlay on this exact screenshot, modern calm and compatible with white UI design. All outside pixels unchanged as closely as possible. Text rendering and contrast must be much cleaner than reference.

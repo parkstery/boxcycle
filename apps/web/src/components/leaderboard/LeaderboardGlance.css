@@ -11,9 +11,9 @@
   min-height: 0;
   box-sizing: border-box;
   padding: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 0;
   border-radius: 8px;
-  background: rgba(6, 14, 20, 0.82);
+  background: transparent;
   /* 배경 가장자리는 지도·반달 탭에 통과, 목록과 버튼만 입력을 받는다. */
   pointer-events: none;
   z-index: 2;
@@ -41,7 +41,7 @@
   paint-order: stroke fill;
   -webkit-text-stroke: 0;
   text-shadow: none;
-  color: #f8fafc;
+  color: #142c46;
 }
 
 .lb-glance__outline--label {
@@ -56,20 +56,22 @@
   font: inherit;
   font-size: 12px;
   font-weight: 700;
-  color: #52c9ff;
+  color: #2457d6;
   -webkit-text-stroke: 0;
   cursor: pointer;
 }
 
 .lb-glance__outline--accent {
-  color: #52c9ff;
+  color: #2457d6;
   -webkit-text-stroke: 0;
 }
 
 .lb-glance__outline--hero {
-  color: #67e8f9;
+  color: #2457d6;
   -webkit-text-stroke: 0;
 }
+.lb-glance__rank.lb-glance__outline--accent { color: #142c46; }
+.lb-glance__row--me .lb-glance__rank { color: #2457d6; }
 
 .lb-glance__list {
   list-style: none;
@@ -125,7 +127,7 @@
   height: 8px;
   border-radius: 50%;
   background: #1e9a55;
-  box-shadow: 0 0 0 2px #000000;
+  box-shadow: 0 0 3px 1px #fff;
 }
 
 .lb-glance__footer {
@@ -155,7 +157,7 @@
   font: inherit;
   font-size: 12px;
   font-weight: 700;
-  color: #52c9ff;
+  color: #2457d6;
   -webkit-text-stroke: 0;
   paint-order: stroke fill;
   text-align: left;
@@ -167,6 +169,12 @@
   font-size: 12px;
   font-weight: 700;
 }
+
+/* Chief: 줄 높이/간격 그대로, 배경은 글자높이 뒤에만. 줄 사이 지도는 완전노출. */
+.lb-glance__row { position: relative; isolation: isolate; }
+.lb-glance__row::before { content: ''; position: absolute; inset-inline: 0; top: 50%; transform: translateY(-50%); height: calc(100% - 3px); z-index: -1; background: rgba(255,255,255,.7); border-radius: 3px; pointer-events: none; }
+.lb-glance__row--me::before { background: rgba(222,233,255,.8); }
+.lb-glance__panel-head, .lb-glance__footer, .lb-glance__hint, .lb-glance__text-btn { background: rgba(255,255,255,.7); border-radius: 3px; }
 
 /* 주행 제어 이동으로 확보된 하단까지 순위를 표시한다. */
 .map-hud--active-ride .lb-glance__panel { max-height: calc(100% - var(--hud-pad-top) - 3.19rem - var(--hud-pad-bottom) - 24px); }

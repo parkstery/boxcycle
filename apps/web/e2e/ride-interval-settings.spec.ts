@@ -91,6 +91,10 @@ test('시간별 프리셋을 조절해 적용하면 새로고침 뒤에도 유�
   await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
   await page.reload();
   await openEditor(page);
+  // 직접 설정 값이어도 요약 화면으로 열려 「간편 인터벌」이 보여야 한다.
+  await expect(editor(page).getByRole('combobox',{name:'운동 프리셋'})).toHaveValue('custom');
+  await expect(editor(page).getByRole('button',{name:'간편 인터벌 주행',exact:true})).toBeVisible();
+  await expandCustom(page);
   await expect(editor(page).getByRole('spinbutton',{name:'고강도 시간 초'})).toHaveValue('35');
   await expect(editor(page).getByRole('spinbutton',{name:'라운드 수'})).toHaveValue('2');
   await expect(editor(page).getByRole('spinbutton',{name:'라운드 사이 휴식 시간 초'})).toHaveValue('120');

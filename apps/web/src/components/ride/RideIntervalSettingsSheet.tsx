@@ -112,7 +112,8 @@ function IntervalEditor({ config, restartOnApply, onApply, onClose, enabled, onE
     rounds: config.rounds ?? 1,
     roundRestSec: config.roundRestSec ?? 0,
   }));
-  const [customOpen, setCustomOpen] = useState(() => mode === "custom");
+  // 직접 설정 값이어도 요약 화면으로 연다 — 직접 조절 화면에는 「간편 인터벌」 자리가 없어서, 그 화면으로 열면 버튼이 사라진다.
+  const [customOpen, setCustomOpen] = useState(false);
   const highRef = useRef<HTMLInputElement>(null);
   const candidate = parseDraft(draft);
   const valid = Object.values(draft).every((raw) => raw.trim() !== "") && isRideIntervalConfig(candidate);
