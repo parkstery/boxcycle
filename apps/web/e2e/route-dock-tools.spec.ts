@@ -60,6 +60,40 @@ test('주행 전 INT·핀·⚙·주행 시작 순서, 주행 중엔 ⚙·일시�
   }
 });
 
+// 10-30 Chief: 폰 가로에서 26×30 이면 접힘의 흰 원이 타원으로 찌그러졌다 — 도구 버튼은 어느 크기에서나 정원.
+test('지도 핀·⚙ 도구 버튼은 접힘·펼침 모두 정원(폭=높이)', async ({ page }) => {
+  for (const size of sizes) {
+    await page.setViewportSize(size);
+    await page.goto(`${preview}?state=ready`);
+    for (let pass = 0; pass < 2; pass += 1) {
+      const boxes = await page.locator('.route-dock__tool').evaluateAll((els) => els.map((el) => { const r = el.getBoundingClientRect(); return { w: r.width, h: r.height }; }));
+      expect(boxes.length, `${size.width} ${pass}`).toBeGreaterThan(0);
+      for (const b of boxes) expect(b.h, `${size.width} ${pass}`).toBeCloseTo(b.w, 1);
+      await page.getByRole('button', { name: /^경로 패널 (펼치기|접기)$/ }).click();
+    }
+  }
+});
+
+// 10-30 Chief: RouteDock 접기 버튼은 미니맵(고정53)처럼 캐럿만 — 경로 지점 도안 없이 가운데.
+test('경로 패널 접기 버튼은 캐럿 하나만 가운데에 보인다', async ({ page }) => {
+  for (const size of sizes) {
+    await page.setViewportSize(size);
+    for (const state of ['ready', 'riding'] as const) {
+      await page.goto(`${preview}?state=${state}`);
+      const fold = page.getByRole('button', { name: '경로 패널 접기', exact: true });
+      if (!(await fold.count())) await page.getByRole('button', { name: '경로 패널 펼치기', exact: true }).click();
+      const label = `${size.width} ${state}`;
+      await expect(fold.locator('.route-overview-fold-toggle__identity'), label).toHaveCount(0);
+      await expect(fold.locator('.route-overview-fold-toggle__chevron'), label).toHaveCount(1);
+      const offset = await fold.evaluate((btn) => {
+        const b = btn.getBoundingClientRect(), c = btn.querySelector('.route-overview-fold-toggle__chevron')!.getBoundingClientRect();
+        return Math.abs((c.left + c.width / 2) - (b.left + b.width / 2));
+      });
+      expect(offset, label).toBeLessThan(1);
+    }
+  }
+});
+
 test('센서 칩은 글자·테두리 없이 21px LED, 주행 중 rpm 은 남는다', async ({ page }) => {
   await page.goto(`${preview}?state=ready`);
   const chip = page.locator('.route-dock__head .hud-cadence--dock');

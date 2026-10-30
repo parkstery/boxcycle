@@ -31,6 +31,8 @@ for (const size of [{width:800,height:360},{width:736,height:300},{width:699,hei
       background:getComputedStyle(el).backgroundColor,
       border:getComputedStyle(el).borderTopWidth,
     })));
+    // 10-30 Chief: 정사각 버튼(지도·±)은 정사각 구름, 계정은 넓은 구름 — 넓은 구름을 눌러 넣으면 혹이 뾰족해진다.
+    clouds.forEach((cloud,i)=>expect(cloud.mask).toContain(i<3?"viewBox='0 0 32 32'":"viewBox='0 0 120 32'"));
     for(const cloud of clouds){expect(cloud.mask).toContain('data:image/svg+xml');expect(cloud.background).toBe('rgba(0, 0, 0, 0)');expect(cloud.border).toBe('0px');}
     for(const b of layout.buttons) expect(b.width).toBe(32);
     // 셀 경계에서도 옆 버튼의 투명 타깃이 클릭을 가로채지 않는다.

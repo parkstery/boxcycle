@@ -300,7 +300,9 @@
 @media (max-width: 700px) {
   .route-dock__head .hud-cadence--dock, .route-dock__head .hud-cadence--dock:hover { padding: 0; gap: 2px; }
   .route-dock-anchor--open .route-dock__head--active .hud-cadence--dock { font-size: 11px; }
-  .route-dock__tool { flex-basis: 26px; width: 26px; }
+  /* 10-30 Chief: 26×30 이면 접힘의 흰 원이 타원으로 찌그러진다 — 정원 26px, 톱니 20px. */
+  .route-dock__tool { flex-basis: 26px; width: 26px; height: 26px; }
+  .route-dock__tool svg { width: 20px; height: 20px; }
   .route-dock-anchor .ride-control-bar { gap: 4px; min-width: 0; }
   .route-dock-anchor--open .route-dock__head--active:has(:is(.route-dock__interval, .route-dock__tool)) { gap: 2px; }
   .route-dock__head--active .route-dock__interval { flex-basis: 26px; width: 26px; }

@@ -13,7 +13,7 @@ type RouteOverviewFoldToggleProps = {
   onClick: () => void;
 };
 
-/** 공통 접기 손잡이. 미니맵은 접힘=지도, 펼침=캐럿 하나만 표시한다. */
+/** 공통 접기 손잡이. 접힘=도안, 펼침=캐럿 하나만 가운데에 표시한다(미니맵 10-29, RouteDock 10-30 Chief). */
 export function RouteOverviewFoldToggle({
   kind,
   expanded,
@@ -36,10 +36,10 @@ export function RouteOverviewFoldToggle({
       onClick={onClick}
     >
       <svg viewBox="0 0 28 20" fill="none" aria-hidden="true">
-        {kind === "route" || !expanded ? (
+        {!expanded ? (
           <g
             className="route-overview-fold-toggle__identity"
-            transform={kind === "map" ? "translate(5.25 0)" : undefined}
+            transform={kind === "map" ? "translate(5.25 0)" : "translate(6 0)"}
           >
             {kind === "route" ? (
               <>
@@ -52,11 +52,11 @@ export function RouteOverviewFoldToggle({
             )}
           </g>
         ) : null}
-        {kind === "route" || expanded ? (
+        {expanded ? (
           <path
             className="route-overview-fold-toggle__chevron"
-            transform={kind === "map" ? "translate(-6.5 0)" : undefined}
-            d={expanded ? "m23 5-5 5 5 5" : "m18 5 5 5-5 5"}
+            transform="translate(-6.5 0)"
+            d="m23 5-5 5 5 5"
           />
         ) : null}
       </svg>
