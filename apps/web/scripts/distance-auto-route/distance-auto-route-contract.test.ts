@@ -292,8 +292,10 @@ describe("distanceAutoRoute", () => {
       MAP_VIEW_SOURCE,
       /DISTANCE_TARGET_CIRCLE_ARROWS_SRC[\s\S]{0,800}map\.on\("style\.load", apply\)/,
     );
-    // Route 선 스타일 유지
-    assert.match(MAP_VIEW_SOURCE, /"line-color": ROUTE_LINE_COLOR/);
+    // Route 선 스타일 유지 — 참고 원은 Route 선보다 옅은 전용 빨강(10-30 Chief)
+    assert.match(MAP_VIEW_SOURCE, /setPaintProperty\("route", "line-color", ROUTE_LINE_COLOR\)/);
+    assert.match(MAP_VIEW_SOURCE, /const DISTANCE_TARGET_CIRCLE_COLOR = "#f87171";/);
+    assert.match(MAP_VIEW_SOURCE, /"line-color": DISTANCE_TARGET_CIRCLE_COLOR/);
     assert.doesNotMatch(MAP_VIEW_SOURCE, /#E8A33D/);
   });
 
