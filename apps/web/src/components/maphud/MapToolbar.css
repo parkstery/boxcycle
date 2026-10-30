@@ -1,0 +1,37 @@
+/* Chief 10-30 A안: 지도 도구는 흰 분할 그룹, 계정은 독립된 같은 높이. */
+.map-hud .map-hud__tr { column-gap: 8px; width: max-content; max-width: calc(100vw - 24px); }
+.map-hud .hud-ride-map-controls {
+  gap: 0; border: 1px solid #d9e1ed; border-radius: 10px;
+  background: #fff; box-shadow: 0 2px 7px #0f172a24;
+}
+.map-hud .hud-ride-map-controls > button {
+  width: 32px; min-width: 32px; height: 30px; min-height: 30px;
+  padding: 0; border: 0; border-radius: 0; background: transparent; color: #132b46;
+  flex: 0 0 32px;
+}
+.map-hud .hud-ride-map-controls > button + button { border-left: 1px solid #dce3ed; }
+.map-hud .hud-ride-map-controls > button:first-child { background: #eaf1ff; color: #2457d6; border-radius: 9px 0 0 9px; }
+.map-hud .hud-ride-map-controls > button:last-child { border-radius: 0 9px 9px 0; }
+.map-hud .hud-ride-map-controls__zoom { font-size: 0; }
+.map-hud .hud-ride-map-controls__zoom svg { width: 16px; height: 16px; }
+.map-hud .hud-ride-map-controls__style-icon { width: 20px; height: 20px; }
+/* 확장 타깃을 각 셀 폭에 제한해 인접 ±/스타일 클릭을 가로채지 않는다. */
+.map-hud .hud-ride-map-controls > button::after { left: 0; right: 0; width: auto; height: 44px; top: 50%; transform: translateY(-50%); }
+.map-hud .hud-ride-map-controls > button:disabled { color: #8b99ad; opacity: .55; }
+.map-hud .hud-account {
+  height: 32px; min-height: 32px; padding: 0 11px; box-sizing: border-box;
+  border: 1px solid #d9e1ed; border-radius: 10px; background: #fff; color: #132b46;
+  box-shadow: 0 2px 7px #0f172a24; max-width: min(220px, calc(100vw - 130px));
+}
+.map-hud .hud-account__text { min-width: 0; }
+.map-hud .hud-account__name { font-size: 12px; font-weight: 700; line-height: 1.2; }
+@media (hover: hover) {
+  .map-hud .hud-ride-map-controls > button:hover:not(:disabled),
+  .map-hud .hud-account:hover { background: #eef3fc; color: #2457d6; }
+}
+/* 아주 좁은 가로 + 긴 누적거리: 계정의 끝 정렬을 지키며 도구만 다음 줄로. */
+@media (max-width: 680px) and (max-height: 560px) {
+  .map-hud--active-ride:has(.hud-metrics__cell--long-distance) .map-hud__tr { row-gap: 12px; }
+  .map-hud--active-ride:has(.hud-metrics__cell--long-distance) .hud-ride-map-controls { grid-area: 2 / 1; }
+  .map-hud--active-ride:has(.hud-metrics__cell--long-distance) .camera-view-menu { grid-area: 2 / 2; justify-self: end; }
+}

@@ -142,37 +142,26 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
               riders != null && riders > 0 ? `${riders}명 · 합류` : "합류";
             return (
               <li key={t.id} className={`trail-hub__item${showActiveRow ? " trail-hub__item--current" : ""}`}>
-                {showActiveRow ? (
-                  <div
-                    className="trail-hub__live-row"
-                    aria-current="true"
-                    aria-label={trailRowLabel(t)}
-                  >
-                    <span className="trail-hub__live-name" title={trailDisplayName(t)}>
-                      {t.regionLabel?.trim() ? <span className="trail-hub__number">{formatTrailDisplayNumber(t.displayNumber)}</span> : null}
-                      {trailDisplayName(t)}
+                <div
+                  className="trail-hub__live-row"
+                  aria-current={showActiveRow ? "true" : undefined}
+                  aria-label={showActiveRow ? trailRowLabel(t) : undefined}
+                >
+                  <span className="trail-hub__live-name" title={trailDisplayName(t)}>
+                    {t.regionLabel?.trim() ? <span className="trail-hub__number">{formatTrailDisplayNumber(t.displayNumber)}</span> : null}
+                    {trailDisplayName(t)}
+                  </span>
+                  {km ? (
+                    <span className="trail-hub__live-km">
+                      {km} <span className="trail-hub__live-km-unit">km</span>
                     </span>
-                    {km ? (
-                      <span className="trail-hub__live-km">
-                        {km} <span className="trail-hub__live-km-unit">km</span>
-                      </span>
-                    ) : null}
+                  ) : null}
+                  {showActiveRow ? (
                     <span className="trail-hub__live-join trail-hub__live-join--static">
                       <span className="trail-hub__live-dot" aria-hidden />
                       주행 중
                     </span>
-                  </div>
-                ) : (
-                  <div className="trail-hub__live-row">
-                    <span className="trail-hub__live-name" title={trailDisplayName(t)}>
-                      {t.regionLabel?.trim() ? <span className="trail-hub__number">{formatTrailDisplayNumber(t.displayNumber)}</span> : null}
-                      {trailDisplayName(t)}
-                    </span>
-                    {km ? (
-                      <span className="trail-hub__live-km">
-                        {km} <span className="trail-hub__live-km-unit">km</span>
-                      </span>
-                    ) : null}
+                  ) : (
                     <button
                       type="button"
                       className="trail-hub__live-join"
@@ -184,8 +173,8 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
                       <span className="trail-hub__live-dot" aria-hidden />
                       {joinLabel}
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </li>
             );
           })}

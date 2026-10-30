@@ -17,6 +17,7 @@ import type { RoutePreviewElevationHud } from "../../app/appHudValues";
 import { coachingTipDisplayKo } from "../../lib/coach/coachingDisplayKo";
 import { CameraViewMenu } from "./CameraViewMenu";
 import "./MapHud.css";
+import "./MapToolbar.css";
 import "./CameraViewMenu.css";
 import "./CloudMapControls.css";
 import { RideIntervalHud } from "../ride/RideIntervalHud";
