@@ -18,6 +18,7 @@ import { coachingTipDisplayKo } from "../../lib/coach/coachingDisplayKo";
 import { CameraViewMenu } from "./CameraViewMenu";
 import "./MapHud.css";
 import "./CameraViewMenu.css";
+import "./CloudMapControls.css";
 import { RideIntervalHud } from "../ride/RideIntervalHud";
 import type { RideIntervalView } from "../../lib/ride/rideInterval";
 import { useRideMoments } from "../../hooks/useRideMoments";
@@ -649,7 +650,7 @@ export function MapHud(props: MapHudProps) {
                 onTouchStart={(e) => e.stopPropagation()}
                 onClick={mapControls.onZoomIn}
               >
-                +
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><path d="M4 10h12M10 4v12" /></svg>
               </button>
               <button
                 type="button"
@@ -661,7 +662,7 @@ export function MapHud(props: MapHudProps) {
                 onTouchStart={(e) => e.stopPropagation()}
                 onClick={mapControls.onZoomOut}
               >
-                −
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><path d="M4 10h12" /></svg>
               </button>
             </div>
           ) : null}

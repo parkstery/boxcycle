@@ -8,6 +8,7 @@ import {
 } from "../../lib/trail/repo/firestoreTrailInstance";
 import { compareOpenTrailsForListing, isActiveOpenTrailListing } from "../../lib/trail/repo/firestoreOpenTrailListings";
 import { TRAILHEAD_LABEL, TRAIL_LABEL } from "../../lib/terms/productTerms";
+import { formatTrailDisplayNumber } from "../../lib/trail/trailDisplayNumber";
 import "./TrailHubPanel.css";
 
 export type TrailHubPanelProps = {
@@ -26,7 +27,7 @@ export type TrailHubPanelProps = {
 
 function trailDisplayName(t: TrailInstance): string {
   const region = t.regionLabel?.trim();
-  return region || `${TRAIL_LABEL} ${t.displayNumber}`;
+  return region || `${TRAIL_LABEL} ${formatTrailDisplayNumber(t.displayNumber)}`;
 }
 
 function trailKmLabel(t: TrailInstance): string | null {
@@ -36,6 +37,7 @@ function trailKmLabel(t: TrailInstance): string | null {
 
 function trailRowLabel(t: TrailInstance): string {
   const parts = [trailDisplayName(t)];
+  if (t.regionLabel?.trim()) parts.push(`${TRAIL_LABEL} ${formatTrailDisplayNumber(t.displayNumber)}`);
   const km = trailKmLabel(t);
   if (km) parts.push(`${km} km`);
   const riders =
@@ -75,6 +77,11 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
 
   return (
     <section className="trail-hub" aria-label={`${TRAILHEAD_LABEL} · ${TRAIL_LABEL}`}>
+      <div className="trail-hub__context">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M5 18c0-8 14-3 14-11" /><circle cx="5" cy="19" r="2" /><circle cx="19" cy="5" r="2" /></svg>
+        <span>현재</span>
+        <strong>{onTrailhead ? TRAILHEAD_LABEL : `${TRAIL_LABEL} ${formatTrailDisplayNumber(props.currentTrail?.displayNumber)}`}</strong>
+      </div>
       {canToggleVisibility ? (
         <div className="trail-hub__row trail-hub__row--visibility">
           <span className="trail-hub__vis-label">이 Trail 공개</span>
@@ -134,7 +141,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
             const joinLabel =
               riders != null && riders > 0 ? `${riders}명 · 합류` : "합류";
             return (
-              <li key={t.id} className="trail-hub__item">
+              <li key={t.id} className={`trail-hub__item${showActiveRow ? " trail-hub__item--current" : ""}`}>
                 {showActiveRow ? (
                   <div
                     className="trail-hub__live-row"
@@ -142,6 +149,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
                     aria-label={trailRowLabel(t)}
                   >
                     <span className="trail-hub__live-name" title={trailDisplayName(t)}>
+                      {t.regionLabel?.trim() ? <span className="trail-hub__number">{formatTrailDisplayNumber(t.displayNumber)}</span> : null}
                       {trailDisplayName(t)}
                     </span>
                     {km ? (
@@ -157,6 +165,7 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
                 ) : (
                   <div className="trail-hub__live-row">
                     <span className="trail-hub__live-name" title={trailDisplayName(t)}>
+                      {t.regionLabel?.trim() ? <span className="trail-hub__number">{formatTrailDisplayNumber(t.displayNumber)}</span> : null}
                       {trailDisplayName(t)}
                     </span>
                     {km ? (

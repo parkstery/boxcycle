@@ -155,7 +155,7 @@
 .menu-panel__body > .trail-hub {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -175,8 +175,8 @@ body:has(.oc-modal-overlay) .menu-panel-root {
   }
 }
 
-/* 낮은 폰에서 Trail 영역이 한 행보다 좁아지면 메뉴 본문 전체를 스크롤한다. */
+/* 낮은 폰도 머리부는 고정하고 남은 높이 전체를 Trail 목록에 배분한다. */
 @media (max-height: 330px) {
-  .menu-panel__body { overflow-y: auto; }
-  .menu-panel__body > .trail-hub { flex: 0 0 auto; overflow: visible; }
+  .menu-panel__body { overflow: hidden; }
+  .menu-panel__body > .trail-hub { flex: 1 1 auto; min-height: 0; overflow: hidden; }
 }

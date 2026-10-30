@@ -29,6 +29,8 @@ import { EntryLocationDialog } from '../../src/components/auth/EntryLocationDial
 import { OfficialCourseListModal } from '../../src/components/ride/OfficialCourseListModal';
 import { RideRoutePanel } from '../../src/components/ride/RideRoutePanel';
 import { MenuPanel } from '../../src/components/MenuPanel';
+import { TrailHubPanel } from '../../src/components/trail/TrailHubPanel';
+import type { TrailInstance } from '../../src/lib/trail/trailTypes';
 import { UserInfoSheet } from '../../src/components/UserInfoSheet';
 import { EdgePanelHandle } from '../../src/components/ui/EdgePanelHandle';
 import type { CalorieIntensityId } from '../../src/lib/ride/caloriesEstimate';
@@ -441,6 +443,16 @@ function Preview() {
   const [flatCameraMode,setFlatCameraMode] = useState<Camera1Mode>('aerial500');
   const [routeSetupToken,setRouteSetupToken] = useState<object>({});
   const [panel,setPanel] = useState(resolveInitialPanel(initial));
+  const [trailPreviewCalls, setTrailPreviewCalls] = useState({joined:'',visibility:'open'});
+  const [toolbarCalls,setToolbarCalls] = useState({zoomIn:0,zoomOut:0});
+  const trailPreview = params.has('trailPreview');
+  const trailPreviewRiding = params.has('trailRiding');
+  const [previewTrails] = useState<TrailInstance[]>(() => Array.from({length:12}, (_, i) => ({
+    id: `preview-trail-${i}`, hostUid:'preview-host', displayNumber:35+i,
+    publicationId:`preview-publication-${i}`, regionLabel:['남산 순환로','한강 자전거길','북악 스카이웨이','여의도 한 바퀴'][i%4],
+    distanceKm:12.4+i, visibility:'open', status:'open', createdAtMs:Date.now()-i*1000,
+    lastActivityAtMs:Date.now(), liveRiderCount:1+i%4,
+  })));
   const [reopenSaved,setReopenSaved] = useState(0);
   const rideStartPulseKey = useRideStartPulseKey(routeSetupToken, stage==='ready-to-start' && panel!=='summary' && !params.has('loading') && !params.has('blocked'));
   const [nextRideHidden, setNextRideHidden] = useState(false);
@@ -560,7 +572,7 @@ function Preview() {
       metrics={hasRoute?active?{mode:'ride',elapsed:glanceRiding?'00:13':'24:08',distanceKm:glanceRiding?'0.07':'4.20',cumulativeKm:glanceRiding?'0.07':long?'1234.56':'4.20',avgKmh:glanceRiding?'19.8':'18.6',speedKmh:glanceRiding?37:24,routeTotalKm:glanceRiding?'2.02':long?'9999.99':'10.00'}:{mode:'route-preview',distanceKm:long?'1234.56':'2.02',elevation:{status:'ready',startM:46,endM:30}}:null}
       conquestLiveMeters={active?420:null} onClearPins={noop} routeError={params.has('error')?'경로를 찾지 못했습니다. 다른 지점을 선택해 주세요.':null}
       onResumeFromPause={()=>setStage('riding')} onEndFromPause={()=>setPanel('summary')} onModifyFromPause={()=>setStage('setup')}
-      quickCamera={active&&!glanceRiding?{active:camera,camera1Mode:flatCameraMode,enable3D,terrainFallback:params.has('terrainFallback'),onEnable3D:setEnable3D,onSelect:setCamera,onSelectFlat:(mode)=>{setFlatCameraMode(mode);setCamera(1);}}:null} mapControls={{styleLabel:mapStyleLabel,styleAriaLabel:`맵 스타일 ${mapStyleLabel}, 클릭 시 ${mapStyleLabel==='위성'?'야외':'위성'}`,onToggleStyle:()=>setMapStyleLabel(value=>value==='위성'?'야외':'위성'),onZoomOut:noop,onZoomIn:noop,zoomOutDisabled:false,zoomInDisabled:false}}
+      quickCamera={active&&!glanceRiding?{active:camera,camera1Mode:flatCameraMode,enable3D,terrainFallback:params.has('terrainFallback'),onEnable3D:setEnable3D,onSelect:setCamera,onSelectFlat:(mode)=>{setFlatCameraMode(mode);setCamera(1);}}:null} mapControls={{styleLabel:mapStyleLabel,styleAriaLabel:`맵 스타일 ${mapStyleLabel}, 클릭 시 ${mapStyleLabel==='위성'?'야외':'위성'}`,onToggleStyle:()=>setMapStyleLabel(value=>value==='위성'?'야외':'위성'),onZoomOut:()=>setToolbarCalls(c=>({...c,zoomOut:c.zoomOut+1})),onZoomIn:()=>setToolbarCalls(c=>({...c,zoomIn:c.zoomIn+1})),zoomOutDisabled:false,zoomInDisabled:false}}
       leaderboardGlancePanel={initial!=='glance-summary'?<LeaderboardGlancePanel {...glanceView} />:undefined}
       rideMoments={active?{status:stage==='paused'?'paused':'running',elapsedMs:intervalElapsedMs,routeMeters:2020,traveledMeters:420,waypointMeters:[700,1400],newRoadKm:0.42,ended:null,intervalRunKey:interval.runKey,soundEnabled:rideMomentSoundEnabled}:null} />
     <RideSummarySheet open={panel==='summary'||initial==='glance-summary'} result={result} arrivalCompleted={false} elapsedLabel="07:00" avgKmh="18" caloriesEstimate={null}
@@ -706,6 +718,7 @@ function Preview() {
     {panel==='routes'?<OfficialCourseListModal segment="intro" onClose={()=>setPanel('ready')} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
       basicStartLoading={false} basicStartHubJoined={false} routeLoading={false} sessionIdle officialCourseCatalogAvailable publishedPublicCourses={[]}
       publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}/>:null}
+    <span id="toolbar-preview-calls" hidden data-zoom-in={toolbarCalls.zoomIn} data-zoom-out={toolbarCalls.zoomOut} />
     <MenuPanel open={panel==='menu'} onClose={()=>setPanel('ready')} onOpenPlaceSearch={noop}>
       <RideRoutePanel routeSummary="" routeLoading={false} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
         basicStartLoading={false} basicStartHubJoined={false} officialCourseCatalogAvailable publishedPublicCourses={getBasicSharedHubSummaries()}
@@ -715,6 +728,14 @@ function Preview() {
         rideTtsEnabled onRideTtsEnabled={noop} rideBgmEnabled onRideBgmEnabled={noop} rideCoachingBanner onRideCoachingBanner={noop}
         pacerEnabled onPacerEnabled={noop} rideElevationProfileLoading={false} rideBgmCatalogConfigured
         reopenSavedSignal={reopenSaved} />
+      {trailPreview ? <TrailHubPanel user={{uid:'preview-host'} as User}
+        activeTrailId={trailPreviewRiding ? previewTrails[0].id : 'default'}
+        currentTrail={trailPreviewRiding ? {...previewTrails[0],visibility:trailPreviewCalls.visibility as 'open'|'private'} : null}
+        openTrails={previewTrails} openTrailsLoading={false} openTrailsError={null}
+        rideSessionActive={trailPreviewRiding}
+        onJoinTrail={id=>setTrailPreviewCalls(c=>({...c,joined:id}))}
+        onSetVisibility={visibility=>setTrailPreviewCalls(c=>({...c,visibility}))} /> : null}
+      {trailPreview ? <span id="trail-preview-calls" hidden data-joined={trailPreviewCalls.joined} data-visibility={trailPreviewCalls.visibility} /> : null}
     </MenuPanel>
     {panel==='intro'?<AppIntroScreen onStartGuest={()=>setPanel('location')} onLogin={()=>setPanel('location')}/>:null}
     {panel==='location'?<EntryLocationDialog phase="choice" permission="prompt" onChooseRome={()=>setPanel('ready')} onChooseCurrent={()=>setPanel('ready')} onPosition={noop}/>:null}
