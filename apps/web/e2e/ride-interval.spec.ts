@@ -210,3 +210,23 @@ for (const size of [{width:800,height:360},{width:667,height:300},{width:844,hei
     }
   });
 }
+
+// Chief 11-02: 인터벌 창이 떠 있으면 미니맵을 숨긴다(좌측 공간 다툼). 인터벌을 끄면 다시 보인다.
+test('인터벌 창이 보이는 동안 미니맵은 숨는다', async ({ page }) => {
+  await page.clock.install();
+  const minimap = page.locator('.map-bottom-left-stack .route-minimap');
+  await page.goto(`${preview}?state=riding`);
+  await expect(page.getByRole('group', { name: '인터벌 안내' })).toHaveCount(0);
+  await expect(minimap).toBeVisible();
+  await page.goto(`${preview}?state=riding&interval&intervalMs=713000`);
+  await expect(page.getByRole('group', { name: '인터벌 안내' })).toBeVisible();
+  await expect(minimap).toHaveCount(0);
+  await page.getByRole('button', { name: '일시정지', exact: true }).click();
+  await expect(minimap).toHaveCount(0);
+  await page.getByRole('button', { name: '인터벌 운동 설정', exact: true }).click();
+  const editor = page.getByRole('dialog', { name: '인터벌 운동 설정', exact: true });
+  await editor.getByRole('switch', { name: /^인터벌/ }).uncheck();
+  await editor.getByRole('button', { name: '인터벌 운동 설정 닫기', exact: true }).click();
+  await expect(page.getByRole('group', { name: '인터벌 안내' })).toHaveCount(0);
+  await expect(minimap).toBeVisible();
+});

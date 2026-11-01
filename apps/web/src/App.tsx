@@ -3071,8 +3071,9 @@ export default function App() {
               <>
                 <MapBottomLeftStack>
                   {routeDockPanel}
+                  {/* Chief 11-02: 인터벌 창이 떠 있으면 미니맵은 숨긴다(좌측 공간 다툼). */}
                   <RouteMinimap
-                    active={stage === "riding" || stage === "paused"}
+                    active={(stage === "riding" || stage === "paused") && rideInterval == null}
                     routeGeometry={routeGeometry}
                     liveLngLat={liveForMap}
                     mapboxAccessToken={MAPBOX_TOKEN}

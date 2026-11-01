@@ -1,0 +1,343 @@
+<title>주행 화면 배치 방안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap">
+<style>
+  /* 레이아웃: 결정·이번 질문 → 조작줄 → 폰 화면 시뮬레이터(움직임) → 제 생각 → Trail 방법 비교 → 현재 문제 캡처. 시뮬레이터 안 앱 색은 지도 위라 테마 공통 */
+  :root {
+    --bg: #edf0f4; --surface: #ffffff; --fg: #17202b; --muted: #576375; --line: #d3dae4; --accent: #2457d6; --accent-fg: #ffffff; --warn: #b4261c; --warn-bg: #fdecea; --ok-bg: #e7eefc;
+    --font-ui: "IBM Plex Sans KR", "Malgun Gothic", system-ui, sans-serif;
+    --a-ink: #142c46; --a-blue: #2457d6; --a-red: #e0262b; --a-white: rgba(255, 255, 255, .92); --a-shadow: rgba(15, 23, 42, .28); --a-row: rgba(255, 255, 255, .78); --a-me: rgba(222, 233, 255, .92);
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #11161d; --surface: #1a212b; --fg: #e6ebf1; --muted: #9ba7b7; --line: #2c3644; --accent: #7d9cff; --accent-fg: #0d1320; --warn: #ff9a8f; --warn-bg: #3a1d1b; --ok-bg: #1f2b45; color-scheme: dark } }
+  :root[data-theme="dark"] { --bg: #11161d; --surface: #1a212b; --fg: #e6ebf1; --muted: #9ba7b7; --line: #2c3644; --accent: #7d9cff; --accent-fg: #0d1320; --warn: #ff9a8f; --warn-bg: #3a1d1b; --ok-bg: #1f2b45; color-scheme: dark }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 15px; line-height: 1.55; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding-block: 24px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+  h1 { font-size: 28px; margin: 0; text-wrap: balance; letter-spacing: -.3px; }
+  h2 { font-size: 19px; margin: 0 0 10px; text-wrap: balance; }
+  h3 { font-size: 16px; margin: 0 0 6px; }
+  .lead { margin: 6px 0 0; color: var(--muted); max-width: 76ch; }
+  .lead b { color: var(--fg); }
+  .pane { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+  .pick { border-color: var(--accent); }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; color: var(--accent-fg); background: var(--accent); border-radius: 4px; padding: 0 6px; margin-left: 6px; vertical-align: 2px; }
+  ul.plain { margin: 0; padding-left: 18px; font-size: 14.5px; }
+  ul.plain li { margin-bottom: 5px; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; flex-wrap: wrap; }
+  .seg button { font: inherit; font-size: 14px; padding: 6px 11px; border: 0; background: transparent; color: var(--fg); cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); font-weight: 700; }
+  .seg button:focus-visible, .controls input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .ctl-label { font-size: 13px; color: var(--muted); margin-right: 4px; }
+  .controls label { font-size: 14px; display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+  .controls input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+  .device { position: relative; overflow: hidden; border-radius: 14px; box-shadow: 0 0 0 8px #1d232c, 0 12px 30px rgba(0,0,0,.25); margin: 8px; width: calc(100% - 16px); cursor: pointer; }
+  .screen { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; font-family: "Pretendard", "Malgun Gothic", system-ui, sans-serif; }
+  .simnote { font-size: 13.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; align-items: center; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; background: var(--warn-bg); color: var(--warn); font-weight: 700; font-size: 13px; }
+  .badge.ok { background: var(--ok-bg); color: var(--accent); }
+
+  /* ── 시뮬레이터 안의 앱 요소. 위치·투명도는 움직임으로 바뀐다 ── */
+  .el { position: absolute; box-sizing: border-box; transition: left .3s ease, top .3s ease, opacity .3s ease, height .3s ease; }
+  @media (prefers-reduced-motion: reduce) { .el { transition: none; } }
+  .metrics { display: flex; gap: 10px; color: #fff; font-weight: 800; text-shadow: 0 0 2px #000, 0 0 4px rgba(0,0,0,.7); }
+  .metrics div { display: grid; justify-items: center; line-height: 1.05; }
+  .metrics small { font-size: 10px; font-weight: 700; }
+  .metrics strong { font-size: 17px; font-variant-numeric: tabular-nums; color: #9fd8ff; }
+  .metrics strong.g { color: #9df29a; }
+  .ihud { background: rgba(255,255,255,.7); border: 1px solid rgba(255,255,255,.5); border-radius: 8px; padding: 6px 8px; color: var(--a-ink); font-weight: 700; display: grid; grid-template-columns: 1fr auto; grid-template-rows: 1fr 8px; gap: 4px; }
+  .ihud .t { display: flex; flex-direction: column; justify-content: space-between; font-size: 9.5px; white-space: nowrap; }
+  .ihud .t b { font-size: 19px; color: #d42020; }
+  .ihud .bar { grid-column: 1 / -1; border: 1px solid rgba(20,44,70,.45); border-radius: 4px; background: linear-gradient(90deg, #5b6678 0 30%, rgba(212,32,32,.3) 30% 60%, rgba(91,102,120,.3) 60%); }
+  .btn { display: grid; place-items: center; border-radius: 50%; background: var(--a-white); box-shadow: 0 1px 5px var(--a-shadow); color: #2a2e37; }
+  .btn svg { width: 56%; height: 56%; }
+  .btn.pause { background: var(--a-blue); color: #fff; }
+  .btn.stop { background: var(--a-red); color: #fff; }
+  .list { font-size: 12px; font-weight: 700; color: var(--a-ink); display: grid; gap: 3px; align-content: start; overflow: hidden; }
+  .list .hd { font-size: 10px; color: #fff; text-shadow: 0 0 2px #000, 0 0 3px rgba(0,0,0,.8); padding: 0 4px; display: flex; gap: 8px; align-items: center; height: 14px; }
+  .list .hd span.on { text-decoration: underline; text-underline-offset: 3px; }
+  .list .hd span.off { opacity: .7; }
+  .list .row { display: flex; gap: 6px; align-items: center; background: var(--a-row); padding: 0 6px; border-radius: 3px; height: 21px; white-space: nowrap; }
+  .list .row .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+  .list .row.me { background: var(--a-me); color: var(--a-blue); }
+  .list .row .go { font-size: 10.5px; color: var(--a-blue); border: 1px solid rgba(36,87,214,.5); border-radius: 999px; padding: 0 6px; background: #fff; }
+  .list .row .live { font-size: 10.5px; color: #15803d; }
+  .list .more { font-size: 10.5px; color: #fff; text-shadow: 0 0 2px #000; padding: 0 6px; }
+  .chipbar { display: flex; gap: 6px; overflow: hidden; }
+  .chipbar .c { flex: 0 0 auto; display: flex; gap: 5px; align-items: center; height: 28px; padding: 0 10px; border-radius: 999px; background: var(--a-white); box-shadow: 0 1px 4px var(--a-shadow); font-size: 12px; font-weight: 700; color: var(--a-ink); white-space: nowrap; }
+  .chipbar .c.me { background: var(--a-me); color: var(--a-blue); }
+  .tab { width: 16px; height: 44px; border-radius: 0 10px 10px 0; background: var(--a-white); box-shadow: 0 1px 4px var(--a-shadow); display: grid; place-items: center; font-size: 11px; color: #555; }
+  .tab.r { border-radius: 10px 0 0 10px; }
+  .coach { color: #fff; font-weight: 800; font-size: 15px; text-shadow: 0 0 2px #000, 0 0 5px rgba(0,0,0,.8); white-space: nowrap; transform: translateX(-50%); }
+  .logo { font-size: 11px; font-weight: 800; color: #fff; text-shadow: 0 0 2px #000; }
+  .attr { font-size: 9px; color: #222; background: rgba(255,255,255,.6); padding: 0 4px; white-space: nowrap; }
+  .hint { background: rgba(20,44,70,.86); color: #fff; font-size: 12px; padding: 5px 9px; border-radius: 8px; line-height: 1.35; white-space: nowrap; transform: translateX(-50%); }
+
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 14px; }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 600px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 7px 8px; text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  td:first-child { white-space: nowrap; }
+  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 14px; }
+  figure { margin: 0; display: grid; gap: 6px; }
+  figure .img { width: 100%; aspect-ratio: 807 / 372; max-width: 100%; border-radius: 8px; background: #333 center / cover no-repeat; }
+  figcaption { font-size: 13px; color: var(--muted); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>주행 화면 배치 방안: 오른쪽 조작 레일</h1>
+    <p class="lead"><b>A안(오른쪽 조작 레일)으로 정했습니다.</b> 이번에 더한 것은 두 가지입니다. ① 순위 목록은 버튼이 숨으면 오른쪽 가장자리에 붙고, 버튼이 나오면 레일 폭만큼 안쪽으로 밀려납니다. ② 메뉴 패널 안에 있던 Trail 목록을 순위 목록처럼 지도 위 줄 목록으로 꺼내는 방법 세 가지를 비교합니다. 시뮬레이터 화면을 누르면 실제처럼 버튼이 나타나고 숨습니다.</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="시뮬레이터 설정">
+    <span><span class="ctl-label">버튼</span><span class="seg" id="segShow"><button type="button" data-v="1" aria-pressed="false">보임</button><button type="button" data-v="0" aria-pressed="true">숨김</button></span></span>
+    <label for="optDemo"><input id="optDemo" type="checkbox" checked> 자동 시연(3초마다 전환)</label>
+    <span><span class="ctl-label">Trail 목록</span><span class="seg" id="segTrail"><button type="button" data-v="t1" aria-pressed="true">① 왼쪽 가장자리</button><button type="button" data-v="t2" aria-pressed="false">② 오른쪽 탭 공유</button><button type="button" data-v="t3" aria-pressed="false">③ 아래 가로 칩</button></span></span>
+    <span><span class="ctl-label">화면</span><span class="seg" id="segScreen"><button type="button" data-v="800x360" aria-pressed="true">800×360</button><button type="button" data-v="699x273" aria-pressed="false">699×273</button></span></span>
+    <span><span class="ctl-label">버튼 크기</span><span class="seg" id="segSize"><button type="button" data-v="48" aria-pressed="false">48px</button><button type="button" data-v="64" aria-pressed="true">64px</button></span></span>
+    <label for="optRank"><input id="optRank" type="checkbox" checked> 순위 목록 펼침</label>
+    <label for="optTrail"><input id="optTrail" type="checkbox" checked> Trail 목록 펼침</label>
+  </div>
+
+  <section class="pane" aria-label="폰 화면 시뮬레이터">
+    <div class="device" id="device" title="누르면 버튼이 나타나거나 숨습니다"><div class="screen" id="screen"></div></div>
+    <div class="simnote" id="simnote"></div>
+  </section>
+
+  <section class="opts">
+    <div class="pane pick">
+      <h3>제 생각: ① 왼쪽 가장자리<span class="tag">추천</span></h3>
+      <ul class="plain">
+        <li><b>왼쪽 = Trail, 오른쪽 = 순위.</b> 지금 반달 탭도 왼쪽이 Trail 메뉴, 오른쪽이 순위라 손이 기억하는 자리와 같습니다.</li>
+        <li><b>목록은 버튼에게 자리를 내줍니다.</b> 순위는 옆으로 밀려나고, Trail 목록은 아래쪽 주행 버튼 줄이 나오면 아랫줄부터 접혀 「+2」로 줄어듭니다. 버튼이 숨으면 다시 펴집니다.</li>
+        <li><b>주행 중엔 버튼이 숨어 있는 시간이 대부분</b>이라, 평소엔 두 목록이 다 보이고 누를 때만 잠깐 줄어듭니다.</li>
+        <li><b>Trail 줄은 순위처럼 한 줄씩</b>: 번호·짧은 이름(도로·동 이름)·km·「주행 중」 또는 「합류」. 줄 전체가 합류 버튼입니다. 지금 내 Trail은 순위의 「내 줄」처럼 파란 띠.</li>
+        <li><b>패널에 남길 것</b>: 「이 Trail 공개/비공개」 전환과 검색·로그인 같은 드문 일은 메뉴 패널에 그대로 둡니다. 주행 중엔 일시정지에서 엽니다.</li>
+        <li><b>낮은 폰(273px)</b>에선 버튼이 나올 때 Trail 목록이 머리줄 「Trail 4 ▸」만 남습니다. 대신 버튼이 숨으면 4줄이 다 보입니다.</li>
+      </ul>
+    </div>
+    <div class="pane">
+      <h3>② 오른쪽 탭 공유</h3>
+      <ul class="plain">
+        <li>오른쪽 목록 자리 하나를 순위·Trail이 나눠 씁니다. 머리줄 「순위 | Trail」을 눌러 바꿉니다.</li>
+        <li>왼쪽이 비어서 화면이 가장 넉넉하고, 낮은 폰에서도 그대로 동작합니다.</li>
+        <li>대신 두 목록을 동시에 볼 수 없습니다. 순위를 보다가 Trail로 바꾸면 순위는 안 보입니다.</li>
+      </ul>
+    </div>
+    <div class="pane">
+      <h3>③ 아래 가로 칩</h3>
+      <ul class="plain">
+        <li>Trail을 화면 아래쪽 가로 칩 한 줄(「440 이태원로 3.0km」)로 보여 줍니다.</li>
+        <li>세로 공간을 거의 안 씁니다.</li>
+        <li>대신 2~3개만 보이고 나머지는 옆으로 넘겨야 합니다. 응원 자막과 자리를 다퉈 자막이 위로 올라갑니다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="pane">
+    <h2>세 방법 비교</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th></th><th>① 왼쪽 가장자리</th><th>② 오른쪽 탭 공유</th><th>③ 아래 가로 칩</th></tr></thead>
+        <tbody>
+          <tr><td>순위와 동시에 보기</td><td>가능</td><td>불가(탭 전환)</td><td>가능</td></tr>
+          <tr><td>보이는 Trail 수(800×360)</td><td>버튼 숨김 6줄까지 · 보임 4줄까지(넘치면 「+N」)</td><td>5줄</td><td>2~3개</td></tr>
+          <tr><td>보이는 Trail 수(699×273)</td><td>숨김 4줄까지 · 보임 머리줄 「Trail 4 ▸」만</td><td>5줄</td><td>2개</td></tr>
+          <tr><td>버튼과 부딪힘</td><td>아랫줄이 접힘</td><td>순위처럼 옆으로 밀림</td><td>버튼 사이 좁은 칸</td></tr>
+          <tr><td>지금 반달 탭과의 일치</td><td>같음(왼쪽 Trail·오른쪽 순위)</td><td>왼쪽 탭 의미가 바뀜</td><td>왼쪽 탭 의미가 바뀜</td></tr>
+          <tr><td>응원 자막</td><td>영향 없음</td><td>영향 없음</td><td>위로 이동</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lead" style="margin-top:10px">정해 주실 것: ① Trail 목록 방법(①·②·③) ② 주행 중 「이 Trail 공개/비공개」 전환을 메뉴 패널(일시정지에서 열기)로 옮겨도 되는지 ③ 버튼이 숨을 때 ⏸까지 숨겨도 되는지(지금 시뮬레이터는 모두 숨김, 화면을 한 번 누르면 나타남). 정해 주시면 디자인 고정 목록과 부딪히는 항목(구름 버튼 자리, 순위 목록, 반달 탭, RouteDock, 메뉴 패널)을 정리한 실행 계획을 올리겠습니다.</p>
+  </section>
+
+  <section class="pane">
+    <h2>지금 화면 (보내 주신 캡처)</h2>
+    <div class="shots">
+      <figure><div class="img" style="background-image:url(now-route.png)"></div><figcaption>경로 패널을 펼친 주행 화면: 왼쪽에 인터벌·버튼 줄·주소·미니맵이 붙어 있음</figcaption></figure>
+      <figure><div class="img" style="background-image:url(now-coach.png)"></div><figcaption>응원 자막이 지도 출처·경로선과 겹치고, 버튼은 26~32px</figcaption></figure>
+    </div>
+  </section>
+</div>
+
+<script>
+const ICON = {
+  pause: '<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg>',
+  stop: '<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>',
+  camera: '<svg viewBox="0 0 24 24"><path fill="#2457d6" d="M2 6h12v12H2zM16 10l6-3.5v11L16 14z"/></svg>',
+  layers: '<svg viewBox="0 0 24 24" fill="none" stroke="#2457d6" stroke-width="2" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  minus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>',
+  mini: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M6 15l4-4 3 3 5-5"/></svg>',
+};
+const RANK = [["1", "geum", "17.1"], ["2", "한강라이더", "12.4"], ["3", "새벽페달", "9.8"], ["4", "Ridingman12", "9.5", true], ["5", "원주토박이", "8.7"]];
+const TRAILS = [["440", "이태원로", "3.0", "live"], ["512", "한남대로", "5.2", "2명 · 합류"], ["389", "반포한강공원", "12.4", "합류"], ["601", "남산순환로", "7.8", "1명 · 합류"]];
+const state = { show: false, trail: "t1", W: 800, H: 360, b: 64, rank: true, trailOpen: true, t2tab: "rank", demo: true };
+
+const px = (n) => `${Math.round(n)}px`;
+function mapSvg(W, H) {
+  return `<svg width="${W}" height="${H}" viewBox="0 0 800 360" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect width="800" height="360" fill="#e9e5dc"/>
+    <path d="M0 250 C 200 230, 330 300, 520 250 S 760 170, 800 190 L800 360 L0 360z" fill="#a9cfe6"/>
+    <g fill="#d5e5c8"><rect x="40" y="40" width="120" height="80" rx="6"/><rect x="600" y="70" width="140" height="60" rx="6"/></g>
+    <g stroke="#fff" stroke-width="9" fill="none"><path d="M0 150 H800"/><path d="M400 0 V360"/><path d="M180 0 L260 360"/><path d="M640 0 L560 230"/></g>
+    <path d="M0 95 C 250 120, 520 60, 800 110" stroke="#f4d6a5" stroke-width="6" fill="none"/>
+    <path d="M405 360 V150 L520 110 L640 130" stroke="#e8463b" stroke-width="5" fill="none"/>
+    <path d="M405 360 V230" stroke="#c13cf0" stroke-width="7" fill="none"/>
+    <circle cx="405" cy="230" r="9" fill="#2457d6" stroke="#fff" stroke-width="3"/>
+  </svg>`;
+}
+function rankRows(n) { return RANK.slice(0, n).map(([r, name, km, me]) => `<div class="row${me ? " me" : ""}"><span>${r}</span><span class="nm">${name}</span><span>${km} km</span></div>`).join(""); }
+function trailRows(n) {
+  return TRAILS.slice(0, n).map(([no, name, km, st]) => `<div class="row${st === "live" ? " me" : ""}"><span>${no}</span><span class="nm">${name}</span><span>${km} km</span>${st === "live" ? `<span class="live">● 주행 중</span>` : `<span class="go">${st}</span>`}</div>`).join("");
+}
+const ROW = 24, HEAD = 17;
+
+/* 화면 요소를 key 로 유지해 위치만 바꾼다 → 옆으로 밀려나는 움직임이 보인다 */
+const live = new Map();
+let next = new Map();
+function put(key, cls, x, y, w, h, inner, opacity = 1) { next.set(key, { cls, x, y, w, h, inner, opacity }); }
+function commit(screen) {
+  for (const [k, d] of next) {
+    let n = live.get(k);
+    const fresh = !n;
+    if (fresh) { n = document.createElement("div"); screen.appendChild(n); live.set(k, n); n.style.opacity = "0"; }
+    n.className = `el ${d.cls}`;
+    n.style.left = px(d.x); n.style.top = px(d.y);
+    n.style.width = d.w != null ? px(d.w) : ""; n.style.height = d.h != null ? px(d.h) : "";
+    if (n._inner !== d.inner) { n.innerHTML = d.inner; n._inner = d.inner; }
+    if (fresh) requestAnimationFrame(() => requestAnimationFrame(() => { n.style.opacity = String(d.opacity); }));
+    else n.style.opacity = String(d.opacity);
+  }
+  for (const [k, n] of live) if (!next.has(k)) { live.delete(k); n.style.opacity = "0"; setTimeout(() => n.remove(), 320); }
+  next = new Map();
+}
+
+function layout() {
+  const { W, H, b, show } = state;
+  const short = H < 300, g = 8, notes = [];
+  const iTop = 40, iW = short ? 157 : 180, iH = short ? 92 : 104, d = short ? 70 : 84;
+  put("metrics", "metrics", 10, 2, null, null, [["거리", "0.13", ""], ["시간", "01:35", ""], ["속도", "5", ""], ["새 도로", "+0.12", "g"], ["평균", "5.0", ""], ["RPM", "92", "g"]].map(([k, v, c]) => `<div><small>${k}</small><strong class="${c}" style="${short ? "font-size:15px" : ""}">${v}</strong></div>`).join(""));
+  put("ihud", "ihud", 10, iTop, iW, iH, `<div class="t"><span>1/2세트</span><b>운동</b><span>다음 · 회복 30초</span><span style="color:#173fb4">1:54 / 5:40</span></div><svg width="${d}" height="${d}" viewBox="0 0 44 44"><circle cx="22" cy="22" r="17" fill="none" stroke="#36506d" stroke-width="5" stroke-dasharray="17 4.4"/><circle cx="22" cy="22" r="10.7" fill="rgba(212,32,32,.13)" stroke="#d42020" stroke-width="2.6" stroke-dasharray="40 67" transform="rotate(-90 22 22)"/><text x="22" y="23" text-anchor="middle" dominant-baseline="central" font-size="11.5" font-weight="800" fill="#d42020">7</text></svg><div class="bar"></div>`);
+
+  // 오른쪽 조작 레일: 보이면 오른쪽 끝, 숨으면 화면 밖으로 밀려남
+  let rail = ["camera", "layers", "plus", "minus"];
+  if (8 + 4 * b + 3 * g > H - 24) rail = ["camera", "plus", "minus"];
+  const railX = W - g - b;
+  rail.forEach((k, i) => put(`r-${k}`, "btn", show ? railX : W + 10, 8 + i * (b + g), b, b, ICON[k], show ? 1 : 0));
+  // 왼쪽 아래 주행 버튼 줄: 숨으면 아래로 내려가며 사라짐
+  const rowY = H - 24 - b;
+  const row = ["gear", "pause", "stop", "mini"];
+  row.forEach((k, i) => put(`l-${k}`, `btn ${k === "pause" ? "pause" : k === "stop" ? "stop" : ""}`, 10 + i * (b + g), show ? rowY : H + 10, b, b, ICON[k], show ? 1 : 0));
+  const rowRight = 10 + row.length * (b + g);
+
+  // 오른쪽 목록(순위, ②에선 순위|Trail 탭)
+  const RW = 196;
+  const rightX = show ? railX - 10 - RW : W - RW - 4;
+  const rightOpen = state.trail === "t2" ? (state.rank || state.trailOpen) : state.rank;
+  if (rightOpen) {
+    const isTrail = state.trail === "t2" && state.t2tab === "trail";
+    const head = state.trail === "t2"
+      ? `<div class="hd"><span class="${isTrail ? "off" : "on"}" data-tab="rank">순위</span><span>|</span><span class="${isTrail ? "on" : "off"}" data-tab="trail">Trail</span></div>`
+      : `<div class="hd">이번 주 순위</div>`;
+    const body = isTrail ? trailRows(4) : rankRows(5);
+    const n = isTrail ? 4 : 5;
+    put("rlist", "list", rightX, 8, RW, HEAD + n * ROW, head + body);
+  } else {
+    put("rtab", "tab r", W - 16, H / 2 - 22, 16, 44, "‹");
+  }
+  if (rightOpen && show && rightX < iW + 20) notes.push(`<span class="badge">순위 목록이 인터벌 패널 쪽으로 너무 밀림</span>`);
+  if (rightOpen) notes.push(`<span class="badge ok">순위 목록: ${show ? "레일 옆으로 밀려남" : "오른쪽 가장자리에 붙음"}</span>`);
+
+  // Trail 목록
+  if (state.trail === "t1") {
+    if (state.trailOpen) {
+      const top = iTop + iH + 8;
+      const bottom = show ? rowY - 8 : H - 26;
+      const fit = Math.max(0, Math.floor((bottom - top - HEAD + 3) / ROW));
+      let rows, more = 0;
+      if (fit >= TRAILS.length) rows = TRAILS.length;
+      else { rows = Math.max(0, fit - 1); more = TRAILS.length - rows; }
+      const headTxt = rows === 0 ? `Trail ${TRAILS.length} ▸` : "지금 달리는 Trail";
+      const inner = `<div class="hd">${headTxt}</div>${trailRows(rows)}${more && rows > 0 ? `<div class="more">+${more}</div>` : ""}`;
+      const h = HEAD + rows * ROW + (more && rows > 0 ? 16 : 0);
+      put("tlist", "list", 4, top, 222, h, inner);
+      notes.push(rows === TRAILS.length ? `<span class="badge ok">Trail ${rows}줄 모두 보임</span>` : rows > 0 ? `<span class="badge ok">Trail ${rows}줄 + 「+${more}」(버튼 줄에 자리 양보)</span>` : `<span class="badge">Trail은 머리줄만(버튼 줄에 자리 양보)</span>`);
+    } else put("ltab", "tab", 0, H / 2 - 22, 16, 44, "›");
+  } else if (state.trail === "t2") {
+    put("ltab", "tab", 0, H / 2 - 22, 16, 44, "›");
+    notes.push(`<span class="badge ok">머리줄 「순위 | Trail」을 누르면 바뀜</span>`);
+  } else {
+    if (state.trailOpen) {
+      const x0 = show ? rowRight : 10, x1 = show ? railX - 8 : W - 10;
+      const chips = TRAILS.map(([no, name, km, st]) => `<span class="c${st === "live" ? " me" : ""}">${no} ${name} ${km}km${st === "live" ? " ●" : ""}</span>`).join("");
+      put("tchips", "chipbar", x0, H - 24 - 30, Math.max(0, x1 - x0), 28, chips);
+      notes.push(`<span class="badge">칩 줄 폭 ${Math.round(x1 - x0)}px: 다 안 보이면 옆으로 넘김</span>`);
+    } else put("ltab", "tab", 0, H / 2 - 22, 16, 44, "›");
+  }
+
+  const coachX = show ? (rowRight + railX) / 2 : W / 2;
+  const coachY = state.trail === "t3" && state.trailOpen ? H - 24 - 30 - 26 : H - 24 - 24;
+  put("coach", "coach", coachX, coachY, null, null, "곧 회복 구간이에요.");
+  put("logo", "logo", 10, H - 18, null, null, "mapbox");
+  put("attr", "attr", W - 150, H - 14, null, null, "© Mapbox © OpenStreetMap");
+  put("hint", "hint", coachX, coachY - 32, null, null, show ? "버튼이 보이는 중 · 5초 뒤 숨김" : "버튼 숨김 · 화면을 누르면 나타남", .9);
+  return notes;
+}
+
+const device = document.getElementById("device"), screen = document.getElementById("screen"), simnote = document.getElementById("simnote");
+let mapKey = "";
+function render() {
+  const { W, H, b } = state;
+  const key = `${W}x${H}`;
+  if (key !== mapKey) { for (const n of live.values()) n.remove(); live.clear(); screen.innerHTML = `<div class="el" style="left:0;top:0;transition:none">${mapSvg(W, H)}</div>`; mapKey = key; }
+  const notes = layout();
+  commit(screen);
+  screen.style.width = px(W); screen.style.height = px(H);
+  const k = Math.min(1.6, device.clientWidth / W);
+  screen.style.transform = `scale(${k})`;
+  device.style.height = px(H * k);
+  device.style.maxWidth = px(W * 1.6 + 16);
+  simnote.innerHTML = `<span>${W}×${H} · 버튼 ${b}px · 그림 ${k.toFixed(2)}배</span>` + notes.join("");
+}
+function setSeg(id, v) { for (const x of document.getElementById(id).querySelectorAll("button")) x.setAttribute("aria-pressed", String(x.dataset.v === v)); }
+function seg(id, apply) {
+  document.getElementById(id).addEventListener("click", (e) => {
+    const t = e.target.closest("button");
+    if (!t) return;
+    setSeg(id, t.dataset.v);
+    apply(t.dataset.v);
+    render();
+  });
+}
+function setShow(v) { state.show = v; setSeg("segShow", v ? "1" : "0"); }
+seg("segShow", (v) => { state.show = v === "1"; stopDemo(); });
+seg("segTrail", (v) => { state.trail = v; });
+seg("segScreen", (v) => { const [w, h] = v.split("x").map(Number); state.W = w; state.H = h; });
+seg("segSize", (v) => { state.b = Number(v); });
+document.getElementById("optRank").addEventListener("change", (e) => { state.rank = e.target.checked; render(); });
+document.getElementById("optTrail").addEventListener("change", (e) => { state.trailOpen = e.target.checked; render(); });
+device.addEventListener("click", (e) => {
+  const tab = e.target.closest("[data-tab]");
+  if (tab) { state.t2tab = tab.dataset.tab; render(); return; }
+  stopDemo();
+  setShow(!state.show);
+  render();
+});
+let timer = null;
+const demoBox = document.getElementById("optDemo");
+function startDemo() { clearInterval(timer); timer = setInterval(() => { setShow(!state.show); render(); }, 3000); }
+function stopDemo() { clearInterval(timer); timer = null; demoBox.checked = false; }
+demoBox.addEventListener("change", () => (demoBox.checked ? startDemo() : stopDemo()));
+addEventListener("resize", render);
+render();
+if (!matchMedia("(prefers-reduced-motion: reduce)").matches) startDemo(); else demoBox.checked = false;
+</script>
