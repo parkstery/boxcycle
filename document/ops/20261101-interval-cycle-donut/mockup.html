@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>인터벌 사이클 도넛 시안</title>
+<style>
+  :root { --red: #dc2626; --green: #16a34a; --grey: #5b6678; --ink: #142c46; }
+  body { margin: 0; padding: 24px 28px 32px; background: #eef1f5; font-family: "Pretendard", "Malgun Gothic", sans-serif; color: #1b2430; width: 1440px; box-sizing: border-box; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  .lead { font-size: 15px; margin: 0 0 14px; color: #3d4756; line-height: 1.5; }
+  h2 { font-size: 19px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .card { background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .card b { display: block; font-size: 15px; margin-bottom: 2px; }
+  .card small { display: block; font-size: 12.5px; color: #5a6575; margin-bottom: 10px; line-height: 1.35; }
+  .stage { width: 205px; height: 106px; padding: 6px; background: url(../20261030-row-rank-large-donut/evidence/row-donut-800.png) -250px -150px / 800px 360px; transform: scale(1.5); transform-origin: 0 0; margin-bottom: 62px; box-sizing: content-box; border-radius: 6px; }
+  .stage.narrow { width: 150px; }
+
+  /* 현행 외곽 205×89.19(좁은 150×86.59)·흰60% 유지. A안은 아래 총 시간 줄만큼 높이 추가 */
+  .hud { position: relative; width: 205px; height: 89.19px; box-sizing: border-box; padding: 6px 8px; border-radius: 8px;
+    background: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.5); color: var(--ink); font-weight: 700;
+    font-variant-numeric: tabular-nums; text-shadow: 0 0 1px #fff, 1px 0 1px #fff, -1px 0 1px #fff, 0 1px 1px #fff, 0 -1px 1px #fff, 0 0 3px #fff;
+    display: grid; grid-template-columns: minmax(0,1fr) 72px; grid-template-rows: min-content 1fr min-content; font-family: "Pretendard", "Malgun Gothic", sans-serif; }
+  .hud.narrow { width: 150px; height: 86.59px; }
+  .hud.a { height: 107.19px; grid-template-rows: min-content 1fr min-content 18px; }
+  .hud.a.narrow { height: 104.59px; }
+  .hud[data-phase="work"] { --c: var(--red); }
+  .hud[data-phase="recovery"] { --c: var(--green); }
+  .hud[data-phase="warmup"], .hud[data-phase="rest"], .hud[data-phase="cooldown"] { --c: var(--grey); }
+  .head { grid-column: 1; display: flex; align-items: baseline; gap: 0 5px; font-size: 13px; line-height: 1.3; white-space: nowrap; }
+  .phase { color: var(--c); }
+  .round { font-size: 10px; color: #2d3f57; }
+  .main { grid-column: 1; display: flex; align-items: center; gap: 2px; line-height: 1.15; }
+  .time { font-size: 32px; letter-spacing: -1px; color: var(--c); }
+  .narrow .time { font-size: 28px; }
+  .unit { font-size: 13px; }
+  .next { grid-column: 1; font-size: 11px; line-height: 1.2; word-break: keep-all; overflow-wrap: anywhere; }
+  .narrow .next { font-size: 10px; }
+  svg.donut { position: absolute; right: 0; top: 44.6px; transform: translateY(-50%); width: 88px; height: 88px; overflow: visible; }
+  .narrow svg.donut { top: 43.3px; }
+  .donut .center { font-weight: 800; fill: #102d57; paint-order: stroke fill; stroke: #fff; stroke-width: .8px; }
+  /* A안: 패널 아래 전체 진행 줄 */
+  .total { grid-column: 1 / -1; display: flex; align-items: center; gap: 5px; font-size: 10px; line-height: 1; margin-top: 5px; padding-top: 3px; border-top: 1px solid rgba(20,44,70,.18); white-space: nowrap; }
+  .total .bar { flex: 1; height: 4px; border-radius: 2px; background: rgba(20,44,70,.18); overflow: hidden; }
+  .total .bar i { display: block; height: 100%; background: #173fb4; border-radius: 2px; }
+  .total .num { font-size: 10.5px; }
+  /* B안: 크기 유지, 다음 안내 자리에 전체 시간 */
+  .next.b { color: #173fb4; }
+  .narrow .next.b { white-space: nowrap; }
+
+  .legend { display: flex; gap: 18px; font-size: 13.5px; margin: 14px 0 0; color: #3d4756; flex-wrap: wrap; }
+  .legend i { display: inline-block; width: 26px; height: 10px; border-radius: 5px; vertical-align: -1px; margin-right: 5px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .opt { background: #fff; border-radius: 10px; padding: 12px 14px 14px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .opt h3 { margin: 0 0 4px; font-size: 18px; }
+  .opt p { margin: 0 0 10px; font-size: 14px; line-height: 1.5; color: #3d4756; }
+  .shotwrap { width: 656px; height: 295.2px; overflow: hidden; border-radius: 6px; }
+  .shot { position: relative; width: 800px; height: 360px; background: url(../20261030-row-rank-large-donut/evidence/row-donut-800.png) 0 0 / 800px 360px; transform: scale(.82); transform-origin: 0 0; }
+  .shot .patch { position: absolute; left: 18px; top: 44px; width: 210px; height: 94px; background: url(../20261030-row-rank-large-donut/evidence/row-donut-800.png) -250px -140px / 800px 360px; }
+  .shot .hud { position: absolute; left: 20px; top: 46px; }
+  .zoom { display: flex; gap: 120px; margin-top: 12px; }
+  .zoom .stage { margin-bottom: 52px; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; color: #fff; background: #173fb4; border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+</style>
+</head>
+<body>
+<h1>인터벌 시안 v2 — 총 운동 시간 추가</h1>
+<p class="lead">v1(사이클 도넛·사이클 1/5·라운드 1/3·회색 백분율 도넛)에 <b>전체 운동 시간 「지난 시간 / 총 시간」(예: 6:12 / 35:00)</b>을 더했습니다. 총 시간 = 준비+사이클+휴식+마무리 합계(설정 창의 「총 시간」과 같은 값). 지금 패널 높이에는 넣을 자리가 없어 두 가지로 그렸습니다. 카드 그림은 1.5배 확대.</p>
+
+<div class="pair">
+  <div class="opt">
+    <h3>A안 — 패널 아래에 전체 진행 줄 추가 <span class="tag">추천</span></h3>
+    <p>「전체」 + 진행 막대 + 6:12 / 35:00. 다음 안내는 그대로 두고, 패널 높이만 89 → 107px(+18px). 폭은 같음.</p>
+    <div class="shotwrap"><div class="shot" id="shotA"></div></div>
+  </div>
+  <div class="opt">
+    <h3>B안 — 패널 크기 그대로, 「다음」 줄을 전체 시간으로 교체</h3>
+    <p>높이 89px 유지. 대신 「다음 · 회복 30초」 안내가 빠집니다(다음 단계는 전환 코칭 자막으로만 알림).</p>
+    <div class="shotwrap"><div class="shot" id="shotB"></div></div>
+  </div>
+</div>
+
+<div class="legend">
+  <span><i style="background:var(--red)"></i>운동, 지난 시간</span>
+  <span><i style="background:rgba(220,38,38,.25)"></i>운동, 남은 시간</span>
+  <span><i style="background:var(--green)"></i>회복, 지난 시간</span>
+  <span><i style="background:rgba(22,163,74,.25)"></i>회복, 남은 시간</span>
+  <span><i style="background:var(--grey)"></i>준비·휴식·마무리, 지난 시간</span>
+  <span><i style="background:#173fb4"></i>전체 운동 진행(A안 막대)</span>
+  <span>● 흰 점 = 지금 위치</span>
+</div>
+
+<h2>① A안 — 운동·회복 (예: 운동 30초·회복 30초 × 5사이클 × 3라운드, 준비·마무리 5분, 휴식 5분 = 총 35:00)</h2>
+<div class="grid" id="cycle"></div>
+
+<h2>② A안 — 준비·휴식·마무리 / 좁은 화면</h2>
+<div class="grid" id="grey"></div>
+
+<h2>③ B안 확대 (크기 유지)</h2>
+<div class="zoom" id="zoomB"></div>
+
+<script>
+const R = 17, C = 22, TOTAL = 2100;
+const pt = (deg) => { const a = (deg - 90) * Math.PI / 180; return [C + R * Math.cos(a), C + R * Math.sin(a)]; };
+function arc(d0, d1, color, op = 1) {
+  if (d1 - d0 <= 0.01) return "";
+  const [x0, y0] = pt(d0), [x1, y1] = pt(d1);
+  return `<path d="M ${x0} ${y0} A ${R} ${R} 0 ${d1 - d0 > 180 ? 1 : 0} 1 ${x1} ${y1}" fill="none" stroke="${color}" stroke-opacity="${op}" stroke-width="5"/>`;
+}
+const GAP = 1;
+function seg(from, to, eDeg, color, paleOp) { const a = from + GAP, b = to - GAP, e = Math.min(Math.max(eDeg, a), b); return arc(a, e, color) + arc(e, b, color, paleOp); }
+function marker(deg) { const [x, y] = pt(deg); return `<circle cx="${x}" cy="${y}" r="3.1" fill="#fff" stroke="#102d57" stroke-width="1.2"/>`; }
+const fmt = (sec) => sec > 59 ? `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}` : String(sec);
+const clock = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+function cycleDonut({ high, low, phase, remaining }) {
+  const total = high + low, hDeg = 360 * high / total;
+  const eDeg = 360 * (phase === "work" ? high - remaining : high + (low - remaining)) / total;
+  return seg(0, hDeg, eDeg, "#dc2626", .25) + seg(hDeg, 360, eDeg, "#16a34a", .25) + marker(eDeg);
+}
+function greyDonut(pct) { const e = 3.6 * pct; return seg(0, 360, e, "#5b6678", .22) + marker(e); }
+
+function hud(s, variant) {
+  const unit = s.remaining <= 59 ? `<span class="unit">초</span>` : "";
+  let donut, center;
+  if (s.phase === "work" || s.phase === "recovery") {
+    donut = cycleDonut(s);
+    center = `<text class="center" x="22" y="21" text-anchor="middle" dominant-baseline="middle" font-size="9">${s.repeat}/${s.repeats}</text>
+      <text class="center" x="22" y="28.5" text-anchor="middle" dominant-baseline="middle" font-size="4.6" style="font-weight:700">사이클</text>`;
+  } else {
+    const pct = Math.round(100 * (s.total - s.remaining) / s.total);
+    donut = greyDonut(pct);
+    center = `<text class="center" x="22" y="22.5" text-anchor="middle" dominant-baseline="middle" font-size="8.5">${pct}%</text>`;
+  }
+  const round = s.rounds > 1 && s.phase !== "warmup" && s.phase !== "cooldown" ? `<span class="round">라운드 ${s.round}/${s.rounds}</span>` : "";
+  const totalText = `${clock(s.done)} / ${clock(TOTAL)}`;
+  const bottom = variant === "a"
+    ? `<div class="next">${s.next}</div><div class="total"><span>전체</span><span class="bar"><i style="width:${(100 * s.done / TOTAL).toFixed(1)}%"></i></span><span class="num">${totalText}</span></div>`
+    : `<div class="next b">${s.narrow ? `${clock(s.done)}/${clock(TOTAL)}` : `전체 ${totalText}`}</div>`;
+  return `<section class="hud ${variant} ${s.narrow ? "narrow" : ""}" data-phase="${s.phase}">
+    <div class="head"><span class="phase">${s.label}</span>${round}</div>
+    <div class="main"><span class="time">${fmt(s.remaining)}</span>${unit}</div>
+    ${bottom}
+    <svg class="donut" viewBox="0 0 44 44">${donut}${center}</svg>
+  </section>`;
+}
+const card = (t, n, s) => `<div class="card"><b>${t}</b><small>${n}</small><div class="stage ${s.narrow ? "narrow" : ""}">${hud(s, "a")}</div></div>`;
+
+const base = { high: 30, low: 30, repeats: 5, rounds: 3 };
+const cycle = [
+  ["운동 중 (1라운드 2사이클)", "사이클 안 12초 지남 · 전체 6:12 지남", { ...base, phase: "work", remaining: 18, label: "운동", repeat: 2, round: 1, next: "다음 · 회복 30초", done: 372 }],
+  ["회복 중 (같은 사이클)", "사이클 안 50초 지남 · 전체 6:50", { ...base, phase: "recovery", remaining: 10, label: "회복", repeat: 2, round: 1, next: "다음 · 운동 30초", done: 410 }],
+  ["2라운드 4사이클 운동", "전체 16:35 지남", { ...base, phase: "work", remaining: 25, label: "운동", repeat: 4, round: 2, next: "다음 · 회복 30초", done: 995 }],
+  ["3라운드 마지막 사이클 회복", "전체 29:50 지남", { ...base, phase: "recovery", remaining: 10, label: "회복", repeat: 5, round: 3, next: "다음 · 마무리 5분", done: 1790 }],
+];
+const grey = [
+  ["준비 5분", "2분 지남 = 40% · 전체 2:00", { phase: "warmup", total: 300, remaining: 180, label: "준비", rounds: 3, next: "다음 · 운동 30초", done: 120 }],
+  ["라운드 사이 휴식 5분", "3:45 지남 = 75% · 전체 13:45", { phase: "rest", total: 300, remaining: 75, label: "휴식", round: 1, rounds: 3, next: "다음 · 운동 30초", done: 825 }],
+  ["마무리 5분", "1분 지남 = 20% · 전체 31:00", { phase: "cooldown", total: 300, remaining: 240, label: "마무리", rounds: 3, next: "다음 · 자유 주행", done: 1860 }],
+  ["좁은 화면(150px) · 운동", "높이 340px 이하 폰, 높이 87 → 105px", { ...base, phase: "work", remaining: 18, label: "운동", repeat: 2, round: 1, next: "다음 · 회복 30초", done: 372, narrow: true }],
+];
+document.getElementById("cycle").innerHTML = cycle.map(([t, n, s]) => card(t, n, s)).join("");
+document.getElementById("grey").innerHTML = grey.map(([t, n, s]) => card(t, n, s)).join("");
+document.getElementById("shotA").innerHTML = `<div class="patch" style="height:112px"></div>` + hud(cycle[0][2], "a");
+document.getElementById("shotB").innerHTML = `<div class="patch"></div>` + hud(cycle[0][2], "b");
+document.getElementById("zoomB").innerHTML = [cycle[0], grey[1], grey[3]].map(([t, n, s]) =>
+  `<div><div style="font-size:14px;font-weight:700;margin-bottom:6px">${t}</div><div class="stage ${s.narrow ? "narrow" : ""}" style="height:89px">${hud(s, "b")}</div></div>`).join("");
+</script>
+</body>
+</html>

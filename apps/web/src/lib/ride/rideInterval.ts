@@ -11,7 +11,18 @@ export type RideIntervalView = {
   round: number;
   totalRounds: number;
   nextLabel: string;
+  /** 현재 단계 길이·남은 ms — 안쪽 링이 초 단위가 아니라 연속으로 줄어든다. */
+  stepSec: number;
+  stepRemainingMs: number;
+  /** 운동+회복 한 사이클 안에서 지난 비율(0~1). 그 밖의 단계는 0. */
+  cycleProgress: number;
+  /** 전체 진도: 지난 ms·총 초·단계 순서(막대 구간). */
+  elapsedMs: number;
+  totalSec: number;
+  segments: readonly RideIntervalSegment[];
 };
+
+export type RideIntervalSegment = { phase: Exclude<RideIntervalPhase, "complete">; seconds: number };
 
 export type RideIntervalConfig = {
   highSec: number;
@@ -214,11 +225,16 @@ function buildIntervalSteps(resolved: Required<RideIntervalConfig>): IntervalSte
 /** 준비 → (운동+회복)×repeats × rounds(라운드 사이 휴식) → 마무리. 0초 단계는 건너뛴다. */
 export function getRideIntervalView(elapsedMs: number, config?: RideIntervalConfig): RideIntervalView {
   const resolved = resolveConfig(config);
-  let remainingMs = Number.isFinite(elapsedMs) ? Math.max(0, elapsedMs) : 0;
+  const safeElapsedMs = Number.isFinite(elapsedMs) ? Math.max(0, elapsedMs) : 0;
+  let remainingMs = safeElapsedMs;
   const steps = buildIntervalSteps(resolved);
+  const totalSec = getRideIntervalTotalSec(resolved);
+  const segments = steps.map((s) => ({ phase: s.phase as RideIntervalSegment["phase"], seconds: s.seconds }));
+  const cycleMs = (resolved.highSec + resolved.lowSec) * 1000;
   for (const [step, current] of steps.entries()) {
     if (remainingMs < current.seconds * 1000) {
       const next = steps[step + 1];
+      const cycleElapsedMs = current.phase === "work" ? remainingMs : current.phase === "recovery" ? resolved.highSec * 1000 + remainingMs : 0;
       return {
         phase: current.phase,
         step,
@@ -229,6 +245,12 @@ export function getRideIntervalView(elapsedMs: number, config?: RideIntervalConf
         round: current.round,
         totalRounds: resolved.rounds,
         nextLabel: next ? `다음 · ${next.label} ${formatStepDuration(next.seconds)}` : "다음 · 자유 주행",
+        stepSec: current.seconds,
+        stepRemainingMs: current.seconds * 1000 - remainingMs,
+        cycleProgress: cycleMs > 0 ? cycleElapsedMs / cycleMs : 0,
+        elapsedMs: safeElapsedMs,
+        totalSec,
+        segments,
       };
     }
     remainingMs -= current.seconds * 1000;
@@ -243,5 +265,11 @@ export function getRideIntervalView(elapsedMs: number, config?: RideIntervalConf
     round: resolved.rounds,
     totalRounds: resolved.rounds,
     nextLabel: "자유 주행 계속",
+    stepSec: 0,
+    stepRemainingMs: 0,
+    cycleProgress: 0,
+    elapsedMs: totalSec * 1000,
+    totalSec,
+    segments,
   };
 }

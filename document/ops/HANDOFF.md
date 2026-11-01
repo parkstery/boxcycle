@@ -3,20 +3,23 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | **Codex** — 2026-10-30 경로 목록 밀도 조정 직접 구현·검증·캡처 |
-| 갱신 | 2026-10-30 — 경로 목록 폰트·행·열·폭 축소, 로컬 검증 완료 |
+| 담당 | **Claude Code** — 2026-10-30 구름·톱니·접기 캐럿 배포 완료, 대기 |
+| 갱신 | 2026-10-30 19시 — 11eb53aa 배포, 시안 20261030-gear-cloud-mockup |
 | 브랜치 | `main2` |
-| 마지막 배포 | 2026-10-30 05:40 Hosting(Claude Code): RouteDock 도구줄·메뉴 Trail 전용·간편 인터벌 이동·경로 창 A안·주행 설정 정리 — f67b74f5·b3d9a7d0·98646bbe origin/main2, 번들 SHA256 일치. **Codex 의 경로 목록·다음 주행 버튼 변경은 빌드에서 제외(미배포)** |
+| 마지막 배포 | 2026-10-30 19시대 Hosting(Claude Code): 68b88851(origin/main2 와 같음) — 작은 구름·균등 톱니·RouteDock 접기 캐럿만. 그 전 11eb53aa 도구A·구름·Trail·순위 줄배경·인터벌 도넛. 번들 SHA256 일치 |
 
 ## 진행 중
 
-체험속도·시안 커밋(10-30 Chief, Codex): 구현·검증자료3fd2b4e7,8화면/우상단/Trail 시안3묶음 커밋。
-build/ESLint/센서9·화면30PASS,커밋훅PASS。다음:Chief 시안검토,푸시배포 별도。결과:20261030-speed-instrument/02-result.md·시안3묶음README。
+**D안 구현 완료·미커밋(11-01 Chief, Claude Code)**: 인터벌 패널 D안, [결과](20261101-interval-cycle-donut/README.md). tsc 0·eslint 0·e2e 인터벌 29/29(반복 58/58)·test:quick 1466+고친 1. ride-ui-moments 3실패는 HEAD 동일(기존). 다음=Chief 확인 → 커밋·푸시·배포 묶음 승인.
 
-일시정지 INT·거리 원(10-30 Chief, 미커밋·미배포, Claude Code): 주행 중 인터벌 변경 불가는 의도 확정, 일시정지하면 ⚙ 자리에 INT(바꾸면 준비부터). 거리·방향 원 선 3→9px·외곽 4→12px, 색 #ef4444→#f87171(화살표 포함). 파일: RouteDock.tsx/.css·MapView.tsx·e2e route-dock-tools·ride-interval·ride-interval-settings·sensor-dock·고정42/49. tsc 0·eslint 경고 HEAD와 동일·test:quick 1467/0·관련 e2e 80/81(남은 1 = sensor-dock 종료 후 펼침, HEAD 동일 기존 실패).
+인터벌 사이클 도넛 시안 v2(11-01 Chief, Claude Code, A·B안 mockup.png + C안 mockup-c.png + D안 아티팩트 d-plan.html): [README](20261101-interval-cycle-donut/README.md), Chief 승인 대기. 승인 시 RideIntervalHud.tsx/.css·ride-interval.spec·고정58 대체.
 
-경로 목록·다음 주행 버튼(10-30 Codex): b6cdf2cb 커밋 완료(코드/시험/고정54 8파일), pre-commit eslint 통과. batch1 8/8·다음주행4/4·tsc 통과. 혼합 운영문서·증거 제외.
-푸시: origin/main2(https://github.com/parkstery/boxcycle.git) 자동 승인 차단 — 원격 목적지 명시 승인/신뢰 확인 부족. 원격 미반영·미배포. 다음: Chief 대상 명시 승인 후 git push origin main2.
+톱니·작은 구름·접기 캐럿(10-30 Chief, Claude Code, 배포됨): 68b88851, [README](20261030-gear-cloud-mockup/README.md). pre-push 10종·test:quick 1467/0, 운영 번들 SHA256 = 로컬.
+
+**푸시·배포 완료(10-30 19:2x, Claude Code)**: af850396 도구A·구름·Trail / 705876e8 순위 줄배경·인터벌 도넛 / 50bc2a9d 거리 원 계약 시험(f498fcee 색 변경 후 깨져 있던 것) / e8ac1c93 고정55~58 / 11eb53aa 래칫(MapHud.css 1612줄·반복 28) 대응 — A안 도구 CSS를 MapToolbar.css 로 분리(순서 동일), Trail 행 중복 합침. origin/main2 `98646bbe..11eb53aa`, pre-push 10종 통과, test:quick 1467/0, toolbar-trail-style 20/20. Hosting 배포, 운영 index js·css SHA256 = 로컬 dist. 커밋 안 함: e2e 가 덮어쓴 증거 PNG 19장·a-interval-sheet PNG·zip 2개·`.out/`·`claude-headless.err`.
+
+
+
 
 RouteDock 도구줄·메뉴 Trail 전용(10-30 Chief, 배포됨): 센서 칩 글자·테두리 제거·LED 21px / 주행 전 INT·지도핀(내 경로 창)·⚙(주행 설정)·▶, 주행 중 ⚙가 INT 자리(INT·핀 숨김) / 왼쪽 메뉴에서 경로 선택·주행 설정 제거. 파일: RouteDock.tsx/.css·CadenceHudChip.tsx·RideRoutePanel.tsx·App.tsx·preview 2종·entry-contract·rideEntryHelpers·e2e 약 40종(입문 진입 경로 일괄 교체)·고정12/42/48. tsc 0·eslint 0·셀렉터 21/21·test:e2e:ride 7/7·menu-a 1/1·route-dock-tools 3/3(사보타주 확인). 남은 실패: 기존(반달4·탭핸들3·좌우탭1·route-ride-controls5·ui-800x360 고정14/30/목록11/44px 4·sensor-dock 종료 후 펼침 1) + **주행 중 인터벌 창 진입로 없음**(ride-interval 1·ride-interval-settings 1 — Chief 결정 대기). 실앱 카메라·촬영 live 스펙 미실행.
 주행 중 인터벌 진입: 10-30 Chief 결정 — 주행 중 불가(의도), 일시정지에서 INT.
@@ -34,12 +37,10 @@ RouteDock 도구줄·메뉴 Trail 전용(10-30 Chief, 배포됨): 센서 칩 글
 
 1. Firestore 타인 위치fanout 구조 저감과 운영원가귀속. 자기 문서 제외는 배포됨. 상시 백업을 끊는 안은 복구 지연 때문에 채택 안 함. ([09](20261029-peer-cost-quality/09-firestore-read-reduction.md))
 2. [인터벌 경로 계획](20261029-quick-interval-ride/00-plan.md)(Chief 순서 변경): 간편 01(진행 중) → [거리 부족 안내](20261029-interval-route-hint/01-task.md) → [01-B](20261029-quick-interval-ride/01b-task-end-and-cut.md). 인터벌 기준 모두 25km/h(`resolveIntervalBasisKmh` 한 곳), 간편=25×1.3.
-3. 미푸시·미배포 커밋: 4b4f5427 지도아이콘 · 2264047e 미니맵접기 · f2b1b882 왼쪽메뉴 · 7d2831d9 B안 가독성 + 문서 커밋. 푸시·배포는 Chief 지시 대기. HEAD에서도 실패하는 고정14·30·목록11 등 UI 9건 조사 필요([03감리](20261029-left-menu/03-audit-claude.md)).
-4. 커밋 제외: compact-controls evidence zip 2개(각 182MB), `.out/`(배포 빌드 복사본), 빈 `claude-headless.err`.
+3. 커밋 제외: compact-controls evidence zip 2개(각 182MB), `.out/`(배포 빌드 복사본), 빈 `claude-headless.err`.
 
 ## Chief 결정 대기
 
-- 주행 중 인터벌 창 진입: 주행 중 INT 자리를 ⚙로 바꾸면서 주행 중엔 인터벌을 열 길이 없음(주행 중 변경→준비부터 재시작 기능이 화면에서 닿지 않음). ⚙ 주행 설정 창에 인터벌 입구를 둘지 결정 필요.
 없음 — 2026-10-29 Chief 「한꺼번에 하자」: 간편 인터벌 01 감리·커밋 후 그때까지의 커밋 전부를 한 번에 푸시·Hosting 배포한다(배포 전 대상·범위 설명 후 실행, 적용 검증).
 
 ## 잊지 말 것

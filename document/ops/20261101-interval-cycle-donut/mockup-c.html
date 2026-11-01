@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>인터벌 C안 시안</title>
+<style>
+  :root { --red: #dc2626; --green: #16a34a; --grey: #5b6678; --ink: #142c46; }
+  body { margin: 0; padding: 24px 28px 32px; background: #eef1f5; font-family: "Pretendard", "Malgun Gothic", sans-serif; color: #1b2430; width: 1440px; box-sizing: border-box; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  .lead { font-size: 15px; margin: 0 0 14px; color: #3d4756; line-height: 1.5; }
+  h2 { font-size: 19px; margin: 22px 0 10px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .card { background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .card b { display: block; font-size: 15px; margin-bottom: 2px; }
+  .card small { display: block; font-size: 12.5px; color: #5a6575; margin-bottom: 10px; line-height: 1.35; }
+  .stage { width: 205px; height: 89.19px; padding: 6px; background: url(../20261030-row-rank-large-donut/evidence/row-donut-800.png) -250px -150px / 800px 360px; transform: scale(1.5); transform-origin: 0 0; margin-bottom: 52px; box-sizing: content-box; border-radius: 6px; }
+  .stage.narrow { width: 150px; height: 86.59px; }
+
+  /* 현행 외곽 205×89.19(좁은 150×86.59)·흰60%·도넛 88px 그대로 */
+  .hud { position: relative; width: 205px; height: 89.19px; box-sizing: border-box; padding: 6px 8px; border-radius: 8px;
+    background: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.5); color: var(--ink); font-weight: 700;
+    font-variant-numeric: tabular-nums; text-shadow: 0 0 1px #fff, 1px 0 1px #fff, -1px 0 1px #fff, 0 1px 1px #fff, 0 -1px 1px #fff, 0 0 3px #fff;
+    display: flex; flex-direction: column; justify-content: space-between; padding-right: 96px; font-family: "Pretendard", "Malgun Gothic", sans-serif; }
+  .hud.narrow { width: 150px; height: 86.59px; padding-right: 78px; }
+  .hud[data-phase="work"] { --c: var(--red); }
+  .hud[data-phase="recovery"] { --c: var(--green); }
+  .hud[data-phase="warmup"], .hud[data-phase="rest"], .hud[data-phase="cooldown"] { --c: var(--grey); }
+  .row { display: flex; align-items: baseline; gap: 4px; white-space: nowrap; line-height: 1.15; }
+  .row .k { font-size: 10px; color: #3b4d64; }
+  .row .v { font-size: 15px; }
+  .row .v .of { font-size: 11px; }
+  .row.next { font-size: 10.5px; }
+  .row.total .v { font-size: 12px; }
+  .narrow .row .k { font-size: 9px; }
+  .narrow .row .v { font-size: 13px; }
+  .narrow .row.total .v { font-size: 10.5px; }
+  svg.donut { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); width: 88px; height: 88px; overflow: visible; }
+  .narrow svg.donut { width: 74px; height: 74px; }
+  .donut text { paint-order: stroke fill; stroke: #fff; stroke-width: .8px; text-anchor: middle; dominant-baseline: middle; }
+  .donut .lab { font-size: 5px; font-weight: 800; }
+  .donut .t { font-size: 11.5px; font-weight: 800; letter-spacing: -.3px; }
+  .donut .u { font-size: 5px; font-weight: 700; }
+  .donut .pct { font-size: 4.4px; font-weight: 700; fill: #3b4d64; }
+
+  .legend { display: flex; gap: 18px; font-size: 13.5px; margin: 12px 0 0; color: #3d4756; flex-wrap: wrap; }
+  .legend i { display: inline-block; width: 26px; height: 10px; border-radius: 5px; vertical-align: -1px; margin-right: 5px; }
+  .top { display: grid; grid-template-columns: 820px 1fr; gap: 22px; align-items: start; }
+  .shot { position: relative; width: 800px; height: 360px; background: url(../20261030-row-rank-large-donut/evidence/row-donut-800.png) 0 0 / 800px 360px; border-radius: 6px; overflow: hidden; }
+  .shot .patch { position: absolute; left: 18px; top: 44px; width: 210px; height: 94px; background: url(../20261030-row-rank-large-donut/evidence/row-donut-800.png) -250px -140px / 800px 360px; }
+  .shot .hud { position: absolute; left: 20px; top: 46px; }
+  .notes { font-size: 14.5px; line-height: 1.6; margin: 0; padding-left: 20px; }
+  .notes li { margin-bottom: 5px; }
+  table.cmp { border-collapse: collapse; font-size: 13.5px; margin-top: 12px; width: 100%; }
+  .cmp th, .cmp td { border: 1px solid #d5dbe3; padding: 5px 8px; text-align: left; background: #fff; }
+  .cmp th { background: #e4e9f0; }
+</style>
+</head>
+<body>
+<h1>인터벌 C안 — 도넛 가운데에 지금 단계의 남은 시간</h1>
+<p class="lead">도넛은 v1 그대로(한 사이클 = 도넛 하나, 빨강:초록 = 설정 시간 비율, 지난 시간 진하게). 가운데 숫자만 「사이클 2/5」 → <b>지금 단계 이름 + 남은 시간</b>으로 바꾸고, 빈 왼쪽에 사이클·라운드·다음·전체 시간을 줄로 정리했습니다. <b>패널 크기 205×89px 그대로</b>, 총 시간도 들어갑니다. 카드 그림은 1.5배 확대.</p>
+
+<div class="top">
+  <div class="shot" id="shot"></div>
+  <div>
+    <ol class="notes">
+      <li><b>도넛 가운데</b>: 고강도 / 저강도 / 준비 / 휴식 / 마무리 + 남은 시간(18초, 1:20). 숫자 색 = 단계 색.</li>
+      <li><b>왼쪽 4줄</b>: 사이클 2/5 · 라운드 1/3 · 다음 안내 · 전체 6:12 / 35:00.</li>
+      <li><b>준비·휴식·마무리</b>: 회색 도넛, 가운데 남은 시간 아래에 진행 %.</li>
+      <li>라운드가 1개뿐이면 라운드 줄 숨김, 준비 중엔 사이클 줄 숨김.</li>
+      <li><b>좁은 화면(150px)</b>: 도넛 88 → 74px, 「다음」 줄은 뺌(자리 부족).</li>
+      <li>단계 이름: 이 시안은 말씀하신 「고강도·저강도」로 썼습니다. 지금 앱은 「운동·회복」.</li>
+    </ol>
+    <table class="cmp">
+      <tr><th></th><th>A안</th><th>B안</th><th>C안</th></tr>
+      <tr><td>패널 높이</td><td>107px(+18)</td><td>89px</td><td>89px</td></tr>
+      <tr><td>도넛 가운데</td><td>사이클</td><td>사이클</td><td>단계·남은 시간</td></tr>
+      <tr><td>다음 안내</td><td>있음</td><td>없음</td><td>있음(좁은 화면 없음)</td></tr>
+      <tr><td>전체 시간</td><td>막대+숫자</td><td>숫자</td><td>숫자</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="legend">
+  <span><i style="background:var(--red)"></i>고강도, 지난 시간</span>
+  <span><i style="background:rgba(220,38,38,.25)"></i>고강도, 남은 시간</span>
+  <span><i style="background:var(--green)"></i>저강도, 지난 시간</span>
+  <span><i style="background:rgba(22,163,74,.25)"></i>저강도, 남은 시간</span>
+  <span><i style="background:var(--grey)"></i>준비·휴식·마무리, 지난 시간</span>
+  <span>● 흰 점 = 지금 위치(12시부터 시계 방향)</span>
+</div>
+
+<h2>① 고강도·저강도 사이클 — 사용자 예시 3가지</h2>
+<div class="grid" id="cycle"></div>
+
+<h2>② 준비·휴식·마무리 / 좁은 화면</h2>
+<div class="grid" id="grey"></div>
+
+<script>
+const R = 17, C = 22;
+const pt = (deg) => { const a = (deg - 90) * Math.PI / 180; return [C + R * Math.cos(a), C + R * Math.sin(a)]; };
+function arc(d0, d1, color, op = 1) {
+  if (d1 - d0 <= 0.01) return "";
+  const [x0, y0] = pt(d0), [x1, y1] = pt(d1);
+  return `<path d="M ${x0} ${y0} A ${R} ${R} 0 ${d1 - d0 > 180 ? 1 : 0} 1 ${x1} ${y1}" fill="none" stroke="${color}" stroke-opacity="${op}" stroke-width="5"/>`;
+}
+const GAP = 1;
+function seg(from, to, eDeg, color, paleOp) { const a = from + GAP, b = to - GAP, e = Math.min(Math.max(eDeg, a), b); return arc(a, e, color) + arc(e, b, color, paleOp); }
+function marker(deg) { const [x, y] = pt(deg); return `<circle cx="${x}" cy="${y}" r="3.1" fill="#fff" stroke="#102d57" stroke-width="1.2"/>`; }
+const clock = (sec) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+const COLOR = { work: "#dc2626", recovery: "#16a34a", warmup: "#5b6678", rest: "#5b6678", cooldown: "#5b6678" };
+const LABEL = { work: "고강도", recovery: "저강도", warmup: "준비", rest: "휴식", cooldown: "마무리" };
+
+function hud(s) {
+  const cyc = s.phase === "work" || s.phase === "recovery";
+  let ring, pct = "";
+  if (cyc) {
+    const total = s.high + s.low, hDeg = 360 * s.high / total;
+    const eDeg = 360 * (s.phase === "work" ? s.high - s.remaining : s.high + (s.low - s.remaining)) / total;
+    ring = seg(0, hDeg, eDeg, "#dc2626", .25) + seg(hDeg, 360, eDeg, "#16a34a", .25) + marker(eDeg);
+  } else {
+    const p = Math.round(100 * (s.total - s.remaining) / s.total), e = 3.6 * p;
+    ring = seg(0, 360, e, "#5b6678", .22) + marker(e);
+    pct = `<text class="pct" x="22" y="30.3">${p}%</text>`;
+  }
+  const short = s.remaining <= 59;
+  const timeY = cyc ? 23.4 : 22.4;
+  const time = short
+    ? `<text class="t" x="20.6" y="${timeY}" fill="${COLOR[s.phase]}">${s.remaining}</text><text class="u" x="${s.remaining > 9 ? 29 : 26.6}" y="${timeY + 1.6}" fill="#142c46">초</text>`
+    : `<text class="t" x="22" y="${timeY}" fill="${COLOR[s.phase]}" style="font-size:10px">${clock(s.remaining)}</text>`;
+  const center = `<text class="lab" x="22" y="${cyc ? 15.6 : 14.8}" fill="${COLOR[s.phase]}">${LABEL[s.phase]}</text>${time}${pct}`;
+  const rows = [];
+  if (s.phase !== "warmup" && s.phase !== "cooldown") rows.push(`<div class="row"><span class="k">사이클</span><span class="v">${s.repeat}<span class="of">/${s.repeats}</span></span></div>`);
+  if (s.rounds > 1) rows.push(`<div class="row"><span class="k">라운드</span><span class="v">${s.round}<span class="of">/${s.rounds}</span></span></div>`);
+  if (!s.narrow) rows.push(`<div class="row next">${s.next}</div>`);
+  rows.push(`<div class="row total"><span class="k">전체</span><span class="v">${clock(s.done)}${s.narrow ? "/" : " / "}${clock(s.totalAll)}</span></div>`);
+  return `<section class="hud ${s.narrow ? "narrow" : ""}" data-phase="${s.phase}">
+    ${rows.join("")}
+    <svg class="donut" viewBox="0 0 44 44">${ring}${center}</svg>
+  </section>`;
+}
+const card = (t, n, s) => `<div class="card"><b>${t}</b><small>${n}</small><div class="stage ${s.narrow ? "narrow" : ""}">${hud(s)}</div></div>`;
+
+// 예1: 30/30 ×5 ×3, 준비·마무리 5분, 휴식 5분 = 35:00 / 예2: 20/30 ×5 ×3 = 32:30 / 예3: 60/120 ×5 ×1 = 25:00
+const ex1 = { high: 30, low: 30, repeats: 5, rounds: 3, totalAll: 2100 };
+const cycle = [
+  ["예1 고강도 30초 · 저강도 30초 — 고강도 중", "고강도 12초 지남 · 전체 6:12 / 35:00", { ...ex1, phase: "work", remaining: 18, repeat: 2, round: 1, next: "다음 · 저강도 30초", done: 372 }],
+  ["예1 같은 사이클 — 저강도 중", "빨강 다 채움, 초록 20초 지남", { ...ex1, phase: "recovery", remaining: 10, repeat: 2, round: 1, next: "다음 · 고강도 30초", done: 410 }],
+  ["예2 고강도 20초 · 저강도 30초", "빨강 40% : 초록 60%, 고강도 15초 지남", { high: 20, low: 30, repeats: 5, rounds: 3, totalAll: 1950, phase: "work", remaining: 5, repeat: 1, round: 1, next: "다음 · 저강도 30초", done: 315 }],
+  ["예3 고강도 1분 · 저강도 2분", "빨강 1/3 : 초록 2/3, 저강도 40초 지남", { high: 60, low: 120, repeats: 5, rounds: 1, totalAll: 1500, phase: "recovery", remaining: 80, repeat: 3, round: 1, next: "다음 · 고강도 1분", done: 760 }],
+];
+const grey = [
+  ["준비 5분", "2분 지남 = 40%", { phase: "warmup", total: 300, remaining: 180, rounds: 3, round: 1, next: "다음 · 고강도 30초", done: 120, totalAll: 2100 }],
+  ["라운드 사이 휴식 5분", "3:45 지남 = 75%", { phase: "rest", total: 300, remaining: 75, repeat: 5, repeats: 5, round: 1, rounds: 3, next: "다음 · 2라운드 시작", done: 825, totalAll: 2100 }],
+  ["마무리 5분", "1분 지남 = 20%", { phase: "cooldown", total: 300, remaining: 240, round: 3, rounds: 3, next: "다음 · 자유 주행", done: 1860, totalAll: 2100 }],
+  ["좁은 화면(150px) · 예1 고강도", "높이 340px 이하 폰: 도넛 74px, 「다음」 줄 뺌", { ...ex1, phase: "work", remaining: 18, repeat: 2, round: 1, next: "", done: 372, narrow: true }],
+];
+document.getElementById("cycle").innerHTML = cycle.map(([t, n, s]) => card(t, n, s)).join("");
+document.getElementById("grey").innerHTML = grey.map(([t, n, s]) => card(t, n, s)).join("");
+document.getElementById("shot").innerHTML = `<div class="patch"></div>` + hud(cycle[0][2]);
+</script>
+</body>
+</html>

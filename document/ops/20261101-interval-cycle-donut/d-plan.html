@@ -1,0 +1,365 @@
+<title>인터벌 D안 도넛</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap">
+<style>
+  /* 레이아웃: 위 조작줄 → 라이브(확대 패널 + 실제 화면) → 정지 장면 6개 → 변경점. 패널 색은 지도 위 앱 화면이라 테마와 무관하게 고정 */
+  :root {
+    --bg: #eef1f5; --surface: #ffffff; --fg: #18212c; --muted: #566273; --line: #d3dae3; --accent: #173fb4; --accent-fg: #ffffff;
+    --font-ui: "IBM Plex Sans KR", "Malgun Gothic", system-ui, sans-serif;
+    --font-app: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+    /* 앱 패널(지도 위) — 테마 공통 */
+    --p-ink: #142c46; --p-work: #d42020; --p-rec: #15803d; --p-grey: #5b6678;
+    --p-active: #b45309; --p-done: #173fb4; --p-pending: #36506d; --p-total: #173fb4;
+    --p-bg: rgba(255, 255, 255, .6); --p-edge: rgba(255, 255, 255, .5); --p-halo: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #11161d; --surface: #1a212b; --fg: #e6ebf1; --muted: #9aa6b5; --line: #2c3643; --accent: #7d9cff; --accent-fg: #0d1320; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #11161d; --surface: #1a212b; --fg: #e6ebf1; --muted: #9aa6b5; --line: #2c3643; --accent: #7d9cff; --accent-fg: #0d1320; color-scheme: dark }
+
+  body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 15px; line-height: 1.55; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding-block: 24px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+  h1 { font-size: 28px; margin: 0; text-wrap: balance; letter-spacing: -.3px; }
+  h2 { font-size: 18px; margin: 0 0 10px; text-wrap: balance; }
+  .lead { margin: 6px 0 0; color: var(--muted); max-width: 72ch; }
+  .lead b { color: var(--fg); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+  .controls label { font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+  .controls select, .controls button { font: inherit; font-size: 14px; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 5px 10px; cursor: pointer; }
+  .controls button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 700; min-width: 84px; }
+  .controls button:focus-visible, .controls select:focus-visible, .controls input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .scrub { flex: 1 1 260px; display: flex; gap: 10px; align-items: center; min-width: 0; }
+  .scrub input { flex: 1; min-width: 0; accent-color: var(--accent); }
+  .clock { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 14px; white-space: nowrap; }
+  .jumps { display: flex; flex-wrap: wrap; gap: 6px; }
+  .jumps button { font-size: 13px; padding: 3px 9px; }
+
+  .live { display: grid; grid-template-columns: minmax(0, 470px) minmax(0, 1fr); gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .live { grid-template-columns: minmax(0, 1fr); } }
+  .pane { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; }
+  .pane p { margin: 8px 0 0; font-size: 13.5px; color: var(--muted); }
+
+  /* 지도 조각 위에 패널. --k 는 JS 가 칸 폭에 맞춰 정한다(최대 2배) */
+  .stage { --k: 2; position: relative; width: calc(221px * var(--k)); height: calc(120px * var(--k)); max-width: 100%; border-radius: 8px; overflow: hidden;
+    background: url(map.png) calc(-250px * var(--k)) calc(-150px * var(--k)) / calc(800px * var(--k)) calc(360px * var(--k)); }
+  .stage > .hud { position: absolute; left: 0; top: 0; transform: translate(calc(8px * var(--k)), calc(8px * var(--k))) scale(var(--k)); transform-origin: 0 0; }
+  .ctx { width: 100%; max-width: 800px; aspect-ratio: 800 / 360; position: relative; overflow: hidden; border-radius: 8px; }
+  .shot { position: absolute; left: 0; top: 0; width: 800px; height: 360px; background: url(map.png) 0 0 / 800px 360px; transform-origin: 0 0; }
+  .shot .patch { position: absolute; left: 18px; top: 44px; width: 212px; height: 110px; background: url(map.png) -250px -140px / 800px 360px; }
+  .shot > .hud { position: absolute; left: 20px; top: 46px; }
+
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 14px; }
+  .shotcard { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; min-width: 0; display: grid; gap: 8px; align-content: start; }
+  .shotcard b { font-size: 14.5px; }
+  .shotcard span { font-size: 13px; color: var(--muted); }
+
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 14px; }
+  .notes ul { margin: 0; padding-left: 18px; font-size: 14px; }
+  .notes li { margin-bottom: 5px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .legend i { display: inline-block; width: 22px; height: 9px; border-radius: 5px; vertical-align: 0; margin-right: 5px; }
+
+  /* ── 앱 인터벌 패널 D안 (CSS px = 실제 앱 크기) ── */
+  .hud { width: 205px; height: 104px; box-sizing: border-box; padding: 6px 8px 7px; border-radius: 8px; background: var(--p-bg); border: 1px solid var(--p-edge);
+    color: var(--p-ink); font-family: var(--font-app); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2;
+    text-shadow: 0 0 1px var(--p-halo), 1px 0 1px var(--p-halo), -1px 0 1px var(--p-halo), 0 1px 1px var(--p-halo), 0 -1px 1px var(--p-halo), 0 0 3px var(--p-halo);
+    display: grid; grid-template-columns: minmax(0, 1fr) 88px; grid-template-rows: 1fr 8px; column-gap: 4px; row-gap: 5px; --c: var(--p-grey); }
+  .hud[data-phase="work"] { --c: var(--p-work); }
+  .hud[data-phase="recovery"] { --c: var(--p-rec); }
+  .hud-l { display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+  .hud-round { font-size: 11px; min-height: 13px; }
+  .hud-phase { font-size: 21px; color: var(--c); letter-spacing: -.3px; }
+  .hud-next { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hud-total { font-size: 11px; color: var(--p-total); white-space: nowrap; }
+  .hud-donut { width: 88px; height: 88px; margin-top: -2px; overflow: visible; }
+  .hud-donut text { paint-order: stroke fill; stroke: var(--p-halo); stroke-width: .7px; text-anchor: middle; dominant-baseline: central; font-family: var(--font-app); }
+  .hud-donut .n { font-size: 11.5px; font-weight: 800; fill: var(--c); }
+  .hud-donut .n.mm { font-size: 8.4px; }
+  .hud-donut .u { font-size: 4.6px; font-weight: 700; fill: var(--p-ink); }
+  .hud-donut .disc { fill: var(--c); fill-opacity: .13; }
+  .hud-donut .track { fill: none; stroke: var(--c); stroke-opacity: .18; stroke-width: 2.6; }
+  .hud-donut .remain { fill: none; stroke: var(--c); stroke-width: 2.6; stroke-linecap: butt; }
+  .hud-donut .inner { transform-origin: 22px 22px; }
+  .hud[data-hurry="true"] .inner { animation: hurry 1s ease-in-out infinite; }
+  @keyframes hurry { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+  @media (prefers-reduced-motion: reduce) { .hud[data-hurry="true"] .inner { animation: none; } }
+  .hud-bar { grid-column: 1 / -1; position: relative; height: 8px; border-radius: 4px; border: 1px solid rgba(20, 44, 70, .45); box-sizing: border-box; overflow: hidden; background: rgba(255, 255, 255, .7); }
+  .hud-bar .layer { position: absolute; inset: 0; }
+  .hud-bar .layer span { position: absolute; top: 0; bottom: 0; }
+  .hud-bar .solid { overflow: hidden; right: auto; width: 0; }
+  .hud-bar .solid .layer { width: var(--full); }
+  .hud-bar .mark { position: absolute; top: -1px; bottom: -1px; width: 2px; margin-left: -1px; background: var(--p-ink); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>인터벌 D안: 두 개의 움직이는 도넛</h1>
+    <p class="lead">지금 앱 패널을 바탕으로 고치고 더했습니다. <b>바깥 도넛</b>은 지금처럼 반복 칸을 보여 주되, 진행 중인 칸이 사이클 시간에 맞춰 차오릅니다. <b>안쪽 도넛</b>은 운동·회복·휴식의 남은 시간이고, 시간이 흐르면 색 띠가 시계 방향으로 줄어듭니다. <b>아래 막대</b>는 전체 인터벌 운동의 진도입니다. 아래 조작줄로 재생 속도와 시점을 바꿔 볼 수 있습니다.</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="시연 조작">
+    <button id="play" class="primary" type="button">일시정지</button>
+    <label for="speed">속도
+      <select id="speed"><option value="1">1배(실제)</option><option value="3" selected>3배</option><option value="10">10배</option><option value="30">30배</option></select>
+    </label>
+    <label for="preset">설정
+      <select id="preset">
+        <option value="ex1" selected>예1 · 운동 30초·회복 30초 ×5 ×3라운드 · 35:00</option>
+        <option value="ex2">예2 · 운동 20초·회복 30초 ×5 ×3라운드 · 32:30</option>
+        <option value="ex3">예3 · 운동 1분·회복 2분 ×5 · 25:00</option>
+      </select>
+    </label>
+    <div class="scrub"><input id="scrub" type="range" min="0" max="2100" step="1" value="0" aria-label="시점"><span class="clock" id="clock">0:00 / 35:00</span></div>
+    <div class="jumps" id="jumps" aria-label="단계로 이동">
+      <button type="button" data-jump="warmup">준비</button><button type="button" data-jump="work">운동</button><button type="button" data-jump="recovery">회복</button><button type="button" data-jump="rest">휴식</button><button type="button" data-jump="cooldown">마무리</button>
+    </div>
+  </div>
+
+  <section class="live">
+    <div class="pane">
+      <h2>확대 (2배)</h2>
+      <div class="stage" id="liveStage"></div>
+      <div class="legend">
+        <span><i style="background:var(--p-done)"></i>끝난 반복</span>
+        <span><i style="background:var(--p-active)"></i>진행 중인 반복(차오름)</span>
+        <span><i style="background:var(--p-pending)"></i>남은 반복</span>
+        <span><i style="background:var(--p-work)"></i>운동</span>
+        <span><i style="background:var(--p-rec)"></i>회복</span>
+        <span><i style="background:var(--p-grey)"></i>준비·휴식·마무리</span>
+      </div>
+    </div>
+    <div class="pane">
+      <h2>실제 화면 크기 (800×360)</h2>
+      <div class="ctx" id="ctx"><div class="shot" id="shot"><div class="patch"></div></div></div>
+      <p>바탕은 10-30 배포 화면 캡처입니다. 왼쪽 위 기존 패널만 지도 조각으로 가리고 D안 패널을 올렸습니다.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>정지 장면 (예1 기준, 예3만 1라운드)</h2>
+    <div class="gallery" id="gallery"></div>
+  </section>
+
+  <section class="notes">
+    <div class="pane">
+      <h2>지금 앱에서 바뀌는 것</h2>
+      <ul>
+        <li>바깥 도넛 가운데의 「3 / 5」 자리에 <b>안쪽 도넛(남은 시간)</b>이 들어갑니다. 왼쪽의 큰 타이머 숫자는 도넛 안으로 옮겨집니다.</li>
+        <li>바깥 도넛의 진행 중인 칸은 꽉 찬 주황 대신, 운동+회복 한 사이클에 맞춰 <b>옅은 주황에서 진한 주황으로 차오릅니다.</b> 다 차면 파랑(끝남)으로 바뀝니다.</li>
+        <li>안쪽 도넛 색: 운동 빨강, 회복 초록, 준비·휴식·마무리 회색. 단계 이름과 숫자도 같은 색입니다. 마지막 3초는 안쪽 도넛이 살짝 뛰며 전환을 예고합니다.</li>
+        <li>패널 아래에 <b>전체 진도 막대</b>가 생깁니다. 단계별 색 구간(옅은 색)에 지난 시간만 진하게 채우고, 검은 눈금이 지금 위치입니다. 「전체 13:45 / 35:00」 숫자는 막대 위 왼쪽에 둡니다.</li>
+        <li>준비 중에는 반복 칸이 모두 남은 색, 휴식·마무리 중에는 그 라운드의 칸이 모두 파랑입니다.</li>
+      </ul>
+    </div>
+    <div class="pane">
+      <h2>정해 주실 것</h2>
+      <ul>
+        <li><b>패널 높이</b>: 막대를 넣느라 89에서 104px로 15px 높아집니다(폭 205px 그대로). 좁은 화면(150px)은 이번 시안에 그리지 않았습니다.</li>
+        <li><b>「다음 · 회복 30초」 줄</b>: 그려 주신 그림에는 없지만 지금 앱에 있어서 작게 남겼습니다. 뺄 수도 있습니다.</li>
+        <li><b>라운드 줄</b>: 1라운드뿐이면 숨겼습니다(지금 앱과 같음).</li>
+        <li><b>진행 중인 반복 칸 색</b>: 그림대로 주황을 유지했습니다. 운동 빨강과 겹쳐 보이면 다른 색으로 바꿀 수 있습니다.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+const PRESETS = {
+  ex1: { high: 30, low: 30, repeats: 5, rounds: 3, warmup: 300, cooldown: 300, rest: 300 },
+  ex2: { high: 20, low: 30, repeats: 5, rounds: 3, warmup: 300, cooldown: 300, rest: 300 },
+  ex3: { high: 60, low: 120, repeats: 5, rounds: 1, warmup: 300, cooldown: 300, rest: 0 },
+};
+const LABEL = { warmup: "준비", work: "운동", recovery: "회복", rest: "휴식", cooldown: "마무리", complete: "완료" };
+const SEG_COLOR = { warmup: "#5b6678", work: "#d42020", recovery: "#15803d", rest: "#5b6678", cooldown: "#5b6678" };
+
+function buildPlan(p) {
+  const steps = [];
+  let t = 0;
+  const push = (phase, sec, repeat, round) => { steps.push({ phase, sec, start: t, repeat, round }); t += sec; };
+  if (p.warmup) push("warmup", p.warmup, 0, 1);
+  for (let r = 1; r <= p.rounds; r++) {
+    for (let i = 1; i <= p.repeats; i++) { push("work", p.high, i, r); push("recovery", p.low, i, r); }
+    if (r < p.rounds && p.rest) push("rest", p.rest, p.repeats, r);
+  }
+  if (p.cooldown) push("cooldown", p.cooldown, p.repeats, p.rounds);
+  return { p, steps, total: t };
+}
+function stateAt(plan, t) {
+  const { steps, total } = plan;
+  if (t >= total) return { phase: "complete", t: total, total, remaining: 0, step: steps[steps.length - 1], next: null };
+  let idx = steps.findIndex((s) => t < s.start + s.sec);
+  const step = steps[idx];
+  return { phase: step.phase, t, total, step, remaining: step.start + step.sec - t, next: steps[idx + 1] ?? null };
+}
+const clock = (sec) => { sec = Math.max(0, Math.floor(sec)); return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`; };
+const dur = (sec) => sec >= 60 ? (sec % 60 ? clock(sec) : `${sec / 60}분`) : `${sec}초`;
+
+const R = 17, CX = 22, RI = 10.7, CI = 2 * Math.PI * RI;
+const pt = (deg, r = R) => { const a = (deg - 90) * Math.PI / 180; return [CX + r * Math.cos(a), CX + r * Math.sin(a)]; };
+function arc(d0, d1, color, op = 1) {
+  if (d1 - d0 <= 0.05) return "";
+  const [x0, y0] = pt(d0), [x1, y1] = pt(d1);
+  return `<path d="M ${x0.toFixed(3)} ${y0.toFixed(3)} A ${R} ${R} 0 ${d1 - d0 > 180 ? 1 : 0} 1 ${x1.toFixed(3)} ${y1.toFixed(3)}" fill="none" stroke="${color}" stroke-opacity="${op}" stroke-width="5"/>`;
+}
+
+function createHud(host, plan) {
+  const el = document.createElement("section");
+  el.className = "hud";
+  el.setAttribute("role", "group");
+  el.setAttribute("aria-label", "인터벌 안내");
+  el.innerHTML = `
+    <div class="hud-l"><div class="hud-round"></div><div class="hud-phase"></div><div class="hud-next"></div><div class="hud-total"></div></div>
+    <svg class="hud-donut" viewBox="0 0 44 44" aria-hidden="true">
+      <g class="outer"></g>
+      <g class="inner"><circle class="disc" cx="22" cy="22" r="9.3"/><circle class="track" cx="22" cy="22" r="${RI}"/>
+      <circle class="remain" cx="22" cy="22" r="${RI}" transform="rotate(-90 22 22)" stroke-dasharray="${CI} ${CI}"/></g>
+      <text class="num" x="22" y="22.4"></text>
+    </svg>
+    <div class="hud-bar"><div class="layer pale"></div><div class="layer solid"><div class="layer"></div></div><i class="mark"></i></div>`;
+  host.appendChild(el);
+  const q = (s) => el.querySelector(s);
+  const hud = { el, round: q(".hud-round"), phase: q(".hud-phase"), next: q(".hud-next"), total: q(".hud-total"),
+    outer: q(".outer"), remain: q(".remain"), num: q(".num"), bar: q(".hud-bar"), solid: q(".solid"), mark: q(".mark") };
+  setPlan(hud, plan);
+  return hud;
+}
+function setPlan(hud, plan) {
+  hud.plan = plan;
+  const segs = plan.steps.map((s) => `<span style="left:${(100 * s.start / plan.total).toFixed(3)}%;width:${(100 * s.sec / plan.total).toFixed(3)}%;background:${SEG_COLOR[s.phase]}"></span>`).join("");
+  hud.bar.querySelector(".pale").innerHTML = segs;
+  hud.bar.querySelector(".pale").style.opacity = ".28";
+  hud.solid.firstElementChild.innerHTML = segs;
+  hud.lastOuter = "";
+}
+function outerSvg(plan, st) {
+  const n = plan.p.repeats, step = 360 / n;
+  const cycleLen = plan.p.high + plan.p.low;
+  let html = "";
+  for (let i = 1; i <= n; i++) {
+    const a = -0 + (i - 1) * step + 2, b = i * step - 2;
+    let kind;
+    if (st.phase === "warmup") kind = "pending";
+    else if (st.phase === "work" || st.phase === "recovery") kind = i < st.step.repeat ? "done" : i === st.step.repeat ? "active" : "pending";
+    else kind = "done";
+    if (kind === "done") html += arc(a, b, "#173fb4");
+    else if (kind === "pending") html += arc(a, b, "#36506d");
+    else {
+      const cycleStart = st.step.phase === "work" ? st.step.start : st.step.start - plan.p.high;
+      const f = Math.min(1, Math.max(0, (st.t - cycleStart) / cycleLen));
+      const m = a + (b - a) * f;
+      html += arc(a, m, "#b45309") + arc(m, b, "#b45309", .3);
+    }
+  }
+  return html;
+}
+function updateHud(hud, t) {
+  const plan = hud.plan, st = stateAt(plan, t), p = plan.p;
+  const complete = st.phase === "complete";
+  hud.el.dataset.phase = st.phase;
+  const secLeft = Math.ceil(st.remaining - 1e-9);
+  hud.el.dataset.hurry = String(!complete && secLeft <= 3);
+  hud.round.textContent = p.rounds > 1 && !complete ? `${st.step.round}/${p.rounds}라운드` : "";
+  hud.phase.textContent = LABEL[st.phase];
+  hud.next.textContent = complete ? "다음 · 자유 주행" : st.next ? `다음 · ${LABEL[st.next.phase]} ${dur(st.next.sec)}` : "다음 · 자유 주행";
+  hud.total.textContent = `전체 ${clock(st.t)} / ${clock(plan.total)}`;
+  const o = outerSvg(plan, complete ? { ...st, phase: "cooldown" } : st);
+  if (o !== hud.lastOuter) { hud.outer.innerHTML = o; hud.lastOuter = o; }
+  const frac = complete ? 0 : st.remaining / st.step.sec;
+  hud.remain.setAttribute("stroke-dasharray", `${(CI * frac).toFixed(3)} ${CI}`);
+  hud.remain.setAttribute("stroke-dashoffset", (-CI * (1 - frac)).toFixed(3));
+  const numHtml = complete ? `<tspan class="n mm">완료</tspan>`
+    : secLeft > 59 ? `<tspan class="n mm">${clock(secLeft)}</tspan>`
+    : `<tspan class="n">${secLeft}</tspan><tspan class="u" dx=".4" dy="1.6">초</tspan>`;
+  if (hud.lastNum !== numHtml) { hud.num.innerHTML = numHtml; hud.lastNum = numHtml; }
+  const pct = 100 * st.t / plan.total;
+  const barW = hud.bar.clientWidth || 189;
+  hud.solid.style.width = `${pct}%`;
+  hud.solid.firstElementChild.style.width = `${barW}px`;
+  hud.mark.style.left = `${pct}%`;
+}
+
+/* ── 라이브 ── */
+let plan = buildPlan(PRESETS.ex1);
+let t = 345, playing = true, speed = 3, last = performance.now();
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const liveStage = document.getElementById("liveStage");
+const shot = document.getElementById("shot");
+const liveHud = createHud(liveStage, plan);
+const ctxHud = createHud(shot, plan);
+const scrub = document.getElementById("scrub"), clockEl = document.getElementById("clock"), playBtn = document.getElementById("play");
+
+function fit() {
+  for (const s of document.querySelectorAll(".stage")) {
+    const avail = s.parentElement.clientWidth;
+    const k = Math.min(Number(s.dataset.max || 2), avail / 221);
+    s.style.setProperty("--k", k.toFixed(4));
+  }
+  const ctx = document.getElementById("ctx");
+  shot.style.transform = `scale(${ctx.clientWidth / 800})`;
+  render();
+}
+function render() {
+  updateHud(liveHud, t);
+  updateHud(ctxHud, t);
+  scrub.value = String(Math.floor(t));
+  clockEl.textContent = `${clock(t)} / ${clock(plan.total)}`;
+}
+function frame(now) {
+  const dt = Math.min(0.25, (now - last) / 1000);
+  last = now;
+  if (playing) {
+    t += dt * speed;
+    if (t >= plan.total + 3) t = 0;
+    render();
+  }
+  requestAnimationFrame(frame);
+}
+playBtn.addEventListener("click", () => { playing = !playing; playBtn.textContent = playing ? "일시정지" : "재생"; last = performance.now(); });
+document.getElementById("speed").addEventListener("change", (e) => { speed = Number(e.target.value); });
+document.getElementById("preset").addEventListener("change", (e) => {
+  plan = buildPlan(PRESETS[e.target.value]);
+  setPlan(liveHud, plan); setPlan(ctxHud, plan);
+  scrub.max = String(plan.total);
+  const firstWork = plan.steps.find((s) => s.phase === "work");
+  t = firstWork.start + Math.min(12, firstWork.sec - 3);
+  render();
+});
+scrub.addEventListener("input", () => { t = Number(scrub.value); render(); });
+document.getElementById("jumps").addEventListener("click", (e) => {
+  const ph = e.target?.dataset?.jump;
+  if (!ph) return;
+  const s = plan.steps.find((x) => x.phase === ph && x.start + x.sec > t) ?? plan.steps.find((x) => x.phase === ph);
+  if (!s) return;
+  t = s.start;
+  render();
+});
+
+/* ── 정지 장면 ── */
+const ex1 = buildPlan(PRESETS.ex1), ex3 = buildPlan(PRESETS.ex3);
+const at = (pl, phase, nth, sinceStart) => { const s = pl.steps.filter((x) => x.phase === phase)[nth]; return s.start + sinceStart; };
+const scenes = [
+  ["준비 (5분 중 2분 지남)", "반복 칸은 모두 남은 색, 안쪽은 회색이 40% 줄어듦", ex1, at(ex1, "warmup", 0, 120)],
+  ["운동 · 1라운드 2번째 반복", "남은 8초, 진행 중인 칸이 사이클의 37%만큼 차오름", ex1, at(ex1, "work", 1, 22)],
+  ["회복 · 같은 반복", "안쪽 초록이 줄어드는 중, 바깥 칸은 계속 차오름", ex1, at(ex1, "recovery", 1, 18)],
+  ["라운드 사이 휴식", "1라운드 5칸이 모두 파랑, 안쪽은 회색", ex1, at(ex1, "rest", 0, 225)],
+  ["마무리", "마지막 5분, 전체 막대가 거의 다 참", ex1, at(ex1, "cooldown", 0, 60)],
+  ["예3 · 1라운드뿐 · 회복 2분", "라운드 줄 숨김, 1분 넘게 남으면 분:초로", ex3, at(ex3, "recovery", 2, 40)],
+];
+const gallery = document.getElementById("gallery");
+for (const [title, note, pl, time] of scenes) {
+  const card = document.createElement("div");
+  card.className = "shotcard";
+  card.innerHTML = `<b>${title}</b><span>${note}</span><div class="stage" data-max="1.5"></div>`;
+  gallery.appendChild(card);
+  const h = createHud(card.querySelector(".stage"), pl);
+  requestAnimationFrame(() => updateHud(h, time));
+  card._hud = [h, time];
+}
+addEventListener("resize", () => { fit(); for (const c of gallery.children) updateHud(...c._hud); });
+fit();
+for (const c of gallery.children) updateHud(...c._hud);
+if (reduceMotion) { playing = false; playBtn.textContent = "재생"; }
+requestAnimationFrame(frame);
+</script>

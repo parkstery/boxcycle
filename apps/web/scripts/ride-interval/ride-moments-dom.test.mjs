@@ -48,7 +48,8 @@ test('actual React hooks and MapHud handle StrictMode, transitions, stops and in
     await page.waitForFunction(() => window.probe?.event?.kind === 'start');
     await page.clock.runFor(2500);
     await page.waitForFunction(() => document.querySelector('#moment').textContent === '');
-    const view = (phase, remainingSec, nextLabel = '다음 · 운동 5초') => ({ phase, step: phase === 'work' ? 1 : 0, label: phase, remainingSec, repeat: 1, totalRepeats: 1, round: 1, totalRounds: 1, nextLabel });
+    const view = (phase, remainingSec, nextLabel = '다음 · 운동 5초') => ({ phase, step: phase === 'work' ? 1 : 0, label: phase, remainingSec, repeat: 1, totalRepeats: 1, round: 1, totalRounds: 1, nextLabel,
+      stepSec: 10, stepRemainingMs: remainingSec * 1000, cycleProgress: 0, elapsedMs: 0, totalSec: 20, segments: [{ phase: 'warmup', seconds: 10 }, { phase: 'work', seconds: 5 }, { phase: 'recovery', seconds: 5 }] });
     await page.evaluate(interval => window.probe.patch({ elapsedMs: 1000, interval, intervalRunKey: 'r1' }), view('warmup', 10));
     await page.waitForFunction(() => window.probe.event?.kind === 'intervalStart');
     await page.clock.runFor(2500);

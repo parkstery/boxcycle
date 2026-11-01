@@ -128,12 +128,12 @@ test('직접 설정한 시간·반복이 실제 단계 전환과 완료에 쓰�
   await page.clock.fastForward(300_000);
   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('운동');
   await expect(page.locator('.ride-interval-hud__time')).toHaveText('45');
-  await expect(page.locator('.ride-interval-hud__repeat')).toHaveText('1 / 6');
+  await expect(page.locator('.ride-interval-hud__progress')).toHaveAttribute('aria-label','6회 중 1회째');
   await page.clock.fastForward(45_000);
   await expect(page.locator('.ride-interval-hud__phase')).toHaveText('회복');
   await expect(page.locator('.ride-interval-hud__time')).toHaveText('1:00');
   await page.clock.fastForward(60_000);
-  await expect(page.locator('.ride-interval-hud__repeat')).toHaveText('2 / 6');
+  await expect(page.locator('.ride-interval-hud__progress')).toHaveAttribute('aria-label','6회 중 2회째');
   await page.clock.fastForward(825_000);
   await expect(page.locator('.ride-interval-hud__time')).toHaveText('완료');
   await expect(page.getByRole('button',{name:'일시정지',exact:true})).toBeVisible();
