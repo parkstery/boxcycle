@@ -44,43 +44,33 @@ test('800×360 준비·주행의 지표가 읽히고 계정/카메라와 겹치�
   }
 });
 
+// Chief 11-02 레일: 대기 화면은 계정(서비스 기능)이 위 구석, 지도 조작은 그 아래 8px 간격 레일. 주행 중엔 계정 없음.
 test('Chief 고정30 — 우상단 지도 조작과 서비스 기능은 간격으로 구획된다', async ({ page }) => {
+  for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }]) {
+    await page.setViewportSize(size);
+    await page.goto(`${preview}?state=ready`);
+    const mapControls = page.getByRole('group', { name: '맵 제어' });
+    const serviceActions = page.getByRole('group', { name: '서비스 기능' });
+    await expect(mapControls).toBeVisible();
+    await expect(serviceActions).toBeVisible();
+    const layout = await page.evaluate(() => {
+      const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+      const map = rect('.hud-ride-map-controls');
+      const service = rect('.map-hud__service-actions');
+      const children = [...document.querySelectorAll('.map-hud__service-actions > *')].map((el) => el.getBoundingClientRect());
+      const inside = [map, service, ...children].every((box) =>
+        box.left >= 0 && box.top >= 0 && box.right <= window.innerWidth && box.bottom <= window.innerHeight,
+      );
+      const childrenInsideGroup = children.every((box) =>
+        box.left >= service.left && box.right <= service.right && box.top >= service.top && box.bottom <= service.bottom,
+      );
+      return { gap: map.top - service.bottom, inside, childrenInsideGroup };
+    });
+    expect(layout).toEqual({ gap: 8, inside: true, childrenInsideGroup: true });
+  }
   await page.goto(`${preview}?state=glance-riding`);
-  const mapControls = page.getByRole('group', { name: '맵 제어' });
-  const serviceActions = page.getByRole('group', { name: '서비스 기능' });
-  await expect(mapControls).toBeVisible();
-  await expect(serviceActions).toBeVisible();
-
-  const spacing = await page.evaluate(() => {
-    const map = document.querySelector('.hud-ride-map-controls')!.getBoundingClientRect();
-    const service = document.querySelector('.map-hud__service-actions')!.getBoundingClientRect();
-    const account = document.querySelector('.hud-account')!.getBoundingClientRect();
-    return {
-      outer: service.left - map.right,
-      account,
-      centerDelta: Math.abs(service.top + service.height / 2 - (map.top + map.height / 2)),
-    };
-  });
-  expect(spacing.outer).toBeGreaterThanOrEqual(8);
-  expect(spacing.centerDelta).toBeLessThanOrEqual(1);
-
-  await page.setViewportSize({ width: 667, height: 300 });
-  await page.goto(`${preview}?state=glance-riding`);
-  const compact = await page.evaluate(() => {
-    const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
-    const map = rect('.hud-ride-map-controls');
-    const service = rect('.map-hud__service-actions');
-    const children = [...document.querySelectorAll('.map-hud__service-actions > *')].map((el) => el.getBoundingClientRect());
-    const overlaps = map.left < service.right && map.right > service.left && map.top < service.bottom && map.bottom > service.top;
-    const inside = [map, service, ...children].every((box) =>
-      box.left >= 0 && box.top >= 0 && box.right <= window.innerWidth && box.bottom <= window.innerHeight,
-    );
-    const childrenInsideGroup = children.every((box) =>
-      box.left >= service.left && box.right <= service.right && box.top >= service.top && box.bottom <= service.bottom,
-    );
-    return { overlaps, inside, childrenInsideGroup };
-  });
-  expect(compact).toEqual({ overlaps: false, inside: true, childrenInsideGroup: true });
+  await expect(page.getByRole('group', { name: '맵 제어' })).toBeVisible();
+  await expect(page.getByRole('group', { name: '서비스 기능' })).toHaveCount(0);
 });
 
 test('Chief 고정27 — 단일 카메라 메뉴, 1열 62px 우측 정렬, 2~6 파란 화살표 세로', async ({ page }) => {

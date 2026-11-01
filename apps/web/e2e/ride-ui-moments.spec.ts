@@ -59,8 +59,8 @@ test.describe('주행 UI 정리 v2', () => {
       expect(box.menuH).toBeGreaterThanOrEqual(44);
       expect(box.rankW).toBeGreaterThanOrEqual(44);
       expect(box.rankH).toBeGreaterThanOrEqual(44);
-      await expect(page.locator('.hud-account__avatar')).toHaveCount(0);
-      await expect(page.locator('.hud-account__name')).toBeVisible();
+      // Chief 11-02: 주행 중엔 계정 버튼을 숨기고 오른쪽 조작 레일이 위 구석부터 쓴다(고정20 대체).
+      await expect(page.locator('.hud-account')).toHaveCount(0);
       await expect(page.getByRole('button', { name: '순위 열기', exact: true })).toHaveAttribute('aria-expanded', 'false');
       await page.getByRole('button', { name: '순위 열기', exact: true }).click();
       await expect(page.locator('#lb-glance-panel')).toBeVisible();

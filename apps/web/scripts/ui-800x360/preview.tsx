@@ -421,6 +421,7 @@ function Preview() {
   );
   const [camera,setCamera] = useState<1|2|3|4|5|6>(1);
   const [mapStyleLabel,setMapStyleLabel] = useState('위성');
+  const previewMapStyle={styleLabel:mapStyleLabel,styleAriaLabel:`맵 스타일 ${mapStyleLabel}, 클릭 시 ${mapStyleLabel==='위성'?'야외':'위성'}`,onToggleStyle:()=>setMapStyleLabel(value=>value==='위성'?'야외':'위성')};
   const [intervalElapsedMs, setIntervalElapsedMs] = useState(Number(params.get('intervalMs') ?? 0));
   const interval = useRideInterval(
     stage === 'riding' ? 'running' : stage === 'paused' ? 'paused' : 'idle',
@@ -571,7 +572,7 @@ function Preview() {
       onOpenRouteList={()=>setReopenSaved(n=>n+1)} onOpenSettings={()=>setPanel('settings')}
       rideControls={(<RideControlBar stage={panel==='summary'?'summary':stage} routeLoading={params.has('loading')}
       routeSetupToken={routeSetupToken} startPulseKey={rideStartPulseKey}
-      canStartRide={!params.has('blocked')} onStartRide={()=>params.has('shortIntervalRoute')?setIntervalConfirmOpen(true):setStage('riding')} onPauseRide={()=>setStage('paused')} onResumeRide={()=>setStage('riding')} onModifyFromPause={()=>setStage('setup')}
+      canStartRide={!params.has('blocked')} onStartRide={()=>params.has('shortIntervalRoute')?setIntervalConfirmOpen(true):setStage('riding')} onPauseRide={()=>setStage('paused')} onResumeRide={()=>setStage('riding')} onModifyFromPause={()=>setStage('setup')} mapStyle={previewMapStyle}
       onEndRide={()=>{setIntervalElapsedMs(0);setPanel(params.has('short')?'ready':'summary');setStage('ready-to-start');}} resumeRatio={params.has('resume')?0.4:null} />)} />
     <RouteMinimap active={active && interval.view == null} routeGeometry={{type:'LineString',coordinates:[[126.98,37.55],[126.982,37.553],[126.986,37.552],[126.99,37.56]]}} liveLngLat={[126.982,37.553]} mapboxAccessToken="" traveledMeters={420} routeMeters={2020} />
     </MapBottomLeftStack>
@@ -654,7 +655,8 @@ function Preview() {
       rideCoachingBanner={rideCoachingBanner} onRideCoachingBanner={setRideCoachingBanner}
       pacerEnabled={pacerEnabled} onPacerEnabled={setPacerEnabled}
       rideBgmCatalogConfigured={!settingsStress} rideElevationProfileLoading={settingsStress}
-      rideMomentSoundEnabled={rideMomentSoundEnabled} onRideMomentSoundEnabled={setRideMomentSoundEnabled} />
+      rideMomentSoundEnabled={rideMomentSoundEnabled} onRideMomentSoundEnabled={setRideMomentSoundEnabled}
+      mapStyle={previewMapStyle} />
     <RideIntervalSettingsSheet open={intervalEditorOpen} config={interval.config} restartOnApply={interval.enabled && (stage==='riding'||stage==='paused')} enabled={interval.enabled} onEnabled={interval.onEnabled} onApply={interval.onConfig} onClose={()=>{setIntervalEditorOpen(false);if(intervalEditorFromSettings)setPanel('settings');}} onQuickIntervalRide={(sec)=>{setIntervalEditorOpen(false);document.body.dataset.quickIntervalSec=String(sec);}} quickIntervalDisabledReason={null} />
     <IntervalRouteConfirm open={intervalConfirmOpen} speedKmh={20} onCancel={()=>setIntervalConfirmOpen(false)} onConfirm={()=>{setIntervalConfirmOpen(false);setStage('riding');}} />
     <ProfileEditSheet

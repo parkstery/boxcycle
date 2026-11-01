@@ -22,15 +22,9 @@ import { RouteDock, useRouteDockStops, type RouteDockStop, type RouteDockStopId 
 import { RideControlBar } from "./components/ride/RideControlBar";
 import { armPostRideActivityWatch } from "./lib/activity/activityWorldPollSignals";
 import {
-  MAP_GLOBE_MIN_ZOOM,
-  MAP_ZOOM_SLIDER_MAX,
   RIDE_START_ZOOM,
   RIDE_CAMERA_DISTANCE_MIN_M,
 } from "./lib/map/mapGlobeView";
-import {
-  nextRideUserZoomInDistanceM,
-  nextRideUserZoomOutDistanceM,
-} from "./lib/camera/rideUserZoom";
 
 import { rideDistanceAlongRoute } from "./lib/ride/liveLocationSnapshot";
 import { getRideIntervalTotalSec } from "./lib/ride/rideInterval";
@@ -189,8 +183,6 @@ import { QuickIntervalStatus } from "./components/ride/QuickIntervalStatus";
 import {
   DEFAULT_MAP_STYLE,
   MAP_STYLE_SATELLITE,
-  mapStyleHudShortLabel,
-  nextOutdoorsSatelliteMapStyle,
 } from "./lib/map/rtwMapConfig";
 import { isRideInputReady } from "./lib/sensor/cadenceSensorUi";
 import { CadenceSensorSheet } from "./components/sensor";
@@ -201,6 +193,7 @@ import { type RouteProfile } from "./services/mapboxDirections";
 import { FUNCTIONS_REGION, MAPBOX_TOKEN } from "./app/env";
 import { useAppSheetNavigation } from "./app/useAppSheetNavigation";
 import { useAppMapCameraState } from "./app/useAppMapCameraState";
+import { useAppMapHudControls } from "./app/useAppMapHudControls";
 import { useAppRideInputReadiness } from "./app/useAppRideInputReadiness";
 import { computeAppHudValues } from "./app/appHudValues";
 import { getMapDebugPhase } from "./lib/debug/mapDebugPhase";
@@ -213,7 +206,6 @@ import {
 } from "./lib/camera/camera1Mode";
 import {
   getQuickCameraProductTune,
-  isQuickCameraOutdoorsOnly,
   QUICK_CAMERA_FALLBACK_DISTANCE_M,
 } from "./lib/camera/quickCameraProductTune";
 import "./App.css";
@@ -2659,6 +2651,11 @@ export default function App() {
     setRideCameraDistanceM(distanceM);
     setRideCameraSpanFloorMode("userZoom");
   }, [setRideCameraDistanceM, setRideCameraSpanFloorMode]);
+  const mapHudControls = useAppMapHudControls(
+    { mapStyle, setMapStyle, mapZoom, rideCameraDistanceM, followMode, activeQuickCamera, camera1UserToggledStyleRef, setMapZoomStepRequest, mapZoomStepSeqRef },
+    rideStatus,
+    handleRideCameraDistanceFromUserZoom,
+  );
 
   const handleRideCameraDistancePreset = useCallback((distanceM: number) => {
     setRideCameraDistanceM(distanceM);
@@ -2710,6 +2707,7 @@ export default function App() {
       onAbandonResume={resumeRatio != null ? rideResumeSlot.abandon : null}
       editLocked={routeMenuLockedForProd}
       nextRideVisible={Boolean(nextRideCardVisible && nextRideView)}
+      mapStyle={mapHudControls}
     />
   );
 
@@ -3265,97 +3263,7 @@ export default function App() {
                       onEnable3D: setEnable3D,
                     }
                   : null,
-              mapControls: {
-                styleLabel: mapStyleHudShortLabel(mapStyle),
-                styleAriaLabel: isQuickCameraOutdoorsOnly(activeQuickCamera)
-                  ? "맵 스타일 야외, 카메라 2~6에서는 야외 고정"
-                  : `맵 스타일 ${mapStyleHudShortLabel(mapStyle)}, 클릭 시 ${mapStyleHudShortLabel(nextOutdoorsSatelliteMapStyle(mapStyle))}`,
-                styleToggleDisabled: isQuickCameraOutdoorsOnly(activeQuickCamera),
-                onToggleStyle: () => {
-                  if (isQuickCameraOutdoorsOnly(activeQuickCamera)) {
-                    setMapStyle(DEFAULT_MAP_STYLE);
-                    return;
-                  }
-                  if (activeQuickCamera === 1) {
-                    camera1UserToggledStyleRef.current = true;
-                  }
-                  setMapStyle(nextOutdoorsSatelliteMapStyle(mapStyle));
-                },
-                onZoomOut: () => {
-                  const rideActive =
-                    rideStatus === "running" || rideStatus === "paused";
-                  // idle = 일반 지도 줌 −1. 주행 = 거리 없는 모드·routeFit(free)는 실측 mapZoom 스텝.
-                  if (
-                    !rideActive ||
-                    followMode === "free" ||
-                    followMode === "topDown" ||
-                    followMode === "north" ||
-                    followMode === "keep"
-                  ) {
-                    mapZoomStepSeqRef.current += 1;
-                    setMapZoomStepRequest({
-                      requestId: mapZoomStepSeqRef.current,
-                      delta: -1,
-                    });
-                    return;
-                  }
-                  handleRideCameraDistanceFromUserZoom(
-                    nextRideUserZoomOutDistanceM(rideCameraDistanceM),
-                  );
-                },
-                onZoomIn: () => {
-                  const rideActive =
-                    rideStatus === "running" || rideStatus === "paused";
-                  // idle = 일반 지도 줌 +1. 주행 = 실측 mapZoom↑ 또는 거리↓(userZoom).
-                  if (
-                    !rideActive ||
-                    followMode === "free" ||
-                    followMode === "topDown" ||
-                    followMode === "north" ||
-                    followMode === "keep"
-                  ) {
-                    mapZoomStepSeqRef.current += 1;
-                    setMapZoomStepRequest({
-                      requestId: mapZoomStepSeqRef.current,
-                      delta: 1,
-                    });
-                    return;
-                  }
-                  handleRideCameraDistanceFromUserZoom(
-                    Math.max(1e-9, nextRideUserZoomInDistanceM(rideCameraDistanceM)),
-                  );
-                },
-                zoomOutDisabled: (() => {
-                  const rideActive =
-                    rideStatus === "running" || rideStatus === "paused";
-                  if (
-                    !rideActive ||
-                    followMode === "free" ||
-                    followMode === "topDown" ||
-                    followMode === "north" ||
-                    followMode === "keep"
-                  ) {
-                    return mapZoom <= MAP_GLOBE_MIN_ZOOM + 1e-6;
-                  }
-                  // 거리 지배 주행 카메라에는 제품 임의 상한이 없다.
-                  // 실제 축소 한계는 Mapbox `minZoom`이 맡는다.
-                  return false;
-                })(),
-                zoomInDisabled: (() => {
-                  const rideActive =
-                    rideStatus === "running" || rideStatus === "paused";
-                  if (
-                    !rideActive ||
-                    followMode === "free" ||
-                    followMode === "topDown" ||
-                    followMode === "north" ||
-                    followMode === "keep"
-                  ) {
-                    return mapZoom >= MAP_ZOOM_SLIDER_MAX - 1e-6;
-                  }
-                  return rideCameraDistanceM <= 1e-6;
-                })(),
-              },
+              mapControls: mapHudControls,
             }}
           >
           </AppMapStage>
@@ -3518,6 +3426,7 @@ export default function App() {
         rideElevationProfileLoading={rideElevationProfileLoading}
         rideMomentSoundEnabled={rideMomentSoundEnabled}
         onRideMomentSoundEnabled={setRideMomentSoundEnabled}
+        mapStyle={mapHudControls}
       />
 
       <RideIntervalSettingsSheet

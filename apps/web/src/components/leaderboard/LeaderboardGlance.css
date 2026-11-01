@@ -1,8 +1,9 @@
 .lb-glance__panel {
   position: absolute;
-  top: calc(var(--hud-pad-top) + 2.79rem + 0.4rem);
+  /* Chief 11-02 D4: 오른쪽 조작 레일(26px 띄움 + 64px) 왼쪽 10px 에 붙는다. 위는 레일 첫 칸과 같은 높이. */
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
   right: var(--hud-pad-right);
-  max-height: calc(100% - var(--hud-pad-top) - 3.19rem - var(--hud-pad-bottom) - var(--br-clock-above-scale, 26px) - var(--br-clock-height, 16px) - 56px);
+  max-height: calc(100% - 8px - var(--hud-pad-bottom) - 24px);
   width: 220px;
   max-width: min(220px, calc(100vw - 5.5rem));
   display: flex;
@@ -24,8 +25,6 @@
 }
 @media (max-width: 740px) and (max-height: 560px) {
   .lb-glance__panel {
-    top: calc(var(--hud-pad-top) + 5rem);
-    max-height: calc(100% - var(--hud-pad-top) - 5rem - var(--hud-pad-bottom) - var(--br-clock-above-scale, 26px) - var(--br-clock-height, 16px) - 56px);
     width: min(200px, calc(100vw - 5.5rem));
   }
 }
@@ -121,6 +120,8 @@
   font-size: 11px;
 }
 
+/* 점 칸이 글자 줄 높이(약 20px)를 갖지 않게 — 13px 줄에서 그 줄만 아래로 밀려 다음 줄과 겹쳤다(11-02). */
+.lb-glance__live-slot { display: flex; align-items: center; justify-content: center; line-height: 0; }
 .lb-glance__live-dot {
   display: inline-block;
   width: 8px;
@@ -176,18 +177,14 @@
 .lb-glance__row--me::before { background: rgba(222,233,255,.8); }
 .lb-glance__panel-head, .lb-glance__footer, .lb-glance__hint, .lb-glance__text-btn { background: rgba(255,255,255,.7); border-radius: 3px; }
 
-/* 주행 제어 이동으로 확보된 하단까지 순위를 표시한다.
- * Chief 11-02: 주행 전 지도도 같은 규칙(10줄). 예전 기본값은 이미 없어진 우하단 시계·주행 버튼 자리(시계 높이+56px)를 비워 두어 5줄에서 잘렸다. */
-.lb-glance__panel { max-height: calc(100% - var(--hud-pad-top) - 3.19rem - var(--hud-pad-bottom) - 24px); }
-@media (max-width: 740px) and (max-height: 560px) {
-  .lb-glance__panel { max-height: calc(100% - var(--hud-pad-top) - 5rem - var(--hud-pad-bottom) - 24px); }
-}
+/* 10줄: 주행 전·중 모두 아래 24px 까지 쓴다(Chief 11-02). 예전 기본값은 이미 없어진 우하단 시계·주행 버튼 자리(시계 높이+56px)를 비워 두어 5줄에서 잘렸다. */
+.map-hud:has(.map-hud__rail) .lb-glance__panel { right: calc(env(safe-area-inset-right, 0px) + 100px); }
 .lb-glance__row { height: 18px; }
 .lb-glance__rank,
 .lb-glance__km { font-size: 14px; line-height: 1; }
 .lb-glance__name { font-size: 12px; line-height: 1; }
 @media (max-height: 330px) {
-  .lb-glance__panel { top: calc(var(--hud-pad-top) + 4rem); max-height: calc(100% - var(--hud-pad-top) - 4rem - var(--hud-pad-bottom) - 24px); padding: 4px 8px; gap: 0; }
+  .lb-glance__panel { padding: 4px 8px; gap: 0; }
   .lb-glance__panel-head { font-size: 10px; line-height: 1; }
   .lb-glance__footer { font-size: 11px; line-height: 1; }
   .lb-glance__row { height: 13px; }

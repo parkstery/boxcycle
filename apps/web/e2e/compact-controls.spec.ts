@@ -435,17 +435,17 @@ test.describe('compact-controls v2', () => {
     });
   }
 
-  test('우상단 계정·카메라 비겹침', async ({ page }) => {
+  // Chief 11-02: 주행 중엔 계정이 숨고 카메라·지도 조작은 오른쪽 레일 한 줄(서로 겹치지 않음).
+  test('우상단 레일: 주행 중 계정 숨김·카메라/지도 조작 비겹침', async ({ page }) => {
     await page.setViewportSize({ width: 667, height: 300 });
     await page.goto(`${preview}?state=riding`);
+    await expect(page.locator('.hud-account')).toHaveCount(0);
     const hit = await page.evaluate(() => {
       const a = document.querySelector('.camera-view-menu')!.getBoundingClientRect();
-      const b = document.querySelector('.hud-account')!.getBoundingClientRect();
       const c = document.querySelector('.hud-ride-map-controls')!.getBoundingClientRect();
-      const overlapBox = (x: DOMRect, y: DOMRect) => x.left < y.right && x.right > y.left && x.top < y.bottom && x.bottom > y.top;
-      return { cameraAccount: overlapBox(a, b), cameraMap: overlapBox(a, c), accountMap: overlapBox(b, c) };
+      return { cameraMap: a.left < c.right && a.right > c.left && a.top < c.bottom && a.bottom > c.top, sameColumn: Math.abs(a.left - c.left) < 1 };
     });
-    expect(hit).toEqual({ cameraAccount: false, cameraMap: false, accountMap: false });
+    expect(hit).toEqual({ cameraMap: false, sameColumn: true });
   });
 });
 

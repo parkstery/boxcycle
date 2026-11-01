@@ -59,12 +59,6 @@
 }
 .edge-panel-tab--right.edge-panel-tab--open {
   right: env(safe-area-inset-right, 0px);
-  /* 11-02: 순위·Trail 목록(MapHud 안)이 10줄로 길어져 탭의 누름 영역을 덮는다 → 열린 동안은 HUD 위.
-   * 카메라 메뉴가 펼쳐진 동안만 예전처럼 HUD 아래로 내려 메뉴를 가리지 않는다. */
-  z-index: 6;
-}
-body:has(.camera-view-menu__panel) .edge-panel-tab--right.edge-panel-tab--open {
-  z-index: 4;
 }
 .edge-panel-tab__knob {
   width: 20.4px;

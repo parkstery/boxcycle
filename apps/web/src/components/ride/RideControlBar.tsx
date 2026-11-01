@@ -20,6 +20,8 @@ export type RideControlBarProps = {
   onAbandonResume?: (() => void) | null;
   editLocked?: boolean;
   nextRideVisible?: boolean;
+  /** 낮은 폰에선 오른쪽 조작 레일에서 빠지는 지도 스타일 전환(Chief 11-02). CSS 가 그때만 보인다. */
+  mapStyle?: { styleLabel: string; styleAriaLabel: string; styleToggleDisabled?: boolean; onToggleStyle: () => void };
 };
 /** One fixed place for transport; route addresses and sensor live on RouteDock. */
 export function RideControlBar(props: RideControlBarProps) {
@@ -132,6 +134,12 @@ export function RideControlBar(props: RideControlBarProps) {
           >
             경로 변경
           </button>
+          {props.mapStyle ? (
+            <button type="button" className="ride-control-bar__map-style" aria-label={props.mapStyle.styleAriaLabel}
+              title={props.mapStyle.styleAriaLabel} disabled={props.mapStyle.styleToggleDisabled} onClick={props.mapStyle.onToggleStyle}>
+              지도 스타일 · {props.mapStyle.styleLabel}
+            </button>
+          ) : null}
           <button type="button" aria-label="일시정지 옵션 닫기" title="일시정지 옵션 닫기" onClick={() => setPauseOptionsOpen(false)}>
             닫기
           </button>

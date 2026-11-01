@@ -1,0 +1,53 @@
+/*
+ * Chief 11-02 D1·D2: 오른쪽 조작 레일 — 카메라·지도 스타일·＋·－ 를 오른쪽 끝 세로 한 줄, 64px 정사각 구름(기존 32px의 2배).
+ * 오른쪽 반달 탭(보이는 20.4px)을 가리지 않게 화면 끝에서 26px 띄운다. 계정은 대기 화면에서만 위 구석(고정43), 레일은 그 아래.
+ * 네 칸이 안 들어가는 낮은 폰(312px 미만)은 주행 중 지도 스타일을 빼고 ⚙ 주행 설정 창에서 바꾼다.
+ */
+.map-hud .map-hud__tr {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.map-hud__rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-right: 26px;
+}
+.map-hud__rail:first-child { margin-top: 8px; }
+/* 감싼 상자는 반달 탭·지도로 누름을 통과시키고 버튼만 받는다. */
+.map-hud > .map-hud__tr,
+.map-hud__rail { pointer-events: none; }
+.map-hud__tr > .map-hud__service-actions,
+.map-hud__rail > * { pointer-events: auto; }
+.map-hud .map-hud__rail .hud-ride-map-controls { flex-direction: column; gap: 8px; }
+.map-hud .map-hud__rail .hud-ride-map-controls > button,
+.map-hud .map-hud__rail .camera-view-menu__trigger {
+  width: 64px; min-width: 64px; height: 64px; min-height: 64px; flex: 0 0 64px; padding: 0;
+}
+/* 64px 는 이미 44px 이상 — 이웃 버튼을 덮던 투명 확장 영역은 끈다. */
+.map-hud .map-hud__rail .hud-ride-map-controls > button::after { display: none; }
+.map-hud .map-hud__rail .camera-view-menu__trigger::before {
+  mask-image: var(--map-control-cloud-sm); -webkit-mask-image: var(--map-control-cloud-sm);
+}
+.map-hud .map-hud__rail .hud-ride-map-controls__style-icon { width: 32px; height: 32px; }
+.map-hud .map-hud__rail .hud-ride-map-controls__zoom svg { width: 30px; height: 30px; }
+
+/* 카메라: 위 줄 번호·아이콘, 아래 줄 거리(1번). 메뉴는 레일 왼쪽으로 펼친다. */
+.map-hud .map-hud__rail .camera-view-menu__trigger {
+  flex-wrap: wrap; align-content: center; gap: 1px 3px; font-size: 13px;
+}
+.map-hud .map-hud__rail .camera-view-menu__item-num { font-size: 14px; }
+.map-hud .map-hud__rail .camera-view-menu__svg { width: 22px; height: 22px; flex-basis: 22px; }
+.map-hud .map-hud__rail .camera-view-menu__trigger-label { flex: 0 0 100%; text-align: center; line-height: 1; }
+.map-hud .map-hud__rail .camera-view-menu__caret { display: none; }
+.map-hud .map-hud__rail .camera-view-menu__panel { top: 0; right: calc(100% + 8px); }
+@media (max-height: 330px) {
+  .map-hud .map-hud__rail .camera-view-menu__panel { max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 16px); }
+}
+
+@media (max-height: 311px) {
+  .map-hud .map-hud__rail:has(.camera-view-menu) .hud-ride-map-controls__style { display: none; }
+}

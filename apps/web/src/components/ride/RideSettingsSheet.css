@@ -374,3 +374,13 @@
     column-gap: 0;
   }
 }
+/* Chief 11-02: 지도 스타일은 레일에서 빠지는 낮은 폰(312px 미만) 주행 중에만 보인다 — 그 밖엔 빈칸 자리. */
+.ride-settings-panel__map-style { visibility: hidden; }
+@media (max-height: 311px) {
+  body:has(.map-hud__rail .camera-view-menu) .ride-settings-panel__map-style { visibility: visible; }
+}
+.ride-settings-panel__map-style-btn {
+  min-width: 52px; min-height: 30px; padding: 0 10px; border: 1px solid #c9d6ee; border-radius: 8px;
+  background: #f7f9fe; color: #2457d6; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.ride-settings-panel__map-style-btn:disabled { color: #8b99ad; cursor: default; }
