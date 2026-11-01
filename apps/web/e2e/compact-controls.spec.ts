@@ -369,7 +369,14 @@ test.describe('compact-controls v2', () => {
         const flat = el.querySelector('.camera-view-menu__unit--flat')!.getBoundingClientRect();
         const six = el.querySelector('[data-camera-slot="6"]')!.getBoundingClientRect();
         const terrain = el.querySelector('.camera-view-menu__item--terrain')!.getBoundingClientRect();
+        // Chief 11-01 제안A: 두 열 칸 경계가 가로로 평행(같은 줄 격자), 3D 뷰는 500m·1000m 두 줄을 함께 차지, 칸마다 버튼 흔적.
+        const flatRows = [...el.querySelectorAll('.camera-view-menu__list--flat .camera-view-menu__item')].map(b => b.getBoundingClientRect());
+        const slotRows = [2, 3, 4, 5, 6].map(n => el.querySelector(`[data-camera-slot="${n}"]`)!.getBoundingClientRect());
+        const plain = el.querySelector('.camera-view-menu__list--flat .camera-view-menu__item:not(.is-selected)')!;
         return {
+          rowsParallel: slotRows.every((r, i) => Math.abs(r.top - flatRows[i]!.top) < 0.6 && Math.abs(r.bottom - flatRows[i]!.bottom) < 0.6),
+          terrainSpan: Math.abs(terrain.top - flatRows[5]!.top) < 0.6 && Math.abs(terrain.bottom - flatRows[6]!.bottom) < 0.6,
+          trace: getComputedStyle(plain).boxShadow,
           width: r.width,
           inside: r.left >= -1 && r.top >= -1 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1,
           flatWidth: flat.width,
@@ -380,6 +387,9 @@ test.describe('compact-controls v2', () => {
       expect(box.flatWidth).toBeCloseTo(62, 0);
       expect(box.inside).toBe(true);
       expect(box.terrainBelow).toBe(true);
+      expect(box.rowsParallel).toBe(true);
+      expect(box.terrainSpan).toBe(true);
+      expect(box.trace).toContain('inset');
       if (size.width === 699) await saveShot(page, `camera-open-${size.width}x${size.height}.png`);
       await menu.getByRole('menuitemradio', { name: /^카메라 4/ }).click();
       await expect(menu).toHaveCount(0);

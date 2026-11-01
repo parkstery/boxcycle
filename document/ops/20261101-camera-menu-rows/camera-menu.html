@@ -1,0 +1,154 @@
+<title>카메라 메뉴 줄 맞춤</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&family=Saira+Condensed:wght@700&display=swap">
+<style>
+  /* 레이아웃: 설명 → 현재·제안A·제안B 세 메뉴를 2배로 나란히 → 바뀌는 값 표. 메뉴 자체 색은 앱과 같게 고정 */
+  :root {
+    --bg: #edf0f5; --surface: #ffffff; --fg: #18212c; --muted: #586476; --line: #d4dbe5; --accent: #2457d6; --guide: rgba(214, 40, 40, .55);
+    --font-ui: "IBM Plex Sans KR", "Malgun Gothic", system-ui, sans-serif;
+    --m-line: #c9d6ee; --m-sep: #e3e8f2; --m-ink: #121417; --m-sub: #5e6472; --m-blue: #2457d6; --m-sel: #eef3fc; --m-bg: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #12171e; --surface: #1b222c; --fg: #e5eaf1; --muted: #9aa6b6; --line: #2d3745; --accent: #7d9cff; --guide: rgba(255, 110, 110, .7); color-scheme: dark } }
+  :root[data-theme="dark"] { --bg: #12171e; --surface: #1b222c; --fg: #e5eaf1; --muted: #9aa6b6; --line: #2d3745; --accent: #7d9cff; --guide: rgba(255, 110, 110, .7); color-scheme: dark }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 15px; line-height: 1.55; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding-block: 24px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 20px; }
+  h1 { font-size: 26px; margin: 0; text-wrap: balance; }
+  h2 { font-size: 17px; margin: 0 0 4px; }
+  .lead { margin: 6px 0 0; color: var(--muted); max-width: 70ch; }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; font-size: 14px; }
+  .bar label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+  .bar input { accent-color: var(--accent); width: 16px; height: 16px; }
+  .bar input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; display: grid; gap: 10px; align-content: start; }
+  .card p { margin: 0; font-size: 13.5px; color: var(--muted); }
+  .card.pick { border-color: var(--accent); }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; color: #fff; background: var(--accent); border-radius: 4px; padding: 0 6px; margin-left: 6px; vertical-align: 2px; }
+  .stage { --k: 2; width: calc(156px * var(--k)); height: calc(250px * var(--k)); max-width: 100%; position: relative; overflow: hidden; border-radius: 8px;
+    background: repeating-linear-gradient(0deg, transparent 0 46px, rgba(255,255,255,.55) 46px 52px), repeating-linear-gradient(90deg, transparent 0 58px, rgba(255,255,255,.55) 58px 64px), #c9d3c4; }
+  .stage > .menu { position: absolute; left: calc(1px * var(--k)); top: calc(1px * var(--k)); transform: scale(var(--k)); transform-origin: 0 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 7px 8px; text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  .tablewrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; }
+
+  /* ── 앱 메뉴(CameraViewMenu.css 값 그대로) ── */
+  .menu { display: grid; grid-template-columns: 62px 80px; width: 154px; box-sizing: border-box; padding: 4px; gap: 4px; border: 1px solid var(--m-line); border-radius: 10px; background: var(--m-bg);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, .2); font-family: "Pretendard", "Malgun Gothic", system-ui, sans-serif; color: var(--m-ink); position: relative; }
+  .unit { display: flex; flex-direction: column; min-width: 0; }
+  .unit.persp { border-left: 1px solid var(--m-sep); padding-left: 4px; }
+  .title { height: 22px; display: flex; align-items: center; justify-content: center; color: var(--m-sub); font-size: 11px; font-weight: 700; }
+  .list { list-style: none; margin: 0; padding: 0; }
+  .item { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 27px; padding: 3px 6px; border: 0; border-radius: 5px; background: transparent; color: var(--m-ink);
+    font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; box-sizing: border-box; }
+  .flat .item { justify-content: flex-end; font-variant-numeric: tabular-nums; }
+  .item.icon { height: 27px; padding: 3px 7px; justify-content: center; gap: 5px; color: var(--m-blue); }
+  .item.sel { background: var(--m-sel); color: var(--m-blue); }
+  .item.icon.sel { background: var(--m-blue); color: #fff; }
+  .item:focus-visible { outline: 2px solid var(--m-blue); outline-offset: -2px; }
+  .num { font-family: "Saira Condensed", system-ui, sans-serif; font-size: 11px; font-weight: 700; line-height: 1; min-width: 11px; text-align: center; }
+  .svg { display: inline-flex; width: 22px; height: 22px; }
+  .svg svg { width: 100%; height: 100%; }
+  .svg path { fill: none; stroke-width: 4.8; stroke-linecap: round; stroke-linejoin: round; }
+  .terrain { border-top: 1px solid var(--m-sep); padding-top: 3px; margin-top: 5px; }
+  .item.terrain-btn { min-height: 44px; padding: 4px 2px; flex-direction: column; gap: 2px; text-align: center; font-size: 11px; justify-content: center; }
+  .item.terrain-btn span:last-child { font-size: 10px; color: #596579; }
+  .persp .list { display: grid; grid-template-columns: 1fr; gap: 3px; }
+
+  /* ── 제안 공통: 두 열이 같은 줄 격자(27px 7줄, 간격 3px)를 쓴다 ── */
+  .menu.aligned .list { display: grid; grid-template-rows: repeat(7, 27px); gap: 3px; }
+  .menu.aligned .terrain { grid-row: 6 / span 2; border-top: 0; padding-top: 0; margin-top: 0; display: flex; }
+  .menu.aligned .item.terrain-btn { min-height: 0; height: 100%; }
+  /* 제안 A: 옅은 테두리 + 아래쪽 그림자 한 줄 */
+  .menu.trace-a .item:not(.sel) { background: #fafbfd; box-shadow: inset 0 0 0 1px #dde4f0, 0 1px 0 rgba(30, 50, 90, .12); }
+  .menu.trace-a .item { border-radius: 6px; }
+  /* 제안 B: 테두리 없이 옅은 바탕 + 아래쪽 그림자 */
+  .menu.trace-b .item:not(.sel) { background: #f0f3f9; box-shadow: 0 1px 1.5px rgba(30, 50, 90, .22); }
+  .menu.trace-b .item { border-radius: 7px; }
+  .menu.trace-a .item:hover:not(.sel), .menu.trace-b .item:hover:not(.sel) { background: #e8eefb; }
+  .menu.trace-a .item:active, .menu.trace-b .item:active { transform: translateY(1px); box-shadow: none; }
+
+  /* 줄 맞춤 보기: 왼쪽 열 각 줄의 위·아래를 빨간 선으로 끝까지 긋는다 */
+  .guides { position: absolute; inset: 0; pointer-events: none; display: none; }
+  .show-guides .guides { display: block; }
+  .guides i { position: absolute; left: -2px; right: -2px; height: 0; border-top: 1px dashed var(--guide); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>카메라 메뉴 줄 맞춤</h1>
+    <p class="lead">지금은 왼쪽(1번 거리) 7칸이 간격 없이 27px씩, 오른쪽(2~6번) 칸은 27px에 3px 간격이 있고 3D 뷰가 따로 44px라서 두 열의 줄이 어긋납니다. 제안은 <b>두 열이 같은 줄 격자(27px 7줄, 간격 3px)</b>를 쓰고, 3D 뷰가 6·7번째 줄을 함께 차지하게 합니다. 각 칸에는 버튼임을 알 수 있는 옅은 흔적을 줍니다. 그림은 2배 크기이고, 칸을 눌러 선택해 볼 수 있습니다.</p>
+  </header>
+
+  <div class="bar" role="group" aria-label="보기 설정">
+    <label for="guides"><input id="guides" type="checkbox" checked> 줄 맞춤 선 보기</label>
+    <span style="color:var(--muted)">빨간 점선 = 왼쪽 열 각 칸의 위·아래 경계</span>
+  </div>
+
+  <div class="cols" id="cols">
+    <div class="card"><h2>현재</h2><p>왼쪽 칸 경계가 오른쪽 칸 중간을 지나갑니다. 칸이 글자만 있어 눌러지는 곳인지 잘 안 보입니다.</p><div class="stage" data-variant="now"></div></div>
+    <div class="card pick"><h2>제안 A · 옅은 테두리<span class="tag">추천</span></h2><p>두 열 줄이 맞습니다. 칸마다 아주 옅은 테두리와 아래쪽 그림자 한 줄.</p><div class="stage" data-variant="a"></div></div>
+    <div class="card"><h2>제안 B · 옅은 바탕</h2><p>테두리 없이 옅은 회청색 바탕과 아래 그림자. A보다 조금 더 눈에 띕니다.</p><div class="stage" data-variant="b"></div></div>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>항목</th><th>현재</th><th>제안</th></tr></thead>
+      <tbody>
+        <tr><td>왼쪽 칸</td><td>27px, 간격 0</td><td>27px, 간격 3px</td></tr>
+        <tr><td>오른쪽 칸(2~6)</td><td>27px, 간격 3px</td><td>그대로(27px, 간격 3px)</td></tr>
+        <tr><td>3D 뷰</td><td>위 구분선 + 5px 띄움, 높이 44px</td><td>6·7번째 줄을 함께 차지(57px), 구분선 없음</td></tr>
+        <tr><td>메뉴 높이</td><td>왼쪽 189px · 오른쪽 약 202px</td><td>두 열 모두 207px</td></tr>
+        <tr><td>버튼 흔적</td><td>없음(선택한 칸만 바탕색)</td><td>A: 옅은 테두리+그림자 / B: 옅은 바탕+그림자, 누르면 1px 내려감</td></tr>
+        <tr><td>그대로 두는 것</td><td colspan="2">폭 154px(왼쪽 62px·오른쪽 80px, 고정27), 파란 화살표·번호, 선택 색, 오른쪽 정렬, 접근성 이름</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const FLAT = ["전체", "20m", "200m", "300m", "400m", "500m", "1000m"];
+const ROT = { 2: -90, 3: 90, 4: 0, 5: 180, 6: 40 };
+const arrow = (s) => `<svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="g${s}" x1="4" y1="6" x2="27" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#5eb8ff"/><stop offset=".48" stop-color="#347dff"/><stop offset="1" stop-color="#263ee8"/></linearGradient></defs><g transform="rotate(${ROT[s]} 16 16)"><path d="M5 16H25M18 9L25 16L18 23" stroke="url(#g${s})"/></g></svg>`;
+const state = { flat: 5, slot: null, three: false };
+
+function menu(variant) {
+  const cls = variant === "now" ? "menu" : `menu aligned trace-${variant}`;
+  const flat = FLAT.map((label, i) => `<li><button type="button" class="item${state.slot == null && state.flat === i ? " sel" : ""}" data-flat="${i}">${label}</button></li>`).join("");
+  const persp = [2, 3, 4, 5, 6].map((s) => `<li><button type="button" class="item icon${state.slot === s ? " sel" : ""}" data-slot="${s}" aria-label="카메라 ${s}"><span class="num">${s}</span><span class="svg">${arrow(s)}</span></button></li>`).join("");
+  return `<div class="${cls}">
+    <div class="unit flat"><div class="title">1</div><ul class="list">${flat}</ul></div>
+    <div class="unit persp"><div class="title">2–6</div><ul class="list">${persp}
+      <li class="terrain"><button type="button" class="item terrain-btn${state.three ? " sel" : ""}" data-three="1"><span>3D 뷰</span><span>${state.three ? "켜짐" : "꺼짐"}</span></button></li></ul></div>
+    <div class="guides"></div></div>`;
+}
+function guides(stage) {
+  const m = stage.querySelector(".menu"), g = m.querySelector(".guides");
+  const mr = m.getBoundingClientRect(), k = mr.width / m.offsetWidth;
+  const lines = new Set();
+  for (const b of m.querySelectorAll(".flat .item")) { const r = b.getBoundingClientRect(); lines.add(((r.top - mr.top) / k).toFixed(1)); lines.add(((r.bottom - mr.top) / k).toFixed(1)); }
+  g.innerHTML = [...lines].map((y) => `<i style="top:${y}px"></i>`).join("");
+}
+function render() {
+  for (const stage of document.querySelectorAll(".stage")) {
+    const avail = stage.parentElement.clientWidth - 28;
+    stage.style.setProperty("--k", Math.min(2, avail / 158).toFixed(3));
+    stage.innerHTML = menu(stage.dataset.variant);
+    guides(stage);
+  }
+}
+document.getElementById("cols").addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.flat) { state.flat = Number(b.dataset.flat); state.slot = null; }
+  else if (b.dataset.slot) state.slot = Number(b.dataset.slot);
+  else if (b.dataset.three) state.three = !state.three;
+  render();
+});
+const toggle = document.getElementById("guides");
+const applyGuides = () => document.body.classList.toggle("show-guides", toggle.checked);
+toggle.addEventListener("change", applyGuides);
+addEventListener("resize", render);
+applyGuides();
+render();
+</script>

@@ -86,7 +86,7 @@
 /* 짧은 폰 가로에서도 마지막 항목까지 접근할 수 있게 패널을 화면 안에 둔다. */
 @media (max-height: 330px) {
   .camera-view-menu__panel {
-    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 68px);
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 74px);
     overflow-y: auto;
   }
 }
@@ -124,9 +124,12 @@
   box-sizing: border-box;
 }
 
+/* Chief 11-01 제안A: 두 열이 같은 줄 격자(27px 7줄·간격 3px)를 써서 가로로 평행하다. */
+.camera-view-menu__list--flat,
 .camera-view-menu__list--perspective {
   display: grid;
   grid-template-columns: 1fr;
+  grid-template-rows: repeat(7, 27px);
   gap: 3px;
 }
 
@@ -146,6 +149,19 @@
   font-weight: 650;
   text-align: right;
   cursor: pointer;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+/* 제안A: 칸마다 옅은 테두리와 아래 그림자 한 줄로 버튼임을 보인다. */
+.camera-view-menu__item:not(.is-selected) {
+  background: #fafbfd;
+  box-shadow: inset 0 0 0 1px #dde4f0, 0 1px 0 rgba(30, 50, 90, 0.12);
+}
+.camera-view-menu__item { border-radius: 6px; }
+.camera-view-menu__item:active { transform: translateY(1px); box-shadow: none; }
+@media (hover: hover) {
+  .camera-view-menu__item:not(.is-selected):hover { background: #e8eefb; }
 }
 
 .camera-view-menu__list--flat .camera-view-menu__item {
@@ -217,13 +233,13 @@
   }
 }
 
+/* 3D 뷰는 6·7번째 줄을 함께 차지한다(왼쪽 500m·1000m 와 나란히). */
 .camera-view-menu__terrain {
-  border-top: 1px solid #e3e8f2;
-  padding-top: 3px;
-  margin-top: 5px;
+  grid-row: 6 / span 2;
+  display: flex;
 }
 .camera-view-menu__item--terrain {
-  min-height: 44px;
+  min-height: 0;
   padding: 4px 2px;
   flex-direction: column;
   gap: 2px;
