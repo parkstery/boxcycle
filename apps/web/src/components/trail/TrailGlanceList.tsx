@@ -2,7 +2,7 @@ import type { TrailInstance } from "../../lib/trail/repo/firestoreTrailInstance"
 import { formatTrailDisplayNumber } from "../../lib/trail/trailDisplayNumber";
 import { shortTrailPlace, trailDisplayName, trailKmLabel, trailRiderCount, trailRowLabel } from "./trailGlance";
 
-export const TRAIL_GLANCE_LIMIT = 10;
+const TRAIL_GLANCE_LIMIT = 10;
 
 type Props = {
   trails: TrailInstance[];
