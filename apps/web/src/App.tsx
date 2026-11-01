@@ -51,7 +51,9 @@ import { useUserTier } from "./hooks/useUserTier";
 import { useRideStartPulseKey } from "./hooks/useRideStartPulseKey";
 import { useRideInterval } from "./hooks/useRideInterval";
 import { RideSummarySheet } from "./components/ride/RideSummarySheet";
-import { LeaderboardGlancePanel } from "./components/leaderboard/LeaderboardGlance";
+import { LeaderboardGlancePanel, type GlanceTab } from "./components/leaderboard/LeaderboardGlance";
+import { TrailGlanceList } from "./components/trail/TrailGlanceList";
+import { listOpenTrailsForDisplay } from "./components/trail/trailGlance";
 import { buildGlanceLiveRows } from "./components/leaderboard/leaderboardGlanceSnapshot";
 import { computeRideRankChangeLine } from "./components/leaderboard/leaderboardLiveRank";
 import { useLeaderboardGlance } from "./hooks/useLeaderboardGlance";
@@ -558,6 +560,8 @@ export default function App() {
     onRouteDirectionsErrorRef,
   });
   const leaderboardGlance = useLeaderboardGlance(user, rideStatus !== "idle");
+  /** Chief 11-02: 오른쪽 목록 자리를 순위·Trail 이 탭으로 나눠 쓴다. */
+  const [glanceTab, setGlanceTab] = useState<GlanceTab>("rank");
   const { enabled: rideIntervalEnabled, onEnabled: handleRideIntervalEnabled, view: rideInterval, config: rideIntervalConfig, onConfig: handleRideIntervalConfig, runKey: rideIntervalRunKey } =
     useRideInterval(rideStatus, rideMetrics.accumulatedMs);
   const [rideIntervalSettingsOpen, setRideIntervalSettingsOpen] = useState(false);
@@ -1357,6 +1361,17 @@ export default function App() {
       setRouteSummary,
     ],
   );
+
+  const glanceTrails = useMemo(
+    () => listOpenTrailsForDisplay(openTrailsQuery.rows, menuTrailSanitizedId, menuTrailMetaForDisplay, isRideSessionActive),
+    [openTrailsQuery.rows, menuTrailSanitizedId, menuTrailMetaForDisplay, isRideSessionActive],
+  );
+  const setGlancePanelOpen = leaderboardGlance.setPanelOpen;
+  const showTrailGlanceList = useCallback(() => {
+    setMenuOpen(false);
+    setGlanceTab("trail");
+    setGlancePanelOpen(true);
+  }, [setMenuOpen, setGlancePanelOpen]);
 
   const joinTrailAndCloseMenu = useCallback(
     (nextTrailId: string, listingPublicationId?: string | null) => {
@@ -2877,8 +2892,30 @@ export default function App() {
       myBaseKm: glanceMyBaseKm,
       addedKm: riding && pedalQualifiedLive ? sessionRideKm : 0,
       pedalQualified: riding ? pedalQualifiedLive : true,
+      tab: glanceTab,
+      onTab: setGlanceTab,
+      trail: {
+        count: glanceTrails.length,
+        list: (
+          <TrailGlanceList
+            trails={glanceTrails}
+            activeTrailId={menuTrailSanitizedId}
+            rideSessionActive={isRideSessionActive}
+            loading={openTrailsQuery.loading}
+            error={openTrailsQuery.error}
+            onJoinTrail={joinTrailAndCloseMenu}
+          />
+        ),
+      },
     };
   }, [
+    glanceTab,
+    glanceTrails,
+    menuTrailSanitizedId,
+    isRideSessionActive,
+    openTrailsQuery.loading,
+    openTrailsQuery.error,
+    joinTrailAndCloseMenu,
     user,
     rideStatus,
     leaderboardGlance.data,
@@ -3471,6 +3508,7 @@ export default function App() {
           onSetVisibility={handleSetTrailVisibility}
           visibilityBusy={trailVisibilityBusy}
           rideSessionActive={isRideSessionActive}
+          onShowTrailList={showTrailGlanceList}
         />
       </MenuPanel>
 

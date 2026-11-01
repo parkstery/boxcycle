@@ -55,42 +55,60 @@ for (const size of [{width:800,height:360},{width:736,height:300},{width:699,hei
     await expect(page.getByRole('dialog',{name:'사용자 정보',exact:true})).toBeVisible();
   });
 
-  for (const riding of [false,true]) test(`Trail 한줄·표시행·끝행·권한 ${size.width} ${riding?'주행':'대기'}`, async ({page})=>{
+  // Chief 11-02: Trail 목록은 메뉴 패널 밖, 지도 오른쪽 목록의 「Trail」 탭(순위와 같은 자리·같은 줄)으로. 10줄, 넘치면 「외 N개」.
+  for (const riding of [false,true]) test(`Trail 탭 공유·10줄·권한 ${size.width} ${riding?'주행':'대기'}`, async ({page})=>{
     await page.setViewportSize(size);
-    await page.goto(`${preview}?state=ready&trailPreview=1${riding?'&trailRiding=1':''}`);
-    await page.getByRole('button',{name:'메뉴 열기',exact:true}).click();
-    const list=page.locator('.trail-hub__list');
-    await expect(list.locator('li')).toHaveCount(12);
-    await page.locator('.menu-panel').evaluate(async el=>{await Promise.all(el.getAnimations().map(a=>a.finished));});
-    const layout=await list.evaluate(el=>{
-      const r=el.getBoundingClientRect();
-      const rows=[...el.querySelectorAll('li')].map(li=>li.getBoundingClientRect());
-      return {height:r.height,visible:rows.filter(b=>b.top>=r.top-1&&b.bottom<=r.bottom+1).length,
-        overflow:el.scrollWidth-el.clientWidth,rowHeight:rows[0].height};
-    });
-    expect(layout.visible).toBeGreaterThanOrEqual(size.height>=360?8:5);
-    expect(layout.overflow).toBe(0);
-    expect(layout.rowHeight).toBe(26);
+    await page.goto(`${preview}?state=${riding?'riding':'ready'}&trailPreview=1${riding?'&trailRiding=1':''}`);
+    // 낮은 폰 주행 중엔 왼쪽 반달 탭을 RouteDock 머리가 가린다(기존 결함, 배치 계획 3단계에서 정리). 여기선 키보드로 연다.
+    const menuButton=page.getByRole('button',{name:'메뉴 열기',exact:true});
+    await menuButton.focus();
+    await page.keyboard.press('Enter');
+    const show=page.locator('.trail-hub__show-list');
+    await expect(show).toContainText('지금 달리는 Trail');
+    await expect(show).toContainText('12개');
+    await expect(page.locator('.menu-panel .trail-hub__list')).toHaveCount(0);
     if(riding){
-      await expect(list.locator('[aria-current="true"]')).toHaveCount(1);
-      for(const button of await list.getByRole('button').all()) await expect(button).toBeDisabled();
       await page.getByRole('button',{name:'비공개',exact:true}).click();
       await expect(page.locator('#trail-preview-calls')).toHaveAttribute('data-visibility','private');
     } else {
       await expect(page.getByRole('group',{name:'Trail 공개 설정'})).toHaveCount(0);
+    }
+    await show.click();
+    const panel=page.locator('#lb-glance-panel');
+    await expect(panel).toBeVisible();
+    await expect(panel).toHaveAttribute('aria-label','지금 달리는 Trail');
+    await expect(panel.getByRole('tab',{name:/^Trail/})).toHaveAttribute('aria-selected','true');
+    const list=panel.locator('.lb-glance__list--trail');
+    await expect(list.locator('li')).toHaveCount(10);
+    await expect(panel.locator('.lb-glance__footer')).toHaveText('외 2개');
+    const layout=await list.evaluate(el=>{
+      const r=el.getBoundingClientRect();
+      const rows=[...el.querySelectorAll('li')].map(li=>li.getBoundingClientRect());
+      return {visible:rows.filter(b=>b.top>=r.top-1&&b.bottom<=r.bottom+1&&b.bottom<=innerHeight).length,
+        overflow:el.scrollWidth-el.clientWidth,names:[...el.querySelectorAll('.lb-glance__name')].map(n=>n.scrollWidth<=n.clientWidth+1||getComputedStyle(n).textOverflow==='ellipsis')};
+    });
+    expect(layout.overflow).toBe(0);
+    expect(layout.names.every(Boolean)).toBe(true);
+    if(riding){
+      // 주행 중: 10줄이 모두 화면 안, 내 Trail 은 맨 위 파란 줄, 합류 버튼 없음.
+      expect(layout.visible).toBe(10);
+      await expect(list.locator('[aria-current="true"]')).toHaveCount(1);
+      await expect(list.locator('li').first()).toHaveAttribute('aria-current','true');
+      await expect(list.getByRole('button')).toHaveCount(0);
+    } else {
+      // 주행 전 지도도 10줄 모두 화면 안(11-02 Chief: 사라진 우하단 시계·버튼 자리 예약 제거).
+      expect(layout.visible).toBe(10);
       await list.getByRole('button').first().click();
       await expect(page.locator('#trail-preview-calls')).toHaveAttribute('data-joined','preview-trail-0');
     }
+    await panel.getByRole('tab',{name:'순위',exact:true}).click();
+    await expect(panel.locator('.lb-glance__list--trail')).toHaveCount(0);
+    await expect(panel).toHaveAttribute('aria-label',riding?'주행 중 순위':'이번 주 순위');
     if(evidence){
       await fs.mkdir(evidence,{recursive:true});
+      await panel.getByRole('tab',{name:/^Trail/}).click();
       await page.screenshot({path:path.join(evidence,`trail-${size.width}-${riding?'riding':'idle'}.png`)});
-      await fs.writeFile(path.join(evidence,`trail-${size.width}-${riding?'riding':'idle'}.json`),JSON.stringify(layout,null,2));
     }
-    await list.locator('li').last().scrollIntoViewIfNeeded();
-    const accessible=await list.locator('li').last().evaluate(el=>{
-      const row=el.getBoundingClientRect();const list=el.parentElement!.getBoundingClientRect();return row.top>=list.top-1&&row.bottom<=list.bottom+1;
-    });
-    expect(accessible).toBe(true);
   });
 
   for(const stage of ['riding','paused']) test(`주행 도구·긴닉네임·카메라 비겹침 ${size.width} ${stage}`,async({page})=>{

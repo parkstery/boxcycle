@@ -96,10 +96,12 @@ for (const size of [{ width: 667, height: 300 }, { width: 800, height: 360 }, { 
     // 10-30 Chief: 메뉴는 Trail 전용 — 경로 선택·주행 설정·인터벌 행 없음.
     await expect(menu.locator('.menu-route-nav > li')).toHaveCount(0);
     await expect(menu.getByRole('group', { name: '경로 목록 열기' })).toHaveCount(0);
-    await expect(menu.locator('.trail-hub__live-join')).toHaveCount(2);
+    // 11-02 Chief: Trail 목록은 지도 오른쪽 「Trail」 탭으로 옮겼다 — 메뉴엔 개수와 여는 줄만.
+    await expect(menu.locator('.trail-hub__show-list')).toContainText('2개');
+    await expect(menu.locator('.trail-hub__live-join')).toHaveCount(0);
     await withinViewport(menu, size.width, size.height);
     expect((await menu.boundingBox())!.width).toBe(300);
-    if (size.height >= 360) await expect(menu.locator('.trail-hub__live-join').last()).toBeInViewport({ ratio: 1 });
+    if (size.height >= 360) await expect(menu.locator('.trail-hub__show-list')).toBeInViewport({ ratio: 1 });
     await capture(page, info, `batch1-preview-menu-${size.width}x${size.height}.png`);
     await menu.getByRole('button', { name: '메뉴 닫기', exact: true }).first().click();
     await page.getByRole('button', { name: '경로 목록', exact: true }).click();
@@ -232,8 +234,7 @@ test('긴 이름·빈 목록·로딩에도 출처 전환과 닫기가 가능하�
 
 test('행 선택·이어달리기·합류·설정 콜백을 실제 제품 버튼으로 호출한다', async ({ page }) => {
   const menu = await openMenu(page);
-  await menu.locator('.trail-hub__live-join').first().click();
-  await expect(page.getByRole('status', { name: '검증 결과' })).toContainText('합류');
+  // 합류는 지도 오른쪽 Trail 탭에서 한다(toolbar-trail-style 「Trail 탭 공유」).
   await expect(menu.getByRole('button', { name: '주행 설정', exact: true })).toHaveCount(0);
   await menu.getByRole('button', { name: '메뉴 닫기', exact: true }).first().click();
   await page.getByRole('button', { name: '주행 설정', exact: true }).click();

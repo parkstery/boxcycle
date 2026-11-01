@@ -166,3 +166,27 @@
 .trail-hub__live-join:not(.trail-hub__live-join--static) .trail-hub__live-dot { display: none; }
 .trail-hub__live-join:focus-visible, .trail-hub__vis-btn:focus-visible { outline: 2px solid #2457d6; outline-offset: -2px; }
 @media (hover: hover) { .trail-hub__live-join:hover:not(:disabled):not(.trail-hub__live-join--static) { background: #edf3ff; border-color: #2457d6; } }
+
+/* Chief 11-02: 목록은 지도 오른쪽 「Trail」 탭으로 옮기고 메뉴엔 여는 줄만 둔다. */
+.trail-hub__show-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 36px;
+  margin-top: 4px;
+  padding: 0 10px;
+  border: 1px solid #dde4f0;
+  border-radius: 8px;
+  background: #fafbfd;
+  box-shadow: 0 1px 0 rgba(30, 50, 90, 0.12);
+  color: #142c46;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.trail-hub__show-list > span:first-child { flex: 1; text-align: left; }
+.trail-hub__show-list strong { color: #2457d6; }
+.trail-hub__show-list:disabled { cursor: default; opacity: 0.6; }
+.trail-hub__show-list:focus-visible { outline: 2px solid #2457d6; outline-offset: 2px; }

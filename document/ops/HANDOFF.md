@@ -11,7 +11,8 @@
 ## 진행 중
 
 **카메라 메뉴 제안A 구현·미커밋(11-01 Chief, Claude Code)**: [README](20261101-camera-menu-rows/README.md), CameraViewMenu.css·compact-controls.spec·고정61. e2e 카메라 15/15. 다음=Chief 커밋·푸시·배포 승인.
-**주행 화면 배치(11-02 Chief, Claude Code)**: 결정 D1~D7·단계 계획 [00-plan](20261102-ride-screen-layout/00-plan.md)(오른쪽 레일·64px·자동 숨김·순위 밀림·Trail=오른쪽 탭 공유·목록 10줄). D7 인터벌 중 미니맵 숨김은 구현·미커밋(App.tsx·preview·ride-interval.spec·고정62, e2e 32/32). Chief 남은 결정 4건(공개 전환 위치·⏸ 숨김·왼쪽 탭·숨김 시간). 카메라 제안A + 미니맵 숨김 커밋·푸시·배포 승인 대기.
+**배포 11-02(Claude Code)**: c6297926 카메라 제안A·85d714cc 인터벌 중 미니맵 숨김+배치 계획, origin/main2 d6aa0dc2..85d714cc(pre-push 10종·test:quick 1467/0), Hosting 배포·운영 js/css SHA256=로컬.
+**주행 화면 배치 1단계 구현·미커밋(11-02, Claude Code)**: 순위|Trail 탭 공유·10줄(주행 전·중 모두), 주행 전 5줄 원인=없어진 시계+56px 예약(정정 기록), 오른쪽 반달 탭 z 조정. [README](20261102-ride-screen-layout/README.md)·고정63. 관련 e2e 88통과/17실패(전부 HEAD 동일, 3건은 이번에 해소). 다음=Chief 확인·커밋 승인 → 2단계(오른쪽 조작 레일).
 
 **D안 배포 완료(11-01 Chief, Claude Code)**: d6aa0dc2 푸시(origin/main2 68b88851..d6aa0dc2, pre-push 10종·test:quick 1467/0)·Hosting 배포, 운영 index js·css SHA256=로컬. 이전 기록 —: 인터벌 패널 D안, [결과](20261101-interval-cycle-donut/README.md). tsc 0·eslint 0·e2e 인터벌 29/29(반복 58/58)·test:quick 1466+고친 1. ride-ui-moments 3실패는 HEAD 동일(기존). 
 

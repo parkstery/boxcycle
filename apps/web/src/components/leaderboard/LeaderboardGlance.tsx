@@ -1,4 +1,4 @@
-import type { SyntheticEvent } from "react";
+import type { ReactNode, SyntheticEvent } from "react";
 import {
   computeLeaderboardLiveRank,
   type LeaderboardLiveRow,
@@ -21,7 +21,13 @@ export type LeaderboardGlanceViewProps = {
   myBaseKm: number;
   addedKm: number;
   pedalQualified: boolean;
+  /** Chief 11-02: 오른쪽 목록 자리를 「순위 | Trail」 탭으로 나눠 쓴다. 없으면 순위만. */
+  trail?: { count: number; list: ReactNode };
+  tab?: GlanceTab;
+  onTab?: (tab: GlanceTab) => void;
 };
+
+export type GlanceTab = "rank" | "trail";
 
 function formatKmOne(valueKm: number): string {
   const t = Math.round(valueKm * 10) / 10;
@@ -89,6 +95,9 @@ export function LeaderboardGlancePanel(props: LeaderboardGlanceViewProps) {
   } = props;
   const { mode, me, listRows, gapFooter, ridingNoSensor } = buildGlanceModel(props);
   const showPanel = panelOpen && (mode === "map" || mode === "riding");
+  const trail = props.trail;
+  const tab: GlanceTab = trail && props.tab === "trail" ? "trail" : "rank";
+  const rankLabel = mode === "riding" ? "주행 중 순위" : "이번 주 순위";
 
   return (
         <section
@@ -96,11 +105,23 @@ export function LeaderboardGlancePanel(props: LeaderboardGlanceViewProps) {
           className="lb-glance__panel"
           hidden={!showPanel}
           aria-hidden={!showPanel}
-          aria-label={mode === "riding" ? "주행 중 순위" : "이번 주 순위"}
+          aria-label={tab === "trail" ? "지금 달리는 Trail" : rankLabel}
           onPointerDown={stopMapTouch}
           onTouchStart={stopMapTouch}
         >
-          {mode === "riding" ? (
+          {trail ? (
+            <header className="lb-glance__panel-head lb-glance__tabs">
+              <div className="lb-glance__tablist" role="tablist" aria-label="오른쪽 목록">
+                <button type="button" role="tab" aria-selected={tab === "rank"} className="lb-glance__tab" onClick={() => props.onTab?.("rank")}>순위</button>
+                <button type="button" role="tab" aria-selected={tab === "trail"} className="lb-glance__tab" onClick={() => props.onTab?.("trail")}>
+                  Trail <span className="lb-glance__tab-count">{trail.count}</span>
+                </button>
+              </div>
+              {tab === "rank" && mode === "map" ? (
+                <button type="button" className="lb-glance__outline lb-glance__outline--link" onClick={onOpenFullLeaderboard}>전체 보기 ›</button>
+              ) : null}
+            </header>
+          ) : mode === "riding" ? (
             <header className="lb-glance__panel-head lb-glance__outline lb-glance__outline--label">
               이번 주 순위 · 달리는 동안 갱신
             </header>
@@ -119,6 +140,8 @@ export function LeaderboardGlancePanel(props: LeaderboardGlanceViewProps) {
             </header>
           )}
 
+          {tab === "trail" && trail ? trail.list : (
+            <>
           {listRows.length > 0 ? (
             <ol className="lb-glance__list">
               {listRows.map((row) => {
@@ -202,6 +225,8 @@ export function LeaderboardGlancePanel(props: LeaderboardGlanceViewProps) {
               {props.mapData?.rule.sensorOnly === false ? "달리면 순위에 올라가요" : "센서로 달리면 순위에 올라가요"}
             </p>
           ) : null}
+            </>
+          )}
         </section>
   );
 }

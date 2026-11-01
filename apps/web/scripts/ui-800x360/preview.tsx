@@ -42,7 +42,9 @@ import type { RideEndResult } from '../../src/lib/ride/rideEndResult';
 import type { Camera1Mode } from '../../src/lib/camera/camera1Mode';
 import type { StoredRideSession } from '../../src/lib/ride/rideSessionsStorage';
 import type { LeaderboardResponse } from '../../src/services/leaderboardApi';
-import { LeaderboardGlancePanel } from '../../src/components/leaderboard/LeaderboardGlance';
+import { LeaderboardGlancePanel, type GlanceTab } from '../../src/components/leaderboard/LeaderboardGlance';
+import { TrailGlanceList } from '../../src/components/trail/TrailGlanceList';
+import { listOpenTrailsForDisplay } from '../../src/components/trail/trailGlance';
 import { LeaderboardSheet } from '../../src/components/leaderboard/LeaderboardSheet';
 import { buildGlanceLiveRows } from '../../src/components/leaderboard/leaderboardGlanceSnapshot';
 import type { LeaderboardBoard, LeaderboardEntry } from '../../src/services/leaderboardApi';
@@ -499,12 +501,16 @@ function Preview() {
   const sensorCrankRpm =
     sensorSheet.uiState === 'connected' ? sensorSheet.crankRpm : sensorPreset ? sensorSheet.crankRpm : null;
   const [rankOpen,setRankOpen] = useState(glanceCapture && initial !== 'glance-summary');
+  const [glanceTab,setGlanceTab] = useState<GlanceTab>(params.get('glanceTab')==='trail'?'trail':'rank');
   const [rideMomentSoundEnabled,setRideMomentSoundEnabled] = useState(false);
   const [lbJoinCalls,setLbJoinCalls] = useState(0);
   const lbUser = lbVariant === 'nologin' ? null : { uid: 'preview-lb', getIdToken: async () => 'preview-token' } as User;
   const profileUser = makeProfileUser(BATCH4_PROFILE_STATES.has(initial) ? initial : 'profile');
   const profileNicknameChangedAtMs = profileNicknameLockMs(initial);
   const active = stage==='riding'||stage==='paused';
+  // 앱과 같은 규칙: 주행 중이면 첫 Trail 에서 달리는 중.
+  const glanceTrailId = active ? previewTrails[0].id : 'default';
+  const glanceTrails = listOpenTrailsForDisplay(previewTrails, glanceTrailId, active ? previewTrails[0] : null, active);
   const hasRoute = stage!=='idle'&&stage!=='setup';
   const sensorState = {
     capable: sensorCapable,
@@ -525,6 +531,13 @@ function Preview() {
     myBaseKm: 9.43,
     addedKm: glanceRiding ? 0.07 : 0,
     pedalQualified: true,
+    tab: glanceTab,
+    onTab: setGlanceTab,
+    trail: {
+      count: glanceTrails.length,
+      list: <TrailGlanceList trails={glanceTrails} activeTrailId={glanceTrailId} rideSessionActive={active} loading={false} error={null}
+        onJoinTrail={id=>setTrailPreviewCalls(c=>({...c,joined:id}))} />,
+    },
   };
   const summaryRank =
     initial === 'glance-summary'
@@ -734,8 +747,9 @@ function Preview() {
         openTrails={previewTrails} openTrailsLoading={false} openTrailsError={null}
         rideSessionActive={trailPreviewRiding}
         onJoinTrail={id=>setTrailPreviewCalls(c=>({...c,joined:id}))}
-        onSetVisibility={visibility=>setTrailPreviewCalls(c=>({...c,visibility}))} /> : null}
-      {trailPreview ? <span id="trail-preview-calls" hidden data-joined={trailPreviewCalls.joined} data-visibility={trailPreviewCalls.visibility} /> : null}
+        onSetVisibility={visibility=>setTrailPreviewCalls(c=>({...c,visibility}))}
+        onShowTrailList={()=>{setPanel('ready');setGlanceTab('trail');setRankOpen(true);}} /> : null}
+      <span id="trail-preview-calls" hidden data-joined={trailPreviewCalls.joined} data-visibility={trailPreviewCalls.visibility} />
     </MenuPanel>
     {panel==='intro'?<AppIntroScreen onStartGuest={()=>setPanel('location')} onLogin={()=>setPanel('location')}/>:null}
     {panel==='location'?<EntryLocationDialog phase="choice" permission="prompt" onChooseRome={()=>setPanel('ready')} onChooseCurrent={()=>setPanel('ready')} onPosition={noop}/>:null}

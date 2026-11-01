@@ -6,9 +6,9 @@ import {
   type TrailInstance,
   type TrailVisibility,
 } from "../../lib/trail/repo/firestoreTrailInstance";
-import { compareOpenTrailsForListing, isActiveOpenTrailListing } from "../../lib/trail/repo/firestoreOpenTrailListings";
 import { TRAILHEAD_LABEL, TRAIL_LABEL } from "../../lib/terms/productTerms";
 import { formatTrailDisplayNumber } from "../../lib/trail/trailDisplayNumber";
+import { listOpenTrailsForDisplay } from "./trailGlance";
 import "./TrailHubPanel.css";
 
 export type TrailHubPanelProps = {
@@ -23,55 +23,18 @@ export type TrailHubPanelProps = {
   visibilityBusy?: boolean;
   /** running·paused — Trail 합류 비활성 */
   rideSessionActive?: boolean;
+  /** Chief 11-02: 지금 달리는 Trail 목록은 지도 오른쪽 목록(Trail 탭)에서 본다. 메뉴엔 개수와 여는 줄만. */
+  onShowTrailList?: () => void;
 };
-
-function trailDisplayName(t: TrailInstance): string {
-  const region = t.regionLabel?.trim();
-  return region || `${TRAIL_LABEL} ${formatTrailDisplayNumber(t.displayNumber)}`;
-}
-
-function trailKmLabel(t: TrailInstance): string | null {
-  if (t.distanceKm == null || !Number.isFinite(t.distanceKm)) return null;
-  return `${t.distanceKm.toFixed(1)}`;
-}
-
-function trailRowLabel(t: TrailInstance): string {
-  const parts = [trailDisplayName(t)];
-  if (t.regionLabel?.trim()) parts.push(`${TRAIL_LABEL} ${formatTrailDisplayNumber(t.displayNumber)}`);
-  const km = trailKmLabel(t);
-  if (km) parts.push(`${km} km`);
-  const riders =
-    t.liveRiderCount != null && Number.isFinite(t.liveRiderCount) ? t.liveRiderCount : null;
-  if (riders != null) parts.push(`주행 중 ${riders}명`);
-  parts.push(t.visibility === "private" ? "비공개" : "공개");
-  return parts.join(", ");
-}
 
 export function TrailHubPanel(props: TrailHubPanelProps) {
   const active = sanitizeTrailId(props.activeTrailId);
   const onTrailhead = active === DEFAULT_TRAIL_ID;
 
-  const listedTrails = useMemo(() => {
-    const open = props.openTrails
-      .filter(
-        (t) =>
-          t.status === "open" &&
-          t.visibility === "open" &&
-          isActiveOpenTrailListing(t),
-      )
-      .sort(compareOpenTrailsForListing);
-    if (props.rideSessionActive) {
-      if (
-        !onTrailhead &&
-        props.currentTrail?.id === active &&
-        !open.some((t) => t.id === active)
-      ) {
-        return [props.currentTrail, ...open];
-      }
-      return open;
-    }
-    return open.filter((t) => t.id !== active);
-  }, [props.openTrails, props.rideSessionActive, onTrailhead, active, props.currentTrail]);
+  const listedTrails = useMemo(
+    () => listOpenTrailsForDisplay(props.openTrails, props.activeTrailId, props.currentTrail, Boolean(props.rideSessionActive)),
+    [props.openTrails, props.activeTrailId, props.currentTrail, props.rideSessionActive],
+  );
 
   const canToggleVisibility = canUserManageTrail(props.currentTrail, props.user);
 
@@ -116,70 +79,16 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
         </div>
       ) : null}
 
-      <span className="trail-hub__section-label">지금 달리는 {TRAIL_LABEL}</span>
-      {props.openTrailsLoading ? (
-        <p className="trail-hub__empty">불러오는 중…</p>
-      ) : null}
-      {props.openTrailsError ? (
-        <p className="trail-hub__err" title={props.openTrailsError}>
-          {props.openTrailsError}
-        </p>
-      ) : null}
-      {!props.openTrailsLoading && listedTrails.length === 0 ? (
-        <p className="trail-hub__empty">없음</p>
-      ) : null}
-      {listedTrails.length > 0 ? (
-        <ul className="trail-hub__list">
-          {listedTrails.map((t) => {
-            const isCurrent = t.id === active;
-            const showActiveRow = isCurrent && props.rideSessionActive;
-            const km = trailKmLabel(t);
-            const riders =
-              t.liveRiderCount != null && Number.isFinite(t.liveRiderCount)
-                ? t.liveRiderCount
-                : null;
-            const joinLabel =
-              riders != null && riders > 0 ? `${riders}명 · 합류` : "합류";
-            return (
-              <li key={t.id} className={`trail-hub__item${showActiveRow ? " trail-hub__item--current" : ""}`}>
-                <div
-                  className="trail-hub__live-row"
-                  aria-current={showActiveRow ? "true" : undefined}
-                  aria-label={showActiveRow ? trailRowLabel(t) : undefined}
-                >
-                  <span className="trail-hub__live-name" title={trailDisplayName(t)}>
-                    {t.regionLabel?.trim() ? <span className="trail-hub__number">{formatTrailDisplayNumber(t.displayNumber)}</span> : null}
-                    {trailDisplayName(t)}
-                  </span>
-                  {km ? (
-                    <span className="trail-hub__live-km">
-                      {km} <span className="trail-hub__live-km-unit">km</span>
-                    </span>
-                  ) : null}
-                  {showActiveRow ? (
-                    <span className="trail-hub__live-join trail-hub__live-join--static">
-                      <span className="trail-hub__live-dot" aria-hidden />
-                      주행 중
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      className="trail-hub__live-join"
-                      disabled={props.rideSessionActive}
-                      title="이 Trail에 합류"
-                      aria-label={`${trailRowLabel(t)} — 합류`}
-                      onClick={() => props.onJoinTrail(t.id, t.publicationId)}
-                    >
-                      <span className="trail-hub__live-dot" aria-hidden />
-                      {joinLabel}
-                    </button>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
+      <button
+        type="button"
+        className="trail-hub__show-list"
+        onClick={props.onShowTrailList}
+        disabled={!props.onShowTrailList}
+      >
+        <span>지금 달리는 {TRAIL_LABEL}</span>
+        <strong>{props.openTrailsLoading && listedTrails.length === 0 ? "…" : `${listedTrails.length}개`}</strong>
+        <span aria-hidden>›</span>
+      </button>
     </section>
   );
 }
