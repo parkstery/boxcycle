@@ -12,7 +12,7 @@
 
 **카메라 메뉴 제안A 구현·미커밋(11-01 Chief, Claude Code)**: [README](20261101-camera-menu-rows/README.md), CameraViewMenu.css·compact-controls.spec·고정61. e2e 카메라 15/15. 다음=Chief 커밋·푸시·배포 승인.
 **배포 11-02(Claude Code)**: c6297926 카메라 제안A·85d714cc 인터벌 중 미니맵 숨김+배치 계획, origin/main2 d6aa0dc2..85d714cc(pre-push 10종·test:quick 1467/0), Hosting 배포·운영 js/css SHA256=로컬.
-**주행 화면 배치 1단계 구현·미커밋(11-02, Claude Code)**: 순위|Trail 탭 공유·10줄(주행 전·중 모두), 주행 전 5줄 원인=없어진 시계+56px 예약(정정 기록), 오른쪽 반달 탭 z 조정. [README](20261102-ride-screen-layout/README.md)·고정63. 관련 e2e 88통과/17실패(전부 HEAD 동일, 3건은 이번에 해소). 다음=Chief 확인·커밋 승인 → 2단계(오른쪽 조작 레일).
+**주행 화면 배치 1단계 배포됨(11-02, Claude Code, 9ea27a96·4237de18·c8e4da8a)**: 순위|Trail 탭 공유·10줄(주행 전·중 모두), 주행 전 5줄 원인=없어진 시계+56px 예약(정정 기록), 오른쪽 반달 탭 z 조정. Trail 탭 배선은 `hooks/useTrailGlanceTab.tsx`(App.tsx 래칫 한도 3807, 현재 3793 — 여유 14줄). [README](20261102-ride-screen-layout/README.md)·고정63. 다음=2단계(오른쪽 조작 레일) — App.tsx 에 더하지 말고 훅·컴포넌트로.
 
 **D안 배포 완료(11-01 Chief, Claude Code)**: d6aa0dc2 푸시(origin/main2 68b88851..d6aa0dc2, pre-push 10종·test:quick 1467/0)·Hosting 배포, 운영 index js·css SHA256=로컬. 이전 기록 —: 인터벌 패널 D안, [결과](20261101-interval-cycle-donut/README.md). tsc 0·eslint 0·e2e 인터벌 29/29(반복 58/58)·test:quick 1466+고친 1. ride-ui-moments 3실패는 HEAD 동일(기존). 
 
