@@ -267,7 +267,8 @@
       "trail/presenceWriteResumePolicy.ts",
       "trail/trailLiveRideSink.ts",
       "trail/trailTypes.ts",
-      "trail/trailUrl.ts"
+      "trail/trailUrl.ts",
+      "trail/shortTrailPlace.ts"
     ],
     "trail/repo": [
       "trail/repo/activeLiveRideTrailIdsSubscriptionHub.ts",
