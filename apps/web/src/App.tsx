@@ -2723,8 +2723,6 @@ export default function App() {
       onFocusStop={handleFocusRouteDockStop}
       onSwapEndpoints={handleSwapRouteEndpoints}
       editLocked={routeMenuLockedForProd}
-      cadence={cadenceHud}
-      sensorAttention={Boolean(routeGeometry) && !routeLoading && !rideInputReady}
       minimap={minimapActive && routeGeometry ? { expanded: minimapExpanded, onToggle: () => setMinimapExpanded((v) => !v) } : null}
     />
   );
@@ -2897,6 +2895,8 @@ export default function App() {
       leaderboardGlancePanel: <LeaderboardGlancePanel {...leaderboardGlanceView} />,
     };
   }, [leaderboardGlanceView]);
+  /** Chief 11-02 v4(B단계): 계기판 맨 앞 센서 칸 — 경로가 잡혔는데 주행 입력을 안 골랐으면 깜빡인다. */
+  const rideSensorCell = { ...cadenceHud, attention: Boolean(routeGeometry) && !routeLoading && !rideInputReady };
   /** Chief 11-02 v4: 오른쪽 2열 4줄 묶음의 INT·순위·주행 버튼 칸(MapHud). 주행 중엔 인터벌을 바꾸지 않는다(10-30). */
   const rideControlGroup = {
     transport: rideControlPanel,
@@ -3069,6 +3069,7 @@ export default function App() {
                 conquestAllOwnedHint,
                 ...mapHudLeaderboard,
                 controlGroup: rideControlGroup,
+                cadence: rideSensorCell,
               }}
             >
             </DebugMapStage>
@@ -3258,6 +3259,7 @@ export default function App() {
               conquestAllOwnedHint,
               ...mapHudLeaderboard,
               controlGroup: rideControlGroup,
+              cadence: rideSensorCell,
               quickCamera:
                 rideStatus === "running" || rideStatus === "paused"
                   ? {

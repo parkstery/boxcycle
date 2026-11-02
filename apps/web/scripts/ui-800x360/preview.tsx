@@ -566,7 +566,6 @@ function Preview() {
     <MapBottomLeftStack>
     <RouteDock key={hasRoute?'route':'empty'} stage={stage} stops={hasRoute?stops:stage==='setup'?[stops[0]]:[]} routeLoading={params.has('loading')}
       onRemoveStop={noop} onFocusStop={noop} onSwapEndpoints={noop}
-      cadence={{state:sensorState,open:panel==='sensor',onOpen:()=>setPanel('sensor')}}
       minimap={active && interval.view == null ? {expanded:minimapExpanded,onToggle:()=>setMinimapExpanded(v=>!v)} : null} />
     <RouteMinimap active={active && interval.view == null} expanded={minimapExpanded} routeGeometry={{type:'LineString',coordinates:[[126.98,37.55],[126.982,37.553],[126.986,37.552],[126.99,37.56]]}} liveLngLat={[126.982,37.553]} mapboxAccessToken="" traveledMeters={420} routeMeters={2020} />
     </MapBottomLeftStack>
@@ -582,6 +581,7 @@ function Preview() {
       onResumeFromPause={()=>setStage('riding')} onEndFromPause={()=>setPanel('summary')} onModifyFromPause={()=>setStage('setup')}
       quickCamera={active&&!glanceRiding?{active:camera,camera1Mode:flatCameraMode,enable3D,terrainFallback:params.has('terrainFallback'),onEnable3D:setEnable3D,onSelect:setCamera,onSelectFlat:(mode)=>{setFlatCameraMode(mode);setCamera(1);}}:null} mapControls={{styleLabel:mapStyleLabel,styleAriaLabel:`맵 스타일 ${mapStyleLabel}, 클릭 시 ${mapStyleLabel==='위성'?'야외':'위성'}`,onToggleStyle:()=>setMapStyleLabel(value=>value==='위성'?'야외':'위성'),onZoomOut:()=>setToolbarCalls(c=>({...c,zoomOut:c.zoomOut+1})),onZoomIn:()=>setToolbarCalls(c=>({...c,zoomIn:c.zoomIn+1})),zoomOutDisabled:false,zoomInDisabled:false}}
       leaderboardGlancePanel={initial!=='glance-summary'?<LeaderboardGlancePanel {...glanceView} />:undefined}
+      cadence={{state:sensorState,open:panel==='sensor',onOpen:()=>setPanel('sensor'),attention:stage==='ready-to-start'&&params.has('blocked')}}
       controlGroup={{
         transport: <RideControlBar stage={panel==='summary'?'summary':stage} routeLoading={params.has('loading')}
           routeSetupToken={routeSetupToken} startPulseKey={rideStartPulseKey}

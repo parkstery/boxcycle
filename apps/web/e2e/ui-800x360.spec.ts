@@ -497,47 +497,29 @@ test.describe('Chief 고정 — 261024 목록 1~4', () => {
 });
 
 // Chief 지정 — 바꾸려면 Chief 지시와 document/reference/product/261024-RTW-Chief-지정-디자인-고정.md 갱신 필요
-// 2026-10-28 Chief: 접힌 RouteDock 은 흰/녹 점멸 LED 하나. 펼치면 접기 LED + 센서 알약.
+// Chief 11-02 v4(B단계): 접힌 RouteDock 은 40px 경로 손잡이(+ 미니맵 버튼). 센서는 계기판 맨 앞 칸 하나.
 async function assertCollapsedRouteDockChip(page: import('@playwright/test').Page) {
-  const card = page.locator('.route-dock__card');
   const expand = page.getByRole('button', { name: '경로 패널 펼치기' });
   await expect(expand).toBeVisible();
-  await expect(page.getByRole('button', { name: /^케이던스 센서:/ })).toHaveCount(0);
-  const cardBox = (await card.boundingBox())!;
-  expect(cardBox.width).toBeGreaterThanOrEqual(28);
-  expect(cardBox.width).toBeLessThanOrEqual(44);
-  expect(cardBox.height).toBeGreaterThanOrEqual(28);
-  expect(cardBox.height).toBeLessThanOrEqual(44);
-
+  await expect(page.getByRole('button', { name: /^케이던스 센서:/ })).toHaveCount(1);
+  await expect(page.locator('.route-dock-anchor').getByRole('button', { name: /^케이던스 센서:/ })).toHaveCount(0);
   const geometry = await page.evaluate(() => {
     const cardEl = document.querySelector('.route-dock__card')!;
-    const ledEl = document.querySelector('.route-dock__led-toggle')!;
+    const el = document.querySelector('.route-dock__handle')!;
     const cardR = cardEl.getBoundingClientRect();
-    const ledR = ledEl.getBoundingClientRect();
-    const cx = ledR.x + ledR.width / 2;
-    const cy = ledR.y + ledR.height / 2;
-    const hit = document.elementFromPoint(cx, cy);
-    const cardStyle = getComputedStyle(cardEl);
-    const inViewport =
-      ledR.left >= 0 &&
-      ledR.top >= 0 &&
-      ledR.right <= window.innerWidth &&
-      ledR.bottom <= window.innerHeight;
-    const ledInsideCard =
-      ledR.left >= cardR.left - 0.5 &&
-      ledR.top >= cardR.top - 0.5 &&
-      ledR.right <= cardR.right + 0.5 &&
-      ledR.bottom <= cardR.bottom + 0.5;
-    const hitOk = hit === ledEl || ledEl.contains(hit);
+    const r = el.getBoundingClientRect();
+    const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
     return {
-      inViewport,
-      ledInsideCard,
-      hitOk,
-      cardBg: cardStyle.backgroundColor,
+      size: [Math.round(r.width), Math.round(r.height)],
+      inViewport: r.left >= 0 && r.top >= 0 && r.right <= window.innerWidth && r.bottom <= window.innerHeight,
+      insideCard: r.left >= cardR.left - 0.5 && r.top >= cardR.top - 0.5 && r.right <= cardR.right + 0.5 && r.bottom <= cardR.bottom + 0.5,
+      hitOk: hit === el || el.contains(hit),
+      cardBg: getComputedStyle(cardEl).backgroundColor,
     };
   });
+  expect(geometry.size).toEqual([40, 40]);
   expect(geometry.inViewport).toBe(true);
-  expect(geometry.ledInsideCard).toBe(true);
+  expect(geometry.insideCard).toBe(true);
   expect(geometry.hitOk).toBe(true);
   expect(geometry.cardBg === 'rgba(0, 0, 0, 0)' || geometry.cardBg === 'transparent').toBeTruthy();
 }
@@ -655,7 +637,8 @@ test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', (
   });
 });
 
-test('Chief 고정12 — 주소 카드 버튼은 선 아이콘·센서는 테두리·글자 없는 21px LED(10-30 Chief)', async ({ page }) => {
+// Chief 11-02 v4(B단계): 센서는 RouteDock 머리줄에서 빠져 계기판 맨 앞 칸(고정67). 여기선 주소 카드 버튼 모양만.
+test('Chief 고정12 — 주소 카드 버튼은 선 아이콘, 머리줄엔 센서가 없다', async ({ page }) => {
   for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }]) {
     await page.setViewportSize(size);
     await page.goto(`${preview}?state=ready`);
@@ -688,13 +671,8 @@ test('Chief 고정12 — 주소 카드 버튼은 선 아이콘·센서는 테두
       expect(b.text, '✕ ‹ 글자 기호 금지').toBe('');
       expect(b.svg).toBe(true);
     }
-    expect(look.sensorH).toBeCloseTo(30, 0);
-    expect(look.sensorBg).toBe('rgb(255, 255, 255)');
-    // 10-30 Chief: 센서 글자·테두리 제거, LED 원은 세 배(7→21px).
-    expect(look.sensorBorder).toBe('1px rgba(0, 0, 0, 0)');
-    expect(look.sensorRadius).toBeGreaterThanOrEqual(15);
-    expect(look.sensorFont).toBe('12px 700');
-    expect(look.ledW).toBeCloseTo(21, 0);
+    expect(look.sensorH).toBe(0);
+    expect(look.ledW).toBe(0);
   }
 });
 
@@ -742,7 +720,7 @@ test('Chief 고정12 — ⇅ 는 주소 목록 앞쪽, 기호(S·1·2·3·E) 열
   }
 });
 
-test('Chief 고정12 — 대기 화면은 센서·접기가 맨 위 한 줄, ✕ 는 오른쪽 끝, 경유 줄은 대기·주행 모두 들여 쓴다', async ({ page }) => {
+test('Chief 고정12 — 대기 화면은 접기가 맨 위 줄, ✕ 는 오른쪽 끝, 경유 줄은 대기·주행 모두 들여 쓴다', async ({ page }) => {
   for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }]) {
     await page.setViewportSize(size);
     await page.goto(`${preview}?state=ready&waypoints=2`);
@@ -750,7 +728,6 @@ test('Chief 고정12 — 대기 화면은 센서·접기가 맨 위 한 줄, ✕
     const g = await page.evaluate(() => {
       const r = (sel: string) => document.querySelector(sel)!.getBoundingClientRect();
       const card = r('.route-dock__card');
-      const sensor = r('.route-dock__head .hud-cadence');
       const caret = r('.route-dock__fold');
       const firstRow = r('.route-dock__row');
       const removes = [...document.querySelectorAll('.route-dock__remove')].map((e) => e.getBoundingClientRect());
@@ -758,10 +735,8 @@ test('Chief 고정12 — 대기 화면은 센서·접기가 맨 위 한 줄, ✕
         kind: [...row.classList].find((c) => c.startsWith('route-dock__row--'))!.replace('route-dock__row--', ''),
         left: row.querySelector('.route-dock__badge')!.getBoundingClientRect().left,
       }));
-      return { card, sensor, caret, firstRow, removes, dots };
+      return { card, caret, firstRow, removes, dots };
     });
-    expect(Math.abs(g.sensor.y + g.sensor.height / 2 - (g.caret.y + g.caret.height / 2)), '센서·접기 같은 줄').toBeLessThanOrEqual(2);
-    expect(g.sensor.bottom, '센서는 주소 첫 줄 위').toBeLessThanOrEqual(g.firstRow.top + 0.5);
     expect(g.caret.bottom, '접기는 주소 첫 줄 위').toBeLessThanOrEqual(g.firstRow.top + 0.5);
     for (const rm of g.removes) expect(g.card.right - rm.right, '✕ 는 오른쪽 끝').toBeLessThanOrEqual(10);
     const start = g.dots.find((d) => d.kind === 'start')!.left;

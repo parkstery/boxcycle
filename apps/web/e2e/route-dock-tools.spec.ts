@@ -106,22 +106,19 @@ test('경로 패널 접기 버튼은 캐럿 하나만 가운데에 보인다', a
   }
 });
 
-test('센서 칩은 글자·테두리 없이 21px LED, 주행 중 rpm 은 남는다', async ({ page }) => {
-  await page.goto(`${preview}?state=ready`);
-  const chip = page.locator('.route-dock__head .hud-cadence--dock');
-  await expect(chip).toBeVisible();
-  await expect(chip.locator('.hud-cadence__text')).toHaveCount(0);
-  await expect(chip).not.toContainText('센서');
-  const look = await chip.evaluate((el) => {
-    const led = el.querySelector('.hud-cadence__led')!.getBoundingClientRect();
-    const cs = getComputedStyle(el);
-    return { led: [Math.round(led.width), Math.round(led.height)], border: cs.borderTopColor };
-  });
-  expect(look.led).toEqual([21, 21]);
-  expect(look.border).toBe('rgba(0, 0, 0, 0)');
-  await page.goto(`${preview}?state=riding`);
-  await page.getByRole('button', { name: '경로 패널 펼치기', exact: true }).click();
-  await expect(page.locator('.route-dock__head .hud-cadence--dock .hud-cadence__text')).toContainText('rpm');
+// Chief 11-02 v4(B단계): 센서는 RouteDock 이 아니라 계기판 맨 앞 칸 — 「RPM」 + LED 13px + 회전수(신호 없으면 「--」).
+test('센서는 계기판 맨 앞 칸, RouteDock 머리줄엔 센서가 없다', async ({ page }) => {
+  for (const state of ['ready', 'riding'] as const) {
+    await page.goto(`${preview}?state=${state}`);
+    if (state === 'riding') await page.getByRole('button', { name: '경로 패널 펼치기', exact: true }).click();
+    await expect(page.locator('.route-dock__head').getByRole('button', { name: /^케이던스 센서/ })).toHaveCount(0);
+    const cell = page.locator('.map-hud__tl-row .hud-metrics__cell--sensor');
+    await expect(cell).toHaveCount(1);
+    await expect(cell.locator('.hud-metrics__label')).toHaveText('RPM');
+    await expect(cell.locator('.hud-metrics__sensor-rpm')).toHaveText('--');
+    const led = await cell.locator('.hud-cadence__led').evaluate((el) => { const r = el.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; });
+    expect(led).toEqual([13, 13]);
+  }
 });
 
 test('메뉴 머리줄: 지도 핀은 「내 경로」 창(주행 전만), ⚙ 는 주행 설정 창', async ({ page }) => {

@@ -6,12 +6,8 @@ import {
   routeDockDefaultExpanded,
   routeDockUiPolicy,
 } from "../../lib/route/routeDockUiPolicy";
-import { sensorChipSlot } from "../../lib/route/sensorChipSlot";
-import { cadenceChipView } from "../../lib/sensor/cadenceSensorUi";
-import { CadenceHudChip, type CadenceChipBinding } from "../maphud/CadenceHudChip";
 import { RouteOverviewFoldToggle } from "./RouteOverviewFoldToggle";
 import type { RouteDockStop, RouteDockStopId } from "./useRouteDockStops";
-import "../maphud/CadenceHudChip.css";
 import "./RouteDock.css";
 
 export type RouteDockProps = {
@@ -22,8 +18,6 @@ export type RouteDockProps = {
   onFocusStop: (stop: RouteDockStop) => void;
   onSwapEndpoints?: () => void;
   editLocked?: boolean;
-  cadence?: CadenceChipBinding | null;
-  sensorAttention?: boolean;
   /** 접힌 줄의 미니맵 접기·펼치기(Chief 11-02 — 미니맵 위 28px 버튼 대체). 미니맵이 있을 때만 준다. */
   minimap?: { expanded: boolean; onToggle: () => void } | null;
 };
@@ -65,7 +59,10 @@ const ICON_REMOVE = "M4.5 4.5L11.5 11.5M11.5 4.5L4.5 11.5";
 const ICON_SWAP = "M5 13V3M2.5 5.5L5 3L7.5 5.5M11 3V13M8.5 10.5L11 13L13.5 10.5";
 const ROUTE_DOCK_PANEL_ID = "route-dock-panel";
 
-/** Addresses (+ sensor chip when expanded). Stays visible during ride; editing locks while riding. */
+/**
+ * 경로 주소 카드. 주행 중에도 남고 편집만 잠긴다. 접히면 40px 경로 손잡이(+ 미니맵 버튼).
+ * Chief 11-02 v4(B단계): 센서 LED·RPM 은 여기서 빠져 계기판 맨 앞 칸(`CadenceMetricCell`)으로 갔다.
+ */
 export function RouteDock({
   stage,
   stops,
@@ -74,29 +71,27 @@ export function RouteDock({
   onFocusStop,
   onSwapEndpoints,
   editLocked = false,
-  cadence = null,
-  sensorAttention = false,
   minimap = null,
 }: RouteDockProps) {
   const [expanded, setExpanded] = useState(() => routeDockDefaultExpanded(stage, stops.length));
   const [prevStage, setPrevStage] = useState(stage);
   const [prevStopCount, setPrevStopCount] = useState(stops.length);
-  const ledRef = useRef<HTMLButtonElement>(null);
+  const handleRef = useRef<HTMLButtonElement>(null);
   const foldRef = useRef<HTMLButtonElement>(null);
-  const focusAfterToggle = useRef<"led" | "fold" | null>(null);
+  const focusAfterToggle = useRef<"handle" | "fold" | null>(null);
   const { lockStopEditing } = routeDockUiPolicy(stage, editLocked);
   const activeRide = isRouteDockActiveRide(stage);
   useLayoutEffect(() => {
     const next = focusAfterToggle.current;
     if (!next) return;
     focusAfterToggle.current = null;
-    (next === "fold" ? foldRef.current : ledRef.current)?.focus();
+    (next === "fold" ? foldRef.current : handleRef.current)?.focus();
   }, [expanded]);
 
   /*
    * 주행 시작엔 접고 끝나면 편다. effect 에서 바꾸면 펼친 카드가 한 번 commit 된 뒤 접혀
    * 주행 시작 순간 깜빡였다(감리40 LOW, 10-25 해소) — 렌더 중에 이전 stage 와 비교해 맞춘다.
-   * 경로가 생기면 자동 펼침, 삭제되면 LED만.
+   * 경로가 생기면 자동 펼침, 삭제되면 카드를 내린다.
    */
   if (stage !== prevStage) {
     setPrevStage(stage);
@@ -117,31 +112,17 @@ export function RouteDock({
     }
   }
   if (!isRouteDockVisible(stage)) return null;
-  const sensorInDock =
-    sensorChipSlot({ stage, hasCadence: Boolean(cadence), expanded }) === "route-dock";
-  // 지시10: 빈 경로에서는 주소 판을 남기지 않는다. 센서가 이 카드에 배치될 때만 예외다.
-  if (stops.length === 0 && !sensorInDock) return null;
+  // 지시10: 빈 경로에서는 주소 판을 남기지 않는다(센서는 계기판 칸이라 예외 없음).
+  if (stops.length === 0) return null;
 
   const canSwap =
     Boolean(onSwapEndpoints) &&
     !lockStopEditing &&
     stops.some((s) => s.kind === "start") &&
     stops.some((s) => s.kind === "end");
-  const sensorChip =
-    sensorInDock && expanded && cadence ? (
-      <CadenceHudChip
-        placement="dock"
-        state={cadence.state}
-        riding={activeRide}
-        open={cadence.open}
-        onOpen={cadence.onOpen}
-        attention={sensorAttention}
-      />
-    ) : null;
   // Chief 11-02 v4: INT·주행 버튼은 오른쪽 2열 묶음, 지도 핀(경로 목록)·⚙(주행 설정)은 왼쪽 메뉴 머리줄로 옮겼다.
-  const ledConnected = cadence != null && cadenceChipView(cadence.state, false).led === "green";
   const setUserExpanded = (next: boolean) => {
-    focusAfterToggle.current = next ? "fold" : "led";
+    focusAfterToggle.current = next ? "fold" : "handle";
     setExpanded(next);
   };
 
@@ -152,12 +133,11 @@ export function RouteDock({
       aria-busy={routeLoading}
     >
       <div
-        className={`route-dock__card${expanded ? " route-dock__card--head" : " route-dock__card--led"}`}
+        className={`route-dock__card${expanded ? " route-dock__card--head" : " route-dock__card--handle"}`}
       >
         <div className={`route-dock__head${activeRide ? " route-dock__head--active" : ""}`}>
           {expanded ? (
             <>
-              {sensorChip}
               <RouteOverviewFoldToggle
                 kind="route"
                 expanded
@@ -170,17 +150,20 @@ export function RouteDock({
             </>
           ) : (
             <button
-              ref={ledRef}
+              ref={handleRef}
               type="button"
-              className={`route-dock__led-toggle${ledConnected ? " route-dock__led-toggle--connected" : ""}`}
+              className="route-dock__handle"
               aria-label="경로 패널 펼치기"
               title="경로 패널 펼치기"
               aria-expanded={false}
               aria-controls={ROUTE_DOCK_PANEL_ID}
-              data-led={ledConnected ? "green" : "white"}
               onClick={() => setUserExpanded(true)}
             >
-              <span className="route-dock__led" aria-hidden />
+              <svg viewBox="0 0 28 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden>
+                <circle cx="9" cy="6" r="2" />
+                <circle cx="9" cy="14" r="2" />
+                <path d="M11 6h8M11 14h8" />
+              </svg>
             </button>
           )}
           {!expanded && minimap ? (

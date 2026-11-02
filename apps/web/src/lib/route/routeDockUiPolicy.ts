@@ -24,12 +24,8 @@ export function routeDockDefaultExpanded(stage: RideUiStage, stopCount = 1): boo
 
 /**
  * RouteDock 이 화면에 나오는 stage — 표시 여부의 단일 진실.
- *
- * RouteDock 자신과, 「센서 칩을 어느 슬롯에 그릴지」를 정하는 `sensorChipSlot` 이
- * 같은 판정을 쓴다. 둘이 갈라지면 칩이 두 곳에 뜨거나(중복) 어느 곳에도 안 뜬다(소실).
- *
- * 2026-10-28: idle 포함 주행 가능 stage 는 모두 RouteDock. 접힘·무경로는 LED만,
- * 펼치면 접기 LED + 센서 알약. 숨기는 곳은 화면을 덮는 게이트와 결과 시트뿐이다.
+ * 숨기는 곳은 화면을 덮는 게이트와 결과 시트뿐이다(경로가 없으면 RouteDock 이 스스로 빠진다).
+ * Chief 11-02 v4(B단계): 센서는 RouteDock 이 아니라 계기판 맨 앞 칸(`sensorChipSlot` → "hud").
  */
 export function isRouteDockVisible(stage: RideUiStage): boolean {
   return stage !== "gate" && stage !== "gate-nickname" && stage !== "summary";

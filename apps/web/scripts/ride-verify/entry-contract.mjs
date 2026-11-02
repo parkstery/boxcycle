@@ -138,14 +138,13 @@ export const ENTRY_STEPS = [
   {
     step: "cadence-chip",
     desc:
-      "케이던스 센서 칩 — 센서 상세 설정 트리거. 펼친 RouteDock 한 곳에만 있다. " +
-      "접힘·무경로는 경로 패널 LED가 펼친 뒤 칩을 누른다. " +
+      "케이던스 센서 칸 — 센서 상세 설정 트리거. 계기판 맨 앞 칸 한 곳(Chief 11-02 v4 B단계: RouteDock 에서 이동, 경로가 없어도 보임). " +
       "셀렉터는 자리에 의존하지 않는 역할·접근성 이름이므로 이동해도 그대로 쓴다.",
     file: "src/components/maphud/CadenceHudChip.tsx",
     anchors: [
-      { name: "칩 접근성 이름", re: /aria-label=\{view\.ariaLabel\}/ },
+      { name: "칸 접근성 이름", re: /aria-label=\{view\.ariaLabel\}/ },
       { name: "열림 상태 aria-expanded", re: /aria-expanded=\{open\}/ },
-      { name: "자리 변형(hud|dock)", re: /placement\?: "hud" \| "dock"/ },
+      { name: "계기판 센서 칸", re: /export function CadenceMetricCell\(/ },
     ],
     selector: `getByRole('button',{name:/케이던스 센서/})`,
   },
@@ -182,12 +181,12 @@ export const ENTRY_STEPS = [
   {
     step: "cadence-chip-slot",
     desc:
-      "센서 칩 자리 판정 — dock 과 우상단에 동시에 뜨면 getByRole 이 strict 위반으로 깨진다. " +
+      "센서 칸 자리 판정 — 두 곳에 동시에 뜨면 getByRole 이 strict 위반으로 깨진다. " +
       "어디에도 안 뜨면 「센서 없음」에 닿지 못해 Go 가 영영 잠긴다.",
     file: "src/lib/route/sensorChipSlot.ts",
     anchors: [
       { name: "슬롯 판정 함수", re: /export function sensorChipSlot\(/ },
-      { name: "슬롯 2갈래", re: /"route-dock" \| "none"/ },
+      { name: "슬롯 2갈래", re: /"hud" \| "none"/ },
       { name: "게이트 및 결과 제외", re: /stage === "summary"/ },
     ],
     selector: `(렌더 자리 판정 — 셀렉터 없음)`,

@@ -16,6 +16,8 @@ import { type Camera1Mode } from "../../lib/camera/camera1Mode";
 import type { RoutePreviewElevationHud } from "../../app/appHudValues";
 import { coachingTipDisplayKo } from "../../lib/coach/coachingDisplayKo";
 import { CameraViewMenu } from "./CameraViewMenu";
+import { CadenceMetricCell, type CadenceChipBinding } from "./CadenceHudChip";
+import { sensorChipSlot } from "../../lib/route/sensorChipSlot";
 import "./MapHud.css";
 import "./MapToolbar.css";
 import "./CameraViewMenu.css";
@@ -166,6 +168,11 @@ export type MapHudProps = {
    * Chief 11-02 v4: 오른쪽 2열 4줄 묶음의 나머지 칸 — 3-1 INT · 3-2 순위 · 4-1 ⏹ · 4-2 ⏸/▶(`transport` = RideControlBar).
    * 1줄 카메라 | 지도 스타일, 2줄 ＋ | － 는 `quickCamera`·`mapControls` 가 채운다. 없는 기능의 칸은 비운다.
    */
+  /**
+   * Chief 11-02 v4(B단계): 센서 LED·RPM — 계기판 맨 앞 칸(경로가 없어도 보인다). 누르면 센서 상세 설정.
+   * `attention` 은 경로가 잡혔는데 주행 입력(센서·체험 속도)을 아직 안 고른 상태.
+   */
+  cadence?: (CadenceChipBinding & { attention?: boolean }) | null;
   controlGroup?: {
     transport?: ReactNode;
     interval?: { enabled: boolean; onOpen: () => void } | null;
@@ -276,6 +283,7 @@ export function MapHud(props: MapHudProps) {
     leaderboardGlanceChip = null,
     leaderboardGlancePanel = null,
     controlGroup = null,
+    cadence = null,
     rideMoments = null,
   } = props;
   void leaderboardGlanceChip;
@@ -344,11 +352,7 @@ export function MapHud(props: MapHudProps) {
     !isGate && !isSummary && account === null && typeof onOpenSignedOutAuth === "function";
   /** 게이트·요약이 아닐 때 상시 — 카메라 유무와 무관 */
   const showMapControls = Boolean(mapControls) && !isGate && !isSummary;
-  /*
-   * 2026-09-16: 우상단에서 센서 칩이 완전히 빠졌다. RouteDock 이 `idle` 을 포함한
-   * 모든 주행 가능 stage 에서 보이므로 칩은 항상 dock 이 그린다(`lib/route/sensorChipSlot`).
-   * 여기 남는 것은 계정·로그인 칩뿐이고, `cadence` 는 **RouteDock 으로만** 간다.
-   */
+  /* 우상단엔 계정·로그인 칩뿐. 센서는 계기판 맨 앞 칸(`showSensor`, Chief 11-02 v4 B단계). */
   const showTopRight = showAccount || showSignedOutAuth;
   const showControlGroup = !isGate && !isSummary && (Boolean(quickCamera) || showMapControls || Boolean(controlGroup));
   const rankControl = controlGroup?.rank ?? null;
@@ -372,6 +376,7 @@ export function MapHud(props: MapHudProps) {
     !isGate &&
     !isSummary &&
     (riding || paused || metrics.mode === "route-preview");
+  const showSensor = !isGate && sensorChipSlot({ stage, hasCadence: cadence !== null }) === "hud";
   const intervalCoachingActive = props.rideInterval != null && props.rideInterval.phase !== "complete";
   const showCoach = Boolean(momentEvent && (!intervalCoachingActive || momentEvent.kind.startsWith("interval"))) || (!intervalCoachingActive && coachLineEnabled && coachData !== null && (riding || paused));
   const showMc = stage === "setup" && Boolean(routeError);
@@ -420,9 +425,22 @@ export function MapHud(props: MapHudProps) {
         </button>
       ) : null}
 
-      {showMenuTrigger || (showMetrics && metrics) ? (
+      {showMenuTrigger || (showMetrics && metrics) || showSensor ? (
         <div className="map-hud__tl">
           <div className="map-hud__tl-row">
+            {showSensor && cadence ? (
+              <div className="hud-metrics hud-metrics--sensor">
+                <div className="hud-metrics__capsule">
+                  <CadenceMetricCell
+                    state={cadence.state}
+                    open={cadence.open}
+                    onOpen={cadence.onOpen}
+                    riding={activeRide}
+                    attention={Boolean(cadence.attention)}
+                  />
+                </div>
+              </div>
+            ) : null}
             {showMetrics && metrics ? (
               <div className="map-hud__tl-metrics">
                 <div

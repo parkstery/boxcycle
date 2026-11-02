@@ -14,16 +14,16 @@ test('RouteDock 주소/주행바: 세 크기·다섯 상태·지도정보와 겹
       const bar=page.locator('.ride-control-bar');
       if(state==='idle'||state==='setup')await expect(bar).toHaveCount(0);
       else await expect(bar).toBeVisible();
-      if(state==='idle'||state==='riding'||state==='paused'){
-        await expect(page.getByRole('button',{name:'경로 패널 펼치기'})).toBeVisible();
-        await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(0);
-        await page.getByRole('button',{name:'경로 패널 펼치기'}).click();
-      }
+      // Chief 11-02 v4(B단계): 센서는 계기판 맨 앞 칸 하나 — 경로가 없어도·접혀 있어도 같다. RouteDock 은 경로가 있을 때만.
       await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
       await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toBeVisible();
-      if(state==='setup'||state==='idle')await expect(page.locator('.route-dock__head').getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
+      await expect(page.locator('.route-dock__head').getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(0);
+      if(state==='riding'||state==='paused'){
+        await expect(page.getByRole('button',{name:'경로 패널 펼치기'})).toBeVisible();
+        await page.getByRole('button',{name:'경로 패널 펼치기'}).click();
+      }
       const geom=await page.evaluate((state)=>{
-        const sensor=document.querySelector('.route-dock__head .hud-cadence') ?? document.querySelector('.route-dock__led-toggle');
+        const sensor=document.querySelector('.hud-metrics__cell--sensor');
         const bar=sensor!.getBoundingClientRect();
         const others=[...document.querySelectorAll(state==='setup'||state==='idle'?'.hud-clock,.map-hud__tr':'.hud-clock,.map-hud__tr')].map(e=>e.getBoundingClientRect());
         const collide=others.filter(b=>b.width>0&&b.height>0&&bar.left<b.right&&bar.right>b.left&&bar.top<b.bottom&&bar.bottom>b.top);
@@ -71,7 +71,8 @@ test('준비되지 않은 입력으로 시작할 수 없고 경로 없이 센서
   await page.goto(`${preview}?state=ready&blocked`);
   await expect(page.getByRole('button',{name:'주행 시작',exact:true})).toBeDisabled();
   await page.goto(`${preview}?state=idle`);
-  await page.getByRole('button',{name:'경로 패널 펼치기'}).click();
+  // Chief 11-02 v4(B단계): 경로가 없어도 계기판 맨 앞 센서 칸을 바로 누른다(펼칠 RouteDock 이 없다).
+  await expect(page.locator('.route-dock-anchor')).toHaveCount(0);
   await page.getByRole('button',{name:/^케이던스 센서:/}).click();
   await expect(page.getByRole('dialog',{name:'케이던스 센서',exact:true})).toBeVisible();
 });

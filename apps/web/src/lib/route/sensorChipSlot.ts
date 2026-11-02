@@ -1,12 +1,13 @@
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 
-/** Sensor has one persistent location: RouteDock. The ride bar never owns it. */
-export type SensorChipSlot = "route-dock" | "none";
+/**
+ * 센서는 한 자리에만 그린다 — Chief 11-02 v4(B단계): 계기판 맨 앞 칸(`hud`).
+ * 두 곳에 뜨면 getByRole 이 strict 위반으로 깨지고, 어디에도 없으면 「센서 없음」에 닿지 못해 Go 가 잠긴다.
+ */
+export type SensorChipSlot = "hud" | "none";
 export type SensorChipSlotInput = {
   stage: RideUiStage;
   hasCadence: boolean;
-  /** Kept for callers that also render route disclosure; never affects the sensor. */
-  expanded: boolean;
 };
 export function sensorChipSlot(input: SensorChipSlotInput): SensorChipSlot {
   const { stage, hasCadence } = input;
@@ -14,5 +15,5 @@ export function sensorChipSlot(input: SensorChipSlotInput): SensorChipSlot {
   if (!hasCadence || stage === "gate" || stage === "gate-nickname" || stage === "summary") {
     return "none";
   }
-  return "route-dock";
+  return "hud";
 }

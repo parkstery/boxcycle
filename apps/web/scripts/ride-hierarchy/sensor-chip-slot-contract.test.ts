@@ -6,39 +6,39 @@ import type { RideUiStage } from "../../src/hooks/useRideUiStage.ts";
 
 const source = (file: string) => readFileSync(new URL("../../src/" + file, import.meta.url), "utf8");
 const dock = source("components/route-dock/RouteDock.tsx");
+const hud = source("components/maphud/MapHud.tsx");
 const bar = source("components/ride/RideControlBar.tsx");
 const app = source("App.tsx");
 
-describe("센서 단일 위치 — RouteDock", () => {
+// Chief 11-02 v4(B단계): 센서 LED·RPM 은 계기판 맨 앞 칸 한 곳(RouteDock 에서 이동).
+describe("센서 단일 위치 — 계기판 맨 앞 칸", () => {
   for (const stage of ["idle", "setup", "ready-to-start", "riding", "paused"] as RideUiStage[]) {
-    it(stage + ": 접힘과 관계없이 센서 접근이 하나다", () => {
-      for (const expanded of [false, true]) {
-        assert.equal(sensorChipSlot({ stage, expanded, hasCadence: true }), "route-dock");
-        assert.equal(sensorChipSlot({ stage, expanded, hasCadence: false }), "none");
-      }
+    it(stage + ": 경로·접힘과 관계없이 센서 접근이 하나다", () => {
+      assert.equal(sensorChipSlot({ stage, hasCadence: true }), "hud");
+      assert.equal(sensorChipSlot({ stage, hasCadence: false }), "none");
     });
   }
   for (const stage of ["gate", "gate-nickname", "summary"] as RideUiStage[]) {
     it(stage + ": 센서 및 주행 조작 숨김", () => {
-      assert.equal(sensorChipSlot({ stage, expanded: true, hasCadence: true }), "none");
+      assert.equal(sensorChipSlot({ stage, hasCadence: true }), "none");
     });
   }
-  it("RouteDock 이 센서 칩을 sensorChipSlot 로 판정한다", () => {
-    assert.match(dock, /sensorChipSlot\(\{/);
-    assert.match(dock, /<CadenceHudChip/);
-    assert.match(dock, /route-dock__led-toggle/);
+  it("계기판이 센서 칸을 sensorChipSlot 로 판정하고, RouteDock 은 센서를 그리지 않는다", () => {
+    assert.match(hud, /sensorChipSlot\(\{/);
+    assert.match(hud, /<CadenceMetricCell/);
+    assert.doesNotMatch(dock, /sensorChipSlot\(|<Cadence|cadence\??:/);
+    assert.match(dock, /route-dock__handle/);
     assert.match(dock, /RouteOverviewFoldToggle/);
     assert.match(dock, /kind="route"/);
     assert.doesNotMatch(dock, /onStartRide|onPauseRide|onEndRide/);
   });
-  it("주행바는 센서 칩을 그리지 않고 주행 조작만 담당한다", () => {
-    assert.doesNotMatch(bar, /sensorChipSlot/);
-    assert.doesNotMatch(bar, /<CadenceHudChip/);
+  it("주행바는 센서를 그리지 않고 주행 조작만 담당한다", () => {
+    assert.doesNotMatch(bar, /sensorChipSlot|CadenceMetricCell/);
     assert.match(bar, /aria-label="주행 제어"/);
     assert.match(app, /<RideControlBar/);
     assert.match(app, /canStartRide=\{canStartRideWithInput\}/);
-    assert.match(app, /cadence=\{cadenceHud\}/);
-    assert.doesNotMatch(source("components/maphud/MapHud.tsx"), /<CadenceHudChip/);
+    assert.match(app, /cadence: rideSensorCell/);
+    assert.match(app, /const rideSensorCell = \{ \.\.\.cadenceHud, attention:/);
   });
   it("시작·일시정지·종료·재개 연결과 준비·주행별 노출이 보존된다", () => {
     for (const method of ["onStartRide", "onPauseRide", "onResumeRide", "onEndRide"]) {

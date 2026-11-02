@@ -145,35 +145,20 @@ export async function guestStart(page: Page): Promise<void> {
 }
 
 /**
- * 센서 시트를 연다 — **입구가 접힘과 펼침에서 다르다.**
- *
- * RouteDock 은 센서를 두 모습으로 보여 준다(`lib/route/sensorChipSlot`):
- *   · 접힘·무경로  LED(경로 패널 펼치기) — 누르면 **패널이 펼쳐진다**
- *   · 펼침         센서 알약 — 누르면 센서 시트가 열린다
- *
- * 앵커(`^`) 없이 `/케이던스 센서/` 로 접힌 LED를 건드리면 시트가 안 열린다.
+ * 센서 시트를 연다 — 입구는 계기판 맨 앞 센서 칸 하나(Chief 11-02 v4 B단계, `lib/route/sensorChipSlot` → "hud").
+ * 경로가 없어도, RouteDock 이 접혀 있어도 같은 자리다.
  */
 export async function openCadenceSheet(page: Page): Promise<Locator> {
   const sheet = page.getByRole('dialog', { name: '케이던스 센서' })
   if (await sheet.isVisible().catch(() => false)) return sheet
 
-  const expand = page.getByRole('button', { name: /^경로 패널 펼치기/ })
-  const chip = page.getByRole('button', { name: /^케이던스 센서/ })
-
+  const cell = page.getByRole('button', { name: /^케이던스 센서/ })
   /*
-   * ⚠️ `isVisible()` 은 **기다리지 않는다** — 그 순간의 상태를 그대로 돌려준다.
-   * 게이트가 막 닫힌 직후에는 dock 이 아직 안 그려져 둘 다 false 가 되고, 그러면 아래
-   * 분기가 「없는 것」을 누르러 가서 **시험 시간 전체를 그 클릭 하나가 먹는다.**
-   * 2026-09-27 에 실제로 8분을 통째로 날렸다. 그래서 먼저 **하나가 나타날 때까지** 기다린다.
+   * ⚠️ `isVisible()` 은 **기다리지 않는다**. 게이트가 막 닫힌 직후엔 HUD 가 아직 안 그려져
+   * 「없는 것」을 누르러 가서 시험 시간 전체를 먹는다(2026-09-27 8분). 먼저 나타날 때까지 기다린다.
    */
-  await expect(expand.or(chip).first()).toBeVisible({ timeout: 30_000 })
-
-  if (await chip.isVisible().catch(() => false)) {
-    await chip.click({ timeout: 15_000 })
-  } else {
-    await expand.click({ timeout: 15_000 })
-    await chip.click({ timeout: 15_000 })
-  }
+  await expect(cell).toBeVisible({ timeout: 30_000 })
+  await cell.click({ timeout: 15_000 })
   await expect(sheet).toBeVisible({ timeout: 15_000 })
   return sheet
 }
