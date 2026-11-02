@@ -101,7 +101,8 @@ test.describe('주행 UI 정리 v2', () => {
     await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
     await expect(menu).toBeVisible();
     await expect(page.getByRole('button', { name: '메뉴 열기', exact: true })).toHaveCount(1);
-    await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+    // Chief 11-03: 열린 메뉴가 원형 버튼을 덮는다 — 닫기는 메뉴의 닫기 버튼.
+    await menu.getByRole('button', { name: '메뉴 닫기', exact: true }).click();
     await expect(menu).toHaveCount(0);
 
     await page.goto(`${preview}?state=ready`);
@@ -110,7 +111,7 @@ test.describe('주행 UI 정리 v2', () => {
     await page.mouse.down();
     await page.mouse.move(left.x + 140, left.y + left.height / 2, { steps: 10 });
     await page.mouse.up();
-    await expect(menu, '왼쪽 반달 스와이프는 열지 않는다').toHaveCount(0);
+    await expect(menu, '왼쪽 메뉴 버튼 스와이프는 열지 않는다').toHaveCount(0);
 
     // Chief 11-02 v4: 오른쪽 반달은 없다 — 순위 목록은 묶음의 순위 버튼이 열고 닫는다.
     await page.goto(`${preview}?state=ready`);

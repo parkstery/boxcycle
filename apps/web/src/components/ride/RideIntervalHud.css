@@ -99,6 +99,8 @@ span.ride-interval-hud__time { display: grid; place-items: center; font-size: 24
   font: inherit; font-size: 13px; font-weight: 800; color: #142c46; white-space: nowrap;
   cursor: pointer; pointer-events: auto; touch-action: manipulation;
 }
+/* Chief 11-03: 접힌 알약은 왼쪽 원형 메뉴 버튼(같은 왼쪽 20px, 지름 = 오른쪽 묶음 버튼)과 겹치지 않게 그 오른쪽 8px 부터. 펼친 창은 제자리(겹침 허용). */
+.map-hud__tl > .ride-interval-hud.ride-interval-hud--folded { margin-left: calc(var(--rail-size, 64px) + 8px); }
 .ride-interval-hud--folded .ride-interval-hud__dot { width: 10px; height: 10px; border-radius: 50%; background: var(--interval-color); }
 .ride-interval-hud--folded .ride-interval-hud__phase { font-size: 14px; color: var(--interval-color); }
 .ride-interval-hud--folded .ride-interval-hud__chip-time { font-variant-numeric: tabular-nums; }

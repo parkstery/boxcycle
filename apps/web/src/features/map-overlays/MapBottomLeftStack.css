@@ -8,8 +8,8 @@
 .map-bottom-left-stack {
   --map-bl-pad: clamp(0.45rem, 1.4vw, 0.85rem);
   position: absolute;
-  /* Chief 11-02 A안: 왼쪽 반달 탭(누름 44px)+4px 오른쪽 — 64px 버튼 줄이 탭을 덮지 않는다(종전: 안전 영역 왼쪽 끝). */
-  left: calc(env(safe-area-inset-left, 0px) + 48px);
+  /* Chief 11-03: 왼쪽 반달이 원형 버튼으로 바뀌어 비킬 필요가 없다 — 인터벌 창·계기판과 같은 왼쪽 끝(safe+20px). 종전 48px 대체. */
+  left: calc(env(safe-area-inset-left, 0px) + 20px);
   bottom: calc(
     max(var(--map-bl-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem)
   );
@@ -90,10 +90,11 @@
 }
 
 /*
- * Chief 11-02 v4 C단계: 미니맵이 접히면(40px 버튼만) 그 버튼은 경로 카드·손잡이 오른쪽 옆, 아래 끝 맞춤.
- * 위아래로 쌓으면 낮은 폰(699×273)에서 펼친 경로 카드가 버튼 높이만큼 올라가 인터벌 패널과 겹쳤다.
+ * Chief 11-03: 경로 손잡이·미니맵이 둘 다 접히면(40px 버튼 둘) 세로 — 손잡이 아래 미니맵 버튼.
+ * 경로 카드를 펼쳤을 때만 접힌 미니맵 버튼이 카드 오른쪽 옆(아래 끝 맞춤) — 세로로 쌓으면 낮은 폰(699×273)에서
+ * 펼친 카드가 버튼 높이만큼 올라가 인터벌 창과 겹친다(11-02 C단계 근거 유지).
  */
-.map-bottom-left-stack:has(> .route-minimap--collapsed) {
+.map-bottom-left-stack:has(> .route-minimap--collapsed):has(> .route-dock-anchor--open) {
   flex-direction: row;
   align-items: flex-end;
 }

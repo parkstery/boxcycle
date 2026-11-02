@@ -406,11 +406,22 @@ test.describe('compact-controls v2', () => {
   }
 
   for (const size of sizes) {
-    test(`반달 60%·지도 터치 ${size.width}×${size.height}`, async ({ page }) => {
+    // Chief 11-03: 왼쪽 반달 → 오른쪽 묶음과 같은 흰 원 메뉴 버튼, 오른쪽 묶음 맨 윗줄(지도 스타일)과 같은 줄.
+    // 낮은 폰은 RPM 칸 아래 4px 보다 위로 못 올라가 몇 px 내려간다.
+    test(`왼쪽 원형 메뉴 버튼·지도 터치 ${size.width}×${size.height}`, async ({ page }) => {
       await page.setViewportSize(size);
       await page.goto(`${preview}?state=riding`);
+      const row = await page.evaluate(() => {
+        const r = (s: string) => document.querySelector(s)!.getBoundingClientRect().toJSON();
+        return { knob: r('.edge-panel-tab--left .edge-panel-tab__knob'), style: r('.map-hud__rail .hud-ride-map-controls__style') };
+      });
+      expect(row.knob.width, '원 지름 = 묶음 버튼').toBeCloseTo(row.style.width, 0);
+      expect(row.knob.height).toBeCloseTo(row.style.height, 0);
+      expect(row.knob.left, '왼쪽 끝 = 계기판·인터벌 창 20px').toBeCloseTo(20, 0);
+      expect(row.knob.top, 'RPM 칸(위 4+44) 아래 4px 이상').toBeGreaterThanOrEqual(52 - 0.5);
+      if (size.height >= 360) expect(row.knob.top, '지도 스타일 버튼과 같은 줄').toBeCloseTo(row.style.top, 0);
+      else expect(row.knob.top - row.style.top, '낮은 폰: RPM 칸 때문에 6px 이내로 내려감').toBeLessThanOrEqual(6.5);
       const measured = await page.evaluate(() => {
-        // Chief 11-02 v4: 오른쪽 반달은 없다(순위는 오른쪽 묶음 버튼) — 왼쪽 메뉴 반달만.
         const knobs = ['left'].map((side) => {
           const tab = document.querySelector(`.edge-panel-tab--${side}`)!;
           const knob = tab.querySelector('.edge-panel-tab__knob')!;
@@ -427,9 +438,8 @@ test.describe('compact-controls v2', () => {
         return { knobs, others };
       });
       for (const tab of measured.knobs) {
-        expect(tab.knob.width, tab.side).toBeCloseTo(20.4, 1);
-        expect(tab.knob.height, tab.side).toBeCloseTo(43.2, 1);
-        expect(tab.tab.width * tab.tab.height).toBeGreaterThanOrEqual(44 * 76 - 1);
+        expect(tab.tab.width, '누름 영역 44px 이상').toBeGreaterThanOrEqual(44);
+        expect(tab.tab.height).toBeGreaterThanOrEqual(44);
         for (const other of measured.others) {
           expect(overlap(tab.knob, other), `${tab.side} vs ${other.sel}`).toBe(false);
         }
@@ -462,8 +472,8 @@ const tapSizes = [
   { width: 699, height: 273 },
   { width: 667, height: 300 },
 ] as const;
-const LEFT_CLOSED = 'M2 1.5L5 5L2 8.5';
-const LEFT_OPEN = 'M5 1.5L2 5L5 8.5';
+// Chief 11-03: 왼쪽은 흰 원 메뉴 버튼(세 줄 도안, 열림·닫힘 같은 도안). 메뉴가 열리면 메뉴 패널이 덮고, 닫기는 메뉴의 닫기·바깥·Escape.
+const LEFT_ICON = 'M5 7h14M5 12h14M5 17h14';
 
 async function saveTapShot(page: Page, name: string) {
   await fs.mkdir(tapEvidenceDir, { recursive: true });
@@ -514,25 +524,21 @@ test.describe('compact-controls tap handles', () => {
       const menu = page.getByRole('dialog', { name: '메뉴', exact: true });
       const rank = page.locator('#lb-glance-panel');
 
-      const leftClosed = (await page.locator('.edge-panel-tab--left').boundingBox())!;
       await expect(page.locator('.edge-panel-tab--right')).toHaveCount(0);
-      expect(await caretPath(page, 'left')).toBe(LEFT_CLOSED);
+      expect(await caretPath(page, 'left')).toBe(LEFT_ICON);
 
       await menuBtn.click();
       await expect(menu).toBeVisible();
-      const leftOpen = (await page.locator('.edge-panel-tab--left').boundingBox())!;
-      expect(Math.abs(leftOpen.x - leftClosed.x), '왼쪽 x').toBeLessThanOrEqual(1);
-      expect(Math.abs(leftOpen.y - leftClosed.y), '왼쪽 y').toBeLessThanOrEqual(1);
-      expect(await caretPath(page, 'left')).toBe(LEFT_OPEN);
+      await expect(menuBtn).toHaveAttribute('aria-expanded', 'true');
       const knob = (await page.locator('.edge-panel-tab--left .edge-panel-tab__knob').boundingBox())!;
       const hit = await page.evaluate(({ x, y }) => {
         const el = document.elementFromPoint(x, y);
         return Boolean(el?.closest('.edge-panel-tab--left'));
       }, knobCenter(knob));
-      expect(hit, '열린 왼쪽 반달이 메뉴·스크림 위').toBe(true);
-      await menuBtn.click();
+      expect(hit, '열린 메뉴가 원형 버튼을 덮는다').toBe(false);
+      await menu.getByRole('button', { name: '메뉴 닫기', exact: true }).click();
       await expect(menu).toHaveCount(0);
-      expect(await caretPath(page, 'left')).toBe(LEFT_CLOSED);
+      expect(await caretPath(page, 'left')).toBe(LEFT_ICON);
 
       await rankBtn.click();
       await expect(rank).toBeVisible();
@@ -545,7 +551,7 @@ test.describe('compact-controls tap handles', () => {
         await saveTapShot(page, `tap-closed-${size.width}x${size.height}.png`);
         await menuBtn.click();
         await saveTapShot(page, `tap-left-open-${size.width}x${size.height}.png`);
-        await menuBtn.click();
+        await menu.getByRole('button', { name: '메뉴 닫기', exact: true }).click();
         await rankBtn.click();
         await saveTapShot(page, `tap-right-open-${size.width}x${size.height}.png`);
       }
@@ -582,12 +588,13 @@ test.describe('compact-controls tap handles', () => {
 
     await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
     await expect(menu).toBeVisible();
-    const leftOpen = (await page.locator('.edge-panel-tab--left .edge-panel-tab__knob').boundingBox())!;
-    await mouseDrag(page, knobCenter(leftOpen), { x: leftOpen.x + 140, y: leftOpen.y + leftOpen.height / 2 });
-    await expect(menu, '열린 왼쪽 반달 드래그').toBeVisible();
+    // 열린 동안 원형 버튼 자리는 메뉴 패널 — 그 위를 끌어도 메뉴는 그대로.
+    await mouseDrag(page, knobCenter(left), { x: left.x + 140, y: left.y + left.height / 2 });
+    await expect(menu, '열린 메뉴 위 드래그').toBeVisible();
     await mouseDrag(page, { x: 10, y: 80 }, { x: 130, y: 80 });
     await expect(menu, '열린 빈 가장자리 드래그').toBeVisible();
-    await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+    await menu.getByRole('button', { name: '메뉴 닫기', exact: true }).click();
+    await expect(menu).toHaveCount(0);
   });
 });
 
@@ -603,7 +610,8 @@ test.describe('compact-controls tap handles touch', () => {
 
     await page.touchscreen.tap(left.x + left.width / 2, left.y + left.height / 2);
     await expect(menu).toBeVisible();
-    await page.touchscreen.tap(left.x + left.width / 2, left.y + left.height / 2);
+    // Chief 11-03: 열린 메뉴가 원형 버튼을 덮는다 — 닫기는 메뉴의 닫기 버튼.
+    await menu.getByRole('button', { name: '메뉴 닫기', exact: true }).tap(); // 패널이 다 들어온 뒤(stable) 누른다.
     await expect(menu).toHaveCount(0);
 
     // 순위 목록은 오른쪽 묶음의 순위 버튼을 탭해 연다(Chief 11-02 v4 — 오른쪽 반달 없음).
@@ -614,15 +622,14 @@ test.describe('compact-controls tap handles touch', () => {
     await expect(rank).toBeHidden();
 
     await touchDrag(page, knobCenter(left), { x: left.x + 140, y: left.y + left.height / 2 });
-    await expect(menu, '터치 왼쪽 반달 드래그').toHaveCount(0);
+    await expect(menu, '터치 원형 버튼 드래그').toHaveCount(0);
     await touchDrag(page, { x: 10, y: 80 }, { x: 130, y: 80 });
     await expect(menu, '터치 빈 가장자리 드래그').toHaveCount(0);
 
     await page.touchscreen.tap(left.x + left.width / 2, left.y + left.height / 2);
     await expect(menu).toBeVisible();
-    const leftOpen = (await page.locator('.edge-panel-tab--left .edge-panel-tab__knob').boundingBox())!;
-    await touchDrag(page, knobCenter(leftOpen), { x: leftOpen.x + 140, y: leftOpen.y + leftOpen.height / 2 });
-    await expect(menu, '터치 열린 왼쪽 반달 드래그').toBeVisible();
+    await touchDrag(page, knobCenter(left), { x: left.x + 140, y: left.y + left.height / 2 });
+    await expect(menu, '터치 열린 메뉴 위 드래그').toBeVisible();
     await touchDrag(page, { x: 10, y: 80 }, { x: 130, y: 80 });
     await expect(menu, '터치 열린 빈 가장자리 드래그').toBeVisible();
   });

@@ -8,7 +8,8 @@ const HINT_MS = 3500;
 const HINT_SEEN_KEY = "rtw-ride-controls-hint-seen";
 /** 열려 있으면 숨기지 않는다 — 카메라 메뉴·펼친 경로 카드·창(설정·결과 등). */
 const BUSY_SELECTOR = ".camera-view-menu__panel, .route-dock-anchor--open, [role='dialog'], .ride-control-bar__resume";
-const CONTROLS_SELECTOR = ".map-hud__rail";
+/** Chief 11-03: 왼쪽 원형 메뉴 버튼도 오른쪽 묶음과 함께 숨고 나온다(CSS 는 EdgePanelHandle.css). */
+const CONTROLS_SELECTOR = ".map-hud__rail, .edge-panel-tab--left";
 
 /** 닫힌 메뉴·창도 DOM 에 남아 있다(aria-hidden·inert) — 그건 열린 것으로 치지 않는다. */
 function somethingOpen(): boolean {

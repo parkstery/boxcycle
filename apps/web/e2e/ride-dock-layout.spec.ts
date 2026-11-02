@@ -11,7 +11,8 @@ for (const viewport of [{ width: 800, height: 360 }, { width: 736, height: 300 }
     await expect(dock.locator('.ride-control-bar')).toHaveCount(0);
     await rail.getByRole('button', { name: '주행 시작', exact: true }).click();
     const handle = await dock.evaluate(el => { const r = el.querySelector('.route-dock__handle')!.getBoundingClientRect(); return { x: r.left, w: r.width, h: r.height }; });
-    expect(handle).toEqual({ x: 48, w: 40, h: 40 });
+    // Chief 11-03: 왼쪽 아래 묶음 왼쪽 끝 = 인터벌 창·계기판(safe+20px), 종전 반달 비킴 48px 대체.
+    expect(handle).toEqual({ x: 20, w: 40, h: 40 });
     await expect(dock.locator('.route-dock__tool--minimap')).toHaveCount(0);
     await rail.getByRole('button', { name: '일시정지', exact: true }).click();
     await rail.getByRole('button', { name: '재개', exact: true }).click();

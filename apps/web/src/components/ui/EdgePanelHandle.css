@@ -80,9 +80,56 @@
 .edge-panel-tab:focus-visible { outline: none; }
 .edge-panel-tab:focus-visible .edge-panel-tab__knob { outline: 2px solid #2457d6; outline-offset: 1px; }
 
+/*
+ * Chief 11-03: 왼쪽 반달 → 흰 원 메뉴 버튼(오른쪽 2열 묶음과 같은 크기·모양, 고정14의 왼쪽 반달을 대체).
+ * 자리 = 왼쪽 칸(계기판·인터벌 창과 같은 safe+20px), 높이 = 오른쪽 묶음 맨 윗줄(지도 스타일 버튼)과 같은 줄.
+ * 단, RPM 칸(위 4px+44px) 아래 4px 보다 위로 올라가지 않는다 — 699×273 처럼 낮은 폰에서만 몇 px 내려간다.
+ * 주행 중엔 오른쪽 묶음과 함께 5초 무입력이면 숨고 화면을 누르면 나온다. 인터벌 창과의 겹침은 Chief 허용.
+ * 메뉴가 열리면 메뉴 패널(z 50)이 덮는다 — 닫기는 메뉴의 닫기 버튼·바깥 누름.
+ */
+.edge-panel-tab--left,
+.edge-panel-tab--left.edge-panel-tab--open {
+  left: calc(env(safe-area-inset-left, 0px) + 20px);
+  top: max(
+    calc(env(safe-area-inset-top, 0px) + 52px),
+    min(
+      calc(100dvh - env(safe-area-inset-bottom, 0px) - 8px - 4 * var(--rail-size, 64px) - 3 * var(--rail-gap, 8px)),
+      /* 키 큰 화면(폰 전체 화면 412px 넘게·PC)에서 오른쪽 묶음은 아래에 붙어 내려간다 — 왼쪽 버튼은 위쪽에 머문다(미니맵과 겹침 방지). */
+      calc(env(safe-area-inset-top, 0px) + 124px)
+    )
+  );
+  width: var(--rail-size, 64px);
+  height: var(--rail-size, 64px);
+  z-index: 6;
+  justify-content: center;
+  transition: opacity .3s ease, transform .3s ease, visibility 0s linear 0s;
+}
+.edge-panel-tab--left .edge-panel-tab__knob {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .96);
+  color: #1f2a3a;
+  box-shadow: 0 1px 6px rgba(15, 23, 42, .3);
+}
+.edge-panel-tab--left .edge-panel-tab__menu-icon { width: 44%; height: 44%; }
+.edge-panel-tab--left:active .edge-panel-tab__knob { background: #eaf1ff; }
+@media (hover: hover) {
+  .edge-panel-tab--left:hover .edge-panel-tab__knob { background: #eaf1ff; }
+}
+.edge-panel-tab--left:focus-visible .edge-panel-tab__knob { outline-offset: 2px; }
+body[data-ride-controls="hidden"] .edge-panel-tab--left {
+  opacity: 0;
+  transform: translateX(calc(-100% - 28px));
+  visibility: hidden;
+  transition: opacity .3s ease, transform .3s ease, visibility 0s linear .3s;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .edge-panel-handle,
-  .edge-panel-tab {
+  .edge-panel-tab,
+  body[data-ride-controls="hidden"] .edge-panel-tab--left {
     transition: none;
   }
 }

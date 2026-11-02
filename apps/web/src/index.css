@@ -20,6 +20,21 @@ body {
   min-height: 100svh;
 }
 
+/*
+ * Chief 11-03: 앱 화면은 글자 선택이 되지 않는다 — 버튼을 길게 누르면 선택 핸들·복사 메뉴가 떠 팝업을 가렸다.
+ * 입력칸만 예외(이름·지명 검색은 그대로 고칠 수 있어야 한다).
+ */
+html {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+:is(input, textarea, [contenteditable]:not([contenteditable="false"])) {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
 #root {
   min-height: 100svh;
 }

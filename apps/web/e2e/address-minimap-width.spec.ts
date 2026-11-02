@@ -58,15 +58,16 @@ test('경로 손잡이와 미니맵 접기는 독립적으로 접힌다', async 
   await expect(minimapCollapse).toHaveAttribute('aria-expanded', 'true');
   for (const b of [await minimapCollapse.boundingBox(), await routeExpand.boundingBox()]) expect([b!.width, b!.height]).toEqual([40, 40]);
 
-  // 미니맵만 접어도 경로 패널은 접힌 그대로, 다시 펴면 돌아온다. 접힌 미니맵 버튼은 손잡이 옆.
+  // 미니맵만 접어도 경로 패널은 접힌 그대로, 다시 펴면 돌아온다.
+  // Chief 11-03: 둘 다 접히면 세로 — 접힌 미니맵 버튼은 손잡이 아래 8px, 왼쪽 끝 같음(종전 손잡이 옆 8px 대체).
   await minimapCollapse.click();
   await expect(minimap).toHaveClass(/route-minimap--collapsed/);
   await expect(routeExpand).toHaveAttribute('aria-expanded', 'false');
   const minimapExpand = page.getByRole('button', { name: '미니맵 펼치기' });
   await expect(minimapExpand).toHaveAttribute('aria-expanded', 'false');
   const [h, m] = [(await routeExpand.boundingBox())!, (await minimapExpand.boundingBox())!];
-  expect(Math.round(m.x - (h.x + h.width))).toBe(8);
-  expect(Math.round(m.y + m.height)).toBe(Math.round(h.y + h.height));
+  expect(Math.round(m.x)).toBe(Math.round(h.x));
+  expect(Math.round(m.y - (h.y + h.height))).toBe(8);
   await minimapExpand.click();
   await expect(minimap).not.toHaveClass(/route-minimap--collapsed/);
 

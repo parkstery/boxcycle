@@ -78,7 +78,8 @@ test('왼쪽 에지 툴팁은 열림 상태를 설명하고 오른쪽 반달은 
   await expect(page.locator('.edge-panel-tab--right')).toHaveCount(0);
   await left.click();
   await expect(left).toHaveAttribute('title','메뉴 닫기');
-  await left.click();
+  // Chief 11-03: 열린 메뉴가 원형 버튼을 덮는다 — 닫기는 메뉴의 닫기 버튼.
+  await page.getByRole('dialog',{name:'메뉴',exact:true}).getByRole('button',{name:'메뉴 닫기',exact:true}).click();
   const rail=page.locator('.map-hud__rail');
   await expect(rail.getByRole('button',{name:'순위 열기',exact:true})).toHaveAttribute('title','순위 열기');
   await rail.getByRole('button',{name:'순위 열기',exact:true}).click();

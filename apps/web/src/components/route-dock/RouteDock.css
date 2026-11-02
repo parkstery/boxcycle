@@ -3,7 +3,7 @@
 .route-dock-anchor {
   --route-dock-pad: clamp(.45rem, 1.4vw, .85rem);
   position: absolute;
-  left: max(48px, calc(env(safe-area-inset-left, 0px) + 48px)); /* 반달 핸들44px + 여백4px(MapBottomLeftStack과 동일) */
+  left: calc(env(safe-area-inset-left, 0px) + 20px); /* Chief 11-03: 인터벌 창·계기판과 같은 왼쪽 끝(MapBottomLeftStack과 동일) */
   bottom: calc(max(var(--route-dock-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem));
   width: min(29.4vw, calc(100vw - 16px));
   z-index: 6;

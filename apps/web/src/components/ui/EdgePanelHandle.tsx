@@ -81,9 +81,16 @@ export function EdgePanelHandle(props: EdgePanelHandleProps) {
         }}
       >
         <span className="edge-panel-tab__knob" aria-hidden>
-          <svg width="7" height="10" viewBox="0 0 7 10" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
-            <path d={chevron} />
-          </svg>
+          {edge === "left" ? (
+            // Chief 11-03: 왼쪽은 반달 대신 오른쪽 묶음과 같은 흰 원 — 메뉴(세 줄) 도안.
+            <svg className="edge-panel-tab__menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+              <path d="M5 7h14M5 12h14M5 17h14" />
+            </svg>
+          ) : (
+            <svg width="7" height="10" viewBox="0 0 7 10" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+              <path d={chevron} />
+            </svg>
+          )}
         </span>
       </button>
     </>

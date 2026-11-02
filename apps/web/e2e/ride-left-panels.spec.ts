@@ -40,6 +40,10 @@ for (const size of [{ width: 800, height: 360 }, { width: 699, height: 273 }]) {
     const chip = page.getByRole('button', { name: '인터벌 패널 펼치기' });
     await expect(chip).toContainText('운동');
     expect((await chip.boundingBox())!.height).toBeGreaterThanOrEqual(32);
+    // Chief 11-03: 접힌 알약은 왼쪽 원형 메뉴 버튼과 겹치지 않는다(버튼 오른쪽).
+    const menuBtn = (await page.locator('.edge-panel-tab--left .edge-panel-tab__knob').boundingBox())!;
+    const chipBox = (await chip.boundingBox())!;
+    expect(chipBox.x, '알약은 메뉴 버튼 오른쪽').toBeGreaterThanOrEqual(menuBtn.x + menuBtn.width);
 
     await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
     await expect.poll(() => state(page)).toEqual({ interval: 'folded', dock: 'open', minimap: 'open' });
@@ -47,6 +51,29 @@ for (const size of [{ width: 800, height: 360 }, { width: 699, height: 273 }]) {
     // 둘 다 펼친 채 인터벌을 다시 펼치면 먼저 펼친 미니맵이 접힌다.
     await chip.click();
     await expect.poll(() => state(page)).toEqual({ interval: 'open', dock: 'open', minimap: 'folded' });
+  });
+}
+
+// Chief 11-03: 경로 손잡이·미니맵이 둘 다 접히면 40px 버튼 둘은 세로(손잡이 위·미니맵 아래, 왼쪽 끝 같음).
+// 경로 카드를 펼쳤을 때만 접힌 미니맵 버튼이 카드 오른쪽 옆(낮은 폰에서 인터벌 창과 겹치지 않게).
+for (const size of [{ width: 800, height: 360 }, { width: 699, height: 273 }]) {
+  test(`둘 다 접히면 세로, 카드 펼침이면 미니맵 버튼은 옆 ${size.width}`, async ({ page }) => {
+    await page.setViewportSize(size);
+    await page.goto(`${preview}?state=riding`);
+    await page.getByRole('button', { name: '미니맵 접기' }).click();
+    await expect.poll(() => state(page)).toEqual({ interval: 'none', dock: 'folded', minimap: 'folded' });
+    const both = await page.evaluate(() => [
+      document.querySelector('.route-dock__card')!.getBoundingClientRect().toJSON(),
+      document.querySelector('.route-minimap')!.getBoundingClientRect().toJSON(),
+    ]);
+    expect(Math.abs(both[0].left - both[1].left), '왼쪽 끝 같음').toBeLessThanOrEqual(0.5);
+    expect(both[1].top, '미니맵 버튼은 손잡이 아래').toBeGreaterThanOrEqual(both[0].bottom);
+    await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
+    const open = await page.evaluate(() => [
+      document.querySelector('.route-dock__card')!.getBoundingClientRect().toJSON(),
+      document.querySelector('.route-minimap')!.getBoundingClientRect().toJSON(),
+    ]);
+    expect(open[1].left, '카드 펼침: 미니맵 버튼은 카드 오른쪽').toBeGreaterThanOrEqual(open[0].right);
   });
 }
 

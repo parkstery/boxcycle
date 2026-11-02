@@ -3,7 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/spinatlas-mark.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Chief 11-03: 주소창 없이 배포 앱과 같은 화면으로 시험 — 홈 화면에 추가하면 전체 화면(manifest display fullscreen)·가로로 열린다.
+      viewport-fit=cover 가 있어야 CSS 의 env(safe-area-inset-*) 가 실제 값(카메라 구멍·제스처 막대)을 받는다(없으면 늘 0).
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#005ffd" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <title>Spinatlas</title>
   </head>
   <body>

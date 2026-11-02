@@ -290,8 +290,9 @@ test('왼쪽 에지 띠는 20px·화면0에 붙고 빈 가장자리 드래그로
   await expect(page.getByRole('dialog'),'20px 띠 클릭은 열지 않는다').toHaveCount(0);
 });
 
-// Chief 고정14(2026-10-28 후속): 측면 메뉴는 보이는 흰 반투명 반원 탭으로만 연다 — 슬라이드 금지, 위치 고정.
-test('Chief 고정14 — 왼쪽 흰 반투명 반원 탭: 계기판 아래 빈 자리, 누르면 열리고 끌어도 열리지 않는다',async({page})=>{
+// Chief 고정71(2026-11-03): 고정14의 왼쪽 반원 탭을 대체 — 오른쪽 묶음과 같은 흰 원 메뉴 버튼, 계기판 아래 빈 자리.
+// 누르면 열리고(끌어도 열리지 않음), 열리면 메뉴 패널이 덮는다.
+test('Chief 고정71 — 왼쪽 흰 원 메뉴 버튼: 계기판 아래 빈 자리, 누르면 열리고 끌어도 열리지 않는다',async({page})=>{
   for(const size of [{width:800,height:360},{width:667,height:300},{width:844,height:390}]){
     await page.setViewportSize(size);
     for(const state of ['ready','riding','paused'] as const){
@@ -302,7 +303,7 @@ test('Chief 고정14 — 왼쪽 흰 반투명 반원 탭: 계기판 아래 빈 �
           const knob=tab.querySelector('.edge-panel-tab__knob')!;
           const t=tab.getBoundingClientRect(),k=knob.getBoundingClientRect();
           const hit=document.elementFromPoint(k.x+k.width/2,k.y+k.height/2);
-          return {side,t:t.toJSON(),k:k.toJSON(),bg:getComputedStyle(knob).backgroundColor,hitOk:Boolean(hit?.closest(`.edge-panel-tab--${side}`))};
+          return {side,t:t.toJSON(),k:k.toJSON(),radius:getComputedStyle(knob).borderTopLeftRadius,hitOk:Boolean(hit?.closest(`.edge-panel-tab--${side}`))};
         });
         const others=[
           ['.map-hud__tl-metrics','계기'],
@@ -325,13 +326,11 @@ test('Chief 고정14 — 왼쪽 흰 반투명 반원 탭: 계기판 아래 빈 �
       });
       for(const tab of g.tabs){
         const label=`${size.width}×${size.height} ${state} ${tab.side}`;
-        expect(tab.k.width,label).toBeCloseTo(20.4,1);
-        expect(tab.k.height,label).toBeCloseTo(43.2,1);
-        expect(tab.t.width*tab.t.height,label).toBeGreaterThanOrEqual(44*76-1);
-        expect(tab.bg,label).toBe('rgba(255, 255, 255, 0.78)');
+        expect(tab.k.width,label).toBeGreaterThanOrEqual(44);
+        expect(tab.k.width,label).toBeCloseTo(tab.k.height,0);
+        expect(tab.radius,label).toBe('50%');
         expect(tab.hitOk,label).toBe(true);
-        if(tab.side==='left') expect(tab.k.x,label).toBeLessThanOrEqual(0.5);
-        else expect(tab.k.x+tab.k.width,label).toBeGreaterThanOrEqual(g.vw-0.5);
+        expect(tab.k.x,label).toBeCloseTo(20,0);
         for(const o of g.others){
           const overlap=tab.k.x<o.right&&tab.k.right>o.left&&tab.k.y<o.bottom&&tab.k.bottom>o.top;
           expect(overlap,`${label} vs ${o.name}`).toBe(false);
@@ -342,19 +341,15 @@ test('Chief 고정14 — 왼쪽 흰 반투명 반원 탭: 계기판 아래 빈 �
   await page.setViewportSize({width:800,height:360});
   const dialog=page.getByRole('dialog',{name:'메뉴',exact:true});
   await page.goto(`${preview}?state=ready`);
-  const closedTab=(await page.locator('.edge-panel-tab--left').boundingBox())!;
   await page.getByRole('button',{name:'메뉴 열기',exact:true}).click();
   await expect(dialog,'누르면 열림').toBeVisible();
-  const openTab=(await page.locator('.edge-panel-tab--left').boundingBox())!;
-  expect(Math.abs(openTab.x-closedTab.x),'열린 뒤 x 유지').toBeLessThanOrEqual(1);
-  expect(Math.abs(openTab.y-closedTab.y),'열린 뒤 y 유지').toBeLessThanOrEqual(1);
-  await expect(page.locator('.edge-panel-tab--left'),'열어도 탭은 남는다').toHaveCount(1);
+  await expect(page.locator('.edge-panel-tab--left'),'열어도 버튼은 DOM 에 남는다(메뉴 아래)').toHaveCount(1);
   await page.goto(`${preview}?state=ready`);
   const k=(await page.locator('.edge-panel-tab--left .edge-panel-tab__knob').boundingBox())!;
   const x=k.x+k.width/2,y=k.y+k.height/2;
   await page.mouse.move(x,y);await page.mouse.down();
   await page.mouse.move(x+120,y,{steps:10});await page.mouse.up();
-  await expect(dialog,'탭에서 끌어도 열리지 않는다').toHaveCount(0);
+  await expect(dialog,'버튼에서 끌어도 열리지 않는다').toHaveCount(0);
 });
 
 test('포커스 대안·빈 가장자리 짧은/반대 드래그는 열지 않는다',async({page})=>{

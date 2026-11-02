@@ -180,6 +180,11 @@
 /* 10줄: 주행 전·중 모두 아래 24px 까지 쓴다(Chief 11-02). 예전 기본값은 이미 없어진 우하단 시계·주행 버튼 자리(시계 높이+56px)를 비워 두어 5줄에서 잘렸다. */
 /* Chief 11-02 v4: 오른쪽 가장자리 고정 — 오른쪽 아래 2열 묶음이 그 위에 겹치고, 계정 버튼은 그 아래에 깔린다. */
 .lb-glance__panel { right: calc(env(safe-area-inset-right, 0px) + 8px); }
+/* Chief 11-03: 계정 버튼(오른쪽 위 구석, 높이 32px)과 겹치지 않게 목록을 그 아래 8px 부터 — 종전 위 8px(계정 위에 겹침)을 대체. */
+.lb-glance__panel {
+  top: calc(env(safe-area-inset-top, 0px) + 40px);
+  max-height: calc(100% - 40px - var(--hud-pad-bottom) - 24px);
+}
 .lb-glance__row { height: 18px; }
 .lb-glance__rank,
 .lb-glance__km { font-size: 14px; line-height: 1; }

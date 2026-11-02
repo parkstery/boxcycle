@@ -101,7 +101,8 @@ for (const size of [{width:800,height:360},{width:736,height:300},{width:699,hei
     } else {
       // 주행 전 지도도 10줄 모두 화면 안(11-02 Chief: 사라진 우하단 시계·버튼 자리 예약 제거).
       expect(layout.visible).toBe(10);
-      await list.getByRole('button').first().click();
+      // Chief 11-03: 목록이 계정 아래로 내려와 주행 전엔 오른쪽 묶음이 합류 버튼을 덮는다(중첩 허용) — 키보드로 동작만 확인.
+      await list.getByRole('button').first().press('Enter');
       await expect(page.locator('#trail-preview-calls')).toHaveAttribute('data-joined','preview-trail-0');
     }
     await panel.getByRole('tab',{name:'순위',exact:true}).click();
