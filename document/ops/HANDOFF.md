@@ -6,9 +6,11 @@
 | 담당 | **Claude Code** — 2026-10-30 구름·톱니·접기 캐럿 배포 완료, 대기 |
 | 갱신 | 2026-10-30 19시 — 11eb53aa 배포, 시안 20261030-gear-cloud-mockup |
 | 브랜치 | `main2` |
-| 마지막 배포 | 2026-10-30 19시대 Hosting(Claude Code): 68b88851(origin/main2 와 같음) — 작은 구름·균등 톱니·RouteDock 접기 캐럿만. 그 전 11eb53aa 도구A·구름·Trail·순위 줄배경·인터벌 도넛. 번들 SHA256 일치 |
+| 마지막 배포 | 2026-11-03 Hosting(Claude Code): f32dc99d — 왼쪽 원형 메뉴·순위 목록 위치·글자 선택·전체 화면 설치. 번들 SHA256 일치 |
 
 ## 진행 중
+
+**11-03 Chief 폰 캡처 6장 후속 배포됨(f32dc99d, Claude Code)**: 글자 선택 막기·순위 목록 계정 아래(묶음 겹침 허용)·왼쪽 원형 메뉴 버튼·왼쪽 끝 20px·접힌 인터벌 알약 버튼 오른쪽·경로 손잡이/미니맵 둘 다 접힘=세로·manifest fullscreen+viewport-fit=cover. pre-push 10종·test:quick 1470/0, 화면 e2e 16종 137/3(배치1 기존), 운영 js·css SHA256=로컬·manifest 200. 고정71·README 「후속 2」. 남은 것: Chief 폰 「홈 화면에 추가」 실기 확인. Chief 6장 중 3~6(고도 숫자·이름표 겹침·빈 핀)은 별도·보류.
 
 **진행 중 — 오른쪽 2열 4줄 묶음 개편(11-02 Chief 「구현 진행해」, Claude Code)**: 시안 [right-group.html](20261102-ride-screen-layout/right-group.html) v4+Chief 답(나중 쪽 펼치면 먼저 쪽 접기·계정 주행 중에도 보임(순위 목록 아래 z)·경로 목록도 메뉴로·미니맵 버튼=RouteDock 손잡이 크기). 단계: A 오른쪽 묶음(MapHud 레일→2×4 원형, ⏸⏹▶·INT·순위 이동, 오른쪽 반달 제거, 목록 가장자리·2초 숨김, ⚙·경로 목록 메뉴 머리줄) → B 센서 LED·RPM 계기판 칸 → C 미니맵 토글 복귀·인터벌 접기·하나만 펼치기. 각 단계 캡처 보고·승인. **A 배포됨(93924456·a2e063bf, pre-push 10종·test:quick 1470/0, 운영 js·css SHA256=로컬)** — [README](20261102-ride-screen-layout/README.md) 「개편 A」·고정67. live 스펙 미실행.
 **B 배포됨(9e5bde96·996e66cf, pre-push 10종·test:quick 1470/0, 운영 js·css SHA256=로컬)** — README 「개편 B」·고정68.

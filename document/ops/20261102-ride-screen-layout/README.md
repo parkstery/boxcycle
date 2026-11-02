@@ -109,3 +109,14 @@
 - 파일: `hooks/useRideInterval.ts`·`components/ride/RideIntervalSettingsSheet.tsx`·e2e `ride-interval-settings`(새 시험 1)·고정70.
 - 검증: tsc 0·eslint 0·test:quick 1470/0·셀렉터 21/21·정련 기준선. e2e ride-interval-settings·ride-interval·ride-left-panels·interval-dock-confirm 37/38 + 도넛 정밀도 1건은 재실행 8/8(시간 흐름 흔들림), quick-interval-ride 4/4. 사보타주: 켜기 줄 제거 → 새 시험 실패, 훅을 옛 덮어쓰기로 → 적용한 프리셋(26:00) 소실로 실패, 원복 후 통과.
 
+
+## 후속 2 — Chief 폰 캡처 6장 (11-03, Claude Code)
+
+- 지시: ① 글자 선택 핸들 막기 ② 순위 목록을 계정 버튼 아래로 ⓐ 왼쪽 반달 → 원형 메뉴 버튼(오른쪽 지도 스타일과 같은 줄, 주행 중 화면 누르면 나타남, 인터벌 창 겹침 허용) ⓑ 경로 카드·미니맵 왼쪽 끝 = 인터벌 창 ⓒ 주소창 없는 시험(안전 영역 포함). 후속: 접힌 인터벌 알약은 메뉴 버튼 오른쪽으로, 순위 목록과 오른쪽 묶음 겹침은 허용. 3~6(고도 숫자·이름표 겹침·빈 핀)은 손대지 않음.
+- 파일: `src/index.css`(글자 선택)·`LeaderboardGlance.css`(위 40px)·`EdgePanelHandle.tsx/.css`(원형·≡·자동 숨김)·`RideControlsAutoHide.tsx`(키보드 포커스 판정에 메뉴 버튼)·`MapBottomLeftStack.css`·`RouteDock.css`(20px)·`RideIntervalHud.css`(알약)·`index.html`(viewport-fit=cover·manifest)·`public/manifest.webmanifest`·`public/icons/*`. 고정71.
+- 찾은 것: viewport 에 `viewport-fit=cover` 가 없어 CSS 의 `env(safe-area-inset-*)` 가 늘 0 이었다.
+- 위치 실측(하네스): 메뉴 버튼 800×360 위 72 = 지도 스타일 72, 736·667×300·699×273 은 52(지도 스타일 46 — RPM 칸 아래 4px 한계), 1280×720 은 124. 알약 왼쪽 = 20+지름+8.
+- 시험: 옛 반달·48px 계약 5개 스펙을 새 계약으로(compact-controls·ui-800x360 고정71·left-menu-supervisor·ride-ui-moments·ride-dock-layout), toolbar-trail 대기 합류는 키보드로(겹침 허용). ride-left-panels 에 알약 비겹침 추가 — 사보타주(알약 이동 끔) 2 실패, 원복 통과.
+- 사고: compact-controls 가 기본 출력으로 커밋된 `evidence/rework/camera-open-699x273.png` 를 덮음 → HEAD blob 으로 되씀. 증거 폴더 env 는 19개(scratchpad `e2e.ps1` 로 전부 돌림).
+- 후속(같은 날): 접힌 인터벌 알약 → 메뉴 버튼 오른쪽 8px(Chief 「겹치지 않는 위치까지 오른쪽」), 순위 목록·묶음 겹침 허용(대기 합류 시험은 키보드로). 경로 손잡이·미니맵 둘 다 접히면 세로(Chief 「가로보다 세로로」 → 질문 뒤 「둘 다 접혔을 때만 세로」 — 늘 세로면 699×273 에서 펼친 카드가 인터벌 창을 26px 덮어서). 사보타주: 알약 이동 끔 → 2 실패, 늘 가로 → 3 실패, 원복 통과.
+- 회귀: tsc 0·eslint 0·test:quick 1470/0, 화면 e2e 15종 134 통과·5 건너뜀·4 실패(기존: 배치1 3·compact 터치 1 — CDP 끌기 뒤 탭이 클릭이 안 됨, 5단계 기록과 같음).
