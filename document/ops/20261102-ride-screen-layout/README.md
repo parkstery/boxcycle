@@ -68,7 +68,7 @@
 - 미실행: 실앱 대상 live 스펙(camera-*·pacer-solo·ride-entry 등 30여 종, 「경로 목록」·「주행 설정」 누름만 메뉴 경유로 바꿈).
 - 캡처: `evidence/group-{ready,riding,paused}-{800x360,699x273}.png`·`group-rank-open-*.png`·`group-rank-hidden-*.png`·`group-camera-*.png`·`group-menu-head-800x360.png`.
 
-## 개편 B — 센서 LED·RPM 계기판 맨 앞 칸 (11-03, Chief 승인)
+## 개편 B — 센서 LED·RPM 계기판 맨 앞 칸 (11-03, 배포됨 9e5bde96·996e66cf)
 
 - Chief 11-02 「센서 LED 버튼 역시 routedock 에서 해방시켜서 바탕화면에 고정… RPM 위치도 고정해서 케이던스 센서에서 신호가 들어오면 RPM을 보여주도록」, 위치는 시안 v3 추천(계기판 맨 앞 칸).
 - 센서 칸 `CadenceMetricCell`(`components/maphud/CadenceHudChip.tsx`): 위 「RPM」, 아래 LED 13px + 회전수 — 실제 연결·회전수 있음 = 녹색·숫자, 그 밖(연결 안 됨·연결 중·체험 속도·지원 안 됨) = 흰색·「--」(연결 안 됨은 깜빡임, 움직임 줄이기면 멈춤). 접근성 이름은 종전 칩과 같은 「케이던스 센서: …」. 누르면 센서 상세 설정. 폭 3.6rem 고정·높이 44px, 왼쪽 위 20px — 경로가 없어도(계기 없이 칸만), 주행 전·중 모두 같은 자리. 경로가 잡혔는데 주행 입력을 안 골랐으면 칸이 깜빡인다(종전 칩 깜빡임 유지).
@@ -78,4 +78,17 @@
 - 검증: tsc -b 0·eslint 0 오류·정련 래칫·의존 방향 통과·test:quick 1470/0(ride 925/0)·진입 셀렉터 21/21. 하네스 e2e 13종: 새·고친 시험 모두 통과, 남은 실패는 A 때 HEAD 로 확인한 기존 실패와 같은 목록(route-ride-controls 경로 생성 5·ui-800x360 168·batch1 비율 3·compact 터치 1). 사보타주: 센서 칸을 끄면 sensor-dock 10/10 실패, 원복 후 통과.
 - 미실행: 실앱 live 스펙(센서 시트 입구는 `rideEntryHelpers.openCadenceSheet` 하나로 바꿈).
 - 캡처: `evidence/sensor-{idle,ready,riding,sensor-connected}-800x360.png`·`sensor-{riding,paused}-699x273.png`·모음 `sensor-B-sheet.png`.
+
+## 개편 C — 미니맵 토글 복귀·인터벌 접기·하나만 펼치기 (11-03, Chief 승인)
+
+- Chief 11-02 답: 「미니맵 보이기 버튼은 당초 방식인 미니맵 접기/펼치기 버튼으로 회귀」, 「인터벌운동이 시작되면 미니맵은 펼쳐진 상태를 유지하고 routedock을 접는다. 인터벌이 접히면 routedock과 미니맵 모두 펼쳐질 수 있으나 인터벌이 펼쳐진 상태에서는 둘 중 하나만」, 「나중 쪽을 펼치고 먼저 펼친 쪽을 접는 방식」, 「미니맵의 버튼 크기를 routedock 버튼 크기에 맞춰라」.
+- 미니맵(`RouteMinimap` `onToggle`): 왼쪽 위 40px 버튼(경로 손잡이와 같은 흰 둥근 사각, 접힘=지도 도안·펼침=캐럿). 접히면 40px 버튼만 남고 높이도 접힌다. 접힌 미니맵 버튼은 경로 카드·손잡이 **오른쪽 옆**(아래 끝 맞춤, `MapBottomLeftStack.css`) — 위아래로 쌓으면 699×273에서 펼친 카드가 인터벌 패널과 26px 겹쳤다(실측). RouteDock 접힌 줄의 미니맵 버튼은 삭제.
+- 미니맵은 주행·일시정지 중 늘 있다(고정62 「인터벌 중 숨김」 대체).
+- 인터벌 패널(`RideIntervalHud` `folded`·`onToggleFold`): 오른쪽 위 접기 버튼(‹, 누름 32px — 패널 나머지는 종전처럼 지도 제스처 통과). 접으면 알약 = 단계 색 점·단계·남은 시간·세트·›, 알약 전체가 펼치기 버튼.
+- 규칙(`src/app/useRideLeftPanels.ts`): 인터벌 시작 → 인터벌 펼침·미니맵 펼침·경로 카드 접힘. 인터벌 펼침 중 경로 카드·미니맵은 하나만 — 나중에 펼친 쪽이 남고 먼저 쪽이 접힌다. 인터벌 접힘 중엔 둘 다 가능, 둘 다 펼친 채 인터벌을 다시 펼치면 먼저 펼친 쪽을 접는다. RouteDock 은 `collapseSignal`(접기 요청)·`onExpandedChange(펼침, 사용자)`(알림)만 연결.
+- 알려진 한계: 699×273에서 인터벌이 펼쳐진 동안 펼친 미니맵은 약 142×55(계기판·인터벌 아래 남은 높이로 크기를 정한다). 인터벌을 접으면 205×80.
+- 파일: `useRideLeftPanels.ts`(신규)·`RouteMinimap.tsx/.css`·`MapBottomLeftStack.css`·`RouteDock.tsx/.css`·`RideIntervalHud.tsx/.css`·`MapHud.tsx`·`App.tsx`(3705줄)·하네스 `ui-800x360/preview.tsx`·e2e `ride-left-panels`(신규)·`address-minimap-width`·`ride-dock-layout`·`ride-interval`(고정62 시험 → 새 파일)·고정69(62·65 일부 대체 표시).
+- 검증: tsc -b 0·eslint 0 오류·정련 래칫(App 3705)·의존 방향 통과·test:quick 1470/0·진입 셀렉터 21/21. 하네스 e2e 14종 153개: 새·고친 시험 모두 통과, 남은 실패 7건은 기존 목록과 같다(route-ride-controls 경로 생성 5·ui-800x360 168·compact 터치 1). 사보타주: 「카드를 펼치면 미니맵 접기」를 끄면 ride-left-panels 2건 실패, 원복 후 4/4.
+- 미실행: 실앱 live 스펙(미니맵 live 촬영 스펙은 토글을 쓰지 않음).
+- 캡처: `evidence/panels-{800,699}-{1-start,2-dock-opened,3-mini-opened,4-int-folded,5-both,6-int-unfold}.png`·모음 `panels-C-sheet.png`.
 
