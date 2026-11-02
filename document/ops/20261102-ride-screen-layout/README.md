@@ -41,7 +41,7 @@
 - 검증: tsc -b 0·eslint 0 오류·정련 래칫 기준선 안·의존 방향 0·test:quick 1470/0·진입 셀렉터 21/21. e2e 15종 146개 중 123 통과/23 실패 — 23건 모두 HEAD 코드로도 같은 줄에서 실패(경로 카드 간격 4는 위 숨은 문제, 경로 생성 5, 결과 시트 등 4는 Firestore 에뮬레이터 미기동으로 판정 불가, ui-800x360 2, batch1 3, batch2 3, sensor-dock 종료 후 펼침 1, 탭 핸들 터치 1). 사보타주: 접힌 줄 32px 로 되돌리면 64px 줄 검사 4/4 실패, 원복 후 통과.
 - 캡처: `evidence/row-riding-800.png`·`row-riding-699.png`·`row-paused-699.png`·`row-interval-699.png`·`row-minimap-folded-800.png`·`row-ready-800.png`, 변경 전 `before-row-riding-800.png`·`before-row-riding-699.png`.
 
-## 4단계 — 주행 중 버튼 자동 숨김 (11-02, 미커밋)
+## 4단계 — 주행 중 버튼 자동 숨김 (11-02, 배포됨 f511feed)
 
 - `components/ride/RideControlsAutoHide.tsx/.css`(신규): 주행 중(일시정지 제외) 5초 무입력(pointerdown·keydown·wheel) → `body[data-ride-controls="hidden"]`. CSS 가 오른쪽 레일(오른쪽으로)·접힌 RouteDock 줄(아래로)을 0.3초에 사라지게 하고(visibility hidden), 순위 목록을 right 100→26px 로 옮긴다. 누르면 즉시 표시·5초 재시작(누른 동작은 막지 않음).
 - 미룸: 카메라 메뉴·펼친 경로 카드·열린 창(닫힌 창은 aria-hidden·inert 라 제외)·일시정지 옵션, 키보드 포커스(focus-visible)가 버튼에 있을 때. 손가락으로 누른 뒤 남은 포커스는 치지 않는다.
