@@ -45,6 +45,7 @@ import { useUserTier } from "./hooks/useUserTier";
 import { useRideStartPulseKey } from "./hooks/useRideStartPulseKey";
 import { useRideInterval } from "./hooks/useRideInterval";
 import { RideSummarySheet } from "./components/ride/RideSummarySheet";
+import { RideControlsAutoHide } from "./components/ride/RideControlsAutoHide";
 import { LeaderboardGlancePanel } from "./components/leaderboard/LeaderboardGlance";
 import { useTrailGlanceTab } from "./hooks/useTrailGlanceTab";
 import { buildGlanceLiveRows } from "./components/leaderboard/leaderboardGlanceSnapshot";
@@ -3415,6 +3416,7 @@ export default function App() {
         }}
       />
 
+      <RideControlsAutoHide active={stage === "riding"} />
       <RideSettingsSheet
         open={rideSettingsSheetOpen}
         onClose={() => setRideSettingsSheetOpen(false)}

@@ -25,6 +25,8 @@ test('30초 경계·일시정지·재개는 주행 활동시간을 공유한다'
   await page.clock.runFor(7_200);
   await expect(hud.locator('.ride-interval-hud__phase')).toHaveText('회복');
   await expect(hud.locator('.ride-interval-hud__time')).toHaveText('2:00');
+  // Chief 11-02: 재개 뒤 5초 넘게 손대지 않아 주행 버튼이 숨었다 — 화면을 한 번 누르면 다시 나온다.
+  await page.mouse.click(400, 200);
   await page.getByRole('button', { name: '주행 종료', exact: true }).click();
   await expect(hud).toHaveCount(0);
 });

@@ -1,0 +1,43 @@
+/*
+ * Chief 11-02 D3·D4: 주행 중 5초 무입력이면 오른쪽 레일은 오른쪽으로, 왼쪽 아래 접힌 줄은 아래로 빠지며 사라진다.
+ * 숨은 동안은 visibility hidden 이라 눌리지도 포커스되지도 않는다. 순위 목록은 레일 자리까지 0.3초에 밀려간다.
+ */
+.map-hud__rail,
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card {
+  transition: opacity .3s ease, transform .3s ease, visibility 0s linear 0s;
+}
+body[data-ride-controls="hidden"] .map-hud__rail {
+  opacity: 0; transform: translateX(calc(100% + 26px)); visibility: hidden;
+  transition: opacity .3s ease, transform .3s ease, visibility 0s linear .3s;
+}
+body[data-ride-controls="hidden"] .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card {
+  opacity: 0; transform: translateY(24px); visibility: hidden;
+  transition: opacity .3s ease, transform .3s ease, visibility 0s linear .3s;
+}
+.map-hud .lb-glance__panel { transition: right .3s ease; }
+/* 버튼이 숨으면 오른쪽 가장자리로 — 반달 탭 손잡이(20.4px)는 남긴다. */
+body[data-ride-controls="hidden"] .map-hud:has(.map-hud__rail) .lb-glance__panel { right: calc(env(safe-area-inset-right, 0px) + 26px); }
+@media (prefers-reduced-motion: reduce) {
+  .map-hud__rail,
+  .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card,
+  body[data-ride-controls="hidden"] .map-hud__rail,
+  body[data-ride-controls="hidden"] .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card,
+  .map-hud .lb-glance__panel { transition: none; }
+}
+
+.ride-controls-hint {
+  position: fixed;
+  left: 50%;
+  top: calc(env(safe-area-inset-top, 0px) + 56px);
+  transform: translateX(-50%);
+  z-index: 20;
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(19, 43, 70, .88);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+}

@@ -19,6 +19,7 @@ import type { NextRideView } from '../../src/lib/ride/nextRideTarget';
 import type { SavedRoute } from '../../src/lib/route/repo/firestoreSavedRoutes';
 import type { LineStringGeometry } from '../../src/lib/geo/geo';
 import { RideSettingsSheet } from '../../src/components/ride/RideSettingsSheet';
+import { RideControlsAutoHide } from '../../src/components/ride/RideControlsAutoHide';
 import { CadenceSensorSheet } from '../../src/components/sensor/CadenceSensorSheet';
 import { ProfileEditSheet } from '../../src/components/ProfileEditSheet';
 import type { User } from 'firebase/auth';
@@ -651,6 +652,7 @@ function Preview() {
       onJoinTrail={() => setLbJoinCalls((n) => n + 1)}
     />
     {initial === 'leaderboard' ? <div id="lb-fixture" hidden data-lb-join-calls={String(lbJoinCalls)} /> : null}
+    <RideControlsAutoHide active={stage==='riding'} />
     <RideSettingsSheet open={panel==='settings'} onClose={()=>setPanel('ready')}
       rideTtsEnabled={rideTtsEnabled} onRideTtsEnabled={setRideTtsEnabled}
       rideBgmEnabled={rideBgmEnabled} onRideBgmEnabled={setRideBgmEnabled}
