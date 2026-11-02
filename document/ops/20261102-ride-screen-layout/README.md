@@ -53,7 +53,7 @@
 - 검증: tsc -b 0·eslint 0 오류·정련 래칫 기준선 안(안 쓰는 export 1 제거)·의존 방향 0·test:quick 1470/0·진입 셀렉터 21/21. e2e 16종 149개 중 125 통과/24 실패 — 23건은 3단계와 같은 기존 실패, 1건(ride-interval 30초 경계)은 위 수정 후 13/13 두 번 연속 통과.
 - 캡처: `evidence/autohide-shown-800.png`·`autohide-hidden-800.png`·`autohide-shown-699.png`·`autohide-hint-699.png`·`autohide-hidden-699.png`.
 
-## 개편 A — 오른쪽 2열 4줄 묶음 (11-02, 93924456 · Chief 승인)
+## 개편 A — 오른쪽 2열 4줄 묶음 (11-02, 배포됨 93924456·a2e063bf)
 
 - 출발: Chief 폰 사용 뒤 「왼쪽·오른쪽으로 나뉜 버튼이 불편」 → 시안 [right-group.html](right-group.html) v1~v4 → Chief 답(나중 쪽을 펼치면 먼저 쪽 접기·계정은 주행 중에도 보이고 순위 목록 아래·경로 목록도 메뉴로·미니맵 버튼은 RouteDock 손잡이 크기) 뒤 「구현 진행해」. 단계: **A 오른쪽 묶음**(이번) → B 센서 LED·RPM 계기판 칸 → C 미니맵 토글 복귀·인터벌 접기·하나만 펼치기.
 - 오른쪽 아래 2열 4줄(`MapHud.tsx` `.map-hud__rail`, `MapRail.css` grid-area 로 칸 고정): 1-1 카메라 · 1-2 지도 스타일 / 2-1 ＋ · 2-2 － / 3-1 INT · 3-2 순위 / 4-1 ⏹ · 4-2 ⏸·▶. 없는 기능의 칸은 비움(주행 전 카메라·⏹, 주행 중 INT). 흰 원(구름 마스크 끔). 크기 `--rail-size` = min(64px, (화면 높이 − 위 46 − 아래 8 − 간격×3) ÷ 4) → 800×360 64, 300 높이 58, 699×273 약 51. 오른쪽·아래 끝 8px, z 3(순위 목록 z 2 위).
@@ -67,4 +67,15 @@
 - 검증: tsc -b 0·eslint 0 오류·정련 래칫 기준선 안·의존 방향 통과·test:quick 1470/0·진입 셀렉터 21/21. 하네스 e2e 21종: 새·고친 시험 모두 통과, 남은 실패 15건은 HEAD 파일로 되돌려 같은 시험을 돌려도 똑같이 실패(기존: route-ride-controls 경로 생성 5·batch1 필터 비율 3·map-menu-consolidation 44px 3·ui-800x360 168/554·sensor-dock 141·compact 터치 1). 사보타주: 순위 2초→4초면 2초 시험 실패(처음엔 통과 — 가짜 시계가 기다리는 동안 흘러서, 시계를 멈추도록 고침), ＋/－ 칸 바꾸면 칸 시험 실패, 원복 후 통과.
 - 미실행: 실앱 대상 live 스펙(camera-*·pacer-solo·ride-entry 등 30여 종, 「경로 목록」·「주행 설정」 누름만 메뉴 경유로 바꿈).
 - 캡처: `evidence/group-{ready,riding,paused}-{800x360,699x273}.png`·`group-rank-open-*.png`·`group-rank-hidden-*.png`·`group-camera-*.png`·`group-menu-head-800x360.png`.
+
+## 개편 B — 센서 LED·RPM 계기판 맨 앞 칸 (11-03, Chief 승인)
+
+- Chief 11-02 「센서 LED 버튼 역시 routedock 에서 해방시켜서 바탕화면에 고정… RPM 위치도 고정해서 케이던스 센서에서 신호가 들어오면 RPM을 보여주도록」, 위치는 시안 v3 추천(계기판 맨 앞 칸).
+- 센서 칸 `CadenceMetricCell`(`components/maphud/CadenceHudChip.tsx`): 위 「RPM」, 아래 LED 13px + 회전수 — 실제 연결·회전수 있음 = 녹색·숫자, 그 밖(연결 안 됨·연결 중·체험 속도·지원 안 됨) = 흰색·「--」(연결 안 됨은 깜빡임, 움직임 줄이기면 멈춤). 접근성 이름은 종전 칩과 같은 「케이던스 센서: …」. 누르면 센서 상세 설정. 폭 3.6rem 고정·높이 44px, 왼쪽 위 20px — 경로가 없어도(계기 없이 칸만), 주행 전·중 모두 같은 자리. 경로가 잡혔는데 주행 입력을 안 골랐으면 칸이 깜빡인다(종전 칩 깜빡임 유지).
+- 자리 판정 `lib/route/sensorChipSlot.ts` → "hud" | "none"(게이트·결과 숨김). MapHud 가 `cadence` prop 으로 그린다(App `rideSensorCell`). 옛 알약 칩 `CadenceHudChip`·우상단/dock 변형 CSS 삭제.
+- RouteDock: 센서 칩·LED 제거. 접힘 = 40px 경로 손잡이(`.route-dock__handle`, 흰 둥근 사각·파란 경로 도안), 줄의 미니맵 버튼도 40px 같은 모양(Chief 「미니맵의 버튼 크기를 routedock 버튼 크기에 맞춰라」 — C단계에서 미니맵 위로 옮길 때도 이 크기). 경로가 없으면 RouteDock 자체가 없다(센서 입구가 계기판으로 갔으므로).
+- 파일: `CadenceHudChip.tsx/.css`·`MapHud.tsx`·`RouteDock.tsx/.css`·`sensorChipSlot.ts`·`routeDockUiPolicy.ts`(주석)·`App.tsx`(3700줄)·하네스 `ui-800x360/preview.tsx`·`entry-contract.mjs`·단위 `sensor-chip-slot-contract.test.ts`·e2e `sensor-dock`(재작성)·`rideEntryHelpers`(센서 시트 입구 하나)·`route-dock-tools`·`ride-dock-layout`·`route-ride-controls`·`ui-800x360`(고정12·목록11 센서 부분)·`ride-ui-moments`(한 행 맨 앞 = 센서 칸)·고정68(12·65 일부 대체 표시).
+- 검증: tsc -b 0·eslint 0 오류·정련 래칫·의존 방향 통과·test:quick 1470/0(ride 925/0)·진입 셀렉터 21/21. 하네스 e2e 13종: 새·고친 시험 모두 통과, 남은 실패는 A 때 HEAD 로 확인한 기존 실패와 같은 목록(route-ride-controls 경로 생성 5·ui-800x360 168·batch1 비율 3·compact 터치 1). 사보타주: 센서 칸을 끄면 sensor-dock 10/10 실패, 원복 후 통과.
+- 미실행: 실앱 live 스펙(센서 시트 입구는 `rideEntryHelpers.openCadenceSheet` 하나로 바꿈).
+- 캡처: `evidence/sensor-{idle,ready,riding,sensor-connected}-800x360.png`·`sensor-{riding,paused}-699x273.png`·모음 `sensor-B-sheet.png`.
 
