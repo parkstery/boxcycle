@@ -12,11 +12,32 @@ type MenuPanelProps = {
   children: ReactNode;
   revealProgress?: number | null;
   onOpenPlaceSearch?: () => void;
+  /** 지도 핀 — 경로 목록 창(기본 「내 경로」). 주행 전에만 준다(Chief 11-02 v4, RouteDock 에서 옮김). */
+  onOpenRouteList?: () => void;
+  /** ⚙ — 주행 설정 창(Chief 11-02 v4, RouteDock 에서 옮김). */
+  onOpenSettings?: () => void;
 };
 
 /**
  * 좌측 흰 판 메뉴(시안 06) — 경로 6행은 RideRoutePanel, Trail 목록은 TrailHubPanel.
  */
+function MenuPinIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 21s-6.5-5.8-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.2 12 21 12 21z" />
+      <circle cx="12" cy="10.5" r="2.3" />
+    </svg>
+  );
+}
+
+function MenuGearIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path fillRule="evenodd" d="M10.11 4.12L10.34 1.53A10.6 10.6 0 0 1 13.66 1.53L13.89 4.12A8.1 8.1 0 0 1 16.23 5.09L18.23 3.42A10.6 10.6 0 0 1 20.58 5.77L18.91 7.77A8.1 8.1 0 0 1 19.88 10.11L22.47 10.34A10.6 10.6 0 0 1 22.47 13.66L19.88 13.89A8.1 8.1 0 0 1 18.91 16.23L20.58 18.23A10.6 10.6 0 0 1 18.23 20.58L16.23 18.91A8.1 8.1 0 0 1 13.89 19.88L13.66 22.47A10.6 10.6 0 0 1 10.34 22.47L10.11 19.88A8.1 8.1 0 0 1 7.77 18.91L5.77 20.58A10.6 10.6 0 0 1 3.42 18.23L5.09 16.23A8.1 8.1 0 0 1 4.12 13.89L1.53 13.66A10.6 10.6 0 0 1 1.53 10.34L4.12 10.11A8.1 8.1 0 0 1 5.09 7.77L3.42 5.77A10.6 10.6 0 0 1 5.77 3.42L7.77 5.09A8.1 8.1 0 0 1 10.11 4.12ZM12 8.7a3.3 3.3 0 1 0 0 6.6a3.3 3.3 0 1 0 0 -6.6Z" />
+    </svg>
+  );
+}
+
 function MenuSearchIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
@@ -33,6 +54,8 @@ export function MenuPanel({
   children,
   revealProgress = null,
   onOpenPlaceSearch,
+  onOpenRouteList,
+  onOpenSettings,
 }: MenuPanelProps) {
   void _locked;
   const panelRef = useRef<HTMLElement>(null);
@@ -128,6 +151,28 @@ export function MenuPanel({
                 title="지명 검색"
               >
                 <MenuSearchIcon />
+              </button>
+            ) : null}
+            {onOpenRouteList ? (
+              <button
+                type="button"
+                className="menu-panel__search menu-panel__routes"
+                onClick={onOpenRouteList}
+                aria-label="경로 목록"
+                title="경로 목록"
+              >
+                <MenuPinIcon />
+              </button>
+            ) : null}
+            {onOpenSettings ? (
+              <button
+                type="button"
+                className="menu-panel__search menu-panel__settings"
+                onClick={onOpenSettings}
+                aria-label="주행 설정"
+                title="주행 설정"
+              >
+                <MenuGearIcon />
               </button>
             ) : null}
           </div>

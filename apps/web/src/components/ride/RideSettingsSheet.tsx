@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { useDialogFocus } from "../ui/useDialogFocus";
 import { useEscapeKeyClose } from "../ui/useEscapeKeyClose";
-import { RideSettingsPanel, type RideSettingsPanelProps } from "./RideSettingsPanel";
+import { RideSettingsPanel } from "./RideSettingsPanel";
 import "./RideSettingsSheet.css";
 import { SettingsCloseIcon } from "../ui/SettingsCloseIcon";
 
@@ -20,7 +20,6 @@ type RideSettingsSheetProps = {
   rideElevationProfileLoading: boolean;
   rideMomentSoundEnabled?: boolean;
   onRideMomentSoundEnabled?: (enabled: boolean) => void;
-  mapStyle?: RideSettingsPanelProps["mapStyle"];
 };
 
 /** 주행·표시 설정 — MENU 와 분리된 하단 시트. 센서는 별도 케이던스 상세 설정이 소유. */
@@ -69,7 +68,6 @@ export function RideSettingsSheet(props: RideSettingsSheetProps) {
           rideElevationProfileLoading={props.rideElevationProfileLoading}
           rideMomentSoundEnabled={props.rideMomentSoundEnabled}
           onRideMomentSoundEnabled={props.onRideMomentSoundEnabled}
-          mapStyle={props.mapStyle}
         />
       </div>
     </div>

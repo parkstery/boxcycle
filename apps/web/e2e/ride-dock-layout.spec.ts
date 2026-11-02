@@ -2,37 +2,22 @@ import { test, expect } from '@playwright/test';
 
 test.use({ reducedMotion: 'reduce' });
 for (const viewport of [{ width: 800, height: 360 }, { width: 736, height: 300 }, { width: 699, height: 273 }, { width: 667, height: 300 }]) {
-  test(`RouteDock 한 줄·간격·10명 ${viewport.width}`, async ({ page }) => {
+  // Chief 11-02 v4: 접힌 줄 = LED(경로 펼치기) · 미니맵, 64px·간격 8px. 주행 버튼(▶⏸⏹)은 오른쪽 2열 묶음.
+  test(`RouteDock 접힌 줄·10명 ${viewport.width}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto('/scripts/ui-800x360/preview.html?state=ready');
     const dock = page.locator('.route-dock__card');
-    const geometry = () => dock.evaluate(el => {
-      const sensor = el.querySelector('.hud-cadence--dock')!.getBoundingClientRect();
-      const bar = el.querySelector('.ride-control-bar')!.getBoundingClientRect();
-      return { right: el.getBoundingClientRect().right - bar.right, gap: bar.left - sensor.right, center: Math.abs(sensor.y + sensor.height / 2 - bar.y - bar.height / 2), height: bar.height, x: bar.x - el.getBoundingClientRect().x };
-    });
-    const ready = await geometry();
-    await dock.getByRole('button', { name: '주행 시작', exact: true }).click();
-    // Chief 11-02 A안: 접힌 줄 = LED · ⚙ | ⏸ · ⏹ | 미니맵, 모두 64px·같은 높이, 묶음 안 8px·묶음 사이 34px(고정46 간격 26 + 8).
-    const row = await dock.evaluate(el => ['.route-dock__led-toggle', '.route-dock__tool--settings', '.ride-media-button--pause', '.ride-media-button--stop', '.route-dock__tool--minimap']
+    const rail = page.locator('.map-hud__rail');
+    await expect(dock.locator('.ride-control-bar')).toHaveCount(0);
+    await rail.getByRole('button', { name: '주행 시작', exact: true }).click();
+    const row = await dock.evaluate(el => ['.route-dock__led-toggle', '.route-dock__tool--minimap']
       .map(s => el.querySelector(s)!.getBoundingClientRect()).map(r => ({ x: r.left, right: r.right, y: r.top, w: r.width, h: r.height })));
     for (const b of row) expect([b.w, b.h, b.y]).toEqual([64, 64, row[0].y]);
-    expect(row.slice(1).map((b, i) => Math.round(b.x - row[i].right))).toEqual([8, 34, 8, 34]);
+    expect(Math.round(row[1].x - row[0].right)).toBe(8);
     expect(row[0].x).toBe(48);
-    expect(row[4].right).toBeLessThanOrEqual(viewport.width);
-    await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
-    const riding = await geometry();
-    expect(Math.abs(riding.x - ready.x)).toBeLessThan(1);
-    await dock.getByRole('button', { name: '일시정지', exact: true }).click();
-    const paused = await geometry();
-    for (const value of [ready, riding, paused]) {
-      expect(value.right).toBe(8);
-      expect(value.gap).toBeGreaterThanOrEqual(6);
-      expect(value.center).toBeLessThan(1);
-      expect(value.height).toBe(32);
-    }
-    await dock.getByRole('button', { name: '재개', exact: true }).click();
-    await dock.getByRole('button', { name: '주행 종료', exact: true }).click();
+    await rail.getByRole('button', { name: '일시정지', exact: true }).click();
+    await rail.getByRole('button', { name: '재개', exact: true }).click();
+    await rail.getByRole('button', { name: '주행 종료', exact: true }).click();
     await page.goto('/scripts/ui-800x360/preview.html?state=glance-riding');
     const rows = page.locator('.lb-glance__row');
     await expect(rows).toHaveCount(10);

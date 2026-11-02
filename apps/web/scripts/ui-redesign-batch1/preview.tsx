@@ -7,6 +7,7 @@ import '../../src/boxcycle-theme.css';
 import { MapHud } from '../../src/components/maphud/MapHud';
 import { RideSettingsSheet } from '../../src/components/ride/RideSettingsSheet';
 import { MenuPanel } from '../../src/components/MenuPanel';
+import { EdgePanelHandle } from '../../src/components/ui/EdgePanelHandle';
 import { RideRoutePanel } from '../../src/components/ride/RideRoutePanel';
 import { TrailHubPanel } from '../../src/components/trail/TrailHubPanel';
 import { getBasicSharedHubSummaries } from '../../src/lib/route/repo/firestoreCourses';
@@ -197,11 +198,9 @@ export function Preview() {
           zoomInDisabled: false,
         }}
       />
-      {/* 10-30 Chief: 경로 목록·주행 설정은 메뉴가 아니라 RouteDock 지도 핀·⚙ 에서 연다 — 같은 접근성 이름의 대역 버튼. */}
-      <div style={{ position: 'absolute', left: 52, bottom: 48, display: 'flex', gap: 6, zIndex: 5 }}>
-        <button type="button" aria-label="경로 목록" onClick={() => setReopenSaved((n) => n + 1)}>핀</button>
-        <button type="button" aria-label="주행 설정" onClick={() => setSettingsOpen(true)}>⚙</button>
-      </div>
+      {/* Chief 11-02 v4: 경로 목록·주행 설정은 왼쪽 메뉴 머리줄(실앱과 같은 반달 탭으로 연다). */}
+      <EdgePanelHandle edge="left" open={menuOpen} panelId="menu-panel" label="메뉴 열기"
+        onOpen={() => setMenuOpen(true)} onClose={() => setMenuOpen(false)} />
       <RideSettingsSheet
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
@@ -226,6 +225,8 @@ export function Preview() {
           setMenuOpen(false);
         }}
         onOpenPlaceSearch={() => setLastAction('지명 검색')}
+        onOpenRouteList={() => setReopenSaved((n) => n + 1)}
+        onOpenSettings={() => { setMenuOpen(false); setSettingsOpen(true); }}
       >
         <RideRoutePanel
           reopenSavedSignal={reopenSaved}

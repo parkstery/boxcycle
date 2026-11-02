@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import "./RideControlsAutoHide.css";
+import { RIDE_CONTROLS_HIDE_SOON_EVENT } from "./rideControlsHide";
 
-/** Chief 11-02 D3: 손대지 않고 5초면 오른쪽 조작 레일·왼쪽 아래 접힌 버튼 줄(⏸ 포함)을 숨긴다. */
+/** Chief 11-02 D3: 손대지 않고 5초면 오른쪽 2열 4줄 묶음(⏸·⏹ 포함)을 숨긴다. v4부터 왼쪽 아래는 숨기지 않는다. */
 const RIDE_CONTROLS_HIDE_MS = 5000;
 const HINT_MS = 3500;
 const HINT_SEEN_KEY = "rtw-ride-controls-hint-seen";
 /** 열려 있으면 숨기지 않는다 — 카메라 메뉴·펼친 경로 카드·창(설정·결과 등). */
 const BUSY_SELECTOR = ".camera-view-menu__panel, .route-dock-anchor--open, [role='dialog'], .ride-control-bar__resume";
-const CONTROLS_SELECTOR = ".map-hud__rail, .route-dock-anchor";
+const CONTROLS_SELECTOR = ".map-hud__rail";
 
 /** 닫힌 메뉴·창도 DOM 에 남아 있다(aria-hidden·inert) — 그건 열린 것으로 치지 않는다. */
 function somethingOpen(): boolean {
@@ -33,7 +34,7 @@ function writeHintSeen(): void {
 /**
  * 주행 중(일시정지 제외)에만 동작한다. 화면 어디든 누르거나 키를 누르면 다시 보이고 5초를 새로 센다.
  * 누른 동작은 막지 않는다 — 지도 끌기·확대는 그대로 지도가 받는다.
- * 숨김 상태는 `body[data-ride-controls="hidden"]` 하나로 알리고 CSS 가 레일·줄·순위 목록을 움직인다.
+ * 숨김 상태는 `body[data-ride-controls="hidden"]` 하나로 알리고 CSS 가 오른쪽 묶음을 뺀다.
  */
 export function RideControlsAutoHide({ active }: { active: boolean }) {
   const [hidden, setHidden] = useState(false);
@@ -50,6 +51,7 @@ export function RideControlsAutoHide({ active }: { active: boolean }) {
   useEffect(() => {
     if (!active) return;
     let timer = 0;
+    let soon = 0;
     const arm = () => {
       window.clearTimeout(timer);
       timer = window.setTimeout(() => {
@@ -68,15 +70,23 @@ export function RideControlsAutoHide({ active }: { active: boolean }) {
       }, RIDE_CONTROLS_HIDE_MS);
     };
     const wake = () => {
+      window.clearTimeout(soon);
       setHidden(false);
       arm();
     };
+    const hideSoon = (event: Event) => {
+      window.clearTimeout(soon);
+      soon = window.setTimeout(() => setHidden(true), (event as CustomEvent<number>).detail);
+    };
     arm();
+    window.addEventListener(RIDE_CONTROLS_HIDE_SOON_EVENT, hideSoon);
     window.addEventListener("pointerdown", wake, true);
     window.addEventListener("keydown", wake, true);
     window.addEventListener("wheel", wake, { capture: true, passive: true });
     return () => {
       window.clearTimeout(timer);
+      window.clearTimeout(soon);
+      window.removeEventListener(RIDE_CONTROLS_HIDE_SOON_EVENT, hideSoon);
       window.removeEventListener("pointerdown", wake, true);
       window.removeEventListener("keydown", wake, true);
       window.removeEventListener("wheel", wake, true);

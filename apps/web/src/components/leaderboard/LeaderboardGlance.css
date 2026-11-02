@@ -1,6 +1,6 @@
 .lb-glance__panel {
   position: absolute;
-  /* Chief 11-02 D4: 오른쪽 조작 레일(26px 띄움 + 64px) 왼쪽 10px 에 붙는다. 위는 레일 첫 칸과 같은 높이. */
+  /* 위는 화면 위 8px. 오른쪽은 아래 「10줄」 규칙이 가장자리 8px 로 덮는다(Chief 11-02 v4). */
   top: calc(env(safe-area-inset-top, 0px) + 8px);
   right: var(--hud-pad-right);
   max-height: calc(100% - 8px - var(--hud-pad-bottom) - 24px);
@@ -178,7 +178,8 @@
 .lb-glance__panel-head, .lb-glance__footer, .lb-glance__hint, .lb-glance__text-btn { background: rgba(255,255,255,.7); border-radius: 3px; }
 
 /* 10줄: 주행 전·중 모두 아래 24px 까지 쓴다(Chief 11-02). 예전 기본값은 이미 없어진 우하단 시계·주행 버튼 자리(시계 높이+56px)를 비워 두어 5줄에서 잘렸다. */
-.map-hud:has(.map-hud__rail) .lb-glance__panel { right: calc(env(safe-area-inset-right, 0px) + 100px); }
+/* Chief 11-02 v4: 오른쪽 가장자리 고정 — 오른쪽 아래 2열 묶음이 그 위에 겹치고, 계정 버튼은 그 아래에 깔린다. */
+.lb-glance__panel { right: calc(env(safe-area-inset-right, 0px) + 8px); }
 .lb-glance__row { height: 18px; }
 .lb-glance__rank,
 .lb-glance__km { font-size: 14px; line-height: 1; }

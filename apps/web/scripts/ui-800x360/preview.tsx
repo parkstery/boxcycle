@@ -423,7 +423,6 @@ function Preview() {
   const [camera,setCamera] = useState<1|2|3|4|5|6>(1);
   const [mapStyleLabel,setMapStyleLabel] = useState('위성');
   const [minimapExpanded,setMinimapExpanded] = useState(true);
-  const previewMapStyle={styleLabel:mapStyleLabel,styleAriaLabel:`맵 스타일 ${mapStyleLabel}, 클릭 시 ${mapStyleLabel==='위성'?'야외':'위성'}`,onToggleStyle:()=>setMapStyleLabel(value=>value==='위성'?'야외':'위성')};
   const [intervalElapsedMs, setIntervalElapsedMs] = useState(Number(params.get('intervalMs') ?? 0));
   const interval = useRideInterval(
     stage === 'riding' ? 'running' : stage === 'paused' ? 'paused' : 'idle',
@@ -563,19 +562,11 @@ function Preview() {
     {panel!=='summary' && initial!=='glance-summary' ? <>
     <EdgePanelHandle edge="left" open={panel==='menu'} panelId="menu-panel" label="메뉴 열기"
       onOpen={()=>setPanel('menu')} onClose={()=>setPanel('ready')}/>
-    <EdgePanelHandle edge="right" open={rankOpen} panelId="lb-glance-panel" label="순위 열기"
-      onOpen={()=>setRankOpen(true)} onClose={()=>setRankOpen(false)}/>
     </> : null}
     <MapBottomLeftStack>
     <RouteDock key={hasRoute?'route':'empty'} stage={stage} stops={hasRoute?stops:stage==='setup'?[stops[0]]:[]} routeLoading={params.has('loading')}
       onRemoveStop={noop} onFocusStop={noop} onSwapEndpoints={noop}
       cadence={{state:sensorState,open:panel==='sensor',onOpen:()=>setPanel('sensor')}}
-      onOpenIntervalSettings={()=>{setIntervalEditorFromSettings(false);setIntervalEditorOpen(true);}} intervalEnabled={interval.enabled}
-      onOpenRouteList={()=>setReopenSaved(n=>n+1)} onOpenSettings={()=>setPanel('settings')}
-      rideControls={(<RideControlBar stage={panel==='summary'?'summary':stage} routeLoading={params.has('loading')}
-      routeSetupToken={routeSetupToken} startPulseKey={rideStartPulseKey}
-      canStartRide={!params.has('blocked')} onStartRide={()=>params.has('shortIntervalRoute')?setIntervalConfirmOpen(true):setStage('riding')} onPauseRide={()=>setStage('paused')} onResumeRide={()=>setStage('riding')} onModifyFromPause={()=>setStage('setup')}
-      onEndRide={()=>{setIntervalElapsedMs(0);setPanel(params.has('short')?'ready':'summary');setStage('ready-to-start');}} resumeRatio={params.has('resume')?0.4:null} />)}
       minimap={active && interval.view == null ? {expanded:minimapExpanded,onToggle:()=>setMinimapExpanded(v=>!v)} : null} />
     <RouteMinimap active={active && interval.view == null} expanded={minimapExpanded} routeGeometry={{type:'LineString',coordinates:[[126.98,37.55],[126.982,37.553],[126.986,37.552],[126.99,37.56]]}} liveLngLat={[126.982,37.553]} mapboxAccessToken="" traveledMeters={420} routeMeters={2020} />
     </MapBottomLeftStack>
@@ -591,6 +582,14 @@ function Preview() {
       onResumeFromPause={()=>setStage('riding')} onEndFromPause={()=>setPanel('summary')} onModifyFromPause={()=>setStage('setup')}
       quickCamera={active&&!glanceRiding?{active:camera,camera1Mode:flatCameraMode,enable3D,terrainFallback:params.has('terrainFallback'),onEnable3D:setEnable3D,onSelect:setCamera,onSelectFlat:(mode)=>{setFlatCameraMode(mode);setCamera(1);}}:null} mapControls={{styleLabel:mapStyleLabel,styleAriaLabel:`맵 스타일 ${mapStyleLabel}, 클릭 시 ${mapStyleLabel==='위성'?'야외':'위성'}`,onToggleStyle:()=>setMapStyleLabel(value=>value==='위성'?'야외':'위성'),onZoomOut:()=>setToolbarCalls(c=>({...c,zoomOut:c.zoomOut+1})),onZoomIn:()=>setToolbarCalls(c=>({...c,zoomIn:c.zoomIn+1})),zoomOutDisabled:false,zoomInDisabled:false}}
       leaderboardGlancePanel={initial!=='glance-summary'?<LeaderboardGlancePanel {...glanceView} />:undefined}
+      controlGroup={{
+        transport: <RideControlBar stage={panel==='summary'?'summary':stage} routeLoading={params.has('loading')}
+          routeSetupToken={routeSetupToken} startPulseKey={rideStartPulseKey}
+          canStartRide={!params.has('blocked')} onStartRide={()=>params.has('shortIntervalRoute')?setIntervalConfirmOpen(true):setStage('riding')} onPauseRide={()=>setStage('paused')} onResumeRide={()=>setStage('riding')} onModifyFromPause={()=>setStage('setup')}
+          onEndRide={()=>{setIntervalElapsedMs(0);setPanel(params.has('short')?'ready':'summary');setStage('ready-to-start');}} resumeRatio={params.has('resume')?0.4:null} />,
+        interval: stage!=='riding' ? {enabled:interval.enabled,onOpen:()=>{setIntervalEditorFromSettings(false);setIntervalEditorOpen(true);}} : null,
+        rank: initial!=='glance-summary' ? {open:rankOpen,onToggle:()=>setRankOpen(open=>!open)} : null,
+      }}
       rideMoments={active?{status:stage==='paused'?'paused':'running',elapsedMs:intervalElapsedMs,routeMeters:2020,traveledMeters:420,waypointMeters:[700,1400],newRoadKm:0.42,ended:null,intervalRunKey:interval.runKey,soundEnabled:rideMomentSoundEnabled}:null} />
     <RideSummarySheet open={panel==='summary'||initial==='glance-summary'} result={result} arrivalCompleted={false} elapsedLabel="07:00" avgKmh="18" caloriesEstimate={null}
       story={initial==='glance-summary'?{headline:'첫 라이딩을 마치셨어요. 시작이 가장 어려운 법이에요.',detail:undefined}:{headline:'오늘도 나만의 길을 이었습니다.',detail:'남산공원길에서 1.2km를 달렸습니다.'}}
@@ -659,8 +658,7 @@ function Preview() {
       rideCoachingBanner={rideCoachingBanner} onRideCoachingBanner={setRideCoachingBanner}
       pacerEnabled={pacerEnabled} onPacerEnabled={setPacerEnabled}
       rideBgmCatalogConfigured={!settingsStress} rideElevationProfileLoading={settingsStress}
-      rideMomentSoundEnabled={rideMomentSoundEnabled} onRideMomentSoundEnabled={setRideMomentSoundEnabled}
-      mapStyle={previewMapStyle} />
+      rideMomentSoundEnabled={rideMomentSoundEnabled} onRideMomentSoundEnabled={setRideMomentSoundEnabled} />
     <RideIntervalSettingsSheet open={intervalEditorOpen} config={interval.config} restartOnApply={interval.enabled && (stage==='riding'||stage==='paused')} enabled={interval.enabled} onEnabled={interval.onEnabled} onApply={interval.onConfig} onClose={()=>{setIntervalEditorOpen(false);if(intervalEditorFromSettings)setPanel('settings');}} onQuickIntervalRide={(sec)=>{setIntervalEditorOpen(false);document.body.dataset.quickIntervalSec=String(sec);}} quickIntervalDisabledReason={null} />
     <IntervalRouteConfirm open={intervalConfirmOpen} speedKmh={20} onCancel={()=>setIntervalConfirmOpen(false)} onConfirm={()=>{setIntervalConfirmOpen(false);setStage('riding');}} />
     <ProfileEditSheet
@@ -738,7 +736,8 @@ function Preview() {
       basicStartLoading={false} basicStartHubJoined={false} routeLoading={false} sessionIdle officialCourseCatalogAvailable publishedPublicCourses={[]}
       publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}/>:null}
     <span id="toolbar-preview-calls" hidden data-zoom-in={toolbarCalls.zoomIn} data-zoom-out={toolbarCalls.zoomOut} />
-    <MenuPanel open={panel==='menu'} onClose={()=>setPanel('ready')} onOpenPlaceSearch={noop}>
+    <MenuPanel open={panel==='menu'} onClose={()=>setPanel('ready')} onOpenPlaceSearch={noop}
+      onOpenRouteList={active ? undefined : ()=>setReopenSaved(n=>n+1)} onOpenSettings={()=>setPanel('settings')}>
       <RideRoutePanel routeSummary="" routeLoading={false} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
         basicStartLoading={false} basicStartHubJoined={false} officialCourseCatalogAvailable publishedPublicCourses={getBasicSharedHubSummaries()}
         publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} authGuest signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}

@@ -22,6 +22,7 @@ import "./CameraViewMenu.css";
 import "./CloudMapControls.css";
 import "./MapRail.css";
 import { RideIntervalHud } from "../ride/RideIntervalHud";
+import { requestRideControlsHide } from "../ride/rideControlsHide";
 import type { RideIntervalView } from "../../lib/ride/rideInterval";
 import { useRideMoments } from "../../hooks/useRideMoments";
 import type { RideMomentInput } from "../../lib/ride/rideMoments";
@@ -158,9 +159,18 @@ export type MapHudProps = {
     zoomOutDisabled: boolean;
     zoomInDisabled: boolean;
   } | null;
-  /** 순위판은 오른쪽 반달 핸들이 연다. 칩은 우상단에 두지 않는다. */
+  /** 순위판은 오른쪽 묶음의 순위 버튼이 연다(Chief 11-02 v4 — 오른쪽 반달 탭 제거). */
   leaderboardGlanceChip?: ReactNode;
   leaderboardGlancePanel?: ReactNode;
+  /**
+   * Chief 11-02 v4: 오른쪽 2열 4줄 묶음의 나머지 칸 — 3-1 INT · 3-2 순위 · 4-1 ⏹ · 4-2 ⏸/▶(`transport` = RideControlBar).
+   * 1줄 카메라 | 지도 스타일, 2줄 ＋ | － 는 `quickCamera`·`mapControls` 가 채운다. 없는 기능의 칸은 비운다.
+   */
+  controlGroup?: {
+    transport?: ReactNode;
+    interval?: { enabled: boolean; onOpen: () => void } | null;
+    rank?: { open: boolean; onToggle: () => void } | null;
+  } | null;
   rideMoments?: Omit<RideMomentInput, "interval"> & { soundEnabled: boolean } | null;
 };
 
@@ -265,6 +275,7 @@ export function MapHud(props: MapHudProps) {
     mapControls = null,
     leaderboardGlanceChip = null,
     leaderboardGlancePanel = null,
+    controlGroup = null,
     rideMoments = null,
   } = props;
   void leaderboardGlanceChip;
@@ -327,8 +338,8 @@ export function MapHud(props: MapHudProps) {
       coursePeerNamesLength: ridePresence.coursePeerNames.length,
     });
   }, [ridePresence]);
-  /** Chief 11-02: 주행·일시정지 중엔 계정 버튼을 숨겨 오른쪽 조작 레일이 위 구석부터 쓴다. */
-  const showAccount = account !== null && !isGate && !isSummary && !activeRide;
+  /** Chief 11-02 v4: 계정은 주행 중에도 오른쪽 위 모서리에 둔다 — 순위 목록이 그 위를 덮어도 아주 안 보이는 것보다 낫다. */
+  const showAccount = account !== null && !isGate && !isSummary;
   const showSignedOutAuth =
     !isGate && !isSummary && account === null && typeof onOpenSignedOutAuth === "function";
   /** 게이트·요약이 아닐 때 상시 — 카메라 유무와 무관 */
@@ -338,11 +349,9 @@ export function MapHud(props: MapHudProps) {
    * 모든 주행 가능 stage 에서 보이므로 칩은 항상 dock 이 그린다(`lib/route/sensorChipSlot`).
    * 여기 남는 것은 계정·로그인 칩뿐이고, `cadence` 는 **RouteDock 으로만** 간다.
    */
-  const showTopRight =
-    showAccount ||
-    showSignedOutAuth ||
-    Boolean(quickCamera) ||
-    showMapControls;
+  const showTopRight = showAccount || showSignedOutAuth;
+  const showControlGroup = !isGate && !isSummary && (Boolean(quickCamera) || showMapControls || Boolean(controlGroup));
+  const rankControl = controlGroup?.rank ?? null;
   const momentEvent = useRideMoments(
     {
       status: rideMoments?.status ?? "idle",
@@ -585,7 +594,7 @@ export function MapHud(props: MapHudProps) {
         </div>
       ) : null}
 
-      {/* 우상단 — 계정(대기 화면)은 위 구석, 그 아래 오른쪽 조작 레일 [카메라][지도 스타일][＋][－]. Chief 11-02 D1·D2 */}
+      {/* 우상단 — 계정(주행 중에도). 순위 목록·오른쪽 묶음이 그 위에 겹친다(Chief 11-02 v4). */}
       {showTopRight ? (
         <div className="map-hud__tr">
           {(showAccount && account) || showSignedOutAuth ? (
@@ -618,95 +627,129 @@ export function MapHud(props: MapHudProps) {
               ) : null}
             </div>
           ) : null}
-          {quickCamera || (showMapControls && mapControls) ? (
-            <div className="map-hud__rail">
-              {quickCamera ? (
-                <CameraViewMenu
-                  enable3D={quickCamera.enable3D}
-                  terrainFallback={quickCamera.terrainFallback}
-                  onEnable3D={quickCamera.onEnable3D}
-                  active={quickCamera.active}
-                  camera1Mode={quickCamera.camera1Mode}
-                  onSelect={quickCamera.onSelect}
-                  onSelectFlat={quickCamera.onSelectFlat}
-                />
-              ) : null}
-
-              {showMapControls && mapControls ? (
-                <div
-                  className="hud-ride-map-controls"
-                  role="group"
-                  aria-label="맵 제어"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                >
-                  <button
-                    type="button"
-                    className="hud-ride-map-controls__style"
-                    aria-label={mapControls.styleAriaLabel}
-                    title={mapControls.styleAriaLabel}
-                    disabled={mapControls.styleToggleDisabled}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onTouchStart={(e) => e.stopPropagation()}
-                    onClick={mapControls.onToggleStyle}
-                  >
-                    <svg
-                      className="hud-ride-map-controls__style-icon"
-                      data-map-style={mapControls.styleLabel === "위성" ? "satellite" : "outdoors"}
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.7"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                      focusable="false"
-                    >
-                      {mapControls.styleLabel === "위성" ? (
-                        <>
-                          <path d="m13 7-4-4-6 6 4 4m10-2 4 4-6 6-4-4M8 12l4 4 6-6-4-4Z" />
-                          <path d="m16 8 3-3M9 21a6 6 0 0 0-6-6m0 6h.01" />
-                        </>
-                      ) : (
-                        <>
-                          <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z" />
-                          <path d="M9 3v15m6-12v15" />
-                        </>
-                      )}
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    className="hud-ride-map-controls__zoom"
-                    aria-label="줌 확대"
-                    title="줌 확대"
-                    disabled={mapControls.zoomInDisabled}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onTouchStart={(e) => e.stopPropagation()}
-                    onClick={mapControls.onZoomIn}
-                  >
-                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><path d="M4 10h12M10 4v12" /></svg>
-                  </button>
-                  <button
-                    type="button"
-                    className="hud-ride-map-controls__zoom"
-                    aria-label="줌 축소"
-                    title="줌 축소"
-                    disabled={mapControls.zoomOutDisabled}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onTouchStart={(e) => e.stopPropagation()}
-                    onClick={mapControls.onZoomOut}
-                  >
-                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><path d="M4 10h12" /></svg>
-                  </button>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
         </div>
       ) : null}
 
       {leaderboardGlancePanel}
+
+      {/* 오른쪽 아래 2열 4줄 묶음(Chief 11-02 v4) — 목록보다 뒤에 그려 그 위에 겹친다. 칸은 CSS grid-area 로 고정. */}
+      {showControlGroup ? (
+        <div className="map-hud__rail" role="group" aria-label="주행 조작">
+          {quickCamera ? (
+            <CameraViewMenu
+              enable3D={quickCamera.enable3D}
+              terrainFallback={quickCamera.terrainFallback}
+              onEnable3D={quickCamera.onEnable3D}
+              active={quickCamera.active}
+              camera1Mode={quickCamera.camera1Mode}
+              onSelect={quickCamera.onSelect}
+              onSelectFlat={quickCamera.onSelectFlat}
+            />
+          ) : null}
+
+          {showMapControls && mapControls ? (
+            <div
+              className="hud-ride-map-controls"
+              role="group"
+              aria-label="맵 제어"
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="hud-ride-map-controls__style"
+                aria-label={mapControls.styleAriaLabel}
+                title={mapControls.styleAriaLabel}
+                disabled={mapControls.styleToggleDisabled}
+                onPointerDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={mapControls.onToggleStyle}
+              >
+                <svg
+                  className="hud-ride-map-controls__style-icon"
+                  data-map-style={mapControls.styleLabel === "위성" ? "satellite" : "outdoors"}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  {mapControls.styleLabel === "위성" ? (
+                    <>
+                      <path d="m13 7-4-4-6 6 4 4m10-2 4 4-6 6-4-4M8 12l4 4 6-6-4-4Z" />
+                      <path d="m16 8 3-3M9 21a6 6 0 0 0-6-6m0 6h.01" />
+                    </>
+                  ) : (
+                    <>
+                      <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z" />
+                      <path d="M9 3v15m6-12v15" />
+                    </>
+                  )}
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="hud-ride-map-controls__zoom hud-ride-map-controls__zoom--in"
+                aria-label="줌 확대"
+                title="줌 확대"
+                disabled={mapControls.zoomInDisabled}
+                onPointerDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={mapControls.onZoomIn}
+              >
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><path d="M4 10h12M10 4v12" /></svg>
+              </button>
+              <button
+                type="button"
+                className="hud-ride-map-controls__zoom hud-ride-map-controls__zoom--out"
+                aria-label="줌 축소"
+                title="줌 축소"
+                disabled={mapControls.zoomOutDisabled}
+                onPointerDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={mapControls.onZoomOut}
+              >
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><path d="M4 10h12" /></svg>
+              </button>
+            </div>
+          ) : null}
+          {controlGroup?.interval ? (
+            <button
+              type="button"
+              className={`map-hud__rail-btn map-hud__rail-int${controlGroup.interval.enabled ? " map-hud__rail-int--active" : ""}`}
+              aria-label="인터벌 운동 설정"
+              title="인터벌 운동 설정"
+              onClick={controlGroup.interval.onOpen}
+            >
+              INT
+            </button>
+          ) : null}
+          {rankControl ? (
+            <button
+              type="button"
+              className="map-hud__rail-btn map-hud__rail-rank"
+              aria-label={rankControl.open ? "순위 닫기" : "순위 열기"}
+              title={rankControl.open ? "순위 닫기" : "순위 열기"}
+              aria-expanded={rankControl.open}
+              aria-controls="lb-glance-panel"
+              onClick={() => {
+                // 주행 중 순위 버튼으로 목록을 열면 2초 뒤 묶음이 숨어 목록 전체가 보인다(Chief 11-02).
+                if (!rankControl.open && riding) requestRideControlsHide(2000);
+                rankControl.onToggle();
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" aria-hidden="true">
+                <path d="M9 21V9h6v12M3 21v-7h6M15 21v-4h6v4M2 21h20" />
+                <path d="M12 3.5l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 5.6l2-.3z" strokeWidth="1.3" />
+              </svg>
+            </button>
+          ) : null}
+          {controlGroup?.transport}
+        </div>
+      ) : null}
 
       {/* BC 슬롯: 코칭 라인(라이딩 중). */}
       {showCoach ? (

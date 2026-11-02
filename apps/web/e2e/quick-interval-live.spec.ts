@@ -73,7 +73,7 @@ test('간편 인터벌 주행 실제 앱 800×360: 기록 없음 → 출발 클�
   await expect(status).toHaveCount(0);
   const dock = page.getByRole('button', { name: '주행 시작', exact: true });
   await expect(dock).toBeVisible({ timeout: 20_000 });
-  await expect(page.locator('.route-dock__interval--active')).toBeVisible();
+  await expect(page.locator('.map-hud__rail-int--active')).toBeVisible();
   await expect(page.getByRole('button', { name: '주행 종료', exact: true })).toHaveCount(0);
   await page.waitForTimeout(2500);
   await page.screenshot({ path: path.join(evidence, 'b3-route-applied-800x360.png'), animations: 'disabled' });

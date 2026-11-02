@@ -43,8 +43,8 @@ async function assertLedOnly(page: Page, color: 'white' | 'green') {
   // Chief 11-02: 접힌 줄은 64px(LED 원 32px).
   const box = (await toggle.boundingBox())!;
   expect([box.width, box.height]).toEqual([64, 64]);
-  // 10-30 Chief: 접혀도 LED 오른쪽에 도구(주행 전 INT·지도 핀·⚙ / 주행 중 ⚙ / 일시정지 INT)가 한 줄로 보인다 — 높이만 LED 한 줄.
-  await expect(page.locator('.route-dock__card').locator('.route-dock__tool--settings, .route-dock__interval').first()).toBeVisible();
+  // Chief 11-02 v4: INT·지도 핀·⚙ 는 오른쪽 묶음·왼쪽 메뉴로 옮겼다 — 접힌 줄엔 도구가 없다(미니맵 버튼만).
+  await expect(page.locator('.route-dock__card').locator('.route-dock__interval, .route-dock__tool--settings, .route-dock__tool--routes, .ride-control-bar')).toHaveCount(0);
   const card = (await page.locator('.route-dock__card').boundingBox())!;
   expect(card.height).toBe(64);
 }

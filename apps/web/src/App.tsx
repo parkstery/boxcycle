@@ -2712,7 +2712,7 @@ export default function App() {
     />
   );
 
-  /** 미니맵은 주행·일시정지 중 인터벌 창이 없을 때(고정62). 접고 펴기는 RouteDock 버튼 줄의 64px 버튼(Chief 11-02). */
+  /** 미니맵은 주행·일시정지 중 인터벌 창이 없을 때(고정62). 접고 펴기는 RouteDock 접힌 줄의 64px 버튼(Chief 11-02). */
   const minimapActive = (stage === "riding" || stage === "paused") && rideInterval == null;
   const routeDockPanel = (
     <RouteDock
@@ -2725,12 +2725,6 @@ export default function App() {
       editLocked={routeMenuLockedForProd}
       cadence={cadenceHud}
       sensorAttention={Boolean(routeGeometry) && !routeLoading && !rideInputReady}
-      onOpenIntervalSettings={() => { setIntervalSettingsFromRideSettings(false); setRideIntervalSettingsOpen(true); }}
-      // 10-30 Chief: 메뉴의 「경로 선택」·「주행 설정」을 RouteDock 지도 핀·⚙ 로 옮겼다. 핀은 「내 경로」 창부터 연다.
-      onOpenRouteList={() => setReopenSavedNonce((n) => n + 1)}
-      onOpenSettings={openRideSettingsPanel}
-      intervalEnabled={rideIntervalEnabled}
-      rideControls={rideControlPanel}
       minimap={minimapActive && routeGeometry ? { expanded: minimapExpanded, onToggle: () => setMinimapExpanded((v) => !v) } : null}
     />
   );
@@ -2903,6 +2897,12 @@ export default function App() {
       leaderboardGlancePanel: <LeaderboardGlancePanel {...leaderboardGlanceView} />,
     };
   }, [leaderboardGlanceView]);
+  /** Chief 11-02 v4: 오른쪽 2열 4줄 묶음의 INT·순위·주행 버튼 칸(MapHud). 주행 중엔 인터벌을 바꾸지 않는다(10-30). */
+  const rideControlGroup = {
+    transport: rideControlPanel,
+    interval: stage !== "riding" ? { enabled: rideIntervalEnabled, onOpen: () => { setIntervalSettingsFromRideSettings(false); setRideIntervalSettingsOpen(true); } } : null,
+    rank: leaderboardGlanceView ? { open: leaderboardGlance.panelOpen, onToggle: leaderboardGlance.togglePanel } : null,
+  };
   const waypointMeters = useMemo(() => {
     if (!routeGeometry || routeWaypoints.length === 0) return [];
     return routeWaypoints
@@ -3068,6 +3068,7 @@ export default function App() {
                 conquestLiveMeters,
                 conquestAllOwnedHint,
                 ...mapHudLeaderboard,
+                controlGroup: rideControlGroup,
               }}
             >
             </DebugMapStage>
@@ -3256,6 +3257,7 @@ export default function App() {
               conquestLiveMeters,
               conquestAllOwnedHint,
               ...mapHudLeaderboard,
+              controlGroup: rideControlGroup,
               quickCamera:
                 rideStatus === "running" || rideStatus === "paused"
                   ? {
@@ -3288,20 +3290,6 @@ export default function App() {
               setPlaceSearchMarkerLngLat(null);
             }}
           />
-          {leaderboardGlanceView ? (
-            <EdgePanelHandle
-              edge="right"
-              open={leaderboardGlance.panelOpen}
-              panelId="lb-glance-panel"
-              label="순위 열기"
-              onOpen={() => {
-                if (!leaderboardGlance.panelOpen) leaderboardGlance.togglePanel();
-              }}
-              onClose={() => {
-                if (leaderboardGlance.panelOpen) leaderboardGlance.togglePanel();
-              }}
-            />
-          ) : null}
         </>
       ) : null}
 
@@ -3317,6 +3305,9 @@ export default function App() {
           placeSearchIntentRef.current = "menu";
           openPlaceSearchPanel();
         }}
+        // Chief 11-02 v4: 지도 핀(경로 목록 — 「내 경로」부터)·⚙ 주행 설정은 RouteDock 에서 메뉴 머리줄로.
+        onOpenRouteList={stage === "riding" || stage === "paused" ? undefined : () => setReopenSavedNonce((n) => n + 1)}
+        onOpenSettings={openRideSettingsPanel}
       >
         <RideRoutePanel
           routeSummary={routeSummary}
@@ -3432,7 +3423,6 @@ export default function App() {
         rideElevationProfileLoading={rideElevationProfileLoading}
         rideMomentSoundEnabled={rideMomentSoundEnabled}
         onRideMomentSoundEnabled={setRideMomentSoundEnabled}
-        mapStyle={mapHudControls}
       />
 
       <RideIntervalSettingsSheet

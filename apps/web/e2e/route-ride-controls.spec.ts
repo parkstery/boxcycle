@@ -36,8 +36,9 @@ test('RouteDock 주소/주행바: 세 크기·다섯 상태·지도정보와 겹
         expect((await button.textContent())?.trim()).toBe('');
         await expect(button).toHaveCSS('border-radius','50%');
         // 준비 상태는 주행 버튼이 5회 펄스(1.1배, 지시90·91)한다 — 변형 전 레이아웃 크기를 잰다.
+        // Chief 11-02 v4: 주행 버튼은 오른쪽 2열 묶음 칸 크기(44~64px 원).
         const box=await button.evaluate(el=>({width:(el as HTMLElement).offsetWidth,height:(el as HTMLElement).offsetHeight}));
-        expect(box.width).toBe(32);expect(box.height).toBe(32);
+        expect(box.width).toBe(box.height);expect(box.width).toBeGreaterThanOrEqual(44);expect(box.width).toBeLessThanOrEqual(64);
       }
       expect(geom.bar.right).toBeLessThanOrEqual(size.width);
       expect(geom.collide).toEqual([]);

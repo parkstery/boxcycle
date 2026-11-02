@@ -1,41 +1,73 @@
 /*
- * Chief 11-02 D1·D2: 오른쪽 조작 레일 — 카메라·지도 스타일·＋·－ 를 오른쪽 끝 세로 한 줄, 64px 정사각 구름(기존 32px의 2배).
- * 오른쪽 반달 탭(보이는 20.4px)을 가리지 않게 화면 끝에서 26px 띄운다. 계정은 대기 화면에서만 위 구석(고정43), 레일은 그 아래.
- * 네 칸이 안 들어가는 낮은 폰(312px 미만)은 주행 중 지도 스타일을 빼고 ⚙ 주행 설정 창에서 바꾼다.
+ * Chief 11-02 v4: 오른쪽 아래 2열 4줄 묶음 — 칸마다 한 기능, 없는 기능의 칸은 비운다(다른 버튼이 옮겨 오지 않음).
+ *   1-1 카메라 | 1-2 지도 스타일 / 2-1 ＋ | 2-2 － / 3-1 INT | 3-2 순위 / 4-1 ⏹ | 4-2 ⏸·▶
+ * 버튼은 흰 원(구름 윤곽 대신). 크기는 오른쪽 위 계정 버튼(주행 중에도 보임) 아래에 4줄이 드는 값, 최대 64px.
+ * 순위 목록은 오른쪽 가장자리에 고정되고 이 묶음이 그 위에 겹친다(DOM 순서 = 목록 뒤).
  */
-.map-hud .map-hud__tr {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+:root {
+  --rail-gap: 8px;
+  /* 위 46px = 계정 버튼(오른쪽 위) 아래 여백, 아래 8px. */
+  --rail-size: min(64px, calc((100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 54px - 3 * var(--rail-gap)) / 4));
+  --rail-width: calc(2 * var(--rail-size) + var(--rail-gap));
 }
-.map-hud__rail {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  margin-right: 26px;
-}
-.map-hud__rail:first-child { margin-top: 8px; }
-/* 감싼 상자는 반달 탭·지도로 누름을 통과시키고 버튼만 받는다. */
-.map-hud > .map-hud__tr,
-.map-hud__rail { pointer-events: none; }
-.map-hud__tr > .map-hud__service-actions,
-.map-hud__rail > * { pointer-events: auto; }
-.map-hud .map-hud__rail .hud-ride-map-controls { flex-direction: column; gap: 8px; }
-.map-hud .map-hud__rail .hud-ride-map-controls > button,
-.map-hud .map-hud__rail .camera-view-menu__trigger {
-  width: 64px; min-width: 64px; height: 64px; min-height: 64px; flex: 0 0 64px; padding: 0;
-}
-/* 64px 는 이미 44px 이상 — 이웃 버튼을 덮던 투명 확장 영역은 끈다. */
-.map-hud .map-hud__rail .hud-ride-map-controls > button::after { display: none; }
-.map-hud .map-hud__rail .camera-view-menu__trigger::before {
-  mask-image: var(--map-control-cloud-sm); -webkit-mask-image: var(--map-control-cloud-sm);
-}
-.map-hud .map-hud__rail .hud-ride-map-controls__style-icon { width: 32px; height: 32px; }
-.map-hud .map-hud__rail .hud-ride-map-controls__zoom svg { width: 30px; height: 30px; }
+@media (max-height: 311px) { :root { --rail-gap: 6px; } }
 
-/* 카메라: 위 줄 번호·아이콘, 아래 줄 거리(1번). 메뉴는 레일 왼쪽으로 펼친다. */
+.map-hud .map-hud__rail {
+  position: absolute;
+  right: calc(env(safe-area-inset-right, 0px) + 8px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  display: grid;
+  grid-template-columns: repeat(2, var(--rail-size));
+  grid-template-rows: repeat(4, var(--rail-size));
+  grid-template-areas: "cam style" "plus minus" "int rank" "stop main";
+  gap: var(--rail-gap);
+  pointer-events: none;
+  z-index: 3; /* 순위 목록(z 2) 위 — 목록이 묶음 칸의 누름을 가로채지 않게. */
+}
+/* 감싼 상자들은 칸 배치에서 빠지고(버튼이 바로 칸이 된다), 누름은 버튼만 받는다. */
+.map-hud .map-hud__rail :is(.hud-ride-map-controls, .ride-control-anchor, .ride-control-bar) { display: contents; }
+.map-hud .map-hud__rail :is(button, .camera-view-menu) { pointer-events: auto; }
+
+.map-hud .map-hud__rail .camera-view-menu { grid-area: cam; position: static; }
+.map-hud .map-hud__rail .hud-ride-map-controls__style { grid-area: style; }
+.map-hud .map-hud__rail .hud-ride-map-controls__zoom--in { grid-area: plus; }
+.map-hud .map-hud__rail .hud-ride-map-controls__zoom--out { grid-area: minus; }
+.map-hud .map-hud__rail .map-hud__rail-int { grid-area: int; }
+.map-hud .map-hud__rail .map-hud__rail-rank { grid-area: rank; }
+.map-hud .map-hud__rail .ride-control-bar__end { grid-area: stop; }
+.map-hud .map-hud__rail :is(.ride-control-bar__primary, .ride-media-button--pause) { grid-area: main; }
+
+/* 흰 원 버튼 — 구름 마스크(::before)는 끈다. */
+.map-hud .map-hud__rail :is(.hud-ride-map-controls > button, .camera-view-menu__trigger, .map-hud__rail-btn),
+.map-hud .map-hud__rail .hud-ride-map-controls > button:is(:first-child, :last-child) {
+  position: relative;
+  width: var(--rail-size); min-width: var(--rail-size); height: var(--rail-size); min-height: var(--rail-size);
+  flex: none; margin: 0; padding: 0; box-sizing: border-box;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 50%;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 1px 6px rgba(15, 23, 42, .3);
+  color: #1f2a3a; cursor: pointer; touch-action: manipulation;
+}
+.map-hud .map-hud__rail :is(.hud-ride-map-controls > button, .camera-view-menu__trigger)::before,
+.map-hud .map-hud__rail .hud-ride-map-controls > button::after { display: none; }
+.map-hud .map-hud__rail :is(.hud-ride-map-controls__style, .camera-view-menu__trigger, .map-hud__rail-rank) { color: #2457d6; }
+.map-hud .map-hud__rail button:disabled { opacity: .45; cursor: not-allowed; }
+.map-hud .map-hud__rail button:focus-visible { outline: 2px solid #2457d6; outline-offset: 2px; }
+@media (hover: hover) {
+  .map-hud .map-hud__rail :is(.hud-ride-map-controls > button, .camera-view-menu__trigger, .map-hud__rail-btn):hover:not(:disabled) { background: #eaf1ff; }
+}
+@media (forced-colors: active) {
+  .map-hud .map-hud__rail :is(.hud-ride-map-controls > button, .camera-view-menu__trigger, .map-hud__rail-btn) { border: 1px solid ButtonText; background: Canvas; }
+}
+.map-hud .map-hud__rail .hud-ride-map-controls__style-icon { width: 50%; height: 50%; }
+.map-hud .map-hud__rail .hud-ride-map-controls__zoom svg { width: 47%; height: 47%; }
+.map-hud .map-hud__rail-rank svg { width: 50%; height: 50%; }
+.map-hud .map-hud__rail-int { font: inherit; font-size: calc(var(--rail-size) * .3); font-weight: 800; letter-spacing: .5px; color: #4b5566; }
+.map-hud .map-hud__rail-int--active { color: #2457d6; box-shadow: 0 0 0 2px #2457d6, 0 1px 6px rgba(15, 23, 42, .3); }
+.map-hud .map-hud__rail-rank[aria-expanded="true"] { background: #e3ecff; box-shadow: 0 0 0 2px #2457d6, 0 1px 6px rgba(15, 23, 42, .3); }
+
+/* 카메라: 위 줄 번호·아이콘, 아래 줄 거리(1번). 메뉴는 묶음 왼쪽, 묶음 아래 끝에서 위로 펼친다(낮은 폰에서 잘리지 않게). */
 .map-hud .map-hud__rail .camera-view-menu__trigger {
   flex-wrap: wrap; align-content: center; gap: 1px 3px; font-size: 13px;
 }
@@ -43,11 +75,25 @@
 .map-hud .map-hud__rail .camera-view-menu__svg { width: 22px; height: 22px; flex-basis: 22px; }
 .map-hud .map-hud__rail .camera-view-menu__trigger-label { flex: 0 0 100%; text-align: center; line-height: 1; }
 .map-hud .map-hud__rail .camera-view-menu__caret { display: none; }
-.map-hud .map-hud__rail .camera-view-menu__panel { top: 0; right: calc(100% + 8px); }
-@media (max-height: 330px) {
-  .map-hud .map-hud__rail .camera-view-menu__panel { max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 16px); }
+.map-hud .map-hud__rail .camera-view-menu__panel {
+  top: auto; bottom: 0; right: calc(100% + 8px);
+  max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px); overflow-y: auto;
 }
 
-@media (max-height: 311px) {
-  .map-hud .map-hud__rail:has(.camera-view-menu) .hud-ride-map-controls__style { display: none; }
+/* ⏸·▶·⏹ — 칸 크기 원. 이어 달리기·일시정지 옵션(⋯)은 맨 아래 줄 왼쪽에 붙는 작은 알약. */
+.map-hud .map-hud__rail .ride-media-button {
+  flex: none; width: var(--rail-size); height: var(--rail-size); min-height: var(--rail-size);
+  box-shadow: 0 1px 6px rgba(15, 23, 42, .3);
+}
+.map-hud .map-hud__rail .ride-media-button__icon { width: 24px; height: 26px; }
+.map-hud .map-hud__rail .ride-media-button--pause .ride-media-button__icon { width: 24px; }
+.map-hud .map-hud__rail .ride-media-button--stop .ride-media-button__icon { width: 22px; height: 22px; }
+.map-hud .map-hud__rail :is(.ride-control-bar__resume-trigger, .ride-control-bar__more) {
+  position: absolute; right: calc(100% + 8px); bottom: calc(var(--rail-size) / 2 - 16px);
+  height: 32px; padding: 0 10px; border: 0; border-radius: 999px;
+  background: #fff; box-shadow: 0 1px 6px rgba(15, 23, 42, .3);
+  color: #172238; font: inherit; font-size: 12px; font-weight: 700; white-space: nowrap; cursor: pointer;
+}
+.map-hud .map-hud__rail .ride-control-bar__resume {
+  right: calc(100% + 8px); bottom: calc(var(--rail-size) / 2 + 24px); pointer-events: auto;
 }

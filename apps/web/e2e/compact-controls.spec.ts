@@ -282,7 +282,9 @@ test.describe('compact-controls v2', () => {
     await expect(editor.getByRole('switch', { name: '인터벌' })).toBeChecked();
     await editor.getByRole('button', { name: '인터벌 운동 설정 닫기', exact: true }).click();
     // 10-30 Chief: 주행 설정은 메뉴 행이 아니라 RouteDock ⚙ 에서 연다.
-    await page.getByRole('button', { name: '주행 설정', exact: true }).click();
+    // Chief 11-02 v4: 주행 설정은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+    await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+    await page.locator('#menu-panel').getByRole('button', { name: '주행 설정', exact: true }).click();
     await expect(settings).toBeVisible();
   });
 
@@ -326,7 +328,9 @@ test.describe('compact-controls v2', () => {
       });
       expect(editorBox.inside).toBe(true);
       await editor.getByRole('button', { name: '인터벌 운동 설정 닫기', exact: true }).click();
-      await page.getByRole('button', { name: '주행 설정', exact: true }).click();
+      // Chief 11-02 v4: 주행 설정은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+      await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+      await page.locator('#menu-panel').getByRole('button', { name: '주행 설정', exact: true }).click();
       await expect(settings).toBeVisible();
 
       // 프로필 수정은 주행 설정에서 빠졌다(Chief 10-30) — 같은 긴 값 조건으로 직접 연다
@@ -406,7 +410,8 @@ test.describe('compact-controls v2', () => {
       await page.setViewportSize(size);
       await page.goto(`${preview}?state=riding`);
       const measured = await page.evaluate(() => {
-        const knobs = ['left', 'right'].map((side) => {
+        // Chief 11-02 v4: 오른쪽 반달은 없다(순위는 오른쪽 묶음 버튼) — 왼쪽 메뉴 반달만.
+        const knobs = ['left'].map((side) => {
           const tab = document.querySelector(`.edge-panel-tab--${side}`)!;
           const knob = tab.querySelector('.edge-panel-tab__knob')!;
           return { side, tab: tab.getBoundingClientRect().toJSON(), knob: knob.getBoundingClientRect().toJSON() };
@@ -429,23 +434,24 @@ test.describe('compact-controls v2', () => {
           expect(overlap(tab.knob, other), `${tab.side} vs ${other.sel}`).toBe(false);
         }
       }
+      await expect(page.locator('.edge-panel-tab--right')).toHaveCount(0);
       await page.getByRole('button', { name: '순위 열기', exact: true }).click();
       await expect(page.locator('#lb-glance-panel')).toBeVisible();
       if (size.width === 699) await saveShot(page, `edges-${size.width}x${size.height}.png`);
     });
   }
 
-  // Chief 11-02: 주행 중엔 계정이 숨고 카메라·지도 조작은 오른쪽 레일 한 줄(서로 겹치지 않음).
-  test('우상단 레일: 주행 중 계정 숨김·카메라/지도 조작 비겹침', async ({ page }) => {
+  // Chief 11-02 v4: 계정은 주행 중에도 보이고, 카메라(1-1)·지도 스타일(1-2)은 묶음 첫 줄에 나란히(서로 겹치지 않음).
+  test('오른쪽 묶음: 주행 중 계정 보임·카메라/지도 스타일 첫 줄 비겹침', async ({ page }) => {
     await page.setViewportSize({ width: 667, height: 300 });
     await page.goto(`${preview}?state=riding`);
-    await expect(page.locator('.hud-account')).toHaveCount(0);
+    await expect(page.locator('.hud-account')).toBeVisible();
     const hit = await page.evaluate(() => {
-      const a = document.querySelector('.camera-view-menu')!.getBoundingClientRect();
-      const c = document.querySelector('.hud-ride-map-controls')!.getBoundingClientRect();
-      return { cameraMap: a.left < c.right && a.right > c.left && a.top < c.bottom && a.bottom > c.top, sameColumn: Math.abs(a.left - c.left) < 1 };
+      const a = document.querySelector('.camera-view-menu__trigger')!.getBoundingClientRect();
+      const c = document.querySelector('.hud-ride-map-controls__style')!.getBoundingClientRect();
+      return { cameraMap: a.left < c.right && a.right > c.left && a.top < c.bottom && a.bottom > c.top, sameRow: Math.abs(a.top - c.top) < 1, cameraLeft: a.right <= c.left };
     });
-    expect(hit).toEqual({ cameraMap: false, sameColumn: true });
+    expect(hit).toEqual({ cameraMap: false, sameRow: true, cameraLeft: true });
   });
 });
 
@@ -458,15 +464,13 @@ const tapSizes = [
 ] as const;
 const LEFT_CLOSED = 'M2 1.5L5 5L2 8.5';
 const LEFT_OPEN = 'M5 1.5L2 5L5 8.5';
-const RIGHT_CLOSED = 'M5 1.5L2 5L5 8.5';
-const RIGHT_OPEN = 'M2 1.5L5 5L2 8.5';
 
 async function saveTapShot(page: Page, name: string) {
   await fs.mkdir(tapEvidenceDir, { recursive: true });
   await page.screenshot({ path: path.join(tapEvidenceDir, name), animations: 'disabled' });
 }
 
-async function caretPath(page: Page, side: 'left' | 'right') {
+async function caretPath(page: Page, side: 'left') {
   return page.locator(`.edge-panel-tab--${side} path`).getAttribute('d');
 }
 
@@ -501,7 +505,8 @@ function knobCenter(box: { x: number; y: number; width: number; height: number }
 
 test.describe('compact-controls tap handles', () => {
   for (const size of tapSizes) {
-    test(`양쪽 탭 열고닫기·위치·캐럿 ${size.width}×${size.height}`, async ({ page }) => {
+    // Chief 11-02 v4: 오른쪽 반달은 없다 — 순위 목록은 오른쪽 묶음의 순위 버튼이 연다.
+    test(`왼쪽 탭 열고닫기·위치·캐럿, 순위 버튼 ${size.width}×${size.height}`, async ({ page }) => {
       await page.setViewportSize(size);
       await page.goto(`${preview}?state=ready`);
       const menuBtn = page.getByRole('button', { name: '메뉴 열기', exact: true });
@@ -510,9 +515,8 @@ test.describe('compact-controls tap handles', () => {
       const rank = page.locator('#lb-glance-panel');
 
       const leftClosed = (await page.locator('.edge-panel-tab--left').boundingBox())!;
-      const rightClosed = (await page.locator('.edge-panel-tab--right').boundingBox())!;
+      await expect(page.locator('.edge-panel-tab--right')).toHaveCount(0);
       expect(await caretPath(page, 'left')).toBe(LEFT_CLOSED);
-      expect(await caretPath(page, 'right')).toBe(RIGHT_CLOSED);
 
       await menuBtn.click();
       await expect(menu).toBeVisible();
@@ -532,13 +536,10 @@ test.describe('compact-controls tap handles', () => {
 
       await rankBtn.click();
       await expect(rank).toBeVisible();
-      const rightOpen = (await page.locator('.edge-panel-tab--right').boundingBox())!;
-      expect(Math.abs(rightOpen.x - rightClosed.x), '오른쪽 x').toBeLessThanOrEqual(1);
-      expect(Math.abs(rightOpen.y - rightClosed.y), '오른쪽 y').toBeLessThanOrEqual(1);
-      expect(await caretPath(page, 'right')).toBe(RIGHT_OPEN);
-      await rankBtn.click();
+      const rankClose = page.getByRole('button', { name: '순위 닫기', exact: true });
+      await expect(rankClose).toHaveAttribute('aria-expanded', 'true');
+      await rankClose.click();
       await expect(rank).toBeHidden();
-      expect(await caretPath(page, 'right')).toBe(RIGHT_CLOSED);
 
       if (size.width === 699) {
         await saveTapShot(page, `tap-closed-${size.width}x${size.height}.png`);
@@ -565,17 +566,17 @@ test.describe('compact-controls tap handles', () => {
     await expect(menu).toHaveCount(0);
   });
 
-  test('마우스: 닫힌/열린 반달·빈 가장자리 드래그는 상태 불변', async ({ page }) => {
+  test('마우스: 닫힌/열린 왼쪽 반달·빈 가장자리 드래그는 상태 불변', async ({ page }) => {
     await page.setViewportSize({ width: 800, height: 360 });
     await page.goto(`${preview}?state=ready`);
     const menu = page.getByRole('dialog', { name: '메뉴', exact: true });
     const rank = page.locator('#lb-glance-panel');
     const left = (await page.locator('.edge-panel-tab--left .edge-panel-tab__knob').boundingBox())!;
-    const right = (await page.locator('.edge-panel-tab--right .edge-panel-tab__knob').boundingBox())!;
     await mouseDrag(page, knobCenter(left), { x: left.x + 140, y: left.y + left.height / 2 });
     await expect(menu, '닫힌 왼쪽 반달 드래그').toHaveCount(0);
-    await mouseDrag(page, knobCenter(right), { x: right.x - 140, y: right.y + right.height / 2 });
-    await expect(rank, '닫힌 오른쪽 반달 드래그').toBeHidden();
+    // 오른쪽 가장자리를 끌어도 순위 목록은 열리지 않는다(반달 없음).
+    await mouseDrag(page, { x: 795, y: 180 }, { x: 655, y: 180 });
+    await expect(rank, '오른쪽 가장자리 드래그').toBeHidden();
     await mouseDrag(page, { x: 10, y: 80 }, { x: 130, y: 80 });
     await expect(menu, '닫힌 빈 가장자리 드래그').toHaveCount(0);
 
@@ -587,12 +588,6 @@ test.describe('compact-controls tap handles', () => {
     await mouseDrag(page, { x: 10, y: 80 }, { x: 130, y: 80 });
     await expect(menu, '열린 빈 가장자리 드래그').toBeVisible();
     await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
-
-    await page.getByRole('button', { name: '순위 열기', exact: true }).click();
-    await expect(rank).toBeVisible();
-    const rightOpen = (await page.locator('.edge-panel-tab--right .edge-panel-tab__knob').boundingBox())!;
-    await mouseDrag(page, knobCenter(rightOpen), { x: rightOpen.x - 140, y: rightOpen.y + rightOpen.height / 2 });
-    await expect(rank, '열린 오른쪽 반달 드래그').toBeVisible();
   });
 });
 
@@ -605,22 +600,21 @@ test.describe('compact-controls tap handles touch', () => {
     const menu = page.getByRole('dialog', { name: '메뉴', exact: true });
     const rank = page.locator('#lb-glance-panel');
     const left = (await page.locator('.edge-panel-tab--left .edge-panel-tab__knob').boundingBox())!;
-    const right = (await page.locator('.edge-panel-tab--right .edge-panel-tab__knob').boundingBox())!;
 
     await page.touchscreen.tap(left.x + left.width / 2, left.y + left.height / 2);
     await expect(menu).toBeVisible();
     await page.touchscreen.tap(left.x + left.width / 2, left.y + left.height / 2);
     await expect(menu).toHaveCount(0);
 
-    await page.touchscreen.tap(right.x + right.width / 2, right.y + right.height / 2);
+    // 순위 목록은 오른쪽 묶음의 순위 버튼을 탭해 연다(Chief 11-02 v4 — 오른쪽 반달 없음).
+    const rankBtn = (await page.getByRole('button', { name: '순위 열기', exact: true }).boundingBox())!;
+    await page.touchscreen.tap(rankBtn.x + rankBtn.width / 2, rankBtn.y + rankBtn.height / 2);
     await expect(rank).toBeVisible();
-    await page.touchscreen.tap(right.x + right.width / 2, right.y + right.height / 2);
+    await page.touchscreen.tap(rankBtn.x + rankBtn.width / 2, rankBtn.y + rankBtn.height / 2);
     await expect(rank).toBeHidden();
 
     await touchDrag(page, knobCenter(left), { x: left.x + 140, y: left.y + left.height / 2 });
     await expect(menu, '터치 왼쪽 반달 드래그').toHaveCount(0);
-    await touchDrag(page, knobCenter(right), { x: right.x - 140, y: right.y + right.height / 2 });
-    await expect(rank, '터치 오른쪽 반달 드래그').toBeHidden();
     await touchDrag(page, { x: 10, y: 80 }, { x: 130, y: 80 });
     await expect(menu, '터치 빈 가장자리 드래그').toHaveCount(0);
 

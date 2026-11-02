@@ -270,81 +270,24 @@
   }
 }
 
-/* Chief: 펼침은 센서 왼쪽·주행 제어 오른쪽 한 줄, 접힘은 버튼 한 폭 간격. */
-.route-dock-anchor { --dock-media-size: 32px; }
-.route-dock__interval { flex: 0 0 38px; width: 38px; height: 30px; display: grid; place-items: center; padding: 0; border: 1px solid #c9d6ee; border-radius: 12px; background: #fff; color: #5e6472; font-family: inherit; font-size: 11px; font-weight: 700; line-height: 1; cursor: pointer; }
-.route-dock__interval--active { color: #2457d6; border-color: #2457d6; background: #eef3fc; }
-.route-dock__interval:focus-visible { outline: 2px solid #2457d6; outline-offset: 2px; }
-.route-dock-anchor .ride-control-anchor { position: relative; inset: auto; max-width: none; flex: none; }
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card:has(.ride-control-anchor) { width: max-content; height: 32px; gap: var(--dock-media-size); }
-.route-dock__head:has(.ride-control-anchor) { flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: flex-start; padding-left: 24px; gap: 6px; min-height: 32px; }
-.route-dock__head:has(:is(.route-dock__interval, .route-dock__tool)) { padding-left: 24px; gap: 3px; }
-.route-dock__head:has(.route-dock__interval) .hud-cadence--dock { padding-left: 5px; padding-right: 5px; gap: 3px; }
-@media (max-width: 700px) {
-  .route-dock__head:has(.route-dock__interval) .hud-cadence--dock { padding-left: 1px; padding-right: 1px; gap: 1px; }
-  .route-dock__interval { flex-basis: 28px; width: 28px; }
-}
-.route-dock__head .ride-control-anchor { margin-left: auto; }
-/* 10-30 Chief: 접힘에서도 INT 는 LED 바로 오른쪽에 보인다. 주행 제어와는 종전처럼 버튼 한 폭(32px) 간격. */
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card:has(:is(.route-dock__interval, .route-dock__tool)) { width: max-content; }
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__head:has(:is(.route-dock__interval, .route-dock__tool)) { gap: 6px; }
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__head:has(:is(.route-dock__interval, .route-dock__tool)) .ride-control-anchor { margin-left: 26px; }
-/* 10-30 Chief: 지도 핀(경로 목록)·⚙(주행 설정) — 테두리 없는 아이콘 버튼. 접힘에선 지도 위라 흰 원 바탕. */
-.route-dock__tool { flex: 0 0 30px; width: 30px; height: 30px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #2a2e37; cursor: pointer; touch-action: manipulation; }
+/* 미니맵 접기·펼치기 — 테두리 없는 아이콘 버튼, 지도 위라 흰 원 바탕(10-30 Chief 도구 버튼 모양). */
+.route-dock__tool { flex: 0 0 30px; width: 30px; height: 30px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(15, 23, 42, .25); color: #2a2e37; cursor: pointer; touch-action: manipulation; }
 .route-dock__tool svg { width: 24px; height: 24px; display: block; }
-.route-dock__tool--routes { color: #2457d6; }
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__tool { background: #fff; box-shadow: 0 1px 4px rgba(15, 23, 42, .25); }
 .route-dock__tool:focus-visible { outline: 2px solid #2457d6; outline-offset: 2px; }
 @media (hover: hover) { .route-dock__tool:hover { background: #eef3fc; } }
-/* 700px 이하(카드 약 196px): 주행·일시정지 펼침 「LED+rpm · ⚙/INT · ⏸ · ⏹」이 카드 안에 들도록 간격만 줄인다. */
 @media (max-width: 700px) {
   .route-dock__head .hud-cadence--dock, .route-dock__head .hud-cadence--dock:hover { padding: 0; gap: 2px; }
   .route-dock-anchor--open .route-dock__head--active .hud-cadence--dock { font-size: 11px; }
-  /* 10-30 Chief: 26×30 이면 접힘의 흰 원이 타원으로 찌그러진다 — 정원 26px, 톱니 20px. */
-  .route-dock__tool { flex-basis: 26px; width: 26px; height: 26px; }
-  .route-dock__tool svg { width: 20px; height: 20px; }
-  .route-dock-anchor .ride-control-bar { gap: 4px; min-width: 0; }
-  .route-dock-anchor--open .route-dock__head--active:has(:is(.route-dock__interval, .route-dock__tool)) { gap: 2px; }
-  .route-dock__head--active .route-dock__interval { flex-basis: 26px; width: 26px; }
-}
-.route-dock-anchor .ride-control-bar__resume { right: 0; left: auto; }
-.route-dock-anchor .ride-control-bar { min-width: 70px; min-height: 32px; }
-.route-dock-anchor .ride-media-button { flex-basis: var(--dock-media-size); width: var(--dock-media-size); height: var(--dock-media-size); min-height: var(--dock-media-size); }
-.route-dock-anchor .ride-media-button__icon { width: 13px; height: 14px; }
-.route-dock-anchor .ride-media-button--pause .ride-media-button__icon { width: 13px; }
-.route-dock-anchor .ride-media-button--stop .ride-media-button__icon { width: 12px; height: 12px; }
-.route-dock-anchor .ride-control-bar__resume-trigger { position: absolute; right: 0; bottom: calc(100% + 4px); background: #fff; }
-.route-dock-anchor .ride-control-bar > button[aria-label="일시정지 옵션"] { position: absolute; right: 0; bottom: calc(100% + 4px); background: #fff; }
-
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__head {
-  padding: 0;
-  margin: 0;
-  min-height: 28px;
-  gap: 32px;
 }
 
 /*
- * Chief 11-02 D1·D2(A안): 접힌 버튼 줄 = LED · INT/⚙ · ⏸/▶ · ⏹ · 미니맵, 모두 64px(종전 26~32px의 2배)·간격 8px.
- * 펼친 흰 카드 안 머리줄은 그대로. 미니맵 접기는 미니맵 위 28px 버튼 대신 이 줄 끝 버튼.
- * 낮은 폰은 줄이 화면 가운데 높이까지 올라와 표고 그래프 왼쪽 위를 덮는다(A안, 4단계 자동 숨김 전제).
+ * Chief 11-02 v4: 접힌 줄 = LED(경로 펼치기) · 미니맵, 64px·간격 8px. INT·⚙·지도 핀·주행 버튼은 오른쪽 묶음·왼쪽 메뉴로 갔다.
  */
-.route-dock-anchor:not(.route-dock-anchor--open) { --dock-media-size: 64px; }
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card,
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card:has(.ride-control-anchor) { width: max-content; height: 64px; min-width: 64px; gap: 8px; }
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__head,
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__head:has(:is(.route-dock__interval, .route-dock__tool)) { gap: 8px; min-height: 64px; }
-.route-dock-anchor:not(.route-dock-anchor--open) .ride-control-bar { gap: 8px; min-height: 64px; }
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__head { padding: 0; margin: 0; gap: 8px; min-height: 64px; }
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card { width: max-content; height: 64px; min-width: 64px; gap: 8px; }
 .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__led-toggle { width: 64px; height: 64px; min-width: 64px; min-height: 64px; }
 .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__led { width: 32px; height: 32px; }
-.route-dock-anchor:not(.route-dock-anchor--open) :is(.route-dock__tool, .route-dock__interval) {
-  flex: 0 0 64px; width: 64px; height: 64px; border-radius: 50%;
-}
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__tool { flex: 0 0 64px; width: 64px; height: 64px; }
 .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__tool svg { width: 38px; height: 38px; }
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__interval { font-size: 18px; box-shadow: 0 1px 4px rgba(15, 23, 42, .25); }
-.route-dock-anchor:not(.route-dock-anchor--open) .ride-media-button__icon { width: 24px; height: 26px; }
-.route-dock-anchor:not(.route-dock-anchor--open) .ride-media-button--pause .ride-media-button__icon { width: 24px; }
-.route-dock-anchor:not(.route-dock-anchor--open) .ride-media-button--stop .ride-media-button__icon { width: 22px; height: 22px; }
-/* 도구 | 주행 버튼 | 미니맵 세 묶음 — 묶음 사이는 고정46의 간격(26px)을 더한다. */
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__tool--minimap { margin-left: 26px; }
 .route-dock__tool--minimap { color: #5e6472; }
 .route-dock__tool--minimap[aria-expanded="true"] { color: #2457d6; }

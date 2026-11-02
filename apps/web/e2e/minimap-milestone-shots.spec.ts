@@ -124,7 +124,9 @@ async function seedInProgressRoute(uid: string, routeId: string): Promise<void> 
 
 async function loadSavedRouteFromMenu(page: Page, routeName: string) {
   // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀(「경로 목록」) — 「내 경로」부터 연다.
-  await page.getByRole("button", { name: "경로 목록", exact: true }).click();
+  // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+  await page.getByRole("button", { name: "메뉴 열기", exact: true }).click();
+  await page.locator("#menu-panel").getByRole("button", { name: "경로 목록", exact: true }).click();
   const row = page.getByText(routeName, { exact: false }).first();
   await expect(row).toBeVisible({ timeout: 15_000 });
   await row.click();
@@ -167,7 +169,9 @@ async function armRideInput(page: Page, speedKmh: number) {
 
 async function loadIntroCourse(page: Page) {
   // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀 → 「내 경로」 창 → 출처 「입문」.
-  await page.getByRole("button", { name: "경로 목록", exact: true }).click();
+  // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+  await page.getByRole("button", { name: "메뉴 열기", exact: true }).click();
+  await page.locator("#menu-panel").getByRole("button", { name: "경로 목록", exact: true }).click();
   await page.getByRole("navigation", { name: "경로 출처" }).getByRole("button", { name: "입문", exact: true }).click();
   const modal = page.getByRole("dialog").filter({ has: page.locator("#oc-modal-title") });
   await expect(modal).toBeVisible({ timeout: 15_000 });

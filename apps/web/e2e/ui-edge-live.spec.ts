@@ -49,7 +49,9 @@ test('실제 지도 800×360: 에지 열기·상단 지표·조밀한 도크·�
   // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀(「경로 목록」) — 「내 경로」부터 연다.
   await page.keyboard.press('Escape');
   await expect(menu).toBeHidden();
-  await page.getByRole('button', { name: '경로 목록', exact: true }).click();
+  // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+  await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+  await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click();
   await page.getByRole('navigation', { name: '경로 출처' }).getByRole('button', { name: '입문', exact: true }).click();
   const routes = page.getByRole('dialog').filter({ has: page.locator('#oc-modal-title') });
   await expect(routes).toBeVisible();

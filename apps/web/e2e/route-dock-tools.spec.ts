@@ -1,78 +1,87 @@
 import { expect, test, type Page } from '@playwright/test';
 
-// 10-30 Chief — RouteDock 도구줄.
-// 주행 전: [센서 LED] INT · 지도 핀(경로 목록) · ⚙(주행 설정) · ▶ / 주행 중: [센서 LED+rpm] ⚙ · ⏸ · ⏹ (⚙ 가 INT 자리).
-// 일시정지: ⚙ 자리에 INT — 인터벌은 멈춘 뒤에만 바꾼다(주행 중 변경 불가는 Chief 의도).
-// 센서 칩은 「센서」 글자·테두리 없이 LED 원만(7px 의 세 배 = 21px). 왼쪽 메뉴는 Trail 전용.
+// Chief 11-02 v4 — 오른쪽 아래 2열 4줄 묶음(칸마다 한 기능, 없는 기능의 칸은 비움)과 왼쪽 메뉴 머리줄.
+//   1-1 카메라 | 1-2 지도 스타일 / 2-1 ＋ | 2-2 － / 3-1 INT | 3-2 순위 / 4-1 ⏹ | 4-2 ⏸·▶
+// INT 는 주행 중엔 없다(10-30 결정, 일시정지에서). 지도 핀(경로 목록)·⚙(주행 설정)은 메뉴 머리줄, 핀은 주행 전만.
+// RouteDock 머리줄엔 센서 LED·접기만 남는다(종전 10-30 도구줄은 이 묶음·메뉴로 옮김).
 const preview = '/scripts/ui-800x360/preview.html';
 const sizes = [{ width: 800, height: 360 }, { width: 699, height: 273 }, { width: 667, height: 300 }];
 
-async function headOrder(page: Page) {
-  return page.locator('.route-dock__head').evaluate((head) =>
-    [...head.querySelectorAll('button')]
-      .filter((b) => b.getBoundingClientRect().width > 0 && !b.closest('.ride-control-bar__resume, [aria-label="일시정지 옵션"]'))
-      .sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left)
-      .map((b) => b.getAttribute('aria-label') ?? ''),
-  );
+const CELLS: [RegExp, number, number][] = [
+  [/^카메라 메뉴/, 0, 0], [/^맵 스타일/, 1, 0],
+  [/^줌 확대$/, 0, 1], [/^줌 축소$/, 1, 1],
+  [/^인터벌 운동 설정$/, 0, 2], [/^순위 (열기|닫기)$/, 1, 2],
+  [/^주행 종료$/, 0, 3], [/^(주행 시작|일시정지|재개)$/, 1, 3],
+];
+
+async function railCells(page: Page) {
+  // 배치 좌표(offset*)로 잰다 — ▶ 펄스(scale)가 화면 상자를 흔들어도 칸은 그대로다.
+  return page.locator('.map-hud__rail').evaluate((rail) =>
+    [...rail.querySelectorAll<HTMLElement>('button')]
+      .filter((b) => b.offsetWidth > 0 && !b.matches('.ride-control-bar__more, .ride-control-bar__resume-trigger'))
+      .map((b) => ({
+        name: b.getAttribute('aria-label') ?? '', parent: b.offsetParent === rail,
+        x: b.offsetLeft, y: b.offsetTop, w: b.offsetWidth, h: b.offsetHeight, radius: getComputedStyle(b).borderTopLeftRadius,
+      })));
 }
 
-async function expectInsideCard(page: Page, label: string) {
-  const r = await page.locator('.route-dock__card').evaluate((card) => {
-    const c = card.getBoundingClientRect();
-    const open = Boolean(card.closest('.route-dock-anchor--open'));
-    const btns = [...card.querySelectorAll('.route-dock__head button')].map((b) => b.getBoundingClientRect()).filter((b) => b.width > 0);
-    let overlap = false;
-    for (let i = 0; i < btns.length; i += 1) for (let j = i + 1; j < btns.length; j += 1) {
-      const a = btns[i]!, b = btns[j]!;
-      if (a.left < b.right - 0.5 && a.right > b.left + 0.5 && a.top < b.bottom - 0.5 && a.bottom > b.top + 0.5) overlap = true;
-    }
-    return { overlap, outside: open && btns.some((b) => b.right > c.right + 0.5 || b.left < c.left - 0.5) };
-  });
-  expect(r, label).toEqual({ overlap: false, outside: false });
-}
-
-test('주행 전 INT·핀·⚙·주행 시작 순서, 주행 중엔 ⚙·일시정지엔 INT 가 그 자리 — 접힘·펼침 모두', async ({ page }) => {
+test('오른쪽 2열 4줄: 기능마다 정해진 칸·흰 원·같은 크기, 상태별로 빈 칸', async ({ page }) => {
   for (const size of sizes) {
     await page.setViewportSize(size);
-    for (const state of ['idle', 'setup', 'ready', 'riding', 'paused'] as const) {
+    for (const state of ['ready', 'riding', 'paused'] as const) {
       await page.goto(`${preview}?state=${state}`);
-      for (let pass = 0; pass < 2; pass += 1) {
-        const label = `${size.width} ${state} ${pass}`;
-        const order = (await headOrder(page)).filter((name) => !/^경로 패널|^케이던스 센서/.test(name));
-        if (state === 'riding') {
-          expect(order[0], label).toBe('주행 설정');
-          expect(order, label).not.toContain('인터벌 운동 설정');
-          expect(order, label).not.toContain('경로 목록');
-        } else if (state === 'paused') {
-          // Chief 11-02: 접힌 64px 줄엔 INT 다음 ⚙ 도(낮은 폰 지도 스타일이 주행 설정 창에 있다). 펼친 카드는 폭이 모자라 INT 만.
-          expect(order[0], label).toBe('인터벌 운동 설정');
-          const open = await page.locator('.route-dock-anchor--open').count();
-          if (open) expect(order, label).not.toContain('주행 설정');
-          else expect(order[1], label).toBe('주행 설정');
-          expect(order, label).not.toContain('경로 목록');
-        } else {
-          expect(order.slice(0, 3), label).toEqual(['인터벌 운동 설정', '경로 목록', '주행 설정']);
-          if (state === 'ready') expect(order[3], label).toBe('주행 시작');
-        }
-        await expectInsideCard(page, label);
-        const toggle = page.getByRole('button', { name: /^경로 패널 (펼치기|접기)$/ });
-        if (!(await toggle.count())) break;
-        await toggle.click();
+      const label = `${size.width} ${state}`;
+      const cells = await railCells(page);
+      const s = cells[0]!.w;
+      expect(s, label).toBeGreaterThanOrEqual(44);
+      expect(s, label).toBeLessThanOrEqual(64);
+      const gap = size.height >= 312 ? 8 : 6;
+      for (const c of cells) {
+        const rule = CELLS.find(([re]) => re.test(c.name));
+        expect(rule, `${label} ${c.name}`).toBeTruthy();
+        const [, col, row] = rule!;
+        expect(c.parent, `${label} ${c.name} 칸 기준`).toBe(true);
+        // 칸 크기가 소수(699 높이 ≈50.6px)라 offset 반올림 1px 은 허용한다.
+        expect(Math.abs(c.x - col * (s + gap)), `${label} ${c.name} x`).toBeLessThanOrEqual(1.5);
+        expect(Math.abs(c.y - row * (s + gap)), `${label} ${c.name} y`).toBeLessThanOrEqual(1.5);
+        expect(c.w, `${label} ${c.name}`).toBeCloseTo(s, 0);
+        expect(c.h, `${label} ${c.name}`).toBeCloseTo(s, 0);
+        expect(c.radius, `${label} ${c.name}`).toMatch(/^(50%|\d{2,}px)$/);
       }
+      const names = cells.map((c) => c.name);
+      const has = (re: RegExp) => names.some((n) => re.test(n));
+      expect(has(/^줌 확대$/) && has(/^줌 축소$/) && has(/^맵 스타일/) && has(/^순위/), label).toBe(true);
+      if (state === 'ready') {
+        expect(names, label).toContain('주행 시작');
+        expect(names, label).toContain('인터벌 운동 설정');
+        expect(has(/^카메라 메뉴/) || names.includes('주행 종료'), label).toBe(false);
+      } else if (state === 'riding') {
+        expect(names, label).toEqual(expect.arrayContaining(['일시정지', '주행 종료']));
+        expect(has(/^카메라 메뉴/), label).toBe(true);
+        expect(names, label).not.toContain('인터벌 운동 설정');
+      } else {
+        expect(names.length, label).toBe(8);
+        expect(names, label).toContain('재개');
+      }
+      // RouteDock 머리줄엔 옮긴 버튼이 없다.
+      const dock = await page.locator('.route-dock__head').evaluate((h) => [...h.querySelectorAll('button')].map((b) => b.getAttribute('aria-label') ?? ''));
+      for (const gone of ['인터벌 운동 설정', '경로 목록', '주행 설정', '주행 시작', '일시정지', '재개', '주행 종료']) expect(dock, `${label} dock`).not.toContain(gone);
     }
   }
 });
 
-// 10-30 Chief: 폰 가로에서 26×30 이면 접힘의 흰 원이 타원으로 찌그러졌다 — 도구 버튼은 어느 크기에서나 정원.
-test('지도 핀·⚙ 도구 버튼은 접힘·펼침 모두 정원(폭=높이)', async ({ page }) => {
+test('묶음은 오른쪽 위 계정 버튼 아래, 오른쪽 아래 끝 8px', async ({ page }) => {
   for (const size of sizes) {
     await page.setViewportSize(size);
-    await page.goto(`${preview}?state=ready`);
-    for (let pass = 0; pass < 2; pass += 1) {
-      const boxes = await page.locator('.route-dock__tool').evaluateAll((els) => els.map((el) => { const r = el.getBoundingClientRect(); return { w: r.width, h: r.height }; }));
-      expect(boxes.length, `${size.width} ${pass}`).toBeGreaterThan(0);
-      for (const b of boxes) expect(b.h, `${size.width} ${pass}`).toBeCloseTo(b.w, 1);
-      await page.getByRole('button', { name: /^경로 패널 (펼치기|접기)$/ }).click();
+    for (const state of ['ready', 'riding'] as const) {
+      await page.goto(`${preview}?state=${state}`);
+      const label = `${size.width} ${state}`;
+      const rail = (await page.locator('.map-hud__rail').boundingBox())!;
+      const acct = (await page.locator('.hud-account').boundingBox())!;
+      expect(Math.round(size.width - rail.x - rail.width), label).toBe(8);
+      expect(Math.round(size.height - rail.y - rail.height), label).toBe(8);
+      // 계정은 주행 중에도 보인다(Chief 11-02 v4).
+      expect(rail.y, label).toBeGreaterThanOrEqual(acct.y + acct.height);
     }
   }
 });
@@ -115,21 +124,22 @@ test('센서 칩은 글자·테두리 없이 21px LED, 주행 중 rpm 은 남는
   await expect(page.locator('.route-dock__head .hud-cadence--dock .hud-cadence__text')).toContainText('rpm');
 });
 
-test('지도 핀은 「내 경로」 창, ⚙ 는 주행 설정 창을 연다 · 왼쪽 메뉴엔 경로 선택·주행 설정 없음', async ({ page }) => {
+test('메뉴 머리줄: 지도 핀은 「내 경로」 창(주행 전만), ⚙ 는 주행 설정 창', async ({ page }) => {
   await page.goto(`${preview}?state=idle`);
-  await page.getByRole('button', { name: '경로 목록', exact: true }).click();
+  await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+  const menu = page.locator('#menu-panel');
+  await menu.getByRole('button', { name: '경로 목록', exact: true }).click();
   await expect(page.getByRole('dialog', { name: '내 경로', exact: true })).toBeVisible();
   await expect(page.locator('.oc-modal__sources button[aria-pressed=true]')).toHaveText('내 경로');
   await page.locator('.oc-modal__close').click();
-  await page.getByRole('button', { name: '주행 설정', exact: true }).click();
+  await menu.getByRole('button', { name: '주행 설정', exact: true }).click();
   await expect(page.getByRole('dialog', { name: '주행 설정', exact: true })).toBeVisible();
   await page.goto(`${preview}?state=riding`);
-  await page.getByRole('button', { name: '주행 설정', exact: true }).click();
+  await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+  await expect(menu.getByRole('button', { name: '경로 목록', exact: true })).toHaveCount(0);
+  await menu.getByRole('button', { name: '주행 설정', exact: true }).click();
   await expect(page.getByRole('dialog', { name: '주행 설정', exact: true })).toBeVisible();
   await page.goto(`${preview}?state=menu`);
-  const menu = page.getByRole('dialog', { name: '메뉴', exact: true });
-  await expect(menu).toBeVisible();
   await expect(menu.getByRole('group', { name: '경로 목록 열기' })).toHaveCount(0);
-  await expect(menu.getByRole('button', { name: '주행 설정', exact: true })).toHaveCount(0);
   await expect(menu.getByRole('button', { name: '인터벌', exact: true })).toHaveCount(0);
 });

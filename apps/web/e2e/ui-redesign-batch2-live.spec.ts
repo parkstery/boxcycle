@@ -20,7 +20,9 @@ test('실제 App의 대기·주행·일시정지와 센서 접근·카메라 연
   await sheet.getByRole('button',{name:'센서 없음',exact:true}).click();
   await sheet.getByRole('button',{name:'센서 설정 닫기'}).click();
   // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀 → 「내 경로」 창 → 출처 「입문」.
-  await page.getByRole('button', { name: '경로 목록', exact: true }).click();
+  // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+  await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+  await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click();
   await page.getByRole('navigation', { name: '경로 출처' }).getByRole('button', { name: '입문', exact: true }).click();
   await page.locator('button.oc-modal__item').nth(3).click();
   const start=page.getByRole('button',{name:'주행 시작',exact:true});

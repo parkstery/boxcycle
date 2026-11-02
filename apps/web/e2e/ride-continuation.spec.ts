@@ -241,7 +241,9 @@ async function seedLegacyRide(uid: string, rideId: string): Promise<void> {
 /** RouteDock 지도 핀 → 「내 경로」 창에서 fixture 를 불러온다(카드가 없는 최초 진입용 경로) */
 async function loadSavedRouteFromMenu(page: Page, routeName: string, action: '열기' | '이어 달리기' = '열기') {
   // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀(「경로 목록」) — 「내 경로」부터 연다.
-  await page.getByRole('button', { name: '경로 목록', exact: true }).click()
+  // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+  await page.getByRole('button', { name: '메뉴 열기', exact: true }).click()
+  await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click()
   const modal = page.getByRole('dialog', { name: '내 경로', exact: true })
   const row = modal.getByRole('option').filter({ hasText: routeName })
   await expect(row).toBeVisible({ timeout: 15_000 })
@@ -547,7 +549,9 @@ test.describe('다음 주행 · 이어 달리기', () => {
 
     // 입문 코스는 SavedRoute 가 아니다 → 종료 시 ad-hoc 컨텍스트가 된다
     // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀 → 「내 경로」 창 → 출처 「입문」.
-    await page.getByRole('button', { name: '경로 목록', exact: true }).click()
+    // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+    await page.getByRole('button', { name: '메뉴 열기', exact: true }).click()
+    await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click()
     await page.getByRole('navigation', { name: '경로 출처' }).getByRole('button', { name: '입문', exact: true }).click()
     const modal = page.getByRole('dialog').filter({ has: page.locator('#oc-modal-title') })
     await expect(modal).toBeVisible()

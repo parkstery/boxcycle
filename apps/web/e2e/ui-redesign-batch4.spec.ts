@@ -185,7 +185,9 @@ test('주행 설정은 switch 만 — 칼로리·프로필 수정 없음(Chief 1
   await expect(interval).toBeChecked();
   await page.getByRole('button', { name: '인터벌 운동 설정 닫기', exact: true }).click();
   // 10-30 Chief: 주행 설정은 메뉴 행이 아니라 RouteDock ⚙ 에서 연다.
-  await page.getByRole('button', { name: '주행 설정', exact: true }).click();
+  // Chief 11-02 v4: 주행 설정은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+  await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+  await page.locator('#menu-panel').getByRole('button', { name: '주행 설정', exact: true }).click();
   await settings.getByRole('switch', { name: '코칭 문구' }).click();
   await settings.getByRole('switch', { name: '음성 안내' }).click();
   await settings.getByRole('switch', { name: '배경 음악' }).click();

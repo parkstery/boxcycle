@@ -115,6 +115,8 @@
   margin-left: 2px;
 }
 
+.menu-panel__routes { color: #2457d6; }
+
 .menu-panel__close {
   background: #f2f3f5;
   color: #2a2e37;

@@ -32,7 +32,9 @@ test('실제 App에서 MENU와 세 경로 출처를 열고 캡처한다', async 
   await page.keyboard.press('Escape');
   await expect(menu).toBeHidden();
 
-  await page.getByRole('button', { name: '경로 목록', exact: true }).click();
+  // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+  await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+  await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click();
   await expect(page.getByRole('dialog', { name: '내 경로', exact: true })).toBeVisible();
   await page.getByRole('navigation', { name: '경로 출처' }).getByRole('button', { name: '입문', exact: true }).click();
   const intro = page.getByRole('dialog', { name: '입문 경로', exact: true });

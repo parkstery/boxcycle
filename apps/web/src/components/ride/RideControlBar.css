@@ -54,7 +54,7 @@
 .ride-control-bar__resume label { display: flex; align-items: center; gap: 4px; min-height: 24px; }
 .ride-control-bar__resume button { font: inherit; padding: 4px 7px; }
 .ride-control-bar__resume-close { align-self: flex-end; }
-/* Next-ride is idle-only. Keep its card above the sensor-only bar, never behind it. */
-.app-shell--map-first:has(.ride-control-anchor--with-next) .next-ride-anchor {
-  bottom: calc(max(clamp(.45rem, 1.4vw, .85rem), env(safe-area-inset-bottom, 0px)) + var(--br-clock-above-scale, 26px) + var(--br-clock-height, 16px) + 42px);
+/* 「다음 주행」 카드(대기 화면 전용)는 오른쪽 아래 2열 묶음(MapRail.css) 왼쪽에 선다. */
+.app-shell--map-first:has(.map-hud__rail) .next-ride-anchor {
+  right: calc(env(safe-area-inset-right, 0px) + 16px + var(--rail-width));
 }

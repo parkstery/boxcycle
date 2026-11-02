@@ -151,11 +151,11 @@ export const ENTRY_STEPS = [
   },
   {
     step: "interval-dock-settings",
-    desc: "펼친 RouteDock 센서 오른쪽에서 인터벌 운동 설정을 연다.",
-    file: "src/components/route-dock/RouteDock.tsx",
+    desc: "오른쪽 2열 4줄 묶음 3-1 칸 「INT」에서 인터벌 운동 설정을 연다(Chief 11-02 v4: RouteDock 에서 이동, 주행 중엔 없음).",
+    file: "src/components/maphud/MapHud.tsx",
     anchors: [
       { name: "인터벌 설정 버튼", re: /aria-label="인터벌 운동 설정"/ },
-      { name: "인터벌 설정 콜백", re: /onClick=\{onOpenIntervalSettings\}/ },
+      { name: "인터벌 설정 콜백", re: /onClick=\{controlGroup\.interval\.onOpen\}/ },
     ],
     selector: `getByRole('button',{name:'인터벌 운동 설정',exact:true})`,
   },
@@ -257,8 +257,8 @@ export const ENTRY_STEPS = [
   },
   {
     step: "open-basic-courses",
-    desc: "RouteDock 지도 핀(「경로 목록」) → 「내 경로」 창 → 출처 탭 「입문」(10-30 Chief: 메뉴의 경로 선택 제거)",
-    file: "src/components/route-dock/RouteDock.tsx",
+    desc: "왼쪽 메뉴 머리줄 지도 핀(「경로 목록」) → 「내 경로」 창 → 출처 탭 「입문」(Chief 11-02 v4: RouteDock 에서 메뉴 머리줄로, 주행 전만)",
+    file: "src/components/MenuPanel.tsx",
     anchors: [
       { name: "지도 핀 접근성 이름", re: /aria-label="경로 목록"/ },
       { name: "지도 핀 콜백", re: /onClick=\{onOpenRouteList\}/ },
@@ -273,10 +273,10 @@ export const ENTRY_STEPS = [
       },
       {
         file: "src/App.tsx",
-        anchors: [{ name: "핀 → 내 경로 창", re: /onOpenRouteList=\{\(\) => setReopenSavedNonce\(/ }],
+        anchors: [{ name: "핀 → 내 경로 창", re: /onOpenRouteList=\{[^\n]*\(\) => setReopenSavedNonce\(/ }],
       },
     ],
-    selector: `getByRole('button',{name:'경로 목록',exact:true}) → getByRole('navigation',{name:'경로 출처'}).getByRole('button',{name:'입문',exact:true})`,
+    selector: `getByRole('button',{name:'메뉴 열기',exact:true}) → locator('#menu-panel').getByRole('button',{name:'경로 목록',exact:true}) → getByRole('navigation',{name:'경로 출처'}).getByRole('button',{name:'입문',exact:true})`,
   },
   {
     step: "course-modal",

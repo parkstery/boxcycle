@@ -64,7 +64,9 @@ describe("센서 단일 위치 — RouteDock", () => {
     const stack = app.slice(start, end);
     assert.match(stack, /\{routeDockPanel\}/);
     assert.doesNotMatch(stack, /rideControlPanel|nextRideCard/);
-    assert.match(app, /\{rideControlPanel\}/);
+    // Chief 11-02 v4: 주행 버튼은 오른쪽 2열 묶음(MapHud controlGroup)의 4-1·4-2 칸 — RouteDock 안이 아니다.
+    assert.match(app, /transport: rideControlPanel/);
+    assert.doesNotMatch(app, /rideControls=\{rideControlPanel\}/);
     assert.match(app, /\{nextRideCard\}/);
   });
 });

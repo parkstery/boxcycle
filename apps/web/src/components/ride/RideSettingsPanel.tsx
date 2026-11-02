@@ -15,8 +15,6 @@ export type RideSettingsPanelProps = {
   embedded?: boolean;
   rideMomentSoundEnabled?: boolean;
   onRideMomentSoundEnabled?: (enabled: boolean) => void;
-  /** 낮은 폰 주행 중엔 오른쪽 조작 레일에서 빠지는 지도 스타일 전환(Chief 11-02). CSS 가 그때만 보인다. */
-  mapStyle?: { styleLabel: string; styleAriaLabel: string; styleToggleDisabled?: boolean; onToggleStyle: () => void };
 };
 
 type ToggleCell = {
@@ -57,14 +55,6 @@ export function RideSettingsPanel(props: RideSettingsPanelProps) {
               onChange={event => toggle.change(event.target.checked)}
             />
           </label>
-        ) : props.mapStyle ? (
-          <div key="map-style" className="ride-settings-panel__choice ride-settings-panel__map-style">
-            <span className="ride-settings-panel__copy"><span>지도 스타일</span></span>
-            <button type="button" className="ride-settings-panel__map-style-btn" aria-label={props.mapStyle.styleAriaLabel}
-              title={props.mapStyle.styleAriaLabel} disabled={props.mapStyle.styleToggleDisabled} onClick={props.mapStyle.onToggleStyle}>
-              {props.mapStyle.styleLabel}
-            </button>
-          </div>
         ) : <span key={`empty-${index}`} className="ride-settings-panel__choice-spacer" aria-hidden />)}
       </div>
       {props.rideElevationProfileLoading ? <p className="ride-settings-sheet__help">고도 프로필 로드 중…</p> : null}

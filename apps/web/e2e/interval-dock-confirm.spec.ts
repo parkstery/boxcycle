@@ -2,22 +2,18 @@ import { expect, test } from '@playwright/test';
 
 test.use({ reducedMotion: 'reduce' });
 for (const viewport of [{width:800,height:360},{width:736,height:300},{width:699,height:273},{width:667,height:300}]) {
-  test(`센서 옆 운동 설정과 경고창 ${viewport.width}×${viewport.height}`, async ({page}) => {
+  // Chief 11-02 v4: INT 는 오른쪽 2열 묶음 3-1, ▶ 는 4-2 — ▶ 는 INT 다음 줄 오른쪽 칸.
+  test(`INT 칸과 경고창 ${viewport.width}×${viewport.height}`, async ({page}) => {
     await page.setViewportSize(viewport);
     await page.goto('/scripts/ui-800x360/preview.html?state=ready&shortIntervalRoute');
-    const dock = page.locator('.route-dock__card');
-    const interval = dock.getByRole('button',{name:'인터벌 운동 설정',exact:true});
+    const rail = page.locator('.map-hud__rail');
+    const interval = rail.getByRole('button',{name:'인터벌 운동 설정',exact:true});
     await expect(interval).toHaveText('INT');
-    const sensor = dock.getByRole('button',{name:/^케이던스 센서:/});
-    const start = dock.getByRole('button',{name:'주행 시작',exact:true});
-    const boxes = await Promise.all([sensor.boundingBox(),interval.boundingBox(),start.boundingBox(),dock.boundingBox(),dock.getByRole('button',{name:'경로 패널 접기'}).boundingBox()]);
-    const [s,i,b,d,fold] = boxes;
-    expect(s && i && b && d).toBeTruthy();
-    expect(s!.x-(fold!.x+fold!.width)).toBeGreaterThanOrEqual(3);
-    expect(i!.x-(s!.x+s!.width)).toBeGreaterThanOrEqual(3);
-    expect(b!.x).toBeGreaterThanOrEqual(i!.x+i!.width);
-    expect(Math.abs((s!.y+s!.height/2)-(i!.y+i!.height/2))).toBeLessThan(1);
-    expect(b!.x+b!.width).toBeLessThanOrEqual(d!.x+d!.width);
+    const start = rail.getByRole('button',{name:'주행 시작',exact:true});
+    const cell = (el: Element) => [(el as HTMLElement).offsetLeft, (el as HTMLElement).offsetTop, (el as HTMLElement).offsetWidth];
+    const [i, b] = await Promise.all([interval.evaluate(cell), start.evaluate(cell)]);
+    expect(b[0]).toBeGreaterThan(i[0] + i[2] - 1);
+    expect(b[1]).toBeGreaterThan(i[1]);
     await interval.click();
     await expect(page.getByRole('dialog',{name:'인터벌 운동 설정'})).toBeVisible();
     await page.getByRole('button',{name:'인터벌 운동 설정 닫기'}).click();

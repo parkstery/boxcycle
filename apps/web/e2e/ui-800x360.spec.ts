@@ -44,7 +44,7 @@ test('800×360 준비·주행의 지표가 읽히고 계정/카메라와 겹치�
   }
 });
 
-// Chief 11-02 레일: 대기 화면은 계정(서비스 기능)이 위 구석, 지도 조작은 그 아래 8px 간격 레일. 주행 중엔 계정 없음.
+// Chief 11-02 v4: 계정(서비스 기능)은 오른쪽 위 구석(주행 중에도), 지도 조작은 그 아래 오른쪽 2열 묶음 — 8px 이상 떨어진다.
 test('Chief 고정30 — 우상단 지도 조작과 서비스 기능은 간격으로 구획된다', async ({ page }) => {
   for (const size of [{ width: 800, height: 360 }, { width: 667, height: 300 }]) {
     await page.setViewportSize(size);
@@ -55,7 +55,8 @@ test('Chief 고정30 — 우상단 지도 조작과 서비스 기능은 간격�
     await expect(serviceActions).toBeVisible();
     const layout = await page.evaluate(() => {
       const rect = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
-      const map = rect('.hud-ride-map-controls');
+      // 지도 조작 상자는 칸 배치에서 빠지므로(display: contents) 묶음 상자로 잰다.
+      const map = rect('.map-hud__rail');
       const service = rect('.map-hud__service-actions');
       const children = [...document.querySelectorAll('.map-hud__service-actions > *')].map((el) => el.getBoundingClientRect());
       const inside = [map, service, ...children].every((box) =>
@@ -64,13 +65,14 @@ test('Chief 고정30 — 우상단 지도 조작과 서비스 기능은 간격�
       const childrenInsideGroup = children.every((box) =>
         box.left >= service.left && box.right <= service.right && box.top >= service.top && box.bottom <= service.bottom,
       );
-      return { gap: map.top - service.bottom, inside, childrenInsideGroup };
+      return { gap: map.top - service.bottom >= 8, inside, childrenInsideGroup };
     });
-    expect(layout).toEqual({ gap: 8, inside: true, childrenInsideGroup: true });
+    expect(layout).toEqual({ gap: true, inside: true, childrenInsideGroup: true });
   }
   await page.goto(`${preview}?state=glance-riding`);
   await expect(page.getByRole('group', { name: '맵 제어' })).toBeVisible();
-  await expect(page.getByRole('group', { name: '서비스 기능' })).toHaveCount(0);
+  // Chief 11-02 v4: 계정은 주행 중에도 오른쪽 위 구석에 남는다(순위 목록 아래에 깔림).
+  await expect(page.getByRole('group', { name: '서비스 기능' })).toBeVisible();
 });
 
 test('Chief 고정27 — 단일 카메라 메뉴, 1열 62px 우측 정렬, 2~6 파란 화살표 세로', async ({ page }) => {
@@ -389,10 +391,13 @@ test('빈 가장자리 드래그 취소·화면 크기 변경 후에도 중앙 �
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
-test('경로 모달에서 세 출처를 전환해도 목록은 하나이며 닫으면 지도로 돌아온다', async ({page})=>{
+// Chief 11-02 v4: 경로 목록은 메뉴 머리줄에서 열므로 닫으면 메뉴로 돌아온다.
+test('경로 모달에서 세 출처를 전환해도 목록은 하나이며 닫으면 메뉴로 돌아온다', async ({page})=>{
   // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀(「경로 목록」) — 「내 경로」부터 연다.
   await page.goto(`${preview}?state=ready`);
-  await page.getByRole('button',{name:'경로 목록',exact:true}).click();
+  // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+  await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+  await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click();
   const savedDefault=page.getByRole('dialog',{name:'내 경로',exact:true});
   await expect(savedDefault).toBeVisible();
   const sourceButtons=savedDefault.getByRole('navigation',{name:'경로 출처'}).getByRole('button');
@@ -410,7 +415,8 @@ test('경로 모달에서 세 출처를 전환해도 목록은 하나이며 닫�
   await expect(page.getByRole('dialog',{name:'퍼블릭 경로',exact:true})).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(saved).toHaveCount(0);
-  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('dialog')).toHaveCount(1);
+  await expect(page.getByRole('dialog',{name:'메뉴',exact:true})).toBeVisible();
 });
 
 // Chief 지정 — 바꾸려면 Chief 지시와 document/reference/product/261024-RTW-Chief-지정-디자인-고정.md 갱신 필요
@@ -433,7 +439,8 @@ test.describe('Chief 고정 — 261024 목록 1~4', () => {
       expect(startBg).toContain(greenBottom);
 
       await page.goto(`${preview}?state=glance-ready`);
-      const rank = page.getByRole('button', { name: '순위 열기', exact: true });
+      // Chief 11-02 v4: 순위 버튼은 오른쪽 묶음 3-2 칸, 목록이 열려 있으면 「순위 닫기」.
+      const rank = page.getByRole('button', { name: /^순위 (열기|닫기)$/ });
       await expect(rank).toBeVisible();
       const rankBox = await rank.boundingBox();
       expect(rankBox!.height).toBeGreaterThanOrEqual(44);

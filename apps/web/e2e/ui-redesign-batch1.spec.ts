@@ -104,7 +104,9 @@ for (const size of [{ width: 667, height: 300 }, { width: 800, height: 360 }, { 
     if (size.height >= 360) await expect(menu.locator('.trail-hub__show-list')).toBeInViewport({ ratio: 1 });
     await capture(page, info, `batch1-preview-menu-${size.width}x${size.height}.png`);
     await menu.getByRole('button', { name: '메뉴 닫기', exact: true }).first().click();
-    await page.getByRole('button', { name: '경로 목록', exact: true }).click();
+    // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+    await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+    await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click();
     const sourceNav = page.getByRole('navigation', { name: '경로 출처' });
     await expect(sourceNav.getByRole('button')).toHaveText(['내 경로', '퍼블릭', '입문']);
     await expect(page.getByRole('dialog', { name: '내 경로', exact: true })).toBeVisible();
@@ -209,7 +211,9 @@ test('긴 이름·빈 목록·로딩에도 출처 전환과 닫기가 가능하�
   for (const query of ['?long', '?empty', '?loading']) {
     const menu = await openMenu(page, query);
     await menu.getByRole('button', { name: '메뉴 닫기', exact: true }).first().click();
-    await page.getByRole('button', { name: '경로 목록', exact: true }).click();
+    // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+    await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+    await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click();
     await page.getByRole('navigation', { name: '경로 출처' }).getByRole('button', { name: '퍼블릭', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: '퍼블릭 경로', exact: true });
     await withinViewport(dialog, 667, 300);
@@ -228,25 +232,34 @@ test('긴 이름·빈 목록·로딩에도 출처 전환과 닫기가 가능하�
     }
     await capture(page, info, `batch1-preview-saved-${query.slice(1)}.png`);
     await saved.getByRole('button', { name: '닫기', exact: true }).click();
+    // Chief 11-02 v4: 경로 목록은 메뉴 머리줄에서 열었으므로 닫으면 메뉴로 돌아온다.
+    await expect(saved).toBeHidden();
+    await menu.getByRole('button', { name: '메뉴 닫기', exact: true }).first().click();
     await expect(menu).toBeHidden();
   }
 });
 
 test('행 선택·이어달리기·합류·설정 콜백을 실제 제품 버튼으로 호출한다', async ({ page }) => {
   const menu = await openMenu(page);
-  // 합류는 지도 오른쪽 Trail 탭에서 한다(toolbar-trail-style 「Trail 탭 공유」).
-  await expect(menu.getByRole('button', { name: '주행 설정', exact: true })).toHaveCount(0);
+  // 합류는 지도 오른쪽 Trail 탭에서 한다(toolbar-trail-style 「Trail 탭 공유」). ⚙ 주행 설정은 메뉴 머리줄(Chief 11-02 v4).
+  await expect(menu.locator('.menu-panel__head').getByRole('button', { name: '주행 설정', exact: true })).toHaveCount(1);
   await menu.getByRole('button', { name: '메뉴 닫기', exact: true }).first().click();
-  await page.getByRole('button', { name: '주행 설정', exact: true }).click();
+  // Chief 11-02 v4: 주행 설정은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+  await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+  await page.locator('#menu-panel').getByRole('button', { name: '주행 설정', exact: true }).click();
   const settings = page.getByRole('dialog', { name: '주행 설정', exact: true });
   await expect(settings).toBeVisible();
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: '경로 목록', exact: true }).click();
+  // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+  await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+  await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click();
   await page.getByRole('navigation', { name: '경로 출처' }).getByRole('button', { name: '입문', exact: true }).click();
   await page.getByRole('dialog', { name: '입문 경로', exact: true }).getByRole('button', { name: '입문', exact: true }).click();
   await page.getByRole('dialog', { name: '입문 경로', exact: true }).locator('.oc-modal__item').first().click();
   await expect(page.getByRole('dialog', { name: '입문 경로', exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: '경로 목록', exact: true }).click();
+  // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+  await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+  await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click();
   const saved = page.getByRole('dialog', { name: '내 경로', exact: true });
   await saved.getByRole('listbox', { name: '사용자 경로 목록' }).getByRole('option').filter({ hasText: '한강 이어달리기' }).click();
   await saved.getByRole('button', { name: '이어 달리기', exact: true }).click();
@@ -257,7 +270,9 @@ for (const viewport of [{ width: 667, height: 300 }, { width: 800, height: 360 }
   test(`목록 검수: 실제 개수·조작부 겹침·가림 ${viewport.width}×${viewport.height}`, async ({ page }, info) => {
     await page.setViewportSize(viewport);
     await page.goto(preview + '?long');
-    await page.getByRole('button', { name: '경로 목록', exact: true }).click();
+    // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+    await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+    await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click();
     const saved = page.getByRole('dialog', { name: '내 경로', exact: true });
     await saved.getByRole('listbox').getByRole('option').first().click();
     await saved.locator('.saved-routes__filter-btn').evaluateAll(buttons => {

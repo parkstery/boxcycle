@@ -6,9 +6,8 @@ const preview = '/scripts/ui-800x360/preview.html';
 const evidence = process.env.TOOLBAR_TRAIL_EVIDENCE;
 test.use({ reducedMotion: 'reduce' });
 for (const size of [{width:800,height:360},{width:736,height:300},{width:699,height:273},{width:667,height:300}]) {
-  // Chief 11-02 D1·D2: 오른쪽 조작 레일 — 64px 정사각 구름 세로 한 줄, 화면 끝에서 26px(반달 탭 자리), 간격 8px.
-  // 대기 화면은 계정이 위 구석(고정43)이고 레일은 그 아래 8px 부터.
-  test(`레일 대기·계정 구석·클릭 ${size.width}`, async ({page}) => {
+  // Chief 11-02 v4: 오른쪽 아래 2열 4줄 묶음 — 흰 원(구름 아님), 오른쪽 끝·아래 8px, 계정 버튼(오른쪽 위, 넓은 구름) 아래.
+  test(`묶음 대기·계정 구석·클릭 ${size.width}`, async ({page}) => {
     await page.setViewportSize(size);
     await page.goto(`${preview}?state=ready&long=1`);
     const style = page.locator('.hud-ride-map-controls__style');
@@ -18,33 +17,32 @@ for (const size of [{width:800,height:360},{width:736,height:300},{width:699,hei
     await expect(style).toBeVisible();
     const layout = await page.evaluate(() => ({
       account:document.querySelector('.hud-account')!.getBoundingClientRect().toJSON(),
-      buttons:[...document.querySelectorAll('.map-hud__rail button')].map(el=>el.getBoundingClientRect().toJSON()),
+      rail:document.querySelector('.map-hud__rail')!.getBoundingClientRect().toJSON(),
+      buttons:[...document.querySelectorAll<HTMLElement>('.map-hud__rail button')].map(el=>({w:el.offsetWidth,h:el.offsetHeight})),
     }));
     expect(layout.account.height).toBe(32);
     expect(layout.account.right).toBeCloseTo(size.width,0);
     expect(layout.account.y).toBe(0);
-    expect(layout.buttons).toHaveLength(3);
-    expect(layout.buttons[0].y).toBe(layout.account.bottom+8);
-    layout.buttons.forEach((b,i)=>{
-      expect([b.width,b.height]).toEqual([64,64]);
-      expect(b.right).toBeCloseTo(size.width-26,0);
-      if(i) expect(b.y-layout.buttons[i-1].bottom).toBe(8);
-    });
-    expect(layout.buttons[2].bottom).toBeLessThanOrEqual(size.height);
-    const clouds=await page.evaluate(()=>[...document.querySelectorAll('.hud-ride-map-controls button,.hud-account')].map(el=>({
-      mask:getComputedStyle(el,'::before').maskImage,
+    // 주행 전: 지도 스타일·＋·－·INT·순위·▶ (카메라·⏹ 칸은 빈 칸)
+    expect(layout.buttons).toHaveLength(6);
+    expect(layout.rail.top).toBeGreaterThanOrEqual(layout.account.bottom);
+    expect(layout.rail.right).toBeCloseTo(size.width-8,0);
+    expect(layout.rail.bottom).toBeCloseTo(size.height-8,0);
+    for (const b of layout.buttons) { expect(b.w).toBe(b.h); expect(b.w).toBeLessThanOrEqual(64); expect(b.w).toBeGreaterThanOrEqual(44); }
+    const looks=await page.evaluate(()=>[...document.querySelectorAll('.hud-ride-map-controls button')].map(el=>({
+      before:getComputedStyle(el,'::before').display,
+      radius:getComputedStyle(el).borderTopLeftRadius,
       background:getComputedStyle(el).backgroundColor,
-      border:getComputedStyle(el).borderTopWidth,
     })));
-    // 10-30 Chief: 정사각 버튼(지도·±)은 정사각 구름, 계정은 넓은 구름 — 넓은 구름을 눌러 넣으면 혹이 뾰족해진다.
-    clouds.forEach((cloud,i)=>expect(cloud.mask).toContain(i===0?"viewBox='0 0 120 32'":"viewBox='0 0 32 32'"));
-    for(const cloud of clouds){expect(cloud.mask).toContain('data:image/svg+xml');expect(cloud.background).toBe('rgba(0, 0, 0, 0)');expect(cloud.border).toBe('0px');}
-    // 버튼 네 모서리 안쪽이 모두 자기 버튼 — 옆 버튼·반달 탭이 가로채지 않는다.
+    // 11-02 Chief: 묶음 버튼은 흰 원 — 구름 마스크(::before)는 끈다. 계정은 넓은 구름 그대로.
+    for(const look of looks){expect(look.before).toBe('none');expect(look.radius).toBe('50%');expect(look.background).toBe('rgba(255, 255, 255, 0.96)');}
+    expect(await page.evaluate(()=>getComputedStyle(document.querySelector('.hud-account')!,'::before').maskImage)).toContain("viewBox='0 0 120 32'");
+    // 버튼 가운데는 자기 버튼 — 옆 버튼·순위 목록이 가로채지 않는다.
     const hits=await page.evaluate(()=>[...document.querySelectorAll('.map-hud__rail button')].map(el=>{
       const r=el.getBoundingClientRect();
-      return [[r.left+2,r.top+2],[r.right-2,r.top+2],[r.left+2,r.bottom-2],[r.right-2,r.bottom-2]].every(([x,y])=>document.elementFromPoint(x,y)?.closest('button')===el);
+      return document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)?.closest('button')===el;
     }));
-    expect(hits).toEqual([true,true,true]);
+    expect(hits.every(Boolean)).toBe(true);
     await style.click();
     await expect(style.locator('svg')).toHaveAttribute('data-map-style','outdoors');
     await style.click();
@@ -123,50 +121,33 @@ for (const size of [{width:800,height:360},{width:736,height:300},{width:699,hei
     }
   });
 
-  // Chief 11-02: 주행·일시정지 중엔 계정을 숨기고 레일이 위 8px 부터 [카메라][지도 스타일][＋][－].
-  // 네 칸(8+64×4+8×3+아래 24 = 312px)이 안 들어가는 낮은 폰은 지도 스타일을 빼고 ⚙ 주행 설정 창에서 바꾼다.
-  for(const stage of ['riding','paused']) test(`레일 주행·계정 숨김·카메라 메뉴 ${size.width} ${stage}`,async({page})=>{
+  // Chief 11-02 v4: 주행·일시정지에도 계정은 오른쪽 위에 보이고, 묶음 1줄 [카메라][지도 스타일]은 모든 폰에서 보인다.
+  // 카메라 메뉴는 묶음 왼쪽 8px, 묶음 아래 끝에서 위로 펼쳐 낮은 폰에서도 화면 안.
+  for(const stage of ['riding','paused']) test(`묶음 주행·계정 보임·카메라 메뉴 ${size.width} ${stage}`,async({page})=>{
     await page.setViewportSize(size);
     await page.goto(`${preview}?state=${stage}&long=1`);
     await expect(page.locator('.camera-view-menu__trigger')).toBeVisible();
-    await expect(page.locator('.hud-account')).toHaveCount(0);
-    const fourCells = size.height >= 312;
-    await expect(page.locator('.hud-ride-map-controls__style')).toBeVisible({visible:fourCells});
+    await expect(page.locator('.hud-account')).toBeVisible();
+    await expect(page.locator('.hud-ride-map-controls__style')).toBeVisible();
     const rail=await page.evaluate(()=>({
-      buttons:[...document.querySelectorAll('.map-hud__rail button')].filter(el=>el.getClientRects().length>0).map(el=>el.getBoundingClientRect().toJSON()),
+      box:document.querySelector('.map-hud__rail')!.getBoundingClientRect().toJSON(),
+      buttons:[...document.querySelectorAll('.map-hud__rail button')].filter(el=>el.getClientRects().length>0&&!el.matches('.ride-control-bar__more')).map(el=>el.getBoundingClientRect().toJSON()),
       metrics:document.querySelector('.hud-metrics__capsule')!.getBoundingClientRect().toJSON(),
-      knob:document.querySelector('.edge-panel-tab--right .edge-panel-tab__knob')!.getBoundingClientRect().toJSON(),
     }));
-    expect(rail.buttons).toHaveLength(fourCells?4:3);
-    expect(rail.buttons[0].y).toBe(8);
-    rail.buttons.forEach((b,i)=>{
-      expect([b.width,b.height]).toEqual([64,64]);
-      expect(b.right).toBeCloseTo(size.width-26,0);
-      if(i) expect(b.y-rail.buttons[i-1].bottom).toBe(8);
-      expect(Math.min(b.right,rail.metrics.right)-Math.max(b.left,rail.metrics.left)>1&&Math.min(b.bottom,rail.metrics.bottom)-Math.max(b.top,rail.metrics.top)>1).toBe(false);
-    });
-    expect(rail.buttons.at(-1)!.bottom).toBeLessThanOrEqual(size.height-24);
-    // 반달 탭의 보이는 손잡이는 레일 오른쪽에 그대로 남아 눌린다.
-    expect(rail.knob.left).toBeGreaterThanOrEqual(rail.buttons[0].right);
-    expect(await page.evaluate(({x,y})=>Boolean(document.elementFromPoint(x,y)?.closest('.edge-panel-tab--right')),{x:rail.knob.left+rail.knob.width/2,y:rail.knob.top+rail.knob.height/2})).toBe(true);
+    expect(rail.buttons).toHaveLength(stage==='paused'?8:7);
+    for(const b of rail.buttons) expect(Math.min(b.right,rail.metrics.right)-Math.max(b.left,rail.metrics.left)>1&&Math.min(b.bottom,rail.metrics.bottom)-Math.max(b.top,rail.metrics.top)>1).toBe(false);
+    expect(rail.box.bottom).toBeLessThanOrEqual(size.height);
+    await expect(page.locator('.edge-panel-tab--right')).toHaveCount(0);
     await page.getByRole('button',{name:/카메라 메뉴/}).click();
     const panel=page.locator('.camera-view-menu__panel');
     await expect(panel).toBeVisible();
-    const menu=await panel.evaluate(el=>{const r=el.getBoundingClientRect();const t=document.querySelector('.camera-view-menu__trigger')!.getBoundingClientRect();return {gap:t.left-r.right,top:r.top-t.top,bottom:r.bottom,left:r.left};});
+    const menu=await panel.evaluate(el=>{const r=el.getBoundingClientRect();const t=document.querySelector('.camera-view-menu__trigger')!.getBoundingClientRect();const g=document.querySelector('.map-hud__rail')!.getBoundingClientRect();return {gap:t.left-r.right,bottom:r.bottom-g.bottom,top:r.top,left:r.left};});
     expect(menu.gap).toBe(8);
-    expect(menu.top).toBe(0);
+    expect(Math.abs(menu.bottom)).toBeLessThanOrEqual(1);
+    expect(menu.top).toBeGreaterThanOrEqual(0);
     expect(menu.left).toBeGreaterThanOrEqual(0);
-    expect(menu.bottom).toBeLessThanOrEqual(size.height);
     await page.keyboard.press('Escape');
     await expect(panel).toHaveCount(0);
-    if(!fourCells){
-      // 주행·일시정지 모두 접힌 64px 줄의 ⚙ 주행 설정에서 바꾼다(3단계: 일시정지에도 ⚙).
-      await page.getByRole('button',{name:'주행 설정',exact:true}).click();
-      const moved=page.locator('.ride-settings-panel__map-style-btn');
-      await expect(moved).toBeVisible();
-      await moved.click();
-      await expect(page.locator('.hud-ride-map-controls__style svg')).toHaveAttribute('data-map-style','outdoors');
-    }
     if(evidence)await page.screenshot({path:path.join(evidence,`toolbar-${size.width}-${stage}.png`)});
   });
 }

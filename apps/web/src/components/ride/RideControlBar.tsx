@@ -21,7 +21,7 @@ export type RideControlBarProps = {
   editLocked?: boolean;
   nextRideVisible?: boolean;
 };
-/** One fixed place for transport; route addresses and sensor live on RouteDock. */
+/** 주행 버튼(▶·⏸·⏹). Chief 11-02 v4: 오른쪽 2열 4줄 묶음의 4-1·4-2 칸에 놓인다(MapHud `controlGroup.transport`). */
 export function RideControlBar(props: RideControlBarProps) {
   const { stage, routeLoading, resumeRatio = null } = props;
   const [resumeOpen, setResumeOpen] = useState(false);
@@ -112,6 +112,7 @@ export function RideControlBar(props: RideControlBarProps) {
         {paused && props.onModifyFromPause ? (
           <button
             type="button"
+            className="ride-control-bar__more"
             aria-label="일시정지 옵션"
             title="일시정지 옵션"
             aria-expanded={pauseOptionsOpen}

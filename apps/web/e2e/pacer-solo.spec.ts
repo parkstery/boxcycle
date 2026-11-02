@@ -165,7 +165,9 @@ test.describe("페이서 혼자 주행", () => {
     expect(sawBehind, "페이서가 뒤로 가는 장면").toBe(true);
 
     await page.getByRole("button", { name: "Trail 메뉴" }).click();
-    await page.getByRole("button", { name: "주행 설정" }).click();
+    // Chief 11-02 v4: 주행 설정은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+    await page.getByRole("button", { name: "메뉴 열기", exact: true }).click();
+    await page.locator("#menu-panel").getByRole("button", { name: "주행 설정", exact: true }).click();
     const sheet = page.getByRole("dialog", { name: "주행 설정" });
     await expect(sheet).toBeVisible();
     await sheet.getByRole("checkbox", { name: "페이서" }).uncheck();
@@ -175,7 +177,9 @@ test.describe("페이서 혼자 주행", () => {
     await page.screenshot({ path: path.join(OUT_DIR, "off.png") });
 
     await page.getByRole("button", { name: "Trail 메뉴" }).click();
-    await page.getByRole("button", { name: "주행 설정" }).click();
+    // Chief 11-02 v4: 주행 설정은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+    await page.getByRole("button", { name: "메뉴 열기", exact: true }).click();
+    await page.locator("#menu-panel").getByRole("button", { name: "주행 설정", exact: true }).click();
     await expect(sheet).toBeVisible();
     await sheet.getByRole("checkbox", { name: "페이서" }).check();
     await page.keyboard.press("Escape");
@@ -185,7 +189,9 @@ test.describe("페이서 혼자 주행", () => {
 
     // 순서 효과를 빼려고 끔 → 켬 순서로 잰다(직전 시트 조작 직후 구간이 「켬」에만 몰리지 않게).
     await page.getByRole("button", { name: "Trail 메뉴" }).click();
-    await page.getByRole("button", { name: "주행 설정" }).click();
+    // Chief 11-02 v4: 주행 설정은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+    await page.getByRole("button", { name: "메뉴 열기", exact: true }).click();
+    await page.locator("#menu-panel").getByRole("button", { name: "주행 설정", exact: true }).click();
     await sheet.getByRole("checkbox", { name: "페이서" }).uncheck();
     await page.keyboard.press("Escape");
     await expect.poll(async () => (await readDiag(page)).count, { timeout: 5_000 }).toBe(0);
@@ -198,7 +204,9 @@ test.describe("페이서 혼자 주행", () => {
     dumpBreakdown("off");
     counting = false;
     await page.getByRole("button", { name: "Trail 메뉴" }).click();
-    await page.getByRole("button", { name: "주행 설정" }).click();
+    // Chief 11-02 v4: 주행 설정은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
+    await page.getByRole("button", { name: "메뉴 열기", exact: true }).click();
+    await page.locator("#menu-panel").getByRole("button", { name: "주행 설정", exact: true }).click();
     await sheet.getByRole("checkbox", { name: "페이서" }).check();
     await page.keyboard.press("Escape");
     // 다시 켜면 차례 등장(5초·10초)을 다시 거친다
