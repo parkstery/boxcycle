@@ -179,11 +179,12 @@ test('시작·센서·접기는 조작 가능하고 시작→정지→재개→�
     const transform=getComputedStyle(el).transform;
     const scale=transform.startsWith('matrix(')?Number.parseFloat(transform.slice(7)):1;
     return height/(Number.isFinite(scale)&&scale>0?scale:1);
-  })).toBeCloseTo(44,0);
+  })).toBeCloseTo(await page.locator('.map-hud__rail .hud-ride-map-controls__zoom--in').evaluate(el=>(el as HTMLElement).offsetHeight),0); // Chief 11-02 v4: 주행 버튼 = 오른쪽 묶음 칸 크기
   await page.getByRole('button',{name:'경로 패널 접기'}).click();
   await expect(page.getByRole('button',{name:'주행 시작',exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:'경로 패널 펼치기'})).toBeVisible();
-  await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(0);
+  // Chief 11-02 v4 B단계: 센서는 계기판 맨 앞 칸 — 경로 패널을 접어도 그대로 하나.
+  await expect(page.getByRole('button',{name:/^케이던스 센서:/})).toHaveCount(1);
   await page.getByRole('button',{name:'주행 시작',exact:true}).click();
   await expect(page.locator('.audit-world')).toHaveAttribute('data-ui-stage','riding');
   await page.getByRole('button',{name:'일시정지',exact:true}).click();

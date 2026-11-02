@@ -20,7 +20,8 @@ for (const size of [{ width: 667, height: 300 }, { width: 800, height: 360 }, { 
         await expect(page.getByRole('button', { name: '주행 종료', exact: true })).toBeVisible();
         await expect(page.getByRole('button', { name: '일시정지 옵션', exact: true })).toBeVisible();
       }
-      const controls = page.getByRole('group', { name: '주행 제어' });
+      // Chief 11-02 v4: 주행 버튼은 오른쪽 2열 묶음(「주행 조작」) 4-1·4-2 칸 — 「주행 제어」 상자는 칸 배치에서 빠진다(display: contents).
+      const controls = page.getByRole('group', { name: '주행 조작' });
       const bounds = await controls.boundingBox();
       expect(bounds!.x).toBeGreaterThanOrEqual(0);
       expect(bounds!.y).toBeGreaterThanOrEqual(0);
@@ -32,8 +33,11 @@ for (const size of [{ width: 667, height: 300 }, { width: 800, height: 360 }, { 
       }));
       expect(buttons.every(button => button.hit)).toBeTruthy();
       if (state === 'riding') {
-        expect((await page.getByRole('button', { name: '일시정지', exact: true }).boundingBox())!.height).toBe(44);
-        expect((await page.getByRole('button', { name: '주행 종료', exact: true }).boundingBox())!.height).toBe(44);
+        for (const name of ['일시정지', '주행 종료']) {
+          const h = (await page.getByRole('button', { name, exact: true }).boundingBox())!.height;
+          expect(h).toBeGreaterThanOrEqual(44);
+          expect(h).toBeLessThanOrEqual(64);
+        }
       }
       if (process.env.BATCH2_EVIDENCE_DIR) {
         await fs.mkdir(process.env.BATCH2_EVIDENCE_DIR, { recursive: true });
