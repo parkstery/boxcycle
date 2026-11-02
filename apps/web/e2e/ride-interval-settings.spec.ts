@@ -410,3 +410,29 @@ test.describe('지도 가림 최소화',()=>{
     });
   }
 });
+
+// Chief 11-03 A안: 「설정 적용」은 인터벌 사용도 켠다(프리셋만 고르고 적용하면 꺼진 채라 주행 중 인터벌 창이 안 떴다).
+// 그 창에서 「사용」 스위치를 직접 끈 경우만 꺼진 채로 둔다. 새로고침 뒤 자동으로 켜지지 않는 규칙은 그대로.
+test('설정 적용은 인터벌 사용도 켜고, 스위치를 직접 끄고 적용하면 꺼진 채다', async ({page}) => {
+  await page.goto(`${preview}?state=ready`);
+  await openEditor(page);
+  const toggle=editor(page).getByRole('switch',{name:/^인터벌/});
+  await expect(toggle).not.toBeChecked();
+  await editor(page).getByRole('combobox',{name:'운동 프리셋'}).selectOption('short');
+  await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
+  await expect(editor(page)).toHaveCount(0);
+  await expect(page.locator('.map-hud__rail-int--active')).toBeVisible();
+  await page.getByRole('button',{name:'주행 시작',exact:true}).click();
+  await expect(page.getByRole('group',{name:'인터벌 안내'})).toBeVisible();
+  // 적용한 프리셋으로 돈다(켜기와 저장이 서로 지우지 않는다).
+  await expect(page.locator('.ride-interval-hud__total')).toContainText('26:00');
+
+  await page.getByRole('button',{name:'일시정지',exact:true}).click();
+  await openEditor(page);
+  await expect(toggle).toBeChecked();
+  await toggle.uncheck();
+  await editor(page).getByRole('button',{name:'설정 적용',exact:true}).click();
+  await expect(page.getByRole('group',{name:'인터벌 안내'})).toHaveCount(0);
+  await openEditor(page);
+  await expect(toggle).not.toBeChecked();
+});

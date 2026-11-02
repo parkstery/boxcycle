@@ -115,6 +115,8 @@ function IntervalEditor({ config, restartOnApply, onApply, onClose, enabled, onE
   // 직접 설정 값이어도 요약 화면으로 연다 — 직접 조절 화면에는 「간편 인터벌」 자리가 없어서, 그 화면으로 열면 버튼이 사라진다.
   const [customOpen, setCustomOpen] = useState(false);
   const highRef = useRef<HTMLInputElement>(null);
+  /** 이 창에서 「사용」 스위치를 직접 껐는지 — 그때만 「설정 적용」이 인터벌을 켜지 않는다(창을 열 때마다 새로). */
+  const switchedOff = useRef(false);
   const candidate = parseDraft(draft);
   const valid = Object.values(draft).every((raw) => raw.trim() !== "") && isRideIntervalConfig(candidate);
   const changed = valid && !sameConfig(candidate, config);
@@ -144,7 +146,10 @@ function IntervalEditor({ config, restartOnApply, onApply, onClose, enabled, onE
               checked={enabled ?? false}
               aria-label="인터벌"
               title="인터벌 사용"
-              onChange={(event) => onEnabled(event.target.checked)}
+              onChange={(event) => {
+                if (!event.target.checked) switchedOff.current = true;
+                onEnabled(event.target.checked);
+              }}
             />
           </label>
         ) : null}
@@ -278,7 +283,12 @@ function IntervalEditor({ config, restartOnApply, onApply, onClose, enabled, onE
             간편 인터벌
           </button>
         ) : null}
-        <button type="button" className="ride-interval-settings__apply" disabled={!valid} onClick={() => { if (valid && onApply(candidate)) onClose(); }}>설정 적용</button>
+        <button type="button" className="ride-interval-settings__apply" disabled={!valid} onClick={() => {
+          if (!valid || !onApply(candidate)) return;
+          // Chief 11-03 A안: 「설정 적용」은 인터벌 사용도 켠다 — 이 창에서 스위치를 직접 끈 경우만 꺼진 채로 둔다.
+          if (onEnabled && !enabled && !switchedOff.current) onEnabled(true);
+          onClose();
+        }}>설정 적용</button>
       </footer>
     </>
   );

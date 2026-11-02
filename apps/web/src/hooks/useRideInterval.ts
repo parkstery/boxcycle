@@ -66,7 +66,9 @@ export function useRideInterval(
   return {
     enabled: selection.enabled,
     runKey,
-    onEnabled: (enabled: boolean) => setSelection({ ...selection, enabled, startMs: active ? elapsedMs : 0, active }),
+    // 이전 상태 기준으로 갱신한다 — 「설정 적용」이 저장(onConfig)과 켜기(onEnabled)를 한 번에 부르면
+    // 같은 시점의 selection 을 펼친 두 갱신 중 뒤의 것이 앞의 것을 지웠다(Chief 11-03 A안).
+    onEnabled: (enabled: boolean) => setSelection((prev) => ({ ...prev, enabled, startMs: active ? elapsedMs : 0, active })),
     view: selection.enabled && active ? getRideIntervalView(elapsedMs - startMs, config) : null,
     config,
     onConfig: (next: RideIntervalConfig): boolean => {
@@ -74,13 +76,12 @@ export function useRideInterval(
       if (!normalized) return false;
       if (sameRideIntervalConfig(normalized, config)) return true;
       writeStoredConfig(normalized);
-      const restart = selection.enabled && active;
-      setSelection({
-        ...selection,
+      setSelection((prev) => ({
+        ...prev,
         config: copyRideIntervalConfig(normalized),
-        startMs: restart ? elapsedMs : selection.startMs,
+        startMs: prev.enabled && active ? elapsedMs : prev.startMs,
         active,
-      });
+      }));
       return true;
     },
   };
