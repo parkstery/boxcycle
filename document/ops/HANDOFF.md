@@ -12,7 +12,9 @@
 
 **진행 중 — 오른쪽 2열 4줄 묶음 개편(11-02 Chief 「구현 진행해」, Claude Code)**: 시안 [right-group.html](20261102-ride-screen-layout/right-group.html) v4+Chief 답(나중 쪽 펼치면 먼저 쪽 접기·계정 주행 중에도 보임(순위 목록 아래 z)·경로 목록도 메뉴로·미니맵 버튼=RouteDock 손잡이 크기). 단계: A 오른쪽 묶음(MapHud 레일→2×4 원형, ⏸⏹▶·INT·순위 이동, 오른쪽 반달 제거, 목록 가장자리·2초 숨김, ⚙·경로 목록 메뉴 머리줄) → B 센서 LED·RPM 계기판 칸 → C 미니맵 토글 복귀·인터벌 접기·하나만 펼치기. 각 단계 캡처 보고·승인. **A 배포됨(93924456·a2e063bf, pre-push 10종·test:quick 1470/0, 운영 js·css SHA256=로컬)** — [README](20261102-ride-screen-layout/README.md) 「개편 A」·고정67. live 스펙 미실행.
 **B 배포됨(9e5bde96·996e66cf, pre-push 10종·test:quick 1470/0, 운영 js·css SHA256=로컬)** — README 「개편 B」·고정68.
-**C 커밋(Chief 11-03 승인, 푸시·배포 진행)** — README 「개편 C」·고정69·캡처 `evidence/panels-C-sheet.png`. 승인 시 커밋·푸시·배포 후 남은 계획 5단계(전체 회귀·낮은 폰 점검). live 스펙 미실행. 5000 dev 서버 켜져 있음.
+**C 배포됨(2014f82e·0580346f, pre-push 10종·test:quick 1470/0, 운영 js·css SHA256=로컬)** — README 「개편 C」·고정69.
+**5단계 끝(Chief 11-03 승인, 커밋·푸시·배포 진행)**: README 「5단계」·`evidence/s5-sheet.png`. 하네스 e2e 25종 재실행, 남은 실패 14건 = 개편 이전부터(9e27638b 로 확인). 겹침 0(4크기×9상태). Chief 확인 뒤 커밋·푸시(배포 불필요). 배치 개편 묶음 마무리 대기.
+**인터벌 「설정 적용」=켜기(Chief 11-03 A안, 승인·커밋 진행)**: RideIntervalSettingsSheet·useRideInterval(이전 상태 기준 갱신)·e2e 1·고정70, README 「후속」. 5단계와 함께 커밋·푸시·배포.
 **배포 11-02(Claude Code)**: c6297926 카메라 제안A·85d714cc 인터벌 중 미니맵 숨김+배치 계획, origin/main2 d6aa0dc2..85d714cc(pre-push 10종·test:quick 1467/0), Hosting 배포·운영 js/css SHA256=로컬.
 **주행 화면 배치 1단계 배포됨(11-02, Claude Code, 9ea27a96·4237de18·c8e4da8a)**: 순위|Trail 탭 공유·10줄(주행 전·중 모두), 주행 전 5줄 원인=없어진 시계+56px 예약(정정 기록), 오른쪽 반달 탭 z 조정. Trail 탭 배선은 `hooks/useTrailGlanceTab.tsx`(App.tsx 래칫 한도 3807, 현재 3793 — 여유 14줄). [README](20261102-ride-screen-layout/README.md)·고정63. 다음=2단계(오른쪽 조작 레일) — App.tsx 에 더하지 말고 훅·컴포넌트로.
 **2단계 오른쪽 조작 레일 배포됨(11-02, Claude Code, d331d2d8)**: [README](20261102-ride-screen-layout/README.md) 2단계·고정64. 다음=3단계(왼쪽 아래 주행 버튼 줄 64px, ⚙ 일시정지에도 → 일시정지 옵션의 지도 스타일 정리, 왼쪽 반달 vs RouteDock 겹침).
