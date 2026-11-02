@@ -189,19 +189,9 @@
 .route-dock__card button:focus-visible { outline: 2px solid #2457d6; outline-offset: 1px; }
 @media (max-height: 560px) { .route-dock-anchor { --mapbox-logo-clearance: .35rem; } }
 
-/* 미니맵 접기·펼치기 — 테두리 없는 아이콘 버튼, 지도 위라 흰 원 바탕(10-30 Chief 도구 버튼 모양). */
-.route-dock__tool { flex: 0 0 30px; width: 30px; height: 30px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(15, 23, 42, .25); color: #2a2e37; cursor: pointer; touch-action: manipulation; }
-.route-dock__tool svg { width: 24px; height: 24px; display: block; }
-.route-dock__tool:focus-visible { outline: 2px solid #2457d6; outline-offset: 2px; }
-@media (hover: hover) { .route-dock__tool:hover { background: #eef3fc; } }
-
 /*
- * Chief 11-02 v4: 접힌 줄 = 경로 손잡이 · 미니맵, 40px·간격 8px(미니맵 버튼은 손잡이와 같은 크기·모양 — Chief 「routedock 버튼 크기에 맞춰라」).
- * INT·⚙·지도 핀·주행 버튼은 오른쪽 묶음·왼쪽 메뉴로 갔다.
+ * Chief 11-02 v4: 접힌 카드 = 40px 경로 손잡이. INT·⚙·지도 핀·주행 버튼은 오른쪽 묶음·왼쪽 메뉴로,
+ * 미니맵 접기·펼치기는 미니맵 왼쪽 위 40px 버튼(C단계, 같은 크기)으로 갔다.
  */
 .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__head { padding: 0; margin: 0; gap: 8px; min-height: 40px; }
 .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card { width: max-content; height: 40px; min-width: 40px; gap: 8px; }
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__tool { flex: 0 0 40px; width: 40px; height: 40px; border-radius: 10px; box-shadow: 0 1px 6px rgba(15, 23, 42, .3); }
-.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__tool svg { width: 26px; height: 26px; }
-.route-dock__tool--minimap { color: #5e6472; }
-.route-dock__tool--minimap[aria-expanded="true"] { color: #2457d6; }

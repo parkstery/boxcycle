@@ -5,6 +5,9 @@ type Props = {
   view: RideIntervalView;
   paused: boolean;
   cadenceRpm: number | null;
+  /** Chief 11-02 v4 C단계: 접으면 단계·남은 시간·세트만 담은 알약. 누르면 다시 펼친다. */
+  folded?: boolean;
+  onToggleFold?: () => void;
 };
 
 const C = 22;
@@ -23,10 +26,10 @@ function segmentPath(index: number, total: number): string {
 }
 
 /**
- * 계기판 아래 왼쪽. 표시 전용: 빈 영역의 지도 제스처를 막지 않는다.
+ * 계기판 아래 왼쪽. 표시 전용: 빈 영역의 지도 제스처를 막지 않는다(누름은 접기 버튼·알약만 받는다).
  * Chief 11-01 D안: 바깥 도넛=반복 칸(진행 칸은 사이클 시간만큼 차오름), 안쪽 링=현재 단계 남은 시간, 아래 막대=전체 진도.
  */
-export function RideIntervalHud({ view, paused, cadenceRpm }: Props) {
+export function RideIntervalHud({ view, paused, cadenceRpm, folded = false, onToggleFold }: Props) {
   const complete = view.phase === "complete";
   const label = paused && !complete ? "일시정지" : view.label;
   const validRpm = cadenceRpm != null && Number.isFinite(cadenceRpm);
@@ -46,15 +49,36 @@ export function RideIntervalHud({ view, paused, cadenceRpm }: Props) {
   const barSegments = view.segments.map((segment, index) => (
     <span key={index} data-phase={segment.phase} style={{ flexGrow: segment.seconds }} />
   ));
+  const announcement = (
+    <span className="ride-interval-hud__announcement" role="status">{label} · {view.repeat}/{view.totalRepeats}{roundText}{complete ? " · 자유 주행 계속" : ""}</span>
+  );
+  if (folded && onToggleFold) {
+    return (
+      <button type="button" className="ride-interval-hud ride-interval-hud--folded" data-phase={view.phase} data-paused={paused}
+        aria-label="인터벌 패널 펼치기" aria-expanded={false} title="인터벌 패널 펼치기" onClick={onToggleFold}>
+        <i className="ride-interval-hud__dot" aria-hidden="true" />
+        <b className="ride-interval-hud__phase">{label}</b>
+        <span className="ride-interval-hud__chip-time">{complete ? "완료" : time}</span>
+        {view.totalRounds > 1 ? <em>{view.round}/{view.totalRounds}세트</em> : null}
+        <span className="ride-interval-hud__chevron" aria-hidden="true">›</span>
+        {announcement}
+      </button>
+    );
+  }
   return (
     <section className="ride-interval-hud" data-phase={view.phase} data-paused={paused} data-hurry={hurry} role="group" aria-label="인터벌 안내">
+      {onToggleFold ? (
+        <button type="button" className="ride-interval-hud__fold" aria-label="인터벌 패널 접기" aria-expanded title="인터벌 패널 접기" onClick={onToggleFold}>
+          <span aria-hidden="true">‹</span>
+        </button>
+      ) : null}
       <div className="ride-interval-hud__text">
         <span className="ride-interval-hud__round">{view.totalRounds > 1 ? `${view.round}/${view.totalRounds}세트` : ""}</span>
         <span className="ride-interval-hud__phase">{label}</span>
         <span className="ride-interval-hud__next">{next}</span>
         <span className="ride-interval-hud__total" data-long={view.totalSec >= 6000}>{formatRideIntervalClock(Math.floor(view.elapsedMs / 1000))} / {formatRideIntervalClock(view.totalSec)}</span>
       </div>
-      <span className="ride-interval-hud__announcement" role="status">{label} · {view.repeat}/{view.totalRepeats}{roundText}{complete ? " · 자유 주행 계속" : ""}</span>
+      {announcement}
       {complete ? (
         <span className="ride-interval-hud__time" role="timer" aria-label="인터벌 완료">완료</span>
       ) : (

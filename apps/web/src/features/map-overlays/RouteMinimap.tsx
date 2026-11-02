@@ -32,10 +32,12 @@ export type RouteMinimapProps = {
   /** 경로 전체 거리 */
   routeMeters: number;
   /**
-   * 펼침을 밖(RouteDock 버튼 줄의 64px 미니맵 버튼, Chief 11-02)에서 정한다. 주면 미니맵 위 접기 버튼은 그리지 않고
-   * 접힘이면 아무것도 그리지 않는다. 안 주면 종전처럼 스스로 접고 편다.
+   * 펼침을 밖(App — 인터벌 중 경로 카드와 하나만 펼치기, Chief 11-02 v4 C단계)에서 정한다.
+   * 이때 미니맵 왼쪽 위 접기·펼치기 버튼(40px, 경로 손잡이와 같은 크기)은 `onToggle` 을 부른다.
+   * 접히면 40px 버튼만 남고 높이도 접혀 위의 경로 카드가 내려온다. 안 주면 종전처럼 스스로 접고 편다.
    */
   expanded?: boolean;
+  onToggle?: () => void;
 };
 
 /** 이정표 띠가 보이는 시간 — 잠깐 보였다 사라진다(N8, 상시 표시 금지) */
@@ -124,6 +126,7 @@ export function RouteMinimap({
   traveledMeters,
   routeMeters,
   expanded: expandedProp,
+  onToggle,
 }: RouteMinimapProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const contentId = useId();
@@ -253,7 +256,7 @@ export function RouteMinimap({
     return layout.project(liveLngLat);
   }, [layout, liveLngLat]);
 
-  if (!effectiveActive || !routeGeometry || routeGeometry.coordinates.length < 1 || (controlled && !expanded)) {
+  if (!effectiveActive || !routeGeometry || routeGeometry.coordinates.length < 1 || (controlled && !expanded && !onToggle)) {
     return null;
   }
 
@@ -266,12 +269,12 @@ export function RouteMinimap({
   return (
     <div
       ref={rootRef}
-      className={`route-minimap hud-glass${showMap && expanded ? " route-minimap--map" : ""}${expanded ? "" : " route-minimap--collapsed"}`}
+      className={`route-minimap hud-glass${showMap && expanded ? " route-minimap--map" : ""}${expanded ? "" : " route-minimap--collapsed"}${controlled ? " route-minimap--controlled" : ""}`}
       role="group"
       aria-label="경로 미니맵"
       style={{
-        width: expanded ? box.w || undefined : 28,
-        height: box.h || undefined,
+        width: expanded ? box.w || undefined : controlled ? 40 : 28,
+        height: !expanded && controlled ? 40 : box.h || undefined,
       }}
       onPointerDown={blockMap}
       onTouchStart={blockMap}
@@ -330,14 +333,15 @@ export function RouteMinimap({
         </div>
       ) : null}
       </div>
-      {controlled ? null : <RouteOverviewFoldToggle
+      {controlled && !onToggle ? null : <RouteOverviewFoldToggle
         kind="map"
         className="route-minimap__toggle"
         ariaLabel={expanded ? "미니맵 접기" : "미니맵 펼치기"}
         expanded={expanded}
         controls={contentId}
         onClick={() => {
-          setExpanded((value) => !value);
+          if (onToggle) onToggle();
+          else setExpanded((value) => !value);
         }}
       />}
     </div>

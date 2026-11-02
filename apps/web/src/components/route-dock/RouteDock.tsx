@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { RideUiStage } from "../../hooks/useRideUiStage";
 import {
   isRouteDockActiveRide,
@@ -18,8 +18,12 @@ export type RouteDockProps = {
   onFocusStop: (stop: RouteDockStop) => void;
   onSwapEndpoints?: () => void;
   editLocked?: boolean;
-  /** 접힌 줄의 미니맵 접기·펼치기(Chief 11-02 — 미니맵 위 28px 버튼 대체). 미니맵이 있을 때만 준다. */
-  minimap?: { expanded: boolean; onToggle: () => void } | null;
+  /**
+   * Chief 11-02 v4 C단계: 인터벌이 펼쳐져 있으면 경로 카드·미니맵 중 하나만 펼친다(나중 쪽이 먼저 쪽을 접는다).
+   * `collapseSignal` 이 바뀌면 접고, 펼침이 바뀔 때마다 `onExpandedChange(펼침, 사용자가 눌렀는지)` 로 알린다.
+   */
+  collapseSignal?: number;
+  onExpandedChange?: (expanded: boolean, byUser: boolean) => void;
 };
 
 /* 2026-10-24 Chief: 「출발·경유·도착」 글자 대신 지도 핀과 같은 기호 S · 1 2 3 · E(영어로 통일). */
@@ -60,7 +64,7 @@ const ICON_SWAP = "M5 13V3M2.5 5.5L5 3L7.5 5.5M11 3V13M8.5 10.5L11 13L13.5 10.5"
 const ROUTE_DOCK_PANEL_ID = "route-dock-panel";
 
 /**
- * 경로 주소 카드. 주행 중에도 남고 편집만 잠긴다. 접히면 40px 경로 손잡이(+ 미니맵 버튼).
+ * 경로 주소 카드. 주행 중에도 남고 편집만 잠긴다. 접히면 40px 경로 손잡이(미니맵 버튼은 미니맵 위로 돌아갔다, C단계).
  * Chief 11-02 v4(B단계): 센서 LED·RPM 은 여기서 빠져 계기판 맨 앞 칸(`CadenceMetricCell`)으로 갔다.
  */
 export function RouteDock({
@@ -71,11 +75,14 @@ export function RouteDock({
   onFocusStop,
   onSwapEndpoints,
   editLocked = false,
-  minimap = null,
+  collapseSignal = 0,
+  onExpandedChange,
 }: RouteDockProps) {
   const [expanded, setExpanded] = useState(() => routeDockDefaultExpanded(stage, stops.length));
   const [prevStage, setPrevStage] = useState(stage);
   const [prevStopCount, setPrevStopCount] = useState(stops.length);
+  const [prevCollapseSignal, setPrevCollapseSignal] = useState(collapseSignal);
+  const userToggled = useRef(false);
   const handleRef = useRef<HTMLButtonElement>(null);
   const foldRef = useRef<HTMLButtonElement>(null);
   const focusAfterToggle = useRef<"handle" | "fold" | null>(null);
@@ -86,6 +93,13 @@ export function RouteDock({
     if (!next) return;
     focusAfterToggle.current = null;
     (next === "fold" ? foldRef.current : handleRef.current)?.focus();
+  }, [expanded]);
+  useEffect(() => {
+    const byUser = userToggled.current;
+    userToggled.current = false;
+    onExpandedChange?.(expanded, byUser);
+    // 알림은 펼침이 바뀔 때만 — 콜백이 렌더마다 새로 만들어져도 다시 부르지 않는다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expanded]);
 
   /*
@@ -102,6 +116,10 @@ export function RouteDock({
     } else if (wasActive && !nowActive) {
       setExpanded(stops.length > 0);
     }
+  }
+  if (collapseSignal !== prevCollapseSignal) {
+    setPrevCollapseSignal(collapseSignal);
+    setExpanded(false);
   }
   if (stops.length !== prevStopCount) {
     setPrevStopCount(stops.length);
@@ -123,6 +141,7 @@ export function RouteDock({
   // Chief 11-02 v4: INT·주행 버튼은 오른쪽 2열 묶음, 지도 핀(경로 목록)·⚙(주행 설정)은 왼쪽 메뉴 머리줄로 옮겼다.
   const setUserExpanded = (next: boolean) => {
     focusAfterToggle.current = next ? "fold" : "handle";
+    userToggled.current = true;
     setExpanded(next);
   };
 
@@ -166,15 +185,6 @@ export function RouteDock({
               </svg>
             </button>
           )}
-          {!expanded && minimap ? (
-            <button type="button" className="route-dock__tool route-dock__tool--minimap" aria-label={minimap.expanded ? "미니맵 접기" : "미니맵 펼치기"}
-              title={minimap.expanded ? "미니맵 접기" : "미니맵 펼치기"} aria-expanded={minimap.expanded} onClick={minimap.onToggle}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M3 6.5 8.5 4l7 2.5L21 4v13.5L15.5 20l-7-2.5L3 20z" />
-                <path d="M8.5 4v13.5M15.5 6.5V20" />
-              </svg>
-            </button>
-          ) : null}
         </div>
         <div
           id={ROUTE_DOCK_PANEL_ID}

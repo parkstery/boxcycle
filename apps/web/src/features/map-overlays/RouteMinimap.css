@@ -40,6 +40,19 @@
   pointer-events: auto;
 }
 
+/*
+ * Chief 11-02 v4 C단계: 밖에서 펼침을 정할 때(주행 화면) 버튼은 경로 손잡이와 같은 40px 흰 둥근 사각.
+ * 접히면 40px 버튼만 남고 상자 높이도 40px — 위의 경로 카드가 내려온다.
+ */
+.route-minimap--controlled .route-minimap__toggle {
+  width: 40px; height: 40px; min-width: 40px; min-height: 40px;
+  border: 0; border-radius: 10px;
+  box-shadow: 0 1px 6px rgba(15, 23, 42, .3);
+  color: #2457d6;
+}
+.route-minimap--controlled .route-minimap__toggle > svg { width: 28px; height: 20px; }
+.route-minimap--controlled.route-minimap--collapsed { overflow: visible; }
+
 .route-minimap.route-minimap--collapsed {
   /* 가로로만 접어 캐럿·RouteDock의 세로 위치를 유지한다. 빈 영역은 지도 터치를 허용한다. */
   background: transparent;

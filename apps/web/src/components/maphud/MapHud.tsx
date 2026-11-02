@@ -173,6 +173,8 @@ export type MapHudProps = {
    * `attention` 은 경로가 잡혔는데 주행 입력(센서·체험 속도)을 아직 안 고른 상태.
    */
   cadence?: (CadenceChipBinding & { attention?: boolean }) | null;
+  /** Chief 11-02 v4 C단계: 인터벌 패널 접기·펼치기(App `useRideLeftPanels` 가 미니맵·경로 카드와 함께 정한다). */
+  intervalFold?: { folded: boolean; onToggle: () => void } | null;
   controlGroup?: {
     transport?: ReactNode;
     interval?: { enabled: boolean; onOpen: () => void } | null;
@@ -284,6 +286,7 @@ export function MapHud(props: MapHudProps) {
     leaderboardGlancePanel = null,
     controlGroup = null,
     cadence = null,
+    intervalFold = null,
     rideMoments = null,
   } = props;
   void leaderboardGlanceChip;
@@ -605,7 +608,8 @@ export function MapHud(props: MapHudProps) {
               ) : null}
             </div>
           ) : null}
-          {activeRide && props.rideInterval ? <RideIntervalHud view={props.rideInterval} paused={paused} cadenceRpm={props.intervalCadenceRpm ?? null} /> : null}
+          {activeRide && props.rideInterval ? <RideIntervalHud view={props.rideInterval} paused={paused} cadenceRpm={props.intervalCadenceRpm ?? null}
+            folded={intervalFold?.folded} onToggleFold={intervalFold?.onToggle} /> : null}
           {paused ? (
             <p className="map-hud__paused-banner" role="status">잠깐 멈췄어요</p>
           ) : null}

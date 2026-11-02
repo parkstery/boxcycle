@@ -1,0 +1,77 @@
+import { test, expect, type Page } from '@playwright/test';
+
+// Chief 11-02 v4 C단계(고정62 대체) — 주행 화면 왼쪽 세 패널.
+// 인터벌이 시작되면 인터벌 펼침·미니맵 펼침·경로 카드 접힘. 인터벌이 펼쳐져 있는 동안 경로 카드·미니맵은 하나만 —
+// 나중에 펼친 쪽이 남고 먼저 펼친 쪽이 접힌다. 인터벌을 접으면(알약) 둘 다 펼칠 수 있고, 다시 펼치면 먼저 펼친 쪽을 접는다.
+const preview = '/scripts/ui-800x360/preview.html';
+
+async function state(page: Page) {
+  return page.evaluate(() => ({
+    interval: document.querySelector('.ride-interval-hud--folded') ? 'folded' : document.querySelector('.ride-interval-hud') ? 'open' : 'none',
+    dock: document.querySelector('.route-dock-anchor--open') ? 'open' : 'folded',
+    minimap: document.querySelector('.route-minimap--collapsed') ? 'folded' : document.querySelector('.route-minimap') ? 'open' : 'none',
+  }));
+}
+
+function overlap(a: DOMRect | null, b: DOMRect | null) {
+  return Boolean(a && b && a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top);
+}
+
+for (const size of [{ width: 800, height: 360 }, { width: 699, height: 273 }]) {
+  test(`인터벌 중 하나만 펼치기·나중 쪽 우선·접힌 인터벌 ${size.width}`, async ({ page }) => {
+    await page.setViewportSize(size);
+    await page.goto(`${preview}?state=riding&interval&intervalMs=330000`);
+    await expect.poll(() => state(page)).toEqual({ interval: 'open', dock: 'folded', minimap: 'open' });
+
+    await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
+    await expect.poll(() => state(page)).toEqual({ interval: 'open', dock: 'open', minimap: 'folded' });
+    // 펼친 카드는 인터벌 패널과 겹치지 않는다(접힌 미니맵 버튼은 카드 옆).
+    const boxes = await page.evaluate(() => [
+      document.querySelector('.ride-interval-hud')!.getBoundingClientRect().toJSON(),
+      document.querySelector('.route-dock__card')!.getBoundingClientRect().toJSON(),
+    ]);
+    expect(overlap(boxes[0], boxes[1])).toBe(false);
+
+    await page.getByRole('button', { name: '미니맵 펼치기' }).click();
+    await expect.poll(() => state(page)).toEqual({ interval: 'open', dock: 'folded', minimap: 'open' });
+
+    await page.getByRole('button', { name: '인터벌 패널 접기' }).click();
+    await expect.poll(() => state(page)).toEqual({ interval: 'folded', dock: 'folded', minimap: 'open' });
+    const chip = page.getByRole('button', { name: '인터벌 패널 펼치기' });
+    await expect(chip).toContainText('운동');
+    expect((await chip.boundingBox())!.height).toBeGreaterThanOrEqual(32);
+
+    await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
+    await expect.poll(() => state(page)).toEqual({ interval: 'folded', dock: 'open', minimap: 'open' });
+
+    // 둘 다 펼친 채 인터벌을 다시 펼치면 먼저 펼친 미니맵이 접힌다.
+    await chip.click();
+    await expect.poll(() => state(page)).toEqual({ interval: 'open', dock: 'open', minimap: 'folded' });
+  });
+}
+
+test('인터벌을 접은 동안 미니맵을 나중에 펼쳤으면 다시 펼칠 때 경로 카드가 접힌다', async ({ page }) => {
+  await page.goto(`${preview}?state=riding&interval&intervalMs=330000`);
+  await page.getByRole('button', { name: '인터벌 패널 접기' }).click();
+  await page.getByRole('button', { name: '미니맵 접기' }).click();
+  await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
+  await page.getByRole('button', { name: '미니맵 펼치기' }).click();
+  await expect.poll(() => state(page)).toEqual({ interval: 'folded', dock: 'open', minimap: 'open' });
+  await page.getByRole('button', { name: '인터벌 패널 펼치기' }).click();
+  await expect.poll(() => state(page)).toEqual({ interval: 'open', dock: 'folded', minimap: 'open' });
+});
+
+test('인터벌이 없으면 미니맵·경로 카드는 서로 접지 않고, 인터벌이 시작되면 처음 규칙으로', async ({ page }) => {
+  await page.goto(`${preview}?state=riding`);
+  await expect(page.getByRole('group', { name: '인터벌 안내' })).toHaveCount(0);
+  await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
+  await expect.poll(() => state(page)).toEqual({ interval: 'none', dock: 'open', minimap: 'open' });
+  // 일시정지에서 인터벌을 켜면 시작 규칙(미니맵 펼침·경로 카드 접힘).
+  await page.getByRole('button', { name: '일시정지', exact: true }).click();
+  await page.getByRole('button', { name: '인터벌 운동 설정', exact: true }).click();
+  const editor = page.getByRole('dialog', { name: '인터벌 운동 설정', exact: true });
+  await editor.getByRole('switch', { name: /^인터벌/ }).check();
+  await editor.getByRole('button', { name: '인터벌 운동 설정 닫기', exact: true }).click();
+  await expect(page.getByRole('group', { name: '인터벌 안내' })).toBeVisible();
+  await expect.poll(() => state(page)).toEqual({ interval: 'open', dock: 'folded', minimap: 'open' });
+});

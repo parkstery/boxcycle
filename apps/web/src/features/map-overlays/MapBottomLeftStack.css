@@ -88,3 +88,12 @@
     padding-bottom: 6px;
   }
 }
+
+/*
+ * Chief 11-02 v4 C단계: 미니맵이 접히면(40px 버튼만) 그 버튼은 경로 카드·손잡이 오른쪽 옆, 아래 끝 맞춤.
+ * 위아래로 쌓으면 낮은 폰(699×273)에서 펼친 경로 카드가 버튼 높이만큼 올라가 인터벌 패널과 겹쳤다.
+ */
+.map-bottom-left-stack:has(> .route-minimap--collapsed) {
+  flex-direction: row;
+  align-items: flex-end;
+}

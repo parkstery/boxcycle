@@ -195,6 +195,7 @@ import { FUNCTIONS_REGION, MAPBOX_TOKEN } from "./app/env";
 import { useAppSheetNavigation } from "./app/useAppSheetNavigation";
 import { useAppMapCameraState } from "./app/useAppMapCameraState";
 import { useAppMapHudControls } from "./app/useAppMapHudControls";
+import { useRideLeftPanels } from "./app/useRideLeftPanels";
 import { useAppRideInputReadiness } from "./app/useAppRideInputReadiness";
 import { computeAppHudValues } from "./app/appHudValues";
 import { getMapDebugPhase } from "./lib/debug/mapDebugPhase";
@@ -555,7 +556,6 @@ export default function App() {
   const { enabled: rideIntervalEnabled, onEnabled: handleRideIntervalEnabled, view: rideInterval, config: rideIntervalConfig, onConfig: handleRideIntervalConfig, runKey: rideIntervalRunKey } =
     useRideInterval(rideStatus, rideMetrics.accumulatedMs);
   const [rideIntervalSettingsOpen, setRideIntervalSettingsOpen] = useState(false);
-  const [minimapExpanded, setMinimapExpanded] = useState(true);
   const [intervalSettingsFromRideSettings, setIntervalSettingsFromRideSettings] = useState(false);
   const [intervalRouteConfirmation, setIntervalRouteConfirmation] = useState<{ fromStart: boolean; key: string; speedKmh: number } | null>(null);
   const [coachingResumeRunKey, setCoachingResumeRunKey] = useState<string | null>(null);
@@ -2712,8 +2712,9 @@ export default function App() {
     />
   );
 
-  /** 미니맵은 주행·일시정지 중 인터벌 창이 없을 때(고정62). 접고 펴기는 RouteDock 접힌 줄의 64px 버튼(Chief 11-02). */
-  const minimapActive = (stage === "riding" || stage === "paused") && rideInterval == null;
+  /** Chief 11-02 v4 C단계: 미니맵은 주행·일시정지 중 늘(고정62 대체) — 인터벌이 펼쳐져 있으면 경로 카드와 하나만 펼친다. */
+  const minimapActive = stage === "riding" || stage === "paused";
+  const leftPanels = useRideLeftPanels(minimapActive && rideInterval != null);
   const routeDockPanel = (
     <RouteDock
       stage={stage}
@@ -2723,7 +2724,8 @@ export default function App() {
       onFocusStop={handleFocusRouteDockStop}
       onSwapEndpoints={handleSwapRouteEndpoints}
       editLocked={routeMenuLockedForProd}
-      minimap={minimapActive && routeGeometry ? { expanded: minimapExpanded, onToggle: () => setMinimapExpanded((v) => !v) } : null}
+      collapseSignal={leftPanels.dockCollapseSignal}
+      onExpandedChange={leftPanels.onDockExpandedChange}
     />
   );
 
@@ -3070,6 +3072,7 @@ export default function App() {
                 ...mapHudLeaderboard,
                 controlGroup: rideControlGroup,
                 cadence: rideSensorCell,
+                intervalFold: { folded: leftPanels.intervalFolded, onToggle: leftPanels.toggleIntervalFold },
               }}
             >
             </DebugMapStage>
@@ -3083,7 +3086,8 @@ export default function App() {
                   {/* Chief 11-02: 인터벌 창이 떠 있으면 미니맵은 숨긴다(좌측 공간 다툼). */}
                   <RouteMinimap
                     active={minimapActive}
-                    expanded={minimapExpanded}
+                    expanded={leftPanels.minimapExpanded}
+                    onToggle={leftPanels.toggleMinimap}
                     routeGeometry={routeGeometry}
                     liveLngLat={liveForMap}
                     mapboxAccessToken={MAPBOX_TOKEN}
@@ -3260,6 +3264,7 @@ export default function App() {
               ...mapHudLeaderboard,
               controlGroup: rideControlGroup,
               cadence: rideSensorCell,
+              intervalFold: { folded: leftPanels.intervalFolded, onToggle: leftPanels.toggleIntervalFold },
               quickCamera:
                 rideStatus === "running" || rideStatus === "paused"
                   ? {

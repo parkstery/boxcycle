@@ -23,9 +23,9 @@ test('긴 주소는 펼친 미니맵의 폭을 따르고 두 패널 접기가 �
     }
   }
   await page.getByRole('button', { name: '경로 패널 접기' }).click();
-  // 10-28 후속: 접힌 카드에는 LED 옆 주행 제어도 남는다. Chief 11-02: 접힌 줄은 64px.
-  const ledWidth = (await page.getByRole('button', { name: '경로 패널 펼치기' }).boundingBox())!.width;
-  expect(ledWidth).toBe(64);
+  // Chief 11-02 v4: 접힌 카드는 40px 경로 손잡이(B단계), 주행 버튼은 오른쪽 묶음.
+  const handleWidth = (await page.getByRole('button', { name: '경로 패널 펼치기' }).boundingBox())!.width;
+  expect(handleWidth).toBe(40);
   await expect(page.getByRole('button', { name: '일시정지', exact: true })).toBeVisible();
   await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
   const expandedWidth = (await page.locator('.route-dock__card').boundingBox())!.width;
@@ -33,19 +33,18 @@ test('긴 주소는 펼친 미니맵의 폭을 따르고 두 패널 접기가 �
   await minimap.evaluate((e) => {
     (e as HTMLElement).style.width = '';
   });
-  // Chief 11-02: 미니맵 접기는 접힌 64px 줄 끝 버튼 — 접으면 미니맵이 통째로 빠진다.
-  await page.getByRole('button', { name: '경로 패널 접기' }).click();
+  // Chief 11-02 v4 C단계: 미니맵 접기는 미니맵 왼쪽 위 40px 버튼 — 접으면 버튼만 남는다.
   await page.getByRole('button', { name: '미니맵 접기' }).click();
-  await expect(minimap).toHaveCount(0);
-  await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
+  await expect(minimap).toHaveClass(/route-minimap--collapsed/);
+  await expect(page.locator('.route-minimap__content')).toBeHidden();
   const collapsedDockWidth = (await page.locator('.route-dock__card').boundingBox())!.width;
   // 대기 화면과 동일 — 29.4vw(펼친 미니맵 폭 비율, 2026-10-24 Chief). 접힌 미니맵 폭은 따르지 않는다.
   const vw = page.viewportSize()!.width;
   expect(Math.abs(collapsedDockWidth - 0.294 * vw)).toBeLessThanOrEqual(1);
 });
 
-// Chief 11-02: 미니맵 접기·펼치기는 미니맵 위 28px 버튼 대신 RouteDock 접힌 줄 끝 64px 버튼(지도 아이콘, 펼침이면 파랑).
-test('RouteDock LED와 미니맵 접기는 독립적으로 접힌다', async ({ page }) => {
+// Chief 11-02 v4 C단계: 미니맵 접기·펼치기는 원래처럼 미니맵 왼쪽 위 버튼(경로 손잡이와 같은 40px). 인터벌이 없으면 두 패널은 독립.
+test('경로 손잡이와 미니맵 접기는 독립적으로 접힌다', async ({ page }) => {
   await page.goto('/scripts/ui-800x360/preview.html?state=riding&waypoints=3');
 
   const routeExpand = page.getByRole('button', { name: '경로 패널 펼치기' });
@@ -53,25 +52,26 @@ test('RouteDock LED와 미니맵 접기는 독립적으로 접힌다', async ({ 
   const minimap = page.locator('.map-bottom-left-stack .route-minimap');
   await expect(routeExpand).toBeVisible();
   await expect(minimapCollapse).toBeVisible();
-  await expect(page.locator('.route-minimap__toggle')).toHaveCount(0);
+  await expect(minimap.locator('.route-minimap__toggle')).toHaveCount(1);
+  await expect(page.locator('.route-dock__tool--minimap')).toHaveCount(0);
   await expect(routeExpand).toHaveAttribute('aria-expanded', 'false');
   await expect(minimapCollapse).toHaveAttribute('aria-expanded', 'true');
-  const mapBox = (await minimapCollapse.boundingBox())!;
-  expect([mapBox.width, mapBox.height]).toEqual([64, 64]);
-  expect(await minimapCollapse.evaluate((el) => getComputedStyle(el).color)).toBe('rgb(36, 87, 214)');
+  for (const b of [await minimapCollapse.boundingBox(), await routeExpand.boundingBox()]) expect([b!.width, b!.height]).toEqual([40, 40]);
 
-  // 미니맵만 접어도 경로 패널은 접힌 그대로, 다시 펴면 돌아온다.
+  // 미니맵만 접어도 경로 패널은 접힌 그대로, 다시 펴면 돌아온다. 접힌 미니맵 버튼은 손잡이 옆.
   await minimapCollapse.click();
-  await expect(minimap).toHaveCount(0);
+  await expect(minimap).toHaveClass(/route-minimap--collapsed/);
   await expect(routeExpand).toHaveAttribute('aria-expanded', 'false');
   const minimapExpand = page.getByRole('button', { name: '미니맵 펼치기' });
   await expect(minimapExpand).toHaveAttribute('aria-expanded', 'false');
+  const [h, m] = [(await routeExpand.boundingBox())!, (await minimapExpand.boundingBox())!];
+  expect(Math.round(m.x - (h.x + h.width))).toBe(8);
+  expect(Math.round(m.y + m.height)).toBe(Math.round(h.y + h.height));
   await minimapExpand.click();
-  await expect(minimap).toBeVisible();
+  await expect(minimap).not.toHaveClass(/route-minimap--collapsed/);
 
-  // 경로 패널을 펴도 미니맵은 유지된다(펼친 카드엔 미니맵 버튼 없음).
+  // 인터벌이 없으면 경로 패널을 펴도 미니맵은 유지된다.
   await routeExpand.click();
   await expect(page.getByRole('button', { name: '경로 패널 접기' })).toBeVisible();
-  await expect(minimap).toBeVisible();
-  await expect(page.getByRole('button', { name: /^미니맵/ })).toHaveCount(0);
+  await expect(minimap).not.toHaveClass(/route-minimap--collapsed/);
 });

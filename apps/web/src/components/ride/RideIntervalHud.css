@@ -77,3 +77,32 @@ span.ride-interval-hud__time { display: grid; place-items: center; font-size: 24
   .ride-interval-hud__total { font-size: 9.5px; letter-spacing: -0.2px; }
   .ride-interval-hud__total[data-long="true"] { font-size: 8px; }
 }
+
+/*
+ * Chief 11-02 v4 C단계: 접기·펼치기. 패널은 그대로 누름이 지나가고(지도 제스처), 오른쪽 위 접기 버튼만 받는다.
+ * 접으면 알약 = 단계 색 점 · 단계 · 남은 시간 · 세트 · › — 알약 전체가 펼치기 버튼.
+ */
+.ride-interval-hud__fold {
+  position: absolute; top: -6px; right: -6px;
+  width: 32px; height: 32px; padding: 0; border: 0; background: transparent;
+  display: grid; place-items: center; cursor: pointer; pointer-events: auto; touch-action: manipulation;
+}
+.ride-interval-hud__fold > span {
+  width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  background: #fff; box-shadow: 0 1px 4px rgba(15, 23, 42, .3); color: #576375; font-size: 15px; line-height: 1; text-shadow: none;
+}
+.ride-interval-hud__fold:focus-visible > span { outline: 2px solid #2457d6; outline-offset: 1px; }
+.map-hud__tl > .ride-interval-hud.ride-interval-hud--folded {
+  display: inline-flex; align-items: center; gap: 7px; grid-template-columns: none;
+  height: 34px; padding: 0 12px 0 10px; margin-top: 2px; border: 0; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85); box-shadow: 0 1px 6px rgba(15, 23, 42, .3);
+  font: inherit; font-size: 13px; font-weight: 800; color: #142c46; white-space: nowrap;
+  cursor: pointer; pointer-events: auto; touch-action: manipulation;
+}
+.ride-interval-hud--folded .ride-interval-hud__dot { width: 10px; height: 10px; border-radius: 50%; background: var(--interval-color); }
+.ride-interval-hud--folded .ride-interval-hud__phase { font-size: 14px; color: var(--interval-color); }
+.ride-interval-hud--folded .ride-interval-hud__chip-time { font-variant-numeric: tabular-nums; }
+.ride-interval-hud--folded em { font-style: normal; font-size: 11px; color: #576375; }
+.ride-interval-hud--folded .ride-interval-hud__chevron { font-size: 15px; color: #576375; }
+.ride-interval-hud--folded:focus-visible { outline: 2px solid #2457d6; outline-offset: 2px; }
+

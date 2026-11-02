@@ -13,6 +13,7 @@ import { useRideStartPulseKey } from '../../src/hooks/useRideStartPulseKey';
 import { MapBottomLeftStack } from '../../src/features/map-overlays/MapBottomLeftStack';
 import { RouteMinimap } from '../../src/features/map-overlays/RouteMinimap';
 import { RouteDock } from '../../src/components/route-dock/RouteDock';
+import { useRideLeftPanels } from '../../src/app/useRideLeftPanels';
 import { RideSummarySheet } from '../../src/components/ride/RideSummarySheet';
 import { NextRideCard } from '../../src/components/ride/NextRideCard';
 import type { NextRideView } from '../../src/lib/ride/nextRideTarget';
@@ -422,7 +423,6 @@ function Preview() {
   );
   const [camera,setCamera] = useState<1|2|3|4|5|6>(1);
   const [mapStyleLabel,setMapStyleLabel] = useState('위성');
-  const [minimapExpanded,setMinimapExpanded] = useState(true);
   const [intervalElapsedMs, setIntervalElapsedMs] = useState(Number(params.get('intervalMs') ?? 0));
   const interval = useRideInterval(
     stage === 'riding' ? 'running' : stage === 'paused' ? 'paused' : 'idle',
@@ -510,6 +510,7 @@ function Preview() {
   const profileUser = makeProfileUser(BATCH4_PROFILE_STATES.has(initial) ? initial : 'profile');
   const profileNicknameChangedAtMs = profileNicknameLockMs(initial);
   const active = stage==='riding'||stage==='paused';
+  const leftPanels = useRideLeftPanels(active && interval.view != null);
   // 앱과 같은 규칙: 주행 중이면 첫 Trail 에서 달리는 중.
   const glanceTrailId = active ? previewTrails[0].id : 'default';
   const glanceTrails = listOpenTrailsForDisplay(previewTrails, glanceTrailId, active ? previewTrails[0] : null, active);
@@ -566,8 +567,8 @@ function Preview() {
     <MapBottomLeftStack>
     <RouteDock key={hasRoute?'route':'empty'} stage={stage} stops={hasRoute?stops:stage==='setup'?[stops[0]]:[]} routeLoading={params.has('loading')}
       onRemoveStop={noop} onFocusStop={noop} onSwapEndpoints={noop}
-      minimap={active && interval.view == null ? {expanded:minimapExpanded,onToggle:()=>setMinimapExpanded(v=>!v)} : null} />
-    <RouteMinimap active={active && interval.view == null} expanded={minimapExpanded} routeGeometry={{type:'LineString',coordinates:[[126.98,37.55],[126.982,37.553],[126.986,37.552],[126.99,37.56]]}} liveLngLat={[126.982,37.553]} mapboxAccessToken="" traveledMeters={420} routeMeters={2020} />
+      collapseSignal={leftPanels.dockCollapseSignal} onExpandedChange={leftPanels.onDockExpandedChange} />
+    <RouteMinimap active={active} expanded={leftPanels.minimapExpanded} onToggle={leftPanels.toggleMinimap} routeGeometry={{type:'LineString',coordinates:[[126.98,37.55],[126.982,37.553],[126.986,37.552],[126.99,37.56]]}} liveLngLat={[126.982,37.553]} mapboxAccessToken="" traveledMeters={420} routeMeters={2020} />
     </MapBottomLeftStack>
 
     {params.has('short') ? <button type="button" style={{position:'absolute',left:'45%',bottom:4,zIndex:9}} onClick={()=>setRouteSetupToken({})}>검수용 새 경로 확정</button> : null}
@@ -581,6 +582,7 @@ function Preview() {
       onResumeFromPause={()=>setStage('riding')} onEndFromPause={()=>setPanel('summary')} onModifyFromPause={()=>setStage('setup')}
       quickCamera={active&&!glanceRiding?{active:camera,camera1Mode:flatCameraMode,enable3D,terrainFallback:params.has('terrainFallback'),onEnable3D:setEnable3D,onSelect:setCamera,onSelectFlat:(mode)=>{setFlatCameraMode(mode);setCamera(1);}}:null} mapControls={{styleLabel:mapStyleLabel,styleAriaLabel:`맵 스타일 ${mapStyleLabel}, 클릭 시 ${mapStyleLabel==='위성'?'야외':'위성'}`,onToggleStyle:()=>setMapStyleLabel(value=>value==='위성'?'야외':'위성'),onZoomOut:()=>setToolbarCalls(c=>({...c,zoomOut:c.zoomOut+1})),onZoomIn:()=>setToolbarCalls(c=>({...c,zoomIn:c.zoomIn+1})),zoomOutDisabled:false,zoomInDisabled:false}}
       leaderboardGlancePanel={initial!=='glance-summary'?<LeaderboardGlancePanel {...glanceView} />:undefined}
+      intervalFold={{folded:leftPanels.intervalFolded,onToggle:leftPanels.toggleIntervalFold}}
       cadence={{state:sensorState,open:panel==='sensor',onOpen:()=>setPanel('sensor'),attention:stage==='ready-to-start'&&params.has('blocked')}}
       controlGroup={{
         transport: <RideControlBar stage={panel==='summary'?'summary':stage} routeLoading={params.has('loading')}
