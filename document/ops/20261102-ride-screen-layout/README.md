@@ -28,3 +28,15 @@
 - 검증: tsc -b 0·eslint 0 오류·정련 래칫 기준선 안·의존 방향 0·test:quick 1470/0. e2e 7종 105개 중 90 통과/15 실패 — 15건 모두 1단계 때부터의 기존 실패(왼쪽 반달 vs RouteDock 5, RouteDock 간격 4, ui-800x360 3, batch1 3). 「HUD 한 행·좌우 탭」 699·667 2건은 이번에 통과로 바뀜. route-dock-tools·sensor-dock 14개 중 13 통과, 1건은 HANDOFF 기록 기존 실패(종료 후 펼침). 사보타주: 레일 26→8px·낮은 폰 규칙 해제 → 레일 시험 12/12 실패, 점 칸 수정 제거 → 8/8 실패, 원복 후 통과.
 - 실앱 확인 범위: 하네스(미리보기)로 화면·동작 확인. App 쪽 새 훅·설정 창 배선은 타입 검사로 확인.
 - 캡처: `evidence/rail-ready-800.png`·`rail-riding-800.png`·`rail-ready-699.png`·`rail-riding-699.png`·`rail-camera-menu-800.png`·`rail-camera-menu-699.png`·`rail-gear-map-style-699.png`, 변경 전 `before-rail-riding-800.png`.
+
+## 3단계 — 왼쪽 아래 주행 버튼 줄 (11-02, 미커밋)
+
+- Chief 답(11-02): 배치 A안(버튼 줄 위·미니맵 아래), 주소 카드는 접기 유지(계획서의 「주행 중 숨김」 취소 — 고정 원칙5·고정11), 미니맵 버튼은 줄에 넣고 64px.
+- 접힌 줄 = LED · 도구 | 주행 버튼 | 미니맵, 모두 64px(LED 원 32px), 묶음 안 8px·묶음 사이 34px. 일시정지 접힌 줄에 ⚙ 추가(INT·⚙), 펼친 카드는 폭이 모자라 종전대로 INT만. 2단계의 임시 「일시정지 옵션 → 지도 스타일」 제거 — 낮은 폰 일시정지도 ⚙ → 주행 설정 창.
+- 미니맵: 펼침 상태를 App 으로 올려(`RouteMinimap` `expanded` prop) 줄 끝 버튼이 접고 편다. 접으면 미니맵이 빠지고 줄이 맨 아래로 내려간다. 미니맵 위 28px 버튼은 이 경우 그리지 않는다.
+- 왼쪽 아래 묶음을 화면 끝에서 48px로(왼쪽 반달 탭 누름 44px+4px) → 「왼쪽 반달 vs 경로 카드」 기존 실패 5건(반달 60%·지도 터치 4, ui-800x360 고정14) 해소.
+- 알려진 한계: 699×273에선 줄(y 107~171)이 표고 그래프(실앱, x 154~545·y 139~259) 왼쪽 위와 코칭 문구를 덮는다 — A안 선택 시 안내, 4단계 자동 숨김 전제. 펼친 흰 카드 안 버튼은 종전 크기.
+- 숨어 있던 기존 문제: `ride-dock-layout` 「RouteDock 한 줄·간격·10명」은 10-30 ⚙ 추가 뒤 간격 32px 검사에서 멈춰 있었다. 그 자리를 64px 줄 계약으로 바꾸자 다음 검사 「펼친 카드에서 주행 전 ▶와 주행 중 ⏸가 같은 칸(고정46)」이 22~36px 어긋나 실패 — 펼친 카드는 이번에 건드리지 않았다(HEAD 동일 구조). 별도 확인 필요.
+- 파일: `route-dock/RouteDock.tsx/.css`·`map-overlays/RouteMinimap.tsx`·`MapBottomLeftStack.css`·`App.tsx`·`ride/RideControlBar.tsx/.css`(임시 지도 스타일 제거)·`scripts/ui-800x360/preview.tsx`·e2e `ride-dock-layout`·`address-minimap-width`·`route-dock-tools`·`sensor-dock`·`toolbar-trail-style`·고정65(29·42·45·46·53 대체 표시).
+- 검증: tsc -b 0·eslint 0 오류·정련 래칫 기준선 안·의존 방향 0·test:quick 1470/0·진입 셀렉터 21/21. e2e 15종 146개 중 123 통과/23 실패 — 23건 모두 HEAD 코드로도 같은 줄에서 실패(경로 카드 간격 4는 위 숨은 문제, 경로 생성 5, 결과 시트 등 4는 Firestore 에뮬레이터 미기동으로 판정 불가, ui-800x360 2, batch1 3, batch2 3, sensor-dock 종료 후 펼침 1, 탭 핸들 터치 1). 사보타주: 접힌 줄 32px 로 되돌리면 64px 줄 검사 4/4 실패, 원복 후 통과.
+- 캡처: `evidence/row-riding-800.png`·`row-riding-699.png`·`row-paused-699.png`·`row-interval-699.png`·`row-minimap-folded-800.png`·`row-ready-800.png`, 변경 전 `before-row-riding-800.png`·`before-row-riding-699.png`.

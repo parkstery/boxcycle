@@ -54,11 +54,6 @@
 .ride-control-bar__resume label { display: flex; align-items: center; gap: 4px; min-height: 24px; }
 .ride-control-bar__resume button { font: inherit; padding: 4px 7px; }
 .ride-control-bar__resume-close { align-self: flex-end; }
-/* Chief 11-02: 지도 스타일은 오른쪽 조작 레일에서 빠지는 낮은 폰(312px 미만)에서만 일시정지 옵션에 보인다. */
-.ride-control-bar__map-style { display: none; }
-@media (max-height: 311px) {
-  body:has(.map-hud__rail .camera-view-menu) .ride-control-bar__map-style { display: block; }
-}
 /* Next-ride is idle-only. Keep its card above the sensor-only bar, never behind it. */
 .app-shell--map-first:has(.ride-control-anchor--with-next) .next-ride-anchor {
   bottom: calc(max(clamp(.45rem, 1.4vw, .85rem), env(safe-area-inset-bottom, 0px)) + var(--br-clock-above-scale, 26px) + var(--br-clock-height, 16px) + 42px);

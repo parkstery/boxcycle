@@ -554,6 +554,7 @@ export default function App() {
   const { enabled: rideIntervalEnabled, onEnabled: handleRideIntervalEnabled, view: rideInterval, config: rideIntervalConfig, onConfig: handleRideIntervalConfig, runKey: rideIntervalRunKey } =
     useRideInterval(rideStatus, rideMetrics.accumulatedMs);
   const [rideIntervalSettingsOpen, setRideIntervalSettingsOpen] = useState(false);
+  const [minimapExpanded, setMinimapExpanded] = useState(true);
   const [intervalSettingsFromRideSettings, setIntervalSettingsFromRideSettings] = useState(false);
   const [intervalRouteConfirmation, setIntervalRouteConfirmation] = useState<{ fromStart: boolean; key: string; speedKmh: number } | null>(null);
   const [coachingResumeRunKey, setCoachingResumeRunKey] = useState<string | null>(null);
@@ -2707,10 +2708,11 @@ export default function App() {
       onAbandonResume={resumeRatio != null ? rideResumeSlot.abandon : null}
       editLocked={routeMenuLockedForProd}
       nextRideVisible={Boolean(nextRideCardVisible && nextRideView)}
-      mapStyle={mapHudControls}
     />
   );
 
+  /** 미니맵은 주행·일시정지 중 인터벌 창이 없을 때(고정62). 접고 펴기는 RouteDock 버튼 줄의 64px 버튼(Chief 11-02). */
+  const minimapActive = (stage === "riding" || stage === "paused") && rideInterval == null;
   const routeDockPanel = (
     <RouteDock
       stage={stage}
@@ -2728,6 +2730,7 @@ export default function App() {
       onOpenSettings={openRideSettingsPanel}
       intervalEnabled={rideIntervalEnabled}
       rideControls={rideControlPanel}
+      minimap={minimapActive && routeGeometry ? { expanded: minimapExpanded, onToggle: () => setMinimapExpanded((v) => !v) } : null}
     />
   );
 
@@ -3076,7 +3079,8 @@ export default function App() {
                   {routeDockPanel}
                   {/* Chief 11-02: 인터벌 창이 떠 있으면 미니맵은 숨긴다(좌측 공간 다툼). */}
                   <RouteMinimap
-                    active={(stage === "riding" || stage === "paused") && rideInterval == null}
+                    active={minimapActive}
+                    expanded={minimapExpanded}
                     routeGeometry={routeGeometry}
                     liveLngLat={liveForMap}
                     mapboxAccessToken={MAPBOX_TOKEN}

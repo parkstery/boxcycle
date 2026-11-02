@@ -13,8 +13,13 @@ for (const viewport of [{ width: 800, height: 360 }, { width: 736, height: 300 }
     });
     const ready = await geometry();
     await dock.getByRole('button', { name: '주행 시작', exact: true }).click();
-    const gap = await dock.evaluate(el => el.querySelector('.ride-control-bar')!.getBoundingClientRect().left - el.querySelector('.route-dock__led-toggle')!.getBoundingClientRect().right);
-    expect(gap).toBe(32);
+    // Chief 11-02 A안: 접힌 줄 = LED · ⚙ | ⏸ · ⏹ | 미니맵, 모두 64px·같은 높이, 묶음 안 8px·묶음 사이 34px(고정46 간격 26 + 8).
+    const row = await dock.evaluate(el => ['.route-dock__led-toggle', '.route-dock__tool--settings', '.ride-media-button--pause', '.ride-media-button--stop', '.route-dock__tool--minimap']
+      .map(s => el.querySelector(s)!.getBoundingClientRect()).map(r => ({ x: r.left, right: r.right, y: r.top, w: r.width, h: r.height })));
+    for (const b of row) expect([b.w, b.h, b.y]).toEqual([64, 64, row[0].y]);
+    expect(row.slice(1).map((b, i) => Math.round(b.x - row[i].right))).toEqual([8, 34, 8, 34]);
+    expect(row[0].x).toBe(48);
+    expect(row[4].right).toBeLessThanOrEqual(viewport.width);
     await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
     const riding = await geometry();
     expect(Math.abs(riding.x - ready.x)).toBeLessThan(1);

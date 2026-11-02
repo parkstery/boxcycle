@@ -44,8 +44,11 @@ test('주행 전 INT·핀·⚙·주행 시작 순서, 주행 중엔 ⚙·일시�
           expect(order, label).not.toContain('인터벌 운동 설정');
           expect(order, label).not.toContain('경로 목록');
         } else if (state === 'paused') {
+          // Chief 11-02: 접힌 64px 줄엔 INT 다음 ⚙ 도(낮은 폰 지도 스타일이 주행 설정 창에 있다). 펼친 카드는 폭이 모자라 INT 만.
           expect(order[0], label).toBe('인터벌 운동 설정');
-          expect(order, label).not.toContain('주행 설정');
+          const open = await page.locator('.route-dock-anchor--open').count();
+          if (open) expect(order, label).not.toContain('주행 설정');
+          else expect(order[1], label).toBe('주행 설정');
           expect(order, label).not.toContain('경로 목록');
         } else {
           expect(order.slice(0, 3), label).toEqual(['인터벌 운동 설정', '경로 목록', '주행 설정']);

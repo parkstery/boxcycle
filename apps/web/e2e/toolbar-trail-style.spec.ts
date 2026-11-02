@@ -160,10 +160,9 @@ for (const size of [{width:800,height:360},{width:736,height:300},{width:699,hei
     await page.keyboard.press('Escape');
     await expect(panel).toHaveCount(0);
     if(!fourCells){
-      // 주행 중엔 ⚙ 주행 설정, 일시정지 중엔(⚙ 자리가 INT) 일시정지 옵션에서 바꾼다.
-      if(stage==='riding') await page.getByRole('button',{name:/주행 설정/}).first().click();
-      else await page.getByRole('button',{name:'일시정지 옵션',exact:true}).click();
-      const moved=page.locator(stage==='riding'?'.ride-settings-panel__map-style-btn':'.ride-control-bar__map-style');
+      // 주행·일시정지 모두 접힌 64px 줄의 ⚙ 주행 설정에서 바꾼다(3단계: 일시정지에도 ⚙).
+      await page.getByRole('button',{name:'주행 설정',exact:true}).click();
+      const moved=page.locator('.ride-settings-panel__map-style-btn');
       await expect(moved).toBeVisible();
       await moved.click();
       await expect(page.locator('.hud-ride-map-controls__style svg')).toHaveAttribute('data-map-style','outdoors');

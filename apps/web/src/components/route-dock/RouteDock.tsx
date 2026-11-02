@@ -32,6 +32,8 @@ export type RouteDockProps = {
   onOpenSettings?: () => void;
   intervalEnabled?: boolean;
   rideControls?: ReactNode;
+  /** 접힌 버튼 줄 끝의 미니맵 접기·펼치기(Chief 11-02 — 미니맵 위 28px 버튼 대체). 미니맵이 있을 때만 준다. */
+  minimap?: { expanded: boolean; onToggle: () => void } | null;
 };
 
 /* 2026-10-24 Chief: 「출발·경유·도착」 글자 대신 지도 핀과 같은 기호 S · 1 2 3 · E(영어로 통일). */
@@ -87,6 +89,7 @@ export function RouteDock({
   onOpenSettings,
   intervalEnabled = false,
   rideControls,
+  minimap = null,
 }: RouteDockProps) {
   const [expanded, setExpanded] = useState(() => routeDockDefaultExpanded(stage, stops.length));
   const [prevStage, setPrevStage] = useState(stage);
@@ -150,7 +153,8 @@ export function RouteDock({
     ) : null;
   // 10-30 Chief: 인터벌·경로 목록·주행 설정은 메인 메뉴에서 빠지고 여기서 연다(펼침·접힘 모두).
   // 주행 전: INT · 지도 핀 · ⚙ · 주행 시작 / 주행 중: INT 자리에 ⚙ 만(인터벌 변경 불가 — 의도).
-  // 일시정지: ⚙ 자리에 INT 가 돌아온다 — 인터벌은 멈춘 뒤에만 바꾸고, 바꾸면 준비부터 다시 시작한다.
+  // 일시정지: INT 가 돌아온다 — 인터벌은 멈춘 뒤에만 바꾸고, 바꾸면 준비부터 다시 시작한다.
+  // 접힌 64px 줄엔 ⚙ 도 함께(Chief 11-02). 펼친 카드 머리줄은 폭이 모자라 종전대로 INT 만.
   const paused = stage === "paused";
   const intervalButton = onOpenIntervalSettings && (!activeRide || paused) ? (
     <button type="button" className={`route-dock__interval${intervalEnabled ? " route-dock__interval--active" : ""}`} aria-label="인터벌 운동 설정" title="인터벌 운동 설정" onClick={onOpenIntervalSettings}>
@@ -165,7 +169,7 @@ export function RouteDock({
       </svg>
     </button>
   ) : null;
-  const settingsButton = onOpenSettings && !paused ? (
+  const settingsButton = onOpenSettings && (!paused || !expanded) ? (
     <button type="button" className="route-dock__tool route-dock__tool--settings" aria-label="주행 설정" title="주행 설정" onClick={onOpenSettings}>
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
         <path fillRule="evenodd" d="M10.11 4.12L10.34 1.53A10.6 10.6 0 0 1 13.66 1.53L13.89 4.12A8.1 8.1 0 0 1 16.23 5.09L18.23 3.42A10.6 10.6 0 0 1 20.58 5.77L18.91 7.77A8.1 8.1 0 0 1 19.88 10.11L22.47 10.34A10.6 10.6 0 0 1 22.47 13.66L19.88 13.89A8.1 8.1 0 0 1 18.91 16.23L20.58 18.23A10.6 10.6 0 0 1 18.23 20.58L16.23 18.91A8.1 8.1 0 0 1 13.89 19.88L13.66 22.47A10.6 10.6 0 0 1 10.34 22.47L10.11 19.88A8.1 8.1 0 0 1 7.77 18.91L5.77 20.58A10.6 10.6 0 0 1 3.42 18.23L5.09 16.23A8.1 8.1 0 0 1 4.12 13.89L1.53 13.66A10.6 10.6 0 0 1 1.53 10.34L4.12 10.11A8.1 8.1 0 0 1 5.09 7.77L3.42 5.77A10.6 10.6 0 0 1 5.77 3.42L7.77 5.09A8.1 8.1 0 0 1 10.11 4.12ZM12 8.7a3.3 3.3 0 1 0 0 6.6a3.3 3.3 0 1 0 0 -6.6Z" />
@@ -226,6 +230,15 @@ export function RouteDock({
           )}
           {!expanded ? toolButtons : null}
           {rideControls}
+          {!expanded && minimap ? (
+            <button type="button" className="route-dock__tool route-dock__tool--minimap" aria-label={minimap.expanded ? "미니맵 접기" : "미니맵 펼치기"}
+              title={minimap.expanded ? "미니맵 접기" : "미니맵 펼치기"} aria-expanded={minimap.expanded} onClick={minimap.onToggle}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M3 6.5 8.5 4l7 2.5L21 4v13.5L15.5 20l-7-2.5L3 20z" />
+                <path d="M8.5 4v13.5M15.5 6.5V20" />
+              </svg>
+            </button>
+          ) : null}
         </div>
         <div
           id={ROUTE_DOCK_PANEL_ID}

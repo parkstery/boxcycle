@@ -40,15 +40,13 @@ async function assertLedOnly(page: Page, color: 'white' | 'green') {
   await expect(fold(page)).toHaveCount(0);
   await expect(chip(page)).toHaveCount(0);
   await expect(barChip(page)).toHaveCount(0);
+  // Chief 11-02: 접힌 줄은 64px(LED 원 32px).
   const box = (await toggle.boundingBox())!;
-  expect(box.width).toBeGreaterThanOrEqual(28);
-  expect(box.height).toBeGreaterThanOrEqual(28);
-  expect(box.width).toBeLessThanOrEqual(44);
-  expect(box.height).toBeLessThanOrEqual(44);
+  expect([box.width, box.height]).toEqual([64, 64]);
   // 10-30 Chief: 접혀도 LED 오른쪽에 도구(주행 전 INT·지도 핀·⚙ / 주행 중 ⚙ / 일시정지 INT)가 한 줄로 보인다 — 높이만 LED 한 줄.
   await expect(page.locator('.route-dock__card').locator('.route-dock__tool--settings, .route-dock__interval').first()).toBeVisible();
   const card = (await page.locator('.route-dock__card').boundingBox())!;
-  expect(card.height).toBeLessThanOrEqual(44);
+  expect(card.height).toBe(64);
 }
 
 async function assertExpandedDock(page: Page) {

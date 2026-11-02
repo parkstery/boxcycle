@@ -23,9 +23,9 @@ test('긴 주소는 펼친 미니맵의 폭을 따르고 두 패널 접기가 �
     }
   }
   await page.getByRole('button', { name: '경로 패널 접기' }).click();
-  // 10-28 후속: 접힌 카드에는 LED 옆 주행 제어도 남는다.
+  // 10-28 후속: 접힌 카드에는 LED 옆 주행 제어도 남는다. Chief 11-02: 접힌 줄은 64px.
   const ledWidth = (await page.getByRole('button', { name: '경로 패널 펼치기' }).boundingBox())!.width;
-  expect(ledWidth).toBe(28);
+  expect(ledWidth).toBe(64);
   await expect(page.getByRole('button', { name: '일시정지', exact: true })).toBeVisible();
   await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
   const expandedWidth = (await page.locator('.route-dock__card').boundingBox())!.width;
@@ -33,61 +33,45 @@ test('긴 주소는 펼친 미니맵의 폭을 따르고 두 패널 접기가 �
   await minimap.evaluate((e) => {
     (e as HTMLElement).style.width = '';
   });
+  // Chief 11-02: 미니맵 접기는 접힌 64px 줄 끝 버튼 — 접으면 미니맵이 통째로 빠진다.
+  await page.getByRole('button', { name: '경로 패널 접기' }).click();
   await page.getByRole('button', { name: '미니맵 접기' }).click();
-  await expect(minimap).toHaveClass(/route-minimap--collapsed/);
+  await expect(minimap).toHaveCount(0);
+  await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
   const collapsedDockWidth = (await page.locator('.route-dock__card').boundingBox())!.width;
   // 대기 화면과 동일 — 29.4vw(펼친 미니맵 폭 비율, 2026-10-24 Chief). 접힌 미니맵 폭은 따르지 않는다.
   const vw = page.viewportSize()!.width;
   expect(Math.abs(collapsedDockWidth - 0.294 * vw)).toBeLessThanOrEqual(1);
 });
 
+// Chief 11-02: 미니맵 접기·펼치기는 미니맵 위 28px 버튼 대신 RouteDock 접힌 줄 끝 64px 버튼(지도 아이콘, 펼침이면 파랑).
 test('RouteDock LED와 미니맵 접기는 독립적으로 접힌다', async ({ page }) => {
   await page.goto('/scripts/ui-800x360/preview.html?state=riding&waypoints=3');
 
   const routeExpand = page.getByRole('button', { name: '경로 패널 펼치기' });
   const minimapCollapse = page.getByRole('button', { name: '미니맵 접기' });
+  const minimap = page.locator('.map-bottom-left-stack .route-minimap');
   await expect(routeExpand).toBeVisible();
   await expect(minimapCollapse).toBeVisible();
+  await expect(page.locator('.route-minimap__toggle')).toHaveCount(0);
   await expect(routeExpand).toHaveAttribute('aria-expanded', 'false');
-  await expect(minimapCollapse).toHaveAttribute('data-fold-kind', 'map');
   await expect(minimapCollapse).toHaveAttribute('aria-expanded', 'true');
-  await expect(minimapCollapse.locator('.route-overview-fold-toggle__identity')).toHaveCount(0);
-  await expect(minimapCollapse.locator('.route-overview-fold-toggle__chevron')).toHaveCount(1);
-  await expect(page.locator('.route-dock__led-toggle')).toHaveCount(1);
+  const mapBox = (await minimapCollapse.boundingBox())!;
+  expect([mapBox.width, mapBox.height]).toEqual([64, 64]);
+  expect(await minimapCollapse.evaluate((el) => getComputedStyle(el).color)).toBe('rgb(36, 87, 214)');
 
-  await routeExpand.click();
-  const routeCollapse = page.getByRole('button', { name: '경로 패널 접기' });
-  await expect(routeCollapse).toBeVisible();
-  await expect(page.getByRole('button', { name: /^케이던스 센서:/ })).toHaveCount(1);
-  await page.mouse.move(400, 200);
-
-  const mapBox = await minimapCollapse.boundingBox();
-  expect(mapBox!.width).toBe(28);
-  expect(mapBox!.height).toBe(28);
-
-  // 주소 패널만 접어도 미니맵은 유지된다.
-  await routeCollapse.click();
-  await expect(page.getByRole('button', { name: '경로 패널 펼치기' })).toHaveAttribute('aria-expanded', 'false');
-  await expect(minimapCollapse).toHaveAttribute('aria-expanded', 'true');
-
-  // 둘 다 접혀도 서로 겹치지 않는다.
+  // 미니맵만 접어도 경로 패널은 접힌 그대로, 다시 펴면 돌아온다.
   await minimapCollapse.click();
-  const collapsed = await page.evaluate(() => {
-    const led = document.querySelector('.route-dock__led-toggle')!.getBoundingClientRect();
-    const map = document.querySelector('[data-fold-kind="map"]')!.getBoundingClientRect();
-    return {
-      led: { left: led.left, right: led.right, top: led.top, bottom: led.bottom },
-      map: { left: map.left, right: map.right, top: map.top, bottom: map.bottom },
-    };
-  });
-  const overlaps = collapsed.led.left < collapsed.map.right && collapsed.led.right > collapsed.map.left
-    && collapsed.led.top < collapsed.map.bottom && collapsed.led.bottom > collapsed.map.top;
-  expect(overlaps).toBe(false);
-  await expect(page.getByRole('button', { name: '미니맵 펼치기' })).toHaveAttribute('aria-expanded', 'false');
+  await expect(minimap).toHaveCount(0);
+  await expect(routeExpand).toHaveAttribute('aria-expanded', 'false');
   const minimapExpand = page.getByRole('button', { name: '미니맵 펼치기' });
-  await expect(minimapExpand.locator('.route-overview-fold-toggle__identity')).toHaveCount(1);
-  await expect(minimapExpand.locator('.route-overview-fold-toggle__chevron')).toHaveCount(0);
+  await expect(minimapExpand).toHaveAttribute('aria-expanded', 'false');
   await minimapExpand.click();
-  await expect(minimapCollapse.locator('.route-overview-fold-toggle__identity')).toHaveCount(0);
-  await expect(minimapCollapse.locator('.route-overview-fold-toggle__chevron')).toHaveCount(1);
+  await expect(minimap).toBeVisible();
+
+  // 경로 패널을 펴도 미니맵은 유지된다(펼친 카드엔 미니맵 버튼 없음).
+  await routeExpand.click();
+  await expect(page.getByRole('button', { name: '경로 패널 접기' })).toBeVisible();
+  await expect(minimap).toBeVisible();
+  await expect(page.getByRole('button', { name: /^미니맵/ })).toHaveCount(0);
 });

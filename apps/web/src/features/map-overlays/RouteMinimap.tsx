@@ -31,6 +31,11 @@ export type RouteMinimapProps = {
   traveledMeters: number;
   /** 경로 전체 거리 */
   routeMeters: number;
+  /**
+   * 펼침을 밖(RouteDock 버튼 줄의 64px 미니맵 버튼, Chief 11-02)에서 정한다. 주면 미니맵 위 접기 버튼은 그리지 않고
+   * 접힘이면 아무것도 그리지 않는다. 안 주면 종전처럼 스스로 접고 편다.
+   */
+  expanded?: boolean;
 };
 
 /** 이정표 띠가 보이는 시간 — 잠깐 보였다 사라진다(N8, 상시 표시 금지) */
@@ -118,10 +123,13 @@ export function RouteMinimap({
   mapboxAccessToken,
   traveledMeters,
   routeMeters,
+  expanded: expandedProp,
 }: RouteMinimapProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const contentId = useId();
-  const [expanded, setExpanded] = useState(true);
+  const [expandedSelf, setExpanded] = useState(true);
+  const controlled = expandedProp !== undefined;
+  const expanded = controlled ? expandedProp : expandedSelf;
 
   // mapcut 측정 스위치 — `?mapcut=minimap` 이면 렌더 중지(DOM·정지 지도 요청·펄스 없음).
   const mapcutMinimapOff = isMapCutKeyActive("minimap");
@@ -245,7 +253,7 @@ export function RouteMinimap({
     return layout.project(liveLngLat);
   }, [layout, liveLngLat]);
 
-  if (!effectiveActive || !routeGeometry || routeGeometry.coordinates.length < 1) {
+  if (!effectiveActive || !routeGeometry || routeGeometry.coordinates.length < 1 || (controlled && !expanded)) {
     return null;
   }
 
@@ -322,7 +330,7 @@ export function RouteMinimap({
         </div>
       ) : null}
       </div>
-      <RouteOverviewFoldToggle
+      {controlled ? null : <RouteOverviewFoldToggle
         kind="map"
         className="route-minimap__toggle"
         ariaLabel={expanded ? "미니맵 접기" : "미니맵 펼치기"}
@@ -331,7 +339,7 @@ export function RouteMinimap({
         onClick={() => {
           setExpanded((value) => !value);
         }}
-      />
+      />}
     </div>
   );
 }

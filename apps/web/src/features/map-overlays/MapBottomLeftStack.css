@@ -8,8 +8,8 @@
 .map-bottom-left-stack {
   --map-bl-pad: clamp(0.45rem, 1.4vw, 0.85rem);
   position: absolute;
-  /* Chief: RouteDock·미니맵은 노치 안전 영역의 왼쪽 끝에 붙인다. */
-  left: env(safe-area-inset-left, 0px);
+  /* Chief 11-02 A안: 왼쪽 반달 탭(누름 44px)+4px 오른쪽 — 64px 버튼 줄이 탭을 덮지 않는다(종전: 안전 영역 왼쪽 끝). */
+  left: calc(env(safe-area-inset-left, 0px) + 48px);
   bottom: calc(
     max(var(--map-bl-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem)
   );

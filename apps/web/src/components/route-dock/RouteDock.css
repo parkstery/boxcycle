@@ -322,3 +322,29 @@
   min-height: 28px;
   gap: 32px;
 }
+
+/*
+ * Chief 11-02 D1·D2(A안): 접힌 버튼 줄 = LED · INT/⚙ · ⏸/▶ · ⏹ · 미니맵, 모두 64px(종전 26~32px의 2배)·간격 8px.
+ * 펼친 흰 카드 안 머리줄은 그대로. 미니맵 접기는 미니맵 위 28px 버튼 대신 이 줄 끝 버튼.
+ * 낮은 폰은 줄이 화면 가운데 높이까지 올라와 표고 그래프 왼쪽 위를 덮는다(A안, 4단계 자동 숨김 전제).
+ */
+.route-dock-anchor:not(.route-dock-anchor--open) { --dock-media-size: 64px; }
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card,
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card:has(.ride-control-anchor) { width: max-content; height: 64px; min-width: 64px; gap: 8px; }
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__head,
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__head:has(:is(.route-dock__interval, .route-dock__tool)) { gap: 8px; min-height: 64px; }
+.route-dock-anchor:not(.route-dock-anchor--open) .ride-control-bar { gap: 8px; min-height: 64px; }
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__led-toggle { width: 64px; height: 64px; min-width: 64px; min-height: 64px; }
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__led { width: 32px; height: 32px; }
+.route-dock-anchor:not(.route-dock-anchor--open) :is(.route-dock__tool, .route-dock__interval) {
+  flex: 0 0 64px; width: 64px; height: 64px; border-radius: 50%;
+}
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__tool svg { width: 38px; height: 38px; }
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__interval { font-size: 18px; box-shadow: 0 1px 4px rgba(15, 23, 42, .25); }
+.route-dock-anchor:not(.route-dock-anchor--open) .ride-media-button__icon { width: 24px; height: 26px; }
+.route-dock-anchor:not(.route-dock-anchor--open) .ride-media-button--pause .ride-media-button__icon { width: 24px; }
+.route-dock-anchor:not(.route-dock-anchor--open) .ride-media-button--stop .ride-media-button__icon { width: 22px; height: 22px; }
+/* 도구 | 주행 버튼 | 미니맵 세 묶음 — 묶음 사이는 고정46의 간격(26px)을 더한다. */
+.route-dock-anchor:not(.route-dock-anchor--open) .route-dock__tool--minimap { margin-left: 26px; }
+.route-dock__tool--minimap { color: #5e6472; }
+.route-dock__tool--minimap[aria-expanded="true"] { color: #2457d6; }
