@@ -1,0 +1,463 @@
+<title>오른쪽 버튼 묶음</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap">
+<style>
+  /* 레이아웃: 요약·정할 것 → 조작줄(고정) → 폰 화면 시뮬레이터 → 화면별 버튼 크기 표 → 지금 화면 캡처. 시뮬레이터 안 앱 색은 지도 위라 테마 공통 */
+  :root {
+    --bg: #edf0f4; --surface: #ffffff; --fg: #17202b; --muted: #576375; --line: #d3dae4; --accent: #2457d6; --accent-fg: #ffffff; --warn: #b4261c; --warn-bg: #fdecea; --ok-bg: #e7eefc;
+    --font-ui: "IBM Plex Sans KR", "Malgun Gothic", system-ui, sans-serif;
+    --a-ink: #142c46; --a-blue: #2457d6; --a-red: #e0262b; --a-green: #16a34a; --a-white: rgba(255, 255, 255, .95); --a-shadow: rgba(15, 23, 42, .3); --a-row: rgba(255, 255, 255, .72); --a-me: rgba(222, 233, 255, .9);
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #11161d; --surface: #1a212b; --fg: #e6ebf1; --muted: #9ba7b7; --line: #2c3644; --accent: #7d9cff; --accent-fg: #0d1320; --warn: #ff9a8f; --warn-bg: #3a1d1b; --ok-bg: #1f2b45; color-scheme: dark } }
+  :root[data-theme="dark"] { --bg: #11161d; --surface: #1a212b; --fg: #e6ebf1; --muted: #9ba7b7; --line: #2c3644; --accent: #7d9cff; --accent-fg: #0d1320; --warn: #ff9a8f; --warn-bg: #3a1d1b; --ok-bg: #1f2b45; color-scheme: dark }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 15px; line-height: 1.55; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+  .wrap { max-width: 1240px; margin: 0 auto; padding-block: 24px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+  h1 { font-size: 28px; margin: 0; text-wrap: balance; letter-spacing: -.3px; }
+  h2 { font-size: 19px; margin: 0 0 10px; text-wrap: balance; }
+  .lead { margin: 6px 0 0; color: var(--muted); max-width: 80ch; }
+  .lead b { color: var(--fg); }
+  .pane { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 14px; }
+  ul.plain, ol.plain { margin: 0; padding-left: 20px; font-size: 14.5px; }
+  ul.plain li, ol.plain li { margin-bottom: 6px; }
+  .q { border-color: var(--accent); }
+  .q b { color: var(--accent); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; flex-wrap: wrap; }
+  .seg button { font: inherit; font-size: 14px; padding: 6px 11px; border: 0; background: transparent; color: var(--fg); cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); font-weight: 700; }
+  .seg button:focus-visible, .controls input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .ctl-label { font-size: 13px; color: var(--muted); margin-right: 4px; }
+  .controls label { font-size: 14px; display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+  .controls input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+  .device { position: relative; overflow: hidden; border-radius: 14px; box-shadow: 0 0 0 8px #1d232c, 0 12px 30px rgba(0,0,0,.25); margin: 8px; width: calc(100% - 16px); }
+  .screen { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; font-family: "Pretendard", "Malgun Gothic", system-ui, sans-serif;
+    background-color: #e8e2cf;
+    background-image: linear-gradient(90deg, transparent 0 14px, #a9bba9 14px 76px, transparent 76px), linear-gradient(transparent 0 14px, rgba(169,187,169,.0) 14px);
+    background-size: 90px 70px; }
+  .simnote { font-size: 13.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; align-items: center; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; background: var(--warn-bg); color: var(--warn); font-weight: 700; font-size: 13px; }
+  .badge.ok { background: var(--ok-bg); color: var(--accent); }
+
+  /* ── 시뮬레이터 안 앱 요소 ── */
+  .el { position: absolute; box-sizing: border-box; transition: left .3s ease, top .3s ease, opacity .3s ease, width .3s ease, height .3s ease; }
+  @media (prefers-reduced-motion: reduce) { .el { transition: none; } }
+  .metrics { display: flex; gap: 12px; color: #fff; font-weight: 800; text-shadow: 0 0 2px #000, 0 0 4px rgba(0,0,0,.7); }
+  .metrics div { display: grid; justify-items: center; line-height: 1.05; }
+  .metrics small { font-size: 11px; font-weight: 700; }
+  .metrics strong { font-size: 19px; font-variant-numeric: tabular-nums; color: #9fd8ff; }
+  .metrics strong.g { color: #9df29a; }
+  .btn { display: grid; place-items: center; border-radius: 50%; background: var(--a-white); box-shadow: 0 1px 6px var(--a-shadow); color: #1f2a3a; font-weight: 800; cursor: pointer; }
+  .btn svg { width: 50%; height: 50%; }
+  .btn.blue-ic { color: var(--a-blue); }
+  .btn.pause { background: var(--a-blue); color: #fff; }
+  .btn.stop { background: var(--a-red); color: #fff; }
+  .btn.play { background: var(--a-green); color: #fff; }
+  .btn.on { background: #e3ecff; color: var(--a-blue); box-shadow: 0 0 0 2px var(--a-blue), 0 1px 6px var(--a-shadow); }
+  .btn .int { font-size: 34%; letter-spacing: .5px; color: #4b5566; }
+  .btn .cam { display: grid; justify-items: center; line-height: 1; gap: 1px; color: var(--a-blue); font-size: 22%; }
+  .btn .cam > span:first-child { display: flex; align-items: center; gap: 3px; font-size: 1.15em; }
+  .btn .cam svg { width: 1.4em; height: 1.4em; }
+  /* 센서 칸: 폭 고정(숫자가 바뀌어도 옆 칸이 안 밀림) */
+  .metrics .sens { width: 58px; cursor: pointer; }
+  .metrics .sens strong { display: flex; align-items: center; gap: 5px; color: #fff; }
+  .metrics .sens strong span { min-width: 2.2ch; text-align: right; }
+  .dot { width: 13px; height: 13px; border-radius: 50%; background: #f8fafc; box-shadow: 0 0 0 1.5px rgba(15,23,42,.6), 0 0 6px rgba(255,255,255,.8); animation: blink 1.1s ease-in-out infinite; }
+  .dot.on { background: #34d399; box-shadow: 0 0 0 1px rgba(15,23,42,.35), 0 0 8px rgba(52,211,153,.9); animation: none; }
+  @keyframes blink { 50% { opacity: .25; } }
+  @media (prefers-reduced-motion: reduce) { .dot { animation: none; } }
+  .handle { background: #fff; border-radius: 10px; box-shadow: 0 1px 6px var(--a-shadow); display: grid; place-items: center; color: #2457d6; cursor: pointer; }
+  .handle svg { width: 70%; }
+  .ihud { background: rgba(255,255,255,.7); border-radius: 10px; padding: 6px 8px; color: var(--a-ink); font-weight: 700; display: flex; justify-content: space-between; align-items: center; gap: 6px; cursor: pointer; }
+  .ihud .t { display: flex; flex-direction: column; gap: 1px; font-size: 11px; white-space: nowrap; }
+  .ihud .t b { font-size: 20px; color: #d42020; line-height: 1.1; }
+  .ihud .t .tot { color: #173fb4; }
+  .ihud .fold, .ichip .fold { position: absolute; right: 4px; top: 2px; font-size: 13px; color: #576375; }
+  .ichip { background: rgba(255,255,255,.85); border-radius: 999px; box-shadow: 0 1px 6px var(--a-shadow); display: flex; align-items: center; gap: 7px; padding: 0 22px 0 10px; font-size: 13px; font-weight: 800; color: var(--a-ink); white-space: nowrap; cursor: pointer; }
+  .ichip i { width: 10px; height: 10px; border-radius: 50%; background: #d42020; }
+  .ichip b { color: #d42020; }
+  .ichip em { font-style: normal; font-size: 11px; color: #576375; }
+  .ichip .fold { top: 50%; transform: translateY(-50%); right: 8px; }
+  .acct { background: var(--a-white); border-radius: 999px; box-shadow: 0 1px 5px var(--a-shadow); display: grid; place-items: center; font-size: 12px; font-weight: 800; color: var(--a-ink); }
+  .card { background: #fff; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,.28); padding: 6px 10px; font-size: 12.5px; font-weight: 700; color: #121417; display: grid; gap: 4px; }
+  .card .hd { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #555; }
+  .card .hd b { width: 22px; height: 22px; border: 1px solid #c9d6ee; border-radius: 6px; display: grid; place-items: center; color: #2457d6; }
+  .card .hd i { width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 0 0 1.5px rgba(15,23,42,.55); display: inline-block; }
+  .card .stop { display: flex; gap: 8px; align-items: center; }
+  .card .stop span { width: 18px; height: 18px; border-radius: 50%; color: #fff; font-size: 10px; display: grid; place-items: center; }
+  .mini { background: #fff; border-radius: 12px; box-shadow: 0 6px 24px rgba(0,0,0,.28); }
+  .list { font-size: 12px; font-weight: 700; color: var(--a-ink); display: grid; align-content: start; overflow: hidden; }
+  .list .hd { display: flex; gap: 6px; align-items: center; margin-bottom: 2px; }
+  .list .hd span { padding: 0 7px; border-radius: 999px; background: var(--a-row); font-size: 11px; }
+  .list .hd span.on { background: var(--a-blue); color: #fff; }
+  .list .row { display: grid; grid-template-columns: 18px 1fr auto; gap: 4px; align-items: center; background: var(--a-row); padding: 0 5px; border-radius: 3px; white-space: nowrap; margin-bottom: 2px; }
+  .list .row.me { background: var(--a-me); color: var(--a-blue); }
+  .list .row b { text-align: right; font-variant-numeric: tabular-nums; }
+  .coach { color: #fff; font-weight: 800; font-size: 15px; text-shadow: 0 0 2px #000, 0 0 5px rgba(0,0,0,.8); white-space: nowrap; transform: translateX(-50%); }
+  .elev { pointer-events: none; }
+  .ltab { width: 20px; height: 43px; border-radius: 0 22px 22px 0; background: rgba(255,255,255,.78); box-shadow: 0 2px 8px rgba(0,0,0,.22); display: grid; place-items: center; font-size: 12px; color: #121417; }
+  .attr { font-size: 9px; color: #222; background: rgba(255,255,255,.6); padding: 0 4px; white-space: nowrap; }
+  .hint { background: rgba(19,43,70,.88); color: #fff; font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 999px; white-space: nowrap; transform: translateX(-50%); }
+  .ghost { border-radius: 50%; border: 1.5px dashed rgba(20,44,70,.45); }
+  .card .hd .pin { margin-left: auto; width: 26px; height: 26px; border: 0; border-radius: 50%; background: #eef3fc; color: #2457d6; }
+  .card .hd .pin svg { width: 16px; height: 16px; }
+  .mtog { display: flex; align-items: center; justify-content: center; gap: 0; border-radius: 7px; background: rgba(255,255,255,.92); box-shadow: 0 0 0 1px rgba(36,87,214,.35); color: #2457d6; font-size: 12px; font-weight: 800; cursor: pointer; }
+  .mtog svg { width: 15px; height: 15px; }
+  .mtog span { margin-left: -1px; }
+  .mtog.solo { box-shadow: 0 1px 6px var(--a-shadow); }
+  .blocked { opacity: .45 !important; filter: grayscale(1); }
+  .ltab { cursor: pointer; }
+  .menu { background: #fff; box-shadow: 4px 0 18px rgba(0,0,0,.25); padding: 10px; display: grid; align-content: start; gap: 6px; color: #121417; font-size: 12.5px; font-weight: 700; transition: left .3s ease; }
+  .menu .mh { font-size: 14px; font-weight: 800; padding: 2px 4px 4px; }
+  .menu .mi { display: flex; align-items: center; gap: 6px; padding: 7px 8px; border-radius: 8px; background: #f2f5fa; }
+  .menu .mi.search { color: #6b7686; }
+  .menu .mi em { margin-left: auto; font-style: normal; font-size: 10.5px; color: #2457d6; }
+  .menu .mi.new { background: #e3ecff; box-shadow: 0 0 0 2px #2457d6; color: #173fb4; }
+  .menu .gi { width: 16px; height: 16px; display: grid; }
+  .menu .gi svg { width: 16px; height: 16px; }
+  .slotno { position: absolute; right: -2px; top: -4px; font: 700 9px/1 var(--font-ui); color: #fff; background: rgba(20,44,70,.7); border-radius: 6px; padding: 2px 4px; }
+
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 560px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 7px 8px; text-align: left; vertical-align: top; font-variant-numeric: tabular-nums; }
+  th { color: var(--muted); font-weight: 600; }
+  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 14px; }
+  figure { margin: 0; display: grid; gap: 6px; }
+  figure img { width: 100%; max-width: 100%; border-radius: 8px; display: block; }
+  figcaption { font-size: 13px; color: var(--muted); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>오른쪽 버튼 묶음 시안 <span style="font-size:15px;color:var(--muted);font-weight:600">v4 · 2열 4줄, Chief 지정 배치</span></h1>
+    <p class="lead"><b>v4에서 바뀐 것</b>: 오른쪽 묶음을 <b>2열 4줄</b>로 되돌리고 Chief가 정한 칸에 놓았습니다 — 1줄 CAM | 지도 스타일, 2줄 ＋ | －, 3줄 INT | 순위, 4줄 ⏹ | ⏸·▶. <b>⚙ 주행 설정은 왼쪽 메뉴 패널 안</b>으로(반달 탭을 눌러 보세요), <b>미니맵은 원래의 접기·펼치기 버튼</b>(미니맵 왼쪽 위 28px)으로 되돌렸고, <b>계정 버튼은 오른쪽 위 모서리</b>에 그대로 둡니다.</p>
+    <p class="lead"><b>인터벌과 왼쪽 아래</b>: 인터벌이 시작되면 미니맵은 펼친 채, 경로 카드는 접힙니다. 인터벌이 펼쳐져 있는 동안은 경로 카드·미니맵 중 <b>하나만</b> 펼칠 수 있고, 먼저 펼친 쪽이 자리를 지킵니다(다른 쪽을 누르면 안내만 뜸). 인터벌을 접으면 둘 다 펼칠 수 있습니다. 아래 화면에서 경로 손잡이·미니맵 버튼·인터벌 패널을 눌러 볼 수 있습니다.</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="시안 조작">
+    <span><span class="ctl-label">화면</span><span class="seg" id="segSize"><button type="button" data-v="800" aria-pressed="true">800×360</button><button type="button" data-v="736" aria-pressed="false">736×300</button><button type="button" data-v="699" aria-pressed="false">699×273</button><button type="button" data-v="667" aria-pressed="false">667×300</button></span></span>
+    <span><span class="ctl-label">상태</span><span class="seg" id="segMode"><button type="button" data-v="idle" aria-pressed="false">주행 전</button><button type="button" data-v="riding" aria-pressed="true">주행 중</button><button type="button" data-v="paused" aria-pressed="false">일시정지</button></span></span>
+    <label for="optHidden"><input id="optHidden" type="checkbox"> 5초 뒤 숨김 상태</label>
+    <label for="optInt"><input id="optInt" type="checkbox" checked> 인터벌 켜기</label>
+    <label for="optFold"><input id="optFold" type="checkbox"> 인터벌 패널 접기</label>
+    <label for="optSig"><input id="optSig" type="checkbox" checked> 센서 신호 있음</label>
+    <label for="optNo"><input id="optNo" type="checkbox"> 칸 번호(1-1…4-2)</label>
+  </div>
+
+  <section class="pane" aria-label="폰 화면 시뮬레이터">
+    <div class="device" id="device"><div class="screen" id="screen"></div></div>
+    <div class="simnote" id="notes"></div>
+  </section>
+
+  <div class="cols">
+    <section class="pane">
+      <h2>배치 규칙</h2>
+      <ul class="plain">
+        <li><b>2열 4줄 [1열 | 2열]</b>: 1-1 CAM, 1-2 지도 스타일 / 2-1 ＋, 2-2 － / 3-1 INT, 3-2 순위 / 4-1 ⏹, 4-2 ⏸·▶.</li>
+        <li><b>빈 칸</b>: 주행 전 = CAM·⏹, 주행 중 = INT(주행 중 인터벌 변경 불가, 10-30 결정), 일시정지 = 없음. 다른 버튼이 빈 칸으로 옮겨 오지 않습니다(「칸 번호」를 켜면 점선으로 보임).</li>
+        <li><b>크기</b>: 주행 전 계정 버튼 아래(위 40px)에도 4줄이 들어가는 값을 세 상태에 똑같이 씁니다 — 800×360 64px(지금과 같음), 300px 폰 58px, 699×273 51px.</li>
+        <li><b>계정 버튼</b>: 오른쪽 위 모서리 그대로(실앱처럼 주행 전에만 보임). 주행 전 순위 목록은 그 아래에서 시작.</li>
+        <li><b>⚙ 주행 설정</b>: 왼쪽 메뉴 패널 안 항목. 주행 중에도 반달 탭 → ⚙ 두 번 누르면 열립니다.</li>
+        <li><b>미니맵</b>: 원래 방식 — 미니맵 왼쪽 위 28px 버튼으로 접기·펼치기. 접으면 28px 버튼만 남고 경로 손잡이가 그만큼 내려옵니다.</li>
+        <li><b>인터벌 펼침 중 하나만</b>: 시작 시 미니맵 펼침·경로 카드 접힘. 둘 중 하나가 펼쳐져 있으면 다른 쪽 버튼은 흐려지고, 누르면 「○○을 접거나 인터벌을 접으면 펼칠 수 있어요」 안내. 인터벌을 접은 동안 둘 다 펼쳤다가 인터벌을 다시 펼치면 나중에 펼친 쪽이 접힙니다.</li>
+        <li><b>그대로인 것</b>: 센서 LED·RPM은 계기판 맨 앞 칸, 순위 목록은 오른쪽 가장자리 고정(순위 버튼으로 열면 2초 뒤 묶음 숨김), 5초 자동 숨김은 오른쪽 묶음만.</li>
+      </ul>
+    </section>
+    <section class="pane q">
+      <h2>정해 주실 것</h2>
+      <ol class="plain">
+        <li><b>「먼저 펼친 쪽이 우선」의 뜻</b>: 시안은 <b>나중 쪽을 막고 안내</b>합니다(흐린 버튼). 반대로 「나중 쪽을 누르면 펼치되 먼저 쪽을 접는다」는 바꿔치기 방식도 됩니다 — 어느 쪽인지 확인 부탁드립니다.</li>
+        <li><b>699×273 51px</b>: 계정 버튼이 주행 전에만 보이므로, 주행 중·일시정지에만 위 여백을 8px로 줄이면 59px까지 키울 수 있습니다. 대신 주행을 시작할 때 버튼 크기가 51→59px로 바뀝니다. 시안은 세 상태 같은 크기.</li>
+        <li><b>지도 핀(경로 목록)</b>: 8칸에 자리가 없어 v3처럼 주행 전 경로 카드 머리줄에 두었습니다.</li>
+        <li><b>5초 자동 숨김</b>: 오른쪽 묶음만 숨기고, 경로 손잡이(40px)·미니맵 버튼(28px)은 남깁니다.</li>
+      </ol>
+    </section>
+  </div>
+
+  <section class="pane">
+    <h2>화면별 버튼 크기(계산값)</h2>
+    <div class="tablewrap"><table id="sizeTable"></table></div>
+    <p class="lead" style="font-size:13.5px">계산: 버튼 = (화면 높이 − 위 40px(계정 버튼 32 + 8) − 아래 8px − 간격×3) ÷ 4줄, 최대 64px. 간격은 높이 312px 이상 8px, 미만 6px. 세 상태가 같은 크기입니다.</p>
+  </section>
+
+  <section class="pane">
+    <h2>지금 화면(4단계 배포본)</h2>
+    <div class="shots">
+      <figure><img src="img/now-riding-800.png" alt="지금 주행 중 800×360: 오른쪽 레일 4칸과 왼쪽 아래 버튼 줄 5칸이 나뉘어 있다" width="1600" height="720"><figcaption>주행 중 800×360 — 오른쪽 레일(카메라·지도 스타일·＋·－)과 왼쪽 아래 줄(LED·⚙·⏸·⏹·미니맵)로 나뉨</figcaption></figure>
+      <figure><img src="img/now-paused-699.png" alt="지금 일시정지 699×273: 왼쪽 아래 버튼 줄이 화면 가운데 높이까지 올라와 있다" width="1398" height="546"><figcaption>일시정지 699×273 — 왼쪽 줄이 화면 가운데 높이까지 올라와 표고 그래프 자리를 가림</figcaption></figure>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  const SIZES = { "800": [800, 360], "736": [736, 300], "699": [699, 273], "667": [667, 300] };
+  let hideTimer = 0, hintTimer = 0;
+  const state = { size: "800", mode: "riding", list: true, hidden: false, nums: false, interval: true, fold: false, signal: true,
+    dock: false, mini: true, order: ["mini"], menu: false, hint: "" };
+  const ICON = {
+    style: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m13 7-4-4-6 6 4 4m10-2 4 4-6 6-4-4M8 12l4 4 6-6-4-4Z"/><path d="m16 8 3-3M9 21a6 6 0 0 0-6-6"/></svg>',
+    plus: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 10h12M10 4v12"/></svg>',
+    minus: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 10h12"/></svg>',
+    rank: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M9 21V9h6v12M3 21v-7h6M15 21v-4h6v4M2 21h20"/><path d="M12 3.5l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 5.6l2-.3z" stroke-width="1.3"/></svg>',
+    gear: '<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M10.11 4.12L10.34 1.53A10.6 10.6 0 0 1 13.66 1.53L13.89 4.12A8.1 8.1 0 0 1 16.23 5.09L18.23 3.42A10.6 10.6 0 0 1 20.58 5.77L18.910 7.77A8.1 8.1 0 0 1 19.88 10.11L22.47 10.34A10.6 10.6 0 0 1 22.47 13.66L19.88 13.89A8.1 8.1 0 0 1 18.91 16.23L20.58 18.23A10.6 10.6 0 0 1 18.23 20.58L16.23 18.91A8.1 8.1 0 0 1 13.89 19.88L13.66 22.47A10.6 10.6 0 0 1 10.34 22.47L10.11 19.88A8.1 8.1 0 0 1 7.77 18.91L5.77 20.58A10.6 10.6 0 0 1 3.42 18.23L5.09 16.23A8.1 8.1 0 0 1 4.12 13.89L1.53 13.66A10.6 10.6 0 0 1 1.53 10.34L4.12 10.11A8.1 8.1 0 0 1 5.09 7.77L3.42 5.77A10.6 10.6 0 0 1 5.77 3.42L7.77 5.09A8.1 8.1 0 0 1 10.11 4.12ZM12 8.7a3.3 3.3 0 1 0 0 6.6a3.3 3.3 0 1 0 0 -6.6Z"/></svg>',
+    pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.8-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.2 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.3"/></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg>',
+    pause: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5" width="4" height="14" rx="1"/><rect x="13.5" y="5" width="4" height="14" rx="1"/></svg>',
+    stop: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/></svg>',
+    map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5 8.5 4l7 2.5L21 4v13.5L15.5 20l-7-2.5L3 20z"/><path d="M8.5 4v13.5M15.5 6.5V20"/></svg>',
+    camTarget: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="3"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>',
+  };
+  const NAME = { camera: "카메라", style: "지도 스타일", plus: "줌 확대", minus: "줌 축소", rank: "순위", int: "인터벌", play: "주행 시작/재개", pause: "일시정지", stop: "주행 종료" };
+  // 2열 4줄(8칸), 위→아래 [1열(안쪽), 2열(바깥쪽)] — Chief 11-02 지정. 칸마다 한 기능, 그 상태에 없으면 빈 칸. main = ⏸/▶.
+  const SLOTS = [["camera", "style"], ["plus", "minus"], ["int", "rank"], ["stop", "main"]];
+  const HAS = {
+    idle: new Set(["style", "plus", "minus", "int", "rank", "main"]),
+    riding: new Set(["camera", "style", "plus", "minus", "rank", "stop", "main"]),
+    paused: new Set(["camera", "style", "plus", "minus", "int", "rank", "stop", "main"]),
+  };
+  const RANK = [["1", "geum", "17.1"], ["2", "한강라이더", "12.4"], ["3", "새벽페달", "9.8"], ["4", "Ridingman12 나", "9.4", true], ["5", "원주토박이", "8.7"], ["6", "달빛라이딩", "6.3"], ["7", "라이더7", "5.0"], ["8", "라이더8", "4.0"], ["9", "라이더9", "3.0"], ["10", "라이더10", "2.0"]];
+  const ACCT_H = 32; // 계정 버튼(주행 전만 보임) 높이
+
+  // 크기는 세 상태 공통: 주행 전 계정 버튼 아래(위 40px)에도 들어가는 값.
+  function metricsFor(mode, W, H) {
+    const n = SLOTS.length;
+    const gap = H >= 312 ? 8 : 6;
+    const top = ACCT_H + 8, bottom = 8;
+    const s = Math.min(64, Math.floor((H - top - bottom - (n - 1) * gap) / n));
+    return { rows: SLOTS, n, gap, s, groupW: 2 * s + gap, groupH: n * s + (n - 1) * gap, bottom };
+  }
+
+  const screen = document.getElementById("screen");
+  const device = document.getElementById("device");
+  const notes = document.getElementById("notes");
+  const optHidden = document.getElementById("optHidden");
+  const optFold = document.getElementById("optFold");
+  const els = new Map();
+  function put(key, cls, x, y, w, h, inner, extra) {
+    let el = els.get(key);
+    if (!el) { el = document.createElement("div"); el.dataset.key = key; screen.appendChild(el); els.set(key, el); }
+    el.className = "el " + cls;
+    el.style.left = x + "px"; el.style.top = y + "px";
+    el.style.width = w == null ? "" : w + "px"; el.style.height = h == null ? "" : h + "px";
+    if (el._inner !== inner) { el.innerHTML = inner; el._inner = inner; }
+    el.style.opacity = extra && extra.opacity != null ? extra.opacity : 1;
+    el.style.pointerEvents = extra && extra.opacity === 0 ? "none" : "";
+    if (extra && extra.fs) el.style.fontSize = extra.fs + "px"; else el.style.fontSize = "";
+    el.style.zIndex = extra && extra.z ? extra.z : "";
+    if (extra && extra.label) { el.setAttribute("role", "button"); el.setAttribute("aria-label", extra.label); el.tabIndex = extra.opacity === 0 ? -1 : 0; }
+    el.onclick = null;
+    el._seen = true;
+    return el;
+  }
+  function on(el, fn) { el.onclick = (e) => { e.stopPropagation(); fn(); }; }
+
+  // ── 인터벌 펼침 중엔 경로 카드·미니맵 중 하나만 펼친다. 먼저 펼친 쪽이 우선. ──
+  const LABEL = { dock: "경로 카드", mini: "미니맵" };
+  function intExpanded() { return state.mode !== "idle" && state.interval && !state.fold; }
+  function flash(text) { state.hint = text; clearTimeout(hintTimer); hintTimer = setTimeout(() => { state.hint = ""; render(); }, 2600); }
+  function tryOpen(which) {
+    const other = which === "dock" ? "mini" : "dock";
+    if (intExpanded() && state[other]) { flash(`인터벌이 펼쳐져 있어요 · ${LABEL[other]}을 접거나 인터벌을 접으면 펼칠 수 있어요`); render(); return; }
+    state[which] = true; state.order = state.order.filter((k) => k !== which).concat(which); render();
+  }
+  function close(which) { state[which] = false; state.order = state.order.filter((k) => k !== which); render(); }
+  function setFold(v) {
+    state.fold = v; optFold.checked = v;
+    // 인터벌을 다시 펼칠 때 둘 다 펼쳐져 있으면 나중에 펼친 쪽을 접는다.
+    if (!v && state.dock && state.mini) { const later = state.order[state.order.length - 1]; state[later] = false; state.order = state.order.filter((k) => k !== later); flash(`인터벌을 펼쳐 나중에 펼친 ${LABEL[later]}을 접었어요`); }
+    render();
+  }
+  function intervalStarted() { state.fold = false; optFold.checked = false; state.mini = true; state.dock = false; state.order = ["mini"]; }
+
+  function render() {
+    const [W, H] = SIZES[state.size];
+    const scale = device.clientWidth / W;
+    device.style.height = H * scale + "px";
+    screen.style.width = W + "px"; screen.style.height = H + "px"; screen.style.transform = `scale(${scale})`;
+    els.forEach((el) => { el._seen = false; });
+    const mode = state.mode, riding = mode !== "idle";
+    const m = metricsFor(mode, W, H);
+    const out = state.hidden && mode === "riding";
+    const small2 = H <= 330;
+    const nb = [];
+
+    // 경로선과 표고 그래프(실앱 자리: 가운데 아래 min(56%,560)·min 320 × 120)
+    put("route", "", 0, 0, W, H, `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><path d="M${W * .2} ${H * .9} C ${W * .3} ${H * .7}, ${W * .45} ${H * .55}, ${W * .55} ${H * .6} S ${W * .74} ${H * .25}, ${W * .82} ${H * .18}" fill="none" stroke="#8ab6cd" stroke-width="42" stroke-linecap="round" opacity=".9"/><path d="M${W * .32} ${H * .86} L${W * .44} ${H * .66} L${W * .59} ${H * .72} L${W * .73} ${H * .55} L${W * .7} ${H * .36} L${W * .82} ${H * .26}" fill="none" stroke="#e5484d" stroke-width="5" stroke-linejoin="round"/></svg>`);
+    const ew = Math.max(320, Math.min(W * .56, 560)), ex = (W - ew) / 2, ey = H - 13.5 - 120;
+    put("elev", "elev", ex, ey, ew, 120, riding ? `<svg width="${ew}" height="120" viewBox="0 0 ${ew} 120"><path d="M6 96 C ${ew * .2} 70, ${ew * .3} 88, ${ew * .45} 60 S ${ew * .75} 40, ${ew - 6} 76" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" style="filter:drop-shadow(0 0 2px #000)"/><text x="6" y="114" font-size="11" font-weight="800" fill="#fff" style="paint-order:stroke;stroke:#000;stroke-width:2px">46m</text><text x="${ew - 34}" y="114" font-size="11" font-weight="800" fill="#fff" style="paint-order:stroke;stroke:#000;stroke-width:2px">30m</text></svg>` : "", { opacity: riding ? 1 : 0 });
+
+    // 계기판 — 맨 앞 칸이 센서 LED·RPM(폭 고정, 신호 없으면 --).
+    const rpm = riding && state.signal ? "92" : "--";
+    const sens = `<div class="sens" role="button" aria-label="케이던스 센서 설정"><small>RPM</small><strong><i class="dot${state.signal ? " on" : ""}"></i><span>${rpm}</span></strong></div>`;
+    if (riding) put("metrics", "metrics", 20, 4, null, null, sens + [["거리", "4.20", ""], ["시간", "24:08", ""], ["속도", "24", ""], ["새 도로", "+0.42", "g"], ["평균", "18.6", ""]].map(([k, v, c]) => `<div><small>${k}</small><strong class="${c}">${v}</strong></div>`).join(""));
+    else put("metrics", "metrics", 20, 4, null, null, sens + [["경로", "2.02km", ""], ["고도", "46→30m", ""]].map(([k, v, c]) => `<div><small>${k}</small><strong class="${c}">${v}</strong></div>`).join(""));
+
+    // 인터벌 패널 — 누르면 접기·펼치기.
+    const showInt = riding && state.interval;
+    const iw = small2 ? 150 : 205, ih = small2 ? 92 : 104, iy = 46;
+    if (showInt && !state.fold) {
+      const d = small2 ? 66 : 80;
+      on(put("ihud", "ihud", 10, iy, iw, ih, `<div class="t"><span>2/3세트</span><b>${mode === "paused" ? "일시정지" : "운동"}</b><span>다음 · 회복 30초</span><span class="tot">07:12 / 35:00</span></div><svg width="${d}" height="${d}" viewBox="0 0 44 44"><circle cx="22" cy="22" r="17" fill="none" stroke="#36506d" stroke-width="5" stroke-dasharray="17 4.4"/><circle cx="22" cy="22" r="10.7" fill="rgba(212,32,32,.13)" stroke="#d42020" stroke-width="2.6" stroke-dasharray="40 67" transform="rotate(-90 22 22)"/><text x="22" y="23" text-anchor="middle" dominant-baseline="central" font-size="11.5" font-weight="800" fill="#d42020">7</text></svg><span class="fold" aria-hidden="true">‹</span>`, { label: "인터벌 패널 접기" }), () => setFold(true));
+      put("ichip", "ichip", 10, iy, 0, 0, "", { opacity: 0 });
+    } else if (showInt) {
+      on(put("ichip", "ichip", 10, iy, null, 34, `<i></i><b>${mode === "paused" ? "일시정지" : "운동"}</b><span>0:07</span><em>2/3세트</em><span class="fold" aria-hidden="true">›</span>`, { label: "인터벌 패널 펼치기" }), () => setFold(false));
+      put("ihud", "ihud", 10, iy, iw, ih, "", { opacity: 0 });
+    } else {
+      put("ihud", "ihud", 10, iy, iw, ih, "", { opacity: 0 });
+      put("ichip", "ichip", 10, iy, 0, 0, "", { opacity: 0 });
+    }
+    const intBottom = showInt ? iy + (state.fold ? 34 : ih) : 44;
+
+    // 왼쪽 아래 — 미니맵(원래 방식: 왼쪽 위 28px 접기·펼치기 버튼)과 그 위 경로 카드(접히면 손잡이).
+    const L = 48;
+    const cw = Math.round(W * .294), ch = small2 ? 88 : 98;
+    let dockTop = H, dockBottom = H;
+    if (riding) {
+      const miniW = Math.round(W * .294), miniH = H >= 312 ? 105 : 80;
+      const miniY = H - 6 - miniH;
+      const blockMini = intExpanded() && state.dock && !state.mini, blockDock = intExpanded() && state.mini && !state.dock;
+      if (state.mini) {
+        put("mini", "mini", L, miniY, miniW, miniH, `<svg width="${miniW}" height="${miniH}" viewBox="0 0 ${miniW} ${miniH}"><path d="M${miniW * .3} ${miniH * .85} L${miniW * .4} ${miniH * .65} L${miniW * .5} ${miniH * .72} L${miniW * .7} ${miniH * .15}" fill="none" stroke="#e5484d" stroke-width="3"/><circle cx="${miniW * .45}" cy="${miniH * .68}" r="4" fill="#2457d6"/></svg>`);
+        on(put("mtog", "mtog", L + 4, miniY + 4, 28, 28, `${ICON.map}<span>‹</span>`, { label: "미니맵 접기", z: 2 }), () => close("mini"));
+      } else {
+        put("mini", "mini", L, H - 6 - 28, 28, 28, "", { opacity: 0 });
+        on(put("mtog", "mtog solo" + (blockMini ? " blocked" : ""), L, H - 6 - 28, 28, 28, `${ICON.map}<span>›</span>`, { label: "미니맵 펼치기", z: 2 }), () => tryOpen("mini"));
+      }
+      const above = (state.mini ? miniY : H - 6 - 28) - 8;
+      dockBottom = above;
+      if (state.dock) {
+        dockTop = above - ch;
+        const card = put("card", "card", L, dockTop, cw, ch, `<div class="hd"><b>‹</b> 경로 · 남은 1.82km</div><div class="stop"><span style="background:#16a34a">S</span>남산공원 입구</div><div class="stop"><span style="background:#dc2626">E</span>남산 순환로 전망대</div>`, { label: "경로 패널 접기" });
+        on(card, () => close("dock"));
+        put("handle", "handle", L, above - 40, 40, 40, "", { opacity: 0 });
+      } else {
+        dockTop = above - 40;
+        on(put("handle", "handle" + (blockDock ? " blocked" : ""), L, dockTop, 40, 40, `<svg viewBox="0 0 28 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="6" r="2"/><circle cx="9" cy="14" r="2"/><path d="M11 6h8M11 14h8"/></svg>`, { label: "경로 패널 펼치기" }), () => tryOpen("dock"));
+        put("card", "card", L, above - ch, cw, ch, "", { opacity: 0 });
+      }
+    } else {
+      dockTop = H - 6 - ch;
+      put("card", "card", L, dockTop, cw, ch, `<div class="hd"><b>‹</b> 경로<b class="pin" title="경로 목록">${ICON.pin}</b></div><div class="stop"><span style="background:#16a34a">S</span>남산공원 입구</div><div class="stop"><span style="background:#dc2626">E</span>남산 순환로 전망대</div>`);
+      put("mini", "mini", 0, 0, 0, 0, "", { opacity: 0 });
+      put("mtog", "mtog", 0, 0, 0, 0, "", { opacity: 0 });
+      put("handle", "handle", 0, 0, 0, 0, "", { opacity: 0 });
+    }
+
+    // 계정 버튼 — 오른쪽 위 모서리 유지(실앱처럼 주행 전에만 보임).
+    put("acct", "acct", W - 105, 6, 97, ACCT_H, "게스트 라이더", { opacity: riding ? 0 : 1, z: 4 });
+
+    // 오른쪽 2열 4줄 묶음
+    const x1 = W - 8 - m.s, x0 = x1 - m.gap - m.s;
+    let y = H - m.bottom - m.groupH;
+    const used = new Set();
+    const has = HAS[mode];
+    m.rows.forEach((row, ri) => {
+      row.forEach((slot, ci) => {
+        const x = (ci === 0 ? x0 : x1) + (out ? m.groupW + 24 : 0);
+        const no = state.nums ? `<span class="slotno">${ri + 1}-${ci + 1}</span>` : "";
+        if (!has.has(slot)) {
+          put("e-" + slot, "ghost", x, y, m.s, m.s, no, { opacity: state.nums && !out ? 1 : 0, z: 3 });
+          return;
+        }
+        const k = slot === "main" ? (mode === "riding" ? "pause" : "play") : slot;
+        used.add(slot);
+        let cls = "btn", inner = ICON[k] || "";
+        if (k === "pause") cls += " pause";
+        if (k === "stop") cls += " stop";
+        if (k === "play") cls += " play";
+        if (k === "style") cls += " blue-ic";
+        if (k === "rank" && state.list) cls += " on";
+        if (k === "int") inner = '<span class="int">INT</span>';
+        if (k === "camera") inner = `<span class="cam"><span>1 ${ICON.camTarget}</span><span>500m</span></span>`;
+        const el = put("b-" + slot, cls, x, y, m.s, m.s, inner + no, { opacity: out ? 0 : 1, label: NAME[k], fs: m.s, z: 3 });
+        if (els.has("e-" + slot)) els.get("e-" + slot).style.opacity = 0;
+        if (k === "rank") on(el, () => {
+          state.list = !state.list;
+          // 순위 버튼으로 목록을 열면 2초 뒤 버튼이 숨는다(주행 중).
+          clearTimeout(hideTimer);
+          if (state.list && state.mode === "riding") hideTimer = setTimeout(() => { state.hidden = true; optHidden.checked = true; render(); }, 2000);
+          render();
+        });
+      });
+      y += m.s + m.gap;
+    });
+
+    // 순위 목록 — 오른쪽 가장자리 고정(주행 전엔 계정 버튼 아래). 버튼이 보이면 그 위에 겹친다.
+    const small = H <= 330, rowH = small ? 13 : 18, LW = small ? 196 : 214;
+    const lx = W - 8 - LW, ly = riding ? 8 : ACCT_H + 14;
+    const rowsHtml = `<div class="hd"><span class="on">순위</span><span>Trail 12</span></div>` + RANK.map(([r, n, km, me]) => `<div class="row${me ? " me" : ""}" style="height:${rowH - 2}px;font-size:${small ? 11 : 12.5}px"><span>${r}</span><span>${n}</span><b>${km} km</b></div>`).join("");
+    const listH = 16 + RANK.length * rowH;
+    put("list", "list", lx, ly, LW, listH, rowsHtml, { opacity: state.list ? 1 : 0, z: 2 });
+
+    // 왼쪽 메뉴 반달 탭 → 메뉴 패널. ⚙ 주행 설정이 여기로 들어왔다.
+    const PW = Math.min(260, Math.round(W * .36));
+    put("menu", "menu", state.menu ? 0 : -PW - 10, 0, PW, H, `<div class="mh">메뉴</div><div class="mi search">지명 검색</div><div class="mi">현재 코스 · 남산 순환로 <em>나가기</em></div><div class="mi new"><span class="gi">${ICON.gear}</span>주행 설정 <em>여기로 옮김</em></div><div class="mi">이 Trail 공개</div><div class="mi">즉석 경로 저장</div>`, { z: 6 });
+    on(put("ltab", "ltab", state.menu ? PW : 0, H / 2 - 21.5, 20, 43, state.menu ? "‹" : "›", { label: state.menu ? "메뉴 닫기" : "메뉴 열기", z: 6 }), () => { state.menu = !state.menu; render(); });
+
+    put("coach", "coach", W / 2, H - 30, null, null, riding ? "오늘도 내 도로망을 넓혀 볼까요?" : "", { opacity: riding ? 1 : 0 });
+    put("attr", "attr", 8, H - 13, null, null, "© Mapbox © OpenStreetMap");
+    put("hint", "hint", W / 2, 56, null, null, state.hint || "화면을 누르면 버튼이 나타나요", { opacity: state.hint || out ? 1 : 0, z: 7 });
+
+    els.forEach((el) => { if (!el._seen) el.style.opacity = 0; });
+
+    // 점검
+    const gx = x0, gy = H - m.bottom - m.groupH;
+    const metricsRight = riding ? 400 : 260;
+    nb.push(`<span class="badge ok">버튼 ${m.s}px · 2열 ${m.n}줄 · 간격 ${m.gap}px</span>`);
+    nb.push(`<span class="badge ok">묶음 x ${Math.round(gx)}~${W - 8} · y ${Math.round(gy)}~${H - 8}</span>`);
+    if (!riding) nb.push(gy >= 6 + ACCT_H ? `<span class="badge ok">계정 버튼(오른쪽 위) 아래 ${Math.round(gy - 6 - ACCT_H)}px</span>` : `<span class="badge">계정 버튼과 겹침</span>`);
+    if (riding) nb.push(gx >= ex + ew ? `<span class="badge ok">표고 그래프와 안 겹침</span>` : `<span class="badge">표고 그래프와 ${Math.round(ex + ew - gx)}px 겹침</span>`);
+    if (state.list) nb.push(lx > metricsRight ? `<span class="badge ok">순위 목록 x ${Math.round(lx)}~${W - 8} 고정</span>` : `<span class="badge">순위 목록이 계기판과 겹침</span>`);
+    if (out) nb.push(`<span class="badge ok">숨김: 오른쪽 묶음만 사라짐 · 경로 손잡이·미니맵 버튼·RPM은 그대로</span>`);
+    if (riding) {
+      const open = ["dock", "mini"].filter((k) => state[k]).map((k) => LABEL[k]);
+      nb.push(`<span class="badge ok">펼침: ${open.join("·") || "없음"}${intExpanded() ? " (인터벌 펼침 → 하나만)" : ""}</span>`);
+      nb.push(dockTop >= intBottom ? `<span class="badge ok">왼쪽 아래와 인터벌 사이 ${Math.round(dockTop - intBottom)}px</span>` : `<span class="badge">왼쪽 아래가 인터벌 패널과 ${Math.round(intBottom - dockTop)}px 겹침</span>`);
+    }
+    nb.push(`<span class="badge ok">빈 칸: ${SLOTS.flat().filter((k) => !HAS[mode].has(k)).map((k) => NAME[k === "main" ? "play" : k]).join("·") || "없음"}</span>`);
+    if (m.s < 64) nb.push(`<span class="badge">4줄이 계정 버튼 아래 들어가도록 ${m.s}px</span>`);
+    notes.innerHTML = nb.join("");
+  }
+
+  function sizeTable() {
+    const t = document.getElementById("sizeTable");
+    const modes = [["idle", "주행 전"], ["riding", "주행 중"], ["paused", "일시정지"]];
+    let h = "<thead><tr><th>화면</th>" + modes.map(([, n]) => `<th>${n}</th>`).join("") + "</tr></thead><tbody>";
+    Object.entries(SIZES).forEach(([k, [W, H]]) => {
+      h += `<tr><td>${W}×${H}</td>` + modes.map(([mo]) => { const m = metricsFor(mo, W, H); return `<td>${m.s}px · 버튼 ${HAS[mo].size}개 · 묶음 높이 ${m.groupH}px</td>`; }).join("") + "</tr>";
+    });
+    t.innerHTML = h + "</tbody>";
+  }
+
+  function bindSeg(id, key) {
+    document.getElementById(id).addEventListener("click", (e) => {
+      const b = e.target.closest("button"); if (!b) return;
+      const prev = state[key];
+      state[key] = b.dataset.v;
+      [...e.currentTarget.querySelectorAll("button")].forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      if (key === "mode" && prev === "idle" && state.mode !== "idle" && state.interval) intervalStarted();
+      render();
+    });
+  }
+  bindSeg("segSize", "size");
+  bindSeg("segMode", "mode");
+  optHidden.addEventListener("change", (e) => { state.hidden = e.target.checked; render(); });
+  document.getElementById("optNo").addEventListener("change", (e) => { state.nums = e.target.checked; render(); });
+  document.getElementById("optInt").addEventListener("change", (e) => { state.interval = e.target.checked; if (state.interval) intervalStarted(); render(); });
+  optFold.addEventListener("change", (e) => setFold(e.target.checked));
+  document.getElementById("optSig").addEventListener("change", (e) => { state.signal = e.target.checked; render(); });
+  screen.addEventListener("click", () => {
+    if (state.menu) { state.menu = false; render(); return; }
+    if (state.hidden) { state.hidden = false; optHidden.checked = false; render(); }
+  });
+  window.addEventListener("resize", render);
+  sizeTable();
+  render();
+})();
+</script>

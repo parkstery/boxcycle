@@ -52,3 +52,19 @@
 - 위험(미실행): 실앱 대상 측정·실주행 시험(camera-*, peer-sync-*, firebase/public-trail 트래픽 등)이 주행 중 5초 넘게 기다린 뒤 레일·주행 버튼을 누르면 같은 이유로 막힌다 — 돌릴 때 화면을 한 번 누르는 단계가 필요. 에뮬레이터·실 API 필요라 이번에 실행 안 함.
 - 검증: tsc -b 0·eslint 0 오류·정련 래칫 기준선 안(안 쓰는 export 1 제거)·의존 방향 0·test:quick 1470/0·진입 셀렉터 21/21. e2e 16종 149개 중 125 통과/24 실패 — 23건은 3단계와 같은 기존 실패, 1건(ride-interval 30초 경계)은 위 수정 후 13/13 두 번 연속 통과.
 - 캡처: `evidence/autohide-shown-800.png`·`autohide-hidden-800.png`·`autohide-shown-699.png`·`autohide-hint-699.png`·`autohide-hidden-699.png`.
+
+## 개편 A — 오른쪽 2열 4줄 묶음 (11-02, 93924456 · Chief 승인)
+
+- 출발: Chief 폰 사용 뒤 「왼쪽·오른쪽으로 나뉜 버튼이 불편」 → 시안 [right-group.html](right-group.html) v1~v4 → Chief 답(나중 쪽을 펼치면 먼저 쪽 접기·계정은 주행 중에도 보이고 순위 목록 아래·경로 목록도 메뉴로·미니맵 버튼은 RouteDock 손잡이 크기) 뒤 「구현 진행해」. 단계: **A 오른쪽 묶음**(이번) → B 센서 LED·RPM 계기판 칸 → C 미니맵 토글 복귀·인터벌 접기·하나만 펼치기.
+- 오른쪽 아래 2열 4줄(`MapHud.tsx` `.map-hud__rail`, `MapRail.css` grid-area 로 칸 고정): 1-1 카메라 · 1-2 지도 스타일 / 2-1 ＋ · 2-2 － / 3-1 INT · 3-2 순위 / 4-1 ⏹ · 4-2 ⏸·▶. 없는 기능의 칸은 비움(주행 전 카메라·⏹, 주행 중 INT). 흰 원(구름 마스크 끔). 크기 `--rail-size` = min(64px, (화면 높이 − 위 46 − 아래 8 − 간격×3) ÷ 4) → 800×360 64, 300 높이 58, 699×273 약 51. 오른쪽·아래 끝 8px, z 3(순위 목록 z 2 위).
+- 주행 버튼: `RideControlBar` 를 RouteDock 에서 빼 `MapHud` `controlGroup.transport` 로(감싼 상자는 display: contents, 버튼이 바로 칸). 이어 달리기 선택·일시정지 옵션(⋯)은 맨 아래 줄 왼쪽 작은 알약.
+- 순위: 오른쪽 반달 탭(`EdgePanelHandle edge="right"`) 삭제, 3-2 순위 버튼(`aria-expanded`·`aria-controls="lb-glance-panel"`, 이름 「순위 열기/닫기」). 목록은 오른쪽 가장자리 8px·위 8px 고정. 주행 중 순위 버튼으로 열면 2초 뒤 묶음 숨김(`components/ride/rideControlsHide.ts` `requestRideControlsHide` → `RideControlsAutoHide` 가 듣고, 화면을 누르면 취소).
+- 자동 숨김: 오른쪽 묶음만(왼쪽 아래 LED·미니맵 줄은 그대로). 목록 이동 규칙 삭제.
+- 계정: 주행·일시정지에도 표시(오른쪽 위 구석). 목록(z 2)이 그 위에 그려지고, 목록 빈 곳(누름 통과)으로는 보이고 눌린다.
+- ⚙ 주행 설정·지도 핀(경로 목록, 주행 전만): `MenuPanel` 머리줄 아이콘(지명 검색 옆). 경로 목록을 닫으면 메뉴로 돌아온다.
+- RouteDock: 머리줄 INT·핀·⚙·주행 버튼 제거 → 접힌 줄 = LED·미니맵(64px, 8px). 2단계의 낮은 폰 「주행 설정 → 지도 스타일」 칸 삭제(`RideSettingsPanel/Sheet` 를 d331d2d8 이전으로). 카메라 메뉴는 묶음 아래 끝에서 위로 펼침(699×273에서도 1000m 줄까지 보임). 「다음 주행」 카드는 묶음 왼쪽.
+- 파일: `MapHud.tsx`·`MapRail.css`·`RouteDock.tsx/.css`·`RideControlBar.tsx/.css`·`RideControlsAutoHide.tsx/.css`·`rideControlsHide.ts`(신규)·`MenuPanel.tsx/.css`·`LeaderboardGlance.css`·`RideSettingsPanel.tsx`·`RideSettingsSheet.tsx/.css`·`App.tsx`(3698줄)·하네스 `ui-800x360/preview.tsx`·`ui-redesign-batch1/preview.tsx`·`ride-verify/entry-contract.mjs`·단위 `sensor-chip-slot-contract.test.ts`·e2e 45종(경로 목록·⚙ 누름을 「메뉴 열기 → 메뉴 머리줄」로, 옛 레일·반달·도구줄 계약을 새 칸 계약으로)·고정67(20·43·63·64·65·66 대체 표시).
+- 검증: tsc -b 0·eslint 0 오류·정련 래칫 기준선 안·의존 방향 통과·test:quick 1470/0·진입 셀렉터 21/21. 하네스 e2e 21종: 새·고친 시험 모두 통과, 남은 실패 15건은 HEAD 파일로 되돌려 같은 시험을 돌려도 똑같이 실패(기존: route-ride-controls 경로 생성 5·batch1 필터 비율 3·map-menu-consolidation 44px 3·ui-800x360 168/554·sensor-dock 141·compact 터치 1). 사보타주: 순위 2초→4초면 2초 시험 실패(처음엔 통과 — 가짜 시계가 기다리는 동안 흘러서, 시계를 멈추도록 고침), ＋/－ 칸 바꾸면 칸 시험 실패, 원복 후 통과.
+- 미실행: 실앱 대상 live 스펙(camera-*·pacer-solo·ride-entry 등 30여 종, 「경로 목록」·「주행 설정」 누름만 메뉴 경유로 바꿈).
+- 캡처: `evidence/group-{ready,riding,paused}-{800x360,699x273}.png`·`group-rank-open-*.png`·`group-rank-hidden-*.png`·`group-camera-*.png`·`group-menu-head-800x360.png`.
+

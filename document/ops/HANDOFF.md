@@ -10,30 +10,13 @@
 
 ## 진행 중
 
+**진행 중 — 오른쪽 2열 4줄 묶음 개편(11-02 Chief 「구현 진행해」, Claude Code)**: 시안 [right-group.html](20261102-ride-screen-layout/right-group.html) v4+Chief 답(나중 쪽 펼치면 먼저 쪽 접기·계정 주행 중에도 보임(순위 목록 아래 z)·경로 목록도 메뉴로·미니맵 버튼=RouteDock 손잡이 크기). 단계: A 오른쪽 묶음(MapHud 레일→2×4 원형, ⏸⏹▶·INT·순위 이동, 오른쪽 반달 제거, 목록 가장자리·2초 숨김, ⚙·경로 목록 메뉴 머리줄) → B 센서 LED·RPM 계기판 칸 → C 미니맵 토글 복귀·인터벌 접기·하나만 펼치기. 각 단계 캡처 보고·승인. **A 커밋 93924456(Chief 승인, 푸시·배포 진행)** — [README](20261102-ride-screen-layout/README.md) 「개편 A」·고정67. live 스펙 미실행. 다음=B(센서 LED·RPM 계기판 맨 앞 칸).
 **배포 11-02(Claude Code)**: c6297926 카메라 제안A·85d714cc 인터벌 중 미니맵 숨김+배치 계획, origin/main2 d6aa0dc2..85d714cc(pre-push 10종·test:quick 1467/0), Hosting 배포·운영 js/css SHA256=로컬.
 **주행 화면 배치 1단계 배포됨(11-02, Claude Code, 9ea27a96·4237de18·c8e4da8a)**: 순위|Trail 탭 공유·10줄(주행 전·중 모두), 주행 전 5줄 원인=없어진 시계+56px 예약(정정 기록), 오른쪽 반달 탭 z 조정. Trail 탭 배선은 `hooks/useTrailGlanceTab.tsx`(App.tsx 래칫 한도 3807, 현재 3793 — 여유 14줄). [README](20261102-ride-screen-layout/README.md)·고정63. 다음=2단계(오른쪽 조작 레일) — App.tsx 에 더하지 말고 훅·컴포넌트로.
 **2단계 오른쪽 조작 레일 배포됨(11-02, Claude Code, d331d2d8)**: [README](20261102-ride-screen-layout/README.md) 2단계·고정64. 다음=3단계(왼쪽 아래 주행 버튼 줄 64px, ⚙ 일시정지에도 → 일시정지 옵션의 지도 스타일 정리, 왼쪽 반달 vs RouteDock 겹침).
 **3단계 배포됨(11-02, ae1c0198)**. **4단계 자동 숨김 배포됨(11-02, f511feed, Claude Code)**: [README](20261102-ride-screen-layout/README.md) 4단계·고정66. 다음=5단계(전체 회귀·낮은 폰 4크기 점검, 펼친 카드 ▶/⏸ 같은 칸 어긋남 판단 자료). 위험: 실앱 측정 시험은 5초 뒤 화면 누름 필요.
 
-**D안 배포 완료(11-01 Chief, Claude Code)**: d6aa0dc2 푸시(origin/main2 68b88851..d6aa0dc2, pre-push 10종·test:quick 1467/0)·Hosting 배포, 운영 index js·css SHA256=로컬. 이전 기록 —: 인터벌 패널 D안, [결과](20261101-interval-cycle-donut/README.md). tsc 0·eslint 0·e2e 인터벌 29/29(반복 58/58)·test:quick 1466+고친 1. ride-ui-moments 3실패는 HEAD 동일(기존). 
-
-인터벌 사이클 도넛 시안 v2(11-01 Chief, Claude Code, A·B안 mockup.png + C안 mockup-c.png + D안 아티팩트 d-plan.html): [README](20261101-interval-cycle-donut/README.md), Chief 승인 대기. 승인 시 RideIntervalHud.tsx/.css·ride-interval.spec·고정58 대체.
-
-톱니·작은 구름·접기 캐럿(10-30 Chief, Claude Code, 배포됨): 68b88851, [README](20261030-gear-cloud-mockup/README.md). pre-push 10종·test:quick 1467/0, 운영 번들 SHA256 = 로컬.
-
-**푸시·배포 완료(10-30 19:2x, Claude Code)**: af850396 도구A·구름·Trail / 705876e8 순위 줄배경·인터벌 도넛 / 50bc2a9d 거리 원 계약 시험(f498fcee 색 변경 후 깨져 있던 것) / e8ac1c93 고정55~58 / 11eb53aa 래칫(MapHud.css 1612줄·반복 28) 대응 — A안 도구 CSS를 MapToolbar.css 로 분리(순서 동일), Trail 행 중복 합침. origin/main2 `98646bbe..11eb53aa`, pre-push 10종 통과, test:quick 1467/0, toolbar-trail-style 20/20. Hosting 배포, 운영 index js·css SHA256 = 로컬 dist. 커밋 안 함: e2e 가 덮어쓴 증거 PNG 19장·a-interval-sheet PNG·zip 2개·`.out/`·`claude-headless.err`.
-
-
-
-
-RouteDock 도구줄·메뉴 Trail 전용(10-30 Chief, 배포됨): 센서 칩 글자·테두리 제거·LED 21px / 주행 전 INT·지도핀(내 경로 창)·⚙(주행 설정)·▶, 주행 중 ⚙가 INT 자리(INT·핀 숨김) / 왼쪽 메뉴에서 경로 선택·주행 설정 제거. 파일: RouteDock.tsx/.css·CadenceHudChip.tsx·RideRoutePanel.tsx·App.tsx·preview 2종·entry-contract·rideEntryHelpers·e2e 약 40종(입문 진입 경로 일괄 교체)·고정12/42/48. tsc 0·eslint 0·셀렉터 21/21·test:e2e:ride 7/7·menu-a 1/1·route-dock-tools 3/3(사보타주 확인). 남은 실패: 기존(반달4·탭핸들3·좌우탭1·route-ride-controls5·ui-800x360 고정14/30/목록11/44px 4·sensor-dock 종료 후 펼침 1) + **주행 중 인터벌 창 진입로 없음**(ride-interval 1·ride-interval-settings 1 — Chief 결정 대기). 실앱 카메라·촬영 live 스펙 미실행.
-주행 중 인터벌 진입: 10-30 Chief 결정 — 주행 중 불가(의도), 일시정지에서 INT.
-
-인터벌 진입 정리(10-30 Chief, 배포됨): ①메뉴 「인터벌」·「간편 인터벌 주행」 행 제거 ②「간편 인터벌」→인터벌 운동 창 하단 「설정 적용」 왼쪽(고른 값 적용 후 시작, 직접 조절 화면엔 숨김) ③RouteDock INT 접힘·펼침·주행 중 항상 표시 ④프리셋 드롭다운 글자 16px=목록. 파일: RouteDock.tsx/.css·RideIntervalSettingsSheet.tsx/.css·RideRoutePanel.tsx/.css·App.tsx·useQuickIntervalRide.ts·preview·quick-interval 하네스·entry-contract·e2e 9종·고정32/42. tsc 0·eslint 0·셀렉터 계약 21/21, e2e 9종 90통과/13실패(전부 기존: route-ride-controls 5·반달4·탭핸들3·좌우탭1 — INT 끄고도 동일 실패 확인). quick-interval-live(에뮬레이터) 미실행.
-
-주행 설정 정리(10-30 Chief, 배포됨): 칼로리 계산·프로필 수정 줄 제거, 창 폭 460→276px. 파일: RideSettingsPanel/Sheet.tsx·RideSettingsSheet.css·App.tsx·ui-800x360/preview.tsx·e2e 4종·고정 목록 33/42(배포됨). tsc 0·eslint 0, e2e 3종 58통과/7실패(반달·탭 핸들, 주행 설정 미사용, 진행 중 RideRoutePanel 변경과 관련 의심). calorie-profile-sync(에뮬레이터) 2/2 통과.
-경로 창(10-30 Chief A안 승인): 제목 「경로」→파란 지도 핀 아이콘(낭독 「경로」 유지), 모드 버튼 38→57px(창 228 유지, 왼쪽으로). 파일: mapPopupElements.ts·RoutePickPopup.css·e2e batch5·고정 49(미커밋). tsc 0·eslint 0, batch5 전부 통과, route-ride-controls 5실패(헤더 안 .map-view__pick-token 을 찾는 고정49 이전 계약 — 이번 변경 무관, 시험 갱신 필요).
-경로 창 높이(10-30 Chief): 출발 없음 거리/방향 안내 줄 18→28px(Start 줄과 동일), 두 모드 175px 일치. RoutePickPopup.css·batch5 회귀 시험 1건·고정49(배포됨). batch5 37/37, 시험 사보타주 확인.
+10-30~11-01 배포분(D안 인터벌·톱니·구름·RouteDock 도구줄·인터벌 진입·주행 설정·경로 창) 기록은 각 묶음 README·git log. 주행 중 인터벌 진입: 10-30 Chief 결정 — 주행 중 불가, 일시정지에서 INT.
 
 간편 인터벌 01: 실앱 live FAIL 원인 = 시험 결함(adhoc 결과시트엔 .ride-summary__close 없음 → 닫힌 줄 오인, 시트 열린 채 반달 숨김). 제품 루프 없음·HEAD 동일 확인(임시 계측, 파일 삭제됨). impl-standard 재작업 2 진행: 「저장 안 함」으로 정식 닫기, live 2회 연속 PASS.
 별도 기존 결함 후보: 일반 주행 결과시트 「닫기」가 10초 내 클릭 안 됨(HEAD 동일), rideEntryHelpers.loadIntroCourse 의 Trail 메뉴 클릭이 지도에 가려짐 → test:e2e:ride 확인 필요. 다음: 재작업 2 재감리 → Chief 보고 → 커밋·푸시·배포.
