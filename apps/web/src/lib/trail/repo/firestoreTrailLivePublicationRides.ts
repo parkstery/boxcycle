@@ -32,6 +32,7 @@ import {
   PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS,
   PEER_LIVE_RIDE_FINAL_BURST_MS,
   PEER_LIVE_RIDE_STALE_MS,
+  SPECTATOR_LIVE_RIDE_STALE_MS,
 } from "../trailLivePolicy";
 import { trackUnderlyingReadSubscription } from "../../debug/readSubscriptionMeters";
 import { noteListingRefreshRead } from "../../debug/touchActivityMeters";
@@ -273,10 +274,11 @@ export function isTrailLivePublicationRideRowFresh(row: TrailLivePublicationRide
   return isMemberRecentlySeen(row.lastSeenAtMs);
 }
 
-/** 맵 peer 표시용 — live 4s, completed 15s */
+/** 맵 peer 표시용 — live 15s, completed 15s (같은 Trail 동행: RTDB 판정과 OR) */
 export function isTrailLivePublicationRideRowPeerVisible(
   row: TrailLivePublicationRideRow,
   nowMs = Date.now(),
+  liveStaleMs = PEER_LIVE_RIDE_STALE_MS,
 ): boolean {
   const ms = row.lastSeenAtMs;
   if (ms == null) {
@@ -285,5 +287,10 @@ export function isTrailLivePublicationRideRowPeerVisible(
   if (row.ridePhase === "completed") {
     return nowMs - ms <= PEER_LIVE_RIDE_COMPLETED_VISIBLE_MS;
   }
-  return nowMs - ms <= PEER_LIVE_RIDE_STALE_MS;
+  return nowMs - ms <= liveStaleMs;
+}
+
+/** **관전자** 맵 표시용 — RTDB 를 받지 않으므로 FS 12초 하트비트 기준(30초, 비용 L4). */
+export function isSpectatorLiveRideRowVisible(row: TrailLivePublicationRideRow, nowMs: number): boolean {
+  return isTrailLivePublicationRideRowPeerVisible(row, nowMs, SPECTATOR_LIVE_RIDE_STALE_MS);
 }

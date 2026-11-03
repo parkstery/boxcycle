@@ -22,7 +22,8 @@ import {
 } from "../lib/trail/repo/firestoreTrailLivePublicationRides";
 import { flushRideJoinPresenceBurst } from "../lib/ride/rideJoinPresenceBurst";
 import { sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
-import { deleteTrailMotion } from "../lib/peerMotion/repo/rtdbTrailMotion";
+import { deleteTrailMotion, readRtdbMotionHealthInput } from "../lib/peerMotion/repo/rtdbTrailMotion";
+import { isRtdbMotionHealthy } from "../lib/ride/rideSyncPolicy";
 import {
   awaitRouteFlightSettled,
   cancelRoutePublish,
@@ -325,6 +326,8 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
           snapshot.progressRatio,
           snapshot.distMetersAlongRoute,
           snapshot.speedMps,
+          // 비용 L4: 내 RTDB motion 이 정상이면 Firestore 하트비트 12초(끊기면 4초)
+          isRtdbMotionHealthy({ ...readRtdbMotionHealthInput(), nowMs: now }),
         );
 
       if (!publishGlobal && !publishRoute && !publishMotion) return;

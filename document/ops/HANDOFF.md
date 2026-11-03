@@ -6,11 +6,13 @@
 | 담당 | **Claude Code** — 2026-10-30 구름·톱니·접기 캐럿 배포 완료, 대기 |
 | 갱신 | 2026-10-30 19시 — 11eb53aa 배포, 시안 20261030-gear-cloud-mockup |
 | 브랜치 | `main2` |
-| 마지막 배포 | 2026-11-03 Hosting(Claude Code): f8d19c69 — 펼친 경로 카드가 버튼 숨김을 막던 결함·ⓖ 빈칸. 앞서 Rules+Hosting fd0ef880 — 닉네임 15자·-_·게스트 ⓖ·메뉴 센서·인터벌 영어 음성. 번들 SHA256 일치 |
+| 마지막 배포 | 2026-11-03 (Claude Code) c97eac84 — Hosting(격리 빌드 `.out/release-c97eac84`, 운영 index-Cr8Nqd0N.js SHA256=로컬)·Functions 37개·Firestore Rules·**유럽 RTDB `boxcycle-dc2df-eu-rtdb`(europe-west1) 생성+RTDB Rules**. 비용 L1·L2·L3·L6 임시, P1 이름표, P2 정리 |
 
 ## 진행 중
 
-**11-03 비용 절감 L1·L2·L3·L6 임시 구현·미커밋(Claude Code)**: App.tsx(livePresence 디버그 전용)·firestoreTrailLivePublicationRides(CG 60초 조회)·listenerScopePolicy+useAppMapOverlays(관전 8개)·leaderboardCore/leaderboard(캐시 30/60분·live 메모). web 1481/0·functions 205/0. **L4 보류**(15초 표시 기준 충돌, 설계 필요). [01-audit](20261103-cost-squeeze/01-audit.md).
+**11-04 배포 진행 중(Claude Code, Chief 승인 「함께 진행」)**: G3-1 6단계(색인→커밋·푸시→트리거만→채우기 dry-run/apply→운영 대조→나머지 함수) + L4 Hosting 격리 배포. 중단 시 어느 단계인지 이 줄과 `firebase functions:list`·`leaderboardScores` 문서 수로 판단.
+
+**11-03 비용 절감·지역 데이터(Claude Code) — 배포됨 c97eac84**: L1·L2·L3·L6 임시·P1·P2·G1. 남은 것: **L4 Chief 승인(11-04)·구현·로컬 검증 완료, 미커밋**([설계·결과](20261103-cost-squeeze/02-design-l4.md), 관전 외삽 3→13초 추가), **G3-1 감리 PASS·미커밋**([결과·감리](20261103-global-geo-data/03-result-g3-1.md), impl-standard 구현) — 운영 색인 배포·검사 후 6단계 배포(Chief 승인 대기), 유럽 RTDB 2차. [01-audit](20261103-cost-squeeze/01-audit.md)·[00-plan](20261103-global-geo-data/00-plan.md).
 
 **11-03 전세계 지역 데이터·비용(Claude Code)** — G1(2559dd7c)·G0.5 P5·P2(de076cfa)·P1 이름표+Rules(8eb69595) 커밋, 미푸시·미배포. Chief 11-03: **비용 짜내기 1순위**, 유럽 RTDB는 미루지 말고 설정. 비용 점검 [01-audit](20261103-cost-squeeze/01-audit.md): 제곱형 L6 순위 훑기·L1 livePresence 전체 구독·L2 CG 구독. 계획 [00-plan](20261103-global-geo-data/00-plan.md). `ride-moments-dom`은 test:quick 병렬 시 vite 캐시 경합으로 간헐 FAIL(단독 PASS).
 
@@ -18,7 +20,7 @@
 
 **11-03 닉네임·게스트 ⓖ·센서 메뉴·인터벌 영어 음성 + 게스트 전부 삭제(Claude Code) — 배포·완료**: 499c0bf2·fd0ef880 푸시(pre-push 10종·1475/0), firestore:rules·Hosting 배포(운영 js SHA256=로컬, 번들에 새 문구 확인). 고정73. 게스트 62명 삭제·검증(Google 5 보호, 남은 것 0) — [README](20261103-guest-reset/README.md). 리셋 도구에 `--baseline`·`--google` 인자 추가. 남은 것: Chief 사이트 확인(새로고침).
 
-**11-03 인터벌 창 3건+RouteDock 줄 띠(Claude Code)**: 운동 중 불꽃·글자 깜빡임·「페달 강도」 문구 제거·진도 막대 아래 테두리 띠(P1)·RouteDock 줄 단위 띠(R2). 고정72 ⑦~⑩(⑩ 주행 시작 카메라 2). **배포됨(939f0ca3, 운영 js·css SHA256=로컬)** — ⑪ 경로 카드 폭 35.28vw 포함.
+**11-03 인터벌 창 3건+RouteDock 줄 띠** — 배포됨(939f0ca3), 기록은 README·고정72.
 
 **11-03 Chief 5건+탭 토글(Claude Code)**: 센서 LED 볼록 단추(A2)·미니맵 캐럿 28px·인터벌 캐럿 왼쪽 위(C1)·도넛 1초 깜빡임·단계 선 그림+작은 글자(B2)·지도 탭 토글+5초 유지. 고정72, [README](20261103-interval-sensor-look/README.md). tsc 0·eslint 0·test:quick 1470/0·화면 e2e 19종 167/3(배치1 기존). **배포됨(f45d6193, 운영 js·css SHA256=로컬)** — 이후 미니맵 버튼 세로(낮은 폰+인터벌+카드만 가로)·도넛 칸 단계 색 포함.
 
@@ -39,12 +41,11 @@
 
 ## Chief 결정 대기
 
-**비용·유럽 RTDB**: 커밋·푸시·배포(Hosting·Functions·Firestore Rules) 묶음 승인, L4 표시 판정 설계 승인, 유럽 RTDB 인스턴스 생성 승인 — [cost-squeeze](20261103-cost-squeeze/README.md).
-
 그 밖에 없음 — 2026-10-29 Chief 「한꺼번에 하자」: 간편 인터벌 01 감리·커밋 후 그때까지의 커밋 전부를 한 번에 푸시·Hosting 배포한다(배포 전 대상·범위 설명 후 실행, 적용 검증).
 
 ## 잊지 말 것
 
+- **유럽 RTDB Rules는 별도 배포**: `firebase.json`이 아직 기본 인스턴스만 안다. `database.rules.json`을 바꾸면 유럽에도 임시 설정(`{"database":[{"instance":"boxcycle-dc2df-eu-rtdb","rules":"database.rules.json"}]}`)으로 배포한다 — 2차에서 firebase.json 다중 인스턴스로 바꿀 때까지.
 - 순위 센서 조건 임시 완화는 **출시 전 서버 상수 true 복구** 필요([묶음](20261029-leaderboard-sensor-test/README.md), 체크리스트 §6).
 - Firestore 백업이 꺼져 있다(2026-10-08 기준). 운영 데이터 삭제·이동은 Chief 승인 + 사전 스냅샷.
 

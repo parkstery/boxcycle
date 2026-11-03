@@ -38,6 +38,34 @@ export const COURSE_PRESENCE_HEARTBEAT_PAUSED_MS = 180_000;
  */
 export const TRAIL_LIVE_PROGRESS_HEARTBEAT_MS = 4_000;
 
+/**
+ * 비용 절감 L4(document/ops/20261103-cost-squeeze/02-design-l4.md, Chief 승인 2026-11-04):
+ * **내 RTDB motion 이 정상일 때만** Firestore 하트비트를 12초로 늦춘다.
+ * - 같은 Trail 동행은 RTDB 행만으로 보인다(PublicationSharedPresence 의 OR 판정) → 영향 없음.
+ * - 관전자(RTDB 미수신)는 숨김 기준을 30초(`SPECTATOR_LIVE_RIDE_STALE_MS`)로 넓혀 둔다.
+ * - 수신 측만 RTDB 가 끊긴 경우 FS 폴백 간격이 12초가 된다(재생 하네스: 점프 1.3m→45.8m, 소멸 없음).
+ * 위 TASK-31A 의 「8–10s 거부」는 RTDB 가 없을 때의 값으로 그대로 유효하다 — 그래서 끊기면 4초로 돌아간다.
+ */
+export const TRAIL_LIVE_PROGRESS_HEARTBEAT_RTDB_HEALTHY_MS = 12_000;
+
+/** 마지막 RTDB motion 쓰기 서버 응답이 이 안이어야 「정상」 — 수신 측 소스 선택 기준(2.5s)과 같은 척도. */
+export const RTDB_MOTION_HEALTHY_ACK_WINDOW_MS = 2_500;
+
+/** 순수 판정 — 연결 표시가 참이고 최근에 서버가 쓰기를 받아 줬는가. */
+export function isRtdbMotionHealthy(input: {
+  connected: boolean;
+  lastAckAtMs: number | null;
+  nowMs: number;
+}): boolean {
+  if (!input.connected || input.lastAckAtMs == null) return false;
+  const age = input.nowMs - input.lastAckAtMs;
+  return age >= 0 && age <= RTDB_MOTION_HEALTHY_ACK_WINDOW_MS;
+}
+
+export function trailLiveProgressHeartbeatMs(rtdbHealthy: boolean): number {
+  return rtdbHealthy ? TRAIL_LIVE_PROGRESS_HEARTBEAT_RTDB_HEALTHY_MS : TRAIL_LIVE_PROGRESS_HEARTBEAT_MS;
+}
+
 /** RTDB `/trails/{trailId}/motion/{uid}` — 5Hz motion publish (지연↓: 보간 delay 를 낮추려면 틱레이트↑) */
 export const PEER_MOTION_PUBLISH_INTERVAL_MS = 200;
 

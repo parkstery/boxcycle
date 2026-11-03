@@ -5,14 +5,20 @@ import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 import {
   PEER_LIVE_RIDE_STALE_MS,
+  SPECTATOR_LIVE_RIDE_STALE_MS,
   TRAIL_PRESENCE_STALE_MS,
 } from "../../src/lib/trail/trailLivePolicy.ts";
+import { SPECTATOR_MAX_EXTRAP_MS } from "../../src/lib/peerMotion/peerSyncPolicy.ts";
+import {
+  TRAIL_LIVE_PROGRESS_HEARTBEAT_MS,
+  TRAIL_LIVE_PROGRESS_HEARTBEAT_RTDB_HEALTHY_MS,
+} from "../../src/lib/ride/rideSyncPolicy.ts";
 
 /**
  * 관전 점의 **사라지는 기준** 계약 (2026-09-27).
  *
  * 무엇을 막는가 — 맵에 그리는 동행 점을 멤버용 기준(240초)으로 거르면, 발행이 끊긴
- * 주행이 **1분 넘게 그대로 남는다.** 관전 외삽은 3초에서 멈추므로 그 점은 한자리에
+ * 주행이 **1분 넘게 그대로 남는다.** 관전 외삽은 상한에서 멈추므로 그 점은 한자리에
  * 얼어붙어 있다가 다음 행이 오는 순간 **순간이동**한다 — chief 가 보고한 「툭툭 튀는」 증상.
  * 화면에 오류가 나지 않으므로 코드를 되돌려도 아무도 알아채지 못한다.
  *
@@ -50,7 +56,7 @@ describe("맵에 점을 찍는 곳은 맵 기준을 쓴다", () => {
       const src = codeOnly(read(rel));
       assert.match(
         src,
-        /isTrailLivePublicationRideRowPeerVisible\(/,
+        /isSpectatorLiveRideRowVisible\(/,
         "맵 점은 PeerVisible(15초)로 걸러야 한다 — RowFresh(240초)가 아니다",
       );
     });
@@ -63,7 +69,7 @@ describe("맵에 점을 찍는 곳은 맵 기준을 쓴다", () => {
       const src = codeOnly(read(rel));
       assert.match(
         src,
-        /isTrailLivePublicationRideRowPeerVisible\(\s*r\s*,\s*spectatorTickMs\s*\)/,
+        /isSpectatorLiveRideRowVisible\(\s*r\s*,\s*spectatorTickMs\s*\)/,
         "1초 tick 을 넘겨야 시간이 지나면서 사라진다",
       );
     });
@@ -77,5 +83,16 @@ describe("관전 외삽 상한을 넘긴 점은 그려지면 안 된다", () => 
      * 그 차이만큼 **얼어붙은 점**이 화면에 남는다. 지금은 3초 외삽 + 12초 잔류다.
      */
     assert.ok(PEER_LIVE_RIDE_STALE_MS >= 3_000, "외삽 상한보다 짧으면 정상 주행도 깜빡인다");
+  });
+
+  it("비용 L4 — 관전 기준이 12초 하트비트를 견딘다(2026-11-04)", () => {
+    /*
+     * 송신자 RTDB 가 정상이면 관전 행이 12초마다 온다. 외삽이 그보다 먼저 멈추면 「얼었다가 툭」,
+     * 숨김 기준이 하트비트 두 번보다 짧으면 지연 한 번에 깜빡인다. RTDB 가 끊긴 송신자의 4초도 덮는다.
+     */
+    assert.ok(SPECTATOR_MAX_EXTRAP_MS > TRAIL_LIVE_PROGRESS_HEARTBEAT_RTDB_HEALTHY_MS, "외삽이 하트비트 간격을 덮어야 한다");
+    assert.ok(SPECTATOR_LIVE_RIDE_STALE_MS >= 2 * TRAIL_LIVE_PROGRESS_HEARTBEAT_RTDB_HEALTHY_MS, "하트비트 두 번은 견뎌야 한다");
+    assert.ok(SPECTATOR_LIVE_RIDE_STALE_MS >= SPECTATOR_MAX_EXTRAP_MS, "외삽보다 먼저 지우면 움직이던 점이 사라진다");
+    assert.ok(PEER_LIVE_RIDE_STALE_MS > TRAIL_LIVE_PROGRESS_HEARTBEAT_MS * 3, "RTDB 없는 동행 기준(4초 하트비트)은 그대로 여유 3배");
   });
 });

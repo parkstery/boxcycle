@@ -15,6 +15,13 @@ export const TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS = 30_000;
 /** 동행 peer 맵 hide — Firestore lastSeenAt (4s FS heartbeat + jitter 여유) */
 export const PEER_LIVE_RIDE_STALE_MS = 15_000;
 
+/**
+ * **관전자**(RTDB 를 받지 않는 세계 지도·Trail 관전) 맵 hide 기준.
+ * 비용 L4: 송신자 RTDB 가 정상이면 FS 하트비트가 12초다(`TRAIL_LIVE_PROGRESS_HEARTBEAT_RTDB_HEALTHY_MS`).
+ * 15초면 지연 한 번에 깜빡인다 → 12초 × 2 + 여유. 같은 Trail 동행은 RTDB 판정이 있어 15초 그대로.
+ */
+export const SPECTATOR_LIVE_RIDE_STALE_MS = 30_000;
+
 /** rAF speed 적분 상한 — hide 보다 짧게 두지 않음 */
 export const PEER_LIVE_RIDE_EXTRAP_MAX_MS = 12_000;
 

@@ -6,7 +6,7 @@ import {
   GLOBAL_LIVE_PRESENCE_MAX_WRITE_INTERVAL_MS,
   GLOBAL_LIVE_PRESENCE_MIN_MOVE_METERS,
   GLOBAL_LIVE_PRESENCE_MIN_WRITE_INTERVAL_MS,
-  TRAIL_LIVE_PROGRESS_HEARTBEAT_MS,
+  trailLiveProgressHeartbeatMs,
   PEER_MOTION_PUBLISH_INTERVAL_MS,
   roundLngLatForLiveShare,
 } from "./rideSyncPolicy";
@@ -144,16 +144,20 @@ export function shouldPublishGlobalPresence(
 /** 슬라이더 등 속도 변경 시 즉시 publish (≈1 km/h) */
 const SPEED_PUBLISH_DELTA_MPS = 0.28;
 
-/** 4s heartbeat — 절대 distMeters+speedMps. 초기·속도 변경 시 heartbeat 대기 없이 publish */
+/**
+ * 하트비트 — 절대 distMeters+speedMps. 초기·속도 변경 시 heartbeat 대기 없이 publish.
+ * 간격: RTDB 정상이면 12초, 아니면 4초(`trailLiveProgressHeartbeatMs`, 비용 L4).
+ */
 export function shouldPublishRouteProgress(
   now: number,
   state: LiveLocationPublishThrottleState,
   _progressRatio: number,
   _distMetersAlongRoute: number,
   speedMps?: number,
+  rtdbHealthy = false,
 ): boolean {
   if (state.routeWriteAt === 0) return true;
-  if (now - state.routeWriteAt >= TRAIL_LIVE_PROGRESS_HEARTBEAT_MS) return true;
+  if (now - state.routeWriteAt >= trailLiveProgressHeartbeatMs(rtdbHealthy)) return true;
   if (
     typeof speedMps === "number" &&
     Number.isFinite(speedMps) &&

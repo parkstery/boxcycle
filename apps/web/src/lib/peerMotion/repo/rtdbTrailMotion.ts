@@ -102,6 +102,7 @@ async function writeMotionRequest(key: string, value: object, partial: boolean):
     else await set(target, value);
     // Meter the actual submitted body, not the reconstructed full state.
     noteRtdbMotionWriteOk(ticket, value);
+    motionLastAckAtMs = Date.now();
   } catch (error) {
     noteRtdbMotionWriteError(ticket);
     throw error;
@@ -120,10 +121,20 @@ function ensureMotionConnection(db: Database): void {
   motionDeltaWriter.invalidate();
   onDisconnectArmed.clear();
   // This is SDK connection metadata, not another application-data download.
-  releaseMotionConnection = onValue(ref(db, ".info/connected"), () => {
+  releaseMotionConnection = onValue(ref(db, ".info/connected"), (snap) => {
+    motionConnected = snap.val() === true;
     motionDeltaWriter.invalidate();
     onDisconnectArmed.clear();
   });
+}
+
+/** 비용 L4 — 「내 RTDB motion 이 정상인가」의 재료. 연결 표시와 마지막 서버 응답 시각. */
+let motionConnected = false;
+let motionLastAckAtMs: number | null = null;
+
+/** 송신 하트비트 간격 판정용(`isRtdbMotionHealthy`). 시험이 아니면 상태를 바꾸지 않는다. */
+export function readRtdbMotionHealthInput(): { connected: boolean; lastAckAtMs: number | null } {
+  return { connected: motionConnected, lastAckAtMs: motionLastAckAtMs };
 }
 
 function motionPath(trailId: string, uid: string): string {

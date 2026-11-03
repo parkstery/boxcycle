@@ -128,5 +128,10 @@ export const MOTION_FLIGHT_DRAIN_TIMEOUT_MS = 2_000;
 /** route 비행(publish flight) 배수 종료 대기(ms) */
 export const ROUTE_FLIGHT_DRAIN_TIMEOUT_MS = 2_000;
 
-/** 관전 시 마지막 패킷 이후 외삽 상한(ms) */
-export const SPECTATOR_MAX_EXTRAP_MS = 3_000;
+/**
+ * 관전 시 마지막 패킷 이후 외삽 상한(ms).
+ * 비용 L4 로 관전 행이 12초마다 올 수 있다. 3초에서 멈추면 「3초 가고 9초 얼었다가 툭」이 된다
+ * (2026-09-27 「툭툭 튀는」 증상과 같은 모양). 하트비트 12초 + 1초까지 마지막 속도로 이어 간다.
+ * 멈춤·속도 변화는 송신 측이 하트비트를 기다리지 않고 즉시 쓰므로 과주행은 짧다.
+ */
+export const SPECTATOR_MAX_EXTRAP_MS = 13_000;
