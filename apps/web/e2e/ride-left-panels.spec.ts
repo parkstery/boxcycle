@@ -77,6 +77,36 @@ for (const size of [{ width: 800, height: 360 }, { width: 699, height: 273 }]) {
   });
 }
 
+// Chief 11-03: 펼친 미니맵 안 캐럿 = 펼친 경로 카드 안 캐럿(28px 같은 모양). 접힌 버튼은 40px 그대로.
+test('펼친 미니맵 캐럿은 경로 카드 캐럿과 같은 크기·모양', async ({ page }) => {
+  await page.goto(`${preview}?state=riding`);
+  await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
+  const look = (sel: string) => page.locator(sel).evaluate((el) => {
+    const b = el.getBoundingClientRect(); const cs = getComputedStyle(el);
+    return { w: Math.round(b.width), h: Math.round(b.height), radius: cs.borderRadius, border: cs.borderTopWidth, left: Math.round(b.left) };
+  });
+  const dock = await look('.route-dock__card .route-overview-fold-toggle');
+  const mini = await look('.route-minimap__toggle');
+  expect(mini).toEqual(dock);
+  expect(dock.w).toBe(28);
+  await page.getByRole('button', { name: '미니맵 접기' }).click();
+  const folded = await look('.route-minimap__toggle');
+  expect([folded.w, folded.h]).toEqual([40, 40]);
+});
+
+// Chief 11-03: 운동·회복 진행 중이면 도넛의 지금 칸이 1초 주기로 깜빡인다(일시정지엔 멈춤).
+test('도넛 지금 칸 1초 깜빡임, 일시정지엔 멈춤', async ({ page }) => {
+  await page.goto(`${preview}?state=riding&interval&intervalMs=330000`);
+  const anim = () => page.evaluate(() => [...document.querySelectorAll('.ride-interval-hud__progress [data-active="true"], .ride-interval-hud__fill')]
+    .map((el) => { const cs = getComputedStyle(el); return `${cs.animationName} ${cs.animationDuration}`; }));
+  await expect.poll(anim).toEqual(['ride-interval-seg-blink 1s', 'ride-interval-seg-blink 1s']);
+  const others = await page.evaluate(() => [...document.querySelectorAll('.ride-interval-hud__progress [data-seg]:not([data-active="true"])')]
+    .map((el) => getComputedStyle(el).animationName));
+  expect(new Set(others)).toEqual(new Set(['none']));
+  await page.getByRole('button', { name: '일시정지', exact: true }).click();
+  await expect.poll(async () => (await anim()).every((a) => a.startsWith('none'))).toBe(true);
+});
+
 test('인터벌을 접은 동안 미니맵을 나중에 펼쳤으면 다시 펼칠 때 경로 카드가 접힌다', async ({ page }) => {
   await page.goto(`${preview}?state=riding&interval&intervalMs=330000`);
   await page.getByRole('button', { name: '인터벌 패널 접기' }).click();

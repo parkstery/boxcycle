@@ -37,10 +37,12 @@ export function CadenceMetricCell({
     >
       <span className="hud-metrics__label">RPM</span>
       <span className="hud-metrics__value hud-metrics__value--sensor">
-        <span
-          className={`hud-cadence__led hud-cadence__led--${view.led}${view.pulsing ? " hud-cadence__led--pulse" : ""}`}
-          aria-hidden
-        />
+        {/* Chief 11-03 A2: LED(13px 그대로)를 볼록한 흰 둥근 단추 안에 — 누르는 버튼으로 읽히게. */}
+        <span className="hud-cadence__knob" aria-hidden>
+          <span
+            className={`hud-cadence__led hud-cadence__led--${view.led}${view.pulsing ? " hud-cadence__led--pulse" : ""}`}
+          />
+        </span>
         <span className="hud-metrics__sensor-rpm">{rpm}</span>
       </span>
     </button>

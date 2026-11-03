@@ -56,7 +56,10 @@ test('경로 손잡이와 미니맵 접기는 독립적으로 접힌다', async 
   await expect(page.locator('.route-dock__tool--minimap')).toHaveCount(0);
   await expect(routeExpand).toHaveAttribute('aria-expanded', 'false');
   await expect(minimapCollapse).toHaveAttribute('aria-expanded', 'true');
-  for (const b of [await minimapCollapse.boundingBox(), await routeExpand.boundingBox()]) expect([b!.width, b!.height]).toEqual([40, 40]);
+  // Chief 11-03: 접힌 경로 손잡이는 40px, 펼친 미니맵 안 캐럿은 펼친 경로 카드 캐럿과 같은 28px.
+  const [mc, rh] = [(await minimapCollapse.boundingBox())!, (await routeExpand.boundingBox())!];
+  expect([rh.width, rh.height]).toEqual([40, 40]);
+  expect([mc.width, mc.height]).toEqual([28, 28]);
 
   // 미니맵만 접어도 경로 패널은 접힌 그대로, 다시 펴면 돌아온다.
   // Chief 11-03: 둘 다 접히면 세로 — 접힌 미니맵 버튼은 손잡이 아래 8px, 왼쪽 끝 같음(종전 손잡이 옆 8px 대체).

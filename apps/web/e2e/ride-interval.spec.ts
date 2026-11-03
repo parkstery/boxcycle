@@ -92,7 +92,8 @@ for(const size of [{width:1000,height:455},{width:800,height:360},{width:699,hei
     expect(appearance.intervalShadow).toContain('rgb(255, 255, 255)');
     const g=appearance.geometry,wide=size.height>340;
     // 폭은 글자 칸+도넛만큼(옛 205/150보다 좁거나 같은 수준), 높이는 막대 한 줄만큼 늘었다.
-    expect(g.w).toBeLessThan(wide?190:160);expect(g.h).toBeCloseTo(wide?104:92,1);
+    // Chief 11-03 C1: 접기 버튼(28px)이 왼쪽 위로 와 세트 줄이 버튼 높이만큼 — 창 높이 +13(낮은 폰 +14).
+    expect(g.w).toBeLessThan(wide?190:160);expect(g.h).toBeCloseTo(wide?117:106,1);
     expect(g.ring).toBe(wide?88:74);expect(g.ringInside).toBe(true);expect(g.textInside).toBe(true);expect(g.textOverflow).toBe(false);
     expect(Math.abs(g.timeCenterX)).toBeLessThan(2);expect(Math.abs(g.timeCenterY)).toBeLessThan(2);
     expect(g.barBelowRing).toBe(true);expect(g.barFull).toBe(true);expect(g.barInside).toBe(true);

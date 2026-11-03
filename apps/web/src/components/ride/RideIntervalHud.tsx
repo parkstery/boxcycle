@@ -1,5 +1,30 @@
-import { formatRideIntervalClock, type RideIntervalView } from "../../lib/ride/rideInterval";
+import { formatRideIntervalClock, type RideIntervalPhase, type RideIntervalView } from "../../lib/ride/rideInterval";
+import { RouteOverviewFoldToggle } from "../route-dock/RouteOverviewFoldToggle";
 import "./RideIntervalHud.css";
+
+/**
+ * Chief 11-03 B2: 단계 글자 앞의 선 그림(단계 색 = currentColor). 준비 해돋이 · 운동 불꽃 · 회복 잎 · 휴식 찻잔 · 마무리 깃발 · 완료 체크 · 일시정지 두 막대.
+ * 그림은 꾸밈(aria-hidden) — 단계 이름은 옆 작은 글자와 낭독 문구가 전한다.
+ */
+const PHASE_ICON: Record<RideIntervalPhase | "paused", string> = {
+  warmup: "M4 18h16M7 18a5 5 0 0 1 10 0M12 7v2M5.5 10.5l1.4 1.4M18.5 10.5l-1.4 1.4",
+  work: "M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-3.5 2.5-5 .5 1.5 1.5 2 2.5 2 0-2.5-.8-4.5 0-7z",
+  recovery: "M5 19c0-8 5-13 14-14-1 9-6 14-14 14zM5 19l7-7",
+  rest: "M5 9h11v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4zM16 10h1.5a2 2 0 0 1 0 4H16M8 3.5v2.5M11.5 3.5v2.5",
+  cooldown: "M6 21V4M6 4h12l-2.5 4L18 12H6",
+  complete: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM8 12.5l2.7 2.7L16.5 9",
+  paused: "M9 6v12M15 6v12",
+};
+
+function PhaseIcon({ phase, paused }: { phase: RideIntervalPhase; paused: boolean }) {
+  const key = paused && phase !== "complete" ? "paused" : phase;
+  return (
+    <svg className="ride-interval-hud__icon" data-icon={key} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <path d={PHASE_ICON[key]} />
+    </svg>
+  );
+}
 
 type Props = {
   view: RideIntervalView;
@@ -56,7 +81,7 @@ export function RideIntervalHud({ view, paused, cadenceRpm, folded = false, onTo
     return (
       <button type="button" className="ride-interval-hud ride-interval-hud--folded" data-phase={view.phase} data-paused={paused}
         aria-label="인터벌 패널 펼치기" aria-expanded={false} title="인터벌 패널 펼치기" onClick={onToggleFold}>
-        <i className="ride-interval-hud__dot" aria-hidden="true" />
+        <PhaseIcon phase={view.phase} paused={paused} />
         <b className="ride-interval-hud__phase">{label}</b>
         <span className="ride-interval-hud__chip-time">{complete ? "완료" : time}</span>
         {view.totalRounds > 1 ? <em>{view.round}/{view.totalRounds}세트</em> : null}
@@ -68,13 +93,15 @@ export function RideIntervalHud({ view, paused, cadenceRpm, folded = false, onTo
   return (
     <section className="ride-interval-hud" data-phase={view.phase} data-paused={paused} data-hurry={hurry} role="group" aria-label="인터벌 안내">
       {onToggleFold ? (
-        <button type="button" className="ride-interval-hud__fold" aria-label="인터벌 패널 접기" aria-expanded title="인터벌 패널 접기" onClick={onToggleFold}>
-          <span aria-hidden="true">‹</span>
-        </button>
+        // Chief 11-03 C1: 경로 카드·미니맵과 같은 28px 공통 접기 버튼, 창 왼쪽 위(원형 메뉴 버튼과의 겹침 허용).
+        <RouteOverviewFoldToggle kind="route" expanded ariaLabel="인터벌 패널 접기" className="ride-interval-hud__fold" onClick={onToggleFold} />
       ) : null}
       <div className="ride-interval-hud__text">
         <span className="ride-interval-hud__round">{view.totalRounds > 1 ? `${view.round}/${view.totalRounds}세트` : ""}</span>
-        <span className="ride-interval-hud__phase">{label}</span>
+        <span className="ride-interval-hud__phase-row">
+          <PhaseIcon phase={view.phase} paused={paused} />
+          <span className="ride-interval-hud__phase">{label}</span>
+        </span>
         <span className="ride-interval-hud__next">{next}</span>
         <span className="ride-interval-hud__total" data-long={view.totalSec >= 6000}>{formatRideIntervalClock(Math.floor(view.elapsedMs / 1000))} / {formatRideIntervalClock(view.totalSec)}</span>
       </div>

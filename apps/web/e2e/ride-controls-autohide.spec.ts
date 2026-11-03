@@ -50,6 +50,34 @@ for (const size of [{ width: 800, height: 360 }, { width: 699, height: 273 }]) {
     await expect(page.getByRole('button', { name: '재개', exact: true })).toBeVisible();
   });
 
+  // Chief 11-03: 기다리지 않고 지도 빈 곳 탭으로 바로 숨기기↔보이기. 끌기는 토글하지 않는다. 왼쪽 원형 메뉴 버튼도 함께.
+  test(`지도 탭으로 바로 숨기기·보이기, 끌기는 그대로 ${size.width}`, async ({ page }) => {
+    await page.setViewportSize(size);
+    await page.clock.install();
+    await page.goto(`${preview}?state=riding`);
+    await freezeClock(page);
+    const rail = page.locator('.map-hud__rail');
+    const menuBtn = page.getByRole('button', { name: '메뉴 열기', exact: true });
+    const spot = { x: size.width / 2, y: size.height / 2 };
+    await expectShown(page);
+    await page.mouse.click(spot.x, spot.y);
+    await expect(page.locator('body')).toHaveAttribute('data-ride-controls', 'hidden');
+    await expect(rail).toBeHidden();
+    await expect(menuBtn).toBeHidden();
+    await page.mouse.click(spot.x, spot.y);
+    await expectShown(page);
+    await expect(menuBtn).toBeVisible();
+    // 지도 끌기는 토글하지 않는다.
+    await page.mouse.move(spot.x, spot.y);
+    await page.mouse.down();
+    await page.mouse.move(spot.x + 80, spot.y + 10, { steps: 6 });
+    await page.mouse.up();
+    await expectShown(page);
+    // 버튼을 누르면 숨기지 않는다(지도 탭이 아님).
+    await page.getByRole('button', { name: '줌 확대', exact: true }).click();
+    await expectShown(page);
+  });
+
   test(`순위 버튼으로 목록을 열면 2초 뒤 숨김, 목록은 가장자리 고정 ${size.width}`, async ({ page }) => {
     await page.setViewportSize(size);
     await page.clock.install();

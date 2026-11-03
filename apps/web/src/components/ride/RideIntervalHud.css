@@ -51,6 +51,11 @@
 .ride-interval-hud__remain { fill: none; stroke: var(--interval-color); stroke-width: 2.6; transition: stroke-dashoffset 0.2s linear; }
 .ride-interval-hud[data-hurry="true"] .ride-interval-hud__inner { animation: ride-interval-hurry 1s ease-in-out infinite; }
 @keyframes ride-interval-hurry { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+/* Chief 11-03: 운동·회복이 진행 중이면 도넛의 지금 칸(바탕 칸+차오르는 칸)이 1초 주기로 깜빡인다. 일시정지·움직임 줄이기는 끔. */
+.ride-interval-hud[data-paused="false"] .ride-interval-hud__progress :is([data-active="true"], .ride-interval-hud__fill) {
+  animation: ride-interval-seg-blink 1s ease-in-out infinite;
+}
+@keyframes ride-interval-seg-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
 svg .ride-interval-hud__time { font-size: 11.5px; font-weight: 800; fill: var(--interval-color); stroke: #fff; stroke-width: 0.7px; paint-order: stroke fill; }
 svg .ride-interval-hud__time[data-long="true"] { font-size: 8.4px; }
 span.ride-interval-hud__time { display: grid; place-items: center; font-size: 24px; color: var(--interval-color); }
@@ -65,6 +70,7 @@ span.ride-interval-hud__time { display: grid; place-items: center; font-size: 24
 .ride-interval-hud__announcement { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .ride-interval-hud[data-hurry="true"] .ride-interval-hud__inner { animation: none; }
+  .ride-interval-hud[data-paused="false"] .ride-interval-hud__progress :is([data-active="true"], .ride-interval-hud__fill) { animation: none; }
   .ride-interval-hud__fill, .ride-interval-hud__remain, .ride-interval-hud__bar-done { transition: none; }
 }
 @media (max-height: 340px) {
@@ -82,16 +88,24 @@ span.ride-interval-hud__time { display: grid; place-items: center; font-size: 24
  * Chief 11-02 v4 C단계: 접기·펼치기. 패널은 그대로 누름이 지나가고(지도 제스처), 오른쪽 위 접기 버튼만 받는다.
  * 접으면 알약 = 단계 색 점 · 단계 · 남은 시간 · 세트 · › — 알약 전체가 펼치기 버튼.
  */
-.ride-interval-hud__fold {
-  position: absolute; top: -6px; right: -6px;
-  width: 32px; height: 32px; padding: 0; border: 0; background: transparent;
-  display: grid; place-items: center; cursor: pointer; pointer-events: auto; touch-action: manipulation;
+/*
+ * Chief 11-03 C1: 접기 버튼은 경로 카드·미니맵과 같은 28px 공통 접기 버튼, 창 왼쪽 위(테두리 안 3px = 바깥 4px).
+ * 세트 글자는 버튼 오른쪽 같은 줄, 단계 줄은 버튼 아래부터 — 그만큼 창이 13px(낮은 폰 14px) 높아진다.
+ */
+.ride-interval-hud > .ride-interval-hud__fold { position: absolute; top: 3px; left: 3px; z-index: 1; pointer-events: auto; text-shadow: none; }
+.ride-interval-hud:has(> .ride-interval-hud__fold) { height: 117px; }
+.ride-interval-hud:has(> .ride-interval-hud__fold) .ride-interval-hud__round { min-height: 26px; padding-left: 30px; display: flex; align-items: center; }
+/* Chief 11-03 B2: 단계 = 선 그림(단계 색) + 작은 글자. */
+.ride-interval-hud__icon { flex: none; width: 24px; height: 24px; color: var(--interval-color); }
+.ride-interval-hud__phase-row { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.ride-interval-hud__phase-row .ride-interval-hud__phase,
+.ride-interval-hud[data-paused="true"] .ride-interval-hud__phase-row .ride-interval-hud__phase { font-size: 13px; letter-spacing: 0; }
+@media (max-height: 340px) {
+  .map-hud__tl > .ride-interval-hud:has(> .ride-interval-hud__fold) { height: 106px; }
+  .ride-interval-hud__icon { width: 20px; height: 20px; }
+  .ride-interval-hud__phase-row .ride-interval-hud__phase,
+  .ride-interval-hud[data-paused="true"] .ride-interval-hud__phase-row .ride-interval-hud__phase { font-size: 12px; }
 }
-.ride-interval-hud__fold > span {
-  width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
-  background: #fff; box-shadow: 0 1px 4px rgba(15, 23, 42, .3); color: #576375; font-size: 15px; line-height: 1; text-shadow: none;
-}
-.ride-interval-hud__fold:focus-visible > span { outline: 2px solid #2457d6; outline-offset: 1px; }
 .map-hud__tl > .ride-interval-hud.ride-interval-hud--folded {
   display: inline-flex; align-items: center; gap: 7px; grid-template-columns: none;
   height: 34px; padding: 0 12px 0 10px; margin-top: 2px; border: 0; border-radius: 999px;
@@ -101,7 +115,7 @@ span.ride-interval-hud__time { display: grid; place-items: center; font-size: 24
 }
 /* Chief 11-03: 접힌 알약은 왼쪽 원형 메뉴 버튼(같은 왼쪽 20px, 지름 = 오른쪽 묶음 버튼)과 겹치지 않게 그 오른쪽 8px 부터. 펼친 창은 제자리(겹침 허용). */
 .map-hud__tl > .ride-interval-hud.ride-interval-hud--folded { margin-left: calc(var(--rail-size, 64px) + 8px); }
-.ride-interval-hud--folded .ride-interval-hud__dot { width: 10px; height: 10px; border-radius: 50%; background: var(--interval-color); }
+.ride-interval-hud--folded .ride-interval-hud__icon { width: 18px; height: 18px; }
 .ride-interval-hud--folded .ride-interval-hud__phase { font-size: 14px; color: var(--interval-color); }
 .ride-interval-hud--folded .ride-interval-hud__chip-time { font-variant-numeric: tabular-nums; }
 .ride-interval-hud--folded em { font-style: normal; font-size: 11px; color: #576375; }
