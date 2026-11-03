@@ -12,6 +12,7 @@ import {
   isValidNickname,
   nicknameChangeBlockedUntilMs,
   NICKNAME_CHANGE_COOLDOWN_DAYS,
+  NICKNAME_MAX_LENGTH,
   NICKNAME_RULES_SUMMARY_KO,
 } from "../lib/identity/nickname";
 import { ACCOUNT_DELETION_CONFIRM_PHRASE, deleteMyAccount, isDeletionConfirmPhrase } from "../lib/account/accountDeletion";
@@ -150,7 +151,7 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
                 aria-label="닉네임"
                 autoComplete="username"
                 spellCheck={false}
-                maxLength={12}
+                maxLength={NICKNAME_MAX_LENGTH}
                 value={nickname}
                 disabled={saving || nicknameLockedUntilMs != null}
                 onChange={(ev) => {

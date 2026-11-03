@@ -140,3 +140,31 @@ test('메뉴 머리줄: 지도 핀은 「내 경로」 창(주행 전만), ⚙ �
   await expect(menu.getByRole('group', { name: '경로 목록 열기' })).toHaveCount(0);
   await expect(menu.getByRole('button', { name: '인터벌', exact: true })).toHaveCount(0);
 });
+
+// Chief 11-03 「센서 메뉴를 메인메뉴 안에 추가」 — 머리줄 ⚙ 오른쪽, 계기판 RPM 칸과 같은 센서 창. 주행 전·중 모두.
+test('메뉴 머리줄: 센서 버튼은 센서 창을 열고, 머리줄 버튼이 메뉴 판 안에 든다', async ({ page }) => {
+  const menu = page.locator('#menu-panel');
+  for (const size of sizes) {
+    await page.setViewportSize(size);
+    for (const state of ['idle', 'riding']) {
+      await page.goto(`${preview}?state=${state}`);
+      await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+      const sensor = menu.getByRole('button', { name: '센서', exact: true });
+      await expect(sensor).toBeVisible();
+      const box = await menu.locator('.menu-panel__head').evaluate((head) => {
+        const panel = head.closest('.menu-panel')!.getBoundingClientRect();
+        const btns = [...head.querySelectorAll<HTMLElement>('button')].map((b) => b.getBoundingClientRect());
+        const ys = btns.map((r) => Math.round(r.top));
+        const overlap = btns.some((a, i) => btns.some((b, j) => i < j && a.left < b.right - 0.5 && b.left < a.right - 0.5));
+        return { left: panel.left, right: panel.right, minX: Math.min(...btns.map((r) => r.left)), maxX: Math.max(...btns.map((r) => r.right)), oneRow: new Set(ys).size === 1, minW: Math.min(...btns.map((r) => r.width)), overlap };
+      });
+      expect(box.minX, `${size.width} ${state} 왼쪽`).toBeGreaterThanOrEqual(box.left);
+      expect(box.maxX, `${size.width} ${state} 오른쪽(닫기)`).toBeLessThanOrEqual(box.right);
+      expect(box.oneRow, `${size.width} ${state} 한 줄`).toBe(true);
+      expect(box.minW, `${size.width} ${state} 버튼 폭`).toBeGreaterThanOrEqual(30);
+      expect(box.overlap, `${size.width} ${state} 버튼끼리 겹침`).toBe(false);
+      await sensor.click();
+      await expect(page.getByRole('dialog', { name: '케이던스 센서', exact: true })).toBeVisible();
+    }
+  }
+});

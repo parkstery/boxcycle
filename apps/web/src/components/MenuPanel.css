@@ -30,7 +30,8 @@
   position: absolute;
   top: 0;
   left: 0;
-  --menu-panel-width: 300px;
+  /* 11-03 Chief 「센서 메뉴를 메인메뉴 안에」 — 머리줄 아이콘 4개+닫기가 한 줄에 들도록 300→320px */
+  --menu-panel-width: 320px;
   width: min(var(--menu-panel-width), 92vw);
   height: 100%;
   max-height: 100dvh;
@@ -116,6 +117,20 @@
 }
 
 .menu-panel__routes { color: #2457d6; }
+
+/* 머리줄 아이콘끼리는 2px(8px gap − 6px) — 투명 원이라 그림 사이는 16px 남는다 */
+.menu-panel__head-brand > .menu-panel__search + .menu-panel__search { margin-left: -6px; }
+
+/* 센서(Chief 11-03) — 상태 점: 계기판 LED 와 같은 두 의미(초록=실제 연결, 흰색=그 밖) */
+.menu-panel__sensor-led {
+  fill: #ffffff;
+  stroke: #8a93a3;
+  stroke-width: 1.4;
+}
+.menu-panel__sensor-led.is-connected {
+  fill: #34d399;
+  stroke: #059669;
+}
 
 .menu-panel__close {
   background: #f2f3f5;

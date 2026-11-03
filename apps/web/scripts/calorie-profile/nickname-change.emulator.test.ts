@@ -42,8 +42,9 @@ async function adminSetPaid(uid: string): Promise<void> {
 }
 
 const stamp = Date.now().toString(36).slice(-5);
-const OLD = `old${stamp}`;
-const NEW = `new${stamp}`;
+// 2026-11-03 Chief: 15자까지·`-` `_` 허용 — 서버 규칙(firestore.rules)이 실제로 받는지 여기서 본다.
+const OLD = `old_${stamp}`;
+const NEW = `New-${stamp}_wxyz9`; // 15자
 const TAKEN = `tkn${stamp}`;
 
 /** 실제 앱처럼 게스트 문서(tier: anonymous)가 먼저 있고, 가입 때 닉네임으로 승격된다 */

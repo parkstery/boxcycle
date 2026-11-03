@@ -7,19 +7,19 @@
  *
  * 규칙:
  *   회원  → 닉네임(닉네임 규칙을 통과한 값만)
- *   게스트 → 「게스트-」 + uid 앞 4자 (접속 순서와 무관하게 늘 같다)
+ *   게스트 → 「ⓖ」(원문자 g) + uid 앞 4자 (접속 순서와 무관하게 늘 같다, 2026-11-03 Chief: 「게스트-」 대체)
  *   회원인데 닉네임이 없음 → 「라이더-」 + uid 앞 4자
  * **이메일·실명은 어떤 경우에도 이름으로 쓰지 않는다.** Google 실명("ster pin")·이메일은
- * 닉네임 규칙(영문 시작·영문숫자 4~12자)을 통과하지 못하므로 걸러진다.
+ * 닉네임 규칙(영문 시작·영문숫자와 - _ 4~15자)을 통과하지 못하므로 걸러진다(공백·@·. 불허).
  */
 import { isValidNickname } from "./nickname";
 
-const GUEST_NAME_PREFIX = "게스트-";
+const GUEST_NAME_PREFIX = "ⓖ";
 const UNNAMED_RIDER_PREFIX = "라이더-";
 const SHORT_CODE_LEN = 4;
 
 /** 옛 클라이언트가 presence 에 써 둔 게스트 표시명 접두 — 읽을 때 게스트로 판정 */
-const LEGACY_GUEST_NAME = /^(guest-|guest\d*$|게스트-)/;
+const LEGACY_GUEST_NAME = /^(guest-|guest\d*$|게스트-|ⓖ)/;
 
 function riderShortCode(uid: string): string {
   return uid.slice(0, SHORT_CODE_LEN);

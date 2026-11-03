@@ -1,8 +1,11 @@
-/** 서비스 닉네임: 영문으로 시작, 영문·숫자만, 총 4~12자 */
-const NICKNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9]{3,11}$/;
+/** 서비스 닉네임: 영문으로 시작, 영문·숫자·`-`·`_`, 총 4~15자 (2026-11-03 Chief: 12→15자, `-` `_` 허용) */
+const NICKNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_-]{3,14}$/;
+
+/** 입력칸 최대 길이 — NICKNAME_REGEX 의 최대와 같다 */
+export const NICKNAME_MAX_LENGTH = 15;
 
 export const NICKNAME_RULES_SUMMARY_KO =
-  "영문자로 시작하고, 영문자와 숫자만 사용합니다. 길이는 4~12자입니다.";
+  "영문자로 시작하고, 영문자·숫자와 - _ 만 사용합니다. 길이는 4~15자입니다.";
 
 /** 대소문자 무시 중복 방지: 소문자로만 비교·저장소 키로 사용합니다. */
 export const NICKNAME_CASE_FOLD_HINT_KO =
@@ -19,7 +22,7 @@ export function normalizeNicknameKey(raw: string): string {
 }
 
 export function isValidNicknameKeyNormalized(key: string): boolean {
-  return /^[a-z][a-z0-9]{3,11}$/.test(key);
+  return /^[a-z][a-z0-9_-]{3,14}$/.test(key);
 }
 
 /*

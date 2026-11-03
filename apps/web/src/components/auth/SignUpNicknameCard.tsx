@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { isValidNickname, NICKNAME_CASE_FOLD_HINT_KO, NICKNAME_RULES_SUMMARY_KO } from "../../lib/identity/nickname";
+import { isValidNickname, NICKNAME_CASE_FOLD_HINT_KO, NICKNAME_MAX_LENGTH, NICKNAME_RULES_SUMMARY_KO } from "../../lib/identity/nickname";
 import {
   CALORIE_INTENSITY_OPTIONS,
   WEIGHT_KG_MAX,
@@ -69,7 +69,7 @@ export function SignUpNicknameCard({
           name="nickname"
           autoComplete="username"
           spellCheck={false}
-          maxLength={12}
+          maxLength={NICKNAME_MAX_LENGTH}
           value={value}
           disabled={busy}
           onChange={(ev) => {

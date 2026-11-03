@@ -16,6 +16,12 @@ type MenuPanelProps = {
   onOpenRouteList?: () => void;
   /** ⚙ — 주행 설정 창(Chief 11-02 v4, RouteDock 에서 옮김). */
   onOpenSettings?: () => void;
+  /** 센서 상세 설정 창(Chief 11-03 「센서 메뉴를 메인메뉴 안에」 — 계기판 RPM 칸과 같은 창). */
+  onOpenSensor?: () => void;
+  /** 센서 실제 연결 — 아이콘의 점을 초록으로(계기판 LED 와 같은 두 의미: 초록=연결, 흰색=그 밖). */
+  sensorConnected?: boolean;
+  /** 센서 짧은 상태(「연결됨」 등) — 툴팁에만 */
+  sensorStatus?: string;
 };
 
 /**
@@ -38,6 +44,24 @@ function MenuGearIcon() {
   );
 }
 
+/** 크랭크(체인링·크랭크 팔·페달) + 오른쪽 위 상태 점 */
+function MenuSensorIcon({ connected }: { connected: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="10" cy="13" r="5.2" stroke="currentColor" strokeWidth="2" />
+      <circle cx="10" cy="13" r="1.4" fill="currentColor" />
+      <path d="M10 13l6.2 5.4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M14.6 20.2h3.6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <circle
+        className={`menu-panel__sensor-led${connected ? " is-connected" : ""}`}
+        cx="18.6"
+        cy="5.4"
+        r="3.4"
+      />
+    </svg>
+  );
+}
+
 function MenuSearchIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
@@ -56,6 +80,9 @@ export function MenuPanel({
   onOpenPlaceSearch,
   onOpenRouteList,
   onOpenSettings,
+  onOpenSensor,
+  sensorConnected = false,
+  sensorStatus,
 }: MenuPanelProps) {
   void _locked;
   const panelRef = useRef<HTMLElement>(null);
@@ -173,6 +200,18 @@ export function MenuPanel({
                 title="주행 설정"
               >
                 <MenuGearIcon />
+              </button>
+            ) : null}
+            {onOpenSensor ? (
+              <button
+                type="button"
+                className="menu-panel__search menu-panel__sensor"
+                onClick={onOpenSensor}
+                aria-label="센서"
+                title={sensorStatus ? `센서 · ${sensorStatus}` : "센서"}
+                data-connected={sensorConnected ? "true" : "false"}
+              >
+                <MenuSensorIcon connected={sensorConnected} />
               </button>
             ) : null}
           </div>

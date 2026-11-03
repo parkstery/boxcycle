@@ -185,7 +185,7 @@ import {
   DEFAULT_MAP_STYLE,
   MAP_STYLE_SATELLITE,
 } from "./lib/map/rtwMapConfig";
-import { isRideInputReady } from "./lib/sensor/cadenceSensorUi";
+import { cadenceSensorShortStatus, isRideInputReady } from "./lib/sensor/cadenceSensorUi";
 import { CadenceSensorSheet } from "./components/sensor";
 import { useConquest } from "./hooks/useConquest";
 import { useLiveConquestPaint, shouldShowAlreadyOwnedHint } from "./hooks/useLiveConquestPaint";
@@ -3315,6 +3315,9 @@ export default function App() {
         // Chief 11-02 v4: 지도 핀(경로 목록 — 「내 경로」부터)·⚙ 주행 설정은 RouteDock 에서 메뉴 머리줄로.
         onOpenRouteList={stage === "riding" || stage === "paused" ? undefined : () => setReopenSavedNonce((n) => n + 1)}
         onOpenSettings={openRideSettingsPanel}
+        onOpenSensor={openCadenceSensorPanel}
+        sensorConnected={bleCrankRpm.uiState === "connected"}
+        sensorStatus={cadenceSensorShortStatus(cadenceHud.state)}
       >
         <RideRoutePanel
           routeSummary={routeSummary}

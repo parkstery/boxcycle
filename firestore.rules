@@ -89,7 +89,7 @@ service cloud.firestore {
     function userNicknameReserved() {
       return request.resource.data.keys().hasAll(['nickname', 'nicknameKey'])
         && request.resource.data.nicknameKey is string
-        && request.resource.data.nicknameKey.matches('^[a-z][a-z0-9]{3,11}$')
+        && request.resource.data.nicknameKey.matches('^[a-z][a-z0-9_-]{3,14}$')
         && exists(/databases/$(database)/documents/nicknames/$(request.resource.data.nicknameKey))
         && get(/databases/$(database)/documents/nicknames/$(request.resource.data.nicknameKey)).data.ownerUid == request.auth.uid
         // 놓아서 묶어 둔 옛 이름(releasedAt)은 되찾기(예약 갱신)를 거쳐야 다시 쓸 수 있다
@@ -284,7 +284,7 @@ service cloud.firestore {
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.ownerUid is string
         && request.resource.data.keys().hasAll(['ownerUid'])
-        && key.matches('^[a-z][a-z0-9]{3,11}$');
+        && key.matches('^[a-z][a-z0-9_-]{3,14}$');
       // 옛 이름 7일 묶기(2026-10-09 Chief): 주인이 놓을 때 releasedAt=요청 시각, 주인은 언제든 되찾고,
       // 남은 묶임이 끝난 뒤에만 가져간다.
       allow update: if clientMayWrite()

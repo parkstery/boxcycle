@@ -26,6 +26,7 @@ import { ProfileEditSheet } from '../../src/components/ProfileEditSheet';
 import type { User } from 'firebase/auth';
 import type { RideInputMode } from '../../src/lib/sensor/cadenceRideInput';
 import type { BleCrankRpmUiState, RideInputReadiness } from '../../src/lib/sensor/cadenceSensorUi';
+import { cadenceSensorShortStatus } from '../../src/lib/sensor/cadenceSensorUi';
 import { AppIntroScreen } from '../../src/components/auth/AppIntroScreen';
 import { EntryLocationDialog } from '../../src/components/auth/EntryLocationDialog';
 import { OfficialCourseListModal } from '../../src/components/ride/OfficialCourseListModal';
@@ -739,7 +740,8 @@ function Preview() {
       publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}/>:null}
     <span id="toolbar-preview-calls" hidden data-zoom-in={toolbarCalls.zoomIn} data-zoom-out={toolbarCalls.zoomOut} />
     <MenuPanel open={panel==='menu'} onClose={()=>setPanel('ready')} onOpenPlaceSearch={noop}
-      onOpenRouteList={active ? undefined : ()=>setReopenSaved(n=>n+1)} onOpenSettings={()=>setPanel('settings')}>
+      onOpenRouteList={active ? undefined : ()=>setReopenSaved(n=>n+1)} onOpenSettings={()=>setPanel('settings')}
+      onOpenSensor={()=>setPanel('sensor')} sensorConnected={sensorState.uiState==='connected'} sensorStatus={cadenceSensorShortStatus(sensorState)}>
       <RideRoutePanel routeSummary="" routeLoading={false} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
         basicStartLoading={false} basicStartHubJoined={false} officialCourseCatalogAvailable publishedPublicCourses={getBasicSharedHubSummaries()}
         publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} authGuest signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}
