@@ -5,7 +5,7 @@
   position: absolute;
   left: calc(env(safe-area-inset-left, 0px) + 20px); /* Chief 11-03: 인터벌 창·계기판과 같은 왼쪽 끝(MapBottomLeftStack과 동일) */
   bottom: calc(max(var(--route-dock-pad), env(safe-area-inset-bottom, 0px)) + var(--mapbox-logo-clearance, 2.875rem));
-  width: min(29.4vw, calc(100vw - 16px));
+  width: min(35.28vw, calc(100vw - 16px)); /* Chief 11-03: 29.4vw × 1.2 — 주소를 더 보이게 */
   z-index: 6;
   pointer-events: none;
 }

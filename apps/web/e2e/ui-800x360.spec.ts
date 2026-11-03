@@ -127,11 +127,12 @@ test('Chief 고정27 — 단일 카메라 메뉴, 1열 62px 우측 정렬, 2~6 �
   }
 });
 
-test('RouteDock 시안의 250px 판이고 시작 전에는 일시정지/종료가 없다', async ({page}) => {
+test('RouteDock 35.28vw 판이고 시작 전에는 일시정지/종료가 없다', async ({page}) => {
   await page.goto(`${preview}?state=ready`);
   const shell = page.locator('.route-dock__card');
   const box = await shell.boundingBox();
-  expect(box!.width).toBeLessThanOrEqual(250.5);
+  // Chief 11-03: 경로 카드 폭 35.28vw(800px 에서 282px, 종전 250px 판 대체).
+  expect(Math.abs(box!.width - 0.3528 * page.viewportSize()!.width)).toBeLessThanOrEqual(1);
   expect(box!.height).toBeLessThanOrEqual(130);
   await expect(page.getByRole('button', { name: '일시정지', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: '주행 종료', exact: true })).toHaveCount(0);
@@ -536,7 +537,7 @@ test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', (
     }
   });
 
-  test('주행·일시정지는 접힌 상태로 시작하고 펼치면 출발·도착이 보이며 미니맵과 너비가 같다', async ({ page }, testInfo) => {
+  test('주행·일시정지는 접힌 상태로 시작하고 펼치면 출발·도착이 보이며 미니맵과 왼쪽 끝이 같다', async ({ page }, testInfo) => {
     const evidenceDir = process.env.UI_REVALIDATION_EVIDENCE_DIR ?? testInfo.outputPath('route-dock-evidence');
     await fs.mkdir(evidenceDir, { recursive: true });
 
@@ -601,14 +602,14 @@ test.describe('Chief 고정 — 목록 11 주행·일시정지 중 주소창', (
       const geometry = await page.evaluate(() => {
         const dock = document.querySelector('.route-dock__card')!.getBoundingClientRect();
         const mini = document.querySelector('.map-bottom-left-stack .route-minimap')!.getBoundingClientRect();
+        // Chief 11-03: 카드 폭은 미니맵 폭과 따로(이 시험은 늦게 붙은 250px 폭 규칙을 주입한다 — 폭은 35.28vw 시험이 따로 본다).
+        // 왼쪽 끝만 미니맵과 같다.
         return {
-          width: dock.width - mini.width,
           left: dock.left - mini.left,
-          right: dock.right - mini.right,
         };
       });
       for (const difference of Object.values(geometry)) {
-        expect(Math.abs(difference)).toBeLessThan(0.1);
+        expect(Math.abs(difference)).toBeLessThan(1);
       }
     }
 

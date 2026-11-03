@@ -18,3 +18,4 @@ Chief 11-03 지시 5건 + 후속 1건. 시안 [mockup.html](mockup.html)·[mocku
 - 후속: 운동 구간이면 불꽃 그림·「운동」 글자도 도넛과 같은 1초 깜빡임(일시정지·움직임 줄이기 끔), 「페달 강도 직접 조절」 문구 제거(센서 없어도 다음 단계 안내). 시안: [progress-mockup.png](progress-mockup.png)(진도 막대 줄 없애기)·[routedock-mockup.png](routedock-mockup.png)(RouteDock 줄 배경) — Chief 선택 대기.
 - 결정(Chief 「P1,R2 로 하자」): 진도 막대 = 창 아래 테두리 4px 띠(창 117→104, 낮은 폰 106→92). 펼친 RouteDock = 줄 단위 띠(26px·간격 4px, 카드 바탕·그림자 없음, 빈 곳은 지도로 누름 통과, 접기 버튼은 목록 위 왼쪽). 시험: ride-interval 창 높이 104/92. 흔들리는 시험 2종(ride-interval 남은 시간 정밀도·quick-interval-ride (c) 방위 90°, 3회 중 1회)은 이번 변경과 무관.
 - 후속: 주행 시작 카메라 = 퀵 카메라 2번(App.tsx 주행 시작 effect, 종전 1번 500m 위성). ride-entry(에뮬레이터 실앱) 7/7 — 시작 직후 카메라 버튼 번호 2·평면 모드 없음 확인. camera-angle-candidates 는 500m 를 메뉴로 고르게 수정.
+- 후속: 펼친 경로 카드 폭 29.4vw → 35.28vw(×1.2), 미니맵 폭과 따로(왼쪽 끝만 같음) — 800×360 에서 235→282px, 주소 자리 약 +47px. 시험: address-minimap-width·ui-800x360 기준 갱신.

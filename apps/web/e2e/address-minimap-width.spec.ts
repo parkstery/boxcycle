@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 
-test('긴 주소는 펼친 미니맵의 폭을 따르고 두 패널 접기가 독립적이다', async ({ page }) => {
+// Chief 11-03: 펼친 경로 카드 폭 = 35.28vw(29.4vw × 1.2) — 미니맵 폭과 따로, 왼쪽 끝만 같다(고정11 의 폭 맞춤 대체).
+test('펼친 경로 카드는 35.28vw·미니맵과 왼쪽 끝 같고 두 패널 접기가 독립적이다', async ({ page }) => {
   await page.goto('/scripts/ui-800x360/preview.html?state=riding&long&waypoints=3');
   await expect(page.locator('.route-dock-anchor')).toBeVisible();
   await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
@@ -17,9 +18,9 @@ test('긴 주소는 펼친 미니맵의 폭을 따르고 두 패널 접기가 �
       const geometry = await page.evaluate(() => {
         const dock = document.querySelector('.route-dock__card')!.getBoundingClientRect();
         const mini = document.querySelector('.map-bottom-left-stack .route-minimap')!.getBoundingClientRect();
-        return { width: dock.width - mini.width, left: dock.left - mini.left, right: dock.right - mini.right };
+        return { width: dock.width - 0.3528 * innerWidth, left: dock.left - mini.left };
       });
-      for (const difference of Object.values(geometry)) expect(Math.abs(difference)).toBeLessThan(0.1);
+      for (const difference of Object.values(geometry)) expect(Math.abs(difference)).toBeLessThan(1);
     }
   }
   await page.getByRole('button', { name: '경로 패널 접기' }).click();
@@ -29,7 +30,7 @@ test('긴 주소는 펼친 미니맵의 폭을 따르고 두 패널 접기가 �
   await expect(page.getByRole('button', { name: '일시정지', exact: true })).toBeVisible();
   await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
   const expandedWidth = (await page.locator('.route-dock__card').boundingBox())!.width;
-  expect(expandedWidth).toBeCloseTo((await minimap.boundingBox())!.width, 0);
+  expect(Math.abs(expandedWidth - 0.3528 * page.viewportSize()!.width)).toBeLessThanOrEqual(1);
   await minimap.evaluate((e) => {
     (e as HTMLElement).style.width = '';
   });
@@ -38,9 +39,9 @@ test('긴 주소는 펼친 미니맵의 폭을 따르고 두 패널 접기가 �
   await expect(minimap).toHaveClass(/route-minimap--collapsed/);
   await expect(page.locator('.route-minimap__content')).toBeHidden();
   const collapsedDockWidth = (await page.locator('.route-dock__card').boundingBox())!.width;
-  // 대기 화면과 동일 — 29.4vw(펼친 미니맵 폭 비율, 2026-10-24 Chief). 접힌 미니맵 폭은 따르지 않는다.
+  // 대기 화면과 동일 — 35.28vw(Chief 11-03, 종전 29.4vw). 접힌 미니맵 폭은 따르지 않는다.
   const vw = page.viewportSize()!.width;
-  expect(Math.abs(collapsedDockWidth - 0.294 * vw)).toBeLessThanOrEqual(1);
+  expect(Math.abs(collapsedDockWidth - 0.3528 * vw)).toBeLessThanOrEqual(1);
 });
 
 // Chief 11-02 v4 C단계: 미니맵 접기·펼치기는 원래처럼 미니맵 왼쪽 위 버튼(경로 손잡이와 같은 40px). 인터벌이 없으면 두 패널은 독립.

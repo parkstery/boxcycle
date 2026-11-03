@@ -45,10 +45,10 @@
   flex: 0 0 auto;
 }
 
-/* 대기·미니맵 접힘: 주행 중 펼친 미니맵과 같은 폭(29.4vw = MINIMAP_WIDTH_RATIO, 2026-10-24 Chief). */
+/* Chief 11-03: 펼친 경로 카드 폭 = 29.4vw 의 1.2배(35.28vw) — 주소를 더 보이게. 미니맵 폭(29.4vw)과는 따로(고정11 의 폭 맞춤 대체). */
 .map-bottom-left-stack > .route-dock-anchor {
-  width: min(29.4vw, calc(100vw - 16px));
-  max-width: min(29.4vw, calc(100vw - 16px));
+  width: min(35.28vw, calc(100vw - 16px));
+  max-width: min(35.28vw, calc(100vw - 16px));
 }
 
 /* 접힘: 스택 폭 규칙보다 우선 — CSS 로드 순서에 의존하지 않는다. */
@@ -57,17 +57,8 @@
   max-width: none;
 }
 
-/* 펼친 미니맵의 실제 너비에 주소 카드의 좌우 끝을 맞춘다. */
-.map-bottom-left-stack:has(> .route-minimap:not(.route-minimap--collapsed))
-  > .route-dock-anchor.route-dock-anchor--open {
-  /* 29.4vw cap 은 스택 안·미니맵 펼침일 때만 푼다(미니맵 실제 폭이 높이 제한으로 더 좁을 수 있다). */
-  width: 0;
-  min-width: 100%;
-  max-width: none;
-}
-
-.map-bottom-left-stack:has(> .route-minimap:not(.route-minimap--collapsed))
-  > .route-dock-anchor.route-dock-anchor--open .route-dock__card {
+/* Chief 11-03: 펼친 미니맵 폭에 경로 카드를 맞추던 규칙은 없앴다 — 카드는 늘 35.28vw(미니맵이 높이 제한으로 좁아져도 주소 자리 유지). */
+.map-bottom-left-stack > .route-dock-anchor.route-dock-anchor--open .route-dock__card {
   width: 100%;
   box-sizing: border-box;
 }
