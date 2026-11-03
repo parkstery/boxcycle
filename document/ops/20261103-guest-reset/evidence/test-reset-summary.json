@@ -1,0 +1,15 @@
+{
+  "at": "2026-11-03T04:41:22.843Z",
+  "mode": "apply",
+  "requested": 62,
+  "deletedGuests": 62,
+  "skipped": 0,
+  "failures": 0,
+  "googleUsers": 5,
+  "protectedGoogleDocuments": 2879,
+  "googleMissing": 0,
+  "googleChanged": 0,
+  "remainingAuthUsers": 5,
+  "remainingGuestUsers": 0,
+  "recreatedPersonalDocuments": 0
+}

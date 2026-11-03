@@ -13,9 +13,15 @@ const apply = process.argv.includes('--apply');
 const verify = process.argv.includes('--verify');
 if (apply && verify) throw Error('choose apply or verify');
 for (const key of ['FIREBASE_AUTH_EMULATOR_HOST', 'FIRESTORE_EMULATOR_HOST', 'FIREBASE_DATABASE_EMULATOR_HOST']) if (process.env[key]) throw Error('emulator variables forbidden');
-const baseline = JSON.parse(fs.readFileSync(path.join(root, '.out/private-guest-lifecycle/auth-before.json')));
-const originalGoogle = baseline.users.filter(u => u.providers.includes('google.com')).map(u => u.uid).sort();
-if (originalGoogle.length !== 4) throw Error('Google protection baseline mismatch');
+// 보호 기준: 기본은 10-19 기준(Google 4). 이후 가입한 Google 계정이 있으면 --baseline=<로컬 파일> --google=<개수>
+// 로 새 기준을 준다(2026-11-03). 새 기준은 10-19 보호 계정을 하나도 빠뜨릴 수 없다 — 보호는 넓힐 수만 있다.
+const defaultBaselinePath = path.join(root, '.out/private-guest-lifecycle/auth-before.json');
+const googleOf = file => file.users.filter(u => u.providers.includes('google.com')).map(u => u.uid).sort();
+const baseline = JSON.parse(fs.readFileSync(flag('baseline') ? path.resolve(root, flag('baseline')) : defaultBaselinePath));
+const originalGoogle = googleOf(baseline);
+const expectedGoogle = flag('google') == null ? 4 : Number(flag('google'));
+if (!Number.isInteger(expectedGoogle) || originalGoogle.length !== expectedGoogle) throw Error('Google protection baseline mismatch');
+if (googleOf(JSON.parse(fs.readFileSync(defaultBaselinePath))).some(uid => !originalGoogle.includes(uid))) throw Error('new baseline drops a 10-19 protected Google account');
 require('../functions/lib/initAdminForCli.js').initFirebaseAdminForCli({ projectId: PROJECT });
 const { getAuth } = require('firebase-admin/auth');
 const { getFirestore } = require('firebase-admin/firestore');
@@ -55,7 +61,7 @@ try {
     const googleChanged = manifest.googleDocuments.filter(row => byPath.has(row.path) && digest(byPath.get(row.path).data) !== row.hash).length;
     const trails = (await rtdb.ref('trails').get()).val() || {};
     const remainingMotion = Object.values(trails).reduce((sum, trail) => sum + Object.keys(trail?.motion || {}).filter(uid => targets.has(uid)).length, 0);
-    const summary = { at: new Date().toISOString(), mode: 'verify', googleUsers: 4, googleAuthStatePreserved: true, protectedGoogleDocuments: manifest.googleDocuments.length, googleMissing, googleChanged, authUsers: beforeAuth.length, guestUsers: beforeAuth.filter(anonymous).length, deletedGuestAccountsRecreated: beforeAuth.filter(row => targets.has(row.uid)).length, recreatedPersonalDocuments: records.filter(row => targets.has(ownerOf(row))).length, remainingGuestMotion: remainingMotion };
+    const summary = { at: new Date().toISOString(), mode: 'verify', googleUsers: originalGoogle.length, googleAuthStatePreserved: true, protectedGoogleDocuments: manifest.googleDocuments.length, googleMissing, googleChanged, authUsers: beforeAuth.length, guestUsers: beforeAuth.filter(anonymous).length, deletedGuestAccountsRecreated: beforeAuth.filter(row => targets.has(row.uid)).length, recreatedPersonalDocuments: records.filter(row => targets.has(ownerOf(row))).length, remainingGuestMotion: remainingMotion };
     fs.writeFileSync(path.join(root, 'document/ops/20261019-guest-lifecycle/evidence/test-reset-verification.json'), JSON.stringify(summary, null, 2));
     console.log(JSON.stringify(summary));
     if (googleMissing || summary.deletedGuestAccountsRecreated || summary.recreatedPersonalDocuments || remainingMotion) process.exitCode = 1;
@@ -68,7 +74,7 @@ try {
     fs.writeFileSync(path.join(dir, 'rtdb-before.json'), JSON.stringify({ url: databaseURL, data: (await rtdb.ref('trails').get()).val() || {} }));
     const manifest = { projectId: PROJECT, at: new Date().toISOString(), targets, protectedGoogle: originalGoogle, googleDocuments: protectedRecords.map(row => ({ path: row.path, hash: digest(row.data) })), guestDocuments: records.filter(row => targetSet.has(ownerOf(row))).length };
     fs.writeFileSync(manifestPath, JSON.stringify(manifest));
-    console.log(JSON.stringify({ mode: 'dry-run', googleUsers: 4, authUsers: beforeAuth.length, targetGuests: targets.length, guestDocuments: manifest.guestDocuments, protectedGoogleDocuments: protectedRecords.length }));
+    console.log(JSON.stringify({ mode: 'dry-run', googleUsers: originalGoogle.length, authUsers: beforeAuth.length, targetGuests: targets.length, guestDocuments: manifest.guestDocuments, protectedGoogleDocuments: protectedRecords.length }));
   } else {
     const manifest = JSON.parse(fs.readFileSync(manifestPath));
     const max = Number(flag('max'));
@@ -113,7 +119,7 @@ try {
     let googleMissing = 0, googleChanged = 0;
     const byPath = new Map(allAfter.map(row => [row.path, row]));
     for (const row of manifest.googleDocuments) { const current = byPath.get(row.path); if (!current) googleMissing++; else if (digest(current.data) !== row.hash) googleChanged++; }
-    const summary = { at: new Date().toISOString(), mode: 'apply', requested: manifest.targets.length, deletedGuests: result.deleted.length, skipped: result.skipped.length, failures: result.failed.length, googleUsers: 4, protectedGoogleDocuments: manifest.googleDocuments.length, googleMissing, googleChanged, remainingAuthUsers: afterAuth.length, remainingGuestUsers: afterAuth.filter(u => anonymous(u)).length, recreatedPersonalDocuments: allAfter.filter(row => deleted.has(ownerOf(row))).length };
+    const summary = { at: new Date().toISOString(), mode: 'apply', requested: manifest.targets.length, deletedGuests: result.deleted.length, skipped: result.skipped.length, failures: result.failed.length, googleUsers: originalGoogle.length, protectedGoogleDocuments: manifest.googleDocuments.length, googleMissing, googleChanged, remainingAuthUsers: afterAuth.length, remainingGuestUsers: afterAuth.filter(u => anonymous(u)).length, recreatedPersonalDocuments: allAfter.filter(row => deleted.has(ownerOf(row))).length };
     fs.writeFileSync(path.join(root, 'document/ops/20261019-guest-lifecycle/evidence/test-reset-summary.json'), JSON.stringify(summary, null, 2));
     console.log(JSON.stringify(summary));
     if (summary.failures || googleMissing || summary.recreatedPersonalDocuments) process.exitCode = 1;

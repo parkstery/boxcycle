@@ -6,9 +6,11 @@
 | 담당 | **Claude Code** — 2026-10-30 구름·톱니·접기 캐럿 배포 완료, 대기 |
 | 갱신 | 2026-10-30 19시 — 11eb53aa 배포, 시안 20261030-gear-cloud-mockup |
 | 브랜치 | `main2` |
-| 마지막 배포 | 2026-11-03 Hosting(Claude Code): 939f0ca3 — 진도 막대 테두리 띠·RouteDock 줄 띠·카드 폭 35.28vw·운동 깜빡임·주행 시작 카메라 2. 번들 SHA256 일치 |
+| 마지막 배포 | 2026-11-03 Rules+Hosting(Claude Code): fd0ef880 — 닉네임 15자·-_·게스트 ⓖ·메뉴 센서·인터벌 영어 음성. 번들 SHA256 일치 |
 
 ## 진행 중
+
+**11-03 닉네임·게스트 ⓖ·센서 메뉴·인터벌 영어 음성 + 게스트 전부 삭제(Claude Code) — 배포·완료**: 499c0bf2·fd0ef880 푸시(pre-push 10종·1475/0), firestore:rules·Hosting 배포(운영 js SHA256=로컬, 번들에 새 문구 확인). 고정73. 게스트 62명 삭제·검증(Google 5 보호, 남은 것 0) — [README](20261103-guest-reset/README.md). 리셋 도구에 `--baseline`·`--google` 인자 추가. 남은 것: Chief 사이트 확인(새로고침).
 
 **11-03 인터벌 창 3건+RouteDock 줄 띠(Claude Code)**: 운동 중 불꽃·글자 깜빡임·「페달 강도」 문구 제거·진도 막대 아래 테두리 띠(P1)·RouteDock 줄 단위 띠(R2). 고정72 ⑦~⑩(⑩ 주행 시작 카메라 2). **배포됨(939f0ca3, 운영 js·css SHA256=로컬)** — ⑪ 경로 카드 폭 35.28vw 포함.
 
@@ -16,15 +18,7 @@
 
 **11-03 Chief 폰 캡처 6장 후속 배포됨(f32dc99d, Claude Code)**: 글자 선택 막기·순위 목록 계정 아래(묶음 겹침 허용)·왼쪽 원형 메뉴 버튼·왼쪽 끝 20px·접힌 인터벌 알약 버튼 오른쪽·경로 손잡이/미니맵 둘 다 접힘=세로·manifest fullscreen+viewport-fit=cover. pre-push 10종·test:quick 1470/0, 화면 e2e 16종 137/3(배치1 기존), 운영 js·css SHA256=로컬·manifest 200. 고정71·README 「후속 2」. 남은 것: Chief 폰 「홈 화면에 추가」 실기 확인. Chief 6장 중 3~6(고도 숫자·이름표 겹침·빈 핀)은 별도·보류.
 
-**진행 중 — 오른쪽 2열 4줄 묶음 개편(11-02 Chief 「구현 진행해」, Claude Code)**: 시안 [right-group.html](20261102-ride-screen-layout/right-group.html) v4+Chief 답(나중 쪽 펼치면 먼저 쪽 접기·계정 주행 중에도 보임(순위 목록 아래 z)·경로 목록도 메뉴로·미니맵 버튼=RouteDock 손잡이 크기). 단계: A 오른쪽 묶음(MapHud 레일→2×4 원형, ⏸⏹▶·INT·순위 이동, 오른쪽 반달 제거, 목록 가장자리·2초 숨김, ⚙·경로 목록 메뉴 머리줄) → B 센서 LED·RPM 계기판 칸 → C 미니맵 토글 복귀·인터벌 접기·하나만 펼치기. 각 단계 캡처 보고·승인. **A 배포됨(93924456·a2e063bf, pre-push 10종·test:quick 1470/0, 운영 js·css SHA256=로컬)** — [README](20261102-ride-screen-layout/README.md) 「개편 A」·고정67. live 스펙 미실행.
-**B 배포됨(9e5bde96·996e66cf, pre-push 10종·test:quick 1470/0, 운영 js·css SHA256=로컬)** — README 「개편 B」·고정68.
-**C 배포됨(2014f82e·0580346f, pre-push 10종·test:quick 1470/0, 운영 js·css SHA256=로컬)** — README 「개편 C」·고정69.
-**5단계 끝·배포됨(1c507fb2·8504fa18)**: README 「5단계」·`evidence/s5-sheet.png`. 하네스 e2e 25종 재실행, 남은 실패 14건 = 개편 이전부터(9e27638b 로 확인). 겹침 0(4크기×9상태). Chief 확인 뒤 커밋·푸시(배포 불필요). 배치 개편 묶음 마무리 대기.
-**인터벌 「설정 적용」=켜기 배포됨(62dfd32e, pre-push 10종·test:quick 1470/0, 운영 js·css SHA256=로컬)**: RideIntervalSettingsSheet·useRideInterval(이전 상태 기준 갱신)·e2e 1·고정70, README 「후속」. 주행 화면 배치 개편 묶음 끝. 다음 지시 대기.
-**배포 11-02(Claude Code)**: c6297926 카메라 제안A·85d714cc 인터벌 중 미니맵 숨김+배치 계획, origin/main2 d6aa0dc2..85d714cc(pre-push 10종·test:quick 1467/0), Hosting 배포·운영 js/css SHA256=로컬.
-**주행 화면 배치 1단계 배포됨(11-02, Claude Code, 9ea27a96·4237de18·c8e4da8a)**: 순위|Trail 탭 공유·10줄(주행 전·중 모두), 주행 전 5줄 원인=없어진 시계+56px 예약(정정 기록), 오른쪽 반달 탭 z 조정. Trail 탭 배선은 `hooks/useTrailGlanceTab.tsx`(App.tsx 래칫 한도 3807, 현재 3793 — 여유 14줄). [README](20261102-ride-screen-layout/README.md)·고정63. 다음=2단계(오른쪽 조작 레일) — App.tsx 에 더하지 말고 훅·컴포넌트로.
-**2단계 오른쪽 조작 레일 배포됨(11-02, Claude Code, d331d2d8)**: [README](20261102-ride-screen-layout/README.md) 2단계·고정64. 다음=3단계(왼쪽 아래 주행 버튼 줄 64px, ⚙ 일시정지에도 → 일시정지 옵션의 지도 스타일 정리, 왼쪽 반달 vs RouteDock 겹침).
-**3단계 배포됨(11-02, ae1c0198)**. **4단계 자동 숨김 배포됨(11-02, f511feed, Claude Code)**: [README](20261102-ride-screen-layout/README.md) 4단계·고정66. 다음=5단계(전체 회귀·낮은 폰 4크기 점검, 펼친 카드 ▶/⏸ 같은 칸 어긋남 판단 자료). 위험: 실앱 측정 시험은 5초 뒤 화면 누름 필요.
+**11-02 주행 화면 배치 개편 1~5단계·A~C·인터벌 「설정 적용」 전부 배포됨(Claude Code)** — 기록은 [README](20261102-ride-screen-layout/README.md)·고정63~70·git log. App.tsx 래칫 한도 3807 — 더하지 말고 훅·컴포넌트로. 하네스 e2e 남은 실패 14건은 개편 이전부터(9e27638b). 실앱 측정 시험은 5초 숨김 때문에 화면 누름 필요.
 
 10-30~11-01 배포분(D안 인터벌·톱니·구름·RouteDock 도구줄·인터벌 진입·주행 설정·경로 창) 기록은 각 묶음 README·git log. 주행 중 인터벌 진입: 10-30 Chief 결정 — 주행 중 불가, 일시정지에서 INT.
 
