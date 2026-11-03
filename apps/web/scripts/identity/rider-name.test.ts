@@ -19,9 +19,9 @@ const GUEST_UID = "tHQb0YxxGuestUid";
 const MEMBER_UID = "TugL0ZOpMiYImember";
 
 test("게스트 → ⓖ+uid앞4자 (2026-11-03 Chief: 「게스트-」 대체)", () => {
-  assert.equal(riderDisplayName({ uid: GUEST_UID, isGuest: true }), "ⓖtHQb");
+  assert.equal(riderDisplayName({ uid: GUEST_UID, isGuest: true }), "ⓖ tHQb");
   // 게스트에게 닉네임 후보가 있어도 게스트 규칙
-  assert.equal(riderDisplayName({ uid: GUEST_UID, isGuest: true, nickname: "RidingMan" }), "ⓖtHQb");
+  assert.equal(riderDisplayName({ uid: GUEST_UID, isGuest: true, nickname: "RidingMan" }), "ⓖ tHQb");
 });
 
 test("회원 → 닉네임, 닉네임이 아니면 라이더-uid앞4자 (이메일·실명 금지)", () => {
@@ -51,8 +51,8 @@ test("내가 presence 에 싣는 이름을 남이 읽으면 내가 보는 이름
 });
 
 test("옛 클라이언트가 써 둔 값도 읽을 때 걸러진다", () => {
-  assert.equal(presenceRiderDisplayName(GUEST_UID, null, "guest-tHQb0Y"), "ⓖtHQb");
-  assert.equal(presenceRiderDisplayName(GUEST_UID, null, "guest1"), "ⓖtHQb");
+  assert.equal(presenceRiderDisplayName(GUEST_UID, null, "guest-tHQb0Y"), "ⓖ tHQb");
+  assert.equal(presenceRiderDisplayName(GUEST_UID, null, "guest1"), "ⓖ tHQb");
   assert.equal(presenceRiderDisplayName(MEMBER_UID, null, "idengoodeg@gmail.com"), "라이더-TugL");
   assert.equal(presenceRiderDisplayName(MEMBER_UID, "user", "idengoodeg@gmail.com"), "라이더-TugL");
 });

@@ -102,7 +102,7 @@ for (const size of [{ width: 800, height: 360 }, { width: 699, height: 273 }]) {
   });
 }
 
-test('일시정지·카메라 메뉴·펼친 경로 카드가 열려 있으면 숨지 않는다, 안내는 한 번만', async ({ page }) => {
+test('일시정지·카메라 메뉴가 열려 있으면 숨지 않는다, 펼친 경로 카드는 막지 않는다, 안내는 한 번만', async ({ page }) => {
   await page.clock.install();
   await page.goto(`${preview}?state=paused`);
   await page.clock.runFor(10000);
@@ -115,12 +115,10 @@ test('일시정지·카메라 메뉴·펼친 경로 카드가 열려 있으면 �
   await expect(page.locator('.camera-view-menu__panel')).toBeVisible();
   await expectShown(page);
   await page.keyboard.press('Escape');
+  // 2026-11-03 Chief: 펼친 경로 카드(줄 띠)는 숨김을 막지 않는다 — 카드는 펼친 채, 버튼만 숨는다.
   await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
-  await page.clock.runFor(10000);
-  await expect(page.locator('.route-dock-anchor--open')).toBeVisible();
-  await expectShown(page);
-  await page.getByRole('button', { name: '경로 패널 접기' }).click();
   await page.clock.runFor(6000);
+  await expect(page.locator('.route-dock-anchor--open')).toBeVisible();
   await expect(page.locator('.map-hud__rail')).toBeHidden();
   await expect(page.locator('.ride-controls-hint')).toHaveCount(1);
 

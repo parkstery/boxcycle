@@ -78,6 +78,43 @@ test.describe('실주행 진입 시퀀스', () => {
     await expect(trigger).not.toHaveAttribute('data-camera1-mode', /.+/)
   })
 
+  // 2026-11-03 Chief 「화면 터치 토글·5초 자동 hide 가 모두 안 된다」 — 원인: 펼친 경로 카드(11-03 줄 띠)가 숨김을 막았다.
+  // 하네스 e2e 는 통과하던 결함이라 폰 가로(699×273)·터치 탭으로 실앱에서 본다.
+  test.describe('실앱 버튼 숨김', () => {
+    test.use({ viewport: { width: 699, height: 273 }, hasTouch: true })
+    test('실앱 주행 중: 5초 뒤 버튼 숨김, 지도 탭으로 보이기↔숨기기, 경로 카드를 펼쳐도 같다', async ({ page }) => {
+      test.setTimeout(120_000)
+      await enterAsGuest(page)
+      await prepareManualRideInput(page)
+      const modal = await openBasicCourseModal(page)
+      await modal.locator('button.oc-modal__item').first().click()
+      await page.getByRole('group', { name: '주행 제어' }).getByRole('button', { name: '주행 시작' }).click()
+      await expect(page.getByRole('button', { name: '주행 종료' })).toBeEnabled()
+
+      const body = page.locator('body')
+      const spot = { x: 350, y: 120 } // 지도 빈 곳(캔버스)
+      const hidden = () => expect(body).toHaveAttribute('data-ride-controls', 'hidden', { timeout: 8_000 })
+      const shown = () => expect(body).not.toHaveAttribute('data-ride-controls', 'hidden')
+      const toggles = async () => {
+        await page.touchscreen.tap(spot.x, spot.y)
+        await shown()
+        await page.touchscreen.tap(spot.x, spot.y)
+        await expect(body).toHaveAttribute('data-ride-controls', 'hidden')
+      }
+
+      await hidden()
+      await toggles()
+
+      // 경로 카드를 펼친 채 — 카드는 그대로, 버튼은 5초 뒤 숨고 탭으로 토글된다.
+      await page.locator('.route-dock__card--handle button').first().tap()
+      await expect(page.locator('.route-dock-anchor--open')).toBeVisible()
+      await shown()
+      await hidden()
+      await expect(page.locator('.route-dock-anchor--open')).toBeVisible()
+      await toggles()
+    })
+  })
+
   // 0.5km 상한은 폐기(Chief 2026-10-07) — 긴 경로 주행 시험을 위해 입문에 2km 경로를 허용한다.
   test('입문 목록은 실도로 경로이고 거리가 표시된다', async ({ page }) => {
     await enterAsGuest(page)

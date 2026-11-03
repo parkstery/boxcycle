@@ -6,8 +6,12 @@ import { RIDE_CONTROLS_HIDE_SOON_EVENT } from "./rideControlsHide";
 const RIDE_CONTROLS_HIDE_MS = 5000;
 const HINT_MS = 3500;
 const HINT_SEEN_KEY = "rtw-ride-controls-hint-seen";
-/** 열려 있으면 숨기지 않는다 — 카메라 메뉴·펼친 경로 카드·창(설정·결과 등). */
-const BUSY_SELECTOR = ".camera-view-menu__panel, .route-dock-anchor--open, [role='dialog'], .ride-control-bar__resume";
+/**
+ * 열려 있으면 숨기지 않는다 — 카메라 메뉴·창(설정·결과 등).
+ * 펼친 경로 카드는 넣지 않는다(2026-11-03 Chief 「터치 토글·5초 자동 hide 가 모두 안 된다」): 11-03 부터 카드가
+ * 지도가 비치는 줄 띠라 펼친 채 달리는데, 그동안 숨김·탭 토글이 통째로 멈췄다. 카드는 그대로 두고 버튼만 숨는다.
+ */
+const BUSY_SELECTOR = ".camera-view-menu__panel, [role='dialog'], .ride-control-bar__resume";
 /** Chief 11-03: 왼쪽 원형 메뉴 버튼도 오른쪽 묶음과 함께 숨고 나온다(CSS 는 EdgePanelHandle.css). */
 const CONTROLS_SELECTOR = ".map-hud__rail, .edge-panel-tab--left";
 /** 탭 판정 — 이 거리·시간 안에 떼면 탭(그보다 크면 지도 끌기·길게 누르기). */
