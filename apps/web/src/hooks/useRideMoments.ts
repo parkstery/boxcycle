@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { cancelRideMomentSound, playRideMomentSound } from "../lib/ride/rideMomentSound";
-import { safeRideSpeechCancel, speakRideText } from "../lib/ride/rideSpeech";
+import { safeRideSpeechCancel, speakIntervalCoachText } from "../lib/ride/rideSpeech";
 import {
   emptyRideMomentMemory,
   resolveRideMoments,
@@ -73,7 +73,7 @@ export function useRideMoments(input: RideMomentInput, soundEnabled: boolean, in
 
     displayedRef.current = resolved.event;
     setEvent(resolved.event);
-    if (intervalTtsEnabled && resolved.event.kind.startsWith("interval")) speakRideText(resolved.event.coach, "ko-KR");
+    if (intervalTtsEnabled && resolved.event.kind.startsWith("interval")) speakIntervalCoachText(resolved.event.speech ?? resolved.event.coach);
     if (soundEnabled) playRideMomentSound(resolved.event.sound);
     else cancelRideMomentSound();
     if (timeoutRef.current != null) window.clearTimeout(timeoutRef.current);

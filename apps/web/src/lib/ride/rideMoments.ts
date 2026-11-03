@@ -20,7 +20,13 @@ export type RideMomentEvent = {
   kind: RideMomentKind;
   title: string;
   detail: string;
+  /** HUD 코칭 줄에 보이는 문구(한국어) */
   coach: string;
+  /**
+   * 소리 내어 읽는 문구 — 인터벌 코칭은 영어(2026-11-03 Chief: 「인터벌 코칭을 영어로, 보이스도 영어로」).
+   * 주행 코칭(useRideCoaching)과 같은 방식: 화면은 한국어, 음성은 영어.
+   */
+  speech?: string;
   sound: RideMomentSoundKind;
   waypointIndex?: number;
 };
@@ -106,6 +112,18 @@ function pickHighest(events: RideMomentEvent[]): RideMomentEvent | null {
   return events.reduce((best, next) => (RIDE_MOMENT_PRIORITY[next.kind] > RIDE_MOMENT_PRIORITY[best.kind] ? next : best));
 }
 
+/** 인터벌 코칭 음성(영어) — 짧게, 숫자 없이(3초 경고 안에 끝나도록) */
+export const INTERVAL_SPEECH_EN = {
+  warmup: "Warm-up. Start easy and build gradually.",
+  work: "Work interval. Push hard!",
+  recovery: "Nice work. Easy recovery.",
+  rest: "Long recovery. Spin easy.",
+  cooldown: "Cool-down. Ease off the pace.",
+  warnHigh: "Hard effort coming up.",
+  warnLow: "Recovery coming up.",
+  complete: "Interval complete. Ride freely now.",
+} as const;
+
 function intervalTransitionEvent(phase: RideIntervalPhase): RideMomentEvent | null {
   if (phase === "warmup") {
     return {
@@ -113,6 +131,7 @@ function intervalTransitionEvent(phase: RideIntervalPhase): RideMomentEvent | nu
       title: "인터벌 시작",
       detail: "준비부터 차근차근",
       coach: "준비부터 차근차근 시작해요.",
+      speech: INTERVAL_SPEECH_EN.warmup,
       sound: "start",
     };
   }
@@ -122,17 +141,19 @@ function intervalTransitionEvent(phase: RideIntervalPhase): RideMomentEvent | nu
       title: "고강도",
       detail: "이번 구간",
       coach: "이번 구간, 힘을 내봐요!",
+      speech: INTERVAL_SPEECH_EN.work,
       sound: "high",
     };
   }
-  if (phase === "rest") return { kind: "intervalRest", title: "긴 회복", detail: "편하게 페달을 밟아요", coach: "긴 회복입니다. 편하게 페달을 밟으세요.", sound: "low" };
-  if (phase === "cooldown") return { kind: "intervalCooldown", title: "마무리", detail: "천천히 속도를 낮춰요", coach: "마무리 운동입니다. 천천히 속도를 낮추세요.", sound: "low" };
+  if (phase === "rest") return { kind: "intervalRest", title: "긴 회복", detail: "편하게 페달을 밟아요", coach: "긴 회복입니다. 편하게 페달을 밟으세요.", speech: INTERVAL_SPEECH_EN.rest, sound: "low" };
+  if (phase === "cooldown") return { kind: "intervalCooldown", title: "마무리", detail: "천천히 속도를 낮춰요", coach: "마무리 운동입니다. 천천히 속도를 낮추세요.", speech: INTERVAL_SPEECH_EN.cooldown, sound: "low" };
   if (phase === "recovery") {
     return {
       kind: "intervalLow",
       title: "회복",
       detail: "편하게 회복",
       coach: "잘했어요. 편하게 회복하세요.",
+      speech: INTERVAL_SPEECH_EN.recovery,
       sound: "low",
     };
   }
@@ -147,6 +168,7 @@ function intervalStartEvent(interval: RideIntervalView): RideMomentEvent {
       title: "인터벌 시작",
       detail: interval.label,
       coach: "준비부터 차근차근 시작해요.",
+      speech: INTERVAL_SPEECH_EN.warmup,
       sound: "start",
     };
   }
@@ -341,6 +363,7 @@ export function resolveRideMoments(
       title: "곧 전환",
       detail: interval.nextLabel,
       coach: toHigh ? "곧 고강도 구간이에요." : "곧 회복 구간이에요.",
+      speech: toHigh ? INTERVAL_SPEECH_EN.warnHigh : INTERVAL_SPEECH_EN.warnLow,
       sound: "warn",
     });
   }
@@ -353,6 +376,7 @@ export function resolveRideMoments(
       title: "인터벌 완료!",
       detail: "계획한 구간을 해냈어요",
       coach: "이제 자유롭게 달리세요.",
+      speech: INTERVAL_SPEECH_EN.complete,
       sound: "finish",
     });
   }
