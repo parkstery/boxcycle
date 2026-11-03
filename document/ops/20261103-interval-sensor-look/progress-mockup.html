@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>인터벌 진도 표현 시안</title>
+<style>
+  :root { --work: #d42020; --recovery: #15803d; --grey: #5b6678; }
+  body { margin: 0; padding: 28px; background: #e9edf2; font: 600 15px 'Pretendard', 'Malgun Gothic', system-ui, sans-serif; color: #142c46; width: 1180px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  p.note { margin: 2px 0 14px; font-weight: 500; color: #44536a; }
+  .row { display: flex; gap: 18px; flex-wrap: wrap; }
+  .card { background: #fff; border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 4px #0f172a22; width: 252px; }
+  .card h3 { margin: 0 0 4px; font-size: 16px; }
+  .card .why { font-weight: 500; font-size: 13px; color: #4b5b72; margin: 0 0 10px; min-height: 92px; }
+  .card .h { font-size: 13px; font-weight: 800; color: #2457d6; margin-top: 8px; }
+  .rec { color: #2457d6; }
+  .map { position: relative; height: 150px; padding: 12px; box-sizing: border-box; background: linear-gradient(135deg, #b7c4b0 0%, #cfd8c6 45%, #9fb4c9 100%); border-radius: 8px; }
+  /* 패널 */
+  .iv { position: relative; width: 186px; box-sizing: border-box; padding: 6px 8px 7px; border-radius: 8px; background: rgba(255,255,255,.7); border: 1px solid rgba(255,255,255,.5); display: grid; grid-template-columns: 78px 88px; column-gap: 4px; row-gap: 5px; overflow: hidden; text-shadow: 0 0 1px #fff, 1px 0 1px #fff, -1px 0 1px #fff, 0 1px 1px #fff, 0 -1px 1px #fff; }
+  .txt { display: flex; flex-direction: column; justify-content: space-between; line-height: 1.2; font-weight: 700; position: relative; z-index: 1; }
+  .rd { font-size: 11px; min-height: 26px; padding-left: 30px; display: flex; align-items: center; }
+  .pr { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--work); }
+  .pr svg { width: 24px; height: 24px; }
+  .nx { font-size: 10px; }
+  .tt { font-size: 11px; color: #173fb4; }
+  .sq { position: absolute; top: 3px; left: 3px; width: 28px; height: 28px; box-sizing: border-box; border: 1px solid #c9d6ee; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(15,23,42,.14); display: grid; place-items: center; color: #475569; z-index: 2; text-shadow: none; }
+  .sq svg { width: 22px; height: 18px; }
+  .donut { position: relative; z-index: 1; }
+  /* 진도 구간: 준비 16% · 운동/회복 반복 · 마무리. 경과 40% */
+  .segs { display: flex; height: 100%; }
+  .segs i { display: block; height: 100%; }
+  .bar { grid-column: 1 / -1; height: 8px; border-radius: 4px; border: 1px solid rgba(20,44,70,.45); overflow: hidden; position: relative; background: rgba(255,255,255,.7); }
+  .dim { position: absolute; inset: 0; opacity: .28; }
+  .done { position: absolute; inset: 0; clip-path: inset(0 60% 0 0); }
+  .mark { position: absolute; top: 0; bottom: 0; left: 40%; width: 2px; margin-left: -1px; background: #142c46; }
+  /* P1 아래 테두리 막대 */
+  .edge { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; }
+  /* P2 바탕 채움 */
+  .fillbg { position: absolute; inset: 0; z-index: 0; }
+  .fillbg .dim { opacity: .10; }
+  .fillbg .done { opacity: .26; }
+  .fillbg .mark { width: 2px; background: rgba(20,44,70,.55); }
+  /* P3 바깥 링 */
+</style>
+</head>
+<body>
+<h1>인터벌 창 높이 줄이기 — 전체 진도 표현 시안</h1>
+<p class="note">지금 창은 117px(낮은 폰 106px)이고, 아래 진도 막대가 한 줄(8px + 간격 5px)을 차지합니다. 막대 줄을 없애면 창 높이는 도넛(88px)이 정하는 104px(낮은 폰 92px)까지 줄어듭니다. 「페달 강도 직접 조절」을 뺀 자리는 「다음 · 회복 2분」 안내입니다. 실제 크기의 2배입니다.</p>
+
+<template id="seg"><div class="segs"><i style="flex:16;background:var(--grey)"></i><i style="flex:6;background:var(--work)"></i><i style="flex:6;background:var(--recovery)"></i><i style="flex:6;background:var(--work)"></i><i style="flex:6;background:var(--recovery)"></i><i style="flex:6;background:var(--work)"></i><i style="flex:6;background:var(--recovery)"></i><i style="flex:6;background:var(--work)"></i><i style="flex:6;background:var(--recovery)"></i><i style="flex:36;background:var(--grey)"></i></div></template>
+
+<div class="row" id="row"></div>
+
+<script>
+  const seg = document.getElementById('seg').innerHTML;
+  const fire = '<svg viewBox="0 0 24 24" fill="none" stroke="var(--work)" stroke-width="2.2" stroke-linejoin="round"><path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-3.5 2.5-5 .5 1.5 1.5 2 2.5 2 0-2.5-.8-4.5 0-7z"/></svg>';
+  const caret = '<span class="sq"><svg viewBox="0 0 28 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path transform="translate(-6.5 0)" d="m23 5-5 5 5 5"/></svg></span>';
+  const text = `<div class="txt"><span class="rd">1/2세트</span><span class="pr">${fire}운동</span><span class="nx">다음 · 회복 2분</span><span class="tt">9:23 / 18:00</span></div>`;
+  const donut = (outer = '') => `<svg class="donut" viewBox="0 0 44 44" width="88" height="88">${outer}<circle cx="22" cy="22" r="17" fill="none" stroke="#36506d" stroke-width="5" stroke-dasharray="24.6 2.1"/><path d="M22 5 A17 17 0 0 1 38.2 16.8" fill="none" stroke="var(--work)" stroke-width="5"/><circle cx="22" cy="22" r="9.3" fill="var(--work)" fill-opacity=".13"/><circle cx="22" cy="22" r="10.7" fill="none" stroke="var(--work)" stroke-width="2.6" stroke-dasharray="50 100" transform="rotate(-90 22 22)"/><text x="22" y="23" text-anchor="middle" dominant-baseline="central" font-size="11.5" font-weight="800" fill="var(--work)" stroke="#fff" stroke-width=".7" paint-order="stroke fill">19</text></svg>`;
+  const bar = `<div class="bar"><div class="dim">${seg}</div><div class="done">${seg}</div><i class="mark"></i></div>`;
+  const ring = () => {
+    // 전체 진도 바깥 링(r=21.2) — 구간 색, 지난 만큼 진하게
+    const parts = [[16,'--grey'],[6,'--work'],[6,'--recovery'],[6,'--work'],[6,'--recovery'],[6,'--work'],[6,'--recovery'],[6,'--work'],[6,'--recovery'],[36,'--grey']];
+    const C = 2 * Math.PI * 21.2; let off = 0; let s = '';
+    for (const [w, c] of parts) { const len = C * w / 100; const done = off < 40; s += `<circle cx="22" cy="22" r="21.2" fill="none" stroke="var(${c})" stroke-opacity="${done ? 1 : .25}" stroke-width="1.6" stroke-dasharray="${len - .4} ${C}" stroke-dashoffset="${-C * off / 100}" transform="rotate(-90 22 22)"/>`; off += w; }
+    return s;
+  };
+  const cards = [
+    ['지금 (117px)', '진도 막대가 아래 한 줄. 구간이 잘 보이지만 창이 가장 높다.', `<div class="iv">${caret}${text}${donut()}${bar}</div>`, '117px · 낮은 폰 106px'],
+    ['P1 아래 테두리 막대', '막대를 창 아래 테두리에 4px 띠로 붙인다(줄을 따로 차지하지 않음). 구간 색·지난 만큼 진하게·지금 위치 표시는 그대로. 가장 덜 바뀐다.', `<div class="iv">${caret}${text}${donut()}<div class="edge"><div class="dim">${seg}</div><div class="done">${seg}</div><i class="mark"></i></div></div>`, '104px · 낮은 폰 92px (−13·−14)', true],
+    ['P2 창 바탕 채움', '창 바탕 자체가 왼쪽→오른쪽으로 구간 색으로 옅게 칠해진다. 지난 부분은 조금 진하게, 지금 위치에 가는 세로선. 글자 뒤가 물들어 가독성은 조금 떨어진다.', `<div class="iv"><div class="fillbg"><div class="dim">${seg}</div><div class="done">${seg}</div><i class="mark"></i></div>${caret}${text}${donut()}</div>`, '104px · 낮은 폰 92px (−13·−14)'],
+    ['P3 도넛 바깥 가는 링', '전체 진도를 도넛 바깥 1.6px 링으로 돈다(구간 색, 지난 만큼 진하게). 창 안에 원이 세 겹이 되어 복잡해 보인다.', `<div class="iv">${caret}${text}${donut(ring())}</div>`, '104px · 낮은 폰 92px (−13·−14)'],
+  ];
+  document.getElementById('row').innerHTML = cards.map(([t, w, h, hh, rec]) => `<div class="card"><h3 class="${rec ? 'rec' : ''}">${t}${rec ? ' (추천)' : ''}</h3><p class="why">${w}</p><div class="map">${h}</div><div class="h">창 높이 ${hh}</div></div>`).join('');
+</script>
+</body>
+</html>

@@ -35,7 +35,8 @@ test('센서 없이도 단계가 진행되고 완료 뒤 주행 제어는 유지
   await page.clock.install();
   await page.goto(`${preview}?state=riding&interval&intervalMs=1499000&noSensor`);
   const hud = page.getByRole('group', { name: '인터벌 안내' });
-  await expect(hud).toContainText('페달 강도 직접 조절');
+  // Chief 11-03: 「페달 강도 직접 조절」 문구는 없다.
+  await expect(hud).not.toContainText('페달 강도 직접 조절');
   await page.clock.runFor(1_200);
   await expect(hud).toContainText('완료');
   await expect(hud.locator('.ride-interval-hud__progress')).toHaveCount(0);

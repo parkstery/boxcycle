@@ -15,3 +15,4 @@ Chief 11-03 지시 5건 + 후속 1건. 시안 [mockup.html](mockup.html)·[mocku
 - 알려 둘 것: 인터벌 창이 13~14px 높아져 699×273 인터벌 중 미니맵이 142×55 → 106×41 로 작아졌다(남은 높이에 맞추는 기존 규칙). 메뉴 버튼이 보이는 동안 800×360 은 캐럿 아래쪽·단계 줄, 699×273 은 캐럿 전체를 가린다(C1 허용 — 지도 탭 한 번이면 숨는다).
 - 시험: 새로 「펼친 미니맵 캐럿=경로 카드 캐럿」·「도넛 1초 깜빡임·일시정지 멈춤」(ride-left-panels), 「지도 탭 토글·끌기 그대로·버튼 누름 유지」(ride-controls-autohide, 사보타주: 탭 숨기기 끔 → 2 실패, 원복 통과). 기대값 갱신: address-minimap-width(펼친 캐럿 28), ride-interval(창 높이 117/106).
 - 후속: 깜빡이는 도넛 칸 색 = 단계 색(Chief 「grey - red - green」), 종전 주황 고정 대체. 시험: ride-left-panels 운동 빨강·회복 초록.
+- 후속: 운동 구간이면 불꽃 그림·「운동」 글자도 도넛과 같은 1초 깜빡임(일시정지·움직임 줄이기 끔), 「페달 강도 직접 조절」 문구 제거(센서 없어도 다음 단계 안내). 시안: [progress-mockup.png](progress-mockup.png)(진도 막대 줄 없애기)·[routedock-mockup.png](routedock-mockup.png)(RouteDock 줄 배경) — Chief 선택 대기.

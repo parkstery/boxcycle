@@ -29,7 +29,8 @@ function PhaseIcon({ phase, paused }: { phase: RideIntervalPhase; paused: boolea
 type Props = {
   view: RideIntervalView;
   paused: boolean;
-  cadenceRpm: number | null;
+  /** 11-03 「페달 강도 직접 조절」 문구 제거 뒤 쓰지 않는다 — 호출부 호환으로만 남김. */
+  cadenceRpm?: number | null;
   /** Chief 11-02 v4 C단계: 접으면 단계·남은 시간·세트만 담은 알약. 누르면 다시 펼친다. */
   folded?: boolean;
   onToggleFold?: () => void;
@@ -54,19 +55,13 @@ function segmentPath(index: number, total: number): string {
  * 계기판 아래 왼쪽. 표시 전용: 빈 영역의 지도 제스처를 막지 않는다(누름은 접기 버튼·알약만 받는다).
  * Chief 11-01 D안: 바깥 도넛=반복 칸(진행 칸은 사이클 시간만큼 차오름), 안쪽 링=현재 단계 남은 시간, 아래 막대=전체 진도.
  */
-export function RideIntervalHud({ view, paused, cadenceRpm, folded = false, onToggleFold }: Props) {
+export function RideIntervalHud({ view, paused, folded = false, onToggleFold }: Props) {
   const complete = view.phase === "complete";
   const label = paused && !complete ? "일시정지" : view.label;
-  const validRpm = cadenceRpm != null && Number.isFinite(cadenceRpm);
   const time = view.remainingSec > 59 ? formatRideIntervalClock(view.remainingSec) : String(view.remainingSec);
   const roundText = view.totalRounds > 1 ? ` · ${view.round}/${view.totalRounds}세트` : "";
-  const next = complete
-    ? view.nextLabel
-    : paused
-      ? "주행 재개 시 이어서"
-      : !validRpm
-        ? "페달 강도 직접 조절"
-        : view.nextLabel;
+  // Chief 11-03: 「페달 강도 직접 조절」 문구는 뺀다 — 센서가 없어도 다음 단계 안내.
+  const next = paused && !complete ? "주행 재개 시 이어서" : view.nextLabel;
   const remainFrac = view.stepSec > 0 ? Math.min(1, Math.max(0, view.stepRemainingMs / (view.stepSec * 1000))) : 0;
   const totalPct = view.totalSec > 0 ? Math.min(100, (100 * view.elapsedMs) / (view.totalSec * 1000)) : 0;
   const cycling = view.phase === "work" || view.phase === "recovery";

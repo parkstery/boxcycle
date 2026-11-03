@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>RouteDock 줄 배경 시안</title>
+<style>
+  body { margin: 0; padding: 28px; background: #e9edf2; font: 600 15px 'Pretendard', 'Malgun Gothic', system-ui, sans-serif; color: #142c46; width: 1460px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 18px; margin: 26px 0 8px; }
+  p.note { margin: 2px 0 12px; font-weight: 500; color: #44536a; }
+  .row { display: flex; gap: 18px; flex-wrap: wrap; }
+  .card { background: #fff; border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 4px #0f172a22; margin-bottom: 18px; }
+  .card h3 { margin: 0 0 4px; font-size: 16px; }
+  .why { font-weight: 500; font-size: 13px; color: #4b5b72; margin: 0 0 10px;  }
+  .rec { color: #2457d6; }
+  .pair { display: flex; gap: 10px; }
+  .lab { font-size: 12px; color: #56657b; margin: 0 0 4px; }
+  /* 위성 지도 흉내(어두운 바탕에서 가독성 확인) */
+  .map { position: relative; width: 170px; height: 112px; border-radius: 8px; overflow: hidden;
+    background:
+      repeating-linear-gradient(35deg, rgba(255,255,255,.07) 0 6px, transparent 6px 22px),
+      repeating-linear-gradient(-55deg, rgba(0,0,0,.18) 0 4px, transparent 4px 17px),
+      radial-gradient(circle at 30% 40%, #5d6b52, #3b4537 60%, #2d3a44); }
+  .map.light { background: repeating-linear-gradient(0deg, #f5efe2 0 3px, #cfd8c6 3px 26px), #cfd8c6; }
+  .dock { position: absolute; left: 8px; bottom: 8px; width: 150px; }
+  .rank { position: absolute; right: 6px; top: 6px; width: 0; }
+  /* 지금: 흰 카드 */
+  .now { background: #fff; border: 1px solid #d9e1ed; border-radius: 10px; box-shadow: 0 2px 8px rgba(15,23,42,.22); padding: 3px 4px 4px 6px; }
+  .fold { width: 14px; height: 14px; box-sizing: border-box; border: 1px solid #c9d6ee; border-radius: 4px; background: #fff; box-shadow: 0 1px 4px rgba(15,23,42,.14); display: grid; place-items: center; color: #475569; font-size: 10px; line-height: 1; margin-bottom: 2px; }
+  .r { display: flex; align-items: center; gap: 4px; font-size: 7px; font-weight: 700; color: #142c46; position: relative; }
+  .now .r { height: 15px; border-bottom: .5px solid #eef0f3; }
+  .now .r:last-child { border-bottom: 0; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; color: #fff; font-size: 4.5px; display: grid; place-items: center; flex: none; font-weight: 800; }
+  .s { background: #16a34a; } .e { background: #dc2626; } .w { background: #2457d6; }
+  .addr { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .x { font-size: 7px; color: #475569; flex: none; padding: 0 2px; }
+  .sw { position: absolute; left: -1px; width: 8px; height: 8px; border-radius: 50%; background: #f2f3f5; font-size: 5px; display: grid; place-items: center; color: #475569; box-shadow: 0 0 0 .5px #c9d6ee; z-index: 2; }
+  /* 줄 배경(순위 목록과 같은 결) */
+  .band .r { margin-bottom: 1.5px; }
+  .band .r::before { content: ''; position: absolute; inset-inline: 0; top: 50%; transform: translateY(-50%); height: calc(100% - 1.5px); background: rgba(255,255,255,.7); border-radius: 1.5px; z-index: -1; }
+  .band { isolation: isolate; }
+  .band .r > * { position: relative; }
+  .r18 .r { height: 9px; font-size: 6px; }
+  .r18 .dot { width: 6px; height: 6px; font-size: 4px; }
+  .r26 .r { height: 13px; }
+  .band .fold { margin-bottom: 2px; }
+  .band.alt .r::before { background: rgba(255,255,255,.82); }
+  /* 순위 목록 견본 */
+  .rk { position: relative; width: 70px; isolation: isolate; }
+  .rk .r { height: 9px; font-size: 6px; margin-bottom: 0; }
+  .rk .r::before { content: ''; position: absolute; inset-inline: 0; top: 50%; transform: translateY(-50%); height: calc(100% - 1.5px); background: rgba(255,255,255,.7); border-radius: 1.5px; z-index: -1; }
+  .rk .me::before { background: rgba(222,233,255,.8); }
+  .rk b { width: 7px; text-align: right; }
+  .rk .km { margin-left: auto; }
+  .big { transform: scale(2); transform-origin: top left; width: 170px; height: 112px; margin-bottom: 112px; margin-right: 170px; }
+</style>
+</head>
+<body>
+<h1>RouteDock 펼친 카드 — 순위 목록처럼 줄 단위 배경 시안</h1>
+<p class="note">흰 카드 바탕을 없애고, 출발·경유·도착 줄마다 글자 뒤에만 반투명 흰 띠(순위 목록과 같은 rgba(255,255,255,.7)·둥근 3px)를 깝니다. 줄 사이로 지도가 보입니다. 접기 캐럿(28px)·⇅·✕ 기능은 그대로. 주행 전은 ✕·⇅ 있음, 주행 중은 없음. 어두운 위성 지도와 밝은 야외 지도에서 비교. 실제 크기의 2배.</p>
+
+<div id="out"></div>
+
+<script>
+  const rows = (riding, cls) => {
+    const x = riding ? '' : '<span class="x">✕</span>';
+    const sw = riding ? '' : '<span class="sw" style="top:calc(50% + 2px)">⇅</span>';
+    return `<div class="fold">‹</div><div style="position:relative">${sw}
+      <div class="r"><span class="dot s">S</span><span class="addr">남산공원 입구</span>${x}</div>
+      <div class="r"><span class="dot w">1</span><span class="addr">&nbsp;&nbsp;남산타워 앞</span>${x}</div>
+      <div class="r"><span class="dot e">E</span><span class="addr">남산 순환로 전망대</span>${x}</div></div>`;
+  };
+  const rank = `<div class="rank"><div class="rk" style="position:absolute;right:0;top:0">
+    <div class="r"><b>1</b><span>geum</span><span class="km">12.4</span></div>
+    <div class="r me"><b>2</b><span>나</span><span class="km">8.1</span></div>
+    <div class="r"><b>3</b><span>iden</span><span class="km">1.2</span></div></div></div>`;
+  const map = (inner, light) => `<div class="big"><div class="map ${light ? 'light' : ''}">${rank}<div class="dock ${inner[0]}">${inner[1]}</div></div></div>`;
+  const opts = [
+    ['지금 — 흰 카드', '카드 전체가 흰 바탕·테두리·그림자. 지도를 가장 많이 가린다.', 'now', false],
+    ['R1 줄 배경 · 순위와 같은 크기', '줄 높이 18px·글자 12px — 순위 목록과 똑같은 결. 가장 얇다. ✕ 는 작아져 누를 때 줄 전체 높이(18px)만큼만.', 'band r18', false],
+    ['R2 줄 배경 · 지금 줄 높이', '줄 높이 26px·글자 13px(지금과 비슷) — 띠 결은 순위와 같고 누르기 쉽다. 지도는 R1 보다 조금 더 가린다.', 'band r26', true],
+  ];
+  let html = '';
+  for (const [t, w, cls, rec] of opts) {
+    html += `<div class="card"><h3 class="${rec ? 'rec' : ''}">${t}${rec ? ' (추천)' : ''}</h3><p class="why">${w}</p><div class="pair">`;
+    for (const light of [false, true]) for (const riding of [false, true])
+      html += `<div><p class="lab">${light ? '밝은 지도' : '위성 지도'} · ${riding ? '주행 중' : '주행 전'}</p>${map([cls, rows(riding)], light)}</div>`;
+    html += '</div></div>';
+  }
+  document.getElementById('out').innerHTML = html;
+</script>
+</body>
+</html>
