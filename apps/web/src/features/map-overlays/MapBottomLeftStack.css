@@ -90,11 +90,14 @@
 }
 
 /*
- * Chief 11-03: 경로 손잡이·미니맵이 둘 다 접히면(40px 버튼 둘) 세로 — 손잡이 아래 미니맵 버튼.
- * 경로 카드를 펼쳤을 때만 접힌 미니맵 버튼이 카드 오른쪽 옆(아래 끝 맞춤) — 세로로 쌓으면 낮은 폰(699×273)에서
- * 펼친 카드가 버튼 높이만큼 올라가 인터벌 창과 겹친다(11-02 C단계 근거 유지).
+ * Chief 11-03: 접힌 미니맵 버튼은 늘 세로 — 경로 손잡이·펼친 경로 카드 아래.
+ * 예외 하나: 높이 340px 이하 폰에서 인터벌 창이 펼쳐져 있고 경로 카드를 펼쳤을 때만 카드 오른쪽 옆(아래 끝 맞춤).
+ * 그때 세로로 쌓으면 카드가 버튼 높이만큼 올라가 인터벌 창을 덮는다(699×273 에서 26px). 341px 이상은 세로여도 안 겹친다.
  */
-.map-bottom-left-stack:has(> .route-minimap--collapsed):has(> .route-dock-anchor--open) {
-  flex-direction: row;
-  align-items: flex-end;
+@media (max-height: 340px) {
+  body:has(.ride-interval-hud:not(.ride-interval-hud--folded))
+    .map-bottom-left-stack:has(> .route-minimap--collapsed):has(> .route-dock-anchor--open) {
+    flex-direction: row;
+    align-items: flex-end;
+  }
 }

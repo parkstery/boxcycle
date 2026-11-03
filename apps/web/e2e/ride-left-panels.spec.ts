@@ -54,10 +54,10 @@ for (const size of [{ width: 800, height: 360 }, { width: 699, height: 273 }]) {
   });
 }
 
-// Chief 11-03: 경로 손잡이·미니맵이 둘 다 접히면 40px 버튼 둘은 세로(손잡이 위·미니맵 아래, 왼쪽 끝 같음).
-// 경로 카드를 펼쳤을 때만 접힌 미니맵 버튼이 카드 오른쪽 옆(낮은 폰에서 인터벌 창과 겹치지 않게).
+// Chief 11-03: 접힌 미니맵 버튼은 늘 세로(손잡이·펼친 카드 아래, 왼쪽 끝 같음).
+// 예외: 높이 340px 이하에서 인터벌 창이 펼쳐져 있고 카드를 펼쳤을 때만 카드 오른쪽 옆(인터벌 창과 겹치지 않게).
 for (const size of [{ width: 800, height: 360 }, { width: 699, height: 273 }]) {
-  test(`둘 다 접히면 세로, 카드 펼침이면 미니맵 버튼은 옆 ${size.width}`, async ({ page }) => {
+  test(`접힌 미니맵 버튼은 세로, 낮은 폰+인터벌+카드 펼침만 옆 ${size.width}`, async ({ page }) => {
     await page.setViewportSize(size);
     await page.goto(`${preview}?state=riding`);
     await page.getByRole('button', { name: '미니맵 접기' }).click();
@@ -73,7 +73,22 @@ for (const size of [{ width: 800, height: 360 }, { width: 699, height: 273 }]) {
       document.querySelector('.route-dock__card')!.getBoundingClientRect().toJSON(),
       document.querySelector('.route-minimap')!.getBoundingClientRect().toJSON(),
     ]);
-    expect(open[1].left, '카드 펼침: 미니맵 버튼은 카드 오른쪽').toBeGreaterThanOrEqual(open[0].right);
+    expect(Math.abs(open[1].left - open[0].left), '인터벌 없음: 카드 펼쳐도 세로').toBeLessThanOrEqual(0.5);
+    expect(open[1].top).toBeGreaterThanOrEqual(open[0].bottom);
+
+    // 인터벌 창이 펼쳐진 채 카드를 펼치면(미니맵 접힘): 341px 이상은 세로, 340px 이하만 옆 — 어느 쪽이든 인터벌 창과 안 겹침.
+    await page.goto(`${preview}?state=riding&interval&intervalMs=330000`);
+    await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
+    await expect.poll(() => state(page)).toEqual({ interval: 'open', dock: 'open', minimap: 'folded' });
+    const iv = await page.evaluate(() => [
+      document.querySelector('.ride-interval-hud')!.getBoundingClientRect().toJSON(),
+      document.querySelector('.route-dock__card')!.getBoundingClientRect().toJSON(),
+      document.querySelector('.route-minimap')!.getBoundingClientRect().toJSON(),
+    ]);
+    expect(overlap(iv[0], iv[1]), '카드 vs 인터벌 창').toBe(false);
+    expect(overlap(iv[0], iv[2]), '미니맵 버튼 vs 인터벌 창').toBe(false);
+    if (size.height > 340) expect(iv[2].top, '높은 화면: 세로').toBeGreaterThanOrEqual(iv[1].bottom);
+    else expect(iv[2].left, '낮은 폰: 카드 오른쪽').toBeGreaterThanOrEqual(iv[1].right);
   });
 }
 
