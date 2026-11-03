@@ -580,18 +580,18 @@ export default function App() {
         setEnable3D(false);
         setMapZoom(RIDE_START_ZOOM);
         /*
-         * 2026-10-06 Chief: 주행 시작 기본 카메라 = 퀵 카메라 1번 500m(aerial500).
-         * 1번 진입 규칙(bad185c)대로 위성 지도, 진입 직전 스타일은 기본 지도로 기억해 두고
-         * 종료(idle) 때 사용자가 주행 중 스타일을 직접 바꾸지 않았으면 되돌린다.
+         * 2026-11-03 Chief: 주행 시작 기본 카메라 = 퀵 카메라 2번(종전 10-06 의 1번 500m 위성 대체).
+         * 카메라 2 선택과 같은 설정(handleQuickCameraSelect(2)) — 앞쪽 추적·일반 지도·제품 조정 거리.
          */
-        camera1StyleBeforeEnterRef.current = DEFAULT_MAP_STYLE;
+        camera1StyleBeforeEnterRef.current = null;
         camera1UserToggledStyleRef.current = false;
-        setMapStyle(MAP_STYLE_SATELLITE);
-        setActiveQuickCamera(1);
-        setCamera1Mode("aerial500");
+        setMapStyle(DEFAULT_MAP_STYLE);
+        setActiveQuickCamera(2);
         setLockBaseHeading(null);
-        setFollowMode("aerial");
-        setRideCameraDistanceM(CAMERA1_AERIAL_DISTANCE_M.aerial500);
+        setFollowMode("forward");
+        setRideCameraDistanceM(
+          getQuickCameraProductTune(2)?.distanceM ?? Math.max(QUICK_CAMERA_FALLBACK_DISTANCE_M, RIDE_CAMERA_DISTANCE_MIN_M),
+        );
         setRideCameraSpanFloorMode("preset");
         setRideFollowCameraNonce((n) => n + 1);
         setRideJoinBurstNonce((n) => n + 1);
@@ -615,7 +615,7 @@ export default function App() {
       }
       setActiveQuickCamera(null);
     }
-  }, [rideStatus, camera1StyleBeforeEnterRef, camera1UserToggledStyleRef, followModeSnapshotRef, mapZoomSnapshotRef, rideCameraRestoreRef, setActiveQuickCamera, setCamera1Mode, setEnable3D, setFollowMode, setLockBaseHeading, setMapStyle, setMapZoom, setRideCameraDistanceM, setRideCameraSpanFloorMode, setRideFollowCameraNonce, setRideJoinBurstNonce]);
+  }, [rideStatus, camera1StyleBeforeEnterRef, camera1UserToggledStyleRef, followModeSnapshotRef, mapZoomSnapshotRef, rideCameraRestoreRef, setActiveQuickCamera, setEnable3D, setFollowMode, setLockBaseHeading, setMapStyle, setMapZoom, setRideCameraDistanceM, setRideCameraSpanFloorMode, setRideFollowCameraNonce, setRideJoinBurstNonce]);
 
   const { recentSessions, recentSessionsLoading, setRecentSessions, reloadRecentSessionsFromLocalStorage } =
     useRecentRideSessions({

@@ -119,7 +119,10 @@ test.describe("지시07 각도 후보 · QC1 3단", () => {
     await expect(qc1).toBeVisible({ timeout: 15_000 });
     const btn1 = qc1.getByRole("button", { name: /카메라 메뉴/ });
 
-    // 2026-10-06 Chief: 주행 시작 기본 카메라 = QC1 500m — 누르기 전에 이미 1번·aerial500
+    // 2026-11-03 Chief: 주행 시작 기본 카메라 = QC2(종전 QC1 500m) — 1번 500m 는 메뉴에서 고른다.
+    await page.waitForTimeout(1300);
+    await btn1.click();
+    await qc1.getByRole("menuitemradio", { name: "평면 카메라 · 500m 상공" }).click();
     await page.waitForTimeout(1300);
     await expect(btn1).toHaveAttribute("data-camera1-mode", "aerial500");
     await expect(btn1).toHaveAttribute("aria-pressed", "true");

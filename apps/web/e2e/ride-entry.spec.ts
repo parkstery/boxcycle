@@ -72,6 +72,10 @@ test.describe('실주행 진입 시퀀스', () => {
     // running 확정 — 주행 지표 그룹 + 주행 종료 버튼
     await expect(page.getByRole('group', { name: '주행 지표' })).toBeVisible()
     await expect(page.getByRole('button', { name: '주행 종료' })).toBeEnabled()
+    // 2026-11-03 Chief: 주행이 시작되면 카메라 2(종전 1번 500m 대체).
+    const trigger = page.getByRole('group', { name: 'Quick Camera' }).locator('.camera-view-menu__trigger')
+    await expect(trigger.locator('.camera-view-menu__item-num')).toHaveText('2')
+    await expect(trigger).not.toHaveAttribute('data-camera1-mode', /.+/)
   })
 
   // 0.5km 상한은 폐기(Chief 2026-10-07) — 긴 경로 주행 시험을 위해 입문에 2km 경로를 허용한다.
