@@ -6,11 +6,11 @@
 | 담당 | **Claude Code** — 2026-10-30 구름·톱니·접기 캐럿 배포 완료, 대기 |
 | 갱신 | 2026-10-30 19시 — 11eb53aa 배포, 시안 20261030-gear-cloud-mockup |
 | 브랜치 | `main2` |
-| 마지막 배포 | 2026-11-03 Rules+Hosting(Claude Code): fd0ef880 — 닉네임 15자·-_·게스트 ⓖ·메뉴 센서·인터벌 영어 음성. 번들 SHA256 일치 |
+| 마지막 배포 | 2026-11-03 Hosting(Claude Code): f8d19c69 — 펼친 경로 카드가 버튼 숨김을 막던 결함·ⓖ 빈칸. 앞서 Rules+Hosting fd0ef880 — 닉네임 15자·-_·게스트 ⓖ·메뉴 센서·인터벌 영어 음성. 번들 SHA256 일치 |
 
 ## 진행 중
 
-**11-03 버튼 숨김 멈춤 수정+ⓖ 빈칸(Claude Code, LOCAL_VERIFIED·미커밋·미배포)**: 원인 = 펼친 경로 카드(줄 띠)가 RideControlsAutoHide BUSY 에 있어 5초 숨김·탭 토글 둘 다 멈춤(폰 699×273 터치 실앱 실측). BUSY 에서 제외, 고정66 보완. 게스트 이름 `ⓖ tHQb`(고정73). 실앱 시험 `ride-entry.spec.ts` 「실앱 버튼 숨김」(사보타주 확인), ride-entry 8/8, 하네스 autohide 7/7, test:quick 1475/0. 다음: Chief 승인 → 커밋·푸시·Hosting.
+**11-03 버튼 숨김 멈춤 수정+ⓖ 빈칸(Claude Code) — 배포됨(f8d19c69, 운영 js SHA256=로컬)**: 원인 = 펼친 경로 카드(줄 띠)가 RideControlsAutoHide BUSY 에 있어 5초 숨김·탭 토글 둘 다 멈춤(폰 699×273 터치 실앱 실측). BUSY 에서 제외, 고정66 보완. 게스트 이름 `ⓖ tHQb`(고정73). 실앱 시험 `ride-entry.spec.ts` 「실앱 버튼 숨김」(사보타주 확인), ride-entry 8/8, 하네스 autohide 7/7, test:quick 1475/0. 남은 것: Chief 폰 확인.
 
 **11-03 닉네임·게스트 ⓖ·센서 메뉴·인터벌 영어 음성 + 게스트 전부 삭제(Claude Code) — 배포·완료**: 499c0bf2·fd0ef880 푸시(pre-push 10종·1475/0), firestore:rules·Hosting 배포(운영 js SHA256=로컬, 번들에 새 문구 확인). 고정73. 게스트 62명 삭제·검증(Google 5 보호, 남은 것 0) — [README](20261103-guest-reset/README.md). 리셋 도구에 `--baseline`·`--google` 인자 추가. 남은 것: Chief 사이트 확인(새로고침).
 
