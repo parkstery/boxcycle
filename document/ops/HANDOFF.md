@@ -10,6 +10,8 @@
 
 ## 진행 중
 
+**11-03 Chief 5건+탭 토글(Claude Code)**: 센서 LED 볼록 단추(A2)·미니맵 캐럿 28px·인터벌 캐럿 왼쪽 위(C1)·도넛 1초 깜빡임·단계 선 그림+작은 글자(B2)·지도 탭 토글+5초 유지. 고정72, [README](20261103-interval-sensor-look/README.md). tsc 0·eslint 0·test:quick 1470/0·화면 e2e 19종 167/3(배치1 기존). 커밋·푸시·배포 진행(Chief 「사이트에서 직접 볼게」).
+
 **11-03 Chief 폰 캡처 6장 후속 배포됨(f32dc99d, Claude Code)**: 글자 선택 막기·순위 목록 계정 아래(묶음 겹침 허용)·왼쪽 원형 메뉴 버튼·왼쪽 끝 20px·접힌 인터벌 알약 버튼 오른쪽·경로 손잡이/미니맵 둘 다 접힘=세로·manifest fullscreen+viewport-fit=cover. pre-push 10종·test:quick 1470/0, 화면 e2e 16종 137/3(배치1 기존), 운영 js·css SHA256=로컬·manifest 200. 고정71·README 「후속 2」. 남은 것: Chief 폰 「홈 화면에 추가」 실기 확인. Chief 6장 중 3~6(고도 숫자·이름표 겹침·빈 핀)은 별도·보류.
 
 **진행 중 — 오른쪽 2열 4줄 묶음 개편(11-02 Chief 「구현 진행해」, Claude Code)**: 시안 [right-group.html](20261102-ride-screen-layout/right-group.html) v4+Chief 답(나중 쪽 펼치면 먼저 쪽 접기·계정 주행 중에도 보임(순위 목록 아래 z)·경로 목록도 메뉴로·미니맵 버튼=RouteDock 손잡이 크기). 단계: A 오른쪽 묶음(MapHud 레일→2×4 원형, ⏸⏹▶·INT·순위 이동, 오른쪽 반달 제거, 목록 가장자리·2초 숨김, ⚙·경로 목록 메뉴 머리줄) → B 센서 LED·RPM 계기판 칸 → C 미니맵 토글 복귀·인터벌 접기·하나만 펼치기. 각 단계 캡처 보고·승인. **A 배포됨(93924456·a2e063bf, pre-push 10종·test:quick 1470/0, 운영 js·css SHA256=로컬)** — [README](20261102-ride-screen-layout/README.md) 「개편 A」·고정67. live 스펙 미실행.
