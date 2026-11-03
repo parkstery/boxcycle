@@ -6,13 +6,11 @@
 | 담당 | **Claude Code** — 2026-10-30 구름·톱니·접기 캐럿 배포 완료, 대기 |
 | 갱신 | 2026-10-30 19시 — 11eb53aa 배포, 시안 20261030-gear-cloud-mockup |
 | 브랜치 | `main2` |
-| 마지막 배포 | 2026-11-03 (Claude Code) c97eac84 — Hosting(격리 빌드 `.out/release-c97eac84`, 운영 index-Cr8Nqd0N.js SHA256=로컬)·Functions 37개·Firestore Rules·**유럽 RTDB `boxcycle-dc2df-eu-rtdb`(europe-west1) 생성+RTDB Rules**. 비용 L1·L2·L3·L6 임시, P1 이름표, P2 정리 |
+| 마지막 배포 | 2026-11-04 (Claude Code) 54bd409d — G3-1 순위 누적 점수(색인 6개·트리거·채우기 676건·운영 대조 48/48·함수 37개), L4(Hosting 격리 빌드 index-D-641WNa.js SHA256=로컬). 이전: 11-03 c97eac84 비용 L1·L2·L3·L6, 유럽 RTDB 생성 |
 
 ## 진행 중
 
-**11-04 배포 진행 중(Claude Code, Chief 승인 「함께 진행」)**: G3-1 6단계(색인→커밋·푸시→트리거만→채우기 dry-run/apply→운영 대조→나머지 함수) + L4 Hosting 격리 배포. 중단 시 어느 단계인지 이 줄과 `firebase functions:list`·`leaderboardScores` 문서 수로 판단.
-
-**11-03 비용 절감·지역 데이터(Claude Code) — 배포됨 c97eac84**: L1·L2·L3·L6 임시·P1·P2·G1. 남은 것: **L4 Chief 승인(11-04)·구현·로컬 검증 완료, 미커밋**([설계·결과](20261103-cost-squeeze/02-design-l4.md), 관전 외삽 3→13초 추가), **G3-1 감리 PASS·미커밋**([결과·감리](20261103-global-geo-data/03-result-g3-1.md), impl-standard 구현) — 운영 색인 배포·검사 후 6단계 배포(Chief 승인 대기), 유럽 RTDB 2차. [01-audit](20261103-cost-squeeze/01-audit.md)·[00-plan](20261103-global-geo-data/00-plan.md).
+**11-03~04 비용 절감·지역 데이터(Claude Code) — 배포됨 54bd409d**: L1·L2·L3·L4·L6(G3-1 누적 점수로 근본 해결)·P1·P2·G1. 남은 것: **Chief 2인 실주행으로 L4 확인**, 유럽 RTDB 2차(앱 접속 분리), G2 요약 목록, G3-2 국가 범위(국가 입력 시안). [cost-squeeze](20261103-cost-squeeze/README.md)·[00-plan](20261103-global-geo-data/00-plan.md).
 
 **11-03 전세계 지역 데이터·비용(Claude Code)** — G1(2559dd7c)·G0.5 P5·P2(de076cfa)·P1 이름표+Rules(8eb69595) 커밋, 미푸시·미배포. Chief 11-03: **비용 짜내기 1순위**, 유럽 RTDB는 미루지 말고 설정. 비용 점검 [01-audit](20261103-cost-squeeze/01-audit.md): 제곱형 L6 순위 훑기·L1 livePresence 전체 구독·L2 CG 구독. 계획 [00-plan](20261103-global-geo-data/00-plan.md). `ride-moments-dom`은 test:quick 병렬 시 vite 캐시 경합으로 간헐 FAIL(단독 PASS).
 
