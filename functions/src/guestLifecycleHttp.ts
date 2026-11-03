@@ -19,6 +19,7 @@ import {
 } from "./guestLifecycleGuard.js";
 import { handleGuestActivityRequest, handleGuestLinkRequest } from "./guestLifecycleHandlers.js";
 import { guestLifecyclePortsFromAdmin, getRtdbOrNull } from "./guestLifecycleAdmin.js";
+import { markLeaderboardScoresMember } from "./leaderboardScoresStore.js";
 import { getExtraMotionRtdbs } from "./rtdbInstances.js";
 import { REGION } from "./region.js";
 
@@ -202,15 +203,33 @@ export const guestLinkHttp = onRequest(
     await runGuestLifecycleRequest(res, async () => {
       const ports = await guestLifecyclePortsFromAdmin(getFirestore(), getAuth(), getRtdbOrNull(), Date.now(), getExtraMotionRtdbs());
       const body = typeof req.body === "object" && req.body !== null ? (req.body as { action?: unknown; leaseToken?: unknown }) : {};
-      return handleGuestLinkRequest(
+      let verifiedUid: string | null = null;
+      const result = await handleGuestLinkRequest(
         {
           method: req.method,
           authorization: req.get("Authorization") ?? null,
           action: body.action,
           leaseToken: body.leaseToken,
         },
-        { nowMs: ports.nowMs, verifyToken, ports },
+        {
+          nowMs: ports.nowMs,
+          verifyToken: async (token) => {
+            const verified = await verifyToken(token);
+            if (verified) verifiedUid = verified.uid;
+            return verified;
+          },
+          ports,
+        },
       );
+      // 연결 확정 → 리더보드 점수 문서를 회원으로. 실패해도 연결 응답은 막지 않는다(다음 주행 때 트리거가 다시 맞춘다).
+      if (body.action === "complete" && result.status === 200 && verifiedUid) {
+        try {
+          await markLeaderboardScoresMember(getFirestore(), verifiedUid);
+        } catch (error) {
+          console.warn("[guestLifecycle] leaderboard member flag update failed", verifiedUid, error);
+        }
+      }
+      return result;
     });
   },
 );

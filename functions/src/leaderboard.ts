@@ -1,20 +1,18 @@
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
-import * as logger from "firebase-functions/logger";
 import { HttpsError, onRequest } from "firebase-functions/v2/https";
 import type { Request, Response } from "express";
 import { parseBearerToken } from "./adminDashboard.js";
 import {
   LEADERBOARD_BOARDS,
   LEADERBOARD_PERIODS,
-  getBoardSnapshot,
-  layoutLeaderboard,
   loadLiveTrailsMemo,
   loadNicknames,
   renderLeaderboard,
   type LeaderboardBoard,
   type LeaderboardPeriod,
 } from "./leaderboardCore.js";
+import { loadLeaderboardLayoutFromScores } from "./leaderboardScoresStore.js";
 import { REGION } from "./region.js";
 
 /** 로그인(게스트 포함) Bearer ID 토큰 검증. 게스트 여부는 토큰의 sign_in_provider 로 판정한다. */
@@ -54,10 +52,7 @@ async function handleGetLeaderboard(req: Request, res: Response): Promise<void> 
 
     const db = getFirestore();
     const nowMs = Date.now();
-    const snapshot = await getBoardSnapshot(db, board, period, nowMs, (msg, err) =>
-      logger.warn(msg, { error: String(err) }),
-    );
-    const layout = layoutLeaderboard(snapshot, requester);
+    const layout = await loadLeaderboardLayoutFromScores(db, { board, period, requester, nowMs });
     const [nicknames, liveByUid] = await Promise.all([
       loadNicknames(db, layout.displayUids),
       loadLiveTrailsMemo(db, nowMs),
@@ -79,7 +74,7 @@ async function handleGetLeaderboard(req: Request, res: Response): Promise<void> 
 /**
  * 리더보드(주행 거리·개척) — 읽기 전용. 계약은 document/ops/20261023-leaderboard/01-plan.md.
  * 호출: GET `?board=distance|pioneer&period=week|month|all`, `Authorization: Bearer <ID 토큰>`(게스트 포함).
- * 응답에 uid 를 싣지 않는다. 전체 순위는 `leaderboardCache/{board}_{period}` 에 30분(「전체」 60분) 캐시(클라이언트 접근 불가).
+ * 응답에 uid 를 싣지 않는다. 순위는 주행 종료 때 쌓는 누적 점수(`leaderboardScores`, leaderboardScoresStore.ts)에서 상위 N·내 순위만 읽는다 — rides 전체 훑기는 없다(G3-1).
  * 접근 로그는 남기지 않는다(일반 사용자 기능).
  */
 export const getLeaderboard = onRequest(

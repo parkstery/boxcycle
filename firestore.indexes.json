@@ -164,6 +164,86 @@
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "closedAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "leaderboardScores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "board", "order": "ASCENDING" },
+        { "fieldPath": "periodKey", "order": "ASCENDING" },
+        { "fieldPath": "scopeType", "order": "ASCENDING" },
+        { "fieldPath": "scopeCode", "order": "ASCENDING" },
+        { "fieldPath": "member", "order": "ASCENDING" },
+        { "fieldPath": "tenthsT1", "order": "DESCENDING" },
+        { "fieldPath": "roundedT1", "order": "DESCENDING" },
+        { "fieldPath": "uid", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leaderboardScores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "board", "order": "ASCENDING" },
+        { "fieldPath": "periodKey", "order": "ASCENDING" },
+        { "fieldPath": "scopeType", "order": "ASCENDING" },
+        { "fieldPath": "scopeCode", "order": "ASCENDING" },
+        { "fieldPath": "member", "order": "ASCENDING" },
+        { "fieldPath": "tenthsAll", "order": "DESCENDING" },
+        { "fieldPath": "roundedAll", "order": "DESCENDING" },
+        { "fieldPath": "uid", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leaderboardScores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "board", "order": "ASCENDING" },
+        { "fieldPath": "member", "order": "ASCENDING" },
+        { "fieldPath": "periodKey", "order": "ASCENDING" },
+        { "fieldPath": "scopeCode", "order": "ASCENDING" },
+        { "fieldPath": "scopeType", "order": "ASCENDING" },
+        { "fieldPath": "tenthsT1", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leaderboardScores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "board", "order": "ASCENDING" },
+        { "fieldPath": "member", "order": "ASCENDING" },
+        { "fieldPath": "periodKey", "order": "ASCENDING" },
+        { "fieldPath": "scopeCode", "order": "ASCENDING" },
+        { "fieldPath": "scopeType", "order": "ASCENDING" },
+        { "fieldPath": "tenthsT1", "order": "ASCENDING" },
+        { "fieldPath": "roundedT1", "order": "ASCENDING" },
+        { "fieldPath": "uid", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leaderboardScores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "board", "order": "ASCENDING" },
+        { "fieldPath": "member", "order": "ASCENDING" },
+        { "fieldPath": "periodKey", "order": "ASCENDING" },
+        { "fieldPath": "scopeCode", "order": "ASCENDING" },
+        { "fieldPath": "scopeType", "order": "ASCENDING" },
+        { "fieldPath": "tenthsAll", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "leaderboardScores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "board", "order": "ASCENDING" },
+        { "fieldPath": "member", "order": "ASCENDING" },
+        { "fieldPath": "periodKey", "order": "ASCENDING" },
+        { "fieldPath": "scopeCode", "order": "ASCENDING" },
+        { "fieldPath": "scopeType", "order": "ASCENDING" },
+        { "fieldPath": "tenthsAll", "order": "ASCENDING" },
+        { "fieldPath": "roundedAll", "order": "ASCENDING" },
+        { "fieldPath": "uid", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [

@@ -315,7 +315,10 @@ export async function deleteGuestUidFirestoreData(
   refs.push(db.doc(`conquest/${uid}`));
   refs.push(db.doc(`livePresence/${uid}`));
 
-  const [chunksSnap, tracesSnap, recentSnap, rideRefs, savedRouteRefs, ledgerRefs, cacheRefs, requestRefs] = await Promise.all([
+  const [
+    chunksSnap, tracesSnap, recentSnap, rideRefs, savedRouteRefs, ledgerRefs, cacheRefs, requestRefs,
+    scoreRefs, scoreLedgerRefs, useRefs, riderMarkRefs, ownerMarkRefs,
+  ] = await Promise.all([
     db.collection(`conquest/${uid}/chunks`).get(),
     db.collection(`conquest/${uid}/traces`).get(),
     db.collection(`conquest/${uid}/recentNewRoad`).get(),
@@ -324,11 +327,18 @@ export async function deleteGuestUidFirestoreData(
     collectRefsWhere(db, "routeTokenLedger", "userId", uid),
     collectRefsWhere(db, "routeAutoRouteCache", "userId", uid),
     collectRefsWhere(db, "publicRouteRequests", "applicantUid", uid),
+    // 리더보드 누적 점수(G3-1) — 빠뜨리면 탈퇴·정리된 계정이 순위에 남는다.
+    collectRefsWhere(db, "leaderboardScores", "uid", uid),
+    collectRefsWhere(db, "leaderboardScoreApplied", "uid", uid),
+    collectRefsWhere(db, "leaderboardUses", "ownerUid", uid),
+    collectRefsWhere(db, "leaderboardUseMarks", "riderUid", uid),
+    collectRefsWhere(db, "leaderboardUseMarks", "ownerUid", uid),
   ]);
   for (const d of chunksSnap.docs) refs.push(d.ref);
   for (const d of tracesSnap.docs) refs.push(d.ref);
   for (const d of recentSnap.docs) refs.push(d.ref);
   refs.push(...rideRefs, ...savedRouteRefs, ...ledgerRefs, ...cacheRefs, ...requestRefs);
+  refs.push(...scoreRefs, ...scoreLedgerRefs, ...useRefs, ...riderMarkRefs, ...ownerMarkRefs);
 
   refs.push(...(presence.openTrailListingsByHostUid.get(uid) ?? []));
   refs.push(...(presence.trailMembersByUid.get(uid) ?? []));

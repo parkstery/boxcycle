@@ -61,6 +61,10 @@ export const ACCOUNT_DELETION_POLICY: Readonly<Record<string, AccountDeletionAct
   accountDeletions: "none", // 탈퇴 진행 기록(본 기능)
   guestLifecycle: "none", // Guest 수명 tombstone. sweep 가 남기고, 공용 자산은 deleteAccountData 가 익명화한다
   guestLifecycleRuns: "none", // 일일 집계. 개인 데이터 아님
+  leaderboardScores: "delete", // 사용자별 누적 점수(uid) — 남기면 탈퇴자가 순위에 남는다
+  leaderboardUses: "delete", // 개척판 「내 길 이용」 합계(ownerUid)
+  leaderboardUseMarks: "delete", // 라이더·소유자 표식(riderUid·ownerUid)
+  leaderboardScoreApplied: "delete", // 주행별 반영 원장(uid)
 };
 
 /** 사용자별 하위 컬렉션(문서 id = uid) — 상위가 「none」이어도 여기는 지운다 */

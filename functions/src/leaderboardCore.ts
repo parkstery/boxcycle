@@ -37,8 +37,8 @@ export const LEADERBOARD_LIVE_WINDOW_MS = 30 * 1000;
 export const LEADERBOARD_TOP_N = 20;
 // TODO(release): 테스트 종료 후 true 로 복원. document/출시 전 확인사항.md §6.
 // 클라이언트는 응답 rule.sensorOnly 를 따라가므로 이 설정 한 곳에서 복구한다.
-const LEADERBOARD_SENSOR_ONLY = false;
-const AROUND_SPAN = 3;
+export const LEADERBOARD_SENSOR_ONLY = false;
+export const AROUND_SPAN = 3;
 const FALLBACK_NICKNAME = "라이더";
 
 const HOUR_MS = 3600 * 1000;
@@ -116,7 +116,7 @@ export function periodStartMs(period: LeaderboardPeriod, nowMs: number): number 
   return dayStartKst - sinceMonday * DAY_MS - KST_OFFSET_MS;
 }
 
-function kstDateKey(ms: number): string {
+export function kstDateKey(ms: number): string {
   return new Date(ms + KST_OFFSET_MS).toISOString().slice(0, 10);
 }
 
@@ -124,7 +124,7 @@ function kstDateKey(ms: number): string {
 // 순수 집계
 // ---------------------------------------------------------------------------
 
-function isLeaderboardTierEligible(tier: string | null, sensorOnly: boolean): boolean {
+export function isLeaderboardTierEligible(tier: string | null, sensorOnly: boolean): boolean {
   return tier === "t1" || (!sensorOnly && tier === "t0");
 }
 
@@ -196,11 +196,11 @@ export function computeBoardSnapshot(input: {
 }
 
 /** 표시 단위(0.1 km) 정수. 순위 비교는 표시 값 기준 — 같은 숫자로 보이면 같은 순위다. */
-function tenthsOf(meters: number): number {
+export function tenthsOf(meters: number): number {
   return Math.round(meters / 100);
 }
 
-function kmOfTenths(tenths: number): number {
+export function kmOfTenths(tenths: number): number {
   return tenths / 10;
 }
 
