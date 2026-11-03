@@ -100,7 +100,17 @@ span.ride-interval-hud__time { display: grid; place-items: center; font-size: 24
  * 세트 글자는 버튼 오른쪽 같은 줄, 단계 줄은 버튼 아래부터 — 그만큼 창이 13px(낮은 폰 14px) 높아진다.
  */
 .ride-interval-hud > .ride-interval-hud__fold { position: absolute; top: 3px; left: 3px; z-index: 1; pointer-events: auto; text-shadow: none; }
-.ride-interval-hud:has(> .ride-interval-hud__fold) { height: 117px; }
+.ride-interval-hud:has(> .ride-interval-hud__fold) { height: 104px; }
+/*
+ * Chief 11-03 P1: 전체 진도 막대는 줄을 따로 차지하지 않고 창 아래 테두리의 4px 띠(구간 색·지난 만큼 진하게·지금 위치선 그대로).
+ * 창 높이 117→104(낮은 폰 106→92). 띠는 창 아래 둥근 모서리를 따른다(넘침 숨김은 쓰지 않음 — 서두름 도넛 확대가 잘린다).
+ */
+.map-hud__tl > .ride-interval-hud:not(.ride-interval-hud--folded),
+.map-hud > .ride-interval-hud:not(.ride-interval-hud--folded) { grid-template-rows: minmax(0, 1fr); row-gap: 0; }
+.ride-interval-hud .ride-interval-hud__bar {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 4px;
+  grid-column: auto; border: 0; border-radius: 0 0 7px 7px; background: rgba(255, 255, 255, 0.7);
+}
 .ride-interval-hud:has(> .ride-interval-hud__fold) .ride-interval-hud__round { min-height: 26px; padding-left: 30px; display: flex; align-items: center; }
 /* Chief 11-03 B2: 단계 = 선 그림(단계 색) + 작은 글자. */
 .ride-interval-hud__icon { flex: none; width: 24px; height: 24px; color: var(--interval-color); }
@@ -108,7 +118,7 @@ span.ride-interval-hud__time { display: grid; place-items: center; font-size: 24
 .ride-interval-hud__phase-row .ride-interval-hud__phase,
 .ride-interval-hud[data-paused="true"] .ride-interval-hud__phase-row .ride-interval-hud__phase { font-size: 13px; letter-spacing: 0; }
 @media (max-height: 340px) {
-  .map-hud__tl > .ride-interval-hud:has(> .ride-interval-hud__fold) { height: 106px; }
+  .map-hud__tl > .ride-interval-hud:has(> .ride-interval-hud__fold) { height: 92px; }
   .ride-interval-hud__icon { width: 20px; height: 20px; }
   .ride-interval-hud__phase-row .ride-interval-hud__phase,
   .ride-interval-hud[data-paused="true"] .ride-interval-hud__phase-row .ride-interval-hud__phase { font-size: 12px; }

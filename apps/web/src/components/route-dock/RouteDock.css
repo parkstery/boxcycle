@@ -195,3 +195,41 @@
  */
 .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__head { padding: 0; margin: 0; gap: 8px; min-height: 40px; }
 .route-dock-anchor:not(.route-dock-anchor--open) .route-dock__card { width: max-content; height: 40px; min-width: 40px; gap: 8px; }
+
+/*
+ * Chief 11-03 R2: 펼친 카드는 흰 카드 바탕 대신 순위 목록처럼 줄 단위 띠 — 줄마다 글자 뒤에만 rgba(255,255,255,.7)·둥근 3px.
+ * 줄 높이 26px·간격 4px(⇅ 원이 S·E 기호 사이에 들어가는 30px 간격 유지), 줄 사이로 지도가 보이고 눌린다.
+ * 접기 버튼(28px)은 목록 위 왼쪽 — 주행 중(머리줄 없음)에도 위로 올려 줄이 왼쪽 끝까지 쓴다.
+ */
+.route-dock-anchor.route-dock-anchor--open .route-dock__card.route-dock__card {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #142c46;
+  pointer-events: none;
+}
+.route-dock-anchor--open .route-dock__card :is(button, .route-dock__row) { pointer-events: auto; }
+.route-dock-anchor--open .route-dock__fold { top: 0; left: 0; }
+.route-dock-anchor--open .route-dock__head { min-height: 28px; margin-bottom: 4px; }
+.route-dock-anchor--open .route-dock__card:not(.route-dock__card--head) .route-dock__grid { padding-left: 0; padding-top: 32px; }
+.route-dock-anchor--open .route-dock__row.route-dock__row {
+  position: relative;
+  isolation: isolate;
+  height: 26px;
+  min-height: 26px;
+  margin-bottom: 4px;
+  padding: 0 2px 0 5px;
+  border-bottom: 0;
+}
+.route-dock-anchor--open .route-dock__row:last-child { margin-bottom: 0; }
+.route-dock-anchor--open .route-dock__row::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+}
+.route-dock-anchor--open .route-dock__swap { left: -1px; }

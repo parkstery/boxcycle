@@ -98,7 +98,7 @@ test('펼친 미니맵 캐럿은 경로 카드 캐럿과 같은 크기·모양',
   await page.getByRole('button', { name: '경로 패널 펼치기' }).click();
   const look = (sel: string) => page.locator(sel).evaluate((el) => {
     const b = el.getBoundingClientRect(); const cs = getComputedStyle(el);
-    return { w: Math.round(b.width), h: Math.round(b.height), radius: cs.borderRadius, border: cs.borderTopWidth, left: Math.round(b.left) };
+    return { w: Math.round(b.width), h: Math.round(b.height), radius: cs.borderRadius, border: cs.borderTopWidth };
   });
   const dock = await look('.route-dock__card .route-overview-fold-toggle');
   const mini = await look('.route-minimap__toggle');

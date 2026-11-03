@@ -10,7 +10,7 @@
 
 ## 진행 중
 
-**진행 중 — 11-03 인터벌 창 3건(Claude Code)**: ①운동 중 불꽃·「운동」 글자도 도넛과 같은 1초 깜빡임 ②「페달 강도 직접 조절」 제거 ③창 높이 줄이기 — 아래 진도 막대 줄 없애는 안 시안(document/ops/20261103-interval-sensor-look/progress-mockup) → Chief 선택. ①② 바로 구현(RideIntervalHud.tsx/.css).
+**11-03 인터벌 창 3건+RouteDock 줄 띠(Claude Code)**: 운동 중 불꽃·글자 깜빡임·「페달 강도」 문구 제거·진도 막대 아래 테두리 띠(P1)·RouteDock 줄 단위 띠(R2). 고정72 ⑦~⑨. 커밋·푸시 완료, **배포 대기(Chief 승인 필요)**.
 
 **11-03 Chief 5건+탭 토글(Claude Code)**: 센서 LED 볼록 단추(A2)·미니맵 캐럿 28px·인터벌 캐럿 왼쪽 위(C1)·도넛 1초 깜빡임·단계 선 그림+작은 글자(B2)·지도 탭 토글+5초 유지. 고정72, [README](20261103-interval-sensor-look/README.md). tsc 0·eslint 0·test:quick 1470/0·화면 e2e 19종 167/3(배치1 기존). **배포됨(f45d6193, 운영 js·css SHA256=로컬)** — 이후 미니맵 버튼 세로(낮은 폰+인터벌+카드만 가로)·도넛 칸 단계 색 포함.
 

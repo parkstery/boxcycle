@@ -16,3 +16,4 @@ Chief 11-03 지시 5건 + 후속 1건. 시안 [mockup.html](mockup.html)·[mocku
 - 시험: 새로 「펼친 미니맵 캐럿=경로 카드 캐럿」·「도넛 1초 깜빡임·일시정지 멈춤」(ride-left-panels), 「지도 탭 토글·끌기 그대로·버튼 누름 유지」(ride-controls-autohide, 사보타주: 탭 숨기기 끔 → 2 실패, 원복 통과). 기대값 갱신: address-minimap-width(펼친 캐럿 28), ride-interval(창 높이 117/106).
 - 후속: 깜빡이는 도넛 칸 색 = 단계 색(Chief 「grey - red - green」), 종전 주황 고정 대체. 시험: ride-left-panels 운동 빨강·회복 초록.
 - 후속: 운동 구간이면 불꽃 그림·「운동」 글자도 도넛과 같은 1초 깜빡임(일시정지·움직임 줄이기 끔), 「페달 강도 직접 조절」 문구 제거(센서 없어도 다음 단계 안내). 시안: [progress-mockup.png](progress-mockup.png)(진도 막대 줄 없애기)·[routedock-mockup.png](routedock-mockup.png)(RouteDock 줄 배경) — Chief 선택 대기.
+- 결정(Chief 「P1,R2 로 하자」): 진도 막대 = 창 아래 테두리 4px 띠(창 117→104, 낮은 폰 106→92). 펼친 RouteDock = 줄 단위 띠(26px·간격 4px, 카드 바탕·그림자 없음, 빈 곳은 지도로 누름 통과, 접기 버튼은 목록 위 왼쪽). 시험: ride-interval 창 높이 104/92. 흔들리는 시험 2종(ride-interval 남은 시간 정밀도·quick-interval-ride (c) 방위 90°, 3회 중 1회)은 이번 변경과 무관.
