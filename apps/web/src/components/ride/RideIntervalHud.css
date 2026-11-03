@@ -43,8 +43,9 @@
 .ride-interval-hud__progress { width: 88px; height: 88px; margin-top: -2px; overflow: visible; }
 .ride-interval-hud__progress path { fill: none; stroke: #36506d; stroke-width: 5; }
 .ride-interval-hud__progress [data-done="true"] { stroke: #173fb4; }
-.ride-interval-hud__progress [data-active="true"] { stroke: rgba(180, 83, 9, 0.3); }
-.ride-interval-hud__progress .ride-interval-hud__fill { stroke: #b45309; transition: stroke-dashoffset 0.2s linear; }
+/* Chief 11-03: 지금 칸(바탕·차오름)은 단계 색을 따른다 — 준비·휴식·마무리 회색, 운동 빨강, 회복 초록(종전 주황 고정). */
+.ride-interval-hud__progress [data-active="true"] { stroke: var(--interval-color); stroke-opacity: 0.3; }
+.ride-interval-hud__progress .ride-interval-hud__fill { stroke: var(--interval-color); transition: stroke-dashoffset 0.2s linear; }
 .ride-interval-hud__inner { transform-origin: 22px 22px; }
 .ride-interval-hud__disc { fill: var(--interval-color); fill-opacity: 0.13; }
 .ride-interval-hud__track { fill: none; stroke: var(--interval-color); stroke-opacity: 0.18; stroke-width: 2.6; }

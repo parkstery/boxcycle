@@ -118,6 +118,14 @@ test('도넛 지금 칸 1초 깜빡임, 일시정지엔 멈춤', async ({ page }
   const others = await page.evaluate(() => [...document.querySelectorAll('.ride-interval-hud__progress [data-seg]:not([data-active="true"])')]
     .map((el) => getComputedStyle(el).animationName));
   expect(new Set(others)).toEqual(new Set(['none']));
+  // Chief 11-03: 깜빡이는 칸 색 = 단계 색(운동 빨강·회복 초록).
+  const strokes = () => page.evaluate(() => [...document.querySelectorAll('.ride-interval-hud__progress [data-active="true"], .ride-interval-hud__fill')]
+    .map((el) => getComputedStyle(el).stroke));
+  expect(new Set(await strokes())).toEqual(new Set(['rgb(212, 32, 32)']));
+  await page.goto(`${preview}?state=riding&interval&intervalMs=372000`);
+  await expect(page.locator('.ride-interval-hud__phase')).toHaveText('회복');
+  expect(new Set(await strokes())).toEqual(new Set(['rgb(21, 128, 61)']));
+  await page.goto(`${preview}?state=riding&interval&intervalMs=330000`);
   await page.getByRole('button', { name: '일시정지', exact: true }).click();
   await expect.poll(async () => (await anim()).every((a) => a.startsWith('none'))).toBe(true);
 });
