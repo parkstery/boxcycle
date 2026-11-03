@@ -10,7 +10,7 @@
 
 ## 진행 중
 
-**11-03 전세계 지역 데이터(Claude Code)** — G1 커밋됨(main2, 미푸시·배포 없음): `functions/src/geoRegion/`·`functions/geo-data/v1/`(4.8MB)·`functions/scripts/geo-region/`, package.json 시험 목록 1줄. geoRegion 30/30·functions 201/201·eslint 0. 원본 54MB는 scratchpad(리포 미포함, 재생성은 README). 다음: G0.5 P5→P2→P1 ([계획 §5.1](20261103-global-geo-data/00-plan.md)). 확인 `cd C:.HDevoxcycleunctions; npx tsc; node --test lib/geoRegion/geoRegion.test.js`
+**11-03 전세계 지역 데이터(Claude Code)** — G1 커밋됨(main2, 미푸시·배포 없음): `functions/src/geoRegion/`·`functions/geo-data/v1/`(4.8MB)·`functions/scripts/geo-region/`, package.json 시험 목록 1줄. geoRegion 30/30·functions 201/201·eslint 0. 원본 54MB는 scratchpad(리포 미포함, 재생성은 README). **G0.5 P5·P2 커밋됨(main2, 미푸시)**: `scripts/check-firebase-accessors.mjs`(pre-push 11종째·생존 확인 2항목), `functions/src/rtdbInstances.ts` + 정리 코드 5파일·시험 1파일, `githooks/pre-push`, `scripts/verify-gates-alive.mjs`. functions 204/204·eslint 0·사보타주 확인. **P1 진행 중**(Chief 승인: 이름표 필드+Rules만, 접속 코드 그대로. Rules 배포는 직전 설명 후) — [계획 §5.1](20261103-global-geo-data/00-plan.md). 확인 `cd C:.HDevoxcycleunctions; npx tsc; node --test lib/geoRegion/geoRegion.test.js`
 
 **11-03 버튼 숨김 멈춤 수정+ⓖ 빈칸(Claude Code) — 배포됨(f8d19c69, 운영 js SHA256=로컬)**: 원인 = 펼친 경로 카드(줄 띠)가 RideControlsAutoHide BUSY 에 있어 5초 숨김·탭 토글 둘 다 멈춤(폰 699×273 터치 실앱 실측). BUSY 에서 제외, 고정66 보완. 게스트 이름 `ⓖ tHQb`(고정73). 실앱 시험 `ride-entry.spec.ts` 「실앱 버튼 숨김」(사보타주 확인), ride-entry 8/8, 하네스 autohide 7/7, test:quick 1475/0. 남은 것: Chief 폰 확인.
 
@@ -37,7 +37,7 @@
 
 ## Chief 결정 대기
 
-없음 — 2026-10-29 Chief 「한꺼번에 하자」: 간편 인터벌 01 감리·커밋 후 그때까지의 커밋 전부를 한 번에 푸시·Hosting 배포한다(배포 전 대상·범위 설명 후 실행, 적용 검증).
+그 밖에 없음 — 2026-10-29 Chief 「한꺼번에 하자」: 간편 인터벌 01 감리·커밋 후 그때까지의 커밋 전부를 한 번에 푸시·Hosting 배포한다(배포 전 대상·범위 설명 후 실행, 적용 검증).
 
 ## 잊지 말 것
 

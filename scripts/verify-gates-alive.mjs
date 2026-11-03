@@ -198,6 +198,28 @@ const CASES = [
     cwd: path.join(ROOT, "apps/web"),
   },
   {
+    name: "DB 접근 통로 — 화면 코드가 Firestore 를 직접 연다",
+    tamper: () => {
+      const rel = "apps/web/src/lib/trail/trailUrl.ts";
+      const before = read(rel);
+      write(rel, before + "
+export const __DB_PROBE = () => getFirestore();
+");
+      return () => write(rel, before);
+    },
+    cmd: "node scripts/check-firebase-accessors.mjs --check",
+  },
+  {
+    name: "DB 접근 통로 — 통로 파일에서 호출을 옮김(M0)",
+    tamper: () => {
+      const rel = "functions/src/rtdbInstances.ts";
+      const before = read(rel);
+      write(rel, before.replace("getDatabaseWithUrl(url)", "__moved(url)"));
+      return () => write(rel, before);
+    },
+    cmd: "node scripts/check-firebase-accessors.mjs --check",
+  },
+  {
     name: "코드 정련 — 아무도 안 쓰는 export 추가",
     tamper: () => {
       const rel = "apps/web/src/lib/geo/geo.ts";

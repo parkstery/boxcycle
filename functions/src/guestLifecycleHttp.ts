@@ -19,6 +19,7 @@ import {
 } from "./guestLifecycleGuard.js";
 import { handleGuestActivityRequest, handleGuestLinkRequest } from "./guestLifecycleHandlers.js";
 import { guestLifecyclePortsFromAdmin, getRtdbOrNull } from "./guestLifecycleAdmin.js";
+import { getExtraMotionRtdbs } from "./rtdbInstances.js";
 import { REGION } from "./region.js";
 
 /**
@@ -186,7 +187,7 @@ export const guestActivityHttp = onRequest(
   { region: REGION, cors: true, invoker: "public", timeoutSeconds: 60 },
   async (req: Request, res: Response) => {
     await runGuestLifecycleRequest(res, async () => {
-      const ports = await guestLifecyclePortsFromAdmin(getFirestore(), getAuth(), getRtdbOrNull(), Date.now());
+      const ports = await guestLifecyclePortsFromAdmin(getFirestore(), getAuth(), getRtdbOrNull(), Date.now(), getExtraMotionRtdbs());
       return handleGuestActivityRequest(
         { method: req.method, authorization: req.get("Authorization") ?? null },
         { nowMs: ports.nowMs, verifyToken, ports },
@@ -199,7 +200,7 @@ export const guestLinkHttp = onRequest(
   { region: REGION, cors: true, invoker: "public", timeoutSeconds: 60 },
   async (req: Request, res: Response) => {
     await runGuestLifecycleRequest(res, async () => {
-      const ports = await guestLifecyclePortsFromAdmin(getFirestore(), getAuth(), getRtdbOrNull(), Date.now());
+      const ports = await guestLifecyclePortsFromAdmin(getFirestore(), getAuth(), getRtdbOrNull(), Date.now(), getExtraMotionRtdbs());
       const body = typeof req.body === "object" && req.body !== null ? (req.body as { action?: unknown; leaseToken?: unknown }) : {};
       return handleGuestLinkRequest(
         {

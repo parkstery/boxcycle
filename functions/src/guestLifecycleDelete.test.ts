@@ -13,7 +13,7 @@ import { test } from "node:test";
 import type { Database } from "firebase-admin/database";
 import type { Firestore } from "firebase-admin/firestore";
 import { deleteAccountData, rtdbTrailIdsWithMotion } from "./accountDeletionCore.js";
-import { guestRtdbPort } from "./guestLifecycleAdmin.js";
+import { guestRtdbPort, listRtdbMotionUids } from "./guestLifecycleAdmin.js";
 
 type MiniSnap = {
   key: string | null;
@@ -170,4 +170,28 @@ test("guestRtdbPort 는 실제 RTDB 에 blocked 마커를 기록한다", async (
   ]);
   assert.equal(writes[0][1], true);
   assert.equal(writes[1][1], false);
+});
+
+// ── 지역별 동행 RTDB(00-plan §5.1 P2) ────────────────────────────────────────
+test("추가 동행 인스턴스의 motion 도 수거한다(다른 지역에 개인 위치를 남기지 않는다)", async () => {
+  const { db } = fakeFirestore();
+  const base = fakeRtdb({ "trail-a": { [uid]: 1 } });
+  const europe = fakeRtdb({ "trail-eu": { [uid]: 2, "eu-rider": 2 } });
+  const report = await deleteAccountData(db, base.db, uid, [europe.db]);
+  assert.ok(base.removed.includes(`trails/trail-a/motion/${uid}`), "기본 인스턴스");
+  assert.ok(europe.removed.includes(`trails/trail-eu/motion/${uid}`), "추가 인스턴스");
+  assert.ok(!europe.removed.some((p) => p.includes("eu-rider")), "다른 라이더 보존");
+  assert.ok(report.rtdbMotionNodesRemoved >= 2);
+});
+
+test("추가 인스턴스에만 motion 이 남은 uid 도 고아 후보로 찾는다", async () => {
+  const base = fakeRtdb({ "trail-a": { "kr-rider": 1 } });
+  const europe = fakeRtdb({ "trail-eu": { "eu-only": 2 } });
+  const uids = await listRtdbMotionUids(base.db, [europe.db]);
+  assert.deepEqual([...uids].sort(), ["eu-only", "kr-rider"]);
+});
+
+test("추가 인스턴스 목록을 넘기지 않으면 기존 동작 그대로(기본 인스턴스만)", async () => {
+  const base = fakeRtdb({ "trail-a": { "kr-rider": 1 } });
+  assert.deepEqual(await listRtdbMotionUids(base.db), ["kr-rider"]);
 });

@@ -179,6 +179,8 @@ export async function deleteAccountData(
   db: Firestore,
   rtdb: Database | null,
   uid: string,
+  /** 기본 인스턴스 밖의 동행 RTDB(`rtdbInstances.ts`). 지역 서버가 없으면 빈 목록. */
+  extraMotionRtdbs: readonly Database[] = [],
 ): Promise<AccountDeletionReport> {
   const userSnap = await db.doc(`users/${uid}`).get();
   const nickname = userSnap.exists ? userSnap.get("nickname") : null;
@@ -186,11 +188,13 @@ export async function deleteAccountData(
   const presence = await buildPresenceIndex(db);
 
   let rtdbMotionNodesRemoved = 0;
-  if (rtdb) {
+  // 기본이 null 이면(초기화 실패) 기존 계약대로 motion 을 건드리지 않는다 — 추가 인스턴스도 마찬가지.
+  const motionRtdbs = rtdb ? [rtdb, ...extraMotionRtdbs] : [];
+  for (const instance of motionRtdbs) {
     // membership 유무와 무관하게 RTDB motion 노드가 남아 있으면 전부 수거한다.
-    const trailIds = new Set([...trailIdsForUid(presence, uid), ...(await rtdbTrailIdsWithMotion(rtdb, uid))]);
+    const trailIds = new Set([...trailIdsForUid(presence, uid), ...(await rtdbTrailIdsWithMotion(instance, uid))]);
     for (const trailId of trailIds) {
-      await rtdb.ref(`trails/${trailId}/motion/${uid}`).remove();
+      await instance.ref(`trails/${trailId}/motion/${uid}`).remove();
       rtdbMotionNodesRemoved += 1;
     }
   }

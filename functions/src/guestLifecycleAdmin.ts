@@ -19,7 +19,8 @@
  * RTDB 초기화 실패 시 guestRtdbPort 가 거부해 손실·재시도 상태로 남는다.
  */
 import type { Auth, UserRecord } from "firebase-admin/auth";
-import { getDatabase, type Database } from "firebase-admin/database";
+import type { Database } from "firebase-admin/database";
+import { getDefaultRtdbOrNull } from "./rtdbInstances.js";
 import type { Firestore } from "firebase-admin/firestore";
 import { deleteAccountData } from "./accountDeletionCore.js";
 import {
@@ -208,23 +209,24 @@ export function guestRtdbPort(rtdb: Database | null): GuestRtdbPort {
 
 /** RTDB 초기화 — 실패는 null 이고 null 은 port 층에서 예외로 다룬다. */
 export function getRtdbOrNull(): Database | null {
-  try {
-    return getDatabase();
-  } catch {
-    return null;
-  }
+  return getDefaultRtdbOrNull();
 }
 
 /** trails 모션 노드만 남은 개인 데이터도 놓치지 않는다 — RTDB motion sweep 전용. */
-export async function listRtdbMotionUids(rtdb: Database | null): Promise<string[]> {
+export async function listRtdbMotionUids(
+  rtdb: Database | null,
+  extraMotionRtdbs: readonly Database[] = [],
+): Promise<string[]> {
   if (!rtdb) return [];
-  const trails = await rtdb.ref("trails").get();
   const uids: string[] = [];
-  trails.forEach((trail) => {
-    trail.child("motion").forEach((node) => {
-      if (node.key) uids.push(node.key);
+  for (const instance of [rtdb, ...extraMotionRtdbs]) {
+    const trails = await instance.ref("trails").get();
+    trails.forEach((trail) => {
+      trail.child("motion").forEach((node) => {
+        if (node.key) uids.push(node.key);
+      });
     });
-  });
+  }
   return uids;
 }
 
@@ -266,19 +268,24 @@ async function buildMembershipRefs(db: Firestore): Promise<MembershipRefs> {
 }
 
 /** trails 하위 motion 노드 최초 패킷 시각(t) → uid별 최댓값. RTDB 모션 활동 인덱스. */
-async function listLatestMotionMsByUid(rtdb: Database | null): Promise<Map<string, number>> {
+async function listLatestMotionMsByUid(
+  rtdb: Database | null,
+  extraMotionRtdbs: readonly Database[],
+): Promise<Map<string, number>> {
   const latest = new Map<string, number>();
   if (!rtdb) return latest;
-  const trails = await rtdb.ref("trails").get();
-  trails.forEach((trail) => {
-    trail.child("motion").forEach((node) => {
-      const uid = node.key;
-      const tMs = millisOf(node.child("t").val());
-      if (!uid || tMs == null) return;
-      const prev = latest.get(uid);
-      if (prev == null || tMs > prev) latest.set(uid, tMs);
+  for (const instance of [rtdb, ...extraMotionRtdbs]) {
+    const trails = await instance.ref("trails").get();
+    trails.forEach((trail) => {
+      trail.child("motion").forEach((node) => {
+        const uid = node.key;
+        const tMs = millisOf(node.child("t").val());
+        if (!uid || tMs == null) return;
+        const prev = latest.get(uid);
+        if (prev == null || tMs > prev) latest.set(uid, tMs);
+      });
     });
-  });
+  }
   return latest;
 }
 
@@ -287,6 +294,8 @@ export async function guestLifecyclePortsFromAdmin(
   auth: Auth,
   rtdb: Database | null,
   nowMs: number,
+  /** 기본 밖의 동행 RTDB(`rtdbInstances.ts`) — 지역 서버가 없으면 빈 목록. */
+  extraMotionRtdbs: readonly Database[] = [],
 ): Promise<GuestLifecyclePorts> {
   const protectedSnap = await db.doc("config/guestLifecycle").get();
   const protectedUids = new Set(parseProtectedUidList(protectedSnap.data() as Record<string, unknown> | undefined));
@@ -322,7 +331,7 @@ export async function guestLifecyclePortsFromAdmin(
   };
   let motionMsByUid: Promise<Map<string, number>> | null = null;
   const ensureMotionMs = () => {
-    motionMsByUid ??= listLatestMotionMsByUid(rtdb);
+    motionMsByUid ??= listLatestMotionMsByUid(rtdb, extraMotionRtdbs);
     return motionMsByUid;
   };
   return {
@@ -379,7 +388,7 @@ export async function guestLifecyclePortsFromAdmin(
         personalSubcollectionUids(db, "livePublicationRides"),
         conquestOrphanSubcollectionUids(db),
         openTrailListingsHostUids(db),
-        listRtdbMotionUids(rtdb),
+        listRtdbMotionUids(rtdb, extraMotionRtdbs),
       ]);
       return unionCandidateUids(
         userIds,
@@ -435,7 +444,7 @@ export async function guestLifecyclePortsFromAdmin(
       return isWithinGuestWindow(motionMs, at, GUEST_INACTIVITY_MS);
     },
     deleteAccountData: async (uid) => {
-      await deleteAccountData(db, rtdb, uid);
+      await deleteAccountData(db, rtdb, uid, extraMotionRtdbs);
     },
     recordRun: async (report) => {
       // 무한 누적 방지 — 매 회차 90일 지난 run 50건(상한)까지 묶어 지운다.

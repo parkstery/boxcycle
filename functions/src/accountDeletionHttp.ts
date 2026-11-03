@@ -1,5 +1,4 @@
 import { getAuth } from "firebase-admin/auth";
-import { getDatabase } from "firebase-admin/database";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { defineSecret } from "firebase-functions/params";
 import { HttpsError, onRequest, type Request } from "firebase-functions/v2/https";
@@ -11,6 +10,7 @@ import {
   isRecentSignIn,
 } from "./accountDeletionCore.js";
 import { REGION } from "./region.js";
+import { getDefaultRtdbOrNull, getExtraMotionRtdbs } from "./rtdbInstances.js";
 
 const stripeSecretKey = defineSecret("STRIPE_SECRET_KEY");
 
@@ -117,13 +117,7 @@ export const deleteAccountHttp = onRequest(
 
       const stripe = await cancelStripeSubscription(userSnap.get("stripeSubscriptionId"));
 
-      let rtdb = null;
-      try {
-        rtdb = getDatabase();
-      } catch {
-        rtdb = null;
-      }
-      const report = await deleteAccountData(db, rtdb, uid);
+      const report = await deleteAccountData(db, getDefaultRtdbOrNull(), uid, getExtraMotionRtdbs());
 
       await getAuth().deleteUser(uid);
       await logRef.set({ status: "done", doneAt: FieldValue.serverTimestamp() }, { merge: true });
@@ -184,13 +178,7 @@ export const resetGuestHttp = onRequest(
     }
 
     try {
-      let rtdb = null;
-      try {
-        rtdb = getDatabase();
-      } catch {
-        rtdb = null;
-      }
-      const report = await deleteAccountData(getFirestore(), rtdb, uid);
+      const report = await deleteAccountData(getFirestore(), getDefaultRtdbOrNull(), uid, getExtraMotionRtdbs());
       await getAuth().deleteUser(uid);
       console.info("[resetGuest] done", report);
       res.status(200).json({ result: { ok: true } });

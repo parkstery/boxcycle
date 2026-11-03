@@ -1,7 +1,7 @@
 #!/bin/sh
-# RTW pre-push 게이트 10종 (2026-10-22 기준).
+# RTW pre-push 게이트 11종 (2026-11-03 기준).
 #
-#   lock 동기 · harness 설정 동기 · lib 의존 방향/순환 · 개발 부산물 등록부 ·
+#   lock 동기 · harness 설정 동기 · lib 의존 방향/순환 · DB 접근 통로 · 개발 부산물 등록부 ·
 #   web 타입체크 · web 단위 시험 전체(test:quick) · **진입 셀렉터 계약** ·
 #   functions 타입체크+계약 · Claim 셀 ID 벡터
 #
@@ -64,6 +64,16 @@ touch_dep=$(echo "$changed" | grep -E 'apps/web/dep-layers' || true)
 if [ -n "$touch_web" ] || [ -n "$touch_dep" ]; then
   echo "[pre-push] lib 도메인 의존 방향·순환 검사…"
   node scripts/check-dep-direction.mjs --check || fail=1
+fi
+
+# DB 접근 통로 (2026-11-03, 전세계 지역 데이터 G0.5 P5).
+# Firestore·RTDB 를 여는 곳을 web=lib/firebase/app.ts, functions RTDB=rtdbInstances.ts 하나로 묶는다.
+# 지역 DB·인스턴스를 늘릴 때 「어느 DB」 결정을 한 곳에서 바꾸기 위해서다.
+# 다른 파일에서 getFirestore( 를 부르면, 그리고 통로 파일에서 호출을 옮기면(M0) 실패하는 것을 확인했다.
+touch_dbgate=$(echo "$changed" | grep -E 'scripts/check-firebase-accessors' || true)
+if [ -n "$touch_web" ] || [ -n "$touch_fn" ] || [ -n "$touch_dbgate" ]; then
+  echo "[pre-push] DB 접근 통로 검사…"
+  node scripts/check-firebase-accessors.mjs --check || fail=1
 fi
 
 # 개발 부산물 등록부 (2026-10-17).
@@ -132,7 +142,7 @@ fi
 if [ "$fail" -ne 0 ]; then
   echo ""
   echo "[pre-push] 게이트 실패 — 원격에 올리기 전에 고치세요."
-  echo "           게이트 10종: lock 동기 · harness 설정 동기 · lib 의존 방향/순환 · 코드 정련 래칫 ·"
+  echo "           게이트 11종: lock 동기 · harness 설정 동기 · lib 의존 방향/순환 · DB 접근 통로 · 코드 정련 래칫 ·"
   echo "                      개발 부산물 등록부 · web 타입체크 · web 단위 시험(test:quick) ·"
   echo "                      진입 셀렉터 계약 · functions 타입체크+계약 ·"
   echo "                      Claim 셀 ID 벡터(클라↔서버)"

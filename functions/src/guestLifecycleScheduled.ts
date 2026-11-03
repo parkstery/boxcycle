@@ -9,6 +9,7 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { getRtdbOrNull, guestLifecyclePortsFromAdmin } from "./guestLifecycleAdmin.js";
+import { getExtraMotionRtdbs } from "./rtdbInstances.js";
 import { runGuestLifecycleSweep } from "./guestLifecycleCore.js";
 import { REGION } from "./region.js";
 
@@ -22,7 +23,7 @@ export const guestLifecycleSweep = onSchedule(
   async () => {
     const rtdb = getRtdbOrNull();
     const nowMs = Date.now();
-    const report = await runGuestLifecycleSweep(await guestLifecyclePortsFromAdmin(getFirestore(), getAuth(), rtdb, nowMs));
+    const report = await runGuestLifecycleSweep(await guestLifecyclePortsFromAdmin(getFirestore(), getAuth(), rtdb, nowMs, getExtraMotionRtdbs()));
     if (rtdb == null) console.error("[guestLifecycleSweep] RTDB 초기화 실패 — 삭제는 실패·재시도로 남는다");
     console.info("[guestLifecycleSweep]", report);
   },
