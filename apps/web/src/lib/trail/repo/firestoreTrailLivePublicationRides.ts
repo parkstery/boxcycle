@@ -225,28 +225,46 @@ function parseActiveLiveRideTrailIds(docs: readonly QueryDocumentSnapshot[]): st
   return ids;
 }
 
-/** realtime — Trailhead·월드 맵이 주행 중 Trail 을 구독할 때 사용 */
+/**
+ * 주행 중 Trail 을 찾는 **안전망** 조회 주기(ms). 비용 절감 L2(document/ops/20261103-cost-squeeze/01-audit.md).
+ *
+ * 왜 실시간 구독이 아닌가 — 이 조회는 Trail id 만 필요한데, 실시간 collectionGroup 구독은
+ * 라이더마다 4초 위치 쓰기를 **보는 사람 전원이 매번** 읽는다(보는 사람 × 라이더 × 900회/시간).
+ * 새 Trail 은 서버가 갱신하는 `openTrailListings` 실시간 구독으로 바로 나타나므로, 이 안전망은
+ * 목록에 아직 없는 Trail 을 늦게라도 줍는 역할만 한다. 60초면 읽기가 최대 80건/분으로 고정된다.
+ */
+const ACTIVE_LIVE_RIDE_TRAIL_POLL_MS = 60_000;
+
+/** 주기 조회 — Trailhead·월드 맵이 주행 중 Trail 을 찾을 때 사용(구독처럼 해제 함수를 돌려준다) */
 export function subscribeTrailIdsWithActiveLiveRides(
   onChange: (trailIds: string[]) => void,
   onError?: (e: FirestoreError) => void,
 ): Unsubscribe {
   const db = getFirebaseFirestore();
-  const q = query(
-    collectionGroup(db, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION),
-    where("lastSeenAt", ">", liveRideFreshnessCutoff()),
-    orderBy("lastSeenAt", "desc"),
-    limit(ACTIVE_LIVE_RIDE_TRAIL_SCAN_LIMIT),
-  );
+  let stopped = false;
+  const poll = async () => {
+    // cutoff 를 매번 다시 잡는다 — 실시간 구독 시절에는 구독 시점에 고정돼 범위가 계속 넓어졌다.
+    const q = query(
+      collectionGroup(db, TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION),
+      where("lastSeenAt", ">", liveRideFreshnessCutoff()),
+      orderBy("lastSeenAt", "desc"),
+      limit(ACTIVE_LIVE_RIDE_TRAIL_SCAN_LIMIT),
+    );
+    try {
+      const snap = await getDocs(q);
+      if (!stopped) onChange(parseActiveLiveRideTrailIds(snap.docs));
+    } catch (err) {
+      if (!stopped) onError?.(err as FirestoreError);
+    }
+  };
+  void poll();
+  const timer = setInterval(() => void poll(), ACTIVE_LIVE_RIDE_TRAIL_POLL_MS);
   return trackVisibilityListener(
     "collectionGroupLiveRides",
-    trackUnderlyingReadSubscription(
-      "collectionGroup",
-      onSnapshot(
-        q,
-        (snap) => onChange(parseActiveLiveRideTrailIds(snap.docs)),
-        (err) => onError?.(err),
-      ),
-    ),
+    trackUnderlyingReadSubscription("collectionGroup", () => {
+      stopped = true;
+      clearInterval(timer);
+    }),
   );
 }
 

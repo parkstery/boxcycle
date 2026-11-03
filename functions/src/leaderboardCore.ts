@@ -21,7 +21,18 @@ export const LEADERBOARD_BOARDS: readonly LeaderboardBoard[] = ["distance", "pio
 export const LEADERBOARD_PERIODS: readonly LeaderboardPeriod[] = ["week", "month", "all"];
 
 export const LEADERBOARD_CACHE_COLLECTION = "leaderboardCache";
-export const LEADERBOARD_CACHE_TTL_MS = 5 * 60 * 1000;
+/**
+ * 캐시 수명. 비용 절감 L6 임시(document/ops/20261103-cost-squeeze/01-audit.md, Chief 승인 11-03):
+ * 캐시가 비면 기간 안 rides 를 **전부** 다시 읽는다. 5분이면 사용자 1만 명 규모에서 월 수천 달러가 된다.
+ * 근본 해결은 누적 점수(leaderboardScores, 00-plan G3) — 그때 이 훑기와 함께 없앤다.
+ */
+export const LEADERBOARD_CACHE_TTL_MS = 30 * 60 * 1000;
+/** 「전체」 기간은 쌓인 주행 전부를 읽으므로 더 길게. */
+export const LEADERBOARD_CACHE_TTL_ALL_MS = 60 * 60 * 1000;
+
+export function leaderboardCacheTtlMs(period: LeaderboardPeriod): number {
+  return period === "all" ? LEADERBOARD_CACHE_TTL_ALL_MS : LEADERBOARD_CACHE_TTL_MS;
+}
 export const LEADERBOARD_LIVE_WINDOW_MS = 30 * 1000;
 export const LEADERBOARD_TOP_N = 20;
 // TODO(release): 테스트 종료 후 true 로 복원. document/출시 전 확인사항.md §6.
@@ -393,7 +404,7 @@ export function cacheDataToSnapshot(
 
 /** 캐시가 아직 쓸 만한가 — 5분 안이고, 기간 시작이 지금 기준과 같다(주·달이 바뀌면 버린다). */
 export function isCacheFresh(s: BoardSnapshot, nowMs: number): boolean {
-  if (nowMs - s.generatedAtMs < 0 || nowMs - s.generatedAtMs >= LEADERBOARD_CACHE_TTL_MS) return false;
+  if (nowMs - s.generatedAtMs < 0 || nowMs - s.generatedAtMs >= leaderboardCacheTtlMs(s.period)) return false;
   const startMs = periodStartMs(s.period, nowMs);
   const expected = startMs == null ? null : kstDateKey(startMs);
   return s.periodStartKst === expected;
@@ -498,6 +509,25 @@ export async function loadNicknames(
 }
 
 /** 30초 안에 `lastSeenAt` 이 갱신된 라이브 주행 → uid → trailId. (collection group 인덱스는 fieldOverrides 에 이미 있다) */
+let liveTrailsMemo: { atMs: number; value: Map<string, string> } | null = null;
+
+/**
+ * 「지금 주행 중」 표시용 — 요청마다 전 세계 live 문서를 읽지 않도록 **인스턴스 안에서 창 길이만큼 재사용**한다
+ * (창 = LEADERBOARD_LIVE_WINDOW_MS, 이보다 짧게 바뀐 값은 어차피 화면 의미가 없다). 비용 절감 L6.
+ */
+export async function loadLiveTrailsMemo(db: Firestore, nowMs: number): Promise<Map<string, string>> {
+  const hit = liveTrailsMemo;
+  if (hit && nowMs >= hit.atMs && nowMs - hit.atMs < LEADERBOARD_LIVE_WINDOW_MS) return hit.value;
+  const value = await loadLiveTrails(db, nowMs);
+  liveTrailsMemo = { atMs: nowMs, value };
+  return value;
+}
+
+/** 시험용 — 인스턴스 메모를 비운다. */
+export function resetLiveTrailsMemoForTests(): void {
+  liveTrailsMemo = null;
+}
+
 export async function loadLiveTrails(db: Firestore, nowMs: number): Promise<Map<string, string>> {
   const cutoff = Timestamp.fromMillis(nowMs - LEADERBOARD_LIVE_WINDOW_MS);
   const snap = await db

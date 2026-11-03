@@ -10,7 +10,9 @@
 
 ## 진행 중
 
-**11-03 전세계 지역 데이터(Claude Code)** — G1 커밋됨(main2, 미푸시·배포 없음): `functions/src/geoRegion/`·`functions/geo-data/v1/`(4.8MB)·`functions/scripts/geo-region/`, package.json 시험 목록 1줄. geoRegion 30/30·functions 201/201·eslint 0. 원본 54MB는 scratchpad(리포 미포함, 재생성은 README). **G0.5 P5·P2 커밋됨(main2, 미푸시)**: `scripts/check-firebase-accessors.mjs`(pre-push 11종째·생존 확인 2항목), `functions/src/rtdbInstances.ts` + 정리 코드 5파일·시험 1파일, `githooks/pre-push`, `scripts/verify-gates-alive.mjs`. functions 204/204·eslint 0·사보타주 확인. **P1 이름표+Rules 커밋됨·미배포**(Rules 배포는 직전 설명 후). 11-03 Chief 지시: **비용 절감 여지 짜내기가 1순위**, 유럽 RTDB는 미루지 말고 여유 있을 때 설정. `ride-moments-dom` 시험은 test:quick 병렬 시 vite 캐시 경합으로 간헐 FAIL(단독 PASS) — [계획 §5.1](20261103-global-geo-data/00-plan.md). 확인 `cd C:.HDevoxcycleunctions; npx tsc; node --test lib/geoRegion/geoRegion.test.js`
+**11-03 비용 절감 L1·L2·L3·L6 임시 구현·미커밋(Claude Code)**: App.tsx(livePresence 디버그 전용)·firestoreTrailLivePublicationRides(CG 60초 조회)·listenerScopePolicy+useAppMapOverlays(관전 8개)·leaderboardCore/leaderboard(캐시 30/60분·live 메모). web 1481/0·functions 205/0. **L4 보류**(15초 표시 기준 충돌, 설계 필요). [01-audit](20261103-cost-squeeze/01-audit.md).
+
+**11-03 전세계 지역 데이터·비용(Claude Code)** — G1(2559dd7c)·G0.5 P5·P2(de076cfa)·P1 이름표+Rules(8eb69595) 커밋, 미푸시·미배포. Chief 11-03: **비용 짜내기 1순위**, 유럽 RTDB는 미루지 말고 설정. 비용 점검 [01-audit](20261103-cost-squeeze/01-audit.md): 제곱형 L6 순위 훑기·L1 livePresence 전체 구독·L2 CG 구독. 계획 [00-plan](20261103-global-geo-data/00-plan.md). `ride-moments-dom`은 test:quick 병렬 시 vite 캐시 경합으로 간헐 FAIL(단독 PASS).
 
 **11-03 버튼 숨김 멈춤 수정+ⓖ 빈칸(Claude Code) — 배포됨(f8d19c69, 운영 js SHA256=로컬)**: 원인 = 펼친 경로 카드(줄 띠)가 RideControlsAutoHide BUSY 에 있어 5초 숨김·탭 토글 둘 다 멈춤(폰 699×273 터치 실앱 실측). BUSY 에서 제외, 고정66 보완. 게스트 이름 `ⓖ tHQb`(고정73). 실앱 시험 `ride-entry.spec.ts` 「실앱 버튼 숨김」(사보타주 확인), ride-entry 8/8, 하네스 autohide 7/7, test:quick 1475/0. 남은 것: Chief 폰 확인.
 
@@ -36,6 +38,8 @@
 3. 커밋 제외: compact-controls evidence zip 2개(각 182MB), `.out/`(배포 빌드 복사본), 빈 `claude-headless.err`.
 
 ## Chief 결정 대기
+
+**비용·유럽 RTDB**: 커밋·푸시·배포(Hosting·Functions·Firestore Rules) 묶음 승인, L4 표시 판정 설계 승인, 유럽 RTDB 인스턴스 생성 승인 — [cost-squeeze](20261103-cost-squeeze/README.md).
 
 그 밖에 없음 — 2026-10-29 Chief 「한꺼번에 하자」: 간편 인터벌 01 감리·커밋 후 그때까지의 커밋 전부를 한 번에 푸시·Hosting 배포한다(배포 전 대상·범위 설명 후 실행, 적용 검증).
 

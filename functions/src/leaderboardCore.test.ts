@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import type { Firestore } from "firebase-admin/firestore";
 import {
+  LEADERBOARD_LIVE_WINDOW_MS,
+  loadLiveTrailsMemo,
+  resetLiveTrailsMemoForTests,
   buildLeaderboardResponse,
   cacheDataToSnapshot,
   computeBoardSnapshot,
@@ -357,14 +361,39 @@ describe("캐시", () => {
     assert.equal(respond(snapshot([ride("a")], { sensorOnly: true }), "a").rule.sensorOnly, true);
   });
 
-  it("5분 안이면 신선, 5분이 지나거나 주가 바뀌면 낡음, board/period 가 다르면 버림", () => {
+  it("30분(전체 60분) 안이면 신선, 지나거나 주가 바뀌면 낡음, board/period 가 다르면 버림", () => {
     const s = snapshot([ride("a")], { period: "week" });
-    assert.equal(isCacheFresh(s, NOW + 4 * 60 * 1000), true);
-    assert.equal(isCacheFresh(s, NOW + 5 * 60 * 1000), false);
+    assert.equal(isCacheFresh(s, NOW + 29 * 60 * 1000), true);
+    assert.equal(isCacheFresh(s, NOW + 30 * 60 * 1000), false);
+    const all = snapshot([ride("a")], { period: "all" });
+    assert.equal(isCacheFresh(all, NOW + 59 * 60 * 1000), true, "전체 기간은 60분");
+    assert.equal(isCacheFresh(all, NOW + 60 * 60 * 1000), false);
     // 같은 시각에 만든 캐시라도 월요일 0시를 넘기면 다시 계산
     const justBefore = snapshot([ride("a")], { period: "week", nowMs: WEEK_START + 7 * 24 * HOUR - 1000 });
     assert.equal(isCacheFresh(justBefore, WEEK_START + 7 * 24 * HOUR + 1000), false);
     assert.equal(cacheDataToSnapshot(snapshotToCacheData(s), "distance", "month"), null);
     assert.equal(cacheDataToSnapshot(undefined, "distance", "week"), null);
+  });
+});
+
+describe("loadLiveTrailsMemo (비용 절감 L6)", () => {
+  it("창 안에서는 다시 읽지 않고, 창이 지나면 다시 읽는다", async () => {
+    let reads = 0;
+    const chain = {
+      where: () => chain,
+      select: () => chain,
+      get: async () => {
+        reads += 1;
+        return { docs: [] };
+      },
+    };
+    const db = { collectionGroup: () => chain } as unknown as Firestore;
+    resetLiveTrailsMemoForTests();
+    await loadLiveTrailsMemo(db, 1_000_000);
+    await loadLiveTrailsMemo(db, 1_000_000 + LEADERBOARD_LIVE_WINDOW_MS - 1);
+    assert.equal(reads, 1, "창 안 두 번째 요청은 메모");
+    await loadLiveTrailsMemo(db, 1_000_000 + LEADERBOARD_LIVE_WINDOW_MS);
+    assert.equal(reads, 2, "창이 지나면 다시 읽기");
+    resetLiveTrailsMemoForTests();
   });
 });

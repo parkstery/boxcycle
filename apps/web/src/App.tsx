@@ -1733,18 +1733,16 @@ export default function App() {
     import.meta.env.DEV &&
     import.meta.env.VITE_DEBUG_GLOBAL_LIVE_PRESENCE_ON_MAP === "true";
 
-  const globalLivePresenceSubscribeEnabled = Boolean(
-    configured &&
-      user &&
-      pageVisible &&
-      (debugGlobalPresenceOnMap || Boolean(activeCourseIdForGlobalPresence?.trim())),
-  );
+  // 전역 livePresence 점은 운영 지도에 그리지 않는다(아래 MapView 는 debug 일 때만 받는다).
+  // 그래서 구독·쓰기도 debug 에서만 — 운영에서는 아무도 안 보는 데이터에 라이더² 읽기를 냈다(비용 L1).
+  const globalLivePresenceSubscribeEnabled = Boolean(configured && user && pageVisible && debugGlobalPresenceOnMap);
 
   const globalLivePresencePublishEnabled = Boolean(
     configured &&
       user &&
       publishVisible &&
       isRideSessionActive &&
+      debugGlobalPresenceOnMap &&
       Boolean(activeCourseIdForGlobalPresence?.trim()),
   );
 

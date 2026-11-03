@@ -43,6 +43,7 @@ import {
   shouldSkipLiveOverlaysOnMap,
 } from "../../lib/debug/mapDebugPhase";
 import {
+  pickWorldSpectatorTrailIds,
   resolveActiveLiveRideTrailIdsListenerEnabled,
   resolveWorldLivePublicationRideOverlayEligible,
 } from "./listenerScopePolicy";
@@ -181,20 +182,20 @@ export function useAppMapOverlays(opts: UseAppMapOverlaysOpts): AppMapOverlaysRe
     }),
   });
 
+  // 비용 L3: 현재 Trail + 라이더 많은 순으로 상한까지만 구독한다(listenerScopePolicy).
   const liveRideTrailIds = useMemo(() => {
-    const ids = new Set<string>();
-    if (sanitizedTrailId !== DEFAULT_TRAIL_ID) {
-      ids.add(sanitizeTrailId(sanitizedTrailId));
-    }
-    for (const t of openTrails) {
-      const tid = sanitizeTrailId(t.id);
-      if (tid !== DEFAULT_TRAIL_ID) ids.add(tid);
-    }
-    for (const id of activeLiveRideTrailIdsQuery.trailIds) {
+    const keep = (id: string) => {
       const tid = sanitizeTrailId(id);
-      if (tid !== DEFAULT_TRAIL_ID) ids.add(tid);
-    }
-    return [...ids];
+      return tid !== DEFAULT_TRAIL_ID ? tid : null;
+    };
+    return pickWorldSpectatorTrailIds({
+      currentTrailId: keep(sanitizedTrailId),
+      openTrails: openTrails.flatMap((t) => {
+        const id = keep(t.id);
+        return id ? [{ id, liveRiderCount: t.liveRiderCount }] : [];
+      }),
+      activeTrailIds: activeLiveRideTrailIdsQuery.trailIds.flatMap((id) => keep(id) ?? []),
+    });
   }, [sanitizedTrailId, openTrails, activeLiveRideTrailIdsQuery.trailIds]);
 
   /** AC-7: Trailhead idle = publication + 주행 Trail 관전 라인 — L3 동행 spectator 는 주행·일시정지에서만 */

@@ -9,7 +9,7 @@ import {
   LEADERBOARD_PERIODS,
   getBoardSnapshot,
   layoutLeaderboard,
-  loadLiveTrails,
+  loadLiveTrailsMemo,
   loadNicknames,
   renderLeaderboard,
   type LeaderboardBoard,
@@ -60,7 +60,7 @@ async function handleGetLeaderboard(req: Request, res: Response): Promise<void> 
     const layout = layoutLeaderboard(snapshot, requester);
     const [nicknames, liveByUid] = await Promise.all([
       loadNicknames(db, layout.displayUids),
-      loadLiveTrails(db, nowMs),
+      loadLiveTrailsMemo(db, nowMs),
     ]);
 
     res.set("Cache-Control", "no-store");
@@ -79,7 +79,7 @@ async function handleGetLeaderboard(req: Request, res: Response): Promise<void> 
 /**
  * 리더보드(주행 거리·개척) — 읽기 전용. 계약은 document/ops/20261023-leaderboard/01-plan.md.
  * 호출: GET `?board=distance|pioneer&period=week|month|all`, `Authorization: Bearer <ID 토큰>`(게스트 포함).
- * 응답에 uid 를 싣지 않는다. 전체 순위는 `leaderboardCache/{board}_{period}` 에 5분 캐시(클라이언트 접근 불가).
+ * 응답에 uid 를 싣지 않는다. 전체 순위는 `leaderboardCache/{board}_{period}` 에 30분(「전체」 60분) 캐시(클라이언트 접근 불가).
  * 접근 로그는 남기지 않는다(일반 사용자 기능).
  */
 export const getLeaderboard = onRequest(
