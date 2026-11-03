@@ -6,11 +6,11 @@
 | 담당 | **Claude Code** — 2026-10-30 구름·톱니·접기 캐럿 배포 완료, 대기 |
 | 갱신 | 2026-10-30 19시 — 11eb53aa 배포, 시안 20261030-gear-cloud-mockup |
 | 브랜치 | `main2` |
-| 마지막 배포 | 2026-11-03 Hosting(Claude Code): f32dc99d — 왼쪽 원형 메뉴·순위 목록 위치·글자 선택·전체 화면 설치. 번들 SHA256 일치 |
+| 마지막 배포 | 2026-11-03 Hosting(Claude Code): f45d6193 — 센서 단추·인터벌 그림/캐럿/깜빡임·지도 탭 토글·미니맵 버튼 세로. 번들 SHA256 일치 |
 
 ## 진행 중
 
-**11-03 Chief 5건+탭 토글(Claude Code)**: 센서 LED 볼록 단추(A2)·미니맵 캐럿 28px·인터벌 캐럿 왼쪽 위(C1)·도넛 1초 깜빡임·단계 선 그림+작은 글자(B2)·지도 탭 토글+5초 유지. 고정72, [README](20261103-interval-sensor-look/README.md). tsc 0·eslint 0·test:quick 1470/0·화면 e2e 19종 167/3(배치1 기존). 커밋·푸시·배포 진행(Chief 「사이트에서 직접 볼게」).
+**11-03 Chief 5건+탭 토글(Claude Code)**: 센서 LED 볼록 단추(A2)·미니맵 캐럿 28px·인터벌 캐럿 왼쪽 위(C1)·도넛 1초 깜빡임·단계 선 그림+작은 글자(B2)·지도 탭 토글+5초 유지. 고정72, [README](20261103-interval-sensor-look/README.md). tsc 0·eslint 0·test:quick 1470/0·화면 e2e 19종 167/3(배치1 기존). **배포됨(f45d6193, 운영 js·css SHA256=로컬)** — 이후 미니맵 버튼 세로(낮은 폰+인터벌+카드만 가로)·도넛 칸 단계 색 포함.
 
 **11-03 Chief 폰 캡처 6장 후속 배포됨(f32dc99d, Claude Code)**: 글자 선택 막기·순위 목록 계정 아래(묶음 겹침 허용)·왼쪽 원형 메뉴 버튼·왼쪽 끝 20px·접힌 인터벌 알약 버튼 오른쪽·경로 손잡이/미니맵 둘 다 접힘=세로·manifest fullscreen+viewport-fit=cover. pre-push 10종·test:quick 1470/0, 화면 e2e 16종 137/3(배치1 기존), 운영 js·css SHA256=로컬·manifest 200. 고정71·README 「후속 2」. 남은 것: Chief 폰 「홈 화면에 추가」 실기 확인. Chief 6장 중 3~6(고도 숫자·이름표 겹침·빈 핀)은 별도·보류.
 
