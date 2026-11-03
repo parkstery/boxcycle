@@ -1,0 +1,23 @@
+{
+  "v": 1,
+  "source": "Natural Earth 1:10m (public domain)",
+  "files": [
+    "ne_10m_admin_0_countries_kor.geojson",
+    "ne_10m_admin_1_states_provinces.geojson"
+  ],
+  "pointOfView": "KOR",
+  "simplifyDeg": 0.002,
+  "coordDecimals": 4,
+  "countries": 239,
+  "countriesWithAdmin1": 200,
+  "admin1": 3813,
+  "skippedCountries": [
+    "BRT",
+    "ESB",
+    "PGA",
+    "SCR",
+    "USG",
+    "WSB"
+  ],
+  "droppedAdmin1Features": 188
+}

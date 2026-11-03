@@ -1,3 +1,5 @@
+2026-11-03 [전세계 지역 데이터 구조](20261103-global-geo-data/README.md): APPROVED(방향)·NOT_STARTED. 서비스·DB 하나+지역 표시(대륙·국가·ISO3166-2·quadkey), 거리순위=대표국가·정복/개척=도로위치, 주·월, 도시 보류. Chief 확인 Q1·Q2 후 G1. Supervisor Claude Code.
+
 2026-10-29 [왼쪽 메뉴 정비](20261029-left-menu/03-audit-claude.md): COMMITTED·미푸시·미배포. Cursor 구현, Claude Code가 Codex에서 감리 인수. 인터벌 「사용」 알약 스위치+직접조절 시 프리셋 숨김(Chief A안). 묶음별 커밋 4b4f5427(지도아이콘100)·2264047e(미니맵접기102)·f2b1b882(메뉴). 관련UI 실패 9건은 HEAD 기존 실패.
 
 2026-10-29 [일반 주행+인터벌 경로 거리 부족 안내](20261029-interval-route-hint/README.md): APPROVED·NOT_STARTED. Chief 25km/h 기준 최소거리(0.1km 올림) 안내: 인터벌 먼저→경로 설정 시, 경로 먼저→인터벌 설정 시. 기본값=고정48 흰창 재사용·확인 1버튼, 시작경고도 25km/h 통일(Chief 확인 대기). 왼쪽 메뉴 감리 PASS 후 착수. Supervisor Claude Code 지시 작성.
