@@ -18,6 +18,7 @@ import {
 } from "./firestoreOpenTrailListings";
 import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "../trailAccessPolicy";
 import { TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS } from "../trailLivePolicy";
+import { TRAIL_MOTION_INSTANCE_DEFAULT, type TrailMotionInstance } from "../trailMotionInstance";
 import { parseTrailInstance } from "./trailDocParse";
 import {
   noteTouchActivityCall,
@@ -38,6 +39,8 @@ type TrailInstanceDoc = {
   distanceKm?: number | null;
   visibility: TrailVisibility;
   status: TrailStatus;
+  /** 동행 RTDB 이름표(주소 아님) — firestore.rules 허용 목록, 만든 뒤 변경 불가 */
+  motionInstance?: TrailMotionInstance;
   createdAt?: FieldValue;
   lastActivityAt?: FieldValue;
 };
@@ -79,6 +82,7 @@ export async function createTrailInstance(input: {
     distanceKm: input.distanceKm,
     visibility,
     status: "open",
+    motionInstance: TRAIL_MOTION_INSTANCE_DEFAULT,
     createdAt: serverTimestamp(),
     lastActivityAt: serverTimestamp(),
   };

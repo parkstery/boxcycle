@@ -214,6 +214,16 @@ service cloud.firestore {
     }
 
     /**
+     * Trail 동행 RTDB **이름표** — 주소가 아니라 허용 목록의 이름만(주소를 받으면 남의 위치를
+     * 다른 서버로 빼돌릴 수 있다). 없으면 기본(옛 Trail·옛 앱). 목록은
+     * apps/web/src/lib/trail/trailMotionInstance.ts 와 같아야 한다(계약 시험이 대조).
+     * 계획: document/ops/20261103-global-geo-data/00-plan.md §5.1 P1
+     */
+    function trailMotionInstanceValid(data) {
+      return !('motionInstance' in data) || data.motionInstance in ['default'];
+    }
+
+    /**
      * Trail presence·livePublicationRides — Trailhead(`default`)·공개 Trail·비공개 Trail 개설자.
      * 비공개 Trail 타인 합류는 초대·승인 후속 — Rules 에서 차단.
      */
@@ -354,6 +364,7 @@ service cloud.firestore {
         && request.resource.data.status == 'open'
         && request.resource.data.visibility in ['open', 'private']
         && trailOpenVisibilityValid(request.resource.data)
+        && trailMotionInstanceValid(request.resource.data)
         && request.resource.data.keys().hasAll([
           'hostUid', 'displayNumber', 'status', 'visibility', 'createdAt', 'lastActivityAt'
         ]);
@@ -363,7 +374,8 @@ service cloud.firestore {
         && request.resource.data.displayNumber == resource.data.displayNumber
         && request.resource.data.status in ['open', 'closed']
         && request.resource.data.visibility in ['open', 'private']
-        && trailOpenVisibilityValid(request.resource.data);
+        && trailOpenVisibilityValid(request.resource.data)
+        && request.resource.data.get('motionInstance', null) == resource.data.get('motionInstance', null);
       allow delete: if false;
     }
 

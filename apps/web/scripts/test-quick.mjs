@@ -50,7 +50,7 @@ const GROUPS = {
   ],
   route: ["distance-auto-route", "quick-interval", "route-token", "geo"],
   map: ["map", "focus-read-spike"],
-  peer: ["peer-sync"],
+  peer: ["peer-sync", "trail"],
   meters: ["traffic", "s42", "s43"],
   tools: ["e2e", ".", "tools"],
 };

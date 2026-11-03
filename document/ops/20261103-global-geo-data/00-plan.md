@@ -189,6 +189,7 @@
 진행 (2026-11-03, Claude Code 직접, P5·P2 Chief 승인 커밋):
 - **P5 완료**: `scripts/check-firebase-accessors.mjs` + pre-push 11종째 + `verify-gates-alive` 2항목. 현재 위반 0. 사보타주 4건(웹 직접 열기·서버 직접 열기·통로 옮김 → FAIL, 주석만 → PASS).
 - **P2 완료**: `functions/src/rtdbInstances.ts`(기본 + `EXTRA_MOTION_RTDB_URLS`, 지금 빈 목록). 계정 삭제·게스트 정리·고아 탐색이 추가 인스턴스도 돈다(기본값 빈 목록이라 지금 동작은 같음). 시험 +3, functions 204/204, 사보타주(추가 인스턴스 무시) → 2 FAIL.
+- **P1 1차 완료(이름표+Rules, 미배포)**: `apps/web/src/lib/trail/trailMotionInstance.ts`(목록 `default`), Trail 생성 시 `motionInstance: "default"`, `firestore.rules` 생성=허용 목록·수정=변경 금지. 계약 시험 3/3(Rules 목록에 이름만 더하면 FAIL), 에뮬레이터 Rules 시험 8/8(`npm run test:trail-motion:rules`, 검사 제거 시 2 FAIL). web tsc 0·의존 방향·정련·통로 게이트 PASS, test:quick 1477/1(`ride-moments-dom` — 묶음 병렬 vite 캐시 삭제 경합 ENOTEMPTY, 단독 1/1 PASS, 기존 결함). 운영 Rules는 생성 시 추가 필드를 허용하므로 Hosting·Rules 배포 순서 무관.
 - **P1 — Chief가 권장안 승인(11-03)**: ① `motionInstance`는 주소가 아니라 **정해진 이름표**(`default` 등)여야 한다. Trail 문서는 클라이언트가 쓰므로, 주소를 그대로 받으면 악의적 사용자가 남의 동행 위치를 자기 서버로 보내게 만들 수 있다. 그래서 Firestore Rules에 허용 목록·변경 금지를 넣어야 하고, 이는 **Rules 배포**다. ② 실시간 동행 코드(`rtdbTrailMotion.ts`·`serverClockOffset.ts`)의 접속을 Trail별로 나누는 변경이라 peer-sync 재생·실주행 확인이 필요하다. 지금은 인스턴스가 하나뿐이라 당장 얻는 것이 없다. 권장: **이름표 필드 + Rules만 지금**(값은 항상 `default`, 클라이언트 접속 코드는 그대로), 접속 분리는 지역 서버를 켜기 직전에 한다.
 
 ### 5.2 지역 서버 추가 비용 추정 (2026-11-03)

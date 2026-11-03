@@ -263,6 +263,7 @@
       "trail/trailId.ts",
       "trail/keyedSubscriptionHub.ts",
       "trail/trailLivePolicy.ts",
+      "trail/trailMotionInstance.ts",
       "trail/listenerVisibilityGracePolicy.ts",
       "trail/presenceWriteResumePolicy.ts",
       "trail/trailLiveRideSink.ts",
