@@ -13,7 +13,8 @@ import { FieldValue, getFirestore, type Query, type QueryDocumentSnapshot } from
 import { initFirebaseAdminForCli } from "./initAdminForCli.js";
 import { loadMemberUids, loadPublicationOwners } from "./leaderboardCore.js";
 import { rideScoreInputFromData } from "./leaderboardScoresOnRideWritten.js";
-import { LEADERBOARD_SCORE_APPLIED_COLLECTION, planRideScoreWrites } from "./leaderboardScoresCore.js";
+import { homeScoreScopes, LEADERBOARD_SCORE_APPLIED_COLLECTION, planRideScoreWrites } from "./leaderboardScoresCore.js";
+import { continentOfCountry } from "./geoRegion/geoRegionData.js";
 import { applyRideScoresInTransaction } from "./leaderboardScoresStore.js";
 
 function arg(name: string): string | undefined {
@@ -82,6 +83,12 @@ async function main(): Promise<void> {
         : Promise.resolve([]),
     ]);
     const done = new Set(ledger.filter((l) => l.exists).map((l) => l.id));
+    // G3-2: 회원의 대표 국가(지금 값) — 아직 반영 안 된 주행만 거리 판 대륙·국가 범위에 더한다
+    const memberIds = [...new Set(rows.map((d) => String(d.get("userId") ?? "")).filter((u) => members.has(u)))];
+    const homeSnaps = memberIds.length
+      ? await db.getAll(...memberIds.map((u) => db.doc(`users/${u}`)), { fieldMask: ["homeCountry"] })
+      : [];
+    const homeByUid = new Map(homeSnaps.map((s) => [s.id, s.get("homeCountry") as unknown]));
 
     for (const d of rows) {
       const pubId = d.get("publicationId");
@@ -91,6 +98,10 @@ async function main(): Promise<void> {
         typeof pubId === "string" && pubId ? (owners.get(pubId) ?? null) : null,
       );
       if (!input) continue;
+      if (members.has(input.userId)) {
+        const hc = homeByUid.get(input.userId);
+        input.distanceScopes = homeScoreScopes(typeof hc === "string" ? hc : null, continentOfCountry);
+      }
       const plan = planRideScoreWrites(input);
       if (plan.scores.length === 0 && plan.uses.length === 0) continue;
       report.eligible += 1;

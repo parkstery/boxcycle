@@ -4,6 +4,7 @@ import {
   getDoc,
   getDocs,
   limit,
+  orderBy,
   query,
   serverTimestamp,
   setDoc,
@@ -15,6 +16,8 @@ import { noteVisibilityOneShot } from "../../debug/visibilityReadMeters";
 import type { RouteProfile } from "../../../services/mapboxDirections";
 
 export const ROUTE_PUBLICATIONS_COLLECTION = "routePublications";
+/** 서버 트리거가 published Publication 을 좌표 없이 투영한 요약 목록(G2, functions/src/publicationListingCore.ts) */
+export const PUBLICATION_LISTINGS_COLLECTION = "publicationListings";
 
 export type RoutePublicationStatus = "published" | "archived";
 
@@ -163,6 +166,72 @@ export async function listPublishedRoutePublications(max = 50): Promise<RoutePub
     if (row) rows.push(row);
   }
   rows.sort((a, b) => a.publicTitle.localeCompare(b.publicTitle, "ko"));
+  return rows;
+}
+
+/** 카탈로그 목록 한 줄에 필요한 필드만 — 요약 목록·원본 둘 다 이 꼴로 바꾼다 */
+export type RoutePublicationSummaryRow = Pick<
+  RoutePublicationRow,
+  | "publicationId"
+  | "routeId"
+  | "publicTitle"
+  | "snapshotProfile"
+  | "snapshotDistanceMeters"
+  | "snapshotDurationSec"
+  | "applicantUid"
+  | "publisherDeleted"
+  | "createdAt"
+> & {
+  /** ISO 3166-1 alpha-2. 바다 등 판정 불가면 null */
+  geoCountry: string | null;
+};
+
+function parsePublicationListingRow(
+  id: string,
+  data: Record<string, unknown>,
+): RoutePublicationSummaryRow | null {
+  const routeId = data.routeId;
+  const publicTitle = data.publicTitle;
+  if (typeof routeId !== "string" || routeId.length < 1) return null;
+  if (typeof publicTitle !== "string" || publicTitle.length < 1) return null;
+  if (data.status !== "published") return null;
+  const profile = data.snapshotProfile;
+  return {
+    publicationId: id,
+    routeId,
+    publicTitle,
+    snapshotProfile:
+      profile === "cycling" || profile === "driving" || profile === "walking" ? profile : "cycling",
+    snapshotDistanceMeters:
+      typeof data.snapshotDistanceMeters === "number" ? data.snapshotDistanceMeters : 0,
+    snapshotDurationSec: typeof data.snapshotDurationSec === "number" ? data.snapshotDurationSec : 0,
+    applicantUid: typeof data.applicantUid === "string" ? data.applicantUid : "",
+    publisherDeleted: data.publisherDeleted === true,
+    createdAt: data.createdAt,
+    geoCountry: typeof data.geoCountry === "string" ? data.geoCountry : null,
+  };
+}
+
+/**
+ * 퍼블릭 탭 카탈로그 — 요약 목록(G2). 원본과 달리 경로 좌표를 받지 않는다.
+ * 최근 등록순 `max`개(종전 원본 쿼리는 순서 없이 80개). 화면 정렬은 호출부가 한다.
+ */
+export async function listPublishedPublicationListings(
+  max = 50,
+): Promise<RoutePublicationSummaryRow[]> {
+  noteVisibilityOneShot("catalogPublications");
+  const db = getFirebaseFirestore();
+  const qy = query(
+    collection(db, PUBLICATION_LISTINGS_COLLECTION),
+    orderBy("createdAt", "desc"),
+    limit(Math.min(80, Math.max(1, max))),
+  );
+  const snap = await getDocs(qy);
+  const rows: RoutePublicationSummaryRow[] = [];
+  for (const d of snap.docs) {
+    const row = parsePublicationListingRow(d.id, d.data() as Record<string, unknown>);
+    if (row) rows.push(row);
+  }
   return rows;
 }
 

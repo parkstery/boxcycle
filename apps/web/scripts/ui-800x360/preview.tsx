@@ -135,7 +135,13 @@ if (initial === 'leaderboard') {
       if (lbVariant === 'loading') return new Promise<Response>(() => {});
       const parsed = new URL(url, window.location.origin);
       const board = (parsed.searchParams.get('board') === 'pioneer' ? 'pioneer' : 'distance') as LeaderboardBoard;
-      return new Response(JSON.stringify(lbPayload(board, lbVariant)), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      // 범위(G3-2): 요청한 범위를 그대로 돌려준다 — 대륙은 KR→AS 처럼 정해진 값으로 흉내
+      const scopeType = parsed.searchParams.get('scopeType');
+      const scopeFields = scopeType === 'continent' ? { scope: 'continent', scopeCode: 'AS' }
+        : scopeType === 'country' ? { scope: 'country', scopeCode: params.get('country') ?? 'KR' }
+        : { scope: 'world', scopeCode: null };
+      document.body.dataset.lbLastScope = scopeType ?? 'world';
+      return new Response(JSON.stringify({ ...lbPayload(board, lbVariant), ...scopeFields }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
     return originalFetch(input, init);
   };
@@ -652,6 +658,7 @@ function Preview() {
       user={lbUser}
       onRegister={noop}
       onJoinTrail={() => setLbJoinCalls((n) => n + 1)}
+      homeCountry={params.get('country')}
     />
     {initial === 'leaderboard' ? <div id="lb-fixture" hidden data-lb-join-calls={String(lbJoinCalls)} /> : null}
     <RideControlsAutoHide active={stage==='riding'} />
@@ -671,6 +678,8 @@ function Preview() {
       weightKg={weight}
       intensityId={intensity}
       nicknameChangedAtMs={profileNicknameChangedAtMs}
+      homeCountry="KR"
+      homeCountryChangedAtMs={null}
       onChangeNickname={async () => {
         setProfilePersistCalls((prev) => ({ ...prev, nickname: prev.nickname + 1 }));
       }}

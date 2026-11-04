@@ -139,34 +139,28 @@ for(const initial of ['empty','start-only','end-only','ready','waypoints'] as co
     await expect(popup.getByRole('button',{name:'출발·도착 경로 생성',exact:true})).toHaveCount(0);
     await expect(popup.getByRole('button',{name:'경로 전체 삭제',exact:true})).toHaveCount(1);
     const headerLine=await popup.evaluate(()=>{
-      const row=document.querySelector('.map-view__pick-header-row')!;
-      const token=row.querySelector('.map-view__pick-token')!.getBoundingClientRect();
+      const row=document.querySelector('#popup-audit .map-view__pick-header-row')!;
+      const heading=row.querySelector('.map-view__pick-title')!.getBoundingClientRect();
       const tabs=row.querySelector('.map-view__pick-route-tabs')!.getBoundingClientRect();
       const close=document.querySelector('#popup-audit .mapboxgl-popup-close-button')!.getBoundingClientRect();
-      const clearInHeader=row.querySelector('.map-view__pick-btn--clear-route');
-      const clearRect=clearInHeader!.getBoundingClientRect();
-      const bottomClear=document.querySelector('.map-view__pick-profile-bottom-row .map-view__pick-btn--clear-route');
-      const tokenFont=parseFloat(getComputedStyle(row.querySelector('.map-view__pick-token-line')!).fontSize);
+      const bottomClear=document.querySelector('#popup-audit .map-view__pick-profile-bottom-row .map-view__pick-btn--clear-route');
       const tab=row.querySelector('.map-view__pick-route-tab')!.getBoundingClientRect();
-      const tokenLine=row.querySelector('.map-view__pick-token-line')!.getBoundingClientRect();
       const tabsCloseIntersect=tabs.left<close.right&&tabs.right>close.left&&tabs.top<close.bottom&&tabs.bottom>close.top;
-      return {tokenAboveTabs:token.bottom<=tabs.top,tabsShorter:tabs.width<row.getBoundingClientRect().width-40,clearRightOfTabs:clearRect.left>=tabs.right&&Math.abs((clearRect.top+clearRect.bottom)/2-(tabs.top+tabs.bottom)/2)<1,clearBorder:getComputedStyle(clearInHeader!).borderTopColor,bottomClear:!!bottomClear,tokenFont,tabsCloseIntersect,tokenLineClearOfClose:tokenLine.right<=close.left,tabHeight:tab.height,tabsHeight:tabs.height,tokenPadRight:parseFloat(getComputedStyle(row.querySelector('.map-view__pick-token')!).paddingRight),closeWidth:close.width,clearInHeader:!!clearInHeader};
+      return {titleBeforeTabs:heading.right<=tabs.left,tabsCloseIntersect,headerHeight:row.getBoundingClientRect().height,
+        tabHeight:tab.height,clearInHeader:!!row.querySelector('.map-view__pick-btn--clear-route'),
+        bottomClear:!!bottomClear,clearBorder:bottomClear?getComputedStyle(bottomClear).borderTopColor:'',
+        tokenInHeader:!!row.querySelector('.map-view__pick-token')};
     });
-    // 지시65·시안05(묶음5): 토큰 줄 아래 전체 폭 분할 탭(28px), 원형 닫기와 겹치지 않음.
-    // 종전 10-21 압축 계약(토큰·탭 한 줄, 탭 22px 이하)을 대체한다 — 감리73.
-    expect(headerLine.tokenAboveTabs).toBe(true);
-    // 지시94(10-26 Chief): 탭은 줄고 같은 줄 오른쪽에 빨간 테두리 경로 삭제, 제목 17px
-    expect(headerLine.tabsShorter).toBe(true);
-    expect(headerLine.clearRightOfTabs).toBe(true);
-    expect(headerLine.clearBorder).toBe('rgb(220, 38, 38)');
-    expect(headerLine.bottomClear).toBe(false);
-    expect(headerLine.tokenFont).toBe(17);
+    // 고정15(10-29 후속 승인)·10-30 Chief A안: 제목(핀 아이콘)·모드 탭·닫기가 한 행, 경로 삭제는 맨 아래 줄(빨간 테두리).
+    // 종전 지시94(토큰 줄 아래 탭, 탭 옆 삭제) 계약을 대체한다. 치수 세부는 ui-redesign-batch5.spec.ts 가 고정한다.
+    expect(headerLine.titleBeforeTabs).toBe(true);
     expect(headerLine.tabsCloseIntersect).toBe(false);
-    expect(headerLine.tokenLineClearOfClose).toBe(true);
-    expect(headerLine.tabHeight).toBe(28);
-    expect(headerLine.tabsHeight).toBeLessThanOrEqual(34);
-    expect(headerLine.tokenPadRight).toBeGreaterThanOrEqual(headerLine.closeWidth);
-    expect(headerLine.clearInHeader).toBe(true);
+    expect(headerLine.headerHeight).toBeLessThanOrEqual(32);
+    expect(Math.abs(headerLine.tabHeight-26)).toBeLessThanOrEqual(1);
+    expect(headerLine.clearInHeader).toBe(false);
+    expect(headerLine.bottomClear).toBe(true);
+    expect(headerLine.clearBorder).toBe('rgb(220, 38, 38)');
+    expect(headerLine.tokenInHeader).toBe(false);
     await expect(popup.getByRole('tab',{name:'출발·도착',exact:true})).toHaveAttribute('aria-selected','true');
     await popup.getByRole('tab',{name:'거리·방향',exact:true}).click();
     await expect(popup.locator('#map-view-pick-location-view')).toBeHidden();

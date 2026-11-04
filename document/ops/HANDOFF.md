@@ -12,7 +12,7 @@
 
 **11-04 rider15 상체 스킨 착수(P0→P1→P2→P3 도구)**: Chief의 "작업 시작해" 지시로 `document/ops/20261104-rider-v2-upper-body/`를 활성화했다. 기준선·렌더 경로 감사를 완료했고, 표준 `SkinnedMesh` 스파이크 2/2 PASS 및 GLB 구조 감사기 baseline 실행을 완료했다. rider15 후보 GLB·Mapbox 실화면·팔 IK는 아직 미검증이며 rider14 활성 모델은 유지한다. 다음은 모델러 export 계약 또는 실제 후보 GLB 대기다. 결과: `document/ops/20261104-rider-v2-upper-body/REPORT.md`.
 
-**11-04 재개 지점 — 클라우드 전환(Claude Code)**: [클라우드 재개 안내](20261103-cost-squeeze/04-cloud-resume.md)부터. L9 A·B·로컬 기록 주인·시계 복구(고정74)는 커밋·푸시됐고 **배포·`aPbTo3` 50건 삭제는 미실행**(Chief 승인 완료). 순서: Functions 2개 → 격리 Hosting → 삭제. 클라우드에는 Firebase 인증·.env·.out이 없어 이 단계는 Chief PC 세션 또는 인증 설정 뒤. L4b 재주행 PASS, 4초 줄기 재현 안 됨. [쓰기 장부](20261103-cost-squeeze/03-write-ledger.md).
+**11-04 PR #21 배포 진행 중(Claude Code, Chief 1~6 승인)**: 병합 → Rules·색인 → 함수 전체(`openTrailListingsSweep` 때문에 PR 목록 대신 전체) → `publicationListings` 채우기 → 격리 Hosting → `aPbTo3` 50건 삭제. 운영은 끝난 단계까지만 적용된다. 내용: 국가 입력(고정75)·G2 요약 목록·G4 Trail 지역·G3-2 국가 순위(고정76)·L9. 삭제 근거·순서 이유: [클라우드 재개 안내](20261103-cost-squeeze/04-cloud-resume.md).
 
 **11-03~04 비용 절감·지역 데이터(Claude Code) — 배포됨 54bd409d**: L1·L2·L3·L4·L6(G3-1 누적 점수로 근본 해결)·P1·P2·G1. Chief 실주행 3회+관전 PASS(11-04). **L4b 배포됨(6f125e1c)**: 가속 중 연속 쓰기 제한+`rides.netStats`([기록](20261103-cost-squeeze/02-design-l4.md)). 다음: Chief 2인 재주행 → 분당 쓰기(Cloud Monitoring)·`rides.netStats`로 4초 구간 원인 확정. 남은 것: 유럽 RTDB 2차, G2 요약 목록, G3-2 국가 범위. [cost-squeeze](20261103-cost-squeeze/README.md)·[00-plan](20261103-global-geo-data/00-plan.md).
 

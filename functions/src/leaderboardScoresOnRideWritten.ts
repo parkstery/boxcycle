@@ -3,7 +3,8 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import { isGuestLifecycleBlockedError } from "./guestLifecycleGuard.js";
 import { loadPublicationOwners } from "./leaderboardCore.js";
-import type { RideScoreInput } from "./leaderboardScoresCore.js";
+import { homeScoreScopes, type RideScoreInput } from "./leaderboardScoresCore.js";
+import { continentOfCountry } from "./geoRegion/geoRegionData.js";
 import { applyRideScoresInTransaction } from "./leaderboardScoresStore.js";
 import { REGION } from "./region.js";
 import { toMillis } from "./rideMetricsCore.js";
@@ -62,12 +63,15 @@ export const leaderboardScoresOnRideWritten = onDocumentWritten(
     const db = getFirestore();
     const publicationId =
       typeof afterData.publicationId === "string" && afterData.publicationId ? afterData.publicationId : null;
-    const [owners, member] = await Promise.all([
+    const [owners, member, homeCountry] = await Promise.all([
       publicationId ? loadPublicationOwners(db, [publicationId]) : Promise.resolve(new Map<string, string>()),
       isMemberAccount(userId),
+      loadHomeCountry(db, userId),
     ]);
     const input = rideScoreInputFromData(rideId, afterData, publicationId ? (owners.get(publicationId) ?? null) : null);
     if (!input) return;
+    // G3-2: 거리 판은 주행 시점의 대표 국가로 대륙·국가 범위에도 더한다(회원만 — 게스트는 국가가 없다)
+    if (member) input.distanceScopes = homeScoreScopes(homeCountry, continentOfCountry);
 
     try {
       await db.runTransaction(async (tx) => {
@@ -83,6 +87,15 @@ export const leaderboardScoresOnRideWritten = onDocumentWritten(
     }
   },
 );
+
+/** users/{uid}.homeCountry — 없으면 null. */
+export async function loadHomeCountry(
+  db: FirebaseFirestore.Firestore,
+  uid: string,
+): Promise<string | null> {
+  const hc = (await db.doc(`users/${uid}`).get()).get("homeCountry");
+  return typeof hc === "string" ? hc : null;
+}
 
 /** Auth 에서 익명이 아닌(provider 연결된) 계정만 회원. 없는 uid 는 회원이 아니다(leaderboardCore.loadMemberUids 와 같은 기준). */
 async function isMemberAccount(uid: string): Promise<boolean> {

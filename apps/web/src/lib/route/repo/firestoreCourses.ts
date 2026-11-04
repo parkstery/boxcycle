@@ -17,10 +17,12 @@ import { getFirebaseFirestore } from "../../firebase/app";
 import { noteVisibilityOneShot } from "../../debug/visibilityReadMeters";
 import {
   findPublishedRoutePublicationById,
+  listPublishedPublicationListings,
   listPublishedRoutePublications,
   mergePublicationPresenceEnabled,
   ROUTE_PUBLICATIONS_COLLECTION,
   type RoutePublicationRow,
+  type RoutePublicationSummaryRow,
 } from "./firestoreRoutePublications";
 import { lastSeenAtToMillis } from "../../firebase/converters";
 import type { RouteUserLabelLookup } from "../routeIdentityPort";
@@ -126,7 +128,9 @@ export type PublishedPublicCourseSummary = {
   publishedAtMs?: number | null;
 };
 
-function summaryFromPublication(pub: RoutePublicationRow): PublishedPublicCourseSummary {
+function summaryFromPublication(
+  pub: Omit<RoutePublicationSummaryRow, "geoCountry">,
+): PublishedPublicCourseSummary {
   return {
     id: pub.publicationId,
     title: pub.publicTitle,
@@ -144,14 +148,33 @@ function summaryFromPublication(pub: RoutePublicationRow): PublishedPublicCourse
 }
 
 /**
- * 퍼블릭 카탈로그 — `routePublications` 단일 (Phase 5: `courses` 폴백 제거).
+ * 요약 목록(G2)을 먼저 읽고, 비었거나 실패하면 원본으로 물러난다.
+ * 물러남은 배포 순서 보호용이다 — 서버 트리거·채우기·Rules 가 운영에 오르기 전에 앱이 먼저 배포돼도
+ * 퍼블릭 탭이 비지 않는다. 채우기 완료 뒤에는 요약 목록만 읽힌다.
+ */
+async function listPublicationSummariesWithFallback(
+  cap: number,
+): Promise<Omit<RoutePublicationSummaryRow, "geoCountry">[]> {
+  try {
+    const rows = await listPublishedPublicationListings(cap);
+    // 원본 경로(`listPublishedRoutePublications`)와 같은 넘김 순서 — 화면 정렬은 목록 창이 따로 한다.
+    if (rows.length > 0) return rows.sort((a, b) => a.publicTitle.localeCompare(b.publicTitle, "ko"));
+  } catch (e) {
+    console.warn("[catalog] publicationListings read failed, falling back to routePublications", e);
+  }
+  const pubs: RoutePublicationRow[] = await listPublishedRoutePublications(cap);
+  return pubs;
+}
+
+/**
+ * 퍼블릭 카탈로그 — 요약 목록 `publicationListings`(G2), 없으면 `routePublications`.
  */
 export async function listPublishedPublicCourses(
   lookupUserLabels: RouteUserLabelLookup,
   max = 40,
 ): Promise<PublishedPublicCourseSummary[]> {
   const cap = Math.min(80, Math.max(1, max));
-  const pubs = await listPublishedRoutePublications(cap);
+  const pubs = await listPublicationSummariesWithFallback(cap);
   const rows = pubs.map(summaryFromPublication);
   const labelByUid = await lookupUserLabels(
     rows.map((r) => r.applicantUid).filter((uid): uid is string => Boolean(uid)),

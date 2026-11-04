@@ -4,7 +4,7 @@
 |---|---|
 | 문서 유형 | ops 계획 — 데이터 구조 확장 설계 |
 | 작성 | 2026-11-03 Supervisor Claude Code (Opus 5.5) |
-| 상태 | IN_PROGRESS — G1 커밋(main2), 다음 G0.5 |
+| 상태 | IN_PROGRESS — G1·G3-1 배포, **G2·G4·G3-2 서버 구현·미배포(11-04, §4.1.1·§4.5.1·§4.3.1)** |
 | 출발점 | Chief 자문 대화(Geographic Data Architecture 제안) + 코드 대조 의견 |
 
 ## 1. 결정
@@ -111,6 +111,23 @@
 - Rules: 공개 읽기·서버만 쓰기(`openTrailListings`와 같은 꼴).
 - 클라이언트 목록 전환은 기존 `limit(80)` 경로를 대체한다. 지역 선택 화면은 **시안 → Chief 승인 후** 구현한다(디자인 고정 목록 규칙).
 
+### 4.1.1 G2 결과 (2026-11-04, Claude Code 클라우드 세션 직접 구현 · 미배포)
+
+| 항목 | 값 |
+|---|---|
+| 서버 | `functions/src/publicationListingCore.ts`(순수 투영) · `publicationListingStore.ts`(읽기·쓰기) · `publicationListingProjection.ts`(트리거 `publicationListingOnPublicationWritten`) · `cliBackfillPublicationListings.ts`(`npm run admin:backfill-publication-listings`, 기본 dry-run) |
+| 목록 문서 | §4.1 필드에서 `riderCount`는 **뺐다**(지금 화면이 안 쓰고, `routeActivity` 반영은 쓰기를 늘린다 — 화면이 필요해질 때 추가). 대신 카탈로그가 쓰는 `routeId`·`snapshotDurationSec`·`applicantUid`·`publisherDeleted`, 규격 판 `listingSchemaVersion`을 더했다 |
+| 목록 대상 | published 만. archived·삭제·좌표 이상 → 목록 문서 삭제. 그래서 쿼리에 `status` 조건이 필요 없다 |
+| 지역 기준점 | 경로 첫 좌표(출발점) |
+| 쓰기 줄이기 | 동행 켜기(`presenceEnabled`·`updatedAt`만 바뀜)는 즉시 반환, 내용이 같으면 다시 쓰지 않음 |
+| Rules·색인 | `publicationListings` 공개 읽기·쓰기 금지. 색인 `geoContinent`·`geoCountry`·`geoAdmin1` + `createdAt desc` 3개 |
+| 웹 | `listPublishedPublicationListings`(최근 등록순, 최대 80) → 카탈로그. 비었거나 읽기 실패면 옛 `routePublications` 쿼리로 물러난다(배포 순서 보호). 지역 선택 화면은 아직 없음(시안 → Chief 승인) |
+| 탈퇴 | 정책표에 `publicationListings: none` — 원본 익명화를 트리거가 따라 쓴다 |
+| 시험 | functions `npm test` 247/0(새 단위 9), 에뮬레이터 `npm run test:publication-listings:emulator` 5/5(최근순·국가·행정구역·대륙·타일 앞부분·비공개 전환·Rules), Rules 사보타주(쓰기 허용) → 1 FAIL. 채우기 에뮬레이터: dry-run 만들기 5·지우기 2 = apply 5·2, 재실행 변경 0 |
+| 미측정 | 목록 화면 읽기 비교 — 읽기 수는 문서당 1회로 같고(최대 50건) 줄어드는 것은 좌표를 안 받는 전송량이다. 운영 데이터로 재야 한다 |
+
+배포 순서(Chief 승인 필요): ① `firebase deploy --only firestore:rules,firestore:indexes,functions:publicationListingOnPublicationWritten` ② 내보내기 스냅샷 뒤 `npm run admin:backfill-publication-listings`(dry-run) → `-- --apply` ③ Hosting(언제든 — 물러남이 있어 ①② 전에 올라가도 목록이 비지 않는다). 유럽 RTDB Rules와 무관.
+
 ### 4.2 사용자 (G3 선행)
 
 - 현재 `users/{uid}`·가입 카드에는 국가가 없다(2026-11-03 확인: `SignUpNicknameCard.tsx` = 닉네임·체중·체력).
@@ -144,6 +161,17 @@
 - **계정 삭제·게스트 정리**: `accountDeletionCore.ts` 컬렉션 목록과 게스트 정리(`purgeGuestUsersCore.ts`)에 `leaderboardScores`를 등록한다. 빠뜨리면 지운 사용자가 순위에 남는다.
 - **전환 게이트**: 같은 기간에 대해 기존 훑기 집계와 새 누적 점수의 상위 20위·값이 일치해야 바꾼다(합성 데이터 + 운영 데이터 1회 비교).
 
+### 4.3.1 G3-2 서버 결과 (2026-11-04, Claude Code 클라우드 세션 직접 · 미배포)
+
+- 국가 입력(가입·프로필·확인 카드)은 [시안 묶음](../20261104-country-input-mockup/README.md)으로 구현(Chief A안).
+- **쓰기**: 거리 판은 주행 시점의 `users.homeCountry`로 대륙·국가 범위에도 더한다(회원만). 대륙은 경계 데이터 표(`continentOfCountry`). 개척 판은 도로 기준(D3)이라 G5 전까지 전세계만. 주행 1건 점수 문서 8 → 최대 16(거리 12 + 개척 4).
+- **지난 점수는 옮기지 않는다**(계획대로). 이미 반영된 주행은 지역 범위에 들어가지 않으므로 지역 순위는 국가를 정한 뒤의 주행부터 쌓인다. 채우기 CLI 는 아직 반영 안 된 주행에만 현재 국가로 지역 범위를 더한다.
+- **읽기**: `getLeaderboard?scopeType=world|continent|country[&scopeCode=KR]`. 코드 생략 = 요청자의 대표 국가, 없으면 400. 개척 판 지역 요청은 400. 응답에 `scope`·`scopeCode`(전세계 null). 범위를 보내지 않는 옛 앱은 그대로 `world` — 호환.
+- 웹 `fetchLeaderboard`는 범위 인자·새 응답을 받는다. **범위를 고르는 화면은 아직 없다**(시안 → Chief 승인).
+- 색인 변경 없음(기존 복합 색인에 `scopeType`·`scopeCode` 가 이미 있다).
+- 시험: `leaderboardScopes.test.ts` 8건(범위 계산·쓰기 계획·국가/대륙/전세계 순위 분리·요청 해석), 사보타주(거리 범위 제거) → 2 FAIL. functions 259/0. 동등성 시험(전세계) 그대로 통과.
+- 배포: `functions:leaderboardScoresOnRideWritten,functions:getLeaderboard`. 국가 Rules·Hosting 과 순서 무관(국가가 없으면 전세계만 쌓인다).
+
 ### 4.4 Conquest 지역 통계 (G5, 개척 순위의 재료는 G3에서 먼저)
 
 - `conquestOnRideCreated.ts`는 이미 `newCellsByChunk`(z12 묶음별 새 셀)를 만든다. 묶음 중심점을 판정 모듈로 지역에 대응시키고, 지역별 `newMeters`를 합쳐 `rides.conquestResult.byRegion`에 남긴다.
@@ -155,6 +183,14 @@
 
 - `openTrailListingCore.ts`가 Publication의 geoRegion을 목록 문서에 복사한다(새 판정 없이 복사만).
 - 쿼리는 §4.1과 같은 꼴이다. 실시간 참가자 정보는 지금처럼 RTDB에 두고 목록에는 인원 수만 둔다.
+
+### 4.5.1 G4 서버 결과 (2026-11-04, Claude Code 클라우드 세션 직접 · 미배포)
+
+- `openTrailListingCore.ts` 재계산이 `publicationListings/{publicationId}`의 지역 5종을 Trail 목록 문서에 복사한다(새 판정 없음). 표시 필드 `geoSourcePublicationId`로 **같은 Publication 이면 다시 읽지 않는다** — 재계산은 활동 시각마다 돌기 때문. 목록 문서가 생길 때 읽기 1회가 는다.
+- 요약 목록이 아직 없으면(G2 채우기 전) 값은 null 로 두고 표시만 남긴다. 목록 문서는 라이더가 없으면 지워지므로 다음 Trail 부터 채워진다.
+- 앱의 호스트 목록 쓰기는 `merge` 라 지역 필드를 지우지 않는다. Rules 변경 없음.
+- 시험: `openTrailListingProjection.test.ts` +4(14/14), 에뮬레이터 +1(6/6, 국가 쿼리 포함), 사보타주(복사 제거) → 1 FAIL. functions 251/0.
+- 남은 것: Trail 목록 지역 필터 화면(시안 → Chief 승인). 배포는 G2 ①과 함께 `functions:openTrailListingOnTrailWritten,…OnMemberCreated,…OnMemberDeleted,…OnLiveCourseRideCreated,…OnLiveCourseRideDeleted`(같은 core 를 쓰는 5개).
 
 ## 5. 단계·완료 조건
 

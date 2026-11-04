@@ -3,7 +3,8 @@ import { functionsHttpUrl } from "../lib/firebase/functionsEmulatorUrl";
 
 export type LeaderboardBoard = "distance" | "pioneer";
 export type LeaderboardPeriod = "week" | "month" | "all";
-type LeaderboardScope = "world";
+/** 순위 범위(G3-2). 거리 판만 대륙·국가가 있다. 범위를 고르는 화면은 시안 승인 뒤 */
+export type LeaderboardScope = "world" | "continent" | "country";
 
 export type LeaderboardEntry = {
   rank: number;
@@ -31,6 +32,8 @@ export type LeaderboardResponse = {
   board: LeaderboardBoard;
   period: LeaderboardPeriod;
   scope: LeaderboardScope;
+  /** 대륙(AS…)·국가(KR…) 코드. 전세계는 null(옛 서버는 필드 없음) */
+  scopeCode?: string | null;
   /** 「전체」 기간은 시작일이 없어 null */
   periodStartKst: string | null;
   rule: { sensorOnly: boolean };
@@ -72,7 +75,8 @@ function isLeaderboardResponse(v: unknown): v is LeaderboardResponse {
     typeof o.generatedAt === "string" &&
     ["distance", "pioneer"].includes(o.board as string) &&
     ["week", "month", "all"].includes(o.period as string) &&
-    o.scope === "world" &&
+    ["world", "continent", "country"].includes(o.scope as string) &&
+    (o.scopeCode === undefined || o.scopeCode === null || typeof o.scopeCode === "string") &&
     (o.periodStartKst === null || typeof o.periodStartKst === "string") &&
     rule != null && typeof rule.sensorOnly === "boolean" &&
     Array.isArray(o.top) && o.top.every(isLeaderboardEntry) &&
@@ -85,6 +89,8 @@ export async function fetchLeaderboard(
   user: User,
   board: LeaderboardBoard,
   period: LeaderboardPeriod,
+  /** 생략 = 전세계. scopeCode 생략 = 내 대표 국가(서버가 정한다) */
+  scope?: { scopeType: Exclude<LeaderboardScope, "world">; scopeCode?: string },
 ): Promise<LeaderboardResponse> {
   let res: Response;
   try {
@@ -92,6 +98,10 @@ export async function fetchLeaderboard(
     const url = new URL(functionsHttpUrl("getLeaderboard"));
     url.searchParams.set("board", board);
     url.searchParams.set("period", period);
+    if (scope) {
+      url.searchParams.set("scopeType", scope.scopeType);
+      if (scope.scopeCode) url.searchParams.set("scopeCode", scope.scopeCode);
+    }
     res = await fetch(url.toString(), {
       method: "GET",
       headers: { Authorization: `Bearer ${idToken}` },

@@ -63,6 +63,8 @@ export function FixtureApp() {
         weightKg={weightKg}
         intensityId={intensityId}
         nicknameChangedAtMs={null}
+        homeCountry={null}
+        homeCountryChangedAtMs={null}
         onChangeNickname={async () => {}}
         onWeightKg={(raw) => {
           const t = String(raw).trim();

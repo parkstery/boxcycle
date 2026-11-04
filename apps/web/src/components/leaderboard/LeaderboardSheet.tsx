@@ -10,6 +10,14 @@ import {
 import { useDialogFocus } from "../ui/useDialogFocus";
 import { useEscapeKeyClose } from "../ui/useEscapeKeyClose";
 import { settleUnlessCancelled } from "../ui/settleUnlessCancelled";
+import {
+  canPickLeaderboardScope,
+  effectiveLeaderboardScope,
+  leaderboardScopeLabel,
+  loadLeaderboardScope,
+  nextLeaderboardScope,
+  saveLeaderboardScope,
+} from "./leaderboardScope";
 import "./LeaderboardSheet.css";
 
 type LeaderboardSheetProps = {
@@ -20,6 +28,8 @@ type LeaderboardSheetProps = {
   onRegister?: () => void;
   /** 「같이 달리기」 — App 의 Trail 합류 */
   onJoinTrail?: (trailId: string) => void;
+  /** 대표 국가(ISO 2글자). 있으면 거리 판에서 범위(세계·대륙·국가)를 고를 수 있다 */
+  homeCountry?: string | null;
 };
 
 type LoadState =
@@ -99,7 +109,7 @@ export function LeaderboardSheet({ open, ...rest }: LeaderboardSheetProps) {
   return <LeaderboardPanel {...rest} />;
 }
 
-function LeaderboardPanel({ onClose, user, onRegister, onJoinTrail }: Omit<LeaderboardSheetProps, "open">) {
+function LeaderboardPanel({ onClose, user, onRegister, onJoinTrail, homeCountry = null }: Omit<LeaderboardSheetProps, "open">) {
   const panelRef = useRef<HTMLDivElement>(null);
   useDialogFocus(true, panelRef);
   useEscapeKeyClose(true, onClose);
@@ -107,11 +117,23 @@ function LeaderboardPanel({ onClose, user, onRegister, onJoinTrail }: Omit<Leade
   const [board, setBoard] = useState<LeaderboardBoard>("distance");
   const [period, setPeriod] = useState<LeaderboardPeriod>("week");
   const [state, setState] = useState<LoadState>({ kind: "loading" });
+  const [chosenScope, setChosenScope] = useState(loadLeaderboardScope);
+  const scope = effectiveLeaderboardScope(chosenScope, board, homeCountry);
+  const scopePickable = canPickLeaderboardScope(board, homeCountry);
 
   useEffect(() => {
     if (!user) return;
-    return settleUnlessCancelled(fetchLeaderboard(user, board, period), setState);
-  }, [user, board, period]);
+    return settleUnlessCancelled(
+      fetchLeaderboard(user, board, period, scope === "world" ? undefined : { scopeType: scope }),
+      setState,
+    );
+  }, [user, board, period, scope]);
+
+  const handleScopeClick = () => {
+    const next = nextLeaderboardScope(chosenScope);
+    setChosenScope(next);
+    saveLeaderboardScope(next);
+  };
 
   const handleTabClick = (nextBoard: LeaderboardBoard) => {
     if (nextBoard === board) return;
@@ -177,9 +199,21 @@ function LeaderboardPanel({ onClose, user, onRegister, onJoinTrail }: Omit<Leade
           >
             {PERIOD_LABELS[period].label} ▾
           </button>
-          <span className="leaderboard-sheet__scope">
-            <span className="leaderboard-sheet__scope-label">세계</span>
-          </span>
+          {/* Chief 11-04 A안: 기간 버튼과 같은 꼴, 누를 때마다 세계 → 대륙 → 국가. 고를 수 없으면 「세계」 글자만 */}
+          {scopePickable ? (
+            <button
+              type="button"
+              className="leaderboard-sheet__period-btn leaderboard-sheet__scope-btn"
+              onClick={handleScopeClick}
+              aria-label={`범위 변경 (현재: ${leaderboardScopeLabel(scope, homeCountry, data?.scopeCode ?? null)})`}
+            >
+              {leaderboardScopeLabel(scope, homeCountry, data?.scope === "continent" ? (data.scopeCode ?? null) : null)} ▾
+            </button>
+          ) : (
+            <span className="leaderboard-sheet__scope">
+              <span className="leaderboard-sheet__scope-label">세계</span>
+            </span>
+          )}
           <button
             type="button"
             className="leaderboard-sheet__close"

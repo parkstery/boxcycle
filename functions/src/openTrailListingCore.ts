@@ -5,6 +5,7 @@ import {
   Timestamp,
 } from "firebase-admin/firestore";
 
+import { PUBLICATION_LISTINGS_COLLECTION } from "./publicationListingCore.js";
 import { TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION } from "./trailPaths.js";
 
 export const TRAILS_COLLECTION = "trails";
@@ -105,6 +106,40 @@ export function trailWriteAffectsListing(
   return Boolean((was && isListableTrail(was)) || (now && isListableTrail(now)));
 }
 
+/** Publication 요약 목록(G2)에서 Trail 목록으로 복사하는 지역 필드(G4). 새로 판정하지 않는다. */
+export const TRAIL_LISTING_GEO_KEYS = [
+  "geoQuadkey",
+  "geoContinent",
+  "geoCountry",
+  "geoAdmin1",
+  "geoResolverVersion",
+] as const;
+
+/**
+ * 지역 필드를 이번 재계산에서 채워야 하는가. 같은 Publication 으로 이미 확인했으면(값이 없었어도) 건너뛴다 —
+ * Trail 목록 재계산은 활동 시각마다 돌므로, 매번 Publication 목록을 읽으면 읽기가 그만큼 는다.
+ * 목록 문서는 라이더가 없으면 지워지므로 「없었음」 기록은 다음 목록 문서에서 다시 확인된다.
+ */
+export function trailListingNeedsGeo(
+  existing: DocumentData | undefined,
+  publicationId: string,
+): boolean {
+  return !existing || existing.geoSourcePublicationId !== publicationId;
+}
+
+/** Publication 요약 목록 문서 → Trail 목록에 병합할 지역 필드. 요약 목록이 없으면 확인 표시만 남긴다. */
+export function trailListingGeoFields(
+  publicationId: string,
+  publicationListing: DocumentData | undefined,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = { geoSourcePublicationId: publicationId };
+  for (const k of TRAIL_LISTING_GEO_KEYS) {
+    const v = publicationListing?.[k];
+    out[k] = typeof v === "string" || typeof v === "number" ? v : null;
+  }
+  return out;
+}
+
 async function countActiveParticipants(trailId: string): Promise<number> {
   const db = getFirestore();
   const cutoff = presenceCutoff();
@@ -146,7 +181,15 @@ export async function recomputeOpenTrailListing(
   }
 
   const existingSnap = await listingRef.get();
-  const existingCreated = existingSnap.exists ? existingSnap.data()?.createdAt : undefined;
+  const existing = existingSnap.exists ? existingSnap.data() : undefined;
+  const existingCreated = existing?.createdAt;
+  const publicationId = trail.publicationId!;
+  const geo = trailListingNeedsGeo(existing, publicationId)
+    ? trailListingGeoFields(
+        publicationId,
+        (await db.collection(PUBLICATION_LISTINGS_COLLECTION).doc(publicationId).get()).data(),
+      )
+    : {};
   const trailCreatedMs = timestampMs(trailSnap.data()?.createdAt);
   const createdAt =
     existingCreated != null
@@ -164,6 +207,7 @@ export async function recomputeOpenTrailListing(
       distanceKm: trail.distanceKm,
       publicationId: trail.publicationId,
       riderCount,
+      ...geo,
       createdAt,
       updatedAt: FieldValue.serverTimestamp(),
     },

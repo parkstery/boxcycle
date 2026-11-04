@@ -106,3 +106,37 @@
   margin-top: 0.35rem;
   align-self: flex-start;
 }
+
+/* 닉네임·국가 한 줄(Chief 11-04 A안) — 반씩, 높이는 터치 하한 44px */
+.signup-nickname__pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 0.4rem;
+  row-gap: 0.2rem;
+}
+
+.signup-nickname__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.signup-nickname__cell .signup-nickname__input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+}
+
+.signup-nickname__pair-help {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.home-country-confirm .signup-nickname__input {
+  min-height: 44px;
+}
+
+.home-country-confirm__help {
+  margin: 0;
+}

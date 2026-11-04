@@ -76,7 +76,7 @@ export async function applyRideScoresInTransaction(
   if (ledgerSnap.exists) return false;
 
   plan.scores.forEach((inc, i) => {
-    tx.set(scoreRefs[i]!, { ...applyScoreIncrement(scoreSnaps[i]!.data(), inc, member, scope), updatedAt });
+    tx.set(scoreRefs[i]!, { ...applyScoreIncrement(scoreSnaps[i]!.data(), inc, member, inc.scope), updatedAt });
   });
   plan.uses.forEach((inc, i) => {
     const { uses, mark } = applyUseIncrement(usesSnaps[i]!.data(), markSnaps[i]!.data(), inc);

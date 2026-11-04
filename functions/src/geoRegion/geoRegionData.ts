@@ -83,3 +83,14 @@ export function resolveGeoRegion(lngLat: LngLat): GeoRegion | null {
   shared ??= loadGeoRegionDataset();
   return resolveGeoRegionWith(shared, lngLat);
 }
+
+let continentByCountry: Map<string, ContinentCode | null> | null = null;
+
+/** 국가 코드 → 대륙(UN M49, 경계 데이터와 같은 표). 데이터에 없는 나라·지역은 null. 순위 대륙 범위(G3-2)가 쓴다. */
+export function continentOfCountry(code: string): ContinentCode | null {
+  if (!continentByCountry) {
+    shared ??= loadGeoRegionDataset();
+    continentByCountry = new Map(shared.countries.map((c) => [c.code, c.continent]));
+  }
+  return continentByCountry.get(code) ?? null;
+}

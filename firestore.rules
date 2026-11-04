@@ -114,6 +114,34 @@ service cloud.firestore {
     }
 
     /**
+     * 대표 국가(users.homeCountry, ISO 2글자) — 지역 순위 기준(2026-11-04 Chief 승인, 계획 00-plan §4.2).
+     * 정식 계정만, 바꾸면 homeCountryChangedAt=요청 시각, 다시 바꾸기는 30일 뒤. 처음 정하기는 언제든.
+     * 시각만 따로 고치는 쓰기는 거절한다(제한을 앞당기는 조작 방지).
+     */
+    function homeCountryValueValid() {
+      return request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && request.resource.data.homeCountry is string
+        && request.resource.data.homeCountry.matches('^[A-Z]{2}$')
+        && request.resource.data.homeCountryChangedAt == request.time;
+    }
+
+    function userHomeCountryCreateOk() {
+      return !request.resource.data.keys().hasAny(['homeCountry', 'homeCountryChangedAt'])
+        || homeCountryValueValid();
+    }
+
+    function userHomeCountryUpdateOk() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      let hadCountry = ('homeCountry' in resource.data) && resource.data.homeCountry is string;
+      return !changed.hasAny(['homeCountry', 'homeCountryChangedAt'])
+        || (changed.hasAll(['homeCountry', 'homeCountryChangedAt'])
+          && homeCountryValueValid()
+          && (!hadCountry
+            || !('homeCountryChangedAt' in resource.data)
+            || request.time > resource.data.homeCountryChangedAt + duration.value(30, 'd')));
+    }
+
+    /**
      * 로그인한 누구나 읽는 문서(users·동행 members)에 개인정보 필드를 새로 넣지 못한다(2026-10-09 Chief).
      * null·기존과 같은 값(옛 문서의 merge 쓰기)·지우기는 허용 — 기존 값은 admin:strip-public-pii 가 지운다.
      */
@@ -250,13 +278,15 @@ service cloud.firestore {
           'routeTokenEarnDayKey',
           'routeTokenEarnedToday'
         ])
-        && userTierOnCreateValid();
+        && userTierOnCreateValid()
+        && userHomeCountryCreateOk();
       allow update: if isSelfWriter(userId)
         && (!userNicknameChanged() || userNicknameReserved())
         && userRouteTokenFieldsUntouched()
         && userTierProtectedFieldsUntouched()
         && userTierUpdateValid()
         && userNicknameChangeCooldownOk()
+        && userHomeCountryUpdateOk()
         && publicPiiNotAdded();
       allow delete: if false;
     }
@@ -556,6 +586,12 @@ service cloud.firestore {
              .hasOnly(['presenceEnabled', 'updatedAt'])
         && request.resource.data.presenceEnabled == true;
       allow delete: if false;
+    }
+
+    /** 공개 경로 요약 목록(G2) — 서버 트리거가 published Publication 만 투영한다. 원본처럼 공개 읽기, 쓰기는 Functions 만. */
+    match /publicationListings/{publicationId} {
+      allow read: if true;
+      allow write: if false;
     }
 
     match /publicationSessions/{publicationId}/members/{userId} {

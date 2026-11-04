@@ -81,11 +81,17 @@ export type LeaderboardRow = {
   isMe: boolean;
 };
 
+export type LeaderboardScopeType = "world" | "continent" | "country";
+export const LEADERBOARD_SCOPE_TYPES: readonly LeaderboardScopeType[] = ["world", "continent", "country"];
+
 export type LeaderboardResponse = {
   generatedAt: string;
   board: LeaderboardBoard;
   period: LeaderboardPeriod;
-  scope: "world";
+  /** 순위 범위(G3-2). 범위를 보내지 않는 옛 앱에는 늘 "world" */
+  scope: LeaderboardScopeType;
+  /** 대륙(AS…)·국가(KR…) 코드. 전세계는 null */
+  scopeCode: string | null;
   periodStartKst: string | null;
   rule: { sensorOnly: boolean };
   top: LeaderboardRow[];
@@ -315,6 +321,7 @@ export function renderLeaderboard(
     /** 지금 달리는 사람 uid → trailId */
     liveByUid: ReadonlyMap<string, string>;
   },
+  scope: { scopeType: LeaderboardScopeType; scopeCode: string } = { scopeType: "world", scopeCode: "-" },
 ): LeaderboardResponse {
   const toRow = (r: RankedRow): LeaderboardRow => {
     const isMe = r.uid === layout.requesterUid;
@@ -332,7 +339,8 @@ export function renderLeaderboard(
     generatedAt: new Date(snapshot.generatedAtMs).toISOString(),
     board: snapshot.board,
     period: snapshot.period,
-    scope: "world",
+    scope: scope.scopeType,
+    scopeCode: scope.scopeType === "world" ? null : scope.scopeCode,
     periodStartKst: snapshot.periodStartKst,
     rule: { sensorOnly: snapshot.sensorOnly },
     top: layout.top.map(toRow),
