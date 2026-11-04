@@ -1316,12 +1316,6 @@ export default function App() {
     setMenuOpen(false);
   }, [returnToTrailhead, rideStatus]);
 
-  /** 메뉴 「나가기」 — 메뉴는 열어 둬 「현재 Trailhead」 로 바뀐 것을 바로 보이게 한다. */
-  const leaveTrailFromMenu = useCallback(() => {
-    if (rideStatus === "running" || rideStatus === "paused") return;
-    returnToTrailhead();
-  }, [returnToTrailhead, rideStatus]);
-
   const loadCourseRouteForTrailJoin = useCallback(
     async (courseId: string) => {
       if ((BASIC_SHARED_HUB_IDS as readonly string[]).includes(courseId)) {
@@ -2002,6 +1996,19 @@ export default function App() {
     clearCirclePreview();
     dismissResult();
   }, [routeClearBlockedByRide, clearRoutePins, routeMenuLockedForProd, clearCirclePreview, dismissResult]);
+
+  /**
+   * 메뉴 「Trail 나가기」 — 주행하지 않고 Trail 에서 나온다. Trail 합류가 불러온 경로도 함께 해제한다
+   * (11-04 Chief 「나왔지만 여전히 주행 가능 상태…들어갔던 트레일의 경로가 설정된 상태다. 경로를 해제해야 한다」).
+   * 입문 경로 Trail 이면 「선택: Basic N」 동행 허브에서도 나온다(그 「나가기」와 같은 동작).
+   * 메뉴는 열어 둬 「현재 Trailhead」 로 바뀐 것을 바로 보이게 한다.
+   */
+  const leaveTrailFromMenu = useCallback(() => {
+    if (rideStatus === "running" || rideStatus === "paused") return;
+    handleClearPins();
+    if (basicActiveHubCourseId) void leaveBasicHub();
+    returnToTrailhead();
+  }, [rideStatus, handleClearPins, basicActiveHubCourseId, leaveBasicHub, returnToTrailhead]);
 
   const handleSetRouteProfileOnly = useCallback(
     (p: RouteProfile) => {

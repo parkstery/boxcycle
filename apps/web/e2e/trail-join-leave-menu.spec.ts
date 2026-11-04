@@ -5,6 +5,7 @@
  *       누름이 지도 단추로 갔다. 줄 전체를 누르면 합류하도록 고쳤다.
  *  ② 「trail에 참여한 사용자가 주행을 하지 않고 다시 trail을 빠져나오는 기능이 없다」
  *     — 폰 가로에선 HUD 「Trailhead로」 패널이 숨겨져 창구가 없었다. 메뉴 「현재 Trail N」 줄에 「나가기」.
+ *  ③ 「나왔지만 여전히 주행 가능 상태…경로를 해제해야 한다」 — 나가기는 합류가 불러온 경로·입문 허브도 해제한다.
  *
  * 실앱 + 에뮬레이터(auth·firestore·database·functions): A 가 입문 경로로 주행을 시작해 공개 Trail 을 열고,
  * B(게스트)가 메뉴 → 지금 달리는 Trail → 줄 누르기로 합류, 메뉴 「나가기」로 Trailhead 로 돌아온다.
@@ -44,6 +45,10 @@ test("메뉴 → 지금 달리는 Trail → 줄을 눌러 합류, 메뉴 「나�
   await row.locator(".lb-glance__name").click();
   await expect.poll(async () => new URL(b.url()).searchParams.get("trail"), { timeout: 20_000 }).toBe(trailId);
 
+  // 합류하면 그 Trail 의 경로가 잡혀 바로 달릴 수 있다.
+  const startB = b.getByRole("group", { name: "주행 제어" }).getByRole("button", { name: "주행 시작" });
+  await expect(startB).toHaveCount(1, { timeout: 20_000 });
+
   await b.getByRole("button", { name: "메뉴 열기", exact: true }).click();
   await expect(menu.locator(".trail-hub__context")).toContainText("Trail");
   await expect(menu.locator(".trail-hub__context")).not.toContainText("Trailhead");
@@ -52,6 +57,9 @@ test("메뉴 → 지금 달리는 Trail → 줄을 눌러 합류, 메뉴 「나�
   await leave.click();
   await expect(menu.locator(".trail-hub__context")).toContainText("Trailhead");
   await expect(leave).toHaveCount(0);
+  // 경로도 해제 — 주행 시작 단추·「선택: Basic N」 줄이 없다.
+  await expect(menu.locator(".ride-panel__official-active")).toHaveCount(0);
+  await expect(startB).toHaveCount(0);
   await expect.poll(async () => new URL(b.url()).searchParams.get("trail")).toBeNull();
 
   await ctxA.close();
