@@ -48,6 +48,7 @@ export const ACCOUNT_DELETION_POLICY: Readonly<Record<string, AccountDeletionAct
   config: "none",
   publicRouteRequests: "delete",
   routePublications: "anonymize",
+  publicationListings: "none", // routePublications 투영(G2). 원본 익명화를 트리거가 따라 쓴다 — 직접 손대지 않는다
   publicationSessions: "none", // members/{uid} 하위만 삭제
   appMeta: "none",
   routeActivity: "none", // 경로별 집계(개인 식별 없음)

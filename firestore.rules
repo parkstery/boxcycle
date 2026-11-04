@@ -558,6 +558,12 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    /** 공개 경로 요약 목록(G2) — 서버 트리거가 published Publication 만 투영한다. 원본처럼 공개 읽기, 쓰기는 Functions 만. */
+    match /publicationListings/{publicationId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /publicationSessions/{publicationId}/members/{userId} {
       allow read: if isSignedIn() && isPublicationSharedPresenceAllowed(publicationId);
       allow create, update: if isSelfWriter(userId) && isPublicationSharedPresenceAllowed(publicationId)

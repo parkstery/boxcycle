@@ -235,6 +235,11 @@ describe("visibility gate contracts (Trailhead idle)", () => {
       pubs,
       /noteVisibilityOneShot\("catalogPublications"\)[\s\S]{0,240}await getDocs\(/,
     );
+    // G2 요약 목록 읽기도 같은 계측을 지난다(함수 본문 안에서 getDocs 앞).
+    assert.match(
+      pubs,
+      /listPublishedPublicationListings[\s\S]{0,200}noteVisibilityOneShot\("catalogPublications"\)[\s\S]{0,320}await getDocs\(/,
+    );
     const labels = codeOnly(read("src/lib/identity/repo/firestoreUser.ts"));
     assert.match(
       labels,

@@ -567,3 +567,4 @@ export {
   openTrailListingOnLiveCourseRideDeleted,
 } from "./openTrailListingProjection.js";
 export { openTrailListingsSweep } from "./openTrailListingsSweep.js";
+export { publicationListingOnPublicationWritten } from "./publicationListingProjection.js";
