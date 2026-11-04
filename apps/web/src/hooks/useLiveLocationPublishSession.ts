@@ -23,7 +23,8 @@ import {
 import { flushRideJoinPresenceBurst } from "../lib/ride/rideJoinPresenceBurst";
 import { sanitizeTrailId } from "../lib/trail/repo/firestoreTrail";
 import { deleteTrailMotion, readRtdbMotionHealthInput } from "../lib/peerMotion/repo/rtdbTrailMotion";
-import { isRtdbMotionHealthy } from "../lib/ride/rideSyncPolicy";
+import { rtdbMotionHealthReason } from "../lib/ride/rideSyncPolicy";
+import { noteRideNetTick } from "../lib/ride/rideNetStatsMeter";
 import {
   awaitRouteFlightSettled,
   cancelRoutePublish,
@@ -317,6 +318,8 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
         isFirebaseDatabaseConfigured() &&
         snapshot.routeReady &&
         shouldPublishPeerMotion(now, throttle, snapshot.speedMps);
+      // 비용 L4: 내 RTDB motion 이 정상이면 Firestore 하트비트 12초(끊기면 4초)
+      const rtdbReason = rtdbMotionHealthReason({ ...readRtdbMotionHealthInput(), nowMs: now });
       const publishRoute =
         re &&
         snapshot.routeReady &&
@@ -326,9 +329,9 @@ export function useLiveLocationPublishSession(opts: UseLiveLocationPublishSessio
           snapshot.progressRatio,
           snapshot.distMetersAlongRoute,
           snapshot.speedMps,
-          // 비용 L4: 내 RTDB motion 이 정상이면 Firestore 하트비트 12초(끊기면 4초)
-          isRtdbMotionHealthy({ ...readRtdbMotionHealthInput(), nowMs: now }),
+          rtdbReason === "healthy",
         );
+      if (re && snapshot.routeReady) noteRideNetTick(rtdbReason, publishRoute);
 
       if (!publishGlobal && !publishRoute && !publishMotion) return;
 

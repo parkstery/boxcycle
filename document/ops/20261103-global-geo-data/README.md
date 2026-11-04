@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | IN_PROGRESS — G1 커밋(main2, 미푸시) |
+| 상태 | IN_PROGRESS — G1·G0.5(P1 1차·P2·P5)·G3-1 배포됨(54bd409d), 유럽 RTDB 생성 |
 | Supervisor | Claude Code (Opus 5.5) |
 | 계획 | [00-plan.md](00-plan.md) |
 
@@ -12,8 +12,9 @@
 
 ## 다음
 
-1. G0.5 이전 준비([§5.1](00-plan.md)) P5 → P2 → P1, P3·P4는 G3와 함께
-2. G2 Publication 검색 목록
+1. G2 Publication 검색 목록
+2. 유럽 RTDB 2차(앱 접속 분리, [§5.1](00-plan.md))
+3. G3-2 국가 범위(국가 입력 시안 → Chief 승인)
 
 ## G1 결과 (2026-11-03, Claude Code 직접)
 

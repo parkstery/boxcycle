@@ -6,6 +6,9 @@ import {
   GLOBAL_LIVE_PRESENCE_MAX_WRITE_INTERVAL_MS,
   GLOBAL_LIVE_PRESENCE_MIN_MOVE_METERS,
   GLOBAL_LIVE_PRESENCE_MIN_WRITE_INTERVAL_MS,
+  TRAIL_LIVE_SPEED_DELTA_RTDB_HEALTHY_MPS,
+  TRAIL_LIVE_SPEED_WRITE_MIN_GAP_MS,
+  TRAIL_LIVE_SPEED_WRITE_MIN_GAP_RTDB_HEALTHY_MS,
   trailLiveProgressHeartbeatMs,
   PEER_MOTION_PUBLISH_INTERVAL_MS,
   roundLngLatForLiveShare,
@@ -147,6 +150,7 @@ const SPEED_PUBLISH_DELTA_MPS = 0.28;
 /**
  * 하트비트 — 절대 distMeters+speedMps. 초기·속도 변경 시 heartbeat 대기 없이 publish.
  * 간격: RTDB 정상이면 12초, 아니면 4초(`trailLiveProgressHeartbeatMs`, 비용 L4).
+ * 속도 변화 쓰기는 최소 간격 뒤에만(정상 3초·3km/h, 비정상 1초·1km/h, 비용 L4b).
  */
 export function shouldPublishRouteProgress(
   now: number,
@@ -158,11 +162,15 @@ export function shouldPublishRouteProgress(
 ): boolean {
   if (state.routeWriteAt === 0) return true;
   if (now - state.routeWriteAt >= trailLiveProgressHeartbeatMs(rtdbHealthy)) return true;
+  // 비용 L4b: 가속 중 0.4초마다 쓰지 않게 최소 간격을 둔다(RTDB 상태와 무관하게).
+  const minGapMs = rtdbHealthy ? TRAIL_LIVE_SPEED_WRITE_MIN_GAP_RTDB_HEALTHY_MS : TRAIL_LIVE_SPEED_WRITE_MIN_GAP_MS;
+  if (now - state.routeWriteAt < minGapMs) return false;
+  const minDeltaMps = rtdbHealthy ? TRAIL_LIVE_SPEED_DELTA_RTDB_HEALTHY_MPS : SPEED_PUBLISH_DELTA_MPS;
   if (
     typeof speedMps === "number" &&
     Number.isFinite(speedMps) &&
     state.routeSpeedMps >= 0 &&
-    Math.abs(speedMps - state.routeSpeedMps) >= SPEED_PUBLISH_DELTA_MPS
+    Math.abs(speedMps - state.routeSpeedMps) >= minDeltaMps
   ) {
     return true;
   }

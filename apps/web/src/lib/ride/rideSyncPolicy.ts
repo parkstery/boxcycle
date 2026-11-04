@@ -51,15 +51,36 @@ export const TRAIL_LIVE_PROGRESS_HEARTBEAT_RTDB_HEALTHY_MS = 12_000;
 /** 마지막 RTDB motion 쓰기 서버 응답이 이 안이어야 「정상」 — 수신 측 소스 선택 기준(2.5s)과 같은 척도. */
 export const RTDB_MOTION_HEALTHY_ACK_WINDOW_MS = 2_500;
 
-/** 순수 판정 — 연결 표시가 참이고 최근에 서버가 쓰기를 받아 줬는가. */
+/**
+ * 비용 L4b — 속도 변화로 하트비트 전에 쓰는 **최소 간격**.
+ * 2026-11-04 운영 실측: 위치 쓰기 681회 중 522회(77%)가 1초 안 연속이었다. 가속할 때마다
+ * 1km/h 변화를 0.4초 간격으로 쓴다. 동행 움직임은 RTDB 5Hz 가 전달하므로 이 값은 관전·폴백용이다.
+ */
+export const TRAIL_LIVE_SPEED_WRITE_MIN_GAP_MS = 1_000;
+export const TRAIL_LIVE_SPEED_WRITE_MIN_GAP_RTDB_HEALTHY_MS = 3_000;
+/** RTDB 정상일 때 하트비트 전에 쓸 만한 속도 변화(약 3 km/h). 비정상이면 종전 0.28 m/s. */
+export const TRAIL_LIVE_SPEED_DELTA_RTDB_HEALTHY_MPS = 0.83;
+
+export type RtdbMotionHealthReason = "healthy" | "disconnected" | "noAck" | "staleAck";
+
+/** 순수 판정 — 연결 표시가 참이고 최근에 서버가 쓰기를 받아 줬는가. 이유는 운영 진단(`rides.netStats`)에 쓴다. */
+export function rtdbMotionHealthReason(input: {
+  connected: boolean;
+  lastAckAtMs: number | null;
+  nowMs: number;
+}): RtdbMotionHealthReason {
+  if (!input.connected) return "disconnected";
+  if (input.lastAckAtMs == null) return "noAck";
+  const age = input.nowMs - input.lastAckAtMs;
+  return age >= 0 && age <= RTDB_MOTION_HEALTHY_ACK_WINDOW_MS ? "healthy" : "staleAck";
+}
+
 export function isRtdbMotionHealthy(input: {
   connected: boolean;
   lastAckAtMs: number | null;
   nowMs: number;
 }): boolean {
-  if (!input.connected || input.lastAckAtMs == null) return false;
-  const age = input.nowMs - input.lastAckAtMs;
-  return age >= 0 && age <= RTDB_MOTION_HEALTHY_ACK_WINDOW_MS;
+  return rtdbMotionHealthReason(input) === "healthy";
 }
 
 export function trailLiveProgressHeartbeatMs(rtdbHealthy: boolean): number {

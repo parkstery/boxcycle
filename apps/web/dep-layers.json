@@ -358,6 +358,7 @@
       "ride/rideMoments.ts",
       "ride/rideMomentSound.ts",
       "ride/rideJoinPresenceBurst.ts",
+      "ride/rideNetStatsMeter.ts",
       "ride/ridePulse.ts",
       "ride/rideRecordPolicy.ts",
       "ride/rideResumeSlotPolicy.ts",

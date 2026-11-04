@@ -1,3 +1,4 @@
+import { takeRideNetStats } from "../rideNetStatsMeter";
 import {
   addDoc,
   collection,
@@ -200,8 +201,9 @@ export async function saveRideSessionToFirestore(input: {
     ...buildRideSessionAnchorWriteFields(input.session),
     conquest: input.conquest ?? null,
   };
+  const netStats = takeRideNetStats();
 
-  const ref = await addDoc(collection(db, RIDES_COLLECTION), docData);
+  const ref = await addDoc(collection(db, RIDES_COLLECTION), netStats ? { ...docData, netStats } : docData);
   return ref.id;
 }
 
