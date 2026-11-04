@@ -239,6 +239,8 @@
   white-space: nowrap;
   cursor: pointer;
 }
+.lb-glance__row--joinable { cursor: pointer; }
+@media (hover: hover) { .lb-glance__row--joinable:hover::before { background: rgba(222, 233, 255, 0.9); } }
 .lb-glance__join:focus-visible { outline: 2px solid #2457d6; outline-offset: 1px; }
 /* Trail 줄도 순위 줄과 같은 글자 크기(18px 줄, 낮은 폰 13px 줄). 합류 버튼은 줄 높이 안에 든다. */
 .lb-glance__trail-no { font-size: 14px; line-height: 1; }

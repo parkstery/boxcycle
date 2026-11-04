@@ -31,9 +31,15 @@ export function TrailGlanceList({ trails, activeTrailId, rideSessionActive, load
           const km = trailKmLabel(t);
           const riders = trailRiderCount(t);
           const name = trailDisplayName(t);
+          const joinable = !rideSessionActive;
           return (
-            <li key={t.id} className={`lb-glance__row lb-glance__row--trail${current ? " lb-glance__row--me" : ""}`}
-              aria-current={current ? "true" : undefined} aria-label={current ? trailRowLabel(t) : undefined}>
+            <li key={t.id}
+              className={`lb-glance__row lb-glance__row--trail${current ? " lb-glance__row--me" : ""}${joinable ? " lb-glance__row--joinable" : ""}`}
+              aria-current={current ? "true" : undefined} aria-label={current ? trailRowLabel(t) : undefined}
+              // 11-04 Chief 「지금 달리는 trail 에서 클릭하면 참여가 가능했었으나 현재는 안 된다」 —
+              // 폰 가로에서 줄 끝 「합류」 단추가 오른쪽 지도 조작(맵 스타일 원)에 덮여 눌리지 않았다.
+              // 줄 전체를 누르면 합류한다(단추는 키보드·접근성 이름용으로 그대로 둔다).
+              onClick={joinable ? () => onJoinTrail(t.id, t.publicationId) : undefined}>
               <span className="lb-glance__outline lb-glance__trail-no">{formatTrailDisplayNumber(t.displayNumber)}</span>
               <span className={`lb-glance__outline lb-glance__name${current ? " lb-glance__outline--hero" : ""}`} title={name}>{shortTrailPlace(name)}</span>
               <span className={`lb-glance__outline lb-glance__km${current ? " lb-glance__outline--hero" : ""}`}>
@@ -45,7 +51,7 @@ export function TrailGlanceList({ trails, activeTrailId, rideSessionActive, load
                 <span className="lb-glance__outline lb-glance__trail-status">{riders != null && riders > 0 ? `${riders}명` : ""}</span>
               ) : (
                 <button type="button" className="lb-glance__join" title="이 Trail에 합류"
-                  aria-label={`${trailRowLabel(t)} — 합류`} onClick={() => onJoinTrail(t.id, t.publicationId)}>
+                  aria-label={`${trailRowLabel(t)} — 합류`} onClick={(e) => { e.stopPropagation(); onJoinTrail(t.id, t.publicationId); }}>
                   {riders != null && riders > 0 ? `${riders}명 · 합류` : "합류"}
                 </button>
               )}

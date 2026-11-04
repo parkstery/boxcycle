@@ -25,6 +25,11 @@ export type TrailHubPanelProps = {
   rideSessionActive?: boolean;
   /** Chief 11-02: 지금 달리는 Trail 목록은 지도 오른쪽 목록(Trail 탭)에서 본다. 메뉴엔 개수와 여는 줄만. */
   onShowTrailList?: () => void;
+  /**
+   * 주행하지 않고 Trail 에서 나와 Trailhead 로 돌아간다(11-04 Chief 「trail에 참여한 사용자가 주행을 하지 않고
+   * 다시 trail을 빠져나오는 기능이 없다」). 폰 가로에선 HUD 「Trailhead로」 패널이 숨겨져 창구가 없었다.
+   */
+  onLeaveTrail?: () => void;
 };
 
 export function TrailHubPanel(props: TrailHubPanelProps) {
@@ -44,6 +49,17 @@ export function TrailHubPanel(props: TrailHubPanelProps) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M5 18c0-8 14-3 14-11" /><circle cx="5" cy="19" r="2" /><circle cx="19" cy="5" r="2" /></svg>
         <span>현재</span>
         <strong>{onTrailhead ? TRAILHEAD_LABEL : `${TRAIL_LABEL} ${formatTrailDisplayNumber(props.currentTrail?.displayNumber)}`}</strong>
+        {!onTrailhead && !props.rideSessionActive && props.onLeaveTrail ? (
+          <button
+            type="button"
+            className="trail-hub__leave"
+            aria-label={`${TRAIL_LABEL} 나가기`}
+            title={`${TRAIL_LABEL}에서 나와 ${TRAILHEAD_LABEL}로`}
+            onClick={props.onLeaveTrail}
+          >
+            나가기
+          </button>
+        ) : null}
       </div>
       {canToggleVisibility ? (
         <div className="trail-hub__row trail-hub__row--visibility">

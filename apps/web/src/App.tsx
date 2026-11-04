@@ -1316,6 +1316,12 @@ export default function App() {
     setMenuOpen(false);
   }, [returnToTrailhead, rideStatus]);
 
+  /** 메뉴 「나가기」 — 메뉴는 열어 둬 「현재 Trailhead」 로 바뀐 것을 바로 보이게 한다. */
+  const leaveTrailFromMenu = useCallback(() => {
+    if (rideStatus === "running" || rideStatus === "paused") return;
+    returnToTrailhead();
+  }, [returnToTrailhead, rideStatus]);
+
   const loadCourseRouteForTrailJoin = useCallback(
     async (courseId: string) => {
       if ((BASIC_SHARED_HUB_IDS as readonly string[]).includes(courseId)) {
@@ -3408,6 +3414,7 @@ export default function App() {
           visibilityBusy={trailVisibilityBusy}
           rideSessionActive={isRideSessionActive}
           onShowTrailList={trailGlance.showTrailList}
+          onLeaveTrail={leaveTrailFromMenu}
         />
       </MenuPanel>
 

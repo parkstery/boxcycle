@@ -147,6 +147,12 @@
 /* Chief 10-30: 시안의 색·위계는 유지하되 목록은 한 줄26px로 많이 보인다. */
 .trail-hub__context { display: flex; align-items: center; gap: 6px; flex: 0 0 28px; min-width: 0; color: #64748b; font-size: 10px; }
 .trail-hub__context svg { width: 18px; height: 18px; color: #2457d6; flex: none; }
+.trail-hub__leave {
+  margin-left: auto; flex: none; height: 22px; padding: 0 10px; box-sizing: border-box;
+  border: 1px solid #d9dde4; border-radius: 999px; background: #f5f6f8; color: #2a2e37;
+  font: inherit; font-size: 11px; font-weight: 600; line-height: 1; cursor: pointer;
+}
+@media (hover: hover) { .trail-hub__leave:hover { background: #eef2ff; border-color: #c7d2fe; } }
 .trail-hub__context strong { color: #2457d6; font-size: 13px; font-variant-numeric: tabular-nums; }
 .trail-hub__section-label { flex: none; margin: 0; padding: 4px 0; font-size: 10px; letter-spacing: 0; }
 .trail-hub__row--visibility { flex: none; margin: 0; min-height: 26px; flex-wrap: nowrap; }
