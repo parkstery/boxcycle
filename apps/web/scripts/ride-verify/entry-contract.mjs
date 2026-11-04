@@ -256,11 +256,12 @@ export const ENTRY_STEPS = [
   },
   {
     step: "open-basic-courses",
-    desc: "왼쪽 메뉴 머리줄 지도 핀(「경로 목록」) → 「내 경로」 창 → 출처 탭 「입문」(Chief 11-02 v4: RouteDock 에서 메뉴 머리줄로, 주행 전만)",
+    desc: "왼쪽 메뉴 머리줄 아래 출처 3버튼 중 「내 경로」 → 「내 경로」 창 → 출처 탭 「입문」(11-04 Chief: 지도 핀 하나를 내 경로·퍼블릭·입문 세 버튼으로, 주행 전만)",
     file: "src/components/MenuPanel.tsx",
     anchors: [
-      { name: "지도 핀 접근성 이름", re: /aria-label="경로 목록"/ },
-      { name: "지도 핀 콜백", re: /onClick=\{onOpenRouteList\}/ },
+      { name: "출처 버튼 접근성 이름", re: /aria-label=\{item\.name\}/ },
+      { name: "내 경로 출처", re: /\{ id: "saved", label: "내 경로", name: "내 경로 목록" \}/ },
+      { name: "출처 버튼 콜백", re: /onClick=\{\(\) => onOpenRouteSource\(item\.id\)\}/ },
     ],
     also: [
       {
@@ -272,10 +273,13 @@ export const ENTRY_STEPS = [
       },
       {
         file: "src/App.tsx",
-        anchors: [{ name: "핀 → 내 경로 창", re: /onOpenRouteList=\{[^\n]*\(\) => setReopenSavedNonce\(/ }],
+        anchors: [
+          { name: "출처 버튼 → 목록 창 요청", re: /setMenuRouteListRequest\(\(r\) => \(\{ source, nonce: r\.nonce \+ 1 \}\)\)/ },
+          { name: "요청 전달", re: /openListRequest=\{menuRouteListRequest\}/ },
+        ],
       },
     ],
-    selector: `getByRole('button',{name:'메뉴 열기',exact:true}) → locator('#menu-panel').getByRole('button',{name:'경로 목록',exact:true}) → getByRole('navigation',{name:'경로 출처'}).getByRole('button',{name:'입문',exact:true})`,
+    selector: `getByRole('button',{name:'메뉴 열기',exact:true}) → locator('#menu-panel').getByRole('button',{name:'내 경로 목록',exact:true}) → getByRole('navigation',{name:'경로 출처'}).getByRole('button',{name:'입문',exact:true})`,
   },
   {
     step: "course-modal",

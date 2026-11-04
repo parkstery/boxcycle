@@ -31,6 +31,7 @@ import { AppIntroScreen } from '../../src/components/auth/AppIntroScreen';
 import { EntryLocationDialog } from '../../src/components/auth/EntryLocationDialog';
 import { OfficialCourseListModal } from '../../src/components/ride/OfficialCourseListModal';
 import { RideRoutePanel } from '../../src/components/ride/RideRoutePanel';
+import type { RouteListSource } from '../../src/components/ride/RouteListModalShell';
 import { MenuPanel } from '../../src/components/MenuPanel';
 import { TrailHubPanel } from '../../src/components/trail/TrailHubPanel';
 import type { TrailInstance } from '../../src/lib/trail/trailTypes';
@@ -464,7 +465,7 @@ function Preview() {
     distanceKm:12.4+i, visibility:'open', status:'open', createdAtMs:Date.now()-i*1000,
     lastActivityAtMs:Date.now(), liveRiderCount:1+i%4,
   })));
-  const [reopenSaved,setReopenSaved] = useState(0);
+  const [listRequest,setListRequest] = useState<{source:RouteListSource;nonce:number}>({source:'saved',nonce:0});
   const rideStartPulseKey = useRideStartPulseKey(routeSetupToken, stage==='ready-to-start' && panel!=='summary' && !params.has('loading') && !params.has('blocked'));
   const [nextRideHidden, setNextRideHidden] = useState(false);
   const [nextRideCalls, setNextRideCalls] = useState({
@@ -749,7 +750,7 @@ function Preview() {
       publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}/>:null}
     <span id="toolbar-preview-calls" hidden data-zoom-in={toolbarCalls.zoomIn} data-zoom-out={toolbarCalls.zoomOut} />
     <MenuPanel open={panel==='menu'} onClose={()=>setPanel('ready')} onOpenPlaceSearch={noop}
-      onOpenRouteList={active ? undefined : ()=>setReopenSaved(n=>n+1)} onOpenSettings={()=>setPanel('settings')}
+      onOpenRouteSource={active ? undefined : (source)=>setListRequest(r=>({source,nonce:r.nonce+1}))} onOpenSettings={()=>setPanel('settings')}
       onOpenSensor={()=>setPanel('sensor')} sensorConnected={sensorState.uiState==='connected'} sensorStatus={cadenceSensorShortStatus(sensorState)}>
       <RideRoutePanel routeSummary="" routeLoading={false} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
         basicStartLoading={false} basicStartHubJoined={false} officialCourseCatalogAvailable publishedPublicCourses={getBasicSharedHubSummaries()}
@@ -758,7 +759,7 @@ function Preview() {
         arrivalToastVisible={false} adhocSaveAvailable={false} onSaveAdhocAsUserRoute={noop} onDismissAdhocSave={noop}
         rideTtsEnabled onRideTtsEnabled={noop} rideBgmEnabled onRideBgmEnabled={noop} rideCoachingBanner onRideCoachingBanner={noop}
         pacerEnabled onPacerEnabled={noop} rideElevationProfileLoading={false} rideBgmCatalogConfigured
-        reopenSavedSignal={reopenSaved} />
+        openListRequest={listRequest} />
       {trailPreview ? <TrailHubPanel user={{uid:'preview-host'} as User}
         activeTrailId={trailPreviewRiding ? previewTrails[0].id : 'default'}
         currentTrail={trailPreviewRiding ? {...previewTrails[0],visibility:trailPreviewCalls.visibility as 'open'|'private'} : null}

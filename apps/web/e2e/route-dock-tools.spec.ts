@@ -125,7 +125,7 @@ test('메뉴 머리줄: 지도 핀은 「내 경로」 창(주행 전만), ⚙ �
   await page.goto(`${preview}?state=idle`);
   await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
   const menu = page.locator('#menu-panel');
-  await menu.getByRole('button', { name: '경로 목록', exact: true }).click();
+  await menu.getByRole('button', { name: '내 경로 목록', exact: true }).click();
   await expect(page.getByRole('dialog', { name: '내 경로', exact: true })).toBeVisible();
   await expect(page.locator('.oc-modal__sources button[aria-pressed=true]')).toHaveText('내 경로');
   await page.locator('.oc-modal__close').click();
@@ -133,7 +133,7 @@ test('메뉴 머리줄: 지도 핀은 「내 경로」 창(주행 전만), ⚙ �
   await expect(page.getByRole('dialog', { name: '주행 설정', exact: true })).toBeVisible();
   await page.goto(`${preview}?state=riding`);
   await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
-  await expect(menu.getByRole('button', { name: '경로 목록', exact: true })).toHaveCount(0);
+  await expect(menu.getByRole('button', { name: '내 경로 목록', exact: true })).toHaveCount(0);
   await menu.getByRole('button', { name: '주행 설정', exact: true }).click();
   await expect(page.getByRole('dialog', { name: '주행 설정', exact: true })).toBeVisible();
   await page.goto(`${preview}?state=menu`);

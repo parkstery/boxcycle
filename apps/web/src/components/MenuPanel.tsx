@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { SpinatlasMark } from "./brand/SpinatlasMark";
+import type { RouteListSource } from "./ride/RouteListModalShell";
 import { useDialogFocus } from "./ui/useDialogFocus";
 import { usePanelHeaderCloseDrag } from "./ui/usePanelHeaderCloseDrag";
 import "./MenuPanel.css";
@@ -12,8 +13,15 @@ type MenuPanelProps = {
   children: ReactNode;
   revealProgress?: number | null;
   onOpenPlaceSearch?: () => void;
-  /** 지도 핀 — 경로 목록 창(기본 「내 경로」). 주행 전에만 준다(Chief 11-02 v4, RouteDock 에서 옮김). */
-  onOpenRouteList?: () => void;
+  /**
+   * 경로 출처 3버튼(내 경로·퍼블릭·입문) — 머리줄 바로 아래 한 줄. 주행 전에만 준다.
+   * 11-04 Chief: 머리줄 지도 핀 하나(「경로 목록」)를 예전처럼 출처별 세 버튼으로 나눴다.
+   */
+  onOpenRouteSource?: (source: RouteListSource) => void;
+  /** 「내 경로」 버튼 배지(0 이면 숨김) */
+  savedRouteCount?: number;
+  /** 「퍼블릭」 버튼 배지(0 이면 숨김) */
+  publicRouteCount?: number;
   /** ⚙ — 주행 설정 창(Chief 11-02 v4, RouteDock 에서 옮김). */
   onOpenSettings?: () => void;
   /** 센서 상세 설정 창(Chief 11-03 「센서 메뉴를 메인메뉴 안에」 — 계기판 RPM 칸과 같은 창). */
@@ -27,14 +35,12 @@ type MenuPanelProps = {
 /**
  * 좌측 흰 판 메뉴(시안 06) — 경로 6행은 RideRoutePanel, Trail 목록은 TrailHubPanel.
  */
-function MenuPinIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M12 21s-6.5-5.8-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.2 12 21 12 21z" />
-      <circle cx="12" cy="10.5" r="2.3" />
-    </svg>
-  );
-}
+/** 순서는 목록 창 안 출처 줄(RouteListSourceNav)과 같다 — 내 경로 · 퍼블릭 · 입문. */
+const ROUTE_SOURCE_BUTTONS: { id: RouteListSource; label: string; name: string }[] = [
+  { id: "saved", label: "내 경로", name: "내 경로 목록" },
+  { id: "public", label: "퍼블릭", name: "퍼블릭 경로 목록" },
+  { id: "intro", label: "입문", name: "입문 경로 목록" },
+];
 
 function MenuGearIcon() {
   return (
@@ -78,7 +84,9 @@ export function MenuPanel({
   children,
   revealProgress = null,
   onOpenPlaceSearch,
-  onOpenRouteList,
+  onOpenRouteSource,
+  savedRouteCount = 0,
+  publicRouteCount = 0,
   onOpenSettings,
   onOpenSensor,
   sensorConnected = false,
@@ -180,17 +188,6 @@ export function MenuPanel({
                 <MenuSearchIcon />
               </button>
             ) : null}
-            {onOpenRouteList ? (
-              <button
-                type="button"
-                className="menu-panel__search menu-panel__routes"
-                onClick={onOpenRouteList}
-                aria-label="경로 목록"
-                title="경로 목록"
-              >
-                <MenuPinIcon />
-              </button>
-            ) : null}
             {onOpenSettings ? (
               <button
                 type="button"
@@ -232,6 +229,27 @@ export function MenuPanel({
             </svg>
           </button>
         </header>
+        {onOpenRouteSource ? (
+          <div className="menu-panel__sources" role="group" aria-label="경로 출처">
+            {ROUTE_SOURCE_BUTTONS.map((item) => {
+              const count = item.id === "saved" ? savedRouteCount : item.id === "public" ? publicRouteCount : 0;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="menu-panel__source"
+                  aria-label={item.name}
+                  title={item.name}
+                  aria-haspopup="dialog"
+                  onClick={() => onOpenRouteSource(item.id)}
+                >
+                  {item.label}
+                  {count > 0 ? <span className="menu-panel__source-badge" aria-hidden="true">{count}</span> : null}
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
         <div className="menu-panel__body">{children}</div>
       </aside>
     </div>

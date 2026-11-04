@@ -52,6 +52,8 @@ type RideRoutePanelProps = {
   openSavedTabSignal?: number;
   /** 값이 바뀌고 >0 이면 「내 경로」 창만 연다(필터 강제 없음). 공개 등록 취소 복귀용(2026-10-06 Chief). */
   reopenSavedSignal?: number;
+  /** nonce 가 바뀌고 >0 이면 그 출처의 목록 창을 연다 — 메뉴 출처 3버튼(11-04 Chief). */
+  openListRequest?: { source: RouteListSource; nonce: number };
   /** 미완료 쿼터 초과 안내 배너 문구(내 경로 탭 상단) */
   savedQuotaNotice?: string | null;
   onDismissSavedQuotaNotice?: () => void;
@@ -127,6 +129,14 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
     if (reopenSavedSignal > 0) setListSource("saved");
   }
 
+  // 메뉴 머리줄 아래 출처 3버튼 — 누른 출처의 목록 창을 바로 연다(퍼블릭 재조회는 요청한 쪽이 한다).
+  const openListNonce = props.openListRequest?.nonce ?? 0;
+  const [prevOpenListNonce, setPrevOpenListNonce] = useState(openListNonce);
+  if (openListNonce !== prevOpenListNonce) {
+    setPrevOpenListNonce(openListNonce);
+    if (openListNonce > 0 && props.openListRequest) setListSource(props.openListRequest.source);
+  }
+
   function selectSource(source: RouteListSource) {
     if (source === "public") props.onRefreshPublishedPublicCourses?.();
     setListSource(source);
@@ -178,7 +188,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
 
   return (
     <aside className="ride-panel" aria-label="경로 및 라이딩">
-      {/* 10-30 Chief: 왼쪽 메뉴는 Trail 전용 — 경로 목록은 RouteDock 지도 핀, 주행 설정·인터벌은 RouteDock ⚙·INT 에서 연다. */}
+      {/* 경로 목록은 메뉴 머리줄 아래 출처 3버튼(MenuPanel)이 openListRequest 로 연다(11-04 Chief). */}
 
       {activeOfficialTitle ? (
         <p className="ride-panel__official-active" role="status">

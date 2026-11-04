@@ -116,7 +116,51 @@
   margin-left: 2px;
 }
 
-.menu-panel__routes { color: #2457d6; }
+/* 경로 출처 3버튼(11-04 Chief) — 머리줄 바로 아래 한 줄. 높이는 글자 한 줄 + 얇은 여백만(28px). */
+.menu-panel__sources {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 6px;
+  padding: 6px 14px 4px 18px;
+}
+
+.menu-panel__source {
+  appearance: none;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 28px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  border: 1px solid #d9dde4;
+  border-radius: 999px;
+  background: #f5f6f8;
+  color: #2a2e37;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.menu-panel__source-badge {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: #2457d6;
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 
 /* 머리줄 아이콘끼리는 2px(8px gap − 6px) — 투명 원이라 그림 사이는 16px 남는다 */
 .menu-panel__head-brand > .menu-panel__search + .menu-panel__search { margin-left: -6px; }
@@ -143,6 +187,10 @@
   }
   .menu-panel__close:hover {
     background: #e8eaee;
+  }
+  .menu-panel__source:hover {
+    background: #eef2ff;
+    border-color: #c7d2fe;
   }
 }
 

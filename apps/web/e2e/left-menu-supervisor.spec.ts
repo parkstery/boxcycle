@@ -17,7 +17,10 @@ for (const [width, height] of [[800,360],[736,320],[699,273],[667,300],[320,640]
     await expect(menu.getByRole('group',{name:'경로 목록 열기'})).toHaveCount(0);
     await expect(menu.getByRole('button',{name:'순위',exact:true})).toHaveCount(0);
     await expect(menu.getByRole('button',{name:'인터벌',exact:true})).toHaveCount(0);
-    for (const name of ['지명 검색','경로 목록','주행 설정']) await expect(menu.locator('.menu-panel__head').getByRole('button',{name,exact:true})).toHaveAttribute('title',name);
+    for (const name of ['지명 검색','주행 설정']) await expect(menu.locator('.menu-panel__head').getByRole('button',{name,exact:true})).toHaveAttribute('title',name);
+    // 11-04 Chief: 머리줄 지도 핀(경로 목록) → 머리줄 바로 아래 출처 3버튼(내 경로·퍼블릭·입문).
+    const sources = menu.getByRole('group',{name:'경로 출처',exact:true});
+    for (const name of ['내 경로 목록','퍼블릭 경로 목록','입문 경로 목록']) await expect(sources.getByRole('button',{name,exact:true})).toHaveCount(1);
     const box = (await menu.boundingBox())!;
     expect(box.x).toBeGreaterThanOrEqual(-1);
     expect(box.x+box.width).toBeLessThanOrEqual(width+1);
@@ -36,7 +39,7 @@ test('메뉴 지도 핀은 「내 경로」부터 열고 출처를 바꾸며, IN
   await page.setViewportSize({width:699,height:273});
   await page.goto(`${preview}?state=ready`);
   await page.getByRole('button',{name:'메뉴 열기',exact:true}).click();
-  await page.locator('#menu-panel').getByRole('button',{name:'경로 목록',exact:true}).click();
+  await page.locator('#menu-panel').getByRole('button',{name:'내 경로 목록',exact:true}).click();
   await expect(page.locator('.oc-modal__sources button[aria-pressed=true]')).toHaveText('내 경로');
   for(const name of ['퍼블릭','입문','내 경로']){
     await page.locator('.oc-modal__sources').getByRole('button',{name,exact:true}).click();

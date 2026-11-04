@@ -106,7 +106,7 @@ for (const size of [{ width: 667, height: 300 }, { width: 800, height: 360 }, { 
     await menu.getByRole('button', { name: '메뉴 닫기', exact: true }).first().click();
     // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
     await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
-    await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click();
+    await page.locator('#menu-panel').getByRole('button', { name: '내 경로 목록', exact: true }).click();
     const sourceNav = page.getByRole('navigation', { name: '경로 출처' });
     await expect(sourceNav.getByRole('button')).toHaveText(['내 경로', '퍼블릭', '입문']);
     await expect(page.getByRole('dialog', { name: '내 경로', exact: true })).toBeVisible();
@@ -202,7 +202,7 @@ for (const size of [{ width: 667, height: 300 }, { width: 800, height: 360 }, { 
     // 10-30 Chief: 경로 목록은 지도 핀에서 열므로 닫으면 메뉴가 아니라 지도로 돌아온다.
     await expect(menu).toBeHidden();
     await expect(page.getByRole('dialog')).toHaveCount(0);
-    await expect(page.getByRole('button', { name: '경로 목록', exact: true })).toBeFocused();
+    await expect(page.getByRole('button', { name: '내 경로 목록', exact: true })).toBeFocused();
   });
 }
 
@@ -213,7 +213,7 @@ test('긴 이름·빈 목록·로딩에도 출처 전환과 닫기가 가능하�
     await menu.getByRole('button', { name: '메뉴 닫기', exact: true }).first().click();
     // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
     await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
-    await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click();
+    await page.locator('#menu-panel').getByRole('button', { name: '내 경로 목록', exact: true }).click();
     await page.getByRole('navigation', { name: '경로 출처' }).getByRole('button', { name: '퍼블릭', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: '퍼블릭 경로', exact: true });
     await withinViewport(dialog, 667, 300);
@@ -252,14 +252,14 @@ test('행 선택·이어달리기·합류·설정 콜백을 실제 제품 버튼
   await page.keyboard.press('Escape');
   // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
   await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
-  await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click();
+  await page.locator('#menu-panel').getByRole('button', { name: '내 경로 목록', exact: true }).click();
   await page.getByRole('navigation', { name: '경로 출처' }).getByRole('button', { name: '입문', exact: true }).click();
   await page.getByRole('dialog', { name: '입문 경로', exact: true }).getByRole('button', { name: '입문', exact: true }).click();
   await page.getByRole('dialog', { name: '입문 경로', exact: true }).locator('.oc-modal__item').first().click();
   await expect(page.getByRole('dialog', { name: '입문 경로', exact: true })).toHaveCount(0);
   // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
   await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
-  await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click();
+  await page.locator('#menu-panel').getByRole('button', { name: '내 경로 목록', exact: true }).click();
   const saved = page.getByRole('dialog', { name: '내 경로', exact: true });
   await saved.getByRole('listbox', { name: '사용자 경로 목록' }).getByRole('option').filter({ hasText: '한강 이어달리기' }).click();
   await saved.getByRole('button', { name: '이어 달리기', exact: true }).click();
@@ -272,7 +272,7 @@ for (const viewport of [{ width: 667, height: 300 }, { width: 800, height: 360 }
     await page.goto(preview + '?long');
     // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
     await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
-    await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click();
+    await page.locator('#menu-panel').getByRole('button', { name: '내 경로 목록', exact: true }).click();
     const saved = page.getByRole('dialog', { name: '내 경로', exact: true });
     await saved.getByRole('listbox').getByRole('option').first().click();
     await saved.locator('.saved-routes__filter-btn').evaluateAll(buttons => {

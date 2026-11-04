@@ -57,7 +57,7 @@ test.describe("MENU 정리 A단계", () => {
     // ── 경로 선택 제목 아래 출처 세 버튼 ───────────────────────────
     // 10-30 Chief: 왼쪽 메뉴는 Trail 전용 — 경로 선택은 RouteDock 지도 핀(「경로 목록」)이 「내 경로」부터 연다.
     await expect(panel.getByRole("group", { name: "경로 목록 열기" })).toHaveCount(0);
-    const routePicker = page.getByRole("button", { name: "경로 목록", exact: true });
+    const routePicker = page.getByRole("button", { name: "내 경로 목록", exact: true });
 
     // ── 높이 배분 실측 ──────────────────────────────────────────────────
     const rows = await page.evaluate(() => {

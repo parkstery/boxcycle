@@ -9,6 +9,7 @@ import { RideSettingsSheet } from '../../src/components/ride/RideSettingsSheet';
 import { MenuPanel } from '../../src/components/MenuPanel';
 import { EdgePanelHandle } from '../../src/components/ui/EdgePanelHandle';
 import { RideRoutePanel } from '../../src/components/ride/RideRoutePanel';
+import type { RouteListSource } from '../../src/components/ride/RouteListModalShell';
 import { TrailHubPanel } from '../../src/components/trail/TrailHubPanel';
 import { getBasicSharedHubSummaries } from '../../src/lib/route/repo/firestoreCourses';
 import type { PublishedPublicCourseSummary } from '../../src/lib/route/repo/firestoreCourses';
@@ -155,7 +156,7 @@ export function Preview() {
   const [menuOpen, setMenuOpen] = useState(params.get('state') === 'menu');
   const [lastAction, setLastAction] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [reopenSaved, setReopenSaved] = useState(0);
+  const [listRequest, setListRequest] = useState<{ source: RouteListSource; nonce: number }>({ source: 'saved', nonce: 0 });
   const [rideTtsEnabled, setRideTtsEnabled] = useState(true);
   const [rideBgmEnabled, setRideBgmEnabled] = useState(true);
   const [rideCoachingBanner, setRideCoachingBanner] = useState(false);
@@ -225,11 +226,11 @@ export function Preview() {
           setMenuOpen(false);
         }}
         onOpenPlaceSearch={() => setLastAction('지명 검색')}
-        onOpenRouteList={() => setReopenSaved((n) => n + 1)}
+        onOpenRouteSource={(source) => setListRequest((r) => ({ source, nonce: r.nonce + 1 }))}
         onOpenSettings={() => { setMenuOpen(false); setSettingsOpen(true); }}
       >
         <RideRoutePanel
-          reopenSavedSignal={reopenSaved}
+          openListRequest={listRequest}
           routeSummary=""
           routeLoading={false}
           basicSharedHubs={basicSharedHubs}

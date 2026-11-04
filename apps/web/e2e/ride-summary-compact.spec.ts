@@ -108,7 +108,7 @@ async function loadSavedRouteFromMenu(page: Page, routeName: string) {
   // 10-30 Chief: 경로 선택은 메뉴가 아니라 RouteDock 지도 핀(「경로 목록」) — 「내 경로」부터 연다.
   // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
   await page.getByRole("button", { name: "메뉴 열기", exact: true }).click();
-  await page.locator("#menu-panel").getByRole("button", { name: "경로 목록", exact: true }).click();
+  await page.locator("#menu-panel").getByRole("button", { name: "내 경로 목록", exact: true }).click();
   const row = page.getByText(routeName, { exact: false }).first();
   await expect(row).toBeVisible({ timeout: 15_000 });
   await row.click();

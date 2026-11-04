@@ -4,6 +4,7 @@ import { peerHudLabels, type PeerHudEntry } from "./lib/peerMotion/peerHud";
 import { SignUpNicknameCard } from "./components/auth/SignUpNicknameCard";
 import { HomeCountryConfirmCard } from "./components/auth/HomeCountryConfirmCard";
 import { ProfileEditSheet } from "./components/ProfileEditSheet";
+import type { RouteListSource } from "./components/ride/RouteListModalShell";
 import { RideRoutePanel } from "./components/ride/RideRoutePanel";
 import { IntervalRouteConfirm } from "./components/ride/IntervalRouteConfirm";
 import type { FollowMode } from "./lib/map/mapGlobeView";
@@ -371,6 +372,11 @@ export default function App() {
   const [openSavedTabNonce, setOpenSavedTabNonce] = useState(0);
   /** 퍼블릭 등록 취소 시 「내 경로」 창 복귀용 nonce — 대기 필터 강제 없음(2026-10-06 Chief). */
   const [reopenSavedNonce, setReopenSavedNonce] = useState(0);
+  /** 메뉴 출처 3버튼(내 경로·퍼블릭·입문) → RideRoutePanel 목록 창 열기 요청 */
+  const [menuRouteListRequest, setMenuRouteListRequest] = useState<{ source: RouteListSource; nonce: number }>({
+    source: "saved",
+    nonce: 0,
+  });
   /** 이어 달리기(§9.5.5 단위7) — 마지막으로 로드한 저장 경로 id(재개 후보). 렌더 중 ref 읽기 회피용 state */
   const [resumeCandidateId, setResumeCandidateId] = useState<string | null>(null);
   /**
@@ -3312,8 +3318,17 @@ export default function App() {
           placeSearchIntentRef.current = "menu";
           openPlaceSearchPanel();
         }}
-        // Chief 11-02 v4: 지도 핀(경로 목록 — 「내 경로」부터)·⚙ 주행 설정은 RouteDock 에서 메뉴 머리줄로.
-        onOpenRouteList={stage === "riding" || stage === "paused" ? undefined : () => setReopenSavedNonce((n) => n + 1)}
+        // 11-04 Chief: 머리줄 지도 핀(경로 목록) → 머리줄 바로 아래 출처 3버튼(내 경로·퍼블릭·입문). 주행 중엔 숨긴다.
+        onOpenRouteSource={
+          stage === "riding" || stage === "paused"
+            ? undefined
+            : (source) => {
+                if (source === "public") onRefreshPublishedPublicCourses();
+                setMenuRouteListRequest((r) => ({ source, nonce: r.nonce + 1 }));
+              }
+        }
+        savedRouteCount={savedRoutes.length}
+        publicRouteCount={publishedPublicCourses.length}
         onOpenSettings={openRideSettingsPanel}
         onOpenSensor={openCadenceSensorPanel}
         sensorConnected={bleCrankRpm.uiState === "connected"}
@@ -3361,6 +3376,7 @@ export default function App() {
           onDismissAdhocSave={() => setLastEndedWasAdhoc(null)}
           openSavedTabSignal={openSavedTabNonce}
           reopenSavedSignal={reopenSavedNonce}
+          openListRequest={menuRouteListRequest}
           savedQuotaNotice={savedQuotaNotice}
           onDismissSavedQuotaNotice={() => setSavedQuotaNotice(null)}
           onIncompleteQuotaBlocked={handleIncompleteQuotaBlocked}

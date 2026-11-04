@@ -394,7 +394,7 @@ test('경로 모달에서 세 출처를 전환해도 목록은 하나이며 닫�
   await page.goto(`${preview}?state=ready`);
   // Chief 11-02 v4: 경로 목록은 왼쪽 메뉴 머리줄 — 메뉴를 열고 누른다.
   await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
-  await page.locator('#menu-panel').getByRole('button', { name: '경로 목록', exact: true }).click();
+  await page.locator('#menu-panel').getByRole('button', { name: '내 경로 목록', exact: true }).click();
   const savedDefault=page.getByRole('dialog',{name:'내 경로',exact:true});
   await expect(savedDefault).toBeVisible();
   const sourceButtons=savedDefault.getByRole('navigation',{name:'경로 출처'}).getByRole('button');
