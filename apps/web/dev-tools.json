@@ -604,6 +604,16 @@
       "added": "2026-10-17"
     },
     {
+      "id": "audit-rider-glb-structure",
+      "kind": "script",
+      "path": "apps/web/scripts/rider-preserve/audit-rider-glb-structure.mjs",
+      "class": "permanent",
+      "purpose": "rider15 후보 GLB 구조 읽기 전용 감사",
+      "enable": "node apps/web/scripts/rider-preserve/audit-rider-glb-structure.mjs <rider.glb>",
+      "bundle": "20261104-rider-v2-upper-body",
+      "added": "2026-11-04"
+    },
+    {
       "id": "preserved-app-validator-html",
       "kind": "script",
       "path": "apps/web/scripts/rider-preserve/preserved-app-validator.html",
