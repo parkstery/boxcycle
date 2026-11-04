@@ -15,6 +15,7 @@ import { geoQuadkeyAt } from "./geoRegion/geoRegionCore.js";
 import { resolveGeoRegion } from "./geoRegion/geoRegionData.js";
 import { PUBLICATION_LISTINGS_COLLECTION, ROUTE_PUBLICATIONS_COLLECTION } from "./publicationListingCore.js";
 import { recomputePublicationListing } from "./publicationListingStore.js";
+import { OPEN_TRAIL_LISTINGS_COLLECTION, recomputeOpenTrailListing } from "./openTrailListingCore.js";
 
 const PROJECT_ID = "boxcycle-dc2df";
 const FS_HOST = process.env.FIRESTORE_EMULATOR_HOST ?? "";
@@ -95,6 +96,28 @@ describe("publicationListings 에뮬레이터", () => {
     assert.equal(await recomputePublicationListing(db, "seoul-a", resolveGeoRegion), "removed");
     const kr = await listings().where("geoCountry", "==", "KR").get();
     assert.deepEqual(ids(kr), ["seoul-b"]);
+  });
+
+  it("G4: 달리는 공개 Trail 목록에 그 Publication 의 지역이 복사된다", async () => {
+    const trail = db.collection("trails").doc("trail-paris");
+    await trail.set({
+      hostUid: "h1",
+      displayNumber: 7,
+      status: "open",
+      visibility: "open",
+      publicationId: "paris",
+      createdAt: Timestamp.now(),
+    });
+    await trail.collection("members").doc("h1").set({ lastSeenAt: Timestamp.now() });
+    assert.equal(await recomputeOpenTrailListing("trail-paris"), "upserted");
+    const row = (await db.collection(OPEN_TRAIL_LISTINGS_COLLECTION).doc("trail-paris").get()).data()!;
+    assert.equal(row.geoCountry, "FR");
+    assert.equal(row.geoAdmin1, "FR-IDF");
+    assert.equal(row.geoContinent, "EU");
+    assert.equal(row.geoSourcePublicationId, "paris");
+    assert.equal(row.riderCount, 1);
+    const fr = await db.collection(OPEN_TRAIL_LISTINGS_COLLECTION).where("geoCountry", "==", "FR").get();
+    assert.deepEqual(ids(fr), ["trail-paris"]);
   });
 
   it("Rules: 로그인 없이 읽기 허용, 클라이언트 쓰기 거부", async () => {

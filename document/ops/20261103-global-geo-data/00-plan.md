@@ -4,7 +4,7 @@
 |---|---|
 | 문서 유형 | ops 계획 — 데이터 구조 확장 설계 |
 | 작성 | 2026-11-03 Supervisor Claude Code (Opus 5.5) |
-| 상태 | IN_PROGRESS — G1·G3-1 배포, **G2 구현·미배포(11-04, §4.1.1)** |
+| 상태 | IN_PROGRESS — G1·G3-1 배포, **G2·G4 서버 구현·미배포(11-04, §4.1.1·§4.5.1)** |
 | 출발점 | Chief 자문 대화(Geographic Data Architecture 제안) + 코드 대조 의견 |
 
 ## 1. 결정
@@ -172,6 +172,14 @@
 
 - `openTrailListingCore.ts`가 Publication의 geoRegion을 목록 문서에 복사한다(새 판정 없이 복사만).
 - 쿼리는 §4.1과 같은 꼴이다. 실시간 참가자 정보는 지금처럼 RTDB에 두고 목록에는 인원 수만 둔다.
+
+### 4.5.1 G4 서버 결과 (2026-11-04, Claude Code 클라우드 세션 직접 · 미배포)
+
+- `openTrailListingCore.ts` 재계산이 `publicationListings/{publicationId}`의 지역 5종을 Trail 목록 문서에 복사한다(새 판정 없음). 표시 필드 `geoSourcePublicationId`로 **같은 Publication 이면 다시 읽지 않는다** — 재계산은 활동 시각마다 돌기 때문. 목록 문서가 생길 때 읽기 1회가 는다.
+- 요약 목록이 아직 없으면(G2 채우기 전) 값은 null 로 두고 표시만 남긴다. 목록 문서는 라이더가 없으면 지워지므로 다음 Trail 부터 채워진다.
+- 앱의 호스트 목록 쓰기는 `merge` 라 지역 필드를 지우지 않는다. Rules 변경 없음.
+- 시험: `openTrailListingProjection.test.ts` +4(14/14), 에뮬레이터 +1(6/6, 국가 쿼리 포함), 사보타주(복사 제거) → 1 FAIL. functions 251/0.
+- 남은 것: Trail 목록 지역 필터 화면(시안 → Chief 승인). 배포는 G2 ①과 함께 `functions:openTrailListingOnTrailWritten,…OnMemberCreated,…OnMemberDeleted,…OnLiveCourseRideCreated,…OnLiveCourseRideDeleted`(같은 core 를 쓰는 5개).
 
 ## 5. 단계·완료 조건
 
