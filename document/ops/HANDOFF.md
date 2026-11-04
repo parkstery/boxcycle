@@ -3,20 +3,18 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | **Claude Code** — 2026-10-30 구름·톱니·접기 캐럿 배포 완료, 대기 |
-| 갱신 | 2026-10-30 19시 — 11eb53aa 배포, 시안 20261030-gear-cloud-mockup |
+| 담당 | **Claude Code** — 2026-11-04 PR #21 배포 완료, Chief 폰 시험 대기 |
+| 갱신 | 2026-11-04 19시 — 004e4261 배포 |
 | 브랜치 | `main2` |
-| 마지막 배포 | 2026-11-04 (Claude Code) 6f125e1c — Hosting 격리 빌드 index-BMWtG01o.js SHA256=로컬: L4b 가속 중 연속 쓰기 제한·`rides.netStats`. 이전 54bd409d G3-1 순위 누적 점수·L4, c97eac84 비용 L1·L2·L3·L6·유럽 RTDB 생성 |
+| 마지막 배포 | 2026-11-04 (Claude Code) 004e4261 — Rules·색인 3개·함수 39개 전체·격리 Hosting index-Cz5gGPUO.js SHA256=로컬. 이전 6f125e1c L4b |
 
 ## 진행 중
 
 **11-04 rider15 상체 스킨 착수(P0→P1→P2→P3 도구)**: Chief의 "작업 시작해" 지시로 `document/ops/20261104-rider-v2-upper-body/`를 활성화했다. 기준선·렌더 경로 감사를 완료했고, 표준 `SkinnedMesh` 스파이크 2/2 PASS 및 GLB 구조 감사기 baseline 실행을 완료했다. rider15 후보 GLB·Mapbox 실화면·팔 IK는 아직 미검증이며 rider14 활성 모델은 유지한다. 다음은 모델러 export 계약 또는 실제 후보 GLB 대기다. 결과: `document/ops/20261104-rider-v2-upper-body/REPORT.md`.
 
-**11-04 PR #21 배포 진행 중(Claude Code, Chief 1~6 승인)**: 병합 → Rules·색인 → 함수 전체(`openTrailListingsSweep` 때문에 PR 목록 대신 전체) → `publicationListings` 채우기 → 격리 Hosting → `aPbTo3` 50건 삭제. 운영은 끝난 단계까지만 적용된다. 내용: 국가 입력(고정75)·G2 요약 목록·G4 Trail 지역·G3-2 국가 순위(고정76)·L9. 삭제 근거·순서 이유: [클라우드 재개 안내](20261103-cost-squeeze/04-cloud-resume.md).
+**11-04 PR #21 배포 완료(004e4261, Claude Code) — Chief 폰 시험 대기**: 국가 입력(고정75)·G2 요약 목록·G4 Trail 지역·G3-2 국가 순위(고정76)·L9. `publicationListings` 39건 채움(재실행 변경 0, 보관 5건 제외), `aPbTo3` 50건 삭제(주행 0·마일리지 0, 스냅샷 `.out/private-guest-lifecycle/rides-aPbTo3-20261104`). 게이트: test:quick 1506/0, functions 259/0, Rules 11/11. 지역 순위는 국가를 정한 뒤 달린 주행부터 쌓인다. 남은 것: Chief 폰 시험, 공개 주행 1회 뒤 쓰기 감소 측정(`20261103-cost-squeeze/tools/`). Codex rider15 작업이 같은 폴더에서 동시 진행 중이다.
 
-**11-03~04 비용 절감·지역 데이터(Claude Code) — 배포됨 54bd409d**: L1·L2·L3·L4·L6(G3-1 누적 점수로 근본 해결)·P1·P2·G1. Chief 실주행 3회+관전 PASS(11-04). **L4b 배포됨(6f125e1c)**: 가속 중 연속 쓰기 제한+`rides.netStats`([기록](20261103-cost-squeeze/02-design-l4.md)). 다음: Chief 2인 재주행 → 분당 쓰기(Cloud Monitoring)·`rides.netStats`로 4초 구간 원인 확정. 남은 것: 유럽 RTDB 2차, G2 요약 목록, G3-2 국가 범위. [cost-squeeze](20261103-cost-squeeze/README.md)·[00-plan](20261103-global-geo-data/00-plan.md).
-
-**11-03 전세계 지역 데이터·비용(Claude Code)** — G1(2559dd7c)·G0.5 P5·P2(de076cfa)·P1 이름표+Rules(8eb69595) 커밋, 미푸시·미배포. Chief 11-03: **비용 짜내기 1순위**, 유럽 RTDB는 미루지 말고 설정. 비용 점검 [01-audit](20261103-cost-squeeze/01-audit.md): 제곱형 L6 순위 훑기·L1 livePresence 전체 구독·L2 CG 구독. 계획 [00-plan](20261103-global-geo-data/00-plan.md). `ride-moments-dom`은 test:quick 병렬 시 vite 캐시 경합으로 간헐 FAIL(단독 PASS).
+**11-03~04 비용 절감·지역 데이터(Claude Code) — 배포됨 54bd409d**: L1·L2·L3·L4·L6(G3-1 누적 점수로 근본 해결)·P1·P2·G1. Chief 실주행 3회+관전 PASS(11-04). **L4b 배포됨(6f125e1c)**: 가속 중 연속 쓰기 제한+`rides.netStats`([기록](20261103-cost-squeeze/02-design-l4.md)). 다음: Chief 2인 재주행 → 분당 쓰기(Cloud Monitoring)·`rides.netStats`로 4초 구간 원인 확정. 남은 것: 유럽 RTDB 2차. [cost-squeeze](20261103-cost-squeeze/README.md)·[00-plan](20261103-global-geo-data/00-plan.md).
 
 **11-03 버튼 숨김 멈춤 수정+ⓖ 빈칸(Claude Code) — 배포됨(f8d19c69, 운영 js SHA256=로컬)**: 원인 = 펼친 경로 카드(줄 띠)가 RideControlsAutoHide BUSY 에 있어 5초 숨김·탭 토글 둘 다 멈춤(폰 699×273 터치 실앱 실측). BUSY 에서 제외, 고정66 보완. 게스트 이름 `ⓖ tHQb`(고정73). 실앱 시험 `ride-entry.spec.ts` 「실앱 버튼 숨김」(사보타주 확인), ride-entry 8/8, 하네스 autohide 7/7, test:quick 1475/0. 남은 것: Chief 폰 확인.
 
