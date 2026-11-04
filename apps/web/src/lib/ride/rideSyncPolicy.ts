@@ -24,8 +24,8 @@ export const LIVE_SHARE_MIN_MOVE_METERS = 60;
 /** 동행 라이브 위치: 진행률 변화가 이 비율 이상일 때 쓰기(0.01 = 1%p) */
 export const LIVE_SHARE_MIN_PROGRESS_DELTA = 0.01;
 
-/** 코스 멤버 presence 하트비트 — 실제 주행 중(포그라운드) */
-export const COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS = 24_000;
+/** 코스 멤버 presence 하트비트 — 실제 주행 중(포그라운드). 비용 L9: 24→60초, 「살아 있음」 240초 안에 네 번 */
+export const COURSE_PRESENCE_HEARTBEAT_ACTIVE_MS = 60_000;
 
 /** 일시정지 등 비주행이지만 코스에 남아 있을 때 — 생존 신호만 저빈도 */
 export const COURSE_PRESENCE_HEARTBEAT_PAUSED_MS = 180_000;

@@ -1,5 +1,5 @@
 import { onDocumentCreated, onDocumentDeleted, onDocumentWritten } from "firebase-functions/v2/firestore";
-import { recomputeOpenTrailListing } from "./openTrailListingCore.js";
+import { recomputeOpenTrailListing, trailWriteAffectsListing } from "./openTrailListingCore.js";
 import { REGION } from "./region.js";
 
 function trailIdFromParams(params: Record<string, string>): string {
@@ -26,7 +26,9 @@ export const openTrailListingOnTrailWritten = onDocumentWritten(
     region: REGION,
   },
   async (event) => {
-    await recomputeListingForTrailParams(event.params as Record<string, string>);
+    const params = event.params as Record<string, string>;
+    if (!trailWriteAffectsListing(trailIdFromParams(params), event.data?.before?.data(), event.data?.after?.data())) return;
+    await recomputeListingForTrailParams(params);
   },
 );
 

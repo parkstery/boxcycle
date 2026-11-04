@@ -17,7 +17,7 @@ import {
   scheduleOpenTrailListingRefresh,
 } from "./firestoreOpenTrailListings";
 import { assertPublicTrailHasRoute, trailHasConfiguredRoute } from "../trailAccessPolicy";
-import { TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS } from "../trailLivePolicy";
+import { TRAIL_ACTIVITY_TOUCH_MIN_INTERVAL_MS } from "../trailLivePolicy";
 import { TRAIL_MOTION_INSTANCE_DEFAULT, type TrailMotionInstance } from "../trailMotionInstance";
 import { parseTrailInstance } from "./trailDocParse";
 import {
@@ -170,7 +170,7 @@ export async function touchTrailInstanceActivity(
   noteTouchActivityCall(source);
   const now = touchNow();
   const last = lastTouchWriteAt.get(trailId) ?? 0;
-  if (last > 0 && now - last < TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS) {
+  if (last > 0 && now - last < TRAIL_ACTIVITY_TOUCH_MIN_INTERVAL_MS) {
     scheduleOpenTrailListingRefresh(trailId);
     return;
   }

@@ -15,8 +15,12 @@ const LIVE_SUB = TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION;
 /** 클라이언트 `TRAIL_PRESENCE_STALE_MS` 와 동일 */
 export const TRAIL_PRESENCE_STALE_MS = 240_000;
 
-/** listing `updatedAt` 이 이보다 오래되면 sweeper 가 삭제 */
-export const OPEN_TRAIL_LISTING_STALE_MS = 90_000;
+/**
+ * listing `updatedAt` 이 이보다 오래되면 sweeper 가 삭제.
+ * 앱의 listing 갱신 간격(`TRAIL_ACTIVITY_TOUCH_MIN_INTERVAL_MS` 110초)보다 길어야 한다 — 짧으면 달리는
+ * Trail 이 목록에서 깜빡인다. 앱의 목록 판정과 같은 240초로 맞춘다(비용 L9).
+ */
+export const OPEN_TRAIL_LISTING_STALE_MS = TRAIL_PRESENCE_STALE_MS;
 
 export type RecomputeOpenTrailListingResult = "upserted" | "removed" | "skipped";
 
@@ -84,6 +88,21 @@ function parseTrailMeta(trailId: string, data: DocumentData | undefined): TrailM
 
 function isListableTrail(trail: TrailMeta): boolean {
   return trail.status === "open" && trail.visibility === "open" && Boolean(trail.publicationId?.trim());
+}
+
+/**
+ * Trail 문서 쓰기가 목록을 바꿀 수 있는가. 쓰기 앞뒤가 모두 목록 대상이 아니면(비공개 Trail 의 활동 시각 갱신)
+ * 재계산할 것이 없다 — 종전에는 없는 목록 문서를 매번 지웠다(비용 L9).
+ */
+export function trailWriteAffectsListing(
+  trailId: string,
+  before: DocumentData | undefined,
+  after: DocumentData | undefined,
+): boolean {
+  if (!before || !after) return true;
+  const was = parseTrailMeta(trailId, before);
+  const now = parseTrailMeta(trailId, after);
+  return Boolean((was && isListableTrail(was)) || (now && isListableTrail(now)));
 }
 
 async function countActiveParticipants(trailId: string): Promise<number> {

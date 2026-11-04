@@ -18,6 +18,11 @@ import {
   openTrailListingOnMemberDeleted,
   openTrailListingOnTrailWritten,
 } from "./openTrailListingProjection.js";
+import {
+  OPEN_TRAIL_LISTING_STALE_MS,
+  TRAIL_PRESENCE_STALE_MS,
+  trailWriteAffectsListing,
+} from "./openTrailListingCore.js";
 
 const SRC = path.resolve(__dirname, "../src");
 const CREATED = "google.cloud.firestore.document.v1.created";
@@ -126,5 +131,30 @@ describe("index exports — 새 함수명", () => {
     assert.match(indexSrc, /openTrailListingOnMemberDeleted/);
     assert.match(indexSrc, /openTrailListingOnLiveCourseRideCreated/);
     assert.match(indexSrc, /openTrailListingOnLiveCourseRideDeleted/);
+  });
+});
+
+describe("비용 L9 — Trail 쓰기가 목록을 바꾸는가", () => {
+  const open = { status: "open", visibility: "open", publicationId: "p1", hostUid: "h" };
+  const priv = { status: "open", visibility: "private", publicationId: null, hostUid: "h" };
+
+  it("비공개 Trail 활동 시각 갱신은 재계산하지 않는다", () => {
+    assert.equal(trailWriteAffectsListing("t", priv, { ...priv, lastActivityAt: 1 }), false);
+  });
+
+  it("공개 Trail 은 재계산한다", () => {
+    assert.equal(trailWriteAffectsListing("t", open, { ...open, lastActivityAt: 1 }), true);
+  });
+
+  it("공개↔비공개 전환·생성·삭제는 재계산한다", () => {
+    assert.equal(trailWriteAffectsListing("t", priv, open), true);
+    assert.equal(trailWriteAffectsListing("t", open, priv), true);
+    assert.equal(trailWriteAffectsListing("t", undefined, priv), true);
+    assert.equal(trailWriteAffectsListing("t", priv, undefined), true);
+  });
+
+  it("sweeper 기준이 앱 갱신 간격 110초보다 길다 — 짧으면 달리는 Trail 이 목록에서 사라진다", () => {
+    assert.ok(OPEN_TRAIL_LISTING_STALE_MS > 110_000);
+    assert.equal(OPEN_TRAIL_LISTING_STALE_MS, TRAIL_PRESENCE_STALE_MS);
   });
 });

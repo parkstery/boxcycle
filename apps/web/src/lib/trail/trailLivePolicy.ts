@@ -9,8 +9,18 @@
  * Phase 5 선례대로 **호환 re-export 를 두지 않는다** — 경유가 남으면 결합이 그대로 산다.
  */
 
-/** Trail 멤버 하트비트 — 포그라운드(탭 숨김 시 구독 자체 해제로 백그라운드 쓰기 없음) */
-export const TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS = 30_000;
+/**
+ * Trail 멤버 하트비트 — 포그라운드(탭 숨김 시 구독 자체 해제로 백그라운드 쓰기 없음).
+ * 비용 L9: 30→60초. 「살아 있음」 240초 안에 네 번 온다.
+ */
+export const TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS = 60_000;
+
+/**
+ * Trail 문서 활동 시각·Listing 재계산의 최소 간격(비용 L9). 하트비트 두 번에 한 번 나가도록
+ * 120초보다 살짝 짧다 — 120초로 두면 타이머 오차로 한 번 건너뛰어 180초가 된다.
+ * 서버 sweeper 기준(`functions` `OPEN_TRAIL_LISTING_STALE_MS` 240초)보다 짧아야 달리는 Trail 이 목록에서 안 사라진다.
+ */
+export const TRAIL_ACTIVITY_TOUCH_MIN_INTERVAL_MS = 110_000;
 
 /** 동행 peer 맵 hide — Firestore lastSeenAt (4s FS heartbeat + jitter 여유) */
 export const PEER_LIVE_RIDE_STALE_MS = 15_000;

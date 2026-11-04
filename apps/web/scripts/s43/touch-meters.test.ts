@@ -24,6 +24,11 @@ import {
   resetTouchActivityMeters,
   snapshotTouchActivityMeters,
 } from "../../src/lib/debug/touchActivityMeters.ts";
+import { TRAIL_ACTIVITY_TOUCH_MIN_INTERVAL_MS, TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS } from "../../src/lib/trail/trailLivePolicy.ts";
+
+/** 비용 L9 뒤 주기: 하트비트 60초, Trail 문서·Listing 110초. 시험 구간은 하트비트 네 번. */
+const HB = TRAIL_PRESENCE_HEARTBEAT_ACTIVE_MS;
+const WINDOW_MS = HB * 4;
 
 type Timer = { id: number; at: number; fn: () => void };
 
@@ -87,13 +92,13 @@ async function runSoloRideWindowMs(windowMs: number) {
   for (let elapsed = 0; elapsed < windowMs; elapsed += 1_000) {
     await clock.advanceTo(clock.originMs + elapsed);
     await touchTrailInstanceActivity("trail-a", "routePublish");
-    if (elapsed > 0 && elapsed % 30_000 === 0) {
+    if (elapsed > 0 && elapsed % HB === 0) {
       await touchTrailInstanceActivity("trail-a", "presenceHeartbeat");
       await upsertTrailPresence(fakeUser, "trail-a");
     }
   }
   await clock.advanceTo(clock.originMs + windowMs);
-  if (windowMs % 30_000 === 0 && windowMs > 0) {
+  if (windowMs % HB === 0 && windowMs > 0) {
     await touchTrailInstanceActivity("trail-a", "presenceHeartbeat");
     await upsertTrailPresence(fakeUser, "trail-a");
   }
@@ -105,7 +110,7 @@ async function runSpectatorWindowMs(windowMs: number) {
   const clock = new FakeClock();
   installSeams(clock);
   beginTouchMeterWindow({ riders: 0, spectators: 1 });
-  for (let elapsed = 30_000; elapsed <= windowMs; elapsed += 30_000) {
+  for (let elapsed = HB; elapsed <= windowMs; elapsed += HB) {
     await clock.advanceTo(clock.originMs + elapsed);
     await touchTrailInstanceActivity("trail-a", "presenceHeartbeat");
     await upsertTrailPresence(fakeUser, "trail-a");
@@ -134,7 +139,7 @@ describe("touchActivityMeters", () => {
   it("호출 지점별로 ①을 나누고 ②는 updateDoc 수행 지점에서 센다", async () => {
     let now = 0;
     resetTouchActivityCoalesceForTests(() => {
-      now += 60_000;
+      now += TRAIL_ACTIVITY_TOUCH_MIN_INTERVAL_MS;
       return now;
     });
     await touchTrailInstanceActivity("t1", "routePublish");
@@ -212,29 +217,29 @@ describe("touchActivityMeters", () => {
     assert.equal(snapshotTouchActivityMeters().presenceHeartbeatWriteTotal, 2);
   });
 
-  it("A 혼자 주행 60초 — ①②가 비-0 이고 routePublish 가 주 호출이다", async () => {
-    const a = await runSoloRideWindowMs(60_000);
+  it("A 혼자 주행 240초 — ①②가 비-0 이고 routePublish 가 주 호출이다", async () => {
+    const a = await runSoloRideWindowMs(WINDOW_MS);
     assert.equal(a.riders, 1);
     assert.equal(a.spectators, 0);
-    assert.equal(a.touchCallsBySite.routePublish, 60);
-    assert.equal(a.touchCallsBySite.presenceHeartbeat, 2);
+    assert.equal(a.touchCallsBySite.routePublish, 240);
+    assert.equal(a.touchCallsBySite.presenceHeartbeat, 4);
     assert.equal(a.touchCallsBySite.progressTick, 0);
-    assert.equal(a.touchCallsTotal, 62);
+    assert.equal(a.touchCallsTotal, 244);
     assert.equal(a.trailUpdateDocTotal, 3);
-    assert.equal(a.presenceHeartbeatWriteTotal, 2);
+    assert.equal(a.presenceHeartbeatWriteTotal, 4);
     assert.equal(a.trailDocSnapshotReceivedTotal, 0);
-    assert.ok(a.listingRefreshScheduleTotal >= 62);
-    assert.equal(a.listingRefreshRunTotal, 2);
-    assert.equal(a.listingRefreshReadsTotal, 8);
+    assert.ok(a.listingRefreshScheduleTotal >= 244);
+    assert.equal(a.listingRefreshRunTotal, 3);
+    assert.equal(a.listingRefreshReadsTotal, 12);
     assert.ok(a.touchCallsTotal > 0 && a.trailUpdateDocTotal > 0, "A 구간 ①② 비-0 — 배선 생존");
   });
 
   it("B/A 라이더 1→2 일 때 ②는 선형(약 2배)이지 제곱이 아니다", async () => {
-    const a = await runSoloRideWindowMs(60_000);
+    const a = await runSoloRideWindowMs(WINDOW_MS);
     resetTouchActivityMeters();
-    const b1 = await runSoloRideWindowMs(60_000);
+    const b1 = await runSoloRideWindowMs(WINDOW_MS);
     resetTouchActivityMeters();
-    const b2 = await runSoloRideWindowMs(60_000);
+    const b2 = await runSoloRideWindowMs(WINDOW_MS);
     const combinedUpdate = b1.trailUpdateDocTotal + b2.trailUpdateDocTotal;
     const combinedSnap = b1.trailDocSnapshotReceivedTotal + b2.trailDocSnapshotReceivedTotal;
     const ratio2 = combinedUpdate / a.trailUpdateDocTotal;
@@ -245,13 +250,13 @@ describe("touchActivityMeters", () => {
   });
 
   it("C 주행1+관전1 — 관전자는 heartbeat 만 더한다", async () => {
-    const rider = await runSoloRideWindowMs(60_000);
+    const rider = await runSoloRideWindowMs(WINDOW_MS);
     resetTouchActivityMeters();
-    const spec = await runSpectatorWindowMs(60_000);
+    const spec = await runSpectatorWindowMs(WINDOW_MS);
     assert.equal(spec.touchCallsBySite.routePublish, 0);
-    assert.equal(spec.touchCallsBySite.presenceHeartbeat, 2);
+    assert.equal(spec.touchCallsBySite.presenceHeartbeat, 4);
     assert.equal(spec.trailUpdateDocTotal, 2);
-    assert.equal(spec.presenceHeartbeatWriteTotal, 2);
+    assert.equal(spec.presenceHeartbeatWriteTotal, 4);
     const combined2 = rider.trailUpdateDocTotal + spec.trailUpdateDocTotal;
     assert.equal(combined2, 5);
   });

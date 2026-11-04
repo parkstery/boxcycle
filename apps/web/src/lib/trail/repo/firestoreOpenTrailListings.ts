@@ -17,7 +17,7 @@ import {
 import { getAuth } from "firebase/auth";
 import { getFirebaseApp, getFirebaseFirestore } from "../../firebase/app";
 import { countTrailMembersFresh } from "./firestoreTrail";
-import { TRAIL_PRESENCE_STALE_MS } from "../trailLivePolicy";
+import { TRAIL_ACTIVITY_TOUCH_MIN_INTERVAL_MS, TRAIL_PRESENCE_STALE_MS } from "../trailLivePolicy";
 import { countTrailLiveRidersFresh } from "./firestoreTrailLivePublicationRides";
 import { trailHasConfiguredRoute } from "../trailAccessPolicy";
 import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
@@ -151,8 +151,10 @@ async function refreshOpenTrailListingFromTrailBody(trailId: string): Promise<vo
   const trail = await loadTrailForListing(trailId);
   if (!trail || !isListableTrail(trail)) {
     await removeOpenTrailListing(trailId);
+    if (trail) markTrailUnlistable(trailId);
     return;
   }
+  unlistableUntil.delete(trailId);
   const riderCount = await countTrailActiveParticipantsForTrail(trail).catch(() => 0);
   if (riderCount <= 0) {
     await removeOpenTrailListing(trailId);
@@ -228,10 +230,21 @@ export async function refreshOpenTrailListingFromTrail(trailId: string): Promise
 
 const refreshScheduled = new Map<string, unknown>();
 const refreshLastRunAt = new Map<string, number>();
+/**
+ * 목록에 오를 수 없는 Trail(비공개 등)은 예약 재계산을 건너뛴다(비용 L9). 종전에는 30초마다 Trail 을
+ * 읽고 없는 목록 문서를 지웠다 — 혼자 비공개 주행에서 분당 삭제 3.6회(2026-11-04 실측).
+ * 공개 전환은 직접 재계산(`setTrailVisibility`)과 서버 트리거가 맡고, 값이 낡을 때를 대비해 10분마다 다시 본다.
+ */
+const unlistableUntil = new Map<string, number>();
+const UNLISTABLE_RECHECK_MS = 600_000;
+
+export function markTrailUnlistable(trailId: string): void {
+  unlistableUntil.set(trailId, listingClock.now() + UNLISTABLE_RECHECK_MS);
+}
 const createdAtBackfillScheduled = new Set<string>();
 
 /** 같은 Trail 재계산 실행 간 최소 간격 — 읽기 비용 상한 */
-const REFRESH_MIN_INTERVAL_MS = 30_000;
+const REFRESH_MIN_INTERVAL_MS = TRAIL_ACTIVITY_TOUCH_MIN_INTERVAL_MS;
 
 /** DEV·단위시험용. debounce·최소 간격 값은 바꾸지 않는다. */
 export function resetOpenTrailListingRefreshForTests(opts?: {
@@ -241,6 +254,7 @@ export function resetOpenTrailListingRefreshForTests(opts?: {
   for (const id of refreshScheduled.values()) listingClock.clearTimeout(id);
   refreshScheduled.clear();
   refreshLastRunAt.clear();
+  unlistableUntil.clear();
   listingClock = {
     now: opts?.clock?.now ?? defaultListingClock.now,
     setTimeout: opts?.clock?.setTimeout ?? defaultListingClock.setTimeout,
@@ -257,6 +271,7 @@ export function resetOpenTrailListingRefreshForTests(opts?: {
 export function scheduleOpenTrailListingRefresh(trailId: string, debounceMs = 2_500): void {
   noteListingRefreshSchedule();
   if (refreshScheduled.has(trailId)) return;
+  if (listingClock.now() < (unlistableUntil.get(trailId) ?? 0)) return;
   const lastRun = refreshLastRunAt.get(trailId) ?? 0;
   const wait = Math.max(debounceMs, lastRun + REFRESH_MIN_INTERVAL_MS - listingClock.now());
   const id = listingClock.setTimeout(() => {
