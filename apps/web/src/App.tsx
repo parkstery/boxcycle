@@ -188,7 +188,7 @@ import {
   DEFAULT_MAP_STYLE,
   MAP_STYLE_SATELLITE,
 } from "./lib/map/rtwMapConfig";
-import { cadenceSensorShortStatus, isRideInputReady } from "./lib/sensor/cadenceSensorUi";
+import { isRideInputReady } from "./lib/sensor/cadenceSensorUi";
 import { CadenceSensorSheet } from "./components/sensor";
 import { useConquest } from "./hooks/useConquest";
 import { useLiveConquestPaint, shouldShowAlreadyOwnedHint } from "./hooks/useLiveConquestPaint";
@@ -3331,8 +3331,9 @@ export default function App() {
         publicRouteCount={publishedPublicCourses.length}
         onOpenSettings={openRideSettingsPanel}
         onOpenSensor={openCadenceSensorPanel}
-        sensorConnected={bleCrankRpm.uiState === "connected"}
-        sensorStatus={cadenceSensorShortStatus(cadenceHud.state)}
+        sensorState={cadenceHud.state}
+        sensorRiding={isRideSessionActive}
+        sensorAttention={rideSensorCell.attention}
       >
         <RideRoutePanel
           routeSummary={routeSummary}

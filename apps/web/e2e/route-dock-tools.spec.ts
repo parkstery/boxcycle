@@ -141,6 +141,47 @@ test('메뉴 머리줄: 지도 핀은 「내 경로」 창(주행 전만), ⚙ �
   await expect(menu.getByRole('button', { name: '인터벌', exact: true })).toHaveCount(0);
 });
 
+// 11-04 Chief 「메뉴 센서 버튼을 기존 센서 LED 버튼과 동일한 형태로, 깜빡임도 동일하게」 —
+// 메뉴 단추·LED 크기·색·LED 깜빡임·단추 깜빡임이 계기판 RPM 칸과 같아야 한다.
+test('메뉴 센서 버튼은 계기판 센서 단추와 같은 꼴·같은 깜빡임', async ({ page }) => {
+  const read = (sel: string) =>
+    page.locator(sel).evaluate((el) => {
+      const knob = el.querySelector<HTMLElement>('.hud-cadence__knob')!;
+      const led = el.querySelector<HTMLElement>('.hud-cadence__led')!;
+      const k = knob.getBoundingClientRect();
+      const l = led.getBoundingClientRect();
+      const ks = getComputedStyle(knob);
+      const ls = getComputedStyle(led);
+      return {
+        knob: [Math.round(k.width), Math.round(k.height)],
+        knobBg: ks.backgroundColor,
+        knobBorder: ks.borderTopColor,
+        knobShadow: ks.boxShadow,
+        led: [Math.round(l.width), Math.round(l.height)],
+        ledBg: ls.backgroundColor,
+        ledShadow: ls.boxShadow,
+        ledAnim: ls.animationName,
+        ledDur: ls.animationDuration,
+        btnAnim: getComputedStyle(el).animationName,
+        btnDur: getComputedStyle(el).animationDuration,
+      };
+    });
+  for (const query of ['state=idle', 'state=ready-to-start&blocked', 'state=sensor-connected']) {
+    await page.goto(`${preview}?${query}`);
+    const sheet = page.getByRole('dialog', { name: '케이던스 센서', exact: true });
+    if (await sheet.isVisible()) {
+      await sheet.getByRole('button', { name: '센서 설정 닫기' }).click();
+      await expect(sheet).toBeHidden();
+    }
+    // 깜빡임 중간값을 비교하지 않도록 애니메이션 위상과 무관한 값만 읽는다(이름·주기·크기·색).
+    await page.addStyleTag({ content: '.hud-cadence__led, .menu-panel__sensor, .hud-metrics__cell--sensor { animation-play-state: paused !important; animation-delay: 0s !important; }' });
+    const hud = await read('.hud-metrics__cell--sensor');
+    await page.getByRole('button', { name: '메뉴 열기', exact: true }).click();
+    const menu = await read('#menu-panel .menu-panel__sensor');
+    expect(menu, query).toEqual(hud);
+  }
+});
+
 // Chief 11-03 「센서 메뉴를 메인메뉴 안에 추가」 — 머리줄 ⚙ 오른쪽, 계기판 RPM 칸과 같은 센서 창. 주행 전·중 모두.
 test('메뉴 머리줄: 센서 버튼은 센서 창을 열고, 머리줄 버튼이 메뉴 판 안에 든다', async ({ page }) => {
   const menu = page.locator('#menu-panel');

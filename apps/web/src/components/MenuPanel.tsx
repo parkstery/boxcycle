@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { SpinatlasMark } from "./brand/SpinatlasMark";
 import type { RouteListSource } from "./ride/RouteListModalShell";
+import { cadenceChipView, type CadenceHudState } from "../lib/sensor/cadenceSensorUi";
+import "./maphud/CadenceHudChip.css";
 import { useDialogFocus } from "./ui/useDialogFocus";
 import { usePanelHeaderCloseDrag } from "./ui/usePanelHeaderCloseDrag";
 import "./MenuPanel.css";
@@ -26,10 +28,15 @@ type MenuPanelProps = {
   onOpenSettings?: () => void;
   /** 센서 상세 설정 창(Chief 11-03 「센서 메뉴를 메인메뉴 안에」 — 계기판 RPM 칸과 같은 창). */
   onOpenSensor?: () => void;
-  /** 센서 실제 연결 — 아이콘의 점을 초록으로(계기판 LED 와 같은 두 의미: 초록=연결, 흰색=그 밖). */
-  sensorConnected?: boolean;
-  /** 센서 짧은 상태(「연결됨」 등) — 툴팁에만 */
-  sensorStatus?: string;
+  /**
+   * 센서 상태 — 계기판 RPM 칸과 **같은 단추**(30px 흰 볼록 단추 + LED 13px)로 그린다(11-04 Chief).
+   * LED 색·깜빡임은 `cadenceChipView` 하나에서 나온다: 초록 = 실제 연결, 흰색 = 그 밖, 연결 안 됨·연결 중 = 깜빡임.
+   */
+  sensorState?: CadenceHudState;
+  /** 주행·일시정지 중 — 접근성 문구 계산용(계기판 칸과 같은 값) */
+  sensorRiding?: boolean;
+  /** 경로가 잡혔는데 주행 입력(센서·체험 속도)을 안 골랐으면 단추를 깜빡인다 — 계기판 칸과 같은 조건 */
+  sensorAttention?: boolean;
 };
 
 /**
@@ -46,24 +53,6 @@ function MenuGearIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       <path fillRule="evenodd" d="M10.11 4.12L10.34 1.53A10.6 10.6 0 0 1 13.66 1.53L13.89 4.12A8.1 8.1 0 0 1 16.23 5.09L18.23 3.42A10.6 10.6 0 0 1 20.58 5.77L18.91 7.77A8.1 8.1 0 0 1 19.88 10.11L22.47 10.34A10.6 10.6 0 0 1 22.47 13.66L19.88 13.89A8.1 8.1 0 0 1 18.91 16.23L20.58 18.23A10.6 10.6 0 0 1 18.23 20.58L16.23 18.91A8.1 8.1 0 0 1 13.89 19.88L13.66 22.47A10.6 10.6 0 0 1 10.34 22.47L10.11 19.88A8.1 8.1 0 0 1 7.77 18.91L5.77 20.58A10.6 10.6 0 0 1 3.42 18.23L5.09 16.23A8.1 8.1 0 0 1 4.12 13.89L1.53 13.66A10.6 10.6 0 0 1 1.53 10.34L4.12 10.11A8.1 8.1 0 0 1 5.09 7.77L3.42 5.77A10.6 10.6 0 0 1 5.77 3.42L7.77 5.09A8.1 8.1 0 0 1 10.11 4.12ZM12 8.7a3.3 3.3 0 1 0 0 6.6a3.3 3.3 0 1 0 0 -6.6Z" />
-    </svg>
-  );
-}
-
-/** 크랭크(체인링·크랭크 팔·페달) + 오른쪽 위 상태 점 */
-function MenuSensorIcon({ connected }: { connected: boolean }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="10" cy="13" r="5.2" stroke="currentColor" strokeWidth="2" />
-      <circle cx="10" cy="13" r="1.4" fill="currentColor" />
-      <path d="M10 13l6.2 5.4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M14.6 20.2h3.6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <circle
-        className={`menu-panel__sensor-led${connected ? " is-connected" : ""}`}
-        cx="18.6"
-        cy="5.4"
-        r="3.4"
-      />
     </svg>
   );
 }
@@ -89,8 +78,9 @@ export function MenuPanel({
   publicRouteCount = 0,
   onOpenSettings,
   onOpenSensor,
-  sensorConnected = false,
-  sensorStatus,
+  sensorState,
+  sensorRiding = false,
+  sensorAttention = false,
 }: MenuPanelProps) {
   void _locked;
   const panelRef = useRef<HTMLElement>(null);
@@ -148,6 +138,7 @@ export function MenuPanel({
   const dragging = revealProgress != null || headerReveal != null;
   const reveal = headerReveal ?? (open ? (revealProgress ?? 1) : (revealProgress ?? 0));
   const inert = !open || overlayOpen;
+  const sensorView = sensorState ? cadenceChipView(sensorState, sensorRiding) : null;
 
   return (
     <div
@@ -202,13 +193,20 @@ export function MenuPanel({
             {onOpenSensor ? (
               <button
                 type="button"
-                className="menu-panel__search menu-panel__sensor"
+                className={`menu-panel__search menu-panel__sensor${sensorAttention ? " menu-panel__sensor--attention" : ""}`}
                 onClick={onOpenSensor}
                 aria-label="센서"
-                title={sensorStatus ? `센서 · ${sensorStatus}` : "센서"}
-                data-connected={sensorConnected ? "true" : "false"}
+                title={sensorView ? sensorView.ariaLabel : "센서"}
+                data-led={sensorView?.led ?? "white"}
               >
-                <MenuSensorIcon connected={sensorConnected} />
+                {/* 계기판 RPM 칸과 같은 단추·LED·깜빡임(CadenceHudChip.css 공용 클래스). */}
+                <span className="hud-cadence__knob" aria-hidden>
+                  <span
+                    className={`hud-cadence__led hud-cadence__led--${sensorView?.led ?? "white"}${
+                      sensorView?.pulsing ?? true ? " hud-cadence__led--pulse" : ""
+                    }`}
+                  />
+                </span>
               </button>
             ) : null}
           </div>

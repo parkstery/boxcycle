@@ -165,15 +165,18 @@
 /* 머리줄 아이콘끼리는 2px(8px gap − 6px) — 투명 원이라 그림 사이는 16px 남는다 */
 .menu-panel__head-brand > .menu-panel__search + .menu-panel__search { margin-left: -6px; }
 
-/* 센서(Chief 11-03) — 상태 점: 계기판 LED 와 같은 두 의미(초록=실제 연결, 흰색=그 밖) */
-.menu-panel__sensor-led {
-  fill: #ffffff;
-  stroke: #8a93a3;
-  stroke-width: 1.4;
-}
-.menu-panel__sensor-led.is-connected {
-  fill: #34d399;
-  stroke: #059669;
+/*
+ * 센서(11-04 Chief 「기존 센서 LED 버튼과 동일한 형태·깜빡임」) — 계기판 RPM 칸의 단추를 그대로 쓴다:
+ * 30px 흰 볼록 단추 안 LED 13px(초록 = 실제 연결, 흰색 = 그 밖), 연결 안 됨·연결 중 LED 깜빡임,
+ * 경로가 잡혔는데 주행 입력을 안 골랐으면 단추 뒤 파란 깜빡임(계기판 칸과 같은 1.1s).
+ */
+.menu-panel__sensor .hud-cadence__led { width: 13px; height: 13px; box-sizing: border-box; }
+.menu-panel__sensor .hud-cadence__led--white { background: #f8fafc; box-shadow: 0 0 0 1.5px rgba(15, 23, 42, 0.6), 0 0 6px rgba(255, 255, 255, 0.8); }
+.menu-panel__sensor:active .hud-cadence__knob { transform: translateY(1px); box-shadow: 0 1px 3px rgba(15, 23, 42, 0.35), inset 0 -1px 0 #dfe6f2; }
+.menu-panel__sensor--attention { animation: hud-sensor-cell-attention 1.1s ease-in-out infinite; }
+@media (hover: hover) { .menu-panel__sensor:hover .hud-cadence__knob { background: #eef3fc; } }
+@media (prefers-reduced-motion: reduce) {
+  .menu-panel__sensor--attention { animation: none; background: rgba(138, 180, 255, 0.45); }
 }
 
 .menu-panel__close {
