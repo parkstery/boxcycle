@@ -3564,6 +3564,7 @@ export default function App() {
         onClose={() => setLeaderboardSheetOpen(false)}
         user={user}
         onRegister={() => void handleGoogleSignIn()}
+        homeCountry={userTier.homeCountry}
         onJoinTrail={(trailId) => {
           setLeaderboardSheetOpen(false);
           joinTrailAndCloseMenu(trailId);
