@@ -10,7 +10,7 @@
 
 ## 진행 중
 
-**11-04 진행(Claude Code)**: L9 A·B·로컬 기록 주인·시계 복구(고정74) 구현·시험 끝, 커밋→푸시→Functions 2개(`openTrailListingOnTrailWritten`·`openTrailListingsSweep`)→격리 Hosting→`purge-resurrected-rides.cjs --apply` 순서. 서버를 앱보다 먼저, 삭제는 앱 뒤에. [쓰기 장부](20261103-cost-squeeze/03-write-ledger.md). L4b 재주행 PASS, 4초 줄기 재현 안 됨(원인 미확정). Rules 거부 원인 미확정.
+**11-04 재개 지점 — 클라우드 전환(Claude Code)**: [클라우드 재개 안내](20261103-cost-squeeze/04-cloud-resume.md)부터. L9 A·B·로컬 기록 주인·시계 복구(고정74)는 커밋·푸시됐고 **배포·`aPbTo3` 50건 삭제는 미실행**(Chief 승인 완료). 순서: Functions 2개 → 격리 Hosting → 삭제. 클라우드에는 Firebase 인증·.env·.out이 없어 이 단계는 Chief PC 세션 또는 인증 설정 뒤. L4b 재주행 PASS, 4초 줄기 재현 안 됨. [쓰기 장부](20261103-cost-squeeze/03-write-ledger.md).
 
 **11-03~04 비용 절감·지역 데이터(Claude Code) — 배포됨 54bd409d**: L1·L2·L3·L4·L6(G3-1 누적 점수로 근본 해결)·P1·P2·G1. Chief 실주행 3회+관전 PASS(11-04). **L4b 배포됨(6f125e1c)**: 가속 중 연속 쓰기 제한+`rides.netStats`([기록](20261103-cost-squeeze/02-design-l4.md)). 다음: Chief 2인 재주행 → 분당 쓰기(Cloud Monitoring)·`rides.netStats`로 4초 구간 원인 확정. 남은 것: 유럽 RTDB 2차, G2 요약 목록, G3-2 국가 범위. [cost-squeeze](20261103-cost-squeeze/README.md)·[00-plan](20261103-global-geo-data/00-plan.md).
 
