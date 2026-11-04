@@ -4,6 +4,7 @@
  * 처음은 세계(지금과 같음), 마지막으로 고른 범위를 기기에 기억한다.
  */
 import type { LeaderboardScope } from "../../services/leaderboardApi";
+import { homeCountryLabel } from "../../lib/identity/homeCountry";
 
 export const LEADERBOARD_SCOPE_STORAGE_KEY = "rtw.leaderboard.scope";
 const ORDER: LeaderboardScope[] = ["world", "continent", "country"];
@@ -35,21 +36,13 @@ export function effectiveLeaderboardScope(
   return canPickLeaderboardScope(board, homeCountry) ? chosen : "world";
 }
 
-function countryLabel(code: string): string {
-  try {
-    return new Intl.DisplayNames(["ko"], { type: "region" }).of(code) ?? code;
-  } catch {
-    return code;
-  }
-}
-
 /** 버튼 글자. 대륙 코드는 응답(scopeCode)으로 알고, 오기 전에는 「대륙」 */
 export function leaderboardScopeLabel(
   scope: LeaderboardScope,
   homeCountry: string | null,
   continentCode: string | null,
 ): string {
-  if (scope === "country" && homeCountry) return countryLabel(homeCountry);
+  if (scope === "country" && homeCountry) return homeCountryLabel(homeCountry);
   if (scope === "continent") return (continentCode && CONTINENT_LABELS[continentCode]) || "대륙";
   return "세계";
 }

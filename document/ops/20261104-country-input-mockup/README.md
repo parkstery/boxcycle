@@ -50,3 +50,8 @@ Chief 11-04 「시안 먼저 보자」.
 검증: web tsc 0, eslint 0(경고는 기존), 단위 `home-country.test.ts` 8/8, Rules 에뮬레이터 `npm run test:home-country:rules` 11/11(사보타주: 30일 조건 제거 → H2 FAIL). 실제 컴포넌트 렌더(임시 화면, 삭제) `impl-*.png`: 가입 카드 800×360 343px 스크롤 없음(699×273은 85px — 현재 카드도 57px), 프로필 699×273 2px 스크롤은 국가 줄 없이도 같음(기존).
 
 배포: Rules(`firestore:rules`) + Hosting. Rules 먼저 — 앱이 먼저 오르면 국가 저장이 거절되고(가입은 진행) 확인 카드가 남는다. 남은 것: G3-2 순위가 `homeCountry`를 읽기.
+
+## 후속 (11-04 Chief 「내 국가도 확인할 수 있도록 해」)
+
+- 사용자 정보 창 이름 아래 줄(지금 이메일 자리)에 `대한민국 · 이메일`로 보인다 — 줄을 늘리지 않는다. 게스트는 그대로 「게스트로 이용 중」. 바꾸기는 프로필 수정.
+- 국가 이름 함수 `homeCountryLabel` 을 순위 범위 버튼과 함께 쓴다. 시험: `home-country.test.ts` 10/10, `leaderboard-scope` e2e 3/3.

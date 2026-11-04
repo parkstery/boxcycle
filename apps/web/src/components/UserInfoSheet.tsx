@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { homeCountryLabel } from "../lib/identity/homeCountry";
 import { useDialogFocus } from "./ui/useDialogFocus";
 import type { User } from "firebase/auth";
 import { loadRideSessionsForStatsFromFirestore } from "../lib/ride/repo/firestoreRides";
@@ -36,6 +37,8 @@ type UserInfoSheetProps = {
   onConquestDisplayMode?: (mode: ConquestDisplayMode) => void;
   open: boolean;
   onClose: () => void;
+  /** 대표 국가(ISO 2글자). 정식 계정이면 이름 아래 줄에 보인다 */
+  homeCountry?: string | null;
   /** 프로필 수정(닉네임·체중·체력) 열기 */
   onEditProfile?: () => void;
   /** 관리자 지표 시트 열기 — 관리자(isRouteReviewer)에게만 「관리」 버튼으로 노출 */
@@ -418,10 +421,11 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
 
   // 다른 라이더에게 보이는 이름과 같은 규칙(riderName). 이메일은 아래 줄에만 — 이 시트는 본인만 본다
   const nickname = props.user ? selfRiderDisplayName(props.user) : "";
+  // 정식 계정은 이메일 앞에 대표 국가(Chief 11-04 「내 국가도 확인할 수 있도록」) — 줄을 늘리지 않고 같은 줄에
   const subLine = props.user
     ? props.user.isAnonymous
       ? "게스트로 이용 중"
-      : props.user.email ?? ""
+      : [props.homeCountry ? homeCountryLabel(props.homeCountry) : null, props.user.email].filter(Boolean).join(" · ")
     : "";
 
   const showGoogleLink = Boolean(props.isGuest && props.onLinkGoogle);

@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import {
   guessHomeCountryFromTimeZone,
   homeCountryChangeBlockedUntilMs,
+  homeCountryLabel,
   isValidHomeCountry,
   listHomeCountryOptions,
 } from "../../src/lib/identity/homeCountry.ts";
@@ -74,6 +75,16 @@ describe("화면 연결 계약", () => {
     assert.match(sheet, /!isGuest && \([\s\S]{0,200}국가/);
     assert.match(sheet, /countryTouched && homeCountry != null/);
     assert.match(sheet, /disabled=\{saving \|\| countryLockedUntilMs != null\}/);
+  });
+  it("사용자 정보: 정식 계정은 이름 아래 같은 줄에 「국가 · 이메일」(줄 추가 없음)", () => {
+    const sheet = read("../../src/components/UserInfoSheet.tsx");
+    assert.match(sheet, /props\.homeCountry \? homeCountryLabel\(props\.homeCountry\) : null, props\.user\.email\]\.filter\(Boolean\)\.join\(" · "\)/);
+    const app = read("../../src/App.tsx");
+    assert.match(app, /<UserInfoSheet[\s\S]{0,400}homeCountry=\{userTier\.homeCountry\}/);
+  });
+  it("국가 이름", () => {
+    assert.equal(homeCountryLabel("KR"), "대한민국");
+    assert.equal(homeCountryLabel("FR"), "프랑스");
   });
   it("국가 확인 카드: 정식 계정·국가 없음·대기 화면에서만", () => {
     const app = read("../../src/App.tsx");

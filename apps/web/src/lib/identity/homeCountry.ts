@@ -35,6 +35,15 @@ export function guessHomeCountryFromDevice(): string | null {
   return guessHomeCountryFromTimeZone(deviceTimeZone());
 }
 
+/** 국가 코드 → 화면 언어 이름(대한민국). 모르면 코드 그대로 */
+export function homeCountryLabel(code: string, locale = "ko"): string {
+  try {
+    return new Intl.DisplayNames([locale], { type: "region" }).of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
+
 export type HomeCountryOption = { code: string; label: string };
 
 /** 선택 상자 목록 — 화면 언어 이름순. 이름을 모르는 코드는 코드 그대로. */

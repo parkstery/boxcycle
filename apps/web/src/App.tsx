@@ -3509,6 +3509,7 @@ export default function App() {
           setSubscriptionFlash(null);
         }}
         user={user}
+        homeCountry={userTier.homeCountry}
         recentSessions={recentSessions}
         isGuest={Boolean(user?.isAnonymous)}
         tier={userTier.tier}
