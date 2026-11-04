@@ -262,6 +262,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
       getDistanceMeters(anchors.sessionEndLngLat, endLngLat) <= ANCHOR_SAME_PLACE_METERS;
 
     const record: StoredRideSession = {
+      ownerUid: user?.uid ?? null,
       id: crypto.randomUUID(),
       endedAt: new Date().toISOString(),
       elapsedSec,

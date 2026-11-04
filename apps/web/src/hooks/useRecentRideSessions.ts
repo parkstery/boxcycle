@@ -7,6 +7,8 @@ import {
 import {
   loadRideSessions,
   mergeRecentRideSessions,
+  rideSessionsToBackfill,
+  rideSessionsVisibleTo,
   saveRideSessions,
   type StoredRideSession,
 } from "../lib/ride/rideSessionsStorage";
@@ -46,29 +48,31 @@ export function useRecentRideSessions(options: UseRecentRideSessionsOptions) {
   useEffect(() => {
     if (!user || !configured) return;
     let cancelled = false;
+    const ownRows = (rows: StoredRideSession[]) => rows.map((r) => ({ ...r, ownerUid: user.uid }));
     void loadRecentRideSessionsFromFirestore(user.uid, 50)
       .then(async (rows) => {
         if (cancelled) return;
         if (rows.length > 0) {
           // 서버 응답이 로컬보다 한 세대 뒤일 수 있다(주행 종료 직후 Firestore 쓰기는
           // fire-and-forget). 덮어쓰지 않고 최신 우선으로 합친다 — 결함 ⑦.
-          const merged = mergeRecentRideSessions(rows, loadRideSessions());
+          const merged = mergeRecentRideSessions(ownRows(rows), rideSessionsVisibleTo(loadRideSessions(), user.uid));
           saveRideSessions(merged, user);
           setRecentSessions(merged);
           return;
         }
-        const localRows = loadRideSessions();
-        if (localRows.length > 0) {
+        const localRows = rideSessionsVisibleTo(loadRideSessions(), user.uid);
+        const toBackfill = rideSessionsToBackfill(localRows, user.uid);
+        if (toBackfill.length > 0) {
           try {
             await backfillRideSessionsToFirestore({
               userId: user.uid,
               trailId,
               profile,
-              sessions: localRows,
+              sessions: toBackfill,
             });
             const synced = await loadRecentRideSessionsFromFirestore(user.uid, 50);
             if (!cancelled && synced.length > 0) {
-              const merged = mergeRecentRideSessions(synced, loadRideSessions());
+              const merged = mergeRecentRideSessions(ownRows(synced), rideSessionsVisibleTo(loadRideSessions(), user.uid));
               saveRideSessions(merged, user);
               setRecentSessions(merged);
               return;

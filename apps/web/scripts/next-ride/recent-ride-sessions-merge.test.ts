@@ -8,6 +8,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   mergeRecentRideSessions,
+  rideSessionsToBackfill,
+  rideSessionsVisibleTo,
   type StoredRideSession,
 } from "../../src/lib/ride/rideSessionsStorage.ts";
 
@@ -122,5 +124,28 @@ describe("백필 중복 · id 로 이어지지 않는 같은 주행(2026-10-07)"
     const local = session("local-uuid", "2026-10-07T09:00:00.000Z");
     const server = session("srv-1", "2026-10-07T08:00:00.000Z");
     assert.equal(mergeRecentRideSessions([server], [local]).length, 2);
+  });
+});
+
+// 2026-11-04: 게스트 전부 삭제 뒤 새 익명 계정이 지워진 계정의 주행 50건을 다시 올렸다.
+describe("로컬 기록 주인", () => {
+  const rows = [
+    session("mine-unsent", "2026-11-04T01:00:00.000Z", { ownerUid: "me" }),
+    session("mine-sent", "2026-11-04T02:00:00.000Z", { ownerUid: "me", serverRideId: "s1" }),
+    session("other", "2026-11-04T03:00:00.000Z", { ownerUid: "deleted-guest" }),
+    session("legacy", "2026-11-04T04:00:00.000Z"),
+    session("legacy-sent", "2026-11-04T05:00:00.000Z", { serverRideId: "s2" }),
+  ];
+
+  it("내가 만들었고 서버에 없는 기록만 올린다", () => {
+    assert.deepEqual(rideSessionsToBackfill(rows, "me").map((r) => r.id), ["mine-unsent"]);
+  });
+
+  it("새 계정에는 아무것도 올리지 않는다 — 11-04 사고 재현", () => {
+    assert.deepEqual(rideSessionsToBackfill(rows, "new-guest"), []);
+  });
+
+  it("다른 계정의 기록은 안 보이고 옛 기록은 종전처럼 보인다", () => {
+    assert.deepEqual(rideSessionsVisibleTo(rows, "me").map((r) => r.id), ["mine-unsent", "mine-sent", "legacy", "legacy-sent"]);
   });
 });

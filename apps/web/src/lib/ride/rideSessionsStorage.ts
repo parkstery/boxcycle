@@ -6,6 +6,11 @@ const SESSIONS_KEY = "boxcycle_web_ride_sessions_v1";
 
 export type StoredRideSession = {
   id: string;
+  /**
+   * 이 기록을 만든 계정(로컬 전용, 서버에 저장하지 않는다). 없으면 2026-11-04 이전 기록이다.
+   * 계정을 지워도 브라우저 기록은 남으므로, 주인을 모르면 새 계정으로 올리면 안 된다.
+   */
+  ownerUid?: string | null;
   /** Firestore rides/{} 문서 ID (서버 부여). F1: local↔server identity link */
   serverRideId?: string | null;
   endedAt: string;
@@ -56,6 +61,21 @@ export function loadRideSessions(): StoredRideSession[] {
   } catch {
     return [];
   }
+}
+
+/** 이 계정이 볼 수 있는 로컬 기록 — 다른 계정의 기록은 뺀다. 주인 표시 전의 옛 기록은 종전처럼 보인다. */
+export function rideSessionsVisibleTo(rows: readonly StoredRideSession[], uid: string): StoredRideSession[] {
+  return rows.filter((r) => !r.ownerUid || r.ownerUid === uid);
+}
+
+/**
+ * 서버로 올려도 되는 로컬 기록 — 이 계정이 만들었고 아직 서버에 없는 것만.
+ *
+ * 왜 — 2026-11-04 게스트 전부 삭제 뒤 브라우저가 새 익명 계정을 받자, 지워진 계정의 주행 50건이
+ * 새 계정 것으로 되살아났다(마일리지·트리거까지). 게스트의 Google 연결은 uid 가 그대로라 여기 걸리지 않는다.
+ */
+export function rideSessionsToBackfill(rows: readonly StoredRideSession[], uid: string): StoredRideSession[] {
+  return rows.filter((r) => r.ownerUid === uid && !r.serverRideId);
 }
 
 export function saveRideSessions(items: StoredRideSession[], user: User | null): void {
