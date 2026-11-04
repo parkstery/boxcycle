@@ -12,6 +12,7 @@ import {
   resolveEffectiveTier,
 } from "../lib/account/userTier";
 import { trackVisibilityListener } from "../lib/debug/visibilityReadMeters";
+import { isValidHomeCountry } from "../lib/identity/homeCountry";
 
 function normalizeSubscriptionStatus(raw: unknown): SubscriptionStatus {
   if (raw === "active" || raw === "past_due" || raw === "canceled") return raw;
@@ -34,6 +35,10 @@ export function useUserTier(user: User | null, configured: boolean) {
   const [mileageRideCount, setMileageRideCount] = useState<number | null>(null);
   /** 마지막 닉네임 변경 시각(ms) — 30일 제한 안내용. 가입 때 정한 이름은 없음(null) */
   const [nicknameChangedAtMs, setNicknameChangedAtMs] = useState<number | null>(null);
+  /** 대표 국가(ISO 2글자) — 지역 순위 기준. 첫 스냅샷 전에는 homeCountryLoaded=false */
+  const [homeCountry, setHomeCountry] = useState<string | null>(null);
+  const [homeCountryChangedAtMs, setHomeCountryChangedAtMs] = useState<number | null>(null);
+  const [homeCountryLoaded, setHomeCountryLoaded] = useState(false);
 
   useEffect(() => {
     // 구독 불가(미설정·비로그인)면 구독을 걸지 않는다. 값 초기화는 아래 cleanup 이 맡는다 —
@@ -46,6 +51,9 @@ export function useUserTier(user: User | null, configured: boolean) {
       setMileageTotalSec(null);
       setMileageRideCount(null);
       setNicknameChangedAtMs(null);
+      setHomeCountry(null);
+      setHomeCountryChangedAtMs(null);
+      setHomeCountryLoaded(false);
     };
 
     if (!configured || !user?.uid) {
@@ -67,6 +75,10 @@ export function useUserTier(user: User | null, configured: boolean) {
           setMileageRideCount(normalizeMileageNumber(data?.mileageRideCount));
           const changedAt = data?.nicknameChangedAt;
           setNicknameChangedAtMs(changedAt instanceof Timestamp ? changedAt.toMillis() : null);
+          setHomeCountry(isValidHomeCountry(data?.homeCountry) ? data.homeCountry : null);
+          const countryAt = data?.homeCountryChangedAt;
+          setHomeCountryChangedAtMs(countryAt instanceof Timestamp ? countryAt.toMillis() : null);
+          setHomeCountryLoaded(true);
         },
         reset,
       ),
@@ -90,6 +102,9 @@ export function useUserTier(user: User | null, configured: boolean) {
       mileageTotalSec,
       mileageRideCount,
       nicknameChangedAtMs,
+      homeCountry,
+      homeCountryChangedAtMs,
+      homeCountryLoaded,
     };
   }, [
     user,
@@ -99,5 +114,8 @@ export function useUserTier(user: User | null, configured: boolean) {
     mileageTotalSec,
     mileageRideCount,
     nicknameChangedAtMs,
+    homeCountry,
+    homeCountryChangedAtMs,
+    homeCountryLoaded,
   ]);
 }

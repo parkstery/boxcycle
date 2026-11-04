@@ -24,6 +24,7 @@ import {
   NICKNAME_CHANGE_COOLDOWN_DAYS,
 } from "../nickname";
 import { nicknameOrNull, riderDisplayName } from "../riderName";
+import { isValidHomeCountry } from "../homeCountry";
 
 export type UserTier = "anonymous" | "registered_free" | "registered_paid" | "admin";
 
@@ -349,6 +350,22 @@ export async function syncUserProfileToFirestore(
         : {}),
       updatedAt: serverTimestamp(),
     },
+    { merge: true },
+  );
+}
+
+/**
+ * 대표 국가 저장(가입·국가 확인·프로필 수정). 게스트는 저장하지 않는다.
+ * 30일 제한은 서버 Rules 가 `homeCountryChangedAt` 으로 막는다 — 값이 같으면 쓰지 않아 제한을 다시 걸지 않는다.
+ */
+export async function saveHomeCountry(user: User, code: string, current: string | null): Promise<void> {
+  if (user.isAnonymous) throw new Error("게스트는 국가를 정하지 않습니다.");
+  if (!isValidHomeCountry(code)) throw new Error("국가를 골라 주세요.");
+  if (current === code) return;
+  const db = getFirebaseFirestore();
+  await setDoc(
+    doc(db, "users", user.uid),
+    { homeCountry: code, homeCountryChangedAt: serverTimestamp(), updatedAt: serverTimestamp() },
     { merge: true },
   );
 }

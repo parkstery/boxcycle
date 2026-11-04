@@ -218,7 +218,9 @@
       "identity/firebaseAuthPopup.ts",
       "identity/guestAccountReset.ts",
       "identity/guestNametag.ts",
-      "identity/nickname.ts"
+      "identity/nickname.ts",
+      "identity/homeCountry.ts",
+      "identity/homeCountryZones.ts"
     ],
     "identity/repo": [
       "identity/repo/guestLifecycleApi.ts",

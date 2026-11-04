@@ -7,6 +7,8 @@ import {
   parseWeightKg,
   type CalorieIntensityId,
 } from "../../lib/ride/caloriesEstimate";
+import { guessHomeCountryFromDevice } from "../../lib/identity/homeCountry";
+import { HomeCountrySelect } from "./HomeCountrySelect";
 import "./SignUpNicknameCard.css";
 
 /** 가입 시 한 번 받는 칼로리 프로필 — 비워 두면 null(나중에 주행 설정에서) */
@@ -20,7 +22,8 @@ type SignUpNicknameCardProps = {
   /** 익명 시절 이미 넣은 값이 있으면 미리 채운다 */
   initialWeightKg?: number | null;
   initialIntensityId?: CalorieIntensityId | null;
-  onSubmit: (nickname: string, calorie: SignUpCalorieInput) => void | Promise<void>;
+  /** 대표 국가(ISO 2글자) — 필수. 기기 시간대로 미리 채운다 */
+  onSubmit: (nickname: string, calorie: SignUpCalorieInput, homeCountry: string) => void | Promise<void>;
 };
 
 export function SignUpNicknameCard({
@@ -32,6 +35,7 @@ export function SignUpNicknameCard({
   const [value, setValue] = useState("");
   const [weightDraft, setWeightDraft] = useState(initialWeightKg != null ? String(initialWeightKg) : "");
   const [intensityId, setIntensityId] = useState<CalorieIntensityId | null>(initialIntensityId);
+  const [homeCountry, setHomeCountry] = useState<string | null>(() => guessHomeCountryFromDevice());
   const [localError, setLocalError] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent) {
@@ -46,8 +50,12 @@ export function SignUpNicknameCard({
       setLocalError(`체중은 ${WEIGHT_KG_MIN}–${WEIGHT_KG_MAX}kg 사이로 입력해 주세요.`);
       return;
     }
+    if (homeCountry == null) {
+      setLocalError("국가를 골라 주세요.");
+      return;
+    }
     setLocalError(null);
-    await onSubmit(trimmed, { weightKg, intensityId });
+    await onSubmit(trimmed, { weightKg, intensityId }, homeCountry);
   }
 
   return (
@@ -59,25 +67,44 @@ export function SignUpNicknameCard({
       <p className="signup-nickname__rules">{NICKNAME_RULES_SUMMARY_KO}</p>
       <p className="signup-nickname__rules signup-nickname__rules--meta">{NICKNAME_CASE_FOLD_HINT_KO}</p>
       <form className="signup-nickname__form" noValidate onSubmit={(ev) => void handleSubmit(ev)}>
-        <label className="signup-nickname__label" htmlFor="signup-nickname-input">
-          닉네임
-        </label>
-        <input
-          id="signup-nickname-input"
-          className="signup-nickname__input"
-          type="text"
-          name="nickname"
-          autoComplete="username"
-          spellCheck={false}
-          maxLength={NICKNAME_MAX_LENGTH}
-          value={value}
-          disabled={busy}
-          onChange={(ev) => {
-            setValue(ev.target.value);
-            setLocalError(null);
-          }}
-          placeholder="예: rider42"
-        />
+        {/* Chief 11-04 A안: 닉네임과 국가를 한 줄에 — 줄을 늘려 지도를 더 가리지 않게 */}
+        <div className="signup-nickname__pair">
+          <label className="signup-nickname__cell" htmlFor="signup-nickname-input">
+            <span className="signup-nickname__label">닉네임</span>
+            <input
+              id="signup-nickname-input"
+              className="signup-nickname__input"
+              type="text"
+              name="nickname"
+              autoComplete="username"
+              spellCheck={false}
+              maxLength={NICKNAME_MAX_LENGTH}
+              value={value}
+              disabled={busy}
+              onChange={(ev) => {
+                setValue(ev.target.value);
+                setLocalError(null);
+              }}
+              placeholder="예: rider42"
+            />
+          </label>
+          <label className="signup-nickname__cell" htmlFor="signup-country-select">
+            <span className="signup-nickname__label">국가</span>
+            <HomeCountrySelect
+              id="signup-country-select"
+              className="signup-nickname__input signup-nickname__select"
+              value={homeCountry}
+              disabled={busy}
+              onChange={(code) => {
+                setHomeCountry(code);
+                setLocalError(null);
+              }}
+            />
+          </label>
+          <p className="signup-nickname__rules signup-nickname__rules--meta signup-nickname__pair-help">
+            국가: 지역 순위 기준 · 30일에 한 번 변경
+          </p>
+        </div>
         <fieldset className="signup-nickname__calorie" disabled={busy}>
           <legend className="signup-nickname__label">칼로리 계산용 (선택)</legend>
           <label className="signup-nickname__weight">

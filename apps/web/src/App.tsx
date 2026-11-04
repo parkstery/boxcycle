@@ -2,6 +2,7 @@ import { lazy, startTransition, Suspense, useCallback, useEffect, useMemo, useRe
 import { PublicationSharedPresence } from "./components/PublicationSharedPresence";
 import { peerHudLabels, type PeerHudEntry } from "./lib/peerMotion/peerHud";
 import { SignUpNicknameCard } from "./components/auth/SignUpNicknameCard";
+import { HomeCountryConfirmCard } from "./components/auth/HomeCountryConfirmCard";
 import { ProfileEditSheet } from "./components/ProfileEditSheet";
 import { RideRoutePanel } from "./components/ride/RideRoutePanel";
 import { IntervalRouteConfirm } from "./components/ride/IntervalRouteConfirm";
@@ -41,6 +42,7 @@ import {
 } from "./lib/storage/appSessionKeys";
 import { startGuestActivityWatch } from "./lib/identity/guestActivity";
 import { postGuestActivity } from "./lib/identity/repo/guestLifecycleApi";
+import { saveHomeCountry } from "./lib/identity/repo/firestoreUser";
 import { useUserTier } from "./hooks/useUserTier";
 import { useRideStartPulseKey } from "./hooks/useRideStartPulseKey";
 import { useRideInterval } from "./hooks/useRideInterval";
@@ -3491,6 +3493,8 @@ export default function App() {
         weightKg={calorieProfile.weightKg}
         intensityId={calorieProfile.intensityId}
         nicknameChangedAtMs={userTier.nicknameChangedAtMs}
+        homeCountry={userTier.homeCountry}
+        homeCountryChangedAtMs={userTier.homeCountryChangedAtMs}
         onChangeNickname={handleChangeNickname}
         onWeightKg={setCalorieWeightKg}
         onIntensityId={setCalorieIntensityId}
@@ -3662,10 +3666,12 @@ export default function App() {
             busy={busy}
             initialWeightKg={calorieProfile.weightKg}
             initialIntensityId={calorieProfile.intensityId}
-            onSubmit={async (nickname, calorie) => {
+            onSubmit={async (nickname, calorie, homeCountry) => {
               // 가입 때 한 번 받아 두면 주행마다 다시 묻지 않는다(본인 전용 서버 문서로 기기 간 동기화)
               if (calorie.weightKg != null) setCalorieWeightKg(calorie.weightKg);
               if (calorie.intensityId != null) setCalorieIntensityId(calorie.intensityId);
+              // 국가 먼저 — 실패해도 가입은 진행하고, 국가가 없으면 지도에서 국가 확인 카드가 다시 묻는다
+              await saveHomeCountry(user, homeCountry, userTier.homeCountry).catch(() => {});
               await handleCompleteNickname(nickname);
             }}
           />
@@ -3680,6 +3686,10 @@ export default function App() {
             종료
           </button>
         </AuthGateCard>
+      ) : null}
+
+      {stage === "idle" && user && !user.isAnonymous && userTier.homeCountryLoaded && userTier.homeCountry == null ? (
+        <HomeCountryConfirmCard user={user} />
       ) : null}
 
       {configured && user && sharedPresenceCourseId ? (

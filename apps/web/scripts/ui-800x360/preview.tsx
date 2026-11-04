@@ -671,6 +671,8 @@ function Preview() {
       weightKg={weight}
       intensityId={intensity}
       nicknameChangedAtMs={profileNicknameChangedAtMs}
+      homeCountry="KR"
+      homeCountryChangedAtMs={null}
       onChangeNickname={async () => {
         setProfilePersistCalls((prev) => ({ ...prev, nickname: prev.nickname + 1 }));
       }}

@@ -17,6 +17,12 @@ import {
 } from "../lib/identity/nickname";
 import { ACCOUNT_DELETION_CONFIRM_PHRASE, deleteMyAccount, isDeletionConfirmPhrase } from "../lib/account/accountDeletion";
 import { prepareStartScreen } from "../lib/storage/appSessionKeys";
+import {
+  guessHomeCountryFromDevice,
+  homeCountryChangeBlockedUntilMs,
+} from "../lib/identity/homeCountry";
+import { saveHomeCountry } from "../lib/identity/repo/firestoreUser";
+import { HomeCountrySelect } from "./auth/HomeCountrySelect";
 import "./ride/RideSettingsSheet.css";
 import "./ProfileEditSheet.css";
 import { SettingsCloseIcon } from "./ui/SettingsCloseIcon";
@@ -30,6 +36,9 @@ type ProfileEditSheetProps = {
   intensityId: CalorieIntensityId | null;
   /** 마지막 닉네임 변경 시각(ms, users/{uid}.nicknameChangedAt). 30일 안이면 입력을 잠근다 */
   nicknameChangedAtMs: number | null;
+  /** 대표 국가(ISO 2글자)·마지막 변경 시각(ms). 30일 안이면 잠근다 */
+  homeCountry: string | null;
+  homeCountryChangedAtMs: number | null;
   /** 실패 시 throw — 메시지를 시트에 보여 준다 */
   onChangeNickname: (nickname: string) => Promise<void>;
   onWeightKg: (raw: string) => boolean | void;
@@ -64,6 +73,15 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
     nicknameChangeBlockedUntilMs(props.nicknameChangedAtMs, Date.now()),
   );
 
+  const [homeCountry, setHomeCountry] = useState<string | null>(
+    () => props.homeCountry ?? (isGuest ? null : guessHomeCountryFromDevice()),
+  );
+  // 고른 적이 있을 때만 저장한다 — 미리 채운 값을 저장 버튼 한 번에 몰래 확정하지 않게(국가가 없으면 확인 카드가 묻는다)
+  const [countryTouched, setCountryTouched] = useState(false);
+  const [countryLockedUntilMs] = useState(() =>
+    props.homeCountry == null ? null : homeCountryChangeBlockedUntilMs(props.homeCountryChangedAtMs, Date.now()),
+  );
+
   // 계정 탈퇴 확인 상태
   const [confirmingDeletion, setConfirmingDeletion] = useState(false);
   const [deletionPhrase, setDeletionPhrase] = useState("");
@@ -95,6 +113,9 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
     setSaving(true);
     try {
       if (nicknameChanged) await props.onChangeNickname(nextNickname);
+      if (!isGuest && countryTouched && homeCountry != null && homeCountry !== props.homeCountry && countryLockedUntilMs == null) {
+        await saveHomeCountry(props.user, homeCountry, props.homeCountry);
+      }
       if (weightKg !== props.weightKg) props.onWeightKg(weightKg == null ? "" : String(weightKg));
       if (intensityId !== props.intensityId) props.onIntensityId(intensityId);
       onClose();
@@ -167,6 +188,27 @@ function ProfileEditForm(props: ProfileEditSheetProps & { user: User }) {
             </>
           )}
         </div>
+
+        {/* 대표 국가 — 닉네임 줄과 같은 꼴(Chief 11-04). 게스트는 묻지 않는다 */}
+        {!isGuest && (
+          <div className="ride-settings-sheet__group profile-edit-sheet__nickname">
+            <span className="ride-settings-sheet__kicker">국가</span>
+            <HomeCountrySelect
+              className="profile-edit-sheet__input profile-edit-sheet__country"
+              value={homeCountry}
+              disabled={saving || countryLockedUntilMs != null}
+              onChange={(code) => {
+                setHomeCountry(code);
+                setCountryTouched(true);
+                setError(null);
+              }}
+            />
+            {/* 설명은 잠겼을 때만 — 줄을 늘려 지도를 가리지 않게(Chief 11-04) */}
+            {countryLockedUntilMs != null ? (
+              <p className="ride-settings-sheet__help">{`${formatMonthDay(countryLockedUntilMs)} 이후 변경 가능`}</p>
+            ) : null}
+          </div>
+        )}
 
         <div className="ride-settings-sheet__group">
           <div className="profile-edit-sheet__calorie-field">

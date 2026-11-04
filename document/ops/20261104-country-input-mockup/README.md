@@ -1,6 +1,6 @@
 # 국가 입력 시안 (G3-2 선행)
 
-작성 2026-11-04 Supervisor Claude Code(Opus 5.5) 직접 · 상태: **시안, Chief 승인 대기** · 근거 [00-plan](../20261103-global-geo-data/00-plan.md) §4.2·D13·D15(Q3·Q4)
+작성 2026-11-04 Supervisor Claude Code(Opus 5.5) 직접 · 상태: **A안 승인(11-04)·구현·미배포** · 근거 [00-plan](../20261103-global-geo-data/00-plan.md) §4.2·D13·D15(Q3·Q4)
 
 Chief 11-04 「시안 먼저 보자」.
 
@@ -27,3 +27,26 @@ Chief 11-04 「시안 먼저 보자」.
 3. 설명 문구(「국가 = 지역 순위 기준 · 기기 시간대로 골랐어요 · 30일에 한 번 변경」)
 
 승인되면: 가입 카드·프로필 수정·확인 카드 구현, Rules(`homeCountry` 형식·30일 제한), 고정 목록 표 갱신, e2e. 그 뒤 G3-2 국가 범위 순위.
+
+## Chief 결정 (11-04)
+
+「A안으로 하자. 모든 창, 패널, 버튼은 가독성과 편의성을 고려하되 배경맵을 가리는 면적을 최소화하도록 디자인하라. 불필요한 긴 설명을 자제하고 간단한 문구로 내용을 전달하라. 그런 차원에서 2줄을 쓰지 않기 위해 아이디와 국가를 한 줄에 넣는 것이다.」
+- 원칙은 [공간밀도 원칙](../../reference/product/260924-RTW-UI-공간밀도-원칙.md) 개정 이력·[결정 로그](../../260707-RTW-결정-로그.md)·고정75에 남겼다.
+- 결정 2(「나중에」)·3(문구)은 원칙을 따라 Supervisor가 정했다: 확인 카드는 「확인」 하나(미리 채워 대개 한 번이면 끝, 「나중에」는 매 접속 다시 묻는 방해가 된다). 문구는 더 짧게.
+
+## 구현 결과 (11-04, Claude Code 클라우드 세션 직접 · 미배포)
+
+| 바뀐 것 | 파일 |
+|---|---|
+| 시간대→국가 표(시간대 542·국가 247, tzdata 2026e, 옛 이름 링크 포함) | `apps/web/scripts/identity/gen-home-country-zones.mjs` → `src/lib/identity/homeCountryZones.ts` |
+| 국가 모듈(미리 채우기·목록·30일) | `src/lib/identity/homeCountry.ts` |
+| 저장 `saveHomeCountry`(같으면 안 씀) · 구독 `homeCountry`·`homeCountryChangedAtMs`·`homeCountryLoaded` | `lib/identity/repo/firestoreUser.ts` · `hooks/useUserTier.ts` |
+| 가입 카드 A안 · 국가 선택 상자 · 국가 확인 카드 | `components/auth/SignUpNicknameCard.*` · `HomeCountrySelect.tsx` · `HomeCountryConfirmCard.tsx` |
+| 프로필 수정 국가 줄(고른 적 있을 때만 저장, 잠김이면 끔, 설명은 잠겼을 때만) | `components/ProfileEditSheet.tsx` |
+| Rules: 정식 계정만·대문자 2글자·변경 시각=요청 시각·30일·시각만 고치기 금지 | `firestore.rules` users |
+
+가입 순서: 국가 저장 → 닉네임 확정. 국가 저장이 실패해도 가입은 진행되고, 국가가 없으면 대기 화면에서 확인 카드가 묻는다.
+
+검증: web tsc 0, eslint 0(경고는 기존), 단위 `home-country.test.ts` 8/8, Rules 에뮬레이터 `npm run test:home-country:rules` 11/11(사보타주: 30일 조건 제거 → H2 FAIL). 실제 컴포넌트 렌더(임시 화면, 삭제) `impl-*.png`: 가입 카드 800×360 343px 스크롤 없음(699×273은 85px — 현재 카드도 57px), 프로필 699×273 2px 스크롤은 국가 줄 없이도 같음(기존).
+
+배포: Rules(`firestore:rules`) + Hosting. Rules 먼저 — 앱이 먼저 오르면 국가 저장이 거절되고(가입은 진행) 확인 카드가 남는다. 남은 것: G3-2 순위가 `homeCountry`를 읽기.
