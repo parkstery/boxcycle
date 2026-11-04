@@ -1,6 +1,6 @@
 # RIDER15-P0-BASELINE 보고서
 
-- 상태: `P1_AUDIT_COMPLETE`
+- 상태: `P2_SPIKE_PASS`
 - 작성일: 2026-11-04 KST
 - 실행 폴더: `C:\20.HDev\boxcycle`
 - 작업 지시: `INSTRUCTION.md`
@@ -76,5 +76,35 @@
 - 제스처·지면 접지 코드
 - 브라우저 렌더 캡처
 - 성능 수치 확정
+
+## 7. P2 표준 SkinnedMesh 스파이크 결과
+
+추가 파일: `apps/web/scripts/rider-preserve/rider-standard-skin-spike.test.ts`
+
+실행 명령:
+
+```powershell
+cd C:\20.HDev\boxcycle\apps\web
+node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/rider-preserve/rider-standard-skin-spike.test.ts
+```
+
+결과: **2 tests, 2 pass, 0 fail**.
+
+확인한 내용:
+
+- 하나의 `SkinnedMesh`에서 어깨·팔꿈치에 해당하는 두 본이 서로 다른 정점을 변형한다.
+- 본 회전 후 변형 정점 위치가 rest 위치와 달라진다.
+- 본 회전 시 geometry의 원본 position 버퍼는 변경되지 않는다.
+- 현재 Three.js/TypeScript 테스트 환경에서 표준 스킨의 최소 동작은 성립한다.
+
+한계:
+
+- 실제 rider15 GLB를 아직 만들지 않았다.
+- Mapbox 실화면 합성, 팔 IK, 팔레트 재칠, `COLOR_0`, 성능은 아직 미검증이다.
+- 따라서 rider15 제품 통합 또는 rider14 활성 모델 교체는 아직 금지한다.
+
+## 8. 다음 작업
+
+`RIDER15-P3-GLB-STRUCTURE-AUDIT`: 실제 후보 GLB가 생성되면 `skins:1`, 본 이름/계층, `JOINTS_0`, `WEIGHTS_0`, 재질 수, 삼각형 수, extras와 byte/hash를 읽기 전용으로 감사한다. 후보 GLB가 없으면 먼저 모델러 입력·export 계약을 확정한다.
 
 
