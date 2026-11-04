@@ -4,7 +4,7 @@
 |---|---|
 | 문서 유형 | ops 계획 — 데이터 구조 확장 설계 |
 | 작성 | 2026-11-03 Supervisor Claude Code (Opus 5.5) |
-| 상태 | IN_PROGRESS — G1·G3-1 배포, **G2·G4 서버 구현·미배포(11-04, §4.1.1·§4.5.1)** |
+| 상태 | IN_PROGRESS — G1·G3-1 배포, **G2·G4·G3-2 서버 구현·미배포(11-04, §4.1.1·§4.5.1·§4.3.1)** |
 | 출발점 | Chief 자문 대화(Geographic Data Architecture 제안) + 코드 대조 의견 |
 
 ## 1. 결정
@@ -160,6 +160,17 @@
 - 개척 `uses`(내 Publication을 남이 달린 수)는 처음에는 전세계에서만 유지한다.
 - **계정 삭제·게스트 정리**: `accountDeletionCore.ts` 컬렉션 목록과 게스트 정리(`purgeGuestUsersCore.ts`)에 `leaderboardScores`를 등록한다. 빠뜨리면 지운 사용자가 순위에 남는다.
 - **전환 게이트**: 같은 기간에 대해 기존 훑기 집계와 새 누적 점수의 상위 20위·값이 일치해야 바꾼다(합성 데이터 + 운영 데이터 1회 비교).
+
+### 4.3.1 G3-2 서버 결과 (2026-11-04, Claude Code 클라우드 세션 직접 · 미배포)
+
+- 국가 입력(가입·프로필·확인 카드)은 [시안 묶음](../20261104-country-input-mockup/README.md)으로 구현(Chief A안).
+- **쓰기**: 거리 판은 주행 시점의 `users.homeCountry`로 대륙·국가 범위에도 더한다(회원만). 대륙은 경계 데이터 표(`continentOfCountry`). 개척 판은 도로 기준(D3)이라 G5 전까지 전세계만. 주행 1건 점수 문서 8 → 최대 16(거리 12 + 개척 4).
+- **지난 점수는 옮기지 않는다**(계획대로). 이미 반영된 주행은 지역 범위에 들어가지 않으므로 지역 순위는 국가를 정한 뒤의 주행부터 쌓인다. 채우기 CLI 는 아직 반영 안 된 주행에만 현재 국가로 지역 범위를 더한다.
+- **읽기**: `getLeaderboard?scopeType=world|continent|country[&scopeCode=KR]`. 코드 생략 = 요청자의 대표 국가, 없으면 400. 개척 판 지역 요청은 400. 응답에 `scope`·`scopeCode`(전세계 null). 범위를 보내지 않는 옛 앱은 그대로 `world` — 호환.
+- 웹 `fetchLeaderboard`는 범위 인자·새 응답을 받는다. **범위를 고르는 화면은 아직 없다**(시안 → Chief 승인).
+- 색인 변경 없음(기존 복합 색인에 `scopeType`·`scopeCode` 가 이미 있다).
+- 시험: `leaderboardScopes.test.ts` 8건(범위 계산·쓰기 계획·국가/대륙/전세계 순위 분리·요청 해석), 사보타주(거리 범위 제거) → 2 FAIL. functions 259/0. 동등성 시험(전세계) 그대로 통과.
+- 배포: `functions:leaderboardScoresOnRideWritten,functions:getLeaderboard`. 국가 Rules·Hosting 과 순서 무관(국가가 없으면 전세계만 쌓인다).
 
 ### 4.4 Conquest 지역 통계 (G5, 개척 순위의 재료는 G3에서 먼저)
 

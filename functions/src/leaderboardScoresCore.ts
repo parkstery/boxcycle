@@ -20,9 +20,11 @@ export const LEADERBOARD_USES_COLLECTION = "leaderboardUses";
 export const LEADERBOARD_USE_MARKS_COLLECTION = "leaderboardUseMarks";
 export const LEADERBOARD_SCORE_APPLIED_COLLECTION = "leaderboardScoreApplied";
 
-/** 지금은 전세계 하나. 대륙·국가·행정구역은 G3-2 에서 붙이므로 필드만 둔다. */
+/** 범위 — 전세계 + (거리 판, G3-2) 대표 국가의 대륙·국가. 개척 판의 지역 범위는 도로 위치 기준(G5)이라 아직 전세계만. */
 export const WORLD_SCOPE_TYPE = "world";
 export const WORLD_SCOPE_CODE = "-";
+export const CONTINENT_SCOPE_TYPE = "continent";
+export const COUNTRY_SCOPE_TYPE = "country";
 
 /** `rides.timeZone` 이 없거나 잘못되면 쓰는 시간대(D11). 기존 KST 기간 경계와 같다. */
 export const DEFAULT_LEADERBOARD_TIME_ZONE = "Asia/Seoul";
@@ -30,6 +32,22 @@ export const DEFAULT_LEADERBOARD_TIME_ZONE = "Asia/Seoul";
 export type ScoreTrack = "T1" | "All";
 export type ScoreScope = { scopeType: string; scopeCode: string };
 export const WORLD_SCOPE: ScoreScope = { scopeType: WORLD_SCOPE_TYPE, scopeCode: WORLD_SCOPE_CODE };
+
+/**
+ * 거리 판 추가 범위(D2 — 사람 기준). 대표 국가가 없으면(게스트·미설정) 빈 목록 → 전세계에만 든다.
+ * 대륙은 경계 데이터의 표로 구한다(`continentOf`, 서버 한 곳). 표에 없는 작은 지역은 국가 범위만.
+ */
+export function homeScoreScopes(
+  homeCountry: string | null | undefined,
+  continentOf: (country: string) => string | null,
+): ScoreScope[] {
+  if (typeof homeCountry !== "string" || !/^[A-Z]{2}$/.test(homeCountry)) return [];
+  const out: ScoreScope[] = [];
+  const continent = continentOf(homeCountry);
+  if (continent) out.push({ scopeType: CONTINENT_SCOPE_TYPE, scopeCode: continent });
+  out.push({ scopeType: COUNTRY_SCOPE_TYPE, scopeCode: homeCountry });
+  return out;
+}
 
 // ---------------------------------------------------------------------------
 // 기간 키 (W 주 · M 월 · Y 연 · all)
@@ -123,10 +141,13 @@ export type RideScoreInput = {
   publicationId: string | null;
   /** routePublications/{publicationId}.applicantUid — 없거나 익명화되면 null. */
   publicationOwnerUid: string | null;
+  /** 거리 판에 더할 지역 범위(주행 시점의 대표 국가로 정함 — 바꿔도 지난 점수는 옮기지 않는다). 없으면 전세계만. */
+  distanceScopes?: readonly ScoreScope[];
 };
 
 export type ScoreIncrement = {
   docId: string;
+  scope: ScoreScope;
   board: LeaderboardBoard;
   periodKey: string;
   uid: string;
@@ -173,9 +194,11 @@ export function planRideScoreWrites(input: RideScoreInput, scope: ScoreScope = W
   for (const board of LEADERBOARD_BOARDS) {
     const value = finiteNonNegative(board === "distance" ? input.distanceMeters : input.newMeters);
     if (value <= 0) continue;
-    for (const periodKey of periodKeys) {
+    const scopes = board === "distance" ? [scope, ...(input.distanceScopes ?? [])] : [scope];
+    for (const sc of scopes) for (const periodKey of periodKeys) {
       scores.push({
-        docId: scoreDocId(board, periodKey, input.userId, scope),
+        docId: scoreDocId(board, periodKey, input.userId, sc),
+        scope: sc,
         board,
         periodKey,
         uid: input.userId,

@@ -10,7 +10,7 @@
 
 ## 진행 중
 
-**11-04 국가 입력(Claude Code, 클라우드) — Chief A안 승인·구현·커밋, 미배포**: 가입 카드 닉네임·국가 한 줄, 프로필 국가 줄(30일), 국가 없는 정식 계정 1회 확인 카드, Rules users.homeCountry. 원칙 「지도 가림 최소·짧은 문구」는 공간밀도 원칙·결정 로그·고정75. 단위 8/8, Rules 11/11. 배포: Rules 먼저 → Hosting. [README](20261104-country-input-mockup/README.md). 다음: G3-2 순위가 homeCountry 읽기.
+**11-04 국가 입력(Claude Code, 클라우드) — Chief A안 승인·구현·커밋, 미배포**: 가입 카드 닉네임·국가 한 줄, 프로필 국가 줄(30일), 국가 없는 정식 계정 1회 확인 카드, Rules users.homeCountry. 원칙 「지도 가림 최소·짧은 문구」는 공간밀도 원칙·결정 로그·고정75. 단위 8/8, Rules 11/11. 배포: Rules 먼저 → Hosting. [README](20261104-country-input-mockup/README.md). **G3-2 서버**(거리 판 대륙·국가 범위 쓰기·`getLeaderboard` 범위 인자, 계획 §4.3.1)도 커밋 — 배포 시 `leaderboardScoresOnRideWritten`·`getLeaderboard`. 남은 것: 범위 선택 화면 시안.
 
 **11-04 G2 공개 경로 요약 목록(Claude Code, 클라우드) — 구현·커밋, 미배포**: 트리거·채우기 CLI·Rules·색인·웹 카탈로그 전환(빈 목록·실패 시 옛 쿼리로 물러남). functions 247/0, 에뮬레이터 5/5, 채우기 dry-run=apply. 배포 순서·결과 [00-plan §4.1.1](20261103-global-geo-data/00-plan.md). 배포는 Chief 승인·PC 세션. **G4 서버**(Trail 목록에 지역 복사, §4.5.1)도 커밋 — 배포 시 openTrailListing 함수 5개 함께. 클라우드 test:quick 실패 9건은 환경 전용(Edge 고정 5·`.env` 없음 Mapbox 2·Windows 검증 종료 시험 2).
 
