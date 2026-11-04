@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>국가 입력 시안</title>
+<!-- 실제 앱 CSS 를 그대로 읽는다 — 시안이 앱과 다른 모양이 되지 않게 -->
+<link rel="stylesheet" href="../../../apps/web/src/tokens.css">
+<link rel="stylesheet" href="../../../apps/web/src/index.css">
+<link rel="stylesheet" href="../../../apps/web/src/components/auth/AuthGateCard.css">
+<link rel="stylesheet" href="../../../apps/web/src/components/auth/SignUpNicknameCard.css">
+<link rel="stylesheet" href="../../../apps/web/src/components/ride/RideSettingsSheet.css">
+<link rel="stylesheet" href="../../../apps/web/src/components/ui/SettingsSurface.css">
+<link rel="stylesheet" href="../../../apps/web/src/components/ProfileEditSheet.css">
+<style>
+  /* 지도 자리(시안용 배경) */
+  html, body { margin: 0; height: 100%; }
+  body { background: linear-gradient(135deg, #dfe7d8 0%, #e8eef3 45%, #cfdde8 100%); overflow: hidden; }
+  .map-fake { position: fixed; inset: 0;
+    background:
+      repeating-linear-gradient(28deg, transparent 0 46px, #ffffffaa 46px 49px, transparent 49px 120px),
+      repeating-linear-gradient(-62deg, transparent 0 70px, #ffffff99 70px 72px, transparent 72px 160px); }
+  .frame { display: none; } .frame.on { display: block; }
+  /* ── 제안: 새 줄 ── */
+  .country-row { display: flex; flex-direction: column; gap: 0.2rem; }
+  .country-row .signup-nickname__weight { display: flex; }
+  .country-select { font: inherit; font-size: 0.85rem; min-height: 44px; padding: 0 0.55rem; border-radius: 8px;
+    border: 1px solid color-mix(in srgb, CanvasText 18%, transparent); background: Field; color: FieldText; }
+  .profile-edit-sheet .country-select { min-height: 0; height: 22px; font-size: 0.85rem; padding: 0 0.4rem; }
+  .country-select:disabled { opacity: .55; }
+  .new-badge { outline: 2px dashed #f59e0b; outline-offset: 3px; border-radius: 6px; }
+  .pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 0.4rem; row-gap: 0.2rem; }
+  .pair__cell { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+  .pair__cell input, .pair__cell select { min-height: 44px; box-sizing: border-box; width: 100%; }
+  .pair__help { grid-column: 1 / -1; margin: 0 !important; }
+  .confirm-actions { display: flex; gap: 0.4rem; justify-content: flex-end; margin-top: 0.3rem; }
+</style>
+</head>
+<body>
+<div class="map-fake"></div>
+
+<!-- A. 가입 카드 — 닉네임 아래 국가 한 줄(필수, 기기 시간대로 미리 채움) -->
+<section class="frame" id="a" data-has-country>
+  <div class="auth-gate" role="dialog" aria-label="인증">
+    <div class="auth-gate__card">
+      <div class="auth-gate__topbar"><div class="auth-gate__brand"><span class="auth-gate__brand-mark"><img class="auth-gate__brand-svg" src="../../../apps/web/public/spinatlas-mark.svg" alt=""></span>Spinatlas</div></div>
+      <h2 class="auth-gate__title">닉네임</h2>
+      <div class="auth-gate__body">
+        <section class="signup-nickname">
+          <h2 class="signup-nickname__title">회원가입 마무리</h2>
+          <p class="signup-nickname__lead">사용할 <strong>닉네임</strong>을 입력해 주세요.</p>
+          <p class="signup-nickname__rules">영문자로 시작하고, 영문자·숫자와 - _ 만 사용합니다. 길이는 4~15자입니다.</p>
+          <p class="signup-nickname__rules signup-nickname__rules--meta">같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.</p>
+          <form class="signup-nickname__form">
+            <label class="signup-nickname__label">닉네임</label>
+            <input class="signup-nickname__input" value="rider42">
+            <div class="country-row new-badge">
+              <label class="signup-nickname__weight" for="c1"><span class="signup-nickname__label">국가</span>
+                <select id="c1" class="country-select" style="flex:1"><option>대한민국</option><option>일본</option><option>미국</option></select></label>
+              <p class="signup-nickname__rules signup-nickname__rules--meta" style="margin:0">지역 순위 기준 · 기기 시간대로 골랐어요 · 30일에 한 번 변경</p>
+            </div>
+            <fieldset class="signup-nickname__calorie">
+              <legend class="signup-nickname__label">칼로리 계산용 (선택)</legend>
+              <label class="signup-nickname__weight"><span>체중(kg)</span><input class="signup-nickname__input" placeholder="20–250"></label>
+              <div class="signup-nickname__weight"><span>체력</span><span>약함</span><div class="signup-nickname__chips"><button type="button" class="signup-nickname__chip">1</button><button type="button" class="signup-nickname__chip">2</button><button type="button" class="signup-nickname__chip">3</button><button type="button" class="signup-nickname__chip">4</button><button type="button" class="signup-nickname__chip">5</button></div><span>강함</span></div>
+              <p class="signup-nickname__rules signup-nickname__rules--meta">본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.</p>
+            </fieldset>
+            <button class="btn primary signup-nickname__submit" type="button">가입 완료</button>
+          </form>
+        </section>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- A2. 가입 카드 — 닉네임과 국가를 한 줄에(스크롤 없음) -->
+<section class="frame" id="a2">
+  <div class="auth-gate" role="dialog" aria-label="인증">
+    <div class="auth-gate__card">
+      <div class="auth-gate__topbar"><div class="auth-gate__brand"><span class="auth-gate__brand-mark"><img class="auth-gate__brand-svg" src="../../../apps/web/public/spinatlas-mark.svg" alt=""></span>Spinatlas</div></div>
+      <h2 class="auth-gate__title">닉네임</h2>
+      <div class="auth-gate__body">
+        <section class="signup-nickname">
+          <h2 class="signup-nickname__title">회원가입 마무리</h2>
+          <p class="signup-nickname__lead">사용할 <strong>닉네임</strong>을 입력해 주세요.</p>
+          <p class="signup-nickname__rules">영문자로 시작하고, 영문자·숫자와 - _ 만 사용합니다. 길이는 4~15자입니다.</p>
+          <p class="signup-nickname__rules signup-nickname__rules--meta">같은 철자의 대·소문자 조합은 하나의 닉네임으로만 쓸 수 있습니다.</p>
+          <form class="signup-nickname__form">
+            <div class="pair new-badge">
+              <label class="pair__cell"><span class="signup-nickname__label">닉네임</span><input class="signup-nickname__input" value="rider42"></label>
+              <label class="pair__cell"><span class="signup-nickname__label">국가</span><select class="country-select"><option>대한민국</option></select></label>
+              <p class="signup-nickname__rules signup-nickname__rules--meta pair__help">국가 = 지역 순위 기준 · 기기 시간대로 골랐어요 · 30일에 한 번 변경</p>
+            </div>
+            <fieldset class="signup-nickname__calorie">
+              <legend class="signup-nickname__label">칼로리 계산용 (선택)</legend>
+              <label class="signup-nickname__weight"><span>체중(kg)</span><input class="signup-nickname__input" placeholder="20–250"></label>
+              <div class="signup-nickname__weight"><span>체력</span><span>약함</span><div class="signup-nickname__chips"><button type="button" class="signup-nickname__chip">1</button><button type="button" class="signup-nickname__chip">2</button><button type="button" class="signup-nickname__chip">3</button><button type="button" class="signup-nickname__chip">4</button><button type="button" class="signup-nickname__chip">5</button></div><span>강함</span></div>
+              <p class="signup-nickname__rules signup-nickname__rules--meta">본인만 볼 수 있고 다른 기기에서도 이어 씁니다. 나중에 주행 설정에서 바꿀 수 있습니다.</p>
+            </fieldset>
+            <button class="btn primary signup-nickname__submit" type="button">가입 완료</button>
+          </form>
+        </section>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- B. 프로필 수정 — 닉네임 아래 국가 줄. 30일 잠김 상태 -->
+<section class="frame" id="b">
+  <div class="ride-settings-sheet profile-edit-sheet settings-surface" role="dialog" aria-label="프로필 수정">
+    <button class="ride-settings-sheet__scrim" aria-label="닫기"></button>
+    <form class="ride-settings-sheet__panel settings-surface__panel">
+      <div class="settings-surface__head"><h2 class="ride-settings-sheet__title settings-surface__title">프로필 수정</h2>
+        <button type="button" class="settings-surface__close" aria-label="닫기"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>
+      <div class="ride-settings-sheet__group profile-edit-sheet__nickname">
+        <span class="ride-settings-sheet__kicker">닉네임</span>
+        <input class="profile-edit-sheet__input" value="rider42">
+        <p class="ride-settings-sheet__help">영문자로 시작하고, 영문자·숫자와 - _ 만 사용합니다. 길이는 4~15자입니다. 바꾸면 30일 동안 다시 바꿀 수 없습니다.</p>
+      </div>
+      <div class="ride-settings-sheet__group profile-edit-sheet__nickname new-badge">
+        <span class="ride-settings-sheet__kicker">국가</span>
+        <select class="country-select" disabled><option>대한민국</option></select>
+        <p class="ride-settings-sheet__help">30일에 한 번 바꿀 수 있습니다. 12월 4일 이후에 바꿀 수 있습니다.</p>
+      </div>
+      <div class="ride-settings-sheet__group">
+        <div class="profile-edit-sheet__calorie-field"><span class="ride-settings-sheet__kicker">체중</span>
+          <div class="profile-edit-sheet__weight-controls"><button type="button" class="profile-edit-sheet__weight-step">−</button>
+            <label class="ride-settings-sheet__weight"><input type="number" value="70"><span class="profile-edit-sheet__weight-unit">kg</span></label>
+            <button type="button" class="profile-edit-sheet__weight-step">+</button>
+            <input class="profile-edit-sheet__weight-slider" type="range" min="20" max="250" value="70"></div></div>
+        <div class="profile-edit-sheet__calorie-field"><span class="ride-settings-sheet__kicker">체력</span>
+          <div class="profile-edit-sheet__fitness-scale"><span class="profile-edit-sheet__fitness-end">약함</span>
+            <div class="ride-settings-sheet__chips"><button type="button" class="ride-settings-sheet__chip">1</button><button type="button" class="ride-settings-sheet__chip">2</button><button type="button" class="ride-settings-sheet__chip is-active">3</button><button type="button" class="ride-settings-sheet__chip">4</button><button type="button" class="ride-settings-sheet__chip">5</button></div>
+            <span class="profile-edit-sheet__fitness-end">강함</span></div></div>
+      </div>
+      <div class="ride-settings-sheet__row profile-edit-sheet__actions"><button type="button" class="ride-settings-sheet__btn">취소</button><button type="button" class="ride-settings-sheet__btn ride-settings-sheet__btn--primary">저장</button></div>
+    </form>
+  </div>
+</section>
+
+<!-- C. 기존 Google 사용자 — 다음 접속 때 한 번만 -->
+<section class="frame" id="c">
+  <div class="auth-gate" role="dialog" aria-label="인증">
+    <div class="auth-gate__card">
+      <div class="auth-gate__topbar"><div class="auth-gate__brand"><span class="auth-gate__brand-mark"><img class="auth-gate__brand-svg" src="../../../apps/web/public/spinatlas-mark.svg" alt=""></span>Spinatlas</div></div>
+      <h2 class="auth-gate__title">국가 확인</h2>
+      <div class="auth-gate__body">
+        <section class="signup-nickname">
+          <p class="signup-nickname__lead">지역 순위를 묶을 <strong>국가</strong>를 확인해 주세요.</p>
+          <form class="signup-nickname__form">
+            <select class="country-select"><option>대한민국</option></select>
+            <p class="signup-nickname__rules signup-nickname__rules--meta" style="margin:0">기기 시간대로 골랐어요. 30일에 한 번 바꿀 수 있습니다.</p>
+            <div class="confirm-actions"><button class="btn secondary" type="button">나중에</button><button class="btn primary" type="button">확인</button></div>
+          </form>
+        </section>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  let id = (location.hash || "#a").slice(1);
+  if (id === "a0") { id = "a"; document.querySelector("#a .country-row")?.remove(); }
+  document.getElementById(id)?.classList.add("on");
+</script>
+</body>
+</html>
