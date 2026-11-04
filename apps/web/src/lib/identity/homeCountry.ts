@@ -8,7 +8,7 @@
  */
 import { HOME_COUNTRY_BY_TIME_ZONE, HOME_COUNTRY_CODES } from "./homeCountryZones";
 
-export const HOME_COUNTRY_CHANGE_COOLDOWN_DAYS = 30;
+const HOME_COUNTRY_CHANGE_COOLDOWN_DAYS = 30;
 const DAY_MS = 86_400_000;
 const CODE_SET = new Set(HOME_COUNTRY_CODES);
 
@@ -23,7 +23,7 @@ export function guessHomeCountryFromTimeZone(timeZone: string | null | undefined
   return cc && CODE_SET.has(cc) ? cc : null;
 }
 
-export function deviceTimeZone(): string | null {
+function deviceTimeZone(): string | null {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone ?? null;
   } catch {

@@ -17,7 +17,7 @@ import type { RouteProfile } from "../../../services/mapboxDirections";
 
 export const ROUTE_PUBLICATIONS_COLLECTION = "routePublications";
 /** 서버 트리거가 published Publication 을 좌표 없이 투영한 요약 목록(G2, functions/src/publicationListingCore.ts) */
-export const PUBLICATION_LISTINGS_COLLECTION = "publicationListings";
+const PUBLICATION_LISTINGS_COLLECTION = "publicationListings";
 
 export type RoutePublicationStatus = "published" | "archived";
 

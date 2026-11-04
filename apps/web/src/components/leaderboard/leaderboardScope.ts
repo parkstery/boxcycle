@@ -6,7 +6,7 @@
 import type { LeaderboardScope } from "../../services/leaderboardApi";
 import { homeCountryLabel } from "../../lib/identity/homeCountry";
 
-export const LEADERBOARD_SCOPE_STORAGE_KEY = "rtw.leaderboard.scope";
+const LEADERBOARD_SCOPE_STORAGE_KEY = "rtw.leaderboard.scope";
 const ORDER: LeaderboardScope[] = ["world", "continent", "country"];
 
 const CONTINENT_LABELS: Record<string, string> = {
