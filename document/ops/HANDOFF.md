@@ -10,7 +10,7 @@
 
 ## 진행 중
 
-**11-04 rider15 상체 스킨 착수(P0→P1→P2)**: Chief의 "작업 시작해" 지시로 `document/ops/20261104-rider-v2-upper-body/`를 활성화했다. 기준선·렌더 경로 감사를 완료했고, 격리된 표준 `SkinnedMesh` 스파이크가 2/2 PASS했다. 실제 rider15 GLB·Mapbox 실화면·팔 IK는 아직 미검증이며 rider14 활성 모델은 유지한다. 다음은 후보 GLB 구조 감사 또는 모델러 export 계약 확정이다. 결과: `document/ops/20261104-rider-v2-upper-body/REPORT.md`.
+**11-04 rider15 상체 스킨 착수(P0→P1→P2→P3 도구)**: Chief의 "작업 시작해" 지시로 `document/ops/20261104-rider-v2-upper-body/`를 활성화했다. 기준선·렌더 경로 감사를 완료했고, 표준 `SkinnedMesh` 스파이크 2/2 PASS 및 GLB 구조 감사기 baseline 실행을 완료했다. rider15 후보 GLB·Mapbox 실화면·팔 IK는 아직 미검증이며 rider14 활성 모델은 유지한다. 다음은 모델러 export 계약 또는 실제 후보 GLB 대기다. 결과: `document/ops/20261104-rider-v2-upper-body/REPORT.md`.
 
 **11-04 재개 지점 — 클라우드 전환(Claude Code)**: [클라우드 재개 안내](20261103-cost-squeeze/04-cloud-resume.md)부터. L9 A·B·로컬 기록 주인·시계 복구(고정74)는 커밋·푸시됐고 **배포·`aPbTo3` 50건 삭제는 미실행**(Chief 승인 완료). 순서: Functions 2개 → 격리 Hosting → 삭제. 클라우드에는 Firebase 인증·.env·.out이 없어 이 단계는 Chief PC 세션 또는 인증 설정 뒤. L4b 재주행 PASS, 4초 줄기 재현 안 됨. [쓰기 장부](20261103-cost-squeeze/03-write-ledger.md).
 

@@ -107,4 +107,20 @@ node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --t
 
 `RIDER15-P3-GLB-STRUCTURE-AUDIT`: 실제 후보 GLB가 생성되면 `skins:1`, 본 이름/계층, `JOINTS_0`, `WEIGHTS_0`, 재질 수, 삼각형 수, extras와 byte/hash를 읽기 전용으로 감사한다. 후보 GLB가 없으면 먼저 모델러 입력·export 계약을 확정한다.
 
+P3 감사기 `apps/web/scripts/rider-preserve/audit-rider-glb-structure.mjs`를 추가했다. 실제 rider15 후보가 없으므로 현재 rider14 제품 후보를 기준 동작 확인에 사용한다. rider14에서 `skins:0`이 출력되는 것은 예상된 baseline이며 rider15 승격 판정이 아니다.
+
+현재 rider14 baseline 감사 결과:
+
+| 항목 | 결과 |
+|---|---:|
+| 파일 크기 | 245,120 B |
+| SHA256 | `df8de090b068f1a8734482ae5698bd578140b387fd3eb1947fd9839d5e4fe54d` |
+| 노드/메시 | 14 / 14 |
+| 삼각형 | 29,604 |
+| 재질 | 1 |
+| skins / animations | 0 / 0 |
+| `JOINTS_0` / `WEIGHTS_0` | 없음 / 없음 |
+
+판정: **P3 도구 PASS, rider15 후보 미착수**. 현재 제품 후보를 rider15로 교체하지 않는다.
+
 
