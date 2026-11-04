@@ -10,6 +10,8 @@
 
 ## 진행 중
 
+**11-04 진행(Claude Code)**: L9 A·B·로컬 기록 주인·시계 복구(고정74) 구현·시험 끝, 커밋→푸시→Functions 2개(`openTrailListingOnTrailWritten`·`openTrailListingsSweep`)→격리 Hosting→`purge-resurrected-rides.cjs --apply` 순서. 서버를 앱보다 먼저, 삭제는 앱 뒤에. [쓰기 장부](20261103-cost-squeeze/03-write-ledger.md). L4b 재주행 PASS, 4초 줄기 재현 안 됨(원인 미확정). Rules 거부 원인 미확정.
+
 **11-03~04 비용 절감·지역 데이터(Claude Code) — 배포됨 54bd409d**: L1·L2·L3·L4·L6(G3-1 누적 점수로 근본 해결)·P1·P2·G1. Chief 실주행 3회+관전 PASS(11-04). **L4b 배포됨(6f125e1c)**: 가속 중 연속 쓰기 제한+`rides.netStats`([기록](20261103-cost-squeeze/02-design-l4.md)). 다음: Chief 2인 재주행 → 분당 쓰기(Cloud Monitoring)·`rides.netStats`로 4초 구간 원인 확정. 남은 것: 유럽 RTDB 2차, G2 요약 목록, G3-2 국가 범위. [cost-squeeze](20261103-cost-squeeze/README.md)·[00-plan](20261103-global-geo-data/00-plan.md).
 
 **11-03 전세계 지역 데이터·비용(Claude Code)** — G1(2559dd7c)·G0.5 P5·P2(de076cfa)·P1 이름표+Rules(8eb69595) 커밋, 미푸시·미배포. Chief 11-03: **비용 짜내기 1순위**, 유럽 RTDB는 미루지 말고 설정. 비용 점검 [01-audit](20261103-cost-squeeze/01-audit.md): 제곱형 L6 순위 훑기·L1 livePresence 전체 구독·L2 CG 구독. 계획 [00-plan](20261103-global-geo-data/00-plan.md). `ride-moments-dom`은 test:quick 병렬 시 vite 캐시 경합으로 간헐 FAIL(단독 PASS).
@@ -18,9 +20,7 @@
 
 **11-03 닉네임·게스트 ⓖ·센서 메뉴·인터벌 영어 음성 + 게스트 전부 삭제(Claude Code) — 배포·완료**: 499c0bf2·fd0ef880 푸시(pre-push 10종·1475/0), firestore:rules·Hosting 배포(운영 js SHA256=로컬, 번들에 새 문구 확인). 고정73. 게스트 62명 삭제·검증(Google 5 보호, 남은 것 0) — [README](20261103-guest-reset/README.md). 리셋 도구에 `--baseline`·`--google` 인자 추가. 남은 것: Chief 사이트 확인(새로고침).
 
-**11-03 인터벌 창 3건+RouteDock 줄 띠** — 배포됨(939f0ca3), 기록은 README·고정72.
-
-**11-03 Chief 5건+탭 토글(Claude Code)**: 센서 LED 볼록 단추(A2)·미니맵 캐럿 28px·인터벌 캐럿 왼쪽 위(C1)·도넛 1초 깜빡임·단계 선 그림+작은 글자(B2)·지도 탭 토글+5초 유지. 고정72, [README](20261103-interval-sensor-look/README.md). tsc 0·eslint 0·test:quick 1470/0·화면 e2e 19종 167/3(배치1 기존). **배포됨(f45d6193, 운영 js·css SHA256=로컬)** — 이후 미니맵 버튼 세로(낮은 폰+인터벌+카드만 가로)·도넛 칸 단계 색 포함.
+**11-03 인터벌 창·RouteDock 줄 띠·Chief 5건+탭 토글** — 배포됨(939f0ca3·f45d6193), 기록은 [README](20261103-interval-sensor-look/README.md)·고정72.
 
 **11-03 Chief 폰 캡처 6장 후속 배포됨(f32dc99d, Claude Code)**: 글자 선택 막기·순위 목록 계정 아래(묶음 겹침 허용)·왼쪽 원형 메뉴 버튼·왼쪽 끝 20px·접힌 인터벌 알약 버튼 오른쪽·경로 손잡이/미니맵 둘 다 접힘=세로·manifest fullscreen+viewport-fit=cover. pre-push 10종·test:quick 1470/0, 화면 e2e 16종 137/3(배치1 기존), 운영 js·css SHA256=로컬·manifest 200. 고정71·README 「후속 2」. 남은 것: Chief 폰 「홈 화면에 추가」 실기 확인. Chief 6장 중 3~6(고도 숫자·이름표 겹침·빈 핀)은 별도·보류.
 
