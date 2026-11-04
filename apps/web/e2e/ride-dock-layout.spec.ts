@@ -22,7 +22,7 @@ for (const viewport of [{ width: 800, height: 360 }, { width: 736, height: 300 }
     await expect(rows).toHaveCount(10);
     const bounds = await page.locator('.lb-glance__list').evaluate(el => ({ bottom: el.getBoundingClientRect().bottom, tenth: el.children[9].getBoundingClientRect().bottom }));
     expect(bounds.tenth).toBeLessThanOrEqual(bounds.bottom + 0.5);
-    await expect(page.locator('.hud-clock')).toHaveCount(0);
+    await expect(page.locator('.hud-clock')).toHaveCount(1); // 고정74: 11-04 Chief 복구
   });
 }
 

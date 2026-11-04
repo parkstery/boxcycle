@@ -29,8 +29,17 @@ import type { RideIntervalView } from "../../lib/ride/rideInterval";
 import { useRideMoments } from "../../hooks/useRideMoments";
 import type { RideMomentInput } from "../../lib/ride/rideMoments";
 
-/** HUD 우상단 시계 — `26.09.29 15:09:35` (로컬, 초 단위) */
-
+/** HUD 우하단 시계 — `26.09.29 15:09:35` (로컬, 초 단위) */
+function formatHudClock(d: Date): string {
+  const yy = String(d.getFullYear()).slice(-2);
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mi = String(d.getMinutes()).padStart(2, "0");
+  const ss = String(d.getSeconds()).padStart(2, "0");
+  // 날짜와 시간 사이 「 / 」 — 한눈에 구분되게(2026-10-06 Chief)
+  return `${yy}.${mm}.${dd} / ${hh}:${mi}:${ss}`;
+}
 
 export type AccountChipState = {
   initial: string;
@@ -353,6 +362,14 @@ export function MapHud(props: MapHudProps) {
   const showAccount = account !== null && !isGate && !isSummary;
   const showSignedOutAuth =
     !isGate && !isSummary && account === null && typeof onOpenSignedOutAuth === "function";
+  const showClock = showAccount || showSignedOutAuth;
+  const [clockNow, setClockNow] = useState(() => new Date());
+  useEffect(() => {
+    if (!showClock) return;
+    const id = window.setInterval(() => setClockNow(new Date()), 1000);
+    return () => window.clearInterval(id);
+  }, [showClock]);
+  const clockText = formatHudClock(clockNow);
   /** 게이트·요약이 아닐 때 상시 — 카메라 유무와 무관 */
   const showMapControls = Boolean(mapControls) && !isGate && !isSummary;
   /* 우상단엔 계정·로그인 칩뿐. 센서는 계기판 맨 앞 칸(`showSensor`, Chief 11-02 v4 B단계). */
@@ -771,6 +788,13 @@ export function MapHud(props: MapHudProps) {
           ) : null}
           {controlGroup?.transport}
         </div>
+      ) : null}
+
+      {/* 우하단 — 고도/축척 바 바로 위, 오른쪽 정렬 */}
+      {showClock ? (
+        <time className="hud-clock" dateTime={clockNow.toISOString()} aria-label="현재 시각">
+          {clockText}
+        </time>
       ) : null}
 
       {/* BC 슬롯: 코칭 라인(라이딩 중). */}
