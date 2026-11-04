@@ -4,7 +4,7 @@
 |---|---|
 | 문서 유형 | ops 계획 — 데이터 구조 확장 설계 |
 | 작성 | 2026-11-03 Supervisor Claude Code (Opus 5.5) |
-| 상태 | IN_PROGRESS — G1 커밋(main2), 다음 G0.5 |
+| 상태 | IN_PROGRESS — G1·G3-1 배포, **G2 구현·미배포(11-04, §4.1.1)** |
 | 출발점 | Chief 자문 대화(Geographic Data Architecture 제안) + 코드 대조 의견 |
 
 ## 1. 결정
@@ -110,6 +110,23 @@
   - 지도 화면·주변: 화면을 덮는 타일 몇 개(줌에 맞춘 단계)를 구하고, 타일마다 `geoQuadkey` 앞부분 범위 쿼리를 보낸 뒤 화면 밖 결과를 거른다
 - Rules: 공개 읽기·서버만 쓰기(`openTrailListings`와 같은 꼴).
 - 클라이언트 목록 전환은 기존 `limit(80)` 경로를 대체한다. 지역 선택 화면은 **시안 → Chief 승인 후** 구현한다(디자인 고정 목록 규칙).
+
+### 4.1.1 G2 결과 (2026-11-04, Claude Code 클라우드 세션 직접 구현 · 미배포)
+
+| 항목 | 값 |
+|---|---|
+| 서버 | `functions/src/publicationListingCore.ts`(순수 투영) · `publicationListingStore.ts`(읽기·쓰기) · `publicationListingProjection.ts`(트리거 `publicationListingOnPublicationWritten`) · `cliBackfillPublicationListings.ts`(`npm run admin:backfill-publication-listings`, 기본 dry-run) |
+| 목록 문서 | §4.1 필드에서 `riderCount`는 **뺐다**(지금 화면이 안 쓰고, `routeActivity` 반영은 쓰기를 늘린다 — 화면이 필요해질 때 추가). 대신 카탈로그가 쓰는 `routeId`·`snapshotDurationSec`·`applicantUid`·`publisherDeleted`, 규격 판 `listingSchemaVersion`을 더했다 |
+| 목록 대상 | published 만. archived·삭제·좌표 이상 → 목록 문서 삭제. 그래서 쿼리에 `status` 조건이 필요 없다 |
+| 지역 기준점 | 경로 첫 좌표(출발점) |
+| 쓰기 줄이기 | 동행 켜기(`presenceEnabled`·`updatedAt`만 바뀜)는 즉시 반환, 내용이 같으면 다시 쓰지 않음 |
+| Rules·색인 | `publicationListings` 공개 읽기·쓰기 금지. 색인 `geoContinent`·`geoCountry`·`geoAdmin1` + `createdAt desc` 3개 |
+| 웹 | `listPublishedPublicationListings`(최근 등록순, 최대 80) → 카탈로그. 비었거나 읽기 실패면 옛 `routePublications` 쿼리로 물러난다(배포 순서 보호). 지역 선택 화면은 아직 없음(시안 → Chief 승인) |
+| 탈퇴 | 정책표에 `publicationListings: none` — 원본 익명화를 트리거가 따라 쓴다 |
+| 시험 | functions `npm test` 247/0(새 단위 9), 에뮬레이터 `npm run test:publication-listings:emulator` 5/5(최근순·국가·행정구역·대륙·타일 앞부분·비공개 전환·Rules), Rules 사보타주(쓰기 허용) → 1 FAIL. 채우기 에뮬레이터: dry-run 만들기 5·지우기 2 = apply 5·2, 재실행 변경 0 |
+| 미측정 | 목록 화면 읽기 비교 — 읽기 수는 문서당 1회로 같고(최대 50건) 줄어드는 것은 좌표를 안 받는 전송량이다. 운영 데이터로 재야 한다 |
+
+배포 순서(Chief 승인 필요): ① `firebase deploy --only firestore:rules,firestore:indexes,functions:publicationListingOnPublicationWritten` ② 내보내기 스냅샷 뒤 `npm run admin:backfill-publication-listings`(dry-run) → `-- --apply` ③ Hosting(언제든 — 물러남이 있어 ①② 전에 올라가도 목록이 비지 않는다). 유럽 RTDB Rules와 무관.
 
 ### 4.2 사용자 (G3 선행)
 

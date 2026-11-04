@@ -10,6 +10,8 @@
 
 ## 진행 중
 
+**11-04 G2 공개 경로 요약 목록(Claude Code, 클라우드) — 구현·커밋, 미배포**: 트리거·채우기 CLI·Rules·색인·웹 카탈로그 전환(빈 목록·실패 시 옛 쿼리로 물러남). functions 247/0, 에뮬레이터 5/5, 채우기 dry-run=apply. 배포 순서·결과 [00-plan §4.1.1](20261103-global-geo-data/00-plan.md). 배포는 Chief 승인·PC 세션. 클라우드 test:quick 실패 9건은 환경 전용(Edge 고정 5·`.env` 없음 Mapbox 2·Windows 검증 종료 시험 2).
+
 **11-04 재개 지점 — 클라우드 전환(Claude Code)**: [클라우드 재개 안내](20261103-cost-squeeze/04-cloud-resume.md)부터. L9 A·B·로컬 기록 주인·시계 복구(고정74)는 커밋·푸시됐고 **배포·`aPbTo3` 50건 삭제는 미실행**(Chief 승인 완료). 순서: Functions 2개 → 격리 Hosting → 삭제. 클라우드에는 Firebase 인증·.env·.out이 없어 이 단계는 Chief PC 세션 또는 인증 설정 뒤. L4b 재주행 PASS, 4초 줄기 재현 안 됨. 클라우드(11-04): 인증 없음 확인·배포 미실행, 「모드배타」 5건 시험을 현재 배치로 고침(재개 안내 「클라우드 진행 기록」). [쓰기 장부](20261103-cost-squeeze/03-write-ledger.md).
 
 **11-03~04 비용 절감·지역 데이터(Claude Code) — 배포됨 54bd409d**: L1·L2·L3·L4·L6(G3-1 누적 점수로 근본 해결)·P1·P2·G1. Chief 실주행 3회+관전 PASS(11-04). **L4b 배포됨(6f125e1c)**: 가속 중 연속 쓰기 제한+`rides.netStats`([기록](20261103-cost-squeeze/02-design-l4.md)). 다음: Chief 2인 재주행 → 분당 쓰기(Cloud Monitoring)·`rides.netStats`로 4초 구간 원인 확정. 남은 것: 유럽 RTDB 2차, G2 요약 목록, G3-2 국가 범위. [cost-squeeze](20261103-cost-squeeze/README.md)·[00-plan](20261103-global-geo-data/00-plan.md).
