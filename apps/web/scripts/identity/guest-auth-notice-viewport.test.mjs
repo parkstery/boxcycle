@@ -46,7 +46,7 @@ createRoot(document.getElementById("root")).render(React.createElement(App));
 `;
 
 test("expiry notice and offline retry stay tappable at phone landscape sizes", { timeout: 90000 }, async () => {
-  const server = await createServer({
+  const server = await createServer({cacheDir:(process.env.TEMP||"/tmp")+"/vite-quick-"+process.pid+"-"+Math.random().toString(36).slice(2),
     root,
     logLevel: "error",
     server: { host: "127.0.0.1", port: 0 },

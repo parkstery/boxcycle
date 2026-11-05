@@ -24,7 +24,7 @@ function App(){
 createRoot(document.getElementById("root")).render(React.createElement(React.StrictMode,null,React.createElement(App)));
 `;
 test("actual React hook and account sheet retain end-of-ride roads at phone landscape sizes", { timeout: 60000 }, async () => {
-  const server = await createServer({ root, logLevel: "error", server: { host: "127.0.0.1", port: 0 }, plugins: [{
+  const server = await createServer({cacheDir:(process.env.TEMP||"/tmp")+"/vite-quick-"+process.pid+"-"+Math.random().toString(36).slice(2), root, logLevel: "error", server: { host: "127.0.0.1", port: 0 }, plugins: [{
     name: "recent-road-test", enforce: "pre",
     resolveId(id) { if (id === "/recent-fixture.js") return "\0recent-fixture"; },
     load(id) { if (id === "\0recent-fixture") return fixture; },

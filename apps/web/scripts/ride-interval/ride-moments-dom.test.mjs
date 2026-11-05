@@ -26,7 +26,7 @@ createRoot(document.getElementById('root')).render(React.createElement(React.Str
 `;
 
 test('actual React hooks and MapHud handle StrictMode, transitions, stops and interval restarts', { timeout: 60000 }, async () => {
-  const server = await createServer({ logLevel: 'error', server: { host: '127.0.0.1', port: 0 }, plugins: [{
+  const server = await createServer({cacheDir:(process.env.TEMP||"/tmp")+"/vite-quick-"+process.pid+"-"+Math.random().toString(36).slice(2), logLevel: 'error', server: { host: '127.0.0.1', port: 0 }, plugins: [{
     name: 'ride-moments-lifecycle-fixture', enforce: 'pre',
     resolveId(id) { if (id === '/moments-probe.js') return '\0moments-probe'; },
     load(id) { if (id === '\0moments-probe') return fixture; },
