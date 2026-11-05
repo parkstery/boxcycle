@@ -184,6 +184,8 @@ export type RoutePublicationSummaryRow = Pick<
 > & {
   /** ISO 3166-1 alpha-2. 바다 등 판정 불가면 null */
   geoCountry: string | null;
+  /** AS·EU·AF·NA·SA·OC·AN. 판정 불가면 null (목록 지역 필터용) */
+  geoContinent: string | null;
 };
 
 function parsePublicationListingRow(
@@ -209,6 +211,7 @@ function parsePublicationListingRow(
     publisherDeleted: data.publisherDeleted === true,
     createdAt: data.createdAt,
     geoCountry: typeof data.geoCountry === "string" ? data.geoCountry : null,
+    geoContinent: typeof data.geoContinent === "string" ? data.geoContinent : null,
   };
 }
 

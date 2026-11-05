@@ -33,6 +33,9 @@ export type TrailInstance = {
   lastActivityAtMs: number | null;
   /** `livePublicationRides` 서브컬렉션 문서 수(목록 UI용, best-effort) */
   liveRiderCount?: number;
+  /** `openTrailListings` 의 지역(서버가 Publication 요약에서 복사) — 목록 지역 필터용. trails 원본 문서에는 없다 */
+  geoCountry?: string | null;
+  geoContinent?: string | null;
 };
 
 export type TrailLiveRidePhase = "live" | "paused" | "completed";

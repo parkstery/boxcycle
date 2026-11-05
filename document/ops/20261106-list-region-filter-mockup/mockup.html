@@ -1,0 +1,65 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>목록 지역 필터 시안</title>
+<style>
+body{margin:0;background:#1b1f27;color:#e8eaf0;font-family:system-ui,"Malgun Gothic",sans-serif;padding:24px}
+h1{font-size:28px;margin:0 0 6px}p.n{color:#9aa3b2;font-size:18px;margin:0 0 28px;max-width:1500px;line-height:1.5}
+h2{font-size:24px;margin:36px 0 10px}
+.phone{width:1600px;height:720px;background:#2c3e50 linear-gradient(135deg,#34495e,#2a3a4a);border-radius:20px;position:relative;overflow:hidden;border:2px solid #444}
+.map{position:absolute;inset:0;background:repeating-linear-gradient(45deg,#2f4155 0 40px,#2b3d50 40px 80px);opacity:.7}
+.panel{position:absolute;left:90px;top:30px;width:760px;height:660px;background:#fff;color:#1b2430;border-radius:20px;box-shadow:0 8px 30px #0008;padding:20px 26px;box-sizing:border-box}
+.head{display:flex;align-items:center;gap:14px;font-size:30px;font-weight:700}
+.head .x{margin-left:auto;font-size:30px;color:#888;font-weight:400}
+.chip{display:inline-flex;align-items:center;gap:8px;height:50px;padding:0 20px;border:2px solid #cfd6e0;border-radius:25px;font-size:24px;font-weight:600;background:#f4f6fa;white-space:nowrap}
+.chip.on{background:#1f6feb;color:#fff;border-color:#1f6feb}
+.chip.hl{outline:4px solid #ff9f1c}
+.src{display:flex;gap:10px;margin:14px 0}
+.row{display:flex;align-items:center;gap:14px;height:76px;border-bottom:1px solid #e3e7ee;font-size:24px}
+.row b{font-size:25px}.row small{color:#6b7686;font-size:20px;margin-left:auto}
+.flag{font-size:20px;background:#eef2f8;border-radius:8px;padding:2px 10px;color:#46546a}
+.chips{display:flex;gap:10px;margin:12px 0;overflow:hidden}
+.menu{position:absolute;background:#fff;border:2px solid #cfd6e0;border-radius:16px;box-shadow:0 8px 24px #0006;font-size:24px;width:330px;z-index:3}
+.menu div{padding:14px 22px;border-bottom:1px solid #eef0f4}.menu div:last-child{border:0}.menu .sel{color:#1f6feb;font-weight:700}.menu .sep{font-size:18px;color:#8a94a6;padding:8px 22px;background:#f4f6fa}
+.note{position:absolute;right:50px;top:60px;width:560px;font-size:22px;line-height:1.6;color:#fff;background:#0008;padding:20px;border-radius:14px}
+.note b{color:#ffcf6b}
+</style></head><body>
+<h1>목록 지역 필터 시안 (G2·G4 화면)</h1>
+<p class="n">2026-11-06 · 800×360 폰 가로를 2배로 그린 <b>근사 시안</b>(실제 화면 캡처 아님). 주황 테두리 = 새로 생기는 부분. 대상: 「퍼블릭」 경로 목록과 「지금 달리는 Trail」 목록. 서버는 이미 배포돼 있어 국가·대륙·행정구역으로 거를 수 있다.</p>
+
+<h2>A안 (추천) — 머리줄에 「범위」 칩 1개, 순위 창과 같은 방식</h2>
+<div class="phone"><div class="map"></div>
+<div class="panel">
+ <div class="head">퍼블릭 경로 <span class="chip hl">🌐 세계 ▾</span><span class="x">✕</span></div>
+ <div class="row"><b>한강 라이드 코스</b><span class="flag">KR</span><small>12.4 km</small></div>
+ <div class="row"><b>Seoraksan Loop</b><span class="flag">KR</span><small>38.0 km</small></div>
+ <div class="row"><b>Côte d'Azur Coast</b><span class="flag">FR</span><small>21.7 km</small></div>
+ <div class="row"><b>Golden Gate Bridge</b><span class="flag">US</span><small>9.3 km</small></div>
+ <div class="row"><b>Mt. Fuji Foothills</b><span class="flag">JP</span><small>27.5 km</small></div>
+ <div class="row"><b>Route 66 Section</b><span class="flag">US</span><small>44.1 km</small></div>
+ <div class="row"><b>Lake Como Ride</b><span class="flag">IT</span><small>16.0 km</small></div>
+</div>
+<div class="menu" style="left:420px;top:92px"><div class="sel">✓ 세계</div><div>대한민국 <span class="flag">내 국가</span></div><div>아시아</div><div class="sep">최근 고른 곳</div><div>일본</div><div>프랑스</div><div class="sep">다른 곳 찾기…</div></div>
+<div class="note"><b>동작</b><br>· 칩을 누르면 작은 메뉴: 세계 / <b>내 국가</b> / 대륙 / 최근 고른 곳 / 찾기<br>· 목록에는 국가 표시(KR·FR…)가 붙는다<br>· 마지막 범위를 기억, 처음엔 세계<br>· Trail 목록도 같은 칩(지금 달리는 곳이 적을 때 세계 기본)<br>· 국가 없는 게스트는 세계만</div>
+</div>
+
+<h2>B안 — 목록 위 가로 칩 줄(한 번에 보이지만 세로 공간 사용)</h2>
+<div class="phone"><div class="map"></div>
+<div class="panel">
+ <div class="head">퍼블릭 경로 <span class="x">✕</span></div>
+ <div class="chips"><span class="chip on hl">세계</span><span class="chip hl">대한민국</span><span class="chip hl">아시아</span><span class="chip hl">유럽</span><span class="chip hl">북미</span><span class="chip hl">더보기…</span></div>
+ <div class="row"><b>한강 라이드 코스</b><span class="flag">KR</span><small>12.4 km</small></div>
+ <div class="row"><b>Seoraksan Loop</b><span class="flag">KR</span><small>38.0 km</small></div>
+ <div class="row"><b>Côte d'Azur Coast</b><span class="flag">FR</span><small>21.7 km</small></div>
+ <div class="row"><b>Golden Gate Bridge</b><span class="flag">US</span><small>9.3 km</small></div>
+ <div class="row"><b>Mt. Fuji Foothills</b><span class="flag">JP</span><small>27.5 km</small></div>
+ <div class="row"><b>Route 66 Section</b><span class="flag">US</span><small>44.1 km</small></div>
+</div>
+<div class="note"><b>동작</b><br>· 한 번에 눌러 바뀜(메뉴 없음)<br>· 줄이 하나 늘어 목록이 <b>한 줄 덜 보임</b>(폰 가로에선 큰 손해)<br>· 칩 6개가 폭을 채움, 나머지는 「더보기」<br>· 가로 스크롤 필요</div>
+</div>
+
+<h2>빈 결과 (A안 공통)</h2>
+<div class="phone" style="height:420px"><div class="map"></div>
+<div class="panel" style="height:360px">
+ <div class="head">Trail 목록 <span class="chip hl">🇰🇷 대한민국 ▾</span><span class="x">✕</span></div>
+ <div style="text-align:center;margin-top:60px;font-size:26px;color:#5b6678">지금 대한민국에서 달리는 Trail이 없어요</div>
+ <div style="text-align:center;margin-top:24px"><span class="chip hl">세계로 넓혀 보기</span></div>
+</div></div>
+</body></html>

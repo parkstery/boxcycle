@@ -36,6 +36,16 @@ export function parseTrailCoreFields(
   };
 }
 
+/** `openTrailListings` 문서의 지역 필드(서버 복사본). 없으면 null */
+export function parseTrailListingGeo(
+  data: Record<string, unknown>,
+): Pick<TrailInstance, "geoCountry" | "geoContinent"> {
+  return {
+    geoCountry: typeof data.geoCountry === "string" ? data.geoCountry : null,
+    geoContinent: typeof data.geoContinent === "string" ? data.geoContinent : null,
+  };
+}
+
 /** `trails/{id}` 문서 → TrailInstance (liveRiderCount 제외) */
 export function parseTrailInstance(id: string, data: Record<string, unknown>): TrailInstance {
   return {

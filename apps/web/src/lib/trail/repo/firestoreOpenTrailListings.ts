@@ -23,7 +23,7 @@ import { trailHasConfiguredRoute } from "../trailAccessPolicy";
 import { TRAILS_COLLECTION } from "./firestoreTrailPaths";
 import type { TrailInstance } from "../trailTypes";
 import { resolvePublicationIdFromDoc } from "../../firebase/converters";
-import { parseTrailCoreFields, parseTrailInstance, timestampToMs } from "./trailDocParse";
+import { parseTrailCoreFields, parseTrailInstance, parseTrailListingGeo, timestampToMs } from "./trailDocParse";
 import {
   enterListingRefreshReadScope,
   leaveListingRefreshReadScope,
@@ -126,6 +126,7 @@ function listingToTrailInstance(
   return {
     id: trailId,
     ...parseTrailCoreFields(data),
+    ...parseTrailListingGeo(data),
     visibility: "open",
     status: "open",
     createdAtMs: timestampToMs(data.createdAt),

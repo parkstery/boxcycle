@@ -126,10 +126,17 @@ export type PublishedPublicCourseSummary = {
    * 입문 허브처럼 등록 개념이 없는 정적 코스는 `null`(정렬이 원래 순서로 물러난다).
    */
   publishedAtMs?: number | null;
+  /** 목록 지역 필터용(ISO 3166-1 alpha-2 / AS·EU…). 요약 목록에만 있고 원본 폴백·입문 허브는 없다 */
+  geoCountry?: string | null;
+  geoContinent?: string | null;
 };
 
+/** 요약 목록 행 또는 원본 `routePublications` 행 — 원본에는 지역 필드가 없다 */
+type PublicationSummaryInput = Omit<RoutePublicationSummaryRow, "geoCountry" | "geoContinent"> &
+  Partial<Pick<RoutePublicationSummaryRow, "geoCountry" | "geoContinent">>;
+
 function summaryFromPublication(
-  pub: Omit<RoutePublicationSummaryRow, "geoCountry">,
+  pub: PublicationSummaryInput,
 ): PublishedPublicCourseSummary {
   return {
     id: pub.publicationId,
@@ -144,6 +151,8 @@ function summaryFromPublication(
     // 등록자 탈퇴 → 익명 표기(서버 accountDeletionCore 의 DELETED_PUBLISHER_LABEL 과 같은 문구)
     publisherNickname: pub.publisherDeleted ? "탈퇴한 라이더" : null,
     publishedAtMs: lastSeenAtToMillis(pub.createdAt),
+    geoCountry: pub.geoCountry ?? null,
+    geoContinent: pub.geoContinent ?? null,
   };
 }
 
@@ -154,7 +163,7 @@ function summaryFromPublication(
  */
 async function listPublicationSummariesWithFallback(
   cap: number,
-): Promise<Omit<RoutePublicationSummaryRow, "geoCountry">[]> {
+): Promise<PublicationSummaryInput[]> {
   try {
     const rows = await listPublishedPublicationListings(cap);
     // 원본 경로(`listPublishedRoutePublications`)와 같은 넘김 순서 — 화면 정렬은 목록 창이 따로 한다.

@@ -3,12 +3,14 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | **Claude Code** — 2026-11-06 PR #22 푸시 완료(0276202f), Hosting 배포는 chief 실행 대기 |
+| 담당 | **Claude Code** — 2026-11-06 목록 지역 필터 구현·푸시, Hosting 배포 후 chief 폰 확인 대기 |
 | 갱신 | 2026-11-06 — GitHub 대조·`main2` 정렬 |
 | 브랜치 | `main2` (= `origin/main2` 0276202f) |
 | 마지막 배포 | 2026-11-04 (Claude Code) 004e4261 — Rules·색인 3개·함수 39개 전체·격리 Hosting index-Cz5gGPUO.js SHA256=로컬. 이전 6f125e1c L4b |
 
 ## 진행 중
+
+**11-06 목록 지역 필터(구현 impl-standard·감리 Claude Code)**: 퍼블릭 목록·Trail 탭 머리줄에 「세계 ▾」 칩(Chief A안·고정79), 받아 둔 행을 화면에서 거름(읽기 추가 0), 마지막 범위 기기 저장. test:quick 1513/0. 남은 것: chief 폰 가로 확인 — 699×273 퍼블릭 머리줄 폭, Trail 탭 줄 16px 칩. 서버 geo 미채움 Trail은 지역 선택 시 빠짐.
 
 **11-06 PR #22 푸시·시간 초과 수정·임계값(Claude Code)**: `main2`에 PR #22(메뉴 출처 3버튼·센서 단추·Trail 합류/나가기)를 포함해 푸시함(0276202f, pre-push 게이트 통과). test:quick 시간 초과는 Vite DOM 시험 5개가 `node_modules/.vite` 캐시를 공유한 탓이라 시험별 `cacheDir`로 분리, 2회 연속 1506/0. 위치 저장 임계값: RTDB 정상 시 속도 쓰기 간격 3→6초·변화량 0.83→1.67 m/s(분당 상한 약 10건), 다음 공개 주행에서 사람당 분당 쓰기 재측정 필요. **Hosting 배포는 자동 승인 분류기가 거부해 미실행** → chief가 루트에서 `npm run deploy:hosting` 실행 후 번들에서 `menu-panel__sources` 확인. 지역 다음 일: [README](20261103-global-geo-data/README.md).
 

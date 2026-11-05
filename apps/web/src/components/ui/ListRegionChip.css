@@ -1,0 +1,97 @@
+/* 목록 지역 범위 칩 — 순위 창 범위 칩(.leaderboard-sheet__period-btn)과 같은 「둥근 테두리·이름 ▾」 */
+.list-region-chip {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 96px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #172238;
+  font: inherit;
+  font-size: calc(0.68rem + 2pt);
+  font-weight: 600;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+}
+.list-region-chip__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (hover: hover) {
+  .list-region-chip:hover { border-color: #2457d6; background: #eff6ff; }
+}
+.list-region-chip:focus-visible { outline: 2px solid #2457d6; outline-offset: 1px; }
+
+/* 지도 위 오른쪽 목록(순위·Trail 탭 줄) — 탭과 같은 높이·글자 */
+.list-region-chip--glance {
+  max-width: 72px;
+  height: 16px;
+  padding: 0 7px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.7);
+  color: #142c46;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+@media (max-height: 330px) {
+  .list-region-chip--glance { height: 14px; padding: 0 6px; font-size: 10px; }
+}
+
+.list-region-menu {
+  position: fixed;
+  z-index: 1300;
+  min-width: 120px;
+  max-width: 200px;
+  overflow-y: auto;
+  padding: 3px 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+  color: #172238;
+  font-family: "Gothic A1", system-ui, sans-serif;
+  color-scheme: light;
+}
+.list-region-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 26px;
+  padding: 3px 12px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.list-region-menu__item.is-selected { color: #2457d6; font-weight: 700; }
+@media (hover: hover) {
+  .list-region-menu__item:hover { background: #f1f5f9; }
+}
+.list-region-menu__item:focus-visible { outline: 2px solid #2457d6; outline-offset: -2px; }
+.list-region-menu__tag {
+  padding: 0 6px;
+  border-radius: 6px;
+  background: #eef2f8;
+  color: #46546a;
+  font-size: 10px;
+  font-weight: 600;
+}
+.list-region-menu__sep {
+  padding: 3px 12px 1px;
+  background: #f4f6fa;
+  color: #8a94a6;
+  font-size: 10px;
+  font-weight: 600;
+}

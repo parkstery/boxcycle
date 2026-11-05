@@ -121,7 +121,7 @@
 | 지역 기준점 | 경로 첫 좌표(출발점) |
 | 쓰기 줄이기 | 동행 켜기(`presenceEnabled`·`updatedAt`만 바뀜)는 즉시 반환, 내용이 같으면 다시 쓰지 않음 |
 | Rules·색인 | `publicationListings` 공개 읽기·쓰기 금지. 색인 `geoContinent`·`geoCountry`·`geoAdmin1` + `createdAt desc` 3개 |
-| 웹 | `listPublishedPublicationListings`(최근 등록순, 최대 80) → 카탈로그. 비었거나 읽기 실패면 옛 `routePublications` 쿼리로 물러난다(배포 순서 보호). 지역 선택 화면은 아직 없음(시안 → Chief 승인) |
+| 웹 | `listPublishedPublicationListings`(최근 등록순, 최대 80) → 카탈로그. 비었거나 읽기 실패면 옛 `routePublications` 쿼리로 물러난다(배포 순서 보호). 지역 선택 화면: 11-06 구현(Chief A안, 고정 79) — 받은 행을 클라이언트에서 거르는 칩, 새 읽기 없음 |
 | 탈퇴 | 정책표에 `publicationListings: none` — 원본 익명화를 트리거가 따라 쓴다 |
 | 시험 | functions `npm test` 247/0(새 단위 9), 에뮬레이터 `npm run test:publication-listings:emulator` 5/5(최근순·국가·행정구역·대륙·타일 앞부분·비공개 전환·Rules), Rules 사보타주(쓰기 허용) → 1 FAIL. 채우기 에뮬레이터: dry-run 만들기 5·지우기 2 = apply 5·2, 재실행 변경 0 |
 | 미측정 | 목록 화면 읽기 비교 — 읽기 수는 문서당 1회로 같고(최대 50건) 줄어드는 것은 좌표를 안 받는 전송량이다. 운영 데이터로 재야 한다 |
@@ -190,7 +190,7 @@
 - 요약 목록이 아직 없으면(G2 채우기 전) 값은 null 로 두고 표시만 남긴다. 목록 문서는 라이더가 없으면 지워지므로 다음 Trail 부터 채워진다.
 - 앱의 호스트 목록 쓰기는 `merge` 라 지역 필드를 지우지 않는다. Rules 변경 없음.
 - 시험: `openTrailListingProjection.test.ts` +4(14/14), 에뮬레이터 +1(6/6, 국가 쿼리 포함), 사보타주(복사 제거) → 1 FAIL. functions 251/0.
-- 남은 것: Trail 목록 지역 필터 화면(시안 → Chief 승인). 배포는 G2 ①과 함께 `functions:openTrailListingOnTrailWritten,…OnMemberCreated,…OnMemberDeleted,…OnLiveCourseRideCreated,…OnLiveCourseRideDeleted`(같은 core 를 쓰는 5개).
+- Trail 목록 지역 칩: 11-06 구현(Chief A안, 고정 79) — `openTrailListings` 의 geoCountry·geoContinent 를 읽어 클라이언트에서 거른다. 배포는 G2 ①과 함께 `functions:openTrailListingOnTrailWritten,…OnMemberCreated,…OnMemberDeleted,…OnLiveCourseRideCreated,…OnLiveCourseRideDeleted`(같은 core 를 쓰는 5개).
 
 ## 5. 단계·완료 조건
 

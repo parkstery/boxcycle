@@ -36,6 +36,8 @@ type RideRoutePanelProps = {
   authGuest: boolean;
   /** Firebase Auth 세션(게스트·Google 포함) */
   signedIn: boolean;
+  /** 내 국가 — 목록 지역 칩 메뉴용 */
+  homeCountry?: string | null;
   onEnterBasicHub: (courseId: string) => void;
   onLeaveBasicHub: () => void;
   /** 사용자 경로 관련 (= 기존 「저장된 경로」 라벨 변경) */
@@ -374,6 +376,7 @@ export function RideRoutePanel(props: RideRoutePanelProps) {
           publishedPublicCoursesLoading={props.publishedPublicCoursesLoading}
           publishedPublicCoursesError={props.publishedPublicCoursesError}
           signedIn={props.signedIn}
+          homeCountry={props.homeCountry}
           publicationActivityByPublicationId={props.publicationActivityByPublicationId}
           onEnterBasicHub={props.onEnterBasicHub}
           onLeaveBasicHub={props.onLeaveBasicHub}

@@ -184,6 +184,7 @@
       "geo/lineStringCoordsJson.ts",
       "geo/entryLocation.ts",
       "geo/localFirstRegion.ts",
+      "geo/listRegionFilter.ts",
       "geo/routeProgressMath.ts",
       "geo/routeWaypoints.ts"
     ],

@@ -16,6 +16,9 @@ import {
 } from "./RouteListModalShell";
 import { RouteSortSelect } from "./RouteSortSelect";
 import { RouteProfileIcon } from "./RouteProfileIcon";
+import { ListRegionChip } from "../ui/ListRegionChip";
+import { useListRegion } from "../../hooks/useListRegion";
+import { filterByRegion, regionLabel, WORLD_REGION } from "../../lib/geo/listRegionFilter";
 import "./OfficialCourseListModal.css";
 
 /*
@@ -87,6 +90,7 @@ function PublicCoursePickRow(props: {
           <strong className="oc-modal__item-name" title={publicationDisplayTitle(c)}>
             {props.listTitle}
           </strong>
+          {c.geoCountry ? <span className="oc-modal__item-cc">{c.geoCountry}</span> : null}
           {props.detailTitle ? (
             <span id={detailId} className="oc-modal__item-detail-sr">
               {props.detailTitle}
@@ -120,6 +124,8 @@ export type OfficialCourseListModalProps = {
   publishedPublicCoursesLoading: boolean;
   publishedPublicCoursesError: string | null;
   signedIn: boolean;
+  /** 내 국가(users.homeCountry) — 지역 칩 메뉴의 「내 국가」. 게스트·미설정이면 null */
+  homeCountry?: string | null;
   publicationActivityByPublicationId?: ReadonlyMap<string, RouteActivitySnapshot | null>;
   onEnterBasicHub: (courseId: string) => void;
   onLeaveBasicHub: () => void;
@@ -152,13 +158,33 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
     () => sortRouteList(props.basicSharedHubs.filter((c) => matchesQuery(c, query)), sortKey, sortFields),
     [props.basicSharedHubs, sortKey, query],
   );
+  /*
+   * 지역 칩(Chief 11-06 A안) — 퍼블릭 목록만. 이미 받은 행을 클라이언트에서 거를 뿐 새 읽기는 없다.
+   * 한계: 퍼블릭 카탈로그가 최근 80개라, 그 밖의 오래된 경로는 지역을 골라도 보이지 않는다.
+   */
+  const listRegion = useListRegion("public");
+  const regionRows = useMemo(
+    () => filterByRegion(props.publishedPublicCourses, listRegion.region, (c) => c),
+    [props.publishedPublicCourses, listRegion.region],
+  );
   const publicCourses = useMemo(
-    () => sortRouteList(props.publishedPublicCourses.filter((c) => matchesQuery(c, query)), sortKey, sortFields),
-    [props.publishedPublicCourses, sortKey, query],
+    () => sortRouteList(regionRows.filter((c) => matchesQuery(c, query)), sortKey, sortFields),
+    [regionRows, sortKey, query],
   );
   /** 두 개 이하면 정렬이 의미 없다 — 좁은 화면에서 줄만 먹는다 */
   const sortableCount =
     props.segment === "intro" ? props.basicSharedHubs.length : props.publishedPublicCourses.length;
+  const regionChip =
+    props.segment === "public" ? (
+      <ListRegionChip
+        region={listRegion.region}
+        recents={listRegion.recents}
+        geos={props.publishedPublicCourses}
+        homeCountry={props.homeCountry ?? null}
+        onPick={listRegion.pick}
+        variant="modal"
+      />
+    ) : null;
   const sortBar =
     sortableCount > 2 ? (
       <div className="oc-modal__sortbar">
@@ -248,6 +274,13 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
               ? "로그인 후 목록"
               : "퍼블릭 경로 없음"}
           </p>
+        ) : regionRows.length === 0 ? (
+          <div className="oc-modal__hint oc-modal__region-empty">
+            <p>{regionLabel(listRegion.region)}에 공개 경로가 없어요</p>
+            <button type="button" className="oc-modal__region-widen" onClick={() => listRegion.pick(WORLD_REGION)}>
+              세계로 넓혀 보기
+            </button>
+          </div>
         ) : (
           publicationList
         )}
@@ -263,7 +296,12 @@ export function OfficialCourseListModal(props: OfficialCourseListModalProps) {
       onSearchChange={setQueryText}
       onClose={props.onClose}
       appearance="map"
-      headTools={sortBar}
+      headTools={
+        <>
+          {regionChip}
+          {sortBar}
+        </>
+      }
       footerHint="경로를 누르면 지도에 올라가요"
       sourceNav={
         props.onSelectSource ? (

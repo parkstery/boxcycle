@@ -5,19 +5,10 @@
  */
 import type { LeaderboardScope } from "../../services/leaderboardApi";
 import { homeCountryLabel } from "../../lib/identity/homeCountry";
+import { CONTINENT_LABELS } from "../../lib/geo/listRegionFilter";
 
 const LEADERBOARD_SCOPE_STORAGE_KEY = "rtw.leaderboard.scope";
 const ORDER: LeaderboardScope[] = ["world", "continent", "country"];
-
-const CONTINENT_LABELS: Record<string, string> = {
-  AS: "아시아",
-  EU: "유럽",
-  AF: "아프리카",
-  NA: "북아메리카",
-  SA: "남아메리카",
-  OC: "오세아니아",
-  AN: "남극",
-};
 
 export function nextLeaderboardScope(current: LeaderboardScope): LeaderboardScope {
   return ORDER[(ORDER.indexOf(current) + 1) % ORDER.length]!;

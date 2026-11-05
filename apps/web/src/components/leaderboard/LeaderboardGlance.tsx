@@ -22,7 +22,7 @@ export type LeaderboardGlanceViewProps = {
   addedKm: number;
   pedalQualified: boolean;
   /** Chief 11-02: 오른쪽 목록 자리를 「순위 | Trail」 탭으로 나눠 쓴다. 없으면 순위만. */
-  trail?: { count: number; list: ReactNode };
+  trail?: { count: number; list: ReactNode; /** Trail 탭 머리줄 오른쪽 자리(지역 칩) */ headTool?: ReactNode };
   tab?: GlanceTab;
   onTab?: (tab: GlanceTab) => void;
 };
@@ -117,6 +117,7 @@ export function LeaderboardGlancePanel(props: LeaderboardGlanceViewProps) {
                   Trail <span className="lb-glance__tab-count">{trail.count}</span>
                 </button>
               </div>
+              {tab === "trail" ? trail.headTool : null}
               {tab === "rank" && mode === "map" ? (
                 <button type="button" className="lb-glance__outline lb-glance__outline--link" onClick={onOpenFullLeaderboard}>전체 보기 ›</button>
               ) : null}

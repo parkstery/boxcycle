@@ -1398,7 +1398,7 @@ export default function App() {
     [rideStatus, setRouteSummary, setTrailDraft, setTrailId, loadCourseRouteForTrailJoin, user],
   );
   const trailGlance = useTrailGlanceTab({ openTrails: openTrailsQuery, activeTrailId: menuTrailSanitizedId, currentTrail: menuTrailMetaForDisplay,
-    rideSessionActive: isRideSessionActive, onJoinTrail: joinTrailAndCloseMenu, setMenuOpen, setPanelOpen: leaderboardGlance.setPanelOpen });
+    rideSessionActive: isRideSessionActive, onJoinTrail: joinTrailAndCloseMenu, setMenuOpen, setPanelOpen: leaderboardGlance.setPanelOpen, homeCountry: userTier.homeCountry });
 
   const handleSetTrailVisibility = useCallback(
     (visibility: "open" | "private") => {
@@ -3362,7 +3362,7 @@ export default function App() {
           onRefreshPublishedPublicCourses={onRefreshPublishedPublicCourses}
           publicationActivityByPublicationId={publicationActivityByPublicationId}
           authGuest={userTier.isGuest}
-          signedIn={Boolean(user)}
+          signedIn={Boolean(user)} homeCountry={userTier.homeCountry}
           onEnterBasicHub={(courseId) => {
             void enterBasicHub(courseId);
             // 코스(퍼블릭·입문) 선택 즉시 MENU 를 닫아 바로 주행을 시작할 수 있게 한다.
