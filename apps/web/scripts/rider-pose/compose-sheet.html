@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pose sheet</title>
+    <style>
+      html, body { margin: 0; background: #0b0e13; color: #e8eef6; font: 15px/1.5 system-ui, "Malgun Gothic", sans-serif; }
+      #wrap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding: 22px; }
+      figure { margin: 0; background: #121821; border: 1px solid #24303d; border-radius: 10px; overflow: hidden; }
+      figure img { display: block; width: 100%; background: #11161d; }
+      figcaption { padding: 8px 12px; font-weight: 600; color: #cfe0f2; }
+      .small img { image-rendering: auto; }
+    </style>
+  </head>
+  <body>
+    <div id="wrap"></div>
+    <script>
+      const q = new URLSearchParams(location.search);
+      const base = q.get("base") || "";
+      const items = (q.get("items") || "").split(";").filter(Boolean).map((s) => s.split("|"));
+      const wrap = document.getElementById("wrap");
+      let left = items.length;
+      for (const [file, label] of items) {
+        const fig = document.createElement("figure");
+        if (file.startsWith("phone-")) fig.className = "small";
+        const img = document.createElement("img");
+        img.src = base + file;
+        img.onload = img.onerror = () => {
+          if (--left === 0) window.__sheetReady = true;
+        };
+        const cap = document.createElement("figcaption");
+        cap.textContent = label;
+        fig.append(img, cap);
+        wrap.append(fig);
+      }
+      if (items.length === 0) window.__sheetReady = true;
+    </script>
+  </body>
+</html>

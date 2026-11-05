@@ -1,0 +1,404 @@
+﻿<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Rider Pose Lab — v2 상체 리깅 시안</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #0e1218; overflow: hidden; }
+      canvas { display: block; }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/build/three.module.js",
+          "three/addons/": "/node_modules/three/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+      import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+
+      const GLB = "/apps/web/public/rider/preserved/candidates/20260921-041426-cd81398e/rider.glb";
+
+      // RIG: riderRig.geometry.mjs 실측 (world m, +X 전방 / +Y 상방 / +Z 좌)
+      const SHOULDER = { p: [0.1286, 1.1691, 0.1804], n: [0.1286, 1.1691, -0.1804] };
+      const HOOD = { p: [0.54736, 0.83558, 0.189], n: [0.54736, 0.83558, -0.189] };
+      const UPPER = 0.33483;
+      const FORE = 0.21284;
+      const TOTAL = UPPER + FORE;
+      const deg = Math.PI / 180;
+
+      const smoothstep = (a, b, x) => {
+        const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+        return t * t * (3 - 2 * t);
+      };
+      const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
+
+      function solve2Bone(S, T, pole) {
+        const v = T.clone().sub(S);
+        let d = v.length();
+        d = Math.min(TOTAL - 1e-4, Math.max(Math.abs(UPPER - FORE) + 1e-4, d));
+        const dir = v.clone().normalize();
+        const cosA = (UPPER * UPPER + d * d - FORE * FORE) / (2 * UPPER * d);
+        const a = Math.acos(Math.min(1, Math.max(-1, cosA)));
+        const n = pole.clone().sub(S);
+        n.sub(dir.clone().multiplyScalar(n.dot(dir)));
+        if (n.lengthSq() < 1e-8) n.set(0, -1, 0);
+        n.normalize();
+        const upperDir = dir.clone().multiplyScalar(Math.cos(a)).add(n.clone().multiplyScalar(Math.sin(a))).normalize();
+        const elbow = S.clone().add(upperDir.clone().multiplyScalar(UPPER));
+        const target = S.clone().add(dir.clone().multiplyScalar(d));
+        const foreDir = target.clone().sub(elbow).normalize();
+        return { upperDir, foreDir, elbow, target };
+      }
+
+      // 포즈: 손 목표점 + 팔꿈치 pole
+      const POSES = {
+        ride: {},
+        manse: {
+          p: { target: [0.10, 1.58, 0.50], pole: [0.05, 0.85, 0.55] },
+          n: { target: [0.10, 1.58, -0.50], pole: [0.05, 0.85, -0.55] },
+        },
+        fight: {
+          p: { target: [0.36, 1.46, -0.32], pole: [0.30, 0.78, -0.58] },
+        },
+        thumb: {
+          p: { target: [0.40, 1.36, -0.34], pole: [0.15, 0.90, -0.25] },
+        },
+      };
+
+      function meshBox(arr) {
+        const b = { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity };
+        for (let i = 0; i < arr.length; i += 3) {
+          b.minX = Math.min(b.minX, arr[i]);
+          b.maxX = Math.max(b.maxX, arr[i]);
+          b.minY = Math.min(b.minY, arr[i + 1]);
+          b.maxY = Math.max(b.maxY, arr[i + 1]);
+        }
+        return b;
+      }
+
+      function curlFingers(out) {
+        const b = meshBox(out);
+        const cx = b.minX + 0.002;
+        const cy = (b.minY + b.maxY) / 2;
+        const span = Math.max(1e-4, b.maxX - b.minX);
+        for (let i = 0; i < out.length; i += 3) {
+          const dx = out[i] - cx;
+          if (dx <= 0) continue;
+          const ang = -105 * deg * smoothstep(0, span * 0.35, dx);
+          const c = Math.cos(ang);
+          const s = Math.sin(ang);
+          const y = out[i + 1] - cy;
+          out[i] = cx + dx * c - y * s;
+          out[i + 1] = cy + dx * s + y * c;
+        }
+      }
+
+      function liftThumb(out, angleDeg) {
+        const b = meshBox(out);
+        const cx = b.minX + 0.002;
+        const cy = (b.minY + b.maxY) / 2;
+        const span = Math.max(1e-4, b.maxX - b.minX);
+        for (let i = 0; i < out.length; i += 3) {
+          const dx = out[i] - cx;
+          if (dx <= 0) continue;
+          const ang = angleDeg * deg * smoothstep(0, span * 0.4, dx);
+          const c = Math.cos(ang);
+          const s = Math.sin(ang);
+          const y = out[i + 1] - cy;
+          out[i] = cx + dx * c - y * s;
+          out[i + 1] = cy + dx * s + y * c;
+        }
+      }
+
+      function armWeights(v, S, H) {
+        const u = H.clone().sub(S);
+        u.normalize();
+        const rel = v.clone().sub(S);
+        const t = rel.dot(u);
+        const radial = rel.clone().sub(u.clone().multiplyScalar(t)).length();
+        const wRad = 1 - smoothstep(0.072, 0.125, radial);
+        const wAlong = smoothstep(-0.085, 0.075, t);
+        const w = wRad * wAlong;
+        const f = smoothstep(UPPER - 0.055, UPPER + 0.055, t);
+        return { w, wFore: w * f, wUp: w * (1 - f) };
+      }
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true });
+      renderer.setPixelRatio(2);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.05;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      document.body.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x11161d);
+      scene.fog = new THREE.Fog(0x11161d, 6.0, 16.0);
+
+      const camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 0.05, 30);
+      scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+      scene.add(new THREE.HemisphereLight(0xcfe6ff, 0x2a2f38, 1.15));
+      const key = new THREE.DirectionalLight(0xfff4e2, 2.2);
+      key.position.set(2.2, 3.4, 2.6);
+      key.castShadow = true;
+      key.shadow.mapSize.set(1024, 1024);
+      key.shadow.camera.left = -1.4;
+      key.shadow.camera.right = 1.4;
+      key.shadow.camera.top = 1.6;
+      key.shadow.camera.bottom = -0.6;
+      key.shadow.bias = -0.0005;
+      scene.add(key);
+      const fill = new THREE.DirectionalLight(0x9fc4ff, 0.75);
+      fill.position.set(-2.4, 1.6, -2.2);
+      scene.add(fill);
+      const rim = new THREE.DirectionalLight(0xffffff, 0.9);
+      rim.position.set(-1.2, 2.2, 2.8);
+      scene.add(rim);
+
+      const ground = new THREE.Mesh(
+        new THREE.CircleGeometry(3.0, 64),
+        new THREE.MeshStandardMaterial({ color: 0x1b2129, roughness: 0.95, metalness: 0 }),
+      );
+      ground.rotation.x = -Math.PI / 2;
+      ground.receiveShadow = true;
+      scene.add(ground);
+
+      const BIKE = /(brake|lever|compact drop|handlebar|bar end|cable|caliper|stem|bar tape|shift|derailleur|chain|cassette|bottom bracket|pedal|spoke|rim|tire|tyre|hub|saddle|fork|frame|bottle|crank|wheel|skewer|rotor|disc)/i;
+      let root = null;
+      const state = { pose: "ride", meshes: [] };
+
+      function bake(mesh) {
+        const g = mesh.geometry.clone();
+        g.applyMatrix4(mesh.matrixWorld);
+        const m = new THREE.Mesh(g, mesh.material);
+        m.castShadow = true;
+        m.receiveShadow = true;
+        return m;
+      }
+
+      function applyPose(name) {
+        state.pose = name;
+        const spec = POSES[name] || {};
+        for (const item of state.meshes) {
+          const pos = item.geo.attributes.position;
+          const out = item.out;
+          out.set(item.rest);
+          if ((name === "fight" || name === "thumb") && /finger/i.test(item.name)) curlFingers(out);
+          if (name === "thumb" && /thumb/i.test(item.name) && !/base/i.test(item.name)) liftThumb(out, 38);
+          const base = Float32Array.from(out);
+
+          for (const side of ["p", "n"]) {
+            const cfg = spec[side];
+            if (!cfg) continue;
+            if (item.rigidHand && item.side !== side) continue;
+            const S = v3(side === "p" ? SHOULDER.p : SHOULDER.n);
+            const H = v3(side === "p" ? HOOD.p : HOOD.n);
+            const ik = solve2Bone(S, v3(cfg.target), v3(cfg.pole));
+
+            const uRest = H.clone().sub(S).normalize();
+            const q1 = new THREE.Quaternion().setFromUnitVectors(uRest, ik.upperDir);
+            const fRest = H.clone().sub(S.clone().add(uRest.clone().multiplyScalar(UPPER))).normalize();
+            const fAfter1 = fRest.clone().applyQuaternion(q1);
+            const q2 = new THREE.Quaternion().setFromUnitVectors(fAfter1, ik.foreDir);
+            const E = ik.elbow;
+
+            const m1 = new THREE.Matrix4()
+              .makeTranslation(S.x, S.y, S.z)
+              .multiply(new THREE.Matrix4().makeRotationFromQuaternion(q1))
+              .multiply(new THREE.Matrix4().makeTranslation(-S.x, -S.y, -S.z));
+            const m2 = new THREE.Matrix4()
+              .makeTranslation(E.x, E.y, E.z)
+              .multiply(new THREE.Matrix4().makeRotationFromQuaternion(q2))
+              .multiply(new THREE.Matrix4().makeTranslation(-E.x, -E.y, -E.z))
+              .multiply(m1);
+
+            const p = new THREE.Vector3();
+            const a1 = new THREE.Vector3();
+            const a2 = new THREE.Vector3();
+
+            if (item.rigidHand) {
+              for (let i = 0; i < base.length; i += 3) {
+                p.set(base[i], base[i + 1], base[i + 2]);
+                a2.copy(p).applyMatrix4(m2);
+                out[i] = a2.x;
+                out[i + 1] = a2.y;
+                out[i + 2] = a2.z;
+              }
+              continue;
+            }
+
+            // 1) 원시 가중치
+            const n = base.length / 3;
+            const wArr = new Float32Array(n);
+            const wfArr = new Float32Array(n);
+            for (let v = 0; v < n; v++) {
+              p.set(base[v * 3], base[v * 3 + 1], base[v * 3 + 2]);
+              const wt = armWeights(p, S, H);
+              wArr[v] = wt.w;
+              wfArr[v] = wt.wFore;
+            }
+
+            // 2) 메시 표면 라플라시안 스무딩 (리깅 가중치 평활화)
+            if (item.adj) {
+              const tmpW = new Float32Array(n);
+              const tmpF = new Float32Array(n);
+              for (let it = 0; it < 0; it++) {
+                for (let v = 0; v < n; v++) {
+                  const nb = item.adj[v];
+                  if (!nb || nb.length === 0) {
+                    tmpW[v] = wArr[v];
+                    tmpF[v] = wfArr[v];
+                    continue;
+                  }
+                  let sw = 0;
+                  let sf = 0;
+                  for (let k = 0; k < nb.length; k++) {
+                    sw += wArr[nb[k]];
+                    sf += wfArr[nb[k]];
+                  }
+                  tmpW[v] = wArr[v] * 0.45 + (sw / nb.length) * 0.55;
+                  tmpF[v] = wfArr[v] * 0.45 + (sf / nb.length) * 0.55;
+                }
+                wArr.set(tmpW);
+                wfArr.set(tmpF);
+              }
+            }
+
+            for (let v = 0; v < n; v++) {
+              const w = wArr[v];
+              if (w <= 1e-4) continue;
+              const wf = Math.min(wfArr[v], w);
+              const wu = w - wf;
+              const i = v * 3;
+              p.set(base[i], base[i + 1], base[i + 2]);
+              a1.copy(p).applyMatrix4(m1);
+              a2.copy(p).applyMatrix4(m2);
+              out[i] += wu * (a1.x - p.x) + wf * (a2.x - p.x);
+              out[i + 1] += wu * (a1.y - p.y) + wf * (a2.y - p.y);
+              out[i + 2] += wu * (a1.z - p.z) + wf * (a2.z - p.z);
+            }
+          }
+
+          pos.needsUpdate = true;
+          item.geo.computeVertexNormals();
+          item.geo.computeBoundingSphere();
+
+          let maxMove = 0;
+          for (let i = 0; i < base.length; i += 3) {
+            maxMove = Math.max(maxMove, Math.abs(out[i] - base[i]), Math.abs(out[i + 1] - base[i + 1]), Math.abs(out[i + 2] - base[i + 2]));
+          }
+          item.maxMove = maxMove;
+        }
+        if (window.__debugMoved) {
+          window.__moved = state.meshes
+            .filter((m) => (m.maxMove || 0) > 0.001)
+            .map((m) => `${m.name}:${(m.maxMove * 1000).toFixed(0)}mm`);
+        }
+        renderer.render(scene, camera);
+        window.__rendered = (window.__rendered || 0) + 1;
+      }
+
+      function buildAdjacency(geo) {
+        const idx = geo.index ? geo.index.array : null;
+        if (!idx) return null;
+        const n = geo.attributes.position.count;
+        const sets = new Array(n);
+        const add = (a, b) => {
+          if (!sets[a]) sets[a] = new Set();
+          sets[a].add(b);
+        };
+        for (let i = 0; i < idx.length; i += 3) {
+          const a = idx[i];
+          const b = idx[i + 1];
+          const c = idx[i + 2];
+          add(a, b); add(b, a);
+          add(a, c); add(c, a);
+          add(b, c); add(c, b);
+        }
+        return sets.map((s) => (s ? Array.from(s) : []));
+      }
+
+      function setup() {
+        state.meshes.length = 0;
+        root.traverse((o) => {
+          if (!o.isMesh) return;
+          const name = o.name || "";
+          const key = name.replace(/_/g, " ");
+          const m = bake(o);
+          scene.add(m);
+          if (BIKE.test(key)) return;
+          const geo = m.geometry;
+          geo.computeBoundingBox();
+          const bb = geo.boundingBox;
+          const cz = (bb.min.z + bb.max.z) / 2;
+          const rigidHand = /glove|finger|thumb/i.test(key);
+          state.meshes.push({
+            name,
+            geo,
+            rest: Float32Array.from(geo.attributes.position.array),
+            out: geo.attributes.position.array,
+            rigidHand,
+            side: cz >= 0 ? "p" : "n",
+            adj: rigidHand ? null : buildAdjacency(geo),
+          });
+        });
+      }
+
+      function frameCamera(mode) {
+        if (mode === "closeup") {
+          camera.fov = 26;
+          camera.position.set(1.30, 1.42, 0.55);
+          camera.lookAt(new THREE.Vector3(0.34, 1.24, -0.12));
+        } else if (mode === "phone") {
+          camera.fov = 30;
+          camera.position.set(6.10, 2.55, 3.95);
+          camera.lookAt(new THREE.Vector3(0.06, 0.92, 0));
+        } else {
+          camera.fov = 30;
+          camera.position.set(2.45, 1.60, 1.55);
+          camera.lookAt(new THREE.Vector3(0.06, 0.92, 0));
+        }
+        camera.updateProjectionMatrix();
+      }
+
+      const loader = new GLTFLoader();
+      loader.setMeshoptDecoder(MeshoptDecoder);
+      const params = new URLSearchParams(location.search);
+      loader.load(
+        GLB,
+        (gltf) => {
+          root = gltf.scene;
+          root.updateMatrixWorld(true);
+          setup();
+          frameCamera(params.get("view") || "hero");
+          applyPose(params.get("pose") || "ride");
+          window.__ready = true;
+        },
+        undefined,
+        (err) => {
+          window.__error = String(err);
+        },
+      );
+
+      window.setPose = (name) => applyPose(name);
+      window.setView = (mode) => {
+        frameCamera(mode);
+        renderer.render(scene, camera);
+      };
+      window.__lab = { state, scene, camera };
+      addEventListener("resize", () => {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+      });
+    </script>
+  </body>
+</html>

@@ -614,6 +614,17 @@
       "added": "2026-11-04"
     },
     {
+      "id": "rider-pose-capture",
+      "kind": "script",
+      "path": "apps/web/scripts/rider-pose/capture-poses.mjs",
+      "class": "temporary",
+      "purpose": "rider15 포즈 시안(만세·파이팅·엄지 척) 정지 이미지 캡처",
+      "enable": "node apps/web/scripts/rider-pose/capture-poses.mjs",
+      "bundle": "20261104-rider-v2-upper-body",
+      "added": "2026-11-05",
+      "expires": "2026-12-05"
+    },
+    {
       "id": "preserved-app-validator-html",
       "kind": "script",
       "path": "apps/web/scripts/rider-preserve/preserved-app-validator.html",
