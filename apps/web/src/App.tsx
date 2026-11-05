@@ -51,6 +51,9 @@ import { RideSummarySheet } from "./components/ride/RideSummarySheet";
 import { RideControlsAutoHide } from "./components/ride/RideControlsAutoHide";
 import { LeaderboardGlancePanel } from "./components/leaderboard/LeaderboardGlance";
 import { useTrailGlanceTab } from "./hooks/useTrailGlanceTab";
+import { useTrailLifecycle } from "./app/useTrailLifecycle";
+import { useTrailRecent } from "./app/useTrailRecent";
+import { TrailStartChoiceHost } from "./components/trail/TrailStartChoice";
 import { buildGlanceLiveRows } from "./components/leaderboard/leaderboardGlanceSnapshot";
 import { computeRideRankChangeLine } from "./components/leaderboard/leaderboardLiveRank";
 import { useLeaderboardGlance } from "./hooks/useLeaderboardGlance";
@@ -1310,6 +1313,18 @@ export default function App() {
     setTrailMetaSeed(null);
   }, [setTrailDraft, setTrailId]);
 
+  const trailRecent = useTrailRecent({ uid: user?.uid ?? null, currentTrailId: sanitizedTrailId, liveTrails: openTrailsQuery.rows, progressMeters: rideMetrics.virtualDistanceMeters, routeMeters: routeDistanceMeters });
+  const trailLifecycle = useTrailLifecycle({
+    rideStatus,
+    trailId,
+    routeGeometry,
+    onRouteLeftTrail: returnToTrailhead,
+    onPauseTimeout: () => handleEndRideRef.current(),
+    onTrailLeft: trailRecent.recordLeft,
+  });
+  const trailResumeOffsetRef = trailRecent.resumeOffsetRef;
+  const { markTrailRoutePending, isTrailGateDone, markTrailGateDone } = trailLifecycle;
+
   const goTrailheadAndCloseMenu = useCallback(() => {
     if (rideStatus === "running" || rideStatus === "paused") return;
     returnToTrailhead();
@@ -1384,7 +1399,9 @@ export default function App() {
           setRouteSummary(gate.message);
           return;
         }
+        markTrailGateDone(next);
         if (resolvedMeta.publicationId) {
+          markTrailRoutePending();
           await loadCourseRouteForTrailJoin(resolvedMeta.publicationId);
         }
         rememberTrailDisplayNumber(resolvedMeta.id, resolvedMeta.displayNumber);
@@ -1395,10 +1412,10 @@ export default function App() {
         setMenuOpen(false);
       })();
     },
-    [rideStatus, setRouteSummary, setTrailDraft, setTrailId, loadCourseRouteForTrailJoin, user],
+    [rideStatus, setRouteSummary, setTrailDraft, setTrailId, loadCourseRouteForTrailJoin, user, markTrailGateDone, markTrailRoutePending],
   );
   const trailGlance = useTrailGlanceTab({ openTrails: openTrailsQuery, activeTrailId: menuTrailSanitizedId, currentTrail: menuTrailMetaForDisplay,
-    rideSessionActive: isRideSessionActive, onJoinTrail: joinTrailAndCloseMenu, setMenuOpen, setPanelOpen: leaderboardGlance.setPanelOpen });
+    rideSessionActive: isRideSessionActive, onJoinTrail: joinTrailAndCloseMenu, setMenuOpen, setPanelOpen: leaderboardGlance.setPanelOpen, recent: trailRecent.recent, homeCountry: userTier.homeCountry, avgKmh: resolveUserAverageKmh(userTier.mileageTotalMeters, userTier.mileageTotalSec) ?? DISTANCE_AUTO_ROUTE_FALLBACK_KMH });
 
   const handleSetTrailVisibility = useCallback(
     (visibility: "open" | "private") => {
@@ -1420,6 +1437,9 @@ export default function App() {
     if (!configured || !user || rideStatus !== "idle") return;
     const tid = sanitizedTrailId;
     if (tid === DEFAULT_TRAIL_ID) return;
+    // Trail 마다 한 번 — 종료 후 대기로 남을 때 idle 복귀마다 경로를 다시 불러 결과를 지우지 않게(2026-11-05).
+    if (isTrailGateDone(tid)) return;
+    markTrailGateDone(tid);
     let cancelled = false;
     void (async () => {
       const meta = await fetchTrailInstance(tid).catch(() => null);
@@ -1438,6 +1458,7 @@ export default function App() {
         return;
       }
       if (resolvedMeta.publicationId) {
+        markTrailRoutePending();
         await loadCourseRouteForTrailJoin(resolvedMeta.publicationId);
       }
     })();
@@ -1476,6 +1497,8 @@ export default function App() {
     }
     // 주행 입력 준비(센서 확인 또는 명시적 체험 속도 선택)가 끝나기 전에는 시작하지 않는다.
     if (!rideInputReady) return;
+    // 2026-11-05 Chief D4: 이 Trail 에서 달린 적이 있으면 이어서/처음부터를 먼저 묻는다(시안 ③⑥).
+    if (sanitizeTrailId(trailId) !== DEFAULT_TRAIL_ID && trailRecent.askStartChoice(sanitizeTrailId(trailId))) return;
     /**
      * 슬롯 로딩 중 Go → offset 0으로 시작하면 재개 A를 처음부터로 오인한다.
      * 재개 후보가 로드된 상태면 준비될 때까지 대기.
@@ -1506,10 +1529,13 @@ export default function App() {
      * 이벤트 핸들러 내부라 ref 검증 허용 — 실제 로드된 경로와 후보가 일치할 때만 시드.
      */
     // Codex -04 Fix: F2 adapter (NO scaling - routeDistanceMeters offset = geometry offset in meters)
+    const trailResumeOffset = trailResumeOffsetRef.current;
     const rideStartOffsetMeters =
-      !restart && resumeRatio != null && loadedSavedRouteIdRef.current === resumeCandidateId && routeGeometry
-        ? resumeOffsetMetersFrom(resumeRatio, routeDistanceMeters)
-        : 0;
+      trailResumeOffset != null
+        ? Math.max(0, Math.min(trailResumeOffset, routeDistanceMeters))
+        : !restart && resumeRatio != null && loadedSavedRouteIdRef.current === resumeCandidateId && routeGeometry
+          ? resumeOffsetMetersFrom(resumeRatio, routeDistanceMeters)
+          : 0;
     const estimateKmh = resolveUserAverageKmh(userTier.mileageTotalMeters, userTier.mileageTotalSec) ?? DISTANCE_AUTO_ROUTE_FALLBACK_KMH;
     const remainingMeters = Math.max(0, routeDistanceMeters - rideStartOffsetMeters);
     if (rideIntervalEnabled && isRouteShorterThanInterval(remainingMeters, estimateKmh, getRideIntervalTotalSec(rideIntervalConfig))) {
@@ -1565,6 +1591,7 @@ export default function App() {
           resetArrivalGate();
           resetRide(rideStartOffsetMeters);
           setSessionStartOffsetMeters(rideStartOffsetMeters);
+          trailResumeOffsetRef.current = null; // 이어서/처음부터 선택 소비
           setResumeCandidateId(null); // 재개 후보 소비 — 종료 후 재로드 전까지 재개 UI 미표시
           setRidingTrailId(currentTid);
           setLastRideResult(null);
@@ -1582,6 +1609,7 @@ export default function App() {
         });
         rememberTrailDisplayNumber(trail.id, trail.displayNumber);
         setTrailMetaSeed(trail);
+        markTrailGateDone(trail.id);
         const prev = sanitizeTrailId(trailId);
         if (prev !== trail.id) {
           await deleteTrailPresence(user.uid, prev).catch(() => {});
@@ -1619,6 +1647,18 @@ export default function App() {
     const uid = user?.uid ?? null;
     setRidingTrailId(null);
     handleEndRide();
+    // 2026-11-05 Chief D2: 주행 종료 ≠ Trail 나가기 — 공개 Trail 은 대기로 남는다(종전 Trailhead 복귀).
+    // 비공개 Trail(내 경로·임시 경로 혼자 주행)은 종전대로 Trailhead — 「여기에서 계속」 흐름이 그 위에 있다.
+    const stayInTrail =
+      endedTrailId !== DEFAULT_TRAIL_ID &&
+      menuTrailMetaForDisplay?.id === endedTrailId &&
+      menuTrailMetaForDisplay.visibility === "open";
+    if (stayInTrail && menuTrailMetaForDisplay) trailRecent.recordRideEnd(menuTrailMetaForDisplay);
+    if (stayInTrail && sanitizeTrailId(trailId) !== endedTrailId) {
+      setTrailDraft(endedTrailId);
+      setTrailId(endedTrailId);
+      replaceTrailInUrl(endedTrailId);
+    }
     void (async () => {
       /*
        * 2026-09-27: 종전에는 **개설자일 때만** `closeTrailInstance()` 를 불러 Trail 을
@@ -1634,15 +1674,15 @@ export default function App() {
        * 그래서 남은 사람이 있으면 Trail 이 유지되고(종전에는 개설자가 나가면 사라졌다),
        * 아무도 없으면 목록에서 빠진다.
        *
-       * ⚠ 아무도 없는 Trail 로 **돌아가는** 창구는 아직 없다 — 목록에 안 뜨기 때문이고,
-       *   이는 개설자·참여자 모두 같다. 별건(2단계)으로 남긴다.
+       * 2026-11-05: 종료 후에는 Trailhead 로 보내지 않는다(같은 Trail 대기). 아무도 없는 Trail 로
+       *   돌아가는 창구는 「최근 내가 달린 Trail」(10분) — [묶음](../../../document/ops/20261105-trail-lifecycle/README.md).
        */
       if (uid && endedTrailId !== DEFAULT_TRAIL_ID) {
         await refreshOpenTrailListingFromTrail(endedTrailId).catch(() => {});
       }
-      returnToTrailhead();
+      if (!stayInTrail) returnToTrailhead();
     })();
-  }, [trailId, ridingTrailId, rideStatus, user?.uid, handleEndRide, returnToTrailhead]);
+  }, [trailId, ridingTrailId, rideStatus, user?.uid, handleEndRide, setTrailDraft, setTrailId, menuTrailMetaForDisplay, returnToTrailhead, trailRecent]);
 
   useEffect(() => {
     handleEndRideRef.current = handleEndRideWithTrailCleanup;
@@ -1997,18 +2037,21 @@ export default function App() {
     dismissResult();
   }, [routeClearBlockedByRide, clearRoutePins, routeMenuLockedForProd, clearCirclePreview, dismissResult]);
 
-  /**
-   * 메뉴 「Trail 나가기」 — 주행하지 않고 Trail 에서 나온다. Trail 합류가 불러온 경로도 함께 해제한다
-   * (11-04 Chief 「나왔지만 여전히 주행 가능 상태…들어갔던 트레일의 경로가 설정된 상태다. 경로를 해제해야 한다」).
-   * 입문 경로 Trail 이면 「선택: Basic N」 동행 허브에서도 나온다(그 「나가기」와 같은 동작).
-   * 메뉴는 열어 둬 「현재 Trailhead」 로 바뀐 것을 바로 보이게 한다.
-   */
+  /** 메뉴 「Trail 나가기」(대기) — 합류로 불러온 경로·입문 허브도 해제, 메뉴는 열어 둔다(11-05 Chief). */
   const leaveTrailFromMenu = useCallback(() => {
     if (rideStatus === "running" || rideStatus === "paused") return;
     handleClearPins();
     if (basicActiveHubCourseId) void leaveBasicHub();
     returnToTrailhead();
   }, [rideStatus, handleClearPins, basicActiveHubCourseId, leaveBasicHub, returnToTrailhead]);
+
+  /** 주행 중·일시정지 「나가기」 확인 → 종료(결과 창)·Trailhead(D3). 경로는 결과 창을 닫을 때 지워진다. */
+  const endRideAndLeaveTrail = useCallback(() => {
+    handleEndRideRef.current();
+    returnToTrailhead();
+    // 열린 메뉴의 scrim 이 결과 창을 덮는다(e2e 확인).
+    setMenuOpen(false);
+  }, [returnToTrailhead, setMenuOpen]);
 
   const handleSetRouteProfileOnly = useCallback(
     (p: RouteProfile) => {
@@ -2803,7 +2846,8 @@ export default function App() {
     setLastRideResult(null);
     // 최근 주행의 신규 도로 강조는 결과 시트를 닫아도 유지한다.
     // 다음 주행 시작·로그아웃·사용자 전환 시 새 세션 경계에서 정리한다.
-    clearRoutePins(routeMenuLockedForProd);
+    // 2026-11-05 Chief D2: Trail 대기로 남으면 경로도 남긴다 — 다시 「주행 시작」 하면 같은 Trail 에서 달린다.
+    if (trailLifecycle.status === "trailhead") clearRoutePins(routeMenuLockedForProd);
   }
 
   function handleCloseSummary() {
@@ -3422,6 +3466,9 @@ export default function App() {
           rideSessionActive={isRideSessionActive}
           onShowTrailList={trailGlance.showTrailList}
           onLeaveTrail={leaveTrailFromMenu}
+          trailStatus={trailLifecycle.status}
+          onEndRideAndLeave={endRideAndLeaveTrail}
+          recentCount={isRideSessionActive ? 0 : trailRecent.recent.length}
         />
       </MenuPanel>
 
@@ -3603,6 +3650,9 @@ export default function App() {
         }}
       />
 
+      {trailGlance.finderSheet}
+      <TrailStartChoiceHost recent={trailRecent} onStartRide={() => handleStartRide()} onLeave={leaveTrailFromMenu} />
+
       <RideSummarySheet
         open={summaryVisible}
         result={lastRideResult}
@@ -3630,6 +3680,11 @@ export default function App() {
         onIncompleteQuotaBlocked={handleIncompleteQuotaBlocked}
         rankChange={summaryRankChange}
         onOpenLeaderboard={openLeaderboardPanel}
+        trailStay={
+          trailLifecycle.status === "waiting"
+            ? { label: `Trail ${formatTrailDisplayNumber(menuTrailMetaForDisplay?.displayNumber)}`, onLeave: leaveTrailFromMenu }
+            : null
+        }
       />
 
       {publicRouteRequestModalRoute && user ? (

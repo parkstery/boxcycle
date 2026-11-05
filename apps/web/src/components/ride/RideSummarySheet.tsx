@@ -69,6 +69,11 @@ type RideSummarySheetProps = {
   rankChange?: RideRankChangeLine | null;
   onOpenLeaderboard?: () => void;
   /**
+   * 주행 종료 후에도 Trail 에 남아 있을 때(2026-11-05 Chief 시안 ⑤) — 「닫아도 Trail N 에 남아 있어요」 +
+   * 「Trail 나가기」. Trailhead 에서 달렸으면 null.
+   */
+  trailStay?: { label: string; onLeave: () => void } | null;
+  /**
    * RIDE-CLAIM-RESULT-1: 이미 로드된 내 도로망 geometries.
    * 세션 bounds 클리핑은 preview lib 에서 수행. 새 조회 없음.
    */
@@ -492,6 +497,24 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
               </>
             )}
           </button>
+        ) : null}
+
+        {props.trailStay ? (
+          <div className="ride-summary__trail-stay">
+            <p className="ride-summary__trail-stay-msg">
+              닫아도 <strong>{props.trailStay.label}</strong> 에 남아 있어요. 주행 시작을 다시 누르면 같은 Trail 에서 달려요.
+            </p>
+            <button
+              type="button"
+              className="ride-summary__btn ride-summary__btn--ghost ride-summary__trail-leave"
+              onClick={() => {
+                props.trailStay?.onLeave();
+                requestClose();
+              }}
+            >
+              Trail 나가기
+            </button>
+          </div>
         ) : null}
 
         <div className="ride-summary__substats">

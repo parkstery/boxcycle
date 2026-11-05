@@ -553,6 +553,62 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "openTrailListings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "geoContinent",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "riderCount",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "openTrailListings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "geoContinent",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "openTrailListings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "geoCountry",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "riderCount",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "openTrailListings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "geoCountry",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [

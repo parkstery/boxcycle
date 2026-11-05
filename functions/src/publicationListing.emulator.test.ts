@@ -108,7 +108,10 @@ describe("publicationListings 에뮬레이터", () => {
       publicationId: "paris",
       createdAt: Timestamp.now(),
     });
+    // 2026-11-05 Chief D6: 대기(members 만)는 목록 인원에 들지 않는다 — 주행 중(live ride)이 있어야 목록에 오른다.
     await trail.collection("members").doc("h1").set({ lastSeenAt: Timestamp.now() });
+    assert.equal(await recomputeOpenTrailListing("trail-paris"), "removed", "대기만 있으면 목록에 없다");
+    await trail.collection("livePublicationRides").doc("h1").set({ lastSeenAt: Timestamp.now(), publicationId: "paris", progressRatio: 0 });
     assert.equal(await recomputeOpenTrailListing("trail-paris"), "upserted");
     const row = (await db.collection(OPEN_TRAIL_LISTINGS_COLLECTION).doc("trail-paris").get()).data()!;
     assert.equal(row.geoCountry, "FR");

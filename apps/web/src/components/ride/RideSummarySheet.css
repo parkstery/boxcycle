@@ -1005,3 +1005,22 @@
     font-size: 0.6rem;
   }
 }
+
+/* 2026-11-05 Chief 시안 ⑤ — 종료 후 Trail 에 남기. 줄 하나(문장 + 보조 버튼), 상자 없이 아래 선만. */
+.ride-summary__trail-stay {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #eef0f3;
+}
+.ride-summary__trail-stay-msg {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: #4b5160;
+}
+.ride-summary__trail-stay-msg strong { color: #121417; }
+.ride-summary__trail-leave { flex: none; white-space: nowrap; }

@@ -196,3 +196,45 @@
 .trail-hub__show-list strong { color: #2457d6; }
 .trail-hub__show-list:disabled { cursor: default; opacity: 0.6; }
 .trail-hub__show-list:focus-visible { outline: 2px solid #2457d6; outline-offset: 2px; }
+
+/* 2026-11-05 Chief 시안 ②④ — 상태 칩(대기·주행 중·일시정지)·안내 한 줄·나가기 확인 */
+.trail-hub__status {
+  flex: none; height: 18px; padding: 0 7px; box-sizing: border-box; border-radius: 999px;
+  background: #f2f3f5; color: #4b5160; font-size: 11px; font-weight: 700; line-height: 18px;
+}
+.trail-hub__status[data-status="riding"] { background: #e6f4ec; color: #1e7a46; }
+.trail-hub__hint { flex: none; margin: 0 0 4px 24px; font-size: 11px; line-height: 15px; color: #4b5160; }
+.trail-leave-confirm-overlay { z-index: 1200; }
+.trail-leave-confirm {
+  width: min(360px, 100%); box-sizing: border-box; padding: 16px 18px 14px; border-radius: 18px;
+  background: #ffffff; color: #121417; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+  display: flex; flex-direction: column; gap: 10px; font-family: "Gothic A1", system-ui, sans-serif;
+}
+.trail-leave-confirm__title { margin: 0; font-size: 15px; line-height: 20px; font-weight: 700; }
+.trail-leave-confirm__msg { margin: 0; font-size: 13px; line-height: 18px; color: #4b5160; }
+.trail-leave-confirm__btns { display: flex; gap: 8px; }
+.trail-leave-confirm__btn {
+  flex: 1; height: 40px; border-radius: 999px; border: 1px solid #c9d6ee; background: #ffffff; color: #2a2e37;
+  font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.trail-leave-confirm__btn--primary { border: 0; border-radius: 10px; background: #2457d6; color: #ffffff; }
+
+/* 2026-11-05 Chief 시안 ③⑥ — 이어서 / 처음부터 */
+.trail-start-choice { width: min(380px, 100%); }
+.trail-start-choice__head { display: flex; align-items: center; gap: 8px; }
+.trail-start-choice__spacer { flex: 1; }
+.trail-start-choice__done {
+  height: 20px; padding: 0 8px; border-radius: 999px; background: #e6f4ec; color: #1e7a46;
+  font-size: 11px; font-weight: 700; line-height: 20px;
+}
+.trail-start-choice__close {
+  width: 34px; height: 34px; border-radius: 999px; border: 0; background: #f2f3f5; color: #2a2e37;
+  display: grid; place-items: center; cursor: pointer;
+}
+.trail-start-choice__progress { margin: 0; display: flex; align-items: baseline; gap: 6px; }
+.trail-start-choice__num { font-family: "Saira Condensed", system-ui, sans-serif; font-weight: 700; font-size: 26px; line-height: 1.1; color: #2457d6; }
+.trail-start-choice__unit { font-family: "Saira Condensed", system-ui, sans-serif; font-weight: 600; font-size: 11px; }
+.trail-start-choice__of { font-size: 13px; color: #4b5160; }
+.trail-start-choice .trail-leave-confirm__btn--primary { flex: 1.4; }
+
+.trail-hub__recent-count { font-size: 11px; color: #4b5160; margin-left: 4px; }

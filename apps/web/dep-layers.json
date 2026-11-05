@@ -260,6 +260,8 @@
     ],
     "trail": [
       "trail/trailAccessPolicy.ts",
+      "trail/recentTrails.ts",
+      "trail/trailFinder.ts",
       "trail/trailDisplayNumber.ts",
       "trail/trailDisplayNumberCache.ts",
       "trail/trailId.ts",
@@ -277,6 +279,7 @@
       "trail/repo/activeLiveRideTrailIdsSubscriptionHub.ts",
       "trail/repo/firestoreOpenTrailListings.ts",
       "trail/repo/firestoreTrail.ts",
+      "trail/repo/trailFinderListings.ts",
       "trail/repo/firestoreTrailInstance.ts",
       "trail/repo/firestoreTrailLivePublicationRides.ts",
       "trail/repo/firestoreTrailPaths.ts",

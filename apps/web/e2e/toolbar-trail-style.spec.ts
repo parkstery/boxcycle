@@ -58,8 +58,9 @@ for (const size of [{width:800,height:360},{width:736,height:300},{width:699,hei
     await expect(page.getByRole('dialog',{name:'사용자 정보',exact:true})).toBeVisible();
   });
 
-  // Chief 11-02: Trail 목록은 메뉴 패널 밖, 지도 오른쪽 목록의 「Trail」 탭(순위와 같은 자리·같은 줄)으로. 10줄, 넘치면 「외 N개」.
-  for (const riding of [false,true]) test(`Trail 탭 공유·10줄·권한 ${size.width} ${riding?'주행':'대기'}`, async ({page})=>{
+  // Chief 11-02: Trail 목록은 메뉴 패널 밖, 지도 오른쪽 목록의 「Trail」 탭(순위와 같은 자리·같은 줄)으로. 넘치면 「외 N개」.
+  // Chief 11-05 F1: 10줄 → 5줄(대표 국가·사람 많은 순), 나머지는 「Trail 찾기 ›」.
+  for (const riding of [false,true]) test(`Trail 탭 공유·5줄·권한 ${size.width} ${riding?'주행':'대기'}`, async ({page})=>{
     await page.setViewportSize(size);
     await page.goto(`${preview}?state=${riding?'riding':'ready'}&trailPreview=1${riding?'&trailRiding=1':''}`);
     // 낮은 폰 주행 중엔 왼쪽 반달 탭을 RouteDock 머리가 가린다(기존 결함, 배치 계획 3단계에서 정리). 여기선 키보드로 연다.
@@ -82,8 +83,9 @@ for (const size of [{width:800,height:360},{width:736,height:300},{width:699,hei
     await expect(panel).toHaveAttribute('aria-label','지금 달리는 Trail');
     await expect(panel.getByRole('tab',{name:/^Trail/})).toHaveAttribute('aria-selected','true');
     const list=panel.locator('.lb-glance__list--trail');
-    await expect(list.locator('li')).toHaveCount(10);
-    await expect(panel.locator('.lb-glance__footer')).toHaveText('외 2개');
+    await expect(list.locator('li')).toHaveCount(5);
+    await expect(panel.locator('.lb-glance__footer')).toHaveText('외 7개');
+    await expect(panel.getByRole('button',{name:'Trail 찾기 ›',exact:true})).toBeVisible();
     const layout=await list.evaluate(el=>{
       const r=el.getBoundingClientRect();
       const rows=[...el.querySelectorAll('li')].map(li=>li.getBoundingClientRect());
@@ -93,17 +95,18 @@ for (const size of [{width:800,height:360},{width:736,height:300},{width:699,hei
     expect(layout.overflow).toBe(0);
     expect(layout.names.every(Boolean)).toBe(true);
     if(riding){
-      // 주행 중: 10줄이 모두 화면 안, 내 Trail 은 맨 위 파란 줄, 합류 버튼 없음.
-      expect(layout.visible).toBe(10);
+      // 주행 중: 5줄이 모두 화면 안, 내 Trail 은 맨 위 파란 줄, 합류 버튼 없음.
+      expect(layout.visible).toBe(5);
       await expect(list.locator('[aria-current="true"]')).toHaveCount(1);
       await expect(list.locator('li').first()).toHaveAttribute('aria-current','true');
       await expect(list.getByRole('button')).toHaveCount(0);
     } else {
-      // 주행 전 지도도 10줄 모두 화면 안(11-02 Chief: 사라진 우하단 시계·버튼 자리 예약 제거).
-      expect(layout.visible).toBe(10);
+      // 주행 전 지도도 5줄 모두 화면 안.
+      expect(layout.visible).toBe(5);
       // Chief 11-03: 목록이 계정 아래로 내려와 주행 전엔 오른쪽 묶음이 합류 버튼을 덮는다(중첩 허용) — 키보드로 동작만 확인.
       await list.getByRole('button').first().press('Enter');
-      await expect(page.locator('#trail-preview-calls')).toHaveAttribute('data-joined','preview-trail-0');
+      // F1: 사람 많은 순이라 맨 위 줄은 미리보기 Trail 중 하나.
+      await expect(page.locator('#trail-preview-calls')).toHaveAttribute('data-joined',/^preview-trail-\d+$/);
     }
     await panel.getByRole('tab',{name:'순위',exact:true}).click();
     await expect(panel.locator('.lb-glance__list--trail')).toHaveCount(0);

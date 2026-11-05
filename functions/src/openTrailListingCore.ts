@@ -10,7 +10,6 @@ import { TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION } from "./trailPaths.js";
 
 export const TRAILS_COLLECTION = "trails";
 export const OPEN_TRAIL_LISTINGS_COLLECTION = "openTrailListings";
-const MEMBERS_SUB = "members";
 const LIVE_SUB = TRAIL_LIVE_PUBLICATION_RIDES_SUBCOLLECTION;
 
 /** 클라이언트 `TRAIL_PRESENCE_STALE_MS` 와 동일 */
@@ -140,15 +139,17 @@ export function trailListingGeoFields(
   return out;
 }
 
+/**
+ * 목록 인원 = 지금 주행 중(live ride)인 사람(2026-11-05 Chief D6). 종전에는 presence(members)도 셌는데,
+ * 주행 종료 후 같은 Trail 에 대기로 남게 되면서(D2) 대기만 있는 Trail 이 「지금 달리는 Trail」 에 남았다.
+ * 대기 중인 사람은 「최근 내가 달린 Trail」(본인 기기, 10분)로 돌아온다.
+ */
 async function countActiveParticipants(trailId: string): Promise<number> {
   const db = getFirestore();
   const cutoff = presenceCutoff();
   const trailRef = db.collection(TRAILS_COLLECTION).doc(trailId);
-  const [membersSnap, liveSnap] = await Promise.all([
-    trailRef.collection(MEMBERS_SUB).where("lastSeenAt", ">", cutoff).count().get(),
-    trailRef.collection(LIVE_SUB).where("lastSeenAt", ">", cutoff).count().get(),
-  ]);
-  return Math.max(membersSnap.data().count, liveSnap.data().count);
+  const liveSnap = await trailRef.collection(LIVE_SUB).where("lastSeenAt", ">", cutoff).count().get();
+  return liveSnap.data().count;
 }
 
 /**

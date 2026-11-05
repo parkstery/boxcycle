@@ -1,8 +1,10 @@
 import type { TrailInstance } from "../../lib/trail/repo/firestoreTrailInstance";
 import { formatTrailDisplayNumber } from "../../lib/trail/trailDisplayNumber";
+import { formatRemainingMinutes, type RecentTrailEntry } from "../../lib/trail/recentTrails";
 import { shortTrailPlace, trailDisplayName, trailKmLabel, trailRiderCount, trailRowLabel } from "./trailGlance";
 
-const TRAIL_GLANCE_LIMIT = 10;
+/** F1(2026-11-05 Chief): 오른쪽 목록은 5개까지 — 나머지는 「Trail 찾기」 */
+const TRAIL_GLANCE_LIMIT = 5;
 
 type Props = {
   trails: TrailInstance[];
@@ -11,20 +13,78 @@ type Props = {
   loading: boolean;
   error: string | null;
   onJoinTrail: (trailId: string, listingPublicationId?: string | null) => void;
+  /** 「최근 내가 달린 Trail」 — 나온 지 10분 안(2026-11-05 Chief D5, 시안 ①). 주행 중엔 숨긴다 */
+  recent?: ReadonlyArray<RecentTrailEntry & { remainingMs: number }>;
+  /** 「대한민국」·「전 세계」 — 지금 달리는 Trail 머리말. 주행 중엔 null */
+  scopeLabel?: string | null;
+  /** 「Trail 찾기 ›」(시안 ⑦) */
+  onOpenFinder?: () => void;
 };
+
+function FinderButton({ onOpenFinder }: { onOpenFinder?: () => void }) {
+  if (!onOpenFinder) return null;
+  return (
+    <button type="button" className="lb-glance__finder" onClick={onOpenFinder}>
+      Trail 찾기 ›
+    </button>
+  );
+}
+
+const km1 = (m: number) => (Math.max(0, m) / 1000).toFixed(1);
+
+function RecentTrailRows({ recent, onJoinTrail }: { recent: NonNullable<Props["recent"]>; onJoinTrail: Props["onJoinTrail"] }) {
+  return (
+    <>
+      <p className="lb-glance__outline lb-glance__section">최근 내가 달린 Trail</p>
+      <ol className="lb-glance__list lb-glance__list--trail lb-glance__list--recent">
+        {recent.map((t) => {
+          const name = t.regionLabel?.trim() || `Trail ${formatTrailDisplayNumber(t.displayNumber)}`;
+          return (
+            <li key={t.trailId} className="lb-glance__row lb-glance__row--trail lb-glance__row--recent lb-glance__row--joinable"
+              onClick={() => onJoinTrail(t.trailId, t.publicationId)}>
+              <span className="lb-glance__outline lb-glance__trail-no">{formatTrailDisplayNumber(t.displayNumber)}</span>
+              <span className="lb-glance__recent-name" title={name}>
+                <span className="lb-glance__outline lb-glance__name">{shortTrailPlace(name)}</span>
+                <span className="lb-glance__recent-sub">
+                  {t.completed ? "완주" : `내 진행 ${km1(t.progressMeters)} / ${km1(t.routeMeters)} km`}
+                </span>
+              </span>
+              <span className="lb-glance__recent-left">{formatRemainingMinutes(t.remainingMs)}</span>
+              <button type="button" className="lb-glance__join lb-glance__join--primary" title="이 Trail 에 다시 들어가기"
+                aria-label={`${name} — 다시 들어가기`}
+                onClick={(e) => { e.stopPropagation(); onJoinTrail(t.trailId, t.publicationId); }}>
+                다시 들어가기
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+      <p className="lb-glance__outline lb-glance__footer">아무도 달리지 않는 Trail 은 10분 동안 여기에 남아요. 나만 보여요.</p>
+    </>
+  );
+}
 
 /**
  * 지도 오른쪽 목록의 「Trail」 탭(Chief 11-02: 순위와 같은 줄 목록, 10줄).
  * 주행 중엔 합류가 막혀 있어 인원만 보이고, 대기 중엔 줄 끝이 합류 버튼이다.
  */
-export function TrailGlanceList({ trails, activeTrailId, rideSessionActive, loading, error, onJoinTrail }: Props) {
-  if (loading && trails.length === 0) return <p className="lb-glance__outline lb-glance__hint">불러오는 중…</p>;
-  if (error && trails.length === 0) return <p className="lb-glance__outline lb-glance__hint" title={error}>{error}</p>;
-  if (trails.length === 0) return <p className="lb-glance__outline lb-glance__hint">지금 달리는 Trail이 없어요</p>;
+export function TrailGlanceList({ trails, activeTrailId, rideSessionActive, loading, error, onJoinTrail, recent, scopeLabel, onOpenFinder }: Props) {
+  const recentRows = !rideSessionActive && recent && recent.length > 0 ? <RecentTrailRows recent={recent} onJoinTrail={onJoinTrail} /> : null;
+  if (trails.length === 0) {
+    const msg = loading ? "불러오는 중…" : error ? error : "지금 달리는 Trail이 없어요";
+    return (
+      <>
+        <p className="lb-glance__outline lb-glance__hint" title={error ?? undefined}>{msg}</p>
+        {recentRows}
+        <FinderButton onOpenFinder={onOpenFinder} />
+      </>
+    );
+  }
   const shown = trails.slice(0, TRAIL_GLANCE_LIMIT);
   const more = trails.length - shown.length;
   return (
     <>
+      {scopeLabel ? <p className="lb-glance__outline lb-glance__section">지금 달리는 Trail · {scopeLabel} · 사람 많은 순</p> : null}
       <ol className="lb-glance__list lb-glance__list--trail">
         {shown.map((t) => {
           const current = rideSessionActive && t.id === activeTrailId;
@@ -60,6 +120,8 @@ export function TrailGlanceList({ trails, activeTrailId, rideSessionActive, load
         })}
       </ol>
       {more > 0 ? <p className="lb-glance__outline lb-glance__footer">외 {more}개</p> : null}
+      {recentRows}
+      <FinderButton onOpenFinder={onOpenFinder} />
     </>
   );
 }

@@ -454,7 +454,7 @@ function Preview() {
   const [flatCameraMode,setFlatCameraMode] = useState<Camera1Mode>('aerial500');
   const [routeSetupToken,setRouteSetupToken] = useState<object>({});
   const [panel,setPanel] = useState(resolveInitialPanel(initial));
-  const [trailPreviewCalls, setTrailPreviewCalls] = useState({joined:'',visibility:'open'});
+  const [trailPreviewCalls, setTrailPreviewCalls] = useState({joined:'',visibility:'open',finder:false});
   const [toolbarCalls,setToolbarCalls] = useState({zoomIn:0,zoomOut:0});
   const trailPreview = params.has('trailPreview');
   const trailPreviewRiding = params.has('trailRiding');
@@ -546,7 +546,8 @@ function Preview() {
     trail: {
       count: glanceTrails.length,
       list: <TrailGlanceList trails={glanceTrails} activeTrailId={glanceTrailId} rideSessionActive={active} loading={false} error={null}
-        onJoinTrail={id=>setTrailPreviewCalls(c=>({...c,joined:id}))} />,
+        onJoinTrail={id=>setTrailPreviewCalls(c=>({...c,joined:id}))}
+        scopeLabel={active ? null : '전 세계'} onOpenFinder={() => setTrailPreviewCalls(c=>({...c,finder:true}))} />,
     },
   };
   const summaryRank =

@@ -10,6 +10,8 @@
 
 ## 진행 중
 
+**11-05 Trail 수명주기·찾기 P1~P4(Claude Code, PR #22) — 미배포**: 남은 것 F5 지도 찾기·Chief 폰 확인·배포(색인+함수 5개+Hosting). 기존 실패(main2 동일): RC1·2·3·13, test:quick 9. [묶음](20261105-trail-lifecycle/README.md).
+
 **11-04 rider15 상체 스킨 착수(P0→P1→P2→P3 도구)**: Chief의 "작업 시작해" 지시로 `document/ops/20261104-rider-v2-upper-body/`를 활성화했다. 기준선·렌더 경로 감사를 완료했고, 표준 `SkinnedMesh` 스파이크 2/2 PASS 및 GLB 구조 감사기 baseline 실행을 완료했다. rider15 후보 GLB·Mapbox 실화면·팔 IK는 아직 미검증이며 rider14 활성 모델은 유지한다. 다음은 모델러 export 계약 또는 실제 후보 GLB 대기다. 결과: `document/ops/20261104-rider-v2-upper-body/REPORT.md`.
 
 **11-04 PR #21 배포 완료(004e4261, Claude Code) — Chief 폰 시험 대기**: 국가 입력(고정75)·G2 요약 목록·G4 Trail 지역·G3-2 국가 순위(고정76)·L9. `publicationListings` 39건 채움(재실행 변경 0, 보관 5건 제외), `aPbTo3` 50건 삭제(주행 0·마일리지 0, 스냅샷 `.out/private-guest-lifecycle/rides-aPbTo3-20261104`). 게이트: test:quick 1506/0, functions 259/0, Rules 11/11. 지역 순위는 국가를 정한 뒤 달린 주행부터 쌓인다. 남은 것: Chief 폰 시험, 공개 주행 1회 뒤 쓰기 감소 측정(`20261103-cost-squeeze/tools/`). Codex rider15 작업이 같은 폴더에서 동시 진행 중이다.

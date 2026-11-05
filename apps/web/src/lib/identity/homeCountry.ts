@@ -35,6 +35,17 @@ export function guessHomeCountryFromDevice(): string | null {
   return guessHomeCountryFromTimeZone(deviceTimeZone());
 }
 
+/** 대륙 코드(경계 데이터 `continentOfCountry`) → 화면 이름. 순위 범위·Trail 찾기가 함께 쓴다. */
+export const CONTINENT_LABELS: Record<string, string> = {
+  AS: "아시아",
+  EU: "유럽",
+  AF: "아프리카",
+  NA: "북아메리카",
+  SA: "남아메리카",
+  OC: "오세아니아",
+  AN: "남극",
+};
+
 /** 국가 코드 → 화면 언어 이름(대한민국). 모르면 코드 그대로 */
 export function homeCountryLabel(code: string, locale = "ko"): string {
   try {

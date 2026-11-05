@@ -4,20 +4,11 @@
  * 처음은 세계(지금과 같음), 마지막으로 고른 범위를 기기에 기억한다.
  */
 import type { LeaderboardScope } from "../../services/leaderboardApi";
-import { homeCountryLabel } from "../../lib/identity/homeCountry";
+import { CONTINENT_LABELS, homeCountryLabel } from "../../lib/identity/homeCountry";
 
 const LEADERBOARD_SCOPE_STORAGE_KEY = "rtw.leaderboard.scope";
 const ORDER: LeaderboardScope[] = ["world", "continent", "country"];
 
-const CONTINENT_LABELS: Record<string, string> = {
-  AS: "아시아",
-  EU: "유럽",
-  AF: "아프리카",
-  NA: "북아메리카",
-  SA: "남아메리카",
-  OC: "오세아니아",
-  AN: "남극",
-};
 
 export function nextLeaderboardScope(current: LeaderboardScope): LeaderboardScope {
   return ORDER[(ORDER.indexOf(current) + 1) % ORDER.length]!;

@@ -255,3 +255,17 @@
   .lb-glance__live-dot { width: 6px; height: 6px; }
   .lb-glance__join { height: 12px; line-height: 10px; padding: 0 5px; font-size: 9.5px; }
 }
+
+/* 2026-11-05 Chief 시안 ① — 최근 내가 달린 Trail(10분). 지도 위 목록 결(줄 띠) 그대로, 내 줄 바탕. */
+.lb-glance__section { margin: 6px 0 2px; font-size: 10px; font-weight: 700; letter-spacing: .12em; pointer-events: none; }
+.lb-glance__row--recent { height: 30px; grid-template-columns: 18px minmax(0, 1fr) max-content max-content; }
+.lb-glance__row--recent::before { background: rgba(222, 233, 255, .9); }
+.lb-glance__recent-name { display: flex; flex-direction: column; min-width: 0; line-height: 1.1; }
+.lb-glance__recent-sub { font-size: 10px; color: #4b5160; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-glance__recent-left { font-size: 11px; font-weight: 700; color: #4b5160; white-space: nowrap; }
+.lb-glance__join--primary { border: 0; background: #2457d6; color: #fff; }
+.lb-glance__finder {
+  align-self: flex-start; margin-top: 4px; height: 28px; padding: 0 12px; border: 0; border-radius: 999px;
+  background: #fff; color: #2457d6; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .25); pointer-events: auto;
+}

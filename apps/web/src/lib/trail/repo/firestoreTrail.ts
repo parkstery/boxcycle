@@ -2,10 +2,7 @@ import {
   collection,
   deleteDoc,
   doc,
-  getDocs,
-  limit,
   onSnapshot,
-  query,
   serverTimestamp,
   setDoc,
   type FirestoreError,
@@ -18,7 +15,7 @@ import {
   TRAIL_MEMBERS_SUBCOLLECTION,
   TRAILS_COLLECTION,
 } from "./firestoreTrailPaths";
-import { noteListingRefreshRead, notePresenceHeartbeatWrite } from "../../debug/touchActivityMeters";
+import { notePresenceHeartbeatWrite } from "../../debug/touchActivityMeters";
 import {
   noteTrailPresenceWriteProxy,
   trackVisibilityListener,
@@ -42,7 +39,6 @@ export type TrailMemberRow = {
 // 변환기는 인프라 층(`../../firebase/converters`)이 갖는다 — Trail 과 무관하다(D6).
 import { lastSeenAtToMillis } from "../../firebase/converters";
 /* presence 「살아 있는가」 판정은 정책이다 — 저장소가 갖지 않는다(Phase 6-D6). */
-import { TRAIL_PRESENCE_STALE_MS } from "../trailLivePolicy";
 export { isMemberRecentlySeen, isTrailMemberActive, PRESENCE_HEARTBEAT_INTERVAL_MS, TRAIL_PRESENCE_STALE_MS } from "../trailLivePolicy";
 export { lastSeenAtToMillis };
 
@@ -91,23 +87,6 @@ export async function deleteTrailPresence(uid: string, trailId: string): Promise
   await deleteDoc(doc(db, TRAILS_COLLECTION, rid, TRAIL_MEMBERS_SUBCOLLECTION, uid));
 }
 
-const MEMBERS_COUNT_SCAN_LIMIT = 48;
-
-/** Trail `members` 중 최근 접속(lastSeenAt) — aggregation 없이 소량 getDocs */
-export async function countTrailMembersFresh(trailId: string): Promise<number> {
-  const rid = sanitizeTrailId(trailId);
-  if (rid === DEFAULT_TRAIL_ID) return 0;
-  const coll = membersCollectionRef(rid);
-  const cutoffMs = Date.now() - TRAIL_PRESENCE_STALE_MS;
-  const snap = await getDocs(query(coll, limit(MEMBERS_COUNT_SCAN_LIMIT)));
-  noteListingRefreshRead();
-  let n = 0;
-  for (const d of snap.docs) {
-    const ms = lastSeenAtToMillis((d.data() as Record<string, unknown>).lastSeenAt);
-    if (ms != null && ms >= cutoffMs) n += 1;
-  }
-  return n;
-}
 
 export function subscribeTrailMembers(
   trailId: string,

@@ -26,7 +26,7 @@
 |------|-----------|-----|
 | Trailhead | `trailId=default` (문서 없음·멤버만) | MENU TrailHub, 코스 선택 |
 | Trail (라이브 판) | `trails/{id}` 메타 + members + livePublicationRides | `Trail 035` (3자리 `displayNumber`) |
-| Ride 기록 | `rides.roomId` = Trail ID | 주행 종료 후 Trailhead 복귀 |
+| Ride 기록 | `rides.roomId` = Trail ID | 주행 종료 후 같은 Trail 대기(2026-11-05, 종전 Trailhead 복귀) |
 
 **표시 번호:** 내부 ID = Firestore auto-id. 사람에게는 `001`–`999` 랜덤 `displayNumber` (일일 순번·날짜코드는 미사용).
 
@@ -100,8 +100,8 @@
 | Trail 합류 | **열린 Trail** 목록 탭 | `TrailHubPanel` · `fetchOpenTrailInstances` |
 | 주행 시작 | **Trail 자동 개설** (기본 open) | `createTrailInstance` · ▶ |
 | Trail 공개 전환 | 호스트만 Open/Private | `setTrailVisibility` |
-| Trail 이탈 | 로그아웃, **다른 Trail로 이동**, 주행 종료 | `deleteLobbyPresence` / `deleteLobbyLiveCourseRide` 등 |
-| 사용자 「나가기」 버튼 | **없음** (Trailhead 정책) | 세션 종료·이동·로그아웃으로만 정리 |
+| Trail 이탈 | 로그아웃, **다른 Trail로 이동**, 메뉴 「나가기」(2026-11-05) | `deleteLobbyPresence` / `deleteLobbyLiveCourseRide` 등 |
+| 사용자 「나가기」 버튼 | **있음**(2026-11-05 Chief) — 대기에서 메뉴 「현재 Trail N」 줄. 주행 중·일시정지는 「주행을 끝내고 나갈까요?」 확인 뒤. 주행 종료만으로는 나가지 않는다(같은 Trail 대기) | [20261105-trail-lifecycle](../../ops/20261105-trail-lifecycle/README.md) |
 
 ---
 

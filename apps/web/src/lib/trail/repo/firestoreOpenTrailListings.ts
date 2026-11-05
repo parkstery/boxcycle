@@ -16,7 +16,6 @@ import {
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getFirebaseApp, getFirebaseFirestore } from "../../firebase/app";
-import { countTrailMembersFresh } from "./firestoreTrail";
 import { TRAIL_ACTIVITY_TOUCH_MIN_INTERVAL_MS, TRAIL_PRESENCE_STALE_MS } from "../trailLivePolicy";
 import { countTrailLiveRidersFresh } from "./firestoreTrailLivePublicationRides";
 import { trailHasConfiguredRoute } from "../trailAccessPolicy";
@@ -85,11 +84,9 @@ async function countTrailActiveParticipantsForTrail(trail: TrailInstance): Promi
     metaFresh && typeof trail.liveRiderCount === "number" && Number.isFinite(trail.liveRiderCount)
       ? Math.max(0, Math.floor(trail.liveRiderCount))
       : 0;
-  const [live, members] = await Promise.all([
-    countTrailLiveRidersFresh(trail.id).catch(() => 0),
-    countTrailMembersFresh(trail.id).catch(() => 0),
-  ]);
-  return Math.max(metaCount, live, members);
+  // 2026-11-05 Chief D6: 목록 인원 = 주행 중(live ride)만. 대기(presence 만)는 세지 않는다 — 서버 재계산과 같다.
+  const live = await countTrailLiveRidersFresh(trail.id).catch(() => 0);
+  return Math.max(metaCount, live);
 }
 
 async function loadTrailForListing(trailId: string): Promise<TrailInstance | null> {
@@ -134,6 +131,7 @@ function listingToTrailInstance(
       typeof data.riderCount === "number" && Number.isFinite(data.riderCount)
         ? Math.max(0, Math.floor(data.riderCount))
         : 0,
+    geoCountry: typeof data.geoCountry === "string" && data.geoCountry ? data.geoCountry : null,
   };
 }
 
