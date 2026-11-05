@@ -4,7 +4,7 @@
 |---|---|
 | 문서 유형 | ops 계획 — 데이터 구조 확장 설계 |
 | 작성 | 2026-11-03 Supervisor Claude Code (Opus 5.5) |
-| 상태 | IN_PROGRESS — G1·G3-1 배포, **G2·G4·G3-2 서버 구현·미배포(11-04, §4.1.1·§4.5.1·§4.3.1)** |
+| 상태 | IN_PROGRESS — G1·G2·G3(국가 입력·범위 버튼 포함)·G4 서버 배포(004e4261, 11-04). 남은 것: 목록 지역 필터 화면(시안 → Chief 승인), G5, 유럽 RTDB 2차 |
 | 출발점 | Chief 자문 대화(Geographic Data Architecture 제안) + 코드 대조 의견 |
 
 ## 1. 결정
@@ -111,7 +111,7 @@
 - Rules: 공개 읽기·서버만 쓰기(`openTrailListings`와 같은 꼴).
 - 클라이언트 목록 전환은 기존 `limit(80)` 경로를 대체한다. 지역 선택 화면은 **시안 → Chief 승인 후** 구현한다(디자인 고정 목록 규칙).
 
-### 4.1.1 G2 결과 (2026-11-04, Claude Code 클라우드 세션 직접 구현 · 미배포)
+### 4.1.1 G2 결과 (2026-11-04, Claude Code 클라우드 세션 직접 구현 · 004e4261 배포)
 
 | 항목 | 값 |
 |---|---|
@@ -161,13 +161,13 @@
 - **계정 삭제·게스트 정리**: `accountDeletionCore.ts` 컬렉션 목록과 게스트 정리(`purgeGuestUsersCore.ts`)에 `leaderboardScores`를 등록한다. 빠뜨리면 지운 사용자가 순위에 남는다.
 - **전환 게이트**: 같은 기간에 대해 기존 훑기 집계와 새 누적 점수의 상위 20위·값이 일치해야 바꾼다(합성 데이터 + 운영 데이터 1회 비교).
 
-### 4.3.1 G3-2 서버 결과 (2026-11-04, Claude Code 클라우드 세션 직접 · 미배포)
+### 4.3.1 G3-2 서버 결과 (2026-11-04, Claude Code 클라우드 세션 직접 · 004e4261 배포)
 
 - 국가 입력(가입·프로필·확인 카드)은 [시안 묶음](../20261104-country-input-mockup/README.md)으로 구현(Chief A안).
 - **쓰기**: 거리 판은 주행 시점의 `users.homeCountry`로 대륙·국가 범위에도 더한다(회원만). 대륙은 경계 데이터 표(`continentOfCountry`). 개척 판은 도로 기준(D3)이라 G5 전까지 전세계만. 주행 1건 점수 문서 8 → 최대 16(거리 12 + 개척 4).
 - **지난 점수는 옮기지 않는다**(계획대로). 이미 반영된 주행은 지역 범위에 들어가지 않으므로 지역 순위는 국가를 정한 뒤의 주행부터 쌓인다. 채우기 CLI 는 아직 반영 안 된 주행에만 현재 국가로 지역 범위를 더한다.
 - **읽기**: `getLeaderboard?scopeType=world|continent|country[&scopeCode=KR]`. 코드 생략 = 요청자의 대표 국가, 없으면 400. 개척 판 지역 요청은 400. 응답에 `scope`·`scopeCode`(전세계 null). 범위를 보내지 않는 옛 앱은 그대로 `world` — 호환.
-- 웹 `fetchLeaderboard`는 범위 인자·새 응답을 받는다. **범위를 고르는 화면은 아직 없다**(시안 → Chief 승인).
+- 웹 `fetchLeaderboard`는 범위 인자·새 응답을 받는다. 범위 버튼은 순위 시트에 A안으로 구현했다(0dc965f9, 고정76).
 - 색인 변경 없음(기존 복합 색인에 `scopeType`·`scopeCode` 가 이미 있다).
 - 시험: `leaderboardScopes.test.ts` 8건(범위 계산·쓰기 계획·국가/대륙/전세계 순위 분리·요청 해석), 사보타주(거리 범위 제거) → 2 FAIL. functions 259/0. 동등성 시험(전세계) 그대로 통과.
 - 배포: `functions:leaderboardScoresOnRideWritten,functions:getLeaderboard`. 국가 Rules·Hosting 과 순서 무관(국가가 없으면 전세계만 쌓인다).
@@ -184,7 +184,7 @@
 - `openTrailListingCore.ts`가 Publication의 geoRegion을 목록 문서에 복사한다(새 판정 없이 복사만).
 - 쿼리는 §4.1과 같은 꼴이다. 실시간 참가자 정보는 지금처럼 RTDB에 두고 목록에는 인원 수만 둔다.
 
-### 4.5.1 G4 서버 결과 (2026-11-04, Claude Code 클라우드 세션 직접 · 미배포)
+### 4.5.1 G4 서버 결과 (2026-11-04, Claude Code 클라우드 세션 직접 · 004e4261 배포)
 
 - `openTrailListingCore.ts` 재계산이 `publicationListings/{publicationId}`의 지역 5종을 Trail 목록 문서에 복사한다(새 판정 없음). 표시 필드 `geoSourcePublicationId`로 **같은 Publication 이면 다시 읽지 않는다** — 재계산은 활동 시각마다 돌기 때문. 목록 문서가 생길 때 읽기 1회가 는다.
 - 요약 목록이 아직 없으면(G2 채우기 전) 값은 null 로 두고 표시만 남긴다. 목록 문서는 라이더가 없으면 지워지므로 다음 Trail 부터 채워진다.

@@ -2,7 +2,7 @@
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | IN_PROGRESS — G1·G0.5(P1 1차·P2·P5)·G3-1 배포됨(54bd409d), 유럽 RTDB 생성 |
+| 상태 | IN_PROGRESS — G1·G0.5(P1 1차·P2·P5)·G2·G3(국가 입력·범위 버튼)·G4 서버 배포(004e4261), 유럽 RTDB 생성 |
 | Supervisor | Claude Code (Opus 5.5) |
 | 계획 | [00-plan.md](00-plan.md) |
 
@@ -12,9 +12,9 @@
 
 ## 다음
 
-1. G2 Publication 검색 목록
-2. 유럽 RTDB 2차(앱 접속 분리, [§5.1](00-plan.md))
-3. G3-2 국가 범위(국가 입력 시안 → Chief 승인)
+1. Chief 폰 시험: 국가 입력·순위 범위 버튼(11-04 기준 범위 요청 0건)
+2. Publication·Trail 목록 지역 필터 화면(시안 → Chief 승인)
+3. G5 Conquest 지역 통계(개척 순위 지역 범위의 재료), 유럽 RTDB 2차(앱 접속 분리, [§5.1](00-plan.md))
 
 ## G1 결과 (2026-11-03, Claude Code 직접)
 

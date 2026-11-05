@@ -2,7 +2,7 @@
 
 2026-11-03 [운영 비용 짜내기](20261103-cost-squeeze/README.md): AUDITED·결정 대기. 제곱형 비용 원천 L6 순위 rides 전체 훑기·L1 livePresence 전체 구독·L2 첫 화면 CG 구독(1만 명 추정 월 수천 달러). L2는 화면 영향 없음. Supervisor Claude Code.
 
-2026-11-03 [전세계 지역 데이터 구조](20261103-global-geo-data/README.md): APPROVED(방향)·NOT_STARTED. 서비스·DB 하나+지역 표시(대륙·국가·ISO3166-2·quadkey), 거리순위=대표국가·정복/개척=도로위치, 주·월, 도시 보류. Chief 확인 Q1·Q2 후 G1. Supervisor Claude Code.
+2026-11-03 [전세계 지역 데이터 구조](20261103-global-geo-data/README.md): IN_PROGRESS. G1·G0.5(P1 1차·P2·P5)·G2·G3·G4 서버 배포(004e4261). 서비스·DB 하나+지역 표시(대륙·국가·ISO3166-2·quadkey), 거리순위=대표국가·정복/개척=도로위치, 도시 보류. 남은 것: 목록 지역 필터 화면, G5, 유럽 RTDB 2차. Supervisor Claude Code.
 
 2026-10-29 [왼쪽 메뉴 정비](20261029-left-menu/03-audit-claude.md): COMMITTED·미푸시·미배포. Cursor 구현, Claude Code가 Codex에서 감리 인수. 인터벌 「사용」 알약 스위치+직접조절 시 프리셋 숨김(Chief A안). 묶음별 커밋 4b4f5427(지도아이콘100)·2264047e(미니맵접기102)·f2b1b882(메뉴). 관련UI 실패 9건은 HEAD 기존 실패.
 

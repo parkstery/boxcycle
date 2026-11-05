@@ -3,43 +3,49 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | **Claude Code** — 2026-11-04 PR #21 배포 완료, Chief 폰 시험 대기 |
-| 갱신 | 2026-11-04 19시 — 004e4261 배포 |
-| 브랜치 | `main2` |
+| 담당 | **Claude Code** — 2026-11-06 로컬 깃 정비 완료, PR #22 푸시·배포 Chief 결정 대기 |
+| 갱신 | 2026-11-06 — GitHub 대조·`main2` 정렬 |
+| 브랜치 | `main2` (로컬이 `origin/main2`보다 7커밋 앞섬, 미푸시) |
 | 마지막 배포 | 2026-11-04 (Claude Code) 004e4261 — Rules·색인 3개·함수 39개 전체·격리 Hosting index-Cz5gGPUO.js SHA256=로컬. 이전 6f125e1c L4b |
 
 ## 진행 중
 
+**11-06 로컬 깃 정비(Claude Code)**: GitHub 대조 결과 로컬에 없는 원격 커밋 0. 클라우드 지역 데이터 작업(PR #21)은 병합·배포됨. 최신은 PR #22(메뉴·Trail, 초안, 운영 번들 대조로 미배포 확인). `main2`를 PR #22(62daafd8)로 fast-forward하고 미커밋 기록을 3커밋으로 정리, **푸시 안 함**. PC 게이트(PR #22 범위): lock·dep·DB 통로·dev-tools·code-tidy·tsc·peer-spacing·entry-selectors PASS. **test:quick FAIL**: Vite+Edge DOM 시험 3건(`recent-road-display-dom`·`entry-location-dom`·`last-ride-entry-dom`)이 동시 실행에서 60초 초과(3회 중 2회 같은 3건, 1회는 실패 1건 이름 미확인), 단독 3/3 PASS, PR #22가 직접 부르는 파일 없음, `node_modules/.vite/deps_temp_*` 잔여. 캐시 경쟁 추정·`main2` 기준선 미측정. 푸시 전 해결 필요. 지역 다음 일: [README](20261103-global-geo-data/README.md).
+
+11-06 비코드: DevManager Pro `AI 엔지니어링` 앱에 바이브코더 용어 24 해설 보고서 저장 완료(캡처 원본 `C:UserskdreaAppDataLocalTempopencodeibe-ui-terms`).
+
 **11-04 rider15 상체 스킨 착수(P0→P1→P2→P3 도구)**: Chief의 "작업 시작해" 지시로 `document/ops/20261104-rider-v2-upper-body/`를 활성화했다. 기준선·렌더 경로 감사를 완료했고, 표준 `SkinnedMesh` 스파이크 2/2 PASS 및 GLB 구조 감사기 baseline 실행을 완료했다. rider15 후보 GLB·Mapbox 실화면·팔 IK는 아직 미검증이며 rider14 활성 모델은 유지한다. 다음은 모델러 export 계약 또는 실제 후보 GLB 대기다. 결과: `document/ops/20261104-rider-v2-upper-body/REPORT.md`.
 
-**11-04 PR #21 배포 완료(004e4261, Claude Code) — Chief 폰 시험 대기**: 국가 입력(고정75)·G2 요약 목록·G4 Trail 지역·G3-2 국가 순위(고정76)·L9. `publicationListings` 39건 채움(재실행 변경 0, 보관 5건 제외), `aPbTo3` 50건 삭제(주행 0·마일리지 0, 스냅샷 `.out/private-guest-lifecycle/rides-aPbTo3-20261104`). 게이트: test:quick 1506/0, functions 259/0, Rules 11/11. 지역 순위는 국가를 정한 뒤 달린 주행부터 쌓인다. 남은 것: Chief 폰 시험, 공개 주행 1회 뒤 쓰기 감소 측정(`20261103-cost-squeeze/tools/`). Codex rider15 작업이 같은 폴더에서 동시 진행 중이다.
+**11-04 PR #21 배포 완료(004e4261, Claude Code) — Chief 폰 시험 대기**: 국가 입력(고정75)·G2 요약 목록·G4 Trail 지역·G3-2 국가 순위(고정76)·L9. `publicationListings` 39건 채움(재실행 변경 0, 보관 5건 제외), `aPbTo3` 50건 삭제(주행 0·마일리지 0, 스냅샷 `.out/private-guest-lifecycle/rides-aPbTo3-20261104`). 게이트: test:quick 1506/0, functions 259/0, Rules 11/11. 지역 순위는 국가를 정한 뒤 달린 주행부터 쌓인다. 19:25 센서 2인 주행: 지역 점수 적립·오류 0·`aPbTo3` 재등장 없음 확인, 위치 외 쓰기 분당 11건. 위치 저장은 사람당 분당 16건으로 설계 5건의 3배, 속도 변화 쓰기가 원인으로 추론([측정 4](20261103-cost-squeeze/03-write-ledger.md)) — 임계값 조정 Chief 결정 대기. 범위 버튼 실제 요청은 아직 0건. Codex rider15 작업이 같은 폴더에서 동시 진행 중이다.
 
 **11-03~04 비용 절감·지역 데이터(Claude Code) — 배포됨 54bd409d**: L1·L2·L3·L4·L6(G3-1 누적 점수로 근본 해결)·P1·P2·G1. Chief 실주행 3회+관전 PASS(11-04). **L4b 배포됨(6f125e1c)**: 가속 중 연속 쓰기 제한+`rides.netStats`([기록](20261103-cost-squeeze/02-design-l4.md)). 다음: Chief 2인 재주행 → 분당 쓰기(Cloud Monitoring)·`rides.netStats`로 4초 구간 원인 확정. 남은 것: 유럽 RTDB 2차. [cost-squeeze](20261103-cost-squeeze/README.md)·[00-plan](20261103-global-geo-data/00-plan.md).
 
-**11-03 버튼 숨김 멈춤 수정+ⓖ 빈칸(Claude Code) — 배포됨(f8d19c69, 운영 js SHA256=로컬)**: 원인 = 펼친 경로 카드(줄 띠)가 RideControlsAutoHide BUSY 에 있어 5초 숨김·탭 토글 둘 다 멈춤(폰 699×273 터치 실앱 실측). BUSY 에서 제외, 고정66 보완. 게스트 이름 `ⓖ tHQb`(고정73). 실앱 시험 `ride-entry.spec.ts` 「실앱 버튼 숨김」(사보타주 확인), ride-entry 8/8, 하네스 autohide 7/7, test:quick 1475/0. 남은 것: Chief 폰 확인.
+**11-03 버튼 숨김 멈춤 수정+ⓖ 빈칸 — 배포됨(f8d19c69)**: 고정66·73. 남은 것: Chief 폰 확인.
 
-**11-03 닉네임·게스트 ⓖ·센서 메뉴·인터벌 영어 음성 + 게스트 전부 삭제(Claude Code) — 배포·완료**: 499c0bf2·fd0ef880 푸시(pre-push 10종·1475/0), firestore:rules·Hosting 배포(운영 js SHA256=로컬, 번들에 새 문구 확인). 고정73. 게스트 62명 삭제·검증(Google 5 보호, 남은 것 0) — [README](20261103-guest-reset/README.md). 리셋 도구에 `--baseline`·`--google` 인자 추가. 남은 것: Chief 사이트 확인(새로고침).
+**11-03 닉네임·게스트 ⓖ·센서 메뉴·인터벌 영어 음성+게스트 전부 삭제 — 배포·완료**: 고정73, [README](20261103-guest-reset/README.md). 남은 것: Chief 사이트 확인.
 
 **11-03 인터벌 창·RouteDock 줄 띠·Chief 5건+탭 토글** — 배포됨(939f0ca3·f45d6193), 기록은 [README](20261103-interval-sensor-look/README.md)·고정72.
 
-**11-03 Chief 폰 캡처 6장 후속 배포됨(f32dc99d, Claude Code)**: 글자 선택 막기·순위 목록 계정 아래(묶음 겹침 허용)·왼쪽 원형 메뉴 버튼·왼쪽 끝 20px·접힌 인터벌 알약 버튼 오른쪽·경로 손잡이/미니맵 둘 다 접힘=세로·manifest fullscreen+viewport-fit=cover. pre-push 10종·test:quick 1470/0, 화면 e2e 16종 137/3(배치1 기존), 운영 js·css SHA256=로컬·manifest 200. 고정71·README 「후속 2」. 남은 것: Chief 폰 「홈 화면에 추가」 실기 확인. Chief 6장 중 3~6(고도 숫자·이름표 겹침·빈 핀)은 별도·보류.
+**11-03 Chief 폰 캡처 6장 후속 — 배포됨(f32dc99d)**: 고정71·README 「후속 2」. 남은 것: Chief 폰 「홈 화면에 추가」 실기 확인. 6장 중 3~6(고도 숫자·이름표 겹침·빈 핀)은 별도·보류.
 
 **11-02 주행 화면 배치 개편 1~5단계·A~C·인터벌 「설정 적용」 전부 배포됨(Claude Code)** — 기록은 [README](20261102-ride-screen-layout/README.md)·고정63~70·git log. App.tsx 래칫 한도 3807 — 더하지 말고 훅·컴포넌트로. 하네스 e2e 남은 실패 14건은 개편 이전부터(9e27638b). 실앱 측정 시험은 5초 숨김 때문에 화면 누름 필요.
 
-10-30~11-01 배포분(D안 인터벌·톱니·구름·RouteDock 도구줄·인터벌 진입·주행 설정·경로 창) 기록은 각 묶음 README·git log. 주행 중 인터벌 진입: 10-30 Chief 결정 — 주행 중 불가, 일시정지에서 INT.
+10-30~11-01 배포분 기록은 각 묶음 README·git log. 주행 중 인터벌 진입: 일시정지에서 INT(Chief 결정).
 
-간편 인터벌 01: 실앱 live FAIL 원인 = 시험 결함(adhoc 결과시트엔 .ride-summary__close 없음 → 닫힌 줄 오인, 시트 열린 채 반달 숨김). 제품 루프 없음·HEAD 동일 확인(임시 계측, 파일 삭제됨). impl-standard 재작업 2 진행: 「저장 안 함」으로 정식 닫기, live 2회 연속 PASS.
-별도 기존 결함 후보: 일반 주행 결과시트 「닫기」가 10초 내 클릭 안 됨(HEAD 동일), rideEntryHelpers.loadIntroCourse 의 Trail 메뉴 클릭이 지도에 가려짐 → test:e2e:ride 확인 필요. 다음: 재작업 2 재감리 → Chief 보고 → 커밋·푸시·배포.
+간편 인터벌 01: 실앱 live FAIL 원인 = 시험 결함(결과시트 닫기 오인), 제품 루프 없음. 재작업 2 재감리 대기.
+별도 기존 결함 후보: 일반 주행 결과시트 「닫기」가 10초 내 클릭 안 됨(HEAD 동일), rideEntryHelpers.loadIntroCourse 의 Trail 메뉴 클릭이 지도에 가려짐 → test:e2e:ride 확인 필요.
 
 ## 다음 한 걸음
 
 1. Firestore 타인 위치fanout 구조 저감과 운영원가귀속. 자기 문서 제외는 배포됨. 상시 백업을 끊는 안은 복구 지연 때문에 채택 안 함. ([09](20261029-peer-cost-quality/09-firestore-read-reduction.md))
 2. [인터벌 경로 계획](20261029-quick-interval-ride/00-plan.md)(Chief 순서 변경): 간편 01(진행 중) → [거리 부족 안내](20261029-interval-route-hint/01-task.md) → [01-B](20261029-quick-interval-ride/01b-task-end-and-cut.md). 인터벌 기준 모두 25km/h(`resolveIntervalBasisKmh` 한 곳), 간편=25×1.3.
-3. 커밋 제외: compact-controls evidence zip 2개(각 182MB), `.out/`(배포 빌드 복사본), 빈 `claude-headless.err`.
+3. 커밋 제외: compact-controls evidence zip 2개(각 182MB), `.out/`(배포 빌드 복사본), 빈 `claude-headless.err`, 증거 PNG 변경 28개·`a-interval-sheet-800x360.png`(10-30~11-03 생성, 출처 미확인). `test-reset-summary.json`은 줄바꿈 차이뿐.
 
 ## Chief 결정 대기
 
-그 밖에 없음 — 2026-10-29 Chief 「한꺼번에 하자」: 간편 인터벌 01 감리·커밋 후 그때까지의 커밋 전부를 한 번에 푸시·Hosting 배포한다(배포 전 대상·범위 설명 후 실행, 적용 검증).
+- PR #22: `main2` 푸시(병합)·Hosting 배포 여부. test:quick 시간 초과 해결 뒤.
+- 위치 저장 임계값 조정(측정 4).
+- 그 밖: 2026-10-29 Chief 「한꺼번에 하자」: 간편 인터벌 01 감리·커밋 후 그때까지의 커밋 전부를 한 번에 푸시·Hosting 배포한다(배포 전 대상·범위 설명 후 실행, 적용 검증).
 
 ## 잊지 말 것
 
