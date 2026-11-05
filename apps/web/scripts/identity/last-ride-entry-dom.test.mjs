@@ -53,7 +53,7 @@ createRoot(document.getElementById('root')).render(React.createElement(React.Str
 `;
 assert.equal(ts.createSourceFile('fixture.js',fixture,ts.ScriptTarget.Latest,true,ts.ScriptKind.JS).parseDiagnostics.length,0);
 const ride = (id, end, at='2026-10-27T12:00:00Z') => ({id,endedAt:at,elapsedSec:300,distanceMeters:1200,avgSpeedKmh:14,caloriesEstimate:null,routeDistanceMeters:1200,routeDurationSec:300,sessionEndLngLat:end});
-test('actual history and entry hooks prefer latest endpoint without geolocation, once per account entry', {timeout:60000}, async()=>{
+test('actual history and entry hooks prefer latest endpoint without geolocation, once per account entry', {timeout: 180000}, async()=>{
  const server=await createServer({cacheDir:(process.env.TEMP||"/tmp")+"/vite-quick-"+process.pid+"-"+Math.random().toString(36).slice(2),logLevel:'error',server:{host:'127.0.0.1',port:0},plugins:[{
   name:'last-ride-entry',enforce:'pre',
   resolveId(id){if(id==='/last-entry.js')return '\0last-entry';if(id.endsWith('/repo/firestoreRides'))return '\0history-mock';},

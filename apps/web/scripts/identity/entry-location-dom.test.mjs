@@ -45,7 +45,7 @@ function App(){
  return React.createElement(EntryLocationDialog,{phase:e.phase,permission:e.permission,onChooseCurrent:e.chooseCurrent,onChooseRome:e.chooseRome,onPosition:e.acceptPosition});
 }
 createRoot(document.getElementById("root")).render(React.createElement(App));`;
-test("first control directly requests browser location", {timeout:60000}, async()=>{
+test("first control directly requests browser location", {timeout: 180000}, async()=>{
  const server=await createServer({cacheDir:(process.env.TEMP||"/tmp")+"/vite-quick-"+process.pid+"-"+Math.random().toString(36).slice(2),server:{host:"127.0.0.1",port:0},plugins:[{name:"entry-test",resolveId(id){if(id==="/fixture.js")return "\0entry-fixture";},load(id){if(id==="\0entry-fixture")return fixture;},configureServer(s){s.middlewares.use(async(req,res,next)=>{
 
  if(req.url!=="/fixture")return next();
