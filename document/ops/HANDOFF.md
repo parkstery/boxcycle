@@ -3,14 +3,14 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | **Claude Code** — 2026-11-06 로컬 깃 정비 완료, PR #22 푸시·배포 Chief 결정 대기 |
+| 담당 | **Claude Code** — 2026-11-06 PR #22 푸시 완료(0276202f), Hosting 배포는 chief 실행 대기 |
 | 갱신 | 2026-11-06 — GitHub 대조·`main2` 정렬 |
-| 브랜치 | `main2` (로컬이 `origin/main2`보다 7커밋 앞섬, 미푸시) |
+| 브랜치 | `main2` (= `origin/main2` 0276202f) |
 | 마지막 배포 | 2026-11-04 (Claude Code) 004e4261 — Rules·색인 3개·함수 39개 전체·격리 Hosting index-Cz5gGPUO.js SHA256=로컬. 이전 6f125e1c L4b |
 
 ## 진행 중
 
-**11-06 로컬 깃 정비(Claude Code)**: GitHub 대조 결과 로컬에 없는 원격 커밋 0. 클라우드 지역 데이터 작업(PR #21)은 병합·배포됨. 최신은 PR #22(메뉴·Trail, 초안, 운영 번들 대조로 미배포 확인). `main2`를 PR #22(62daafd8)로 fast-forward하고 미커밋 기록을 3커밋으로 정리, **푸시 안 함**. PC 게이트(PR #22 범위): lock·dep·DB 통로·dev-tools·code-tidy·tsc·peer-spacing·entry-selectors PASS. **test:quick FAIL**: Vite+Edge DOM 시험 3건(`recent-road-display-dom`·`entry-location-dom`·`last-ride-entry-dom`)이 동시 실행에서 60초 초과(3회 중 2회 같은 3건, 1회는 실패 1건 이름 미확인), 단독 3/3 PASS, PR #22가 직접 부르는 파일 없음, `node_modules/.vite/deps_temp_*` 잔여. 캐시 경쟁 추정·`main2` 기준선 미측정. 푸시 전 해결 필요. 지역 다음 일: [README](20261103-global-geo-data/README.md).
+**11-06 PR #22 푸시·시간 초과 수정·임계값(Claude Code)**: `main2`에 PR #22(메뉴 출처 3버튼·센서 단추·Trail 합류/나가기)를 포함해 푸시함(0276202f, pre-push 게이트 통과). test:quick 시간 초과는 Vite DOM 시험 5개가 `node_modules/.vite` 캐시를 공유한 탓이라 시험별 `cacheDir`로 분리, 2회 연속 1506/0. 위치 저장 임계값: RTDB 정상 시 속도 쓰기 간격 3→6초·변화량 0.83→1.67 m/s(분당 상한 약 10건), 다음 공개 주행에서 사람당 분당 쓰기 재측정 필요. **Hosting 배포는 자동 승인 분류기가 거부해 미실행** → chief가 루트에서 `npm run deploy:hosting` 실행 후 번들에서 `menu-panel__sources` 확인. 지역 다음 일: [README](20261103-global-geo-data/README.md).
 
 11-06 비코드: DevManager Pro `AI 엔지니어링` 앱에 바이브코더 용어 24 해설 보고서 저장 완료(캡처 원본 `C:UserskdreaAppDataLocalTempopencodeibe-ui-terms`).
 
@@ -43,8 +43,7 @@
 
 ## Chief 결정 대기
 
-- PR #22: `main2` 푸시(병합)·Hosting 배포 여부. test:quick 시간 초과 해결 뒤.
-- 위치 저장 임계값 조정(측정 4).
+- 위치 저장 임계값 효과 확인(재측정). PR #22 Hosting 배포 실행.
 - 그 밖: 2026-10-29 Chief 「한꺼번에 하자」: 간편 인터벌 01 감리·커밋 후 그때까지의 커밋 전부를 한 번에 푸시·Hosting 배포한다(배포 전 대상·범위 설명 후 실행, 적용 검증).
 
 ## 잊지 말 것
