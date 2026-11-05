@@ -57,9 +57,10 @@ export const RTDB_MOTION_HEALTHY_ACK_WINDOW_MS = 2_500;
  * 1km/h 변화를 0.4초 간격으로 쓴다. 동행 움직임은 RTDB 5Hz 가 전달하므로 이 값은 관전·폴백용이다.
  */
 export const TRAIL_LIVE_SPEED_WRITE_MIN_GAP_MS = 1_000;
-export const TRAIL_LIVE_SPEED_WRITE_MIN_GAP_RTDB_HEALTHY_MS = 3_000;
-/** RTDB 정상일 때 하트비트 전에 쓸 만한 속도 변화(약 3 km/h). 비정상이면 종전 0.28 m/s. */
-export const TRAIL_LIVE_SPEED_DELTA_RTDB_HEALTHY_MPS = 0.83;
+/** 측정 4: 사람당 분당 16건(설계 5). 3→6초로 속도 쓰기 상한을 분당 10건으로. */
+export const TRAIL_LIVE_SPEED_WRITE_MIN_GAP_RTDB_HEALTHY_MS = 6_000;
+/** RTDB 정상일 때 하트비트 전에 쓸 만한 속도 변화(약 6 km/h, 11-06 측정 4 후 0.83에서 상향). 비정상이면 종전 0.28 m/s. */
+export const TRAIL_LIVE_SPEED_DELTA_RTDB_HEALTHY_MPS = 1.67;
 
 export type RtdbMotionHealthReason = "healthy" | "disconnected" | "noAck" | "staleAck";
 
