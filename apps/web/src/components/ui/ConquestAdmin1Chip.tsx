@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useAnchoredMenu } from "./useAnchoredMenu";
 import "./ListRegionChip.css";
 
 type Item = { code: string; label: string; meters: number };
@@ -17,52 +17,11 @@ const km = (m: number) => `${(m / 1000).toFixed(1)}km`;
 
 /** 내 도로망 행정구역 칩(Chief 11-06 A안) — 국가 칩 옆. 메뉴: 전체(국가 합계) + 거리 많은 순 행정구역. */
 export function ConquestAdmin1Chip({ value, valueLabel, countryMeters, items, onPick }: Props) {
-  const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ top: number; left: number; maxHeight: number } | null>(null);
-  const btnRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const close = () => setOpen(false);
-    const onDown = (e: Event) => {
-      const t = e.target as Node;
-      if (menuRef.current?.contains(t) || btnRef.current?.contains(t)) return;
-      close();
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      e.stopImmediatePropagation();
-      close();
-      btnRef.current?.focus();
-    };
-    document.addEventListener("pointerdown", onDown, true);
-    document.addEventListener("keydown", onKey, true);
-    window.addEventListener("resize", close);
-    return () => {
-      document.removeEventListener("pointerdown", onDown, true);
-      document.removeEventListener("keydown", onKey, true);
-      window.removeEventListener("resize", close);
-    };
-  }, [open]);
-
-  const toggle = () => {
-    if (open) {
-      setOpen(false);
-      return;
-    }
-    const r = btnRef.current?.getBoundingClientRect();
-    if (r) {
-      const top = r.bottom + 2;
-      setPos({ top, left: Math.max(4, Math.min(r.left, window.innerWidth - 212)), maxHeight: Math.max(80, window.innerHeight - top - 6) });
-    }
-    setOpen(true);
-  };
+  const { open, pos, btnRef, menuRef, toggle, closeAndFocus } = useAnchoredMenu(212);
 
   const pick = (code: string | null) => {
     onPick(code);
-    setOpen(false);
-    btnRef.current?.focus();
+    closeAndFocus();
   };
 
   return (

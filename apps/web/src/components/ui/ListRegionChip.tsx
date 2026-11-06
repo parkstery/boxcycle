@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { createPortal } from "react-dom";
 import {
   buildRegionMenu,
@@ -6,6 +6,7 @@ import {
   type ListRegionKey,
   type RegionGeo,
 } from "../../lib/geo/listRegionFilter";
+import { useAnchoredMenu } from "./useAnchoredMenu";
 import "./ListRegionChip.css";
 
 type Props = {
@@ -24,49 +25,8 @@ type Props = {
  * 메뉴는 부모의 잘림(overflow)을 피하려고 body 로 띄운다. 열려 있는 동안 Esc 는 메뉴만 닫는다.
  */
 export function ListRegionChip({ region, recents, geos, homeCountry, onPick, variant }: Props) {
-  const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ top: number; left: number; maxHeight: number } | null>(null);
-  const btnRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const { open, pos, btnRef, menuRef, toggle, closeAndFocus } = useAnchoredMenu(164);
   const items = useMemo(() => buildRegionMenu(geos, homeCountry, recents), [geos, homeCountry, recents]);
-
-  useEffect(() => {
-    if (!open) return;
-    const close = () => setOpen(false);
-    const onDown = (e: Event) => {
-      const t = e.target as Node;
-      if (menuRef.current?.contains(t) || btnRef.current?.contains(t)) return;
-      close();
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      e.stopImmediatePropagation();
-      close();
-      btnRef.current?.focus();
-    };
-    document.addEventListener("pointerdown", onDown, true);
-    document.addEventListener("keydown", onKey, true);
-    window.addEventListener("resize", close);
-    return () => {
-      document.removeEventListener("pointerdown", onDown, true);
-      document.removeEventListener("keydown", onKey, true);
-      window.removeEventListener("resize", close);
-    };
-  }, [open]);
-
-  const toggle = () => {
-    if (open) {
-      setOpen(false);
-      return;
-    }
-    const r = btnRef.current?.getBoundingClientRect();
-    if (r) {
-      const top = r.bottom + 2;
-      const left = Math.max(4, Math.min(r.left, window.innerWidth - 164));
-      setPos({ top, left, maxHeight: Math.max(80, window.innerHeight - top - 6) });
-    }
-    setOpen(true);
-  };
 
   const label = regionLabel(region);
   return (
@@ -104,8 +64,7 @@ export function ListRegionChip({ region, recents, geos, homeCountry, onPick, var
                       className={`list-region-menu__item${selected ? " is-selected" : ""}`}
                       onClick={() => {
                         onPick(it.key);
-                        setOpen(false);
-                        btnRef.current?.focus();
+                        closeAndFocus();
                       }}
                     >
                       {selected ? "✓ " : ""}
