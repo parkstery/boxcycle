@@ -23,6 +23,7 @@
     "test:e2e:pacer": "node scripts/e2e/run-with-deadline.mjs --limit-sec 600 -- node scripts/e2e/run-with-functions-emulator.mjs \"playwright test pacer-solo --workers=1 --retries=0\"",
     "test:calorie-profile": "node --experimental-strip-types --test scripts/calorie-profile/calorie-profile-sync.test.ts",
     "test:trail-motion:rules": "firebase emulators:exec --only auth,firestore --project boxcycle-dc2df --config ../../firebase.json \"node scripts/trail/trail-motion-instance-rules.emulator.mjs\"",
+    "test:conquest-regions:rules": "firebase emulators:exec --only auth,firestore --project boxcycle-dc2df --config ../../firebase.json \"node scripts/conquest/regions-rules.emulator.mjs\"",
     "test:home-country:rules": "firebase emulators:exec --only auth,firestore --project boxcycle-dc2df --config ../../firebase.json \"node scripts/identity/home-country-rules.emulator.mjs\"",
     "test:calorie-profile:rules": "firebase emulators:exec --only auth,firestore --project boxcycle-dc2df --config ../../firebase.json \"node scripts/calorie-profile/calorie-profile-rules.emulator.mjs\"",
     "test:profile-edit:emulator": "firebase emulators:exec --only auth,firestore --project boxcycle-dc2df --config ../../firebase.json \"node scripts/calorie-profile/run-nickname-change-test.mjs\"",

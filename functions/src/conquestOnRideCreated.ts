@@ -4,6 +4,8 @@ import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { isGuestLifecycleBlockedError, assertGuestLifecycleWritableInTx } from "./guestLifecycleGuard.js";
 import { REGION } from "./region.js";
 import { conquestCellIdAt, type LngLat } from "./geoTiles.js";
+import { resolveGeoRegion } from "./geoRegion/geoRegionData.js";
+import { planRegionAccounting, toScopeTotals, type ChunkRegionResolver } from "./conquestRegion.js";
 
 /**
  * Conquest(정복) 레이어 v2 — 도로 셀 기반(2026-07-03 도로 전환).
@@ -19,7 +21,11 @@ import { conquestCellIdAt, type LngLat } from "./geoTiles.js";
  *   conquest/{uid}/chunks/{z12}    → { cells: { "<z20Id>": <dayKey> } }
  *   conquest/{uid}/traces/{rideId} → { path: [[lng,lat]...], newMeters, day } (「내 도로망」 렌더)
  *   conquest/{uid}/recentNewRoad/current → 최신 신규 도로 날짜의 geometry (같은 날짜만 누적)
- *   rides/{rideId}.conquestResult  → { newMeters, newCells, creditedMeters, tier, day, newGeometry }
+ *   conquest/{uid}/regions/{scopeCode} → { scopeType: country|admin1, meters, cells, lastRideAt } (국가·행정구역 누적, increment)
+ *   rides/{rideId}.conquestResult  → { newMeters, newCells, creditedMeters, tier, day, newGeometry,
+ *                                      byRegion: [{ continent, country, admin1, meters, cells }] }
+ * 지역 판정은 z12 묶음 중심점 기준이라 국경·행정구역 경계가 묶음(한 변 약 7.8km)을 가로지르면
+ * 묶음 전체가 중심점 지역으로 몰리는 오차가 있다(conquestRegion.ts).
  */
 
 const CELL_ZOOM = 20;
@@ -235,6 +241,8 @@ export type ConquestRideInput = {
   pedalSec: number | null;
   elapsedSec: number;
   distanceMeters: number;
+  /** 묶음 중심점 → 지역 판정기. 시험 주입용, 기본값은 resolveGeoRegion. */
+  resolveRegion?: ChunkRegionResolver;
 };
 
 export type ConquestClaimProjection = {
@@ -396,6 +404,12 @@ export async function applyConquestInTransaction(
   }
 
   const consumedTotal = projection.consumedMeters;
+  // 지역 기록은 도로망을 막지 않는다: 판정 실패·상한 초과(conquestRegion.ts REGION_MAX_*)면 byRegion=[] 로 건너뛴다.
+  const regionPlan = planRegionAccounting(newCellsByChunk, newMeters, input.resolveRegion ?? resolveGeoRegion);
+  const byRegion = regionPlan.byRegion;
+  if (regionPlan.skipped) {
+    console.warn("conquest region accounting skipped", regionPlan.skipped, rideId, userId, regionPlan.error ?? "");
+  }
 
   const currentRecentData = recentNewRoadSnap.data();
   const currentRecent: RecentNewRoadState | null =
@@ -460,6 +474,21 @@ export async function applyConquestInTransaction(
     );
   }
 
+  // 지역별 개인 누적 — 바다(국가 없음)는 toScopeTotals 가 제외한다. 읽기는 위에서 끝났다.
+  for (const t of toScopeTotals(byRegion)) {
+    if (t.meters === 0 && t.cells === 0) continue;
+    tx.set(
+      db.doc(`conquest/${userId}/regions/${t.scopeCode}`),
+      {
+        scopeType: t.scopeType,
+        meters: FieldValue.increment(t.meters),
+        cells: FieldValue.increment(t.cells),
+        lastRideAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+  }
+
   tx.update(rideRef, {
     conquestResult: {
       newMeters,
@@ -468,6 +497,7 @@ export async function applyConquestInTransaction(
       tier,
       day: today,
       newGeometry,
+      byRegion,
     },
   });
 }

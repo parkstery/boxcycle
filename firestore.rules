@@ -654,6 +654,12 @@ service cloud.firestore {
         allow read: if isSelf(userId);
         allow write: if false;
       }
+
+      /** 지역별 누적(G5) — 국가·행정구역 문서, 본인 읽기, 쓰기는 Functions 전용. */
+      match /regions/{scopeCode} {
+        allow read: if isSelf(userId);
+        allow write: if false;
+      }
     }
 
     /** 개척자(pioneer) 전역 레이어 — 로그인 읽기, 쓰기는 Functions 전용(write-once 는 CF 가 보장). */

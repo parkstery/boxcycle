@@ -10,11 +10,12 @@
 
 ## 진행 중
 
+**11-06 G5 Conquest 지역 통계(수퍼바이저 Claude Code·구현 impl-standard, 미커밋·미배포)**: S1~S6 구현 끝. functions 282/0·test:quick 1522/0 · 안전장치 A·B 구현(상한·판정 실패 격리)·Rules 6/6·e2e 3/3. 결과 [00-plan §4.4.1](20261103-global-geo-data/00-plan.md)·고정80. 남은 것: Chief 승인 뒤 커밋 → 운영 dry-run(`npm run admin:backfill-conquest-regions`, functions) → Firestore 스냅샷 → Rules·함수 배포 → 채우기 `--apply --confirm-prod` → Hosting. 이름 표 생성 완료(`apps/web/public/geo-names/v1`, 3813코드 ko·en, 화면 미연결 — 행정구역 선택은 시안 후).
+
 **11-06 목록 지역 필터(구현 impl-standard·감리 Claude Code)**: 퍼블릭 목록·Trail 탭 머리줄에 「세계 ▾」 칩(Chief A안·고정79), 받아 둔 행을 화면에서 거름(읽기 추가 0), 마지막 범위 기기 저장. test:quick 1513/0. 남은 것: chief 폰 가로 확인 — 699×273 퍼블릭 머리줄 폭, Trail 탭 줄 16px 칩. 서버 geo 미채움 Trail은 지역 선택 시 빠짐.
 
 **11-06 PR #22 푸시·시간 초과 수정·임계값(Claude Code)**: `main2`에 PR #22(메뉴 출처 3버튼·센서 단추·Trail 합류/나가기)를 포함해 푸시함(0276202f, pre-push 게이트 통과). test:quick 시간 초과는 Vite DOM 시험 5개가 `node_modules/.vite` 캐시를 공유한 탓이라 시험별 `cacheDir`로 분리, 2회 연속 1506/0. 위치 저장 임계값: RTDB 정상 시 속도 쓰기 간격 3→6초·변화량 0.83→1.67 m/s(분당 상한 약 10건), 다음 공개 주행에서 사람당 분당 쓰기 재측정 필요. **Hosting 배포는 자동 승인 분류기가 거부해 미실행** → chief가 루트에서 `npm run deploy:hosting` 실행 후 번들에서 `menu-panel__sources` 확인. 지역 다음 일: [README](20261103-global-geo-data/README.md).
 
-11-06 비코드: DevManager Pro `AI 엔지니어링` 앱에 바이브코더 용어 24 해설 보고서 저장 완료(캡처 원본 `C:UserskdreaAppDataLocalTempopencodeibe-ui-terms`).
 
 **11-04 rider15 상체 스킨 착수(P0→P1→P2→P3 도구)**: Chief의 "작업 시작해" 지시로 `document/ops/20261104-rider-v2-upper-body/`를 활성화했다. 기준선·렌더 경로 감사를 완료했고, 표준 `SkinnedMesh` 스파이크 2/2 PASS 및 GLB 구조 감사기 baseline 실행을 완료했다. rider15 후보 GLB·Mapbox 실화면·팔 IK는 아직 미검증이며 rider14 활성 모델은 유지한다. 다음은 모델러 export 계약 또는 실제 후보 GLB 대기다. 결과: `document/ops/20261104-rider-v2-upper-body/REPORT.md`.
 
@@ -22,13 +23,9 @@
 
 **11-03~04 비용 절감·지역 데이터(Claude Code) — 배포됨 54bd409d**: L1·L2·L3·L4·L6(G3-1 누적 점수로 근본 해결)·P1·P2·G1. Chief 실주행 3회+관전 PASS(11-04). **L4b 배포됨(6f125e1c)**: 가속 중 연속 쓰기 제한+`rides.netStats`([기록](20261103-cost-squeeze/02-design-l4.md)). 다음: Chief 2인 재주행 → 분당 쓰기(Cloud Monitoring)·`rides.netStats`로 4초 구간 원인 확정. 남은 것: 유럽 RTDB 2차. [cost-squeeze](20261103-cost-squeeze/README.md)·[00-plan](20261103-global-geo-data/00-plan.md).
 
-**11-03 버튼 숨김 멈춤 수정+ⓖ 빈칸 — 배포됨(f8d19c69)**: 고정66·73. 남은 것: Chief 폰 확인.
 
-**11-03 닉네임·게스트 ⓖ·센서 메뉴·인터벌 영어 음성+게스트 전부 삭제 — 배포·완료**: 고정73, [README](20261103-guest-reset/README.md). 남은 것: Chief 사이트 확인.
 
-**11-03 인터벌 창·RouteDock 줄 띠·Chief 5건+탭 토글** — 배포됨(939f0ca3·f45d6193), 기록은 [README](20261103-interval-sensor-look/README.md)·고정72.
 
-**11-03 Chief 폰 캡처 6장 후속 — 배포됨(f32dc99d)**: 고정71·README 「후속 2」. 남은 것: Chief 폰 「홈 화면에 추가」 실기 확인. 6장 중 3~6(고도 숫자·이름표 겹침·빈 핀)은 별도·보류.
 
 **11-02 주행 화면 배치 개편 1~5단계·A~C·인터벌 「설정 적용」 전부 배포됨(Claude Code)** — 기록은 [README](20261102-ride-screen-layout/README.md)·고정63~70·git log. App.tsx 래칫 한도 3807 — 더하지 말고 훅·컴포넌트로. 하네스 e2e 남은 실패 14건은 개편 이전부터(9e27638b). 실앱 측정 시험은 5초 숨김 때문에 화면 누름 필요.
 

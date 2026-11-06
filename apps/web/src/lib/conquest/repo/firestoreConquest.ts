@@ -3,6 +3,8 @@ import {
   doc,
   getDocs,
   onSnapshot,
+  query,
+  where,
   type Unsubscribe,
 } from "firebase/firestore";
 import { getFirebaseFirestore } from "../../firebase/app";
@@ -114,6 +116,37 @@ export async function loadConquestCellDays(userId: string): Promise<Map<string, 
     }
   });
   return out;
+}
+
+/** 지역별 누적 한 건(G5) — 서버가 쓰는 `conquest/{uid}/regions/{scopeCode}`. */
+export type ConquestRegionTotal = { scopeType: "country" | "admin1"; scopeCode: string; meters: number; cells: number };
+
+/**
+ * 내 도로망 지역 칩의 재료 — **국가 문서만** 읽는다(`scopeType == country`, 읽기 수 = 달린 국가 수).
+ * 행정구역 문서는 서버가 쌓아 두지만 화면이 쓰기 전까지 읽지 않는다(읽기 절약). 실패하면 빈 배열.
+ */
+export async function loadConquestRegions(userId: string): Promise<ConquestRegionTotal[]> {
+  try {
+    const db = getFirebaseFirestore();
+    const snap = await getDocs(
+      query(collection(db, "conquest", userId, "regions"), where("scopeType", "==", "country")),
+    );
+    const out: ConquestRegionTotal[] = [];
+    snap.forEach((d) => {
+      const data = d.data();
+      const scopeType = data.scopeType === "admin1" ? "admin1" : data.scopeType === "country" ? "country" : null;
+      if (!scopeType) return;
+      out.push({
+        scopeType,
+        scopeCode: d.id,
+        meters: Math.max(0, Number(data.meters) || 0),
+        cells: Math.max(0, Number(data.cells) || 0),
+      });
+    });
+    return out;
+  } catch {
+    return [];
+  }
 }
 
 /** 「내 도로망」 궤적 전체 — 지도 영구 렌더용. path 는 평탄 배열 [lng0,lat0,...] */

@@ -20,7 +20,7 @@ export const LEADERBOARD_USES_COLLECTION = "leaderboardUses";
 export const LEADERBOARD_USE_MARKS_COLLECTION = "leaderboardUseMarks";
 export const LEADERBOARD_SCORE_APPLIED_COLLECTION = "leaderboardScoreApplied";
 
-/** 범위 — 전세계 + (거리 판, G3-2) 대표 국가의 대륙·국가. 개척 판의 지역 범위는 도로 위치 기준(G5)이라 아직 전세계만. */
+/** 범위 — 전세계 + (거리 판, G3-2) 대표 국가의 대륙·국가. 개척 판의 지역 범위는 도로 위치 기준(G5) byRegion 의 대륙·국가(행정구역 없음). */
 export const WORLD_SCOPE_TYPE = "world";
 export const WORLD_SCOPE_CODE = "-";
 export const CONTINENT_SCOPE_TYPE = "continent";
@@ -143,6 +143,8 @@ export type RideScoreInput = {
   publicationOwnerUid: string | null;
   /** 거리 판에 더할 지역 범위(주행 시점의 대표 국가로 정함 — 바꿔도 지난 점수는 옮기지 않는다). 없으면 전세계만. */
   distanceScopes?: readonly ScoreScope[];
+  /** `conquestResult.byRegion` 축약(G5) — 개척 판의 대륙·국가 범위 금액. 없으면(옛 주행) 개척은 전세계만. */
+  byRegion?: readonly { continent: string | null; country: string | null; meters: number }[];
 };
 
 export type ScoreIncrement = {
@@ -180,6 +182,27 @@ function finiteNonNegative(n: unknown): number {
  * 값이 0 인 판은 문서를 만들지 않는다(기존 집계도 0 이하 계정은 순위에 넣지 않았다).
  * 개척 이용은 newMeters 와 무관하게 센다(기존 computeBoardSnapshot 과 같다).
  */
+/** byRegion → 개척 판 지역 범위별 금액. 국가·대륙 단위로 합산하고, null(바다) 항목은 지역 범위에 넣지 않는다. */
+/** 한 주행이 개척 지역 점수를 올릴 수 있는 국가·대륙 수 상한(서버가 쓴 byRegion 이라 보통 넘지 않는다 — 방어선). 금액 큰 순. */
+export const PIONEER_REGION_MAX = 6;
+
+export function pioneerRegionAmounts(byRegion: RideScoreInput["byRegion"]): { scope: ScoreScope; value: number }[] {
+  const countries = new Map<string, number>();
+  const continents = new Map<string, number>();
+  for (const r of byRegion ?? []) {
+    const m = finiteNonNegative(r.meters);
+    if (m <= 0) continue;
+    if (r.country) countries.set(r.country, (countries.get(r.country) ?? 0) + m);
+    if (r.continent) continents.set(r.continent, (continents.get(r.continent) ?? 0) + m);
+  }
+  const top = (m: Map<string, number>) =>
+    [...m].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, PIONEER_REGION_MAX);
+  return [
+    ...top(continents).map(([code, value]) => ({ scope: { scopeType: CONTINENT_SCOPE_TYPE, scopeCode: code }, value })),
+    ...top(countries).map(([code, value]) => ({ scope: { scopeType: COUNTRY_SCOPE_TYPE, scopeCode: code }, value })),
+  ];
+}
+
 export function planRideScoreWrites(input: RideScoreInput, scope: ScoreScope = WORLD_SCOPE): RidePlan {
   const empty: RidePlan = { scores: [], uses: [] };
   const t1 = input.tier === "t1";
@@ -194,8 +217,11 @@ export function planRideScoreWrites(input: RideScoreInput, scope: ScoreScope = W
   for (const board of LEADERBOARD_BOARDS) {
     const value = finiteNonNegative(board === "distance" ? input.distanceMeters : input.newMeters);
     if (value <= 0) continue;
-    const scopes = board === "distance" ? [scope, ...(input.distanceScopes ?? [])] : [scope];
-    for (const sc of scopes) for (const periodKey of periodKeys) {
+    const scopes: { scope: ScoreScope; value: number }[] =
+      board === "distance"
+        ? [scope, ...(input.distanceScopes ?? [])].map((sc) => ({ scope: sc, value }))
+        : [{ scope, value }, ...pioneerRegionAmounts(input.byRegion)];
+    for (const { scope: sc, value } of scopes) for (const periodKey of periodKeys) {
       scores.push({
         docId: scoreDocId(board, periodKey, input.userId, sc),
         scope: sc,

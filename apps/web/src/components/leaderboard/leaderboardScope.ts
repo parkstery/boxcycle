@@ -1,6 +1,7 @@
 /**
  * 순위 범위 버튼(Chief 11-04 A안) — 기간 버튼과 같은 꼴, 누를 때마다 세계 → 대륙 → 국가.
- * 거리 판이고 대표 국가가 있을 때만 고를 수 있다. 개척 판의 지역은 도로 기준(G5)이라 아직 세계만.
+ * 대표 국가가 있을 때만 고를 수 있다(거리·개척 판 모두). 개척 판의 지역은 도로 위치 기준(G5, 서버가 대륙·국가까지 쌓는다).
+ * 대표 국가가 없으면 서버가 국가 코드를 정하지 못해 400 이라 세계만 둔다.
  * 처음은 세계(지금과 같음), 마지막으로 고른 범위를 기기에 기억한다.
  */
 import type { LeaderboardScope } from "../../services/leaderboardApi";
@@ -14,8 +15,8 @@ export function nextLeaderboardScope(current: LeaderboardScope): LeaderboardScop
   return ORDER[(ORDER.indexOf(current) + 1) % ORDER.length]!;
 }
 
-export function canPickLeaderboardScope(board: "distance" | "pioneer", homeCountry: string | null): boolean {
-  return board === "distance" && homeCountry != null;
+export function canPickLeaderboardScope(_board: "distance" | "pioneer", homeCountry: string | null): boolean {
+  return homeCountry != null;
 }
 
 /** 실제로 요청할 범위 — 고를 수 없으면 세계 */

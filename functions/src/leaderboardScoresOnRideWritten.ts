@@ -28,6 +28,7 @@ export function rideScoreInputFromData(
   const cr = data.conquestResult as Record<string, unknown> | undefined;
   const tier = typeof cr?.tier === "string" ? cr.tier : null;
   if (!tier) return null;
+  const byRegion = parseByRegion(cr?.byRegion);
   return {
     rideId,
     userId,
@@ -39,7 +40,27 @@ export function rideScoreInputFromData(
     publicationId:
       typeof data.publicationId === "string" && data.publicationId ? data.publicationId : null,
     publicationOwnerUid,
+    ...(byRegion ? { byRegion } : {}),
   };
+}
+
+/** conquestResult.byRegion → 대륙·국가·meters 만. 배열이 아니거나 항목 형식이 틀리면 undefined(옛 주행 호환). */
+function parseByRegion(raw: unknown): RideScoreInput["byRegion"] {
+  if (!Array.isArray(raw)) return undefined;
+  const out: NonNullable<RideScoreInput["byRegion"]>[number][] = [];
+  for (const r of raw) {
+    if (!r || typeof r !== "object") return undefined;
+    const o = r as Record<string, unknown>;
+    const meters = o.meters;
+    if (typeof meters !== "number" || !Number.isFinite(meters)) return undefined;
+    const code = (v: unknown): string | null | undefined =>
+      v == null ? null : typeof v === "string" ? v : undefined;
+    const continent = code(o.continent);
+    const country = code(o.country);
+    if (continent === undefined || country === undefined) return undefined;
+    out.push({ continent, country, meters });
+  }
+  return out;
 }
 
 export const leaderboardScoresOnRideWritten = onDocumentWritten(

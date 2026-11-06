@@ -2,7 +2,7 @@ import { test, expect } from './open-meteo-stub';
 
 /**
  * 순위 범위 버튼(Chief 11-04 A안, 고정76) — 기간 버튼과 같은 꼴, 누를 때마다 세계 → 대륙 → 국가.
- * 거리 판 + 대표 국가가 있을 때만 버튼, 그 밖(개척 판·국가 없음)은 「세계」 글자. 마지막 범위를 기억한다.
+ * 대표 국가가 있을 때만 버튼(거리·개척 판 모두, G5), 국가 없음은 「세계」 글자. 마지막 범위를 기억한다.
  * 실제 LeaderboardSheet 를 미리보기(fetch 흉내)로 띄운다. 요청 범위는 body[data-lb-last-scope] 로 본다.
  */
 const preview = '/scripts/ui-800x360/preview.html';
@@ -46,7 +46,7 @@ for (const size of sizes) {
   });
 }
 
-test('개척 판·국가 없음은 「세계」 글자만, 요청도 세계', async ({ page }) => {
+test('개척 판도 범위 버튼이 있고, 국가 없음은 「세계」 글자만·요청도 세계', async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 360 });
   await page.goto(`${preview}?state=leaderboard&country=KR`);
   await page.evaluate(() => localStorage.setItem('rtw.leaderboard.scope', 'country'));
@@ -54,9 +54,7 @@ test('개척 판·국가 없음은 「세계」 글자만, 요청도 세계', as
   const sheet = page.getByRole('dialog', { name: '리더보드', exact: true });
   await expect(sheet.locator('.leaderboard-sheet__scope-btn')).toHaveText('대한민국 ▾');
   await sheet.getByRole('button', { name: '개척', exact: true }).click();
-  await expect(sheet.locator('.leaderboard-sheet__scope-btn')).toHaveCount(0);
-  await expect(sheet.locator('.leaderboard-sheet__scope-label')).toHaveText('세계');
-  await expect(page.locator('body')).toHaveAttribute('data-lb-last-scope', 'world');
+  await expect(sheet.locator('.leaderboard-sheet__scope-btn')).toHaveText('대한민국 ▾');
 
   await page.goto(`${preview}?state=leaderboard`);
   await expect(sheet.locator('.leaderboard-sheet__scope-btn')).toHaveCount(0);

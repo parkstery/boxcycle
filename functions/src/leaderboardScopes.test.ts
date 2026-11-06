@@ -138,3 +138,77 @@ describe("요청 범위 해석", () => {
     await assert.rejects(resolveRequestScope("admin1", undefined, home("KR")), HttpsError);
   });
 });
+
+describe("개척 판 대륙·국가 범위(G5 S3)", () => {
+  const pioneerOf = (input: RideScoreInput) => planRideScoreWrites(input).scores.filter((s) => s.board === "pioneer");
+  const sumAll = (rows: { addAll: number }[]) => rows.reduce((a, r) => a + r.addAll, 0);
+
+  it("서울+파리: world·KR·AS·FR·EU 범위, 지역 금액 합 = newMeters", () => {
+    const input = {
+      ...ride("r1", "u1", 5000),
+      newMeters: 1000,
+      byRegion: [
+        { continent: "AS", country: "KR", meters: 300 },
+        { continent: "AS", country: "KR", meters: 200 },
+        { continent: "EU", country: "FR", meters: 500 },
+      ],
+    };
+    const rows = pioneerOf(input).filter((s) => s.periodKey === "all");
+    const by = (t: string, c: string) => rows.find((s) => s.scope.scopeType === t && s.scope.scopeCode === c);
+    assert.equal(rows.length, 5);
+    assert.equal(by("world", "-")!.addAll, 1000);
+    assert.equal(by("country", "KR")!.addAll, 500);
+    assert.equal(by("country", "FR")!.addAll, 500);
+    assert.equal(by("continent", "AS")!.addAll, 500);
+    assert.equal(by("continent", "EU")!.addAll, 500);
+    assert.equal(by("continent", "AS")!.addT1, 500, "센서 인정분 규칙 동일");
+    assert.equal(sumAll(rows.filter((s) => s.scope.scopeType === "country")), 1000);
+    assert.ok(rows.some((s) => s.docId === "pioneer_all_country_KR_u1"));
+  });
+  it("바다만 byRegion 이면 전세계만", () => {
+    const rows = pioneerOf({ ...ride("r1", "u1", 5000), byRegion: [{ continent: null, country: null, meters: 400 }] });
+    assert.equal(rows.length, 4);
+    assert.ok(rows.every((s) => s.scope.scopeType === "world"));
+  });
+  it("byRegion 없는 옛 주행은 전세계만", () => {
+    assert.equal(pioneerOf(ride("r1", "u1", 5000)).length, 4);
+  });
+  it("개척 판 국가 요청도 해석되고 점수 읽기가 에러 없이 돈다", async () => {
+    assert.deepEqual((await resolveRequestScope("country", undefined, async () => "KR")).scope, {
+      scopeType: "country",
+      scopeCode: "KR",
+    });
+    const db = new FakeScoreDb();
+    const r = { ...ride("p1", "kr1", 5000), byRegion: [{ continent: "AS", country: "KR", meters: 2500 }] };
+    await db.runTransaction((tx) => applyRideScoresInTransaction(tx as never, db.asFirestore(), r, true, 0));
+    resetLeaderboardTopMemoForTests();
+    const layout = await loadLeaderboardLayoutFromScores(db.asFirestore(), {
+      board: "pioneer", period: "all", requester: { uid: "kr1", isAnonymous: false }, nowMs: NOW, sensorOnly: false,
+      scope: { scopeType: "country", scopeCode: "KR" },
+    });
+    assert.deepEqual(layout.top.map((x) => x.uid), ["kr1"]);
+    assert.equal(layout.me.uses, null);
+  });
+});
+
+import { PIONEER_REGION_MAX, pioneerRegionAmounts } from "./leaderboardScoresCore.js";
+
+describe("개척 지역 점수 상한(G5 안전장치)", () => {
+  it("국가·대륙이 상한보다 많으면 금액 큰 순으로 상한까지만", () => {
+    const codes = Array.from({ length: 12 }, (_, i) => `C${i}`);
+    const by = codes.map((c, i) => ({ continent: `K${i}`, country: c, meters: 100 - i }));
+    const out = pioneerRegionAmounts(by);
+    assert.equal(out.filter((o) => o.scope.scopeType === "country").length, PIONEER_REGION_MAX);
+    assert.equal(out.filter((o) => o.scope.scopeType === "continent").length, PIONEER_REGION_MAX);
+    assert.deepEqual(out.filter((o) => o.scope.scopeType === "country")[0]!.scope.scopeCode, "C0");
+    assert.ok(!out.some((o) => o.scope.scopeCode === "C11"), "작은 금액은 버린다");
+  });
+  it("정상 범위(3국가)는 그대로", () => {
+    const out = pioneerRegionAmounts([
+      { continent: "EU", country: "FR", meters: 10 },
+      { continent: "EU", country: "DE", meters: 5 },
+      { continent: "AS", country: "KR", meters: 7 },
+    ]);
+    assert.equal(out.length, 5);
+  });
+});

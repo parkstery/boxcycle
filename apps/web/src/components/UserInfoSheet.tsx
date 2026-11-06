@@ -30,6 +30,10 @@ import { selfRiderDisplayName } from "../lib/identity/riderName";
 import { isRouteReviewer } from "../lib/route/repo/publicRouteRequests";
 
 import type { ConquestDisplayMode } from "./map/routeConquestLayers";
+import { ListRegionChip } from "./ui/ListRegionChip";
+import { regionLabel, WORLD_REGION, type ListRegionKey } from "../lib/geo/listRegionFilter";
+import { metersForRegion, regionGeosOf } from "../lib/conquest/conquestRegionPick";
+import { useConquestRegions } from "../hooks/useConquestRegions";
 
 type UserInfoSheetProps = {
   conquestDisplayMode?: ConquestDisplayMode;
@@ -256,6 +260,9 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   }, [adminCheckUser]);
   const showAdminEntry = Boolean(props.onOpenAdmin && props.user && adminUid === props.user.uid);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [regionPick, setRegionPick] = useState<ListRegionKey>(WORLD_REGION);
+  const conquestRegions = useConquestRegions(props.user?.uid ?? null, props.open, props.conquest?.totalMeters ?? null);
+  const regionGeos = useMemo(() => regionGeosOf(conquestRegions), [conquestRegions]);
   const [statsPeriod, setStatsPeriod] = useState<RideStatsPeriod>("day");
   const [statsSessions, setStatsSessions] = useState<StoredRideSession[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
@@ -572,7 +579,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
             {!historyOpen ? (
               <div className="user-info-sheet__row" role="group" aria-label="내 도로망">
                 <span className="user-info-sheet__row-k">
-                  내 도로망
+                  내 도로망{regionPick !== WORLD_REGION ? ` · ${regionLabel(regionPick)}` : ""}
                   {props.conquest != null && props.conquest.totalMeters <= 0 ? (
                     <span className="user-info-sheet__row-sub">첫 라이딩으로 나만의 길을 남겨보세요.</span>
                   ) : null}
@@ -581,7 +588,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                   <span className="user-info-sheet__row-v is-quiet">확인 중</span>
                 ) : (
                   <span className="user-info-sheet__row-v is-accent">
-                    <Num v={(props.conquest.totalMeters / 1000).toFixed(1)} unit="km" />
+                    <Num v={(metersForRegion(regionPick, props.conquest.totalMeters, conquestRegions) / 1000).toFixed(1)} unit="km" />
                   </span>
                 )}
               </div>
@@ -589,6 +596,16 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
 
             {!historyOpen && props.onConquestDisplayMode ? (
               <div className="user-info-sheet__conquest-controls" role="group" aria-label="내 도로망 표시">
+                {regionGeos.length > 0 ? (
+                  <ListRegionChip
+                    region={regionPick}
+                    recents={[]}
+                    geos={regionGeos}
+                    homeCountry={props.homeCountry ?? null}
+                    onPick={setRegionPick}
+                    variant="modal"
+                  />
+                ) : null}
                 <button type="button" aria-pressed={props.conquestDisplayMode === "all"}
                   onClick={() => props.onConquestDisplayMode?.("all")}>전체 도로망</button>
                 <button type="button" aria-pressed={props.conquestDisplayMode === "recent"}

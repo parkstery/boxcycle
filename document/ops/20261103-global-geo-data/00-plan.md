@@ -179,6 +179,19 @@
 - 「내 Conquest」 국가·도시 필터는 묶음 ID → 지역 판정으로 화면에서 거른다. 저장 구조(`chunks`)는 바꾸지 않는다.
 - 국경 묶음(한 변 약 7.8km)은 중심점 지역으로 몰린다. 최대 수 km 오차가 있다는 것을 문서에 남기고, 필요해지면 셀 단위 판정으로 정밀화한다.
 
+### 4.4.1 G5 결과 (2026-11-06, Supervisor Claude Code · 구현 impl-standard · 미커밋·미배포)
+
+- **결정(Chief)**: 개척 지역 순위는 대륙·국가까지(행정구역 순위 없음). 개인 통계 `regions`는 국가+행정구역 문서. 채우기는 `regions`만(순위 소급 없음). 화면은 [시안](../20261106-g5-conquest-region-mockup/README.md) ① 채택(고정80).
+- **쓰기(S1·S2)**: `conquestRegion.ts`(묶음 중심점 판정, 거리는 묶음별 새 셀 수 비율 배분·합계 보존) → `conquestOnRideCreated.ts`가 `rides.conquestResult.byRegion`(tier와 같은 쓰기)과 `conquest/{uid}/regions/{scopeCode}`(`scopeType`·`meters`·`cells`·`lastRideAt`, increment)를 쓴다. 바다 묶음은 regions 제외·byRegion에는 country null로 남음. 국경·행정구역 묶음(한 변 약 7.8km)은 중심점 지역으로 몰린다 — 최대 수 km 오차.
+- **순위(S3)**: 개척 판이 byRegion으로 대륙·국가 점수 문서를 추가(센서 인정분 규칙 동일), `getLeaderboard` 개척+지역 400 제거, 개척 `uses`는 전세계만.
+- **Rules·삭제(S4)**: `conquest/{uid}/regions/{scopeCode}` 본인 읽기·쓰기 불가, 계정 삭제·게스트 정리 등록. 에뮬레이터 시험 6/6(`npm run test:conquest-regions:rules`, apps/web).
+- **채우기(S5)**: `cliBackfillConquestRegions.ts` — chunks 셀 수 × `totalMeters` 비율 배분, 사용자 단위 낙관적 확인 후 set(멱등). 기본 dry-run, 운영 쓰기는 `--apply --confirm-prod`.
+- **화면(S6)**: 계정 창 「내 도로망」 지역 칩(`ListRegionChip` 재사용), 순위 범위 버튼 개척 탭 개방(대표 국가 있을 때).
+- **시험**: functions 275/0 · test:quick 1516/0 · e2e leaderboard-scope 3/3.
+- **행정구역 이름 표(11-06)**: `functions/scripts/geo-region/build-geo-names.mjs`(Wikidata 저장본 `geo-data/names-src` + Natural Earth) → `apps/web/public/geo-names/v1/{CC}.json` 200개·3,813코드 ko·en 전부(평균 1KB·최대 13KB), 앱 로더 `lib/geo/admin1Names.ts`(국가별 캐시·실패 60초 억제), Hosting 헤더 `/geo-names/**` 7일. 계약 시험이 경계 데이터의 모든 코드에 이름이 있는지 검사. 낮은 확신 2곳(GL-UO·AI-X00)은 손 보정. 화면은 아직 국가까지.
+- **안전장치(Chief 11-06 승인)**: ① 지역 판정이 던지면 `byRegion=[]` 로 건너뛰고 도로망 기록은 계속(`planRegionAccounting`) ② 한 주행 지역 기록 상한 — 새 묶음 160·국가 6·행정구역 20(정직한 최대치 약 77·3·10의 2배) 초과 시 지역 기록 전부 건너뜀(전세계 점수는 그대로) ③ 개척 지역 점수는 금액 큰 국가·대륙 6개까지(`PIONEER_REGION_MAX`). 근거: 셀 연속성을 검증하지 않아 흩어진 셀 8,000개가 regions·순위 쓰기를 키울 수 있고(기존 chunks 쓰기 구조는 별도 과제), 지역 데이터 오류가 모든 주행의 도로망을 막을 수 있었다. 사보타주 3종 모두 FAIL 확인. 시험 functions 282/0.
+- **배포 순서**: Rules → 함수(`conquestOnRideCreated`, `leaderboardScoresOnRideWritten`, `getLeaderboard`) → 채우기(운영 dry-run 후 승인) → Hosting. 색인 변경 없음.
+
 ### 4.5 Trail 목록 (G4)
 
 - `openTrailListingCore.ts`가 Publication의 geoRegion을 목록 문서에 복사한다(새 판정 없이 복사만).

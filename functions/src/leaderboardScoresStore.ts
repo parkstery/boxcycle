@@ -25,6 +25,7 @@ import {
   LEADERBOARD_USES_COLLECTION,
   LEADERBOARD_USE_MARKS_COLLECTION,
   WORLD_SCOPE,
+  WORLD_SCOPE_TYPE,
   applyScoreIncrement,
   applyUseIncrement,
   periodKeyForRequest,
@@ -189,7 +190,8 @@ export async function loadLeaderboardLayoutFromScores(
     return rows;
   };
 
-  const needUses = board === "pioneer" && !requester.isAnonymous;
+  // uses(내 길 이용)는 전세계 합계만 있다 — 지역 범위에서는 생략
+  const needUses = board === "pioneer" && !requester.isAnonymous && scope.scopeType === WORLD_SCOPE_TYPE;
   const [topRows, mySnap, usesSnap] = await Promise.all([
     loadTop(),
     db.doc(`${LEADERBOARD_SCORES_COLLECTION}/${scoreDocId(board, periodKey, requester.uid, scope)}`).get(),

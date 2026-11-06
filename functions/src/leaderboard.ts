@@ -88,10 +88,6 @@ async function handleGetLeaderboard(req: Request, res: Response): Promise<void> 
       const hc = (await db.doc(`users/${requester.uid}`).get()).get("homeCountry");
       return typeof hc === "string" ? hc : null;
     });
-    if (board === "pioneer" && scopeType !== "world") {
-      // 개척 판의 지역 범위는 도로 위치 기준(D3·G5) — 아직 점수가 없다
-      throw new HttpsError("invalid-argument", "개척 순위는 아직 전세계만 있습니다.");
-    }
     const layout = await loadLeaderboardLayoutFromScores(db, { board, period, requester, nowMs, scope });
     const [nicknames, liveByUid] = await Promise.all([
       loadNicknames(db, layout.displayUids),
