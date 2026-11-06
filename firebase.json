@@ -28,6 +28,11 @@
         "//": "Vite 산출물은 파일명에 내용 해시가 있어 영구 캐시해도 안전하다.",
         "source": "/assets/**",
         "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+      },
+      {
+        "//": "행정구역 이름 표(v1 폴더가 버전). 파일명에 해시가 없으니 immutable 은 아니고 일주일만 캐시한다.",
+        "source": "/geo-names/**",
+        "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }]
       }
     ]
   },

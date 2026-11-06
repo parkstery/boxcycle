@@ -26,6 +26,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
+import { pathToFileURL } from "node:url";
 
 const RESOLVER_VERSION = 1;
 /** 단순화 허용오차(도). 0.002° ≈ 위도 37°에서 남북 220m·동서 180m. */
@@ -278,4 +279,4 @@ function main() {
   console.log(JSON.stringify(meta));
 }
 
-main();
+if (import.meta.url === pathToFileURL(process.argv[1]).href) main();

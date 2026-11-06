@@ -1,0 +1,19 @@
+{
+  "v": 1,
+  "source": "Wikidata (CC0) ISO 3166-2 labels + Natural Earth 1:10m (public domain) name_ko/name_en + manual",
+  "languages": [
+    "ko",
+    "en"
+  ],
+  "countries": 200,
+  "codes": 3813,
+  "ko": 3813,
+  "en": 3813,
+  "manual": [
+    "AI-X00",
+    "GL-UO",
+    "KZ-ALA",
+    "PH-40",
+    "PH-41"
+  ]
+}
