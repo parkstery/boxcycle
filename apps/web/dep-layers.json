@@ -185,6 +185,7 @@
       "geo/entryLocation.ts",
       "geo/localFirstRegion.ts",
       "geo/listRegionFilter.ts",
+      "geo/admin1Names.ts",
       "geo/routeProgressMath.ts",
       "geo/routeWaypoints.ts"
     ],
@@ -254,7 +255,8 @@
       "conquest/conquestNewRoadGeometry.ts",
       "conquest/conquestPathGeometry.ts",
       "conquest/conquestOverviewFrame.ts",
-      "conquest/recentNewRoadDisplay.ts"
+      "conquest/recentNewRoadDisplay.ts",
+      "conquest/conquestRegionPick.ts"
     ],
     "conquest/repo": [
       "conquest/repo/firestoreConquest.ts"
