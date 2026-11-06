@@ -17,3 +17,24 @@ export function metersForRegion(key: ListRegionKey, worldMeters: number, regions
   const code = key.slice("country:".length);
   return regions.find((r) => r.scopeType === "country" && r.scopeCode === code)?.meters ?? 0;
 }
+
+/** 행정구역 칩 메뉴 항목(거리 많은 순). 이름은 이름 표(없으면 코드 그대로). */
+export function admin1MenuItems(
+  admin1s: readonly ConquestRegionTotal[],
+  label: (code: string) => string,
+): { code: string; label: string; meters: number }[] {
+  return admin1s
+    .filter((r) => r.scopeType === "admin1")
+    .map((r) => ({ code: r.scopeCode, label: label(r.scopeCode), meters: r.meters }))
+    .sort((a, b) => b.meters - a.meters || a.code.localeCompare(b.code));
+}
+
+/** 고른 행정구역의 미터. 고르지 않았으면(null) 국가 합계(`countryMeters`), 목록에 없으면 0. */
+export function metersForAdmin1(
+  code: string | null,
+  countryMeters: number,
+  admin1s: readonly ConquestRegionTotal[],
+): number {
+  if (code == null) return countryMeters;
+  return admin1s.find((r) => r.scopeType === "admin1" && r.scopeCode === code)?.meters ?? 0;
+}

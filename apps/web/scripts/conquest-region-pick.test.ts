@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { metersForRegion, regionGeosOf } from "../src/lib/conquest/conquestRegionPick.ts";
+import { admin1MenuItems, metersForAdmin1, metersForRegion, regionGeosOf } from "../src/lib/conquest/conquestRegionPick.ts";
 import type { ConquestRegionTotal } from "../src/lib/conquest/repo/firestoreConquest.ts";
 
 const regions: ConquestRegionTotal[] = [
@@ -20,5 +20,27 @@ describe("내 도로망 지역 칩 계산(G5)", () => {
   });
   it("메뉴 재료는 국가 문서만(행정구역 제외)", () => {
     assert.deepEqual(regionGeosOf(regions), [{ geoCountry: "KR" }, { geoCountry: "FR" }]);
+  });
+});
+
+describe("내 도로망 행정구역 칩 계산(G5 A안)", () => {
+  const admin1s: ConquestRegionTotal[] = [
+    { scopeType: "admin1", scopeCode: "KR-41", meters: 118_200, cells: 90 },
+    { scopeType: "admin1", scopeCode: "KR-11", meters: 312_800, cells: 200 },
+    { scopeType: "admin1", scopeCode: "KR-26", meters: 118_200, cells: 50 },
+  ];
+  it("메뉴는 거리 많은 순, 같으면 코드 순이고 이름은 이름 표 함수로", () => {
+    const items = admin1MenuItems(admin1s, (c) => `이름:${c}`);
+    assert.deepEqual(items.map((i) => i.code), ["KR-11", "KR-26", "KR-41"]);
+    assert.equal(items[0]!.label, "이름:KR-11");
+  });
+  it("국가 문서는 메뉴에 섞이지 않는다", () => {
+    const mixed = [...admin1s, { scopeType: "country", scopeCode: "KR", meters: 1, cells: 1 } as ConquestRegionTotal];
+    assert.equal(admin1MenuItems(mixed, (c) => c).length, 3);
+  });
+  it("행정구역 미선택(null)은 국가 합계, 선택하면 그 구역, 목록에 없으면 0", () => {
+    assert.equal(metersForAdmin1(null, 290_300, admin1s), 290_300);
+    assert.equal(metersForAdmin1("KR-11", 290_300, admin1s), 312_800);
+    assert.equal(metersForAdmin1("KR-99", 290_300, admin1s), 0);
   });
 });

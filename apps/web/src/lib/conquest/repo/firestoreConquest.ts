@@ -1,6 +1,7 @@
 import {
   collection,
   doc,
+  documentId,
   getDocs,
   onSnapshot,
   query,
@@ -138,6 +139,38 @@ export async function loadConquestRegions(userId: string): Promise<ConquestRegio
       if (!scopeType) return;
       out.push({
         scopeType,
+        scopeCode: d.id,
+        meters: Math.max(0, Number(data.meters) || 0),
+        cells: Math.max(0, Number(data.cells) || 0),
+      });
+    });
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * 한 국가의 행정구역 누적 — 국가를 고를 때만 읽는다(문서 id 가 `KR-` 로 시작하는 admin1 문서, 대한민국 17개 이하).
+ * 단일 필드 조건 + 문서 id 범위라 복합 색인이 필요 없다(2026-11-06 운영 조회로 확인). 실패하면 빈 배열.
+ */
+export async function loadConquestAdmin1(userId: string, countryCode: string): Promise<ConquestRegionTotal[]> {
+  if (!/^[A-Z]{2}$/.test(countryCode)) return [];
+  try {
+    const db = getFirebaseFirestore();
+    const snap = await getDocs(
+      query(
+        collection(db, "conquest", userId, "regions"),
+        where("scopeType", "==", "admin1"),
+        where(documentId(), ">=", `${countryCode}-`),
+        where(documentId(), "<", `${countryCode}-\uf8ff`),
+      ),
+    );
+    const out: ConquestRegionTotal[] = [];
+    snap.forEach((d) => {
+      const data = d.data();
+      out.push({
+        scopeType: "admin1",
         scopeCode: d.id,
         meters: Math.max(0, Number(data.meters) || 0),
         cells: Math.max(0, Number(data.cells) || 0),

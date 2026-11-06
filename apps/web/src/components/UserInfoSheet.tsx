@@ -32,7 +32,9 @@ import { isRouteReviewer } from "../lib/route/repo/publicRouteRequests";
 import type { ConquestDisplayMode } from "./map/routeConquestLayers";
 import { ListRegionChip } from "./ui/ListRegionChip";
 import { regionLabel, WORLD_REGION, type ListRegionKey } from "../lib/geo/listRegionFilter";
-import { metersForRegion, regionGeosOf } from "../lib/conquest/conquestRegionPick";
+import { admin1MenuItems, metersForAdmin1, metersForRegion, regionGeosOf } from "../lib/conquest/conquestRegionPick";
+import { ConquestAdmin1Chip } from "./ui/ConquestAdmin1Chip";
+import { useConquestAdmin1 } from "../hooks/useConquestAdmin1";
 import { useConquestRegions } from "../hooks/useConquestRegions";
 
 type UserInfoSheetProps = {
@@ -263,6 +265,13 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   const [regionPick, setRegionPick] = useState<ListRegionKey>(WORLD_REGION);
   const conquestRegions = useConquestRegions(props.user?.uid ?? null, props.open, props.conquest?.totalMeters ?? null);
   const regionGeos = useMemo(() => regionGeosOf(conquestRegions), [conquestRegions]);
+  // 행정구역(A안): 국가를 골랐을 때만, 그 국가의 행정구역 문서를 읽는다
+  const [admin1Pick, setAdmin1Pick] = useState<string | null>(null);
+  const pickedCountry = regionPick.startsWith("country:") ? regionPick.slice("country:".length) : null;
+  const { admin1s, label: admin1Name } = useConquestAdmin1(props.user?.uid ?? null, pickedCountry, props.conquest?.totalMeters ?? null);
+  const admin1Items = useMemo(() => admin1MenuItems(admin1s, admin1Name), [admin1s, admin1Name]);
+  const admin1Active =
+    pickedCountry != null && admin1Pick != null && admin1s.some((r) => r.scopeCode === admin1Pick) ? admin1Pick : null;
   const [statsPeriod, setStatsPeriod] = useState<RideStatsPeriod>("day");
   const [statsSessions, setStatsSessions] = useState<StoredRideSession[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
@@ -579,7 +588,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
             {!historyOpen ? (
               <div className="user-info-sheet__row" role="group" aria-label="내 도로망">
                 <span className="user-info-sheet__row-k">
-                  내 도로망{regionPick !== WORLD_REGION ? ` · ${regionLabel(regionPick)}` : ""}
+                  내 도로망{regionPick !== WORLD_REGION ? ` · ${regionLabel(regionPick)}` : ""}{admin1Active ? ` · ${admin1Name(admin1Active)}` : ""}
                   {props.conquest != null && props.conquest.totalMeters <= 0 ? (
                     <span className="user-info-sheet__row-sub">첫 라이딩으로 나만의 길을 남겨보세요.</span>
                   ) : null}
@@ -588,7 +597,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                   <span className="user-info-sheet__row-v is-quiet">확인 중</span>
                 ) : (
                   <span className="user-info-sheet__row-v is-accent">
-                    <Num v={(metersForRegion(regionPick, props.conquest.totalMeters, conquestRegions) / 1000).toFixed(1)} unit="km" />
+                    <Num v={(metersForAdmin1(admin1Active, metersForRegion(regionPick, props.conquest.totalMeters, conquestRegions), admin1s) / 1000).toFixed(1)} unit="km" />
                   </span>
                 )}
               </div>
@@ -602,8 +611,20 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
                     recents={[]}
                     geos={regionGeos}
                     homeCountry={props.homeCountry ?? null}
-                    onPick={setRegionPick}
+                    onPick={(k) => {
+                      setRegionPick(k);
+                      setAdmin1Pick(null);
+                    }}
                     variant="modal"
+                  />
+                ) : null}
+                {pickedCountry != null && admin1Items.length > 0 ? (
+                  <ConquestAdmin1Chip
+                    value={admin1Active}
+                    valueLabel={admin1Active ? admin1Name(admin1Active) : "전체"}
+                    countryMeters={metersForRegion(regionPick, props.conquest?.totalMeters ?? 0, conquestRegions)}
+                    items={admin1Items}
+                    onPick={setAdmin1Pick}
                   />
                 ) : null}
                 <button type="button" aria-pressed={props.conquestDisplayMode === "all"}

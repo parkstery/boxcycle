@@ -1,0 +1,60 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>행정구역 선택 시안</title><style>
+:root{--ink:#121417;--sub:#5E6472;--line:#e8edf5;--blue:#2455df}
+*{box-sizing:border-box}
+body{margin:0;padding:20px;background:#e9edf3;font-family:'Pretendard Variable','Malgun Gothic',system-ui,sans-serif;color:var(--ink);width:1640px}
+h1{font-size:30px;margin:0 0 6px}.note{font-size:20px;color:#9a3412;margin:0 0 18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+figure{margin:0;background:#fff;border-radius:14px;padding:14px;box-shadow:0 2px 6px #0002}
+figcaption{font-size:24px;font-weight:700;margin:0 0 10px}figcaption small{display:block;font-weight:400;font-size:19px;color:#475569;margin-top:4px;line-height:1.35}
+.phone{width:760px;height:342px;position:relative;overflow:hidden;border-radius:10px;background:linear-gradient(135deg,#cfe0c8,#d9e6ef 60%,#e8e2cf)}
+.dim{position:absolute;inset:0;background:#0003}
+.sheet{position:absolute;right:14px;top:12px;bottom:12px;width:330px;background:#fff;border-radius:14px;box-shadow:0 4px 18px #0004;padding:10px 12px;font-size:12px}
+.sheet h2{margin:0 0 6px;font-size:14px;display:flex;justify-content:space-between}
+.row{display:flex;justify-content:space-between;align-items:center;min-height:26px;border-bottom:1px solid var(--line);font-size:11px}
+.row b{font-size:20px;color:var(--blue)}.row b i{font-size:11px;font-style:normal;margin-left:2px}
+.ctl{display:flex;justify-content:flex-end;gap:4px;padding:3px 0 6px;border-bottom:1px solid var(--line);align-items:center}
+.btn{height:26px;padding:0 8px;border:0;border-radius:9px;background:#f2f3f5;color:#4b5365;font:inherit;font-size:12px}.btn.on{background:var(--blue);color:#fff}
+.chip{height:26px;padding:0 8px;border:1px solid #C9D6EE;background:#fff;border-radius:999px;font-size:12px;font-weight:600;color:#2A2E37;display:inline-flex;align-items:center;white-space:nowrap}
+.new{outline:2px dashed #f59e0b;outline-offset:2px}
+.menu{position:absolute;background:#fff;border:1px solid #C9D6EE;border-radius:10px;box-shadow:0 6px 16px #0003;padding:4px;font-size:12px}
+.menu div{display:flex;justify-content:space-between;gap:12px;padding:5px 8px;border-radius:6px}.menu .sel{background:#eef3ff;color:var(--blue);font-weight:700}.menu em{font-style:normal;color:var(--sub)}
+.menu .sep{font-size:10px;color:var(--sub);padding:3px 8px 1px}.menu .ind{padding-left:20px}
+.hint{font-size:10px;color:var(--sub);margin-top:4px}
+</style></head><body>
+<h1>행정구역 선택 시안 — 근사 시안</h1>
+<p class="note">※ 실제 캡처가 아니라 크기·꼴만 맞춘 그림입니다(폰 가로 800×360). 주황 점선 = 새로 생기는 곳. 이름은 이미 만든 이름 표(서울특별시 등)를 씁니다.</p>
+<div class="grid">
+
+<figure><figcaption>A안(추천) — 국가 고르면 옆에 행정구역 칩이 생김<small>국가 칩은 지금 그대로. 국가를 고르면 그 옆에 「전체 ▾」 칩이 나타나고, 눌러 행정구역을 고르면 km 숫자가 그 구역 값으로 바뀐다. 행정구역 문서는 그 국가를 고를 때 한 번만 읽는다(대한민국 17개).</small></figcaption>
+<div class="phone"><div class="dim"></div><div class="sheet">
+<h2><span>계정</span><span>✕</span></h2>
+<div class="row"><span>내 도로망 · 대한민국 · 서울특별시</span><b>312.8<i>km</i></b></div>
+<div class="ctl"><span class="chip">대한민국 ▾</span><span class="chip new">서울특별시 ▾</span><button class="btn on">전체 도로망</button></div>
+<div class="row"><span>누적</span><span>2,310.4 km · 188회 · 96:40</span></div>
+<div class="hint">행정구역을 고르면 지도는 그대로, 숫자만 바뀝니다.</div>
+</div></div></figure>
+
+<figure><figcaption>A안 — 행정구역 칩을 누른 모습<small>거리 많은 순. 맨 위는 「전체」(국가 합계). 이름은 이름 표(한국어), 표가 없으면 코드 그대로(예 KR-41).</small></figcaption>
+<div class="phone"><div class="dim"></div><div class="sheet">
+<h2><span>계정</span><span>✕</span></h2>
+<div class="row"><span>내 도로망 · 대한민국</span><b>290.3<i>km</i></b></div>
+<div class="ctl"><span class="chip">대한민국 ▾</span><span class="chip new">전체 ▾</span><button class="btn on">전체 도로망</button></div>
+<div class="menu new" style="left:118px;top:92px;width:190px"><div class="sel"><span>✓ 전체</span><em>290.3km</em></div><div><span>서울특별시</span><em>312.8</em></div><div><span>경기도</span><em>118.2</em></div><div><span>인천광역시</span><em>31.0</em></div><div><span>강원특별자치도</span><em>9.4</em></div></div>
+</div></div></figure>
+
+<figure><figcaption>B안 — 국가 메뉴 안에 들여쓰기 목록<small>한 메뉴에서 국가와 행정구역을 같이 고른다. 한눈에 보이지만 열 때 행정구역 문서를 모두 읽어야 하고(달린 국가 수 × 구역 수), 메뉴가 길어져 폰 가로에서 스크롤이 생긴다.</small></figcaption>
+<div class="phone"><div class="dim"></div><div class="sheet">
+<h2><span>계정</span><span>✕</span></h2>
+<div class="row"><span>내 도로망 · 서울특별시</span><b>312.8<i>km</i></b></div>
+<div class="ctl"><span class="chip new">서울특별시 ▾</span><button class="btn on">전체 도로망</button></div>
+<div class="menu new" style="left:60px;top:92px;width:230px"><div><span>세계</span><em>130.0</em></div><div><span>대한민국</span><em>290.3</em></div><div class="ind sel"><span>✓ 서울특별시</span><em>312.8</em></div><div class="ind"><span>경기도</span><em>118.2</em></div><div class="ind"><span>인천광역시</span><em>31.0</em></div><div><span>일본</span><em>12.9</em></div><div class="sep">…스크롤</div></div>
+</div></div></figure>
+
+<figure><figcaption>지금(비교용)<small>국가까지만 고를 수 있다. 행정구역 선택 없음.</small></figcaption>
+<div class="phone"><div class="dim"></div><div class="sheet">
+<h2><span>계정</span><span>✕</span></h2>
+<div class="row"><span>내 도로망 · 대한민국</span><b>290.3<i>km</i></b></div>
+<div class="ctl"><span class="chip">대한민국 ▾</span><button class="btn on">전체 도로망</button></div>
+<div class="row"><span>누적</span><span>2,310.4 km · 188회 · 96:40</span></div>
+</div></div></figure>
+</div></body></html>
