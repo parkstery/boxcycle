@@ -55,7 +55,7 @@ export const ACCOUNT_DELETION_POLICY: Readonly<Record<string, AccountDeletionAct
   publicationPresence: "none", // 경로별 접속 카운트
   routeElevations: "none",
   worldActivity: "none", // 타일 집계
-  conquest: "delete", // conquest/{uid} + chunks·traces·recentNewRoad·regions
+  conquest: "delete", // conquest/{uid} + chunks·traces·recentNewRoad·regions·rideRegions
   pioneerChunks: "none", // v1 유휴 — 현행 공용 최초 정복 기록 없음
   routeTokenLedger: "delete",
   billingProcessedEvents: "none", // Stripe 이벤트 id 멱등 기록
@@ -77,6 +77,7 @@ export const ACCOUNT_DELETION_SUBCOLLECTIONS = [
   "conquest/{uid}/traces",
   "conquest/{uid}/recentNewRoad",
   "conquest/{uid}/regions", // G5 지역별 누적(국가·행정구역)
+  "conquest/{uid}/rideRegions", // 지역별 주행 거리·시간·횟수 누적
 ] as const;
 
 /** Realtime DB — trails/{trailId}/motion/{uid} */

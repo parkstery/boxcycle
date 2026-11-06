@@ -108,6 +108,13 @@ check("R4 본인이 쓰기 거절(Functions 전용)", await writeDoc(a.token, do
 check("R5 새 문서 만들기 거절", await writeDoc(a.token, doc(a, "JP")), 403);
 check("R6 남의 폴더에 쓰기 거절", await writeDoc(b.token, doc(a, "KR")), 403);
 
+// rideRegions(지역별 주행 누적) — regions 와 같은 꼴
+const rideDoc = (u, code) => `conquest/${u.uid}/rideRegions/${code}`;
+assert.equal(await commit("owner", { update: { name: `${DB}/${rideDoc(a, "KR")}`, fields: { meters: { integerValue: "100" } } } }), 200);
+check("R7 본인 rideRegions 읽기 허용", await read(a.token, rideDoc(a, "KR")), 200);
+check("R8 남의 rideRegions 읽기 거절", await read(b.token, rideDoc(a, "KR")), 403);
+check("R9 본인 rideRegions 쓰기 거절(Functions 전용)", await writeDoc(a.token, rideDoc(a, "KR")), 403);
+
 for (const x of cases) console.log(`${x.ok ? "PASS" : "FAIL"} ${x.name} (got ${x.actual}, want ${x.expected})`);
 const failed = cases.filter((x) => !x.ok);
 console.log(`conquest regions rules: ${cases.length - failed.length}/${cases.length} pass`);

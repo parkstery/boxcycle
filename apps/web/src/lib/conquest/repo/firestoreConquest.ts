@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   documentId,
+  getDoc,
   getDocs,
   onSnapshot,
   query,
@@ -179,6 +180,32 @@ export async function loadConquestAdmin1(userId: string, countryCode: string): P
     return out;
   } catch {
     return [];
+  }
+}
+
+export type RideRegionTotal = { meters: number; sec: number; rideCount: number };
+
+/**
+ * 한 지역(국가 `KR` 또는 행정구역 `KR-11`)의 주행 누적 — 문서 1건만 읽는다(컬렉션 전체 읽기 금지).
+ * 문서가 없으면(소급 전·그 지역을 달린 적 없음) `{ exists: false }`, 읽기 실패면 null.
+ */
+export async function loadRideRegionTotal(
+  userId: string,
+  scopeCode: string,
+): Promise<({ exists: true } & RideRegionTotal) | { exists: false } | null> {
+  if (!/^[A-Z]{2}(-[A-Z0-9]{1,3})?$/.test(scopeCode)) return null;
+  try {
+    const snap = await getDoc(doc(getFirebaseFirestore(), "conquest", userId, "rideRegions", scopeCode));
+    if (!snap.exists()) return { exists: false };
+    const data = snap.data();
+    return {
+      exists: true,
+      meters: Math.max(0, Number(data.meters) || 0),
+      sec: Math.max(0, Number(data.sec) || 0),
+      rideCount: Math.max(0, Number(data.rideCount) || 0),
+    };
+  } catch {
+    return null;
   }
 }
 

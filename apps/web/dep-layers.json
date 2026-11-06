@@ -366,6 +366,7 @@
       "ride/rideNetStatsMeter.ts",
       "ride/ridePulse.ts",
       "ride/rideRecordPolicy.ts",
+      "ride/regionStatsFilter.ts",
       "ride/rideResumeSlotPolicy.ts",
       "ride/rideSessionAnchors.ts",
       "ride/rideSessionPreview.ts",

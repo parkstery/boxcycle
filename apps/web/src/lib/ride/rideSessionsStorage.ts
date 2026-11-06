@@ -50,6 +50,11 @@ export type StoredRideSession = {
   /** 실제 세션 시작·종료 지점의 역지오코딩. UI 는 이 값을 우선하고 없으면 계획 지명으로 폴백. */
   sessionStartPlaceLabel?: string;
   sessionEndPlaceLabel?: string;
+  /**
+   * 지역별 달린 거리(서버가 셀 중심점 지역으로 합산, 서버 주행 문서에서만 온다).
+   * 필드 없음 = 지역을 모름(옛 주행·셀 없음) — 지역 집계에서 빠진다.
+   */
+  regionDistances?: { country: string | null; admin1: string | null; meters: number }[];
 };
 
 export function loadRideSessions(): StoredRideSession[] {

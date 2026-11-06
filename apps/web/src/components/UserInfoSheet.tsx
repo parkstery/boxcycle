@@ -36,6 +36,8 @@ import { admin1MenuItems, metersForAdmin1, metersForRegion, regionGeosOf } from 
 import { ConquestAdmin1Chip } from "./ui/ConquestAdmin1Chip";
 import { useConquestAdmin1 } from "../hooks/useConquestAdmin1";
 import { useConquestRegions } from "../hooks/useConquestRegions";
+import { useRideRegionTotals } from "../hooks/useRideRegionTotals";
+import { filterSessionsByRegion, type RideRegionKey } from "../lib/ride/regionStatsFilter";
 
 type UserInfoSheetProps = {
   conquestDisplayMode?: ConquestDisplayMode;
@@ -405,21 +407,37 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
     };
   }, [props.open, props.user?.uid, recentSessionsTipId]);
 
+  // 칩 선택 → 주행 필터 키(세계 = 둘 다 null). 지역이면 기간 통계·마지막 주행이 그 지역 몫으로 계산된다
+  const rideRegionKey = useMemo<RideRegionKey>(
+    () => ({ country: pickedCountry, admin1: admin1Active }),
+    [pickedCountry, admin1Active],
+  );
+  const regionScoped = pickedCountry != null;
+  const regionSessions = useMemo(
+    () => filterSessionsByRegion(statsSessions, rideRegionKey),
+    [statsSessions, rideRegionKey],
+  );
+  const regionTotals = useRideRegionTotals(
+    props.user?.uid ?? null,
+    props.open,
+    admin1Active ?? pickedCountry,
+    props.mileage?.totalMeters ?? null,
+  );
   const periodStats = useMemo(
-    () => aggregateRideStatsForPeriod(statsSessions, statsPeriod),
-    [statsSessions, statsPeriod],
+    () => aggregateRideStatsForPeriod(regionSessions, statsPeriod),
+    [regionSessions, statsPeriod],
   );
   const periodHasLegacyCalories = useMemo(() => {
     const start = periodStats.range.start.getTime();
     const end = periodStats.range.endExclusive.getTime();
-    return statsSessions.some((s) => {
+    return regionSessions.some((s) => {
       const t = new Date(s.endedAt).getTime();
       if (!Number.isFinite(t) || t < start || t >= end) return false;
       return isLegacyDistanceCalories(s);
     });
-  }, [statsSessions, periodStats.range.start, periodStats.range.endExclusive]);
+  }, [regionSessions, periodStats.range.start, periodStats.range.endExclusive]);
 
-  const lastRide = useMemo(() => pickLastRide(statsSessions), [statsSessions]);
+  const lastRide = useMemo(() => pickLastRide(regionSessions), [regionSessions]);
 
   /**
    * 플랜 줄의 단일 행동. Guest 는 액션 없음(종전과 동일), Free 는 업그레이드,
@@ -635,15 +653,31 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
               </div>
             ) : null}
 
-            {!historyOpen && props.mileage && props.mileage.totalMeters > 0 ? (
+            {!historyOpen && (regionScoped || (props.mileage && props.mileage.totalMeters > 0)) ? (
               <div className="user-info-sheet__row" role="group" aria-label="누적">
                 <span className="user-info-sheet__row-k">누적</span>
                 <span className="user-info-sheet__row-v">
-                  <Num v={(props.mileage.totalMeters / 1000).toFixed(1)} unit="km" />
-                  <span className="user-info-sheet__dot">·</span>
-                  <Num v={props.mileage.rideCount} unit="회" />
-                  <span className="user-info-sheet__dot">·</span>
-                  <ElapsedNum sec={props.mileage.totalSec} />
+                  {regionScoped ? (
+                    regionTotals.status === "ready" ? (
+                      <>
+                        <Num v={(regionTotals.meters / 1000).toFixed(1)} unit="km" />
+                        <span className="user-info-sheet__dot">·</span>
+                        <Num v={regionTotals.rideCount} unit="회" />
+                        <span className="user-info-sheet__dot">·</span>
+                        <ElapsedNum sec={regionTotals.sec} />
+                      </>
+                    ) : (
+                      <span className="user-info-sheet__num">—</span>
+                    )
+                  ) : props.mileage ? (
+                    <>
+                      <Num v={(props.mileage.totalMeters / 1000).toFixed(1)} unit="km" />
+                      <span className="user-info-sheet__dot">·</span>
+                      <Num v={props.mileage.rideCount} unit="회" />
+                      <span className="user-info-sheet__dot">·</span>
+                      <ElapsedNum sec={props.mileage.totalSec} />
+                    </>
+                  ) : null}
                 </span>
               </div>
             ) : null}

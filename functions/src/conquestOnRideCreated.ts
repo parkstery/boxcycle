@@ -48,7 +48,7 @@ const T1_SPEED_CAP_MPS = 30 / 3.6;
 const T1_FULL_SEC = 2 * 3600;
 const T1_STOP_SEC = 4 * 3600;
 
-type PayloadCell = { id: string; m: number };
+export type PayloadCell = { id: string; m: number };
 type NewGeometrySegment = { path: number[] };
 
 const EARTH_RADIUS_M = 6371000;
@@ -121,7 +121,7 @@ export function buildNewGeometryFromClaimedPath(
   return segments.filter((segment) => segment.path.length >= 4);
 }
 
-function chunkIdOfCellId(cellId: string): string {
+export function chunkIdOfCellId(cellId: string): string {
   const parts = cellId.split("_");
   const shift = CELL_ZOOM - CHUNK_ZOOM;
   return `${CHUNK_ZOOM}_${Number(parts[1]) >> shift}_${Number(parts[2]) >> shift}`;
@@ -132,7 +132,7 @@ function dayKeyKst(now = new Date()): string {
   return new Date(now.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 }
 
-function sanitizeCells(raw: unknown): PayloadCell[] {
+export function sanitizeCells(raw: unknown): PayloadCell[] {
   if (!Array.isArray(raw)) return [];
   const out: PayloadCell[] = [];
   const seen = new Set<string>();

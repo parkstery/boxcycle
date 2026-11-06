@@ -6,11 +6,11 @@
 | 담당 | **Claude Code** — 2026-11-06 배포 8be180ff, 위치 저장 측정 5 완료(분당 5~6건) |
 | 갱신 | 2026-11-06 — GitHub 대조·`main2` 정렬 |
 | 브랜치 | `main2` (= `origin/main2` 0276202f) |
-| 마지막 배포 | 2026-11-06 (Claude Code) 8be180ff — Hosting만(지역 칩 + Trail 탭 반짝임·안내). 이전 004e4261 |
+| 마지막 배포 | 2026-11-06 (Chief 실행·Claude Code 검증) 428ae1b4 — Rules·함수·regions 채우기·Hosting(G5). 이전 8be180ff |
 
 ## 진행 중
 
-**11-06 G5 Conquest 지역 통계(수퍼바이저 Claude Code·구현 impl-standard, 미커밋·미배포)**: S1~S6 구현 끝. functions 282/0·test:quick 1522/0 · 안전장치 A·B 구현(상한·판정 실패 격리)·Rules 6/6·e2e 3/3. 결과 [00-plan §4.4.1](20261103-global-geo-data/00-plan.md)·고정80. 남은 것: Chief 승인 뒤 커밋 → 운영 dry-run(`npm run admin:backfill-conquest-regions`, functions) → Firestore 스냅샷 → Rules·함수 배포 → 채우기 `--apply --confirm-prod` → Hosting. 이름 표 생성 완료(`apps/web/public/geo-names/v1`, 3813코드 ko·en, 화면 미연결 — 행정구역 선택은 시안 후).
+**11-06 G5 Conquest 지역 통계(수퍼바이저 Claude Code·구현 impl-standard, 배포 완료 428ae1b4)**: S1~S6 구현 끝. functions 282/0·test:quick 1522/0 · 안전장치 A·B 구현(상한·판정 실패 격리)·Rules 6/6·e2e 3/3. 결과 [00-plan §4.4.1](20261103-global-geo-data/00-plan.md)·고정80. 배포(Rules·함수·채우기 92건·Hosting) 2026-11-06 Chief 실행, 검증 완료. 행정구역 칩(A안, c5a6b3b0)도 Hosting 배포·라이브 확인. 남은 것: Chief 폰 확인(계정 창 국가·행정구역 칩·개척 순위 범위 버튼). 셀 연속성 검증은 별도 제안. 이름 표 생성 완료(`apps/web/public/geo-names/v1`, 3813코드 ko·en, 화면 미연결 — 행정구역 선택은 시안 후).
 
 **11-06 목록 지역 필터(구현 impl-standard·감리 Claude Code)**: 퍼블릭 목록·Trail 탭 머리줄에 「세계 ▾」 칩(Chief A안·고정79), 받아 둔 행을 화면에서 거름(읽기 추가 0), 마지막 범위 기기 저장. test:quick 1513/0. 남은 것: chief 폰 가로 확인 — 699×273 퍼블릭 머리줄 폭, Trail 탭 줄 16px 칩. 서버 geo 미채움 Trail은 지역 선택 시 빠짐.
 

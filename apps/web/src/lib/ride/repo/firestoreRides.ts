@@ -90,6 +90,23 @@ function sanitizeAnchorRatio(v: unknown): number {
   return Math.max(0, Math.min(1, n));
 }
 
+function parseRegionDistances(v: unknown): StoredRideSession["regionDistances"] {
+  if (!Array.isArray(v)) return undefined;
+  const out: NonNullable<StoredRideSession["regionDistances"]> = [];
+  for (const e of v) {
+    if (e == null || typeof e !== "object") return undefined;
+    const r = e as Record<string, unknown>;
+    const country = r.country === null || typeof r.country === "string" ? (r.country as string | null) : undefined;
+    const admin1 = r.admin1 === null || typeof r.admin1 === "string" ? (r.admin1 as string | null) : undefined;
+    const meters = r.meters;
+    if (country === undefined || admin1 === undefined) return undefined;
+    if (typeof meters !== "number" || !Number.isFinite(meters)) return undefined;
+    if (meters < 0) continue;
+    out.push({ country, admin1, meters });
+  }
+  return out.length > 0 ? out : undefined;
+}
+
 function trimmedOrNull(v: unknown): string | null {
   return typeof v === "string" && v.trim().length > 0 ? v.trim() : null;
 }
@@ -281,6 +298,7 @@ export async function loadRideSessionsForStatsFromFirestore(
         sessionEndProgressRatio: sanitizeAnchorRatio(data.sessionEndProgressRatio),
         sessionStartPlaceLabel: trimmedOrNull(data.sessionStartPlaceLabel) ?? undefined,
         sessionEndPlaceLabel: trimmedOrNull(data.sessionEndPlaceLabel) ?? undefined,
+        regionDistances: parseRegionDistances((data as Record<string, unknown>).regionDistances),
       };
     })
     .filter((s) => !isDiscardableRideRecord(s.distanceMeters, s.elapsedSec));
