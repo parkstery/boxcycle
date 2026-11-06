@@ -38,7 +38,9 @@ export function useTrailGlanceTab({ openTrails, activeTrailId, currentTrail, rid
     () => filterByRegion(trails, region, (t) => t),
     [trails, region],
   );
+  const [pulse, setPulse] = useState(0);
   const showTrailList = useCallback(() => {
+    setPulse((n) => n + 1);
     setMenuOpen(false);
     setTab("trail");
     setPanelOpen(true);
@@ -49,6 +51,7 @@ export function useTrailGlanceTab({ openTrails, activeTrailId, currentTrail, rid
       onTab: setTab,
       trail: {
         count: trails.length,
+        pulse,
         headTool: (
           <ListRegionChip region={region} recents={recents} geos={trails} homeCountry={homeCountry}
             onPick={pick} variant="glance" />
@@ -61,7 +64,7 @@ export function useTrailGlanceTab({ openTrails, activeTrailId, currentTrail, rid
         ),
       },
     }),
-    [tab, trails, shownTrails, region, recents, pick, homeCountry, activeTrailId, rideSessionActive, openTrails.loading, openTrails.error, onJoinTrail],
+    [tab, pulse, trails, shownTrails, region, recents, pick, homeCountry, activeTrailId, rideSessionActive, openTrails.loading, openTrails.error, onJoinTrail],
   );
   return { glance, showTrailList };
 }

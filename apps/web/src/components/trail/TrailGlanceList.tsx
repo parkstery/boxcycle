@@ -34,6 +34,8 @@ export function TrailGlanceList({ trails, activeTrailId, rideSessionActive, load
   if (trails.length === 0) return <p className="lb-glance__outline lb-glance__hint">지금 달리는 Trail이 없어요</p>;
   const shown = trails.slice(0, TRAIL_GLANCE_LIMIT);
   const more = trails.length - shown.length;
+  // 주행 중 목록에 내가 달리는 Trail 한 줄뿐일 때(Chief 11-06): 한 줄 안내
+  const onlyMine = rideSessionActive && trails.length === 1 && trails[0].id === activeTrailId;
   return (
     <>
       <ol className="lb-glance__list lb-glance__list--trail">
@@ -70,6 +72,7 @@ export function TrailGlanceList({ trails, activeTrailId, rideSessionActive, load
           );
         })}
       </ol>
+      {onlyMine ? <p className="lb-glance__outline lb-glance__footer">달려볼까요!</p> : null}
       {more > 0 ? <p className="lb-glance__outline lb-glance__footer">외 {more}개</p> : null}
     </>
   );

@@ -215,6 +215,12 @@
   cursor: pointer;
 }
 .lb-glance__tab[aria-selected="true"] { background: #2457d6; color: #fff; }
+.lb-glance__tab--pulse { animation: lb-glance-tab-pulse 0.7s ease-out 3; }
+@keyframes lb-glance-tab-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+  40% { box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.95); background: #ffb300; color: #1b2430; }
+}
+@media (prefers-reduced-motion: reduce) { .lb-glance__tab--pulse { animation: none; box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.95); } }
 .lb-glance__tab:focus-visible { outline: 2px solid #2457d6; outline-offset: 1px; }
 .lb-glance__tab-count { font-family: var(--rtw-font-num, "Saira Condensed", sans-serif); font-size: 13px; }
 .lb-glance__row--trail { grid-template-columns: 28px minmax(0, 1fr) max-content max-content; }

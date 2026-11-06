@@ -22,7 +22,7 @@ export type LeaderboardGlanceViewProps = {
   addedKm: number;
   pedalQualified: boolean;
   /** Chief 11-02: 오른쪽 목록 자리를 「순위 | Trail」 탭으로 나눠 쓴다. 없으면 순위만. */
-  trail?: { count: number; list: ReactNode; /** Trail 탭 머리줄 오른쪽 자리(지역 칩) */ headTool?: ReactNode };
+  trail?: { count: number; /** 메뉴 「지금 달리는 Trail」로 열 때마다 +1 — Trail 탭을 한 번 반짝인다 */ pulse?: number; list: ReactNode; /** Trail 탭 머리줄 오른쪽 자리(지역 칩) */ headTool?: ReactNode };
   tab?: GlanceTab;
   onTab?: (tab: GlanceTab) => void;
 };
@@ -113,7 +113,8 @@ export function LeaderboardGlancePanel(props: LeaderboardGlanceViewProps) {
             <header className="lb-glance__panel-head lb-glance__tabs">
               <div className="lb-glance__tablist" role="tablist" aria-label="오른쪽 목록">
                 <button type="button" role="tab" aria-selected={tab === "rank"} className="lb-glance__tab" onClick={() => props.onTab?.("rank")}>순위</button>
-                <button type="button" role="tab" aria-selected={tab === "trail"} className="lb-glance__tab" onClick={() => props.onTab?.("trail")}>
+                <button type="button" role="tab" aria-selected={tab === "trail"} key={`trail-tab-${trail.pulse ?? 0}`}
+                  className={`lb-glance__tab${trail.pulse ? " lb-glance__tab--pulse" : ""}`} onClick={() => props.onTab?.("trail")}>
                   Trail <span className="lb-glance__tab-count">{trail.count}</span>
                 </button>
               </div>
