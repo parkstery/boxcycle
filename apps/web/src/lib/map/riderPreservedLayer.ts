@@ -326,22 +326,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
         const gltf = await loader.loadAsync(preservedRiderAssetUrl("rider.glb"));
         if (generation !== this.generation || !this.map) return;
         const rig = new Rider15Rig(gltf, getRiderModelProfile("rider15"));
-        if (generation !== this.generation || !this.map) {
-          rig.dispose();
-          return;
-        }
-        this.rig?.dispose();
-        this.lod2?.dispose();
-        this.lod2 = null;
-        this.lod2State = "none";
-        this.riderRoot.clear();
-        this.rig = rig;
-        this.riderRoot.add(rig.object);
-        this.riderRoot.visible = this.specs.length > 0;
-        if (this.specs[0]) rig.setPhase(this.specs[0].phaseRev ?? 0);
-        this.loadState = "ready";
-        this.map.triggerRepaint();
-        void this.loadLod2(generation, "rider-lod2.glb");
+        if (this.installRig(generation, rig)) void this.loadLod2(generation, "rider-lod2.glb");
         return;
       }
       const [gltf, response] = await Promise.all([
@@ -355,27 +340,32 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
       const rig = new PreservedRiderRig(gltf.scene, guides, getRiderModelProfile(model.profile), {
         skinMode: readRequestedRiderSkinMode(),
       });
-      if (generation !== this.generation || !this.map) {
-        rig.dispose();
-        return;
-      }
-      this.rig?.dispose();
-      this.lod2?.dispose();
-      this.lod2 = null;
-      this.lod2State = "none";
-      this.riderRoot.clear();
-      this.rig = rig;
-      this.riderRoot.add(rig.object);
-      this.riderRoot.visible = this.specs.length > 0;
-      if (this.specs[0]) rig.setPhase(this.specs[0].phaseRev ?? 0);
-      this.loadState = "ready";
-      this.map.triggerRepaint();
-      if ("lod2" in model) void this.loadLod2(generation, model.lod2);
+      if (this.installRig(generation, rig) && "lod2" in model) void this.loadLod2(generation, model.lod2);
     } catch (error) {
       this.loadState = "error";
       this.loadError = error instanceof Error ? error.message : String(error);
       if (import.meta.env.DEV) console.warn("[riderPreserved] candidate load failed", error);
     }
+  }
+
+  /** 새 LOD0 리그를 장면에 꽂는다. 그 사이 세대가 바뀌었거나 지도가 떨어졌으면 리그를 버리고 false. */
+  private installRig(generation: number, rig: PreservedRiderHandle): boolean {
+    if (generation !== this.generation || !this.map) {
+      rig.dispose();
+      return false;
+    }
+    this.rig?.dispose();
+    this.lod2?.dispose();
+    this.lod2 = null;
+    this.lod2State = "none";
+    this.riderRoot.clear();
+    this.rig = rig;
+    this.riderRoot.add(rig.object);
+    this.riderRoot.visible = this.specs.length > 0;
+    if (this.specs[0]) rig.setPhase(this.specs[0].phaseRev ?? 0);
+    this.loadState = "ready";
+    this.map.triggerRepaint();
+    return true;
   }
 
   /** LOD0 가 ready 인 뒤에만 호출한다. 실패해도 리그는 그대로 둔다. */
