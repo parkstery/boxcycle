@@ -73,3 +73,8 @@ document/ops/**/.out/
 
 # Guest 운영 정리 원본·보호 UID·개인 데이터 스냅샷 (로컬 전용)
 /.out/private-guest-lifecycle/
+
+# 배포 빌드 복사본·검증 산출물, 헤드리스 실행 오류 로그, 증거 기준선 압축본 (로컬 전용·대용량 — 추적하지 않는다)
+/.out/
+/claude-headless.err
+document/ops/**/evidence/*.zip
