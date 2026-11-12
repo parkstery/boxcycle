@@ -1,3 +1,5 @@
+2026-11-10 [Spinatlas 전체 개발·서비스 진단](20261110-spinatlas-product-audit/README.md): Fable 지시서. 제품 가치·사용자 여정·시스템·운영·출시 검증·AI 개발 방식을 먼저 진단하고 근거 기반 로드맵을 제출한다. 진단 단계는 읽기 전용이며 Chief 선택 후 항목별 리팩터링. DeepSeek 코드 건강 초안은 별도 보존.
+
 2026-11-04 [라이더 v2 상체 분절·디테일 재배분](20261104-rider-v2-upper-body/README.md): PLANNING·AWAITING_CHIEF. 헬멧 15.9%+손가락 6.3%가 판독 불가 영역 → 회수해 얼굴·어깨로 재배분, 상체 8본 스킨(안 C) 권장. 목표 tri 29,604→24,000·콜 14→11·자산 ≤210KB, 무릎 IK 불변. 코드·자산 변경 없음. **포즈 시안 추가**: [POSE-PREVIEW.md](20261104-rider-v2-upper-body/POSE-PREVIEW.md) — 만세·파이팅 가능(추가 본 0, 주먹 morph 1), 엄지 척은 엄지 본 2개 필요 + 360p에서 5px로 비가독(포토 모드 전용).
 
 2026-11-03 [운영 비용 짜내기](20261103-cost-squeeze/README.md): AUDITED·결정 대기. 제곱형 비용 원천 L6 순위 rides 전체 훑기·L1 livePresence 전체 구독·L2 첫 화면 CG 구독(1만 명 추정 월 수천 달러). L2는 화면 영향 없음. Supervisor Claude Code.

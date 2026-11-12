@@ -3,9 +3,9 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | **Claude Code** — 2026-11-06 배포 8be180ff, 위치 저장 측정 5 완료(분당 5~6건) |
-| 갱신 | 2026-11-06 — GitHub 대조·`main2` 정렬 |
-| 브랜치 | `main2` (= `origin/main2` 0276202f) |
+| 담당 | **Claude Code** — 2026-11-12 미커밋 정리(rider15 앱 통합은 모델 수정 대기) |
+| 갱신 | 2026-11-12 — 작업 트리 정리·커밋 |
+| 브랜치 | `main2` (= `origin/main2`, 11-12 정리 커밋 3개 포함) |
 | 마지막 배포 | 2026-11-06 (Chief 실행·Claude Code 검증) 428ae1b4 — Rules·함수·regions 채우기·Hosting(G5). 이전 8be180ff |
 
 ## 진행 중
@@ -17,7 +17,7 @@
 **11-06 PR #22 푸시·시간 초과 수정·임계값(Claude Code)**: `main2`에 PR #22(메뉴 출처 3버튼·센서 단추·Trail 합류/나가기)를 포함해 푸시함(0276202f, pre-push 게이트 통과). test:quick 시간 초과는 Vite DOM 시험 5개가 `node_modules/.vite` 캐시를 공유한 탓이라 시험별 `cacheDir`로 분리, 2회 연속 1506/0. 위치 저장 임계값: RTDB 정상 시 속도 쓰기 간격 3→6초·변화량 0.83→1.67 m/s(분당 상한 약 10건), 다음 공개 주행에서 사람당 분당 쓰기 재측정 필요. **Hosting 배포는 자동 승인 분류기가 거부해 미실행** → chief가 루트에서 `npm run deploy:hosting` 실행 후 번들에서 `menu-panel__sources` 확인. 지역 다음 일: [README](20261103-global-geo-data/README.md).
 
 
-**11-04 rider15 상체 스킨 착수(P0→P1→P2→P3 도구)**: Chief의 "작업 시작해" 지시로 `document/ops/20261104-rider-v2-upper-body/`를 활성화했다. 기준선·렌더 경로 감사를 완료했고, 표준 `SkinnedMesh` 스파이크 2/2 PASS 및 GLB 구조 감사기 baseline 실행을 완료했다. rider15 후보 GLB·Mapbox 실화면·팔 IK는 아직 미검증이며 rider14 활성 모델은 유지한다. 다음은 모델러 export 계약 또는 실제 후보 GLB 대기다. 결과: `document/ops/20261104-rider-v2-upper-body/REPORT.md`.
+**11-11 rider15 앱 통합(수퍼바이저 Claude Code·구현 DeepSeek `dsh`)**: 모델 V3.0 승인본을 후보 `20261111-025600-ad1d669d`로 복사(S1 완료, 해시 일치). S2 완료 = 등록+전용 리그(`rider15Rig.ts`)+레이어 분기, DEV `?riderModel=rider15` 전용, 활성 모델은 rider14 유지. S4(색상 구분 근·원거리, 슬롯 표는 앱 코드 — Chief 결정) 완료. S2·S4·후보 폴더 **11-12 커밋됨**(Chief 승인, 운영 화면 영향 없음). 리그 8/8·색상 4/4·test:quick 1545/0·tsc 0·check:dep 통과. **Chief 화면 확인에서 모델 결함 3건 발견(발목 가늘어짐=굽힘 고리 1줄·엉덩이 뒤 수직선=골반 메시 형상·체인링 72구간 중 17구간 면 없음=P77 원본부터, README 진단)** → S5 보류, 모델 원본(P77 blend) 수정·재빌드가 먼저. 수정은 **Claude 앱이 진행(Chief 결정 11-11)**, 지시·진단서 = `OneDrive\Documents\img\rider15_model_work\docs\rider15_V3.0_결함3건_수정_지시.md`(미커밋). 새 release가 오면 후보 폴더 복사 → 리그 8·색상 4 시험 재실행. 계획·기록·결정 대기: [README](20261111-rider15-app-integration/README.md). dsh는 `apps/web`에서 자체 셸이 권한 오류라 검증은 수퍼바이저가 돌린다. 모델 archive는 `C:\20.HDev\rider_model_archive`.
 
 **11-04 PR #21 배포 완료(004e4261, Claude Code) — Chief 폰 시험 대기**: 국가 입력(고정75)·G2 요약 목록·G4 Trail 지역·G3-2 국가 순위(고정76)·L9. `publicationListings` 39건 채움(재실행 변경 0, 보관 5건 제외), `aPbTo3` 50건 삭제(주행 0·마일리지 0, 스냅샷 `.out/private-guest-lifecycle/rides-aPbTo3-20261104`). 게이트: test:quick 1506/0, functions 259/0, Rules 11/11. 지역 순위는 국가를 정한 뒤 달린 주행부터 쌓인다. 19:25 센서 2인 주행: 지역 점수 적립·오류 0·`aPbTo3` 재등장 없음 확인, 위치 외 쓰기 분당 11건. 위치 저장은 사람당 분당 16건으로 설계 5건의 3배, 속도 변화 쓰기가 원인으로 추론([측정 4](20261103-cost-squeeze/03-write-ledger.md)) — 임계값 조정 Chief 결정 대기. 범위 버튼 실제 요청은 아직 0건. Codex rider15 작업이 같은 폴더에서 동시 진행 중이다.
 
@@ -38,7 +38,7 @@
 
 1. Firestore 타인 위치fanout 구조 저감과 운영원가귀속. 자기 문서 제외는 배포됨. 상시 백업을 끊는 안은 복구 지연 때문에 채택 안 함. ([09](20261029-peer-cost-quality/09-firestore-read-reduction.md))
 2. [인터벌 경로 계획](20261029-quick-interval-ride/00-plan.md)(Chief 순서 변경): 간편 01(진행 중) → [거리 부족 안내](20261029-interval-route-hint/01-task.md) → [01-B](20261029-quick-interval-ride/01b-task-end-and-cut.md). 인터벌 기준 모두 25km/h(`resolveIntervalBasisKmh` 한 곳), 간편=25×1.3.
-3. 커밋 제외: compact-controls evidence zip 2개(각 182MB), `.out/`(배포 빌드 복사본), 빈 `claude-headless.err`, 증거 PNG 변경 28개·`a-interval-sheet-800x360.png`(10-30~11-03 생성, 출처 미확인). `test-reset-summary.json`은 줄바꿈 차이뿐.
+3. 11-12 정리: 루트 `.out/`·`claude-headless.err`·`document/ops/**/evidence/*.zip`은 `.gitignore`로 제외(파일은 그대로). 시험이 덮어쓴 증거 PNG 30개는 Chief 승인으로 커밋본으로 되돌림. 루트 `.out/` 3.1GB 옛 복사본 삭제 여부는 Chief 결정 대기.
 
 ## Chief 결정 대기
 

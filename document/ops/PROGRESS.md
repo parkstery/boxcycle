@@ -1,3 +1,5 @@
+2026-11-10 **Spinatlas 전체 개발·서비스 진단 지시서 작성 / Fable 실행 전**: DeepSeek의 코드 지표 중심 `20261110-health-audit/00-plan.md`는 사용하지 않고 그대로 보존. 새 지시서 [전체 개발·서비스 진단](20261110-spinatlas-product-audit/README.md)은 제품 가치·사용자 여정·시스템·운영·출시 준비·검증·AI 개발 방식을 함께 살피며, 먼저 진단·우선순위 제출 후 Chief가 고른 항목만 리팩터링한다. 코드·데이터·배포 변경 없음.
+
 2026-10-30 **RouteDock 도구줄·메뉴 Trail 전용·간편 인터벌 이동 DEPLOYED / Claude Code 직접**: 경로 창 두 모드 높이 일치, 간편 인터벌→인터벌 창 하단, 메뉴에서 인터벌·경로 선택·주행 설정 제거, RouteDock 주행 전 INT·핀·⚙·▶ / 주행 중 ⚙, 센서 칩 글자·테두리 제거·LED 21px. f67b74f5·b3d9a7d0·98646bbe origin/main2, Hosting 번들 SHA256 일치. 미결: 주행 중 인터벌 창 진입로 없음(Chief 결정). Codex 작업 중 5파일(경로 목록·다음 주행 버튼)은 빌드 제외·바이트 동일 보존.
 
 2026-10-29 **HANDOFF 슬림화·인수 점검 도구 / 문서·스크립트 변경, 앱 코드 무변경·미커밋**: Chief 승인(Claude 앱 직접). HANDOFF 96KB→약4KB, 원문은 [archive](../archive/261029-HANDOFF-슬림화-이전-전체기록.md) 보존. 읽기 전용 `scripts/handoff-check.mjs`(크기·낡음·변경파일·최신결과·진행 중) 신규. 플레이북 §1~§2·AGENTS/CLAUDE·상세규칙에 체크포인트(큰 단계 직전 「진행 중」 두 줄)·8KB 규칙 반영. check-document-system 0오류. 실행 C:\20.HDev\boxcycle → node scripts/handoff-check.mjs。
