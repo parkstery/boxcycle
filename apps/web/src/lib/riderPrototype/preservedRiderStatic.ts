@@ -1,10 +1,10 @@
 /**
- * rider14 LOD2 정적 메시. 리그 없이 크랭크 0° 자세를 메시 하나로 그린다.
+ * rider14·rider15 LOD2 정적 메시. 리그 없이 크랭크 0° 자세를 메시 하나로 그린다.
  * position·normal bake 는 리그와 같은 `bakeFloat32Attributes` 다.
  */
 import { Group, Mesh, type Object3D } from "three";
 import type { RiderVisualKind } from "./iso2dMarker";
-import type { RiderModelProfile, RiderVisualKit } from "./riderModelProfile";
+import type { AnyRiderModelProfile, RiderVisualKit } from "./riderModelProfile";
 import { bakeFloat32Attributes, disposeRiderObject } from "./preservedRiderRig";
 
 function authoredMeshName(object: Object3D): string {
@@ -16,7 +16,7 @@ export class PreservedRiderStatic {
   readonly object: Group;
   private readonly visualKit: RiderVisualKit;
 
-  constructor(source: Object3D, profile: RiderModelProfile) {
+  constructor(source: Object3D, profile: AnyRiderModelProfile) {
     this.object = new Group();
     this.object.name = "preserved-rider-lod2";
     source.updateMatrixWorld(true);

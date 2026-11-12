@@ -11,11 +11,17 @@ export function isRiderPrototype3dMode(mode: RiderPrototypeMode): boolean {
   return mode === "glb" || mode === "preserved";
 }
 
-export type PreservedRiderModelId = "s5" | "rider14";
+export type PreservedRiderModelId = "s5" | "rider14" | "rider15";
 
 export const PRESERVED_RIDER_MODELS = {
   s5: { candidateId: "20260921-041426-cd81398e", profile: "s5", nickname: "s5" },
   rider14: { candidateId: "20261015-212136-df8de090", profile: "rider14", nickname: "rider14", lod2: "rider-lod2.glb" },
+  rider15: {
+    candidateId: "20261111-025600-ad1d669d",
+    profile: "rider15",
+    nickname: "rider15",
+    lod2: "rider-lod2.glb",
+  },
 } as const;
 
 /** 제품이 쓰는 모델. 롤백 = 이 한 줄을 "s5" 로. */
@@ -26,7 +32,7 @@ export function resolvePreservedRiderModel(): PreservedRiderModelId {
   const dev = import.meta.env.DEV;
   if (dev === false) return PRESERVED_RIDER_ACTIVE_MODEL;
   const raw = new URLSearchParams(window.location.search).get("riderModel");
-  if (raw === "s5" || raw === "rider14") return raw;
+  if (raw === "s5" || raw === "rider14" || raw === "rider15") return raw;
   return PRESERVED_RIDER_ACTIVE_MODEL;
 }
 

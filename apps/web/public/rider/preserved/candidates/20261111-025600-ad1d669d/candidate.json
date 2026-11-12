@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 3,
+  "nickname": "rider15",
+  "modelProfile": "rider15",
+  "modelVersion": "V3.0",
+  "sourceCandidate": "P80_compact",
+  "stage": "MODEL_RELEASE_PACKAGE",
+  "status": "MODEL_APPROVED_APP_NOT_INTEGRATED",
+  "modelApprovedAtKst": "2026-11-11",
+  "replaces": "rider14 (20261015-212136-df8de090)",
+  "compression": "EXT_meshopt_compression+KHR_mesh_quantization",
+  "files": {
+    "glb": "rider.glb",
+    "lod2": "rider-lod2.glb",
+    "postures": "rider-postures.glb",
+    "gestures": "rider-gestures.glb",
+    "baseLayout": "base-layout.json"
+  },
+  "bytes": {
+    "glb": 208692,
+    "lod2": 43124,
+    "postures": 256448,
+    "gestures": 927208,
+    "baseLayout": 12536
+  },
+  "sha256": {
+    "glb": "ad1d669d12d3748719af03542f4fe9e9293b985c2bad7302abec081988853d00",
+    "lod2": "fa3af3657cfd31558da5151822de99c41910f834dba2b28f33fcd9038167e1a7",
+    "postures": "ddc9615fa0f319e801bcb63da8c7e66e89c5c2debc390323e5290e8274ac78e3",
+    "gestures": "809c5d3d925e2083a451561877c63c1e401884a0841b0d74747e6b90cad3a0ea",
+    "baseLayout": "f55ad67fe7b6bc3b821a8c85dfcb88be546c5d82a9412e226b1c570c61768ef7"
+  },
+  "sourceSha256": {
+    "P80_compact/rider15_p80.glb": "ad1d669d12d3748719af03542f4fe9e9293b985c2bad7302abec081988853d00",
+    "P79_transport/rider15_p79_lod2.glb": "fa3af3657cfd31558da5151822de99c41910f834dba2b28f33fcd9038167e1a7"
+  },
+  "near": {
+    "triangles": 18868,
+    "primitives": 11,
+    "skinJoints": 33,
+    "baseClip": "Ride_Hoods"
+  },
+  "lod2": {
+    "triangles": 5548,
+    "primitives": 1,
+    "static": true
+  },
+  "clips": {
+    "base": [
+      "Ride_Hoods"
+    ],
+    "postures": [
+      "Ride_Drops",
+      "Ride_Tops",
+      "Ride_Aero",
+      "Ride_Sprint"
+    ],
+    "gestures": [
+      "Celebrate_Open",
+      "Celebrate_Fists",
+      "Fighting_L",
+      "Fighting_R",
+      "Cheer_L",
+      "Cheer_R",
+      "ThumbUp_Left",
+      "ThumbUp_Right",
+      "ThumbUp_Both",
+      "LookThumb_Left",
+      "LookThumb_Right",
+      "Head_Left_45",
+      "Head_Right_45",
+      "Ride_Flat"
+    ]
+  }
+}

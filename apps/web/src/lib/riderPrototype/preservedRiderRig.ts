@@ -12,6 +12,7 @@ import {
 import type { Material, WebGLProgramParametersWithUniforms } from "three";
 import type { RiderVisualKind } from "./iso2dMarker";
 import type { BakedMesh, RiderModelProfile, RiderVisualKit } from "./riderModelProfile";
+import type { PreservedRiderHandle, PreservedRiderSway } from "./preservedRiderHandle";
 import {
   packSkinDQ,
   RIDER_SKIN_COMMON_GLSL,
@@ -331,7 +332,7 @@ function guideWeights(side: Side, draw: LegDraw, guides: PreservedGuideData, pro
   return out;
 }
 
-export class PreservedRiderRig {
+export class PreservedRiderRig implements PreservedRiderHandle {
   readonly object = new Group();
   private readonly transforms = new Map<string, Group>();
   private readonly legs: Record<Side, LegDraw[]> = { R: [], L: [] };
@@ -460,7 +461,7 @@ export class PreservedRiderRig {
   }
 
   /** 셰이더 균일 변수만 바꾼다. `supportsSway` 가 false 면 아무것도 안 한다. */
-  setSway(v: { shaderRollRad: number; bobM: number }): void {
+  setSway(v: PreservedRiderSway): void {
     if (!this.swayUniforms) return;
     this.swayUniforms.uSwayRoll.value = v.shaderRollRad;
     this.swayUniforms.uSwayBob.value = v.bobM;

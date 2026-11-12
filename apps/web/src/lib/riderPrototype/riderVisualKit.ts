@@ -68,8 +68,18 @@ export function resolveRiderVisualKit(kind: RiderVisualKind) {
 
 /** 팔레트 baseColor 텍스처 안의 한 색 칸(좌상단 원점 픽셀 단위). */
 export type PaletteSlot = { x: number; y: number; w: number; h: number };
+/** 한 칸 또는 같은 색을 쓰는 여러 사각형(rider15 는 헬멧·저지가 여러 칸). */
+export type PaletteSlotSpec = PaletteSlot | readonly PaletteSlot[];
 /** rider14 `Rider palette` 머티리얼 extras `palette.colorSlots` — 헬멧·저지 칸. */
-export type PaletteSlots = { helmet: PaletteSlot; jersey: PaletteSlot };
+export type PaletteSlots = { helmet: PaletteSlotSpec; jersey: PaletteSlotSpec };
+/** rider14 GLB extras 는 단일 사각형 두 개다. */
+export type PaletteExtrasSlots = { helmet: PaletteSlot; jersey: PaletteSlot };
+
+/** 슬롯 표기를 항상 사각형 목록으로 편다. rider14 의 단일 사각형도 그대로 받는다. */
+export function paletteSlotRects(slot: PaletteSlotSpec): readonly PaletteSlot[] {
+  if (Array.isArray(slot)) return slot as readonly PaletteSlot[];
+  return [slot as PaletteSlot];
+}
 
 /** 선형 0–1 → sRGB 8비트. 표준 전달함수, 반올림, 0–255 클램프. */
 export function linearToSrgb8(c: number): number {
@@ -107,7 +117,7 @@ function readSlot(slots: Record<string, unknown>, key: "helmet" | "jersey"): Pal
  * GLTF 머티리얼 `userData.palette.colorSlots` 를 읽는다.
  * 형식이 틀리면 예외 — 호출자는 칸 좌표를 하드코딩하지 않는다.
  */
-export function readPaletteSlots(userData: unknown): PaletteSlots {
+export function readPaletteSlots(userData: unknown): PaletteExtrasSlots {
   if (typeof userData !== "object" || userData === null) {
     throw new Error("readPaletteSlots: userData is not an object");
   }
@@ -126,9 +136,9 @@ export function readPaletteSlots(userData: unknown): PaletteSlots {
 }
 
 /**
- * 팔레트 픽셀에 키트 색을 칠한다. 입력은 복사만 하고, helmet·jersey 두 칸만
- * 칠한 RGBA 새 배열을 돌려준다(알파 255). 키트 RGB 는 선형값이므로 sRGB 로
- * 변환해 8비트로 쓴다. 좌표계는 원본 PNG·캔버스와 같은 좌상단 원점이다.
+ * 팔레트 픽셀에 키트 색을 칠한다. 입력은 복사만 하고, helmet·jersey 슬롯
+ * 사각형들만 칠한 RGBA 새 배열을 돌려준다(알파 255). 키트 RGB 는 선형값이므로
+ * sRGB 로 변환해 8비트로 쓴다. 좌표계는 원본 PNG·캔버스와 같은 좌상단 원점이다.
  */
 export function paintPaletteKit(
   pixels: Uint8Array | Uint8ClampedArray,
@@ -144,9 +154,13 @@ export function paintPaletteKit(
     throw new Error(`paintPaletteKit: pixel length ${pixels.length} != ${width}x${height}x4`);
   }
   for (const key of ["helmet", "jersey"] as const) {
-    const slot = slots[key];
-    if (slot.x + slot.w > width || slot.y + slot.h > height) {
-      throw new Error(`paintPaletteKit: slot "${key}" outside ${width}x${height}`);
+    for (const slot of paletteSlotRects(slots[key])) {
+      if (
+        slot.x < 0 || slot.y < 0 || slot.w <= 0 || slot.h <= 0 ||
+        slot.x + slot.w > width || slot.y + slot.h > height
+      ) {
+        throw new Error(`paintPaletteKit: slot "${key}" outside ${width}x${height}`);
+      }
     }
   }
   const kit = kitFor(kind);
@@ -165,7 +179,7 @@ export function paintPaletteKit(
       }
     }
   };
-  paint(slots.helmet, kit.helmet);
-  paint(slots.jersey, kit.jersey);
+  for (const slot of paletteSlotRects(slots.helmet)) paint(slot, kit.helmet);
+  for (const slot of paletteSlotRects(slots.jersey)) paint(slot, kit.jersey);
   return out;
 }

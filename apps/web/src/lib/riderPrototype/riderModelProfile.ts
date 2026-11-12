@@ -1,10 +1,11 @@
 import { BufferGeometry, Mesh, MeshStandardMaterial } from "three";
 import type { Material, Object3D } from "three";
 import type { RiderVisualKind } from "./iso2dMarker";
-import { RiderPaletteKit } from "./riderPaletteKit";
-import { applyRiderVisualKit } from "./riderVisualKit";
+import { RiderPaletteKit, type PaletteMaterial } from "./riderPaletteKit";
+import { RiderVertexColorKit } from "./riderVertexColorKit";
+import { applyRiderVisualKit, type PaletteSlots } from "./riderVisualKit";
 
-export type RiderModelProfileId = "s5" | "rider14";
+export type RiderModelProfileId = "s5" | "rider14" | "rider15";
 
 export type RiderRigGroup =
   | "crank" | "pedalR" | "pedalL" | "footR" | "footL"
@@ -18,8 +19,10 @@ export interface RiderVisualKit {
   dispose(): void;
 }
 
+/** 메시 이름·`pedalBind`·가이드 가중치로 다리를 푸는 절차 리그 프로필. */
 export interface RiderModelProfile {
-  readonly id: RiderModelProfileId;
+  readonly kind: "procedural";
+  readonly id: "s5" | "rider14";
   /** rider14 만 상체 흔들림 셰이더를 설치한다. s5 롤백은 false. */
   readonly supportsSway: boolean;
   groupOf(name: string): RiderRigGroup;
@@ -29,6 +32,19 @@ export interface RiderModelProfile {
   isSock(name: string): boolean;
   createVisualKit(root: Object3D): RiderVisualKit;
 }
+
+/** glTF 표준 스킨·`Ride_Hoods` 클립을 그대로 재생하는 rider15 프로필. */
+export interface Rider15ModelProfile {
+  readonly kind: "skinned";
+  readonly id: "rider15";
+  readonly supportsSway: false;
+  readonly clipName: "Ride_Hoods";
+  readonly wheelNodeNames: { readonly front: "P67_FrontWheel"; readonly rear: "P67_RearWheel" };
+  /** 근거리는 팔레트 텍스처, LOD2 는 정점색 키트를 만든다. */
+  createVisualKit(root: Object3D): RiderVisualKit;
+}
+
+export type AnyRiderModelProfile = RiderModelProfile | Rider15ModelProfile;
 
 const S5_GROUPS: Record<string, readonly string[]> = {
   crank: ["Mesh_44", "Mesh_45", "Mesh_46", "Mesh_47", "Mesh_50", "Mesh_51", "Mesh_56"],
@@ -88,6 +104,7 @@ function centerOfNamedMeshes(draws: readonly { name: string; geometry: BufferGeo
 }
 
 const s5Profile: RiderModelProfile = {
+  kind: "procedural",
   id: "s5",
   supportsSway: false,
   groupOf: s5GroupOf,
@@ -163,6 +180,7 @@ function rider14GuideKeyOf(name: string, side: "R" | "L", mesh?: Mesh): string |
 }
 
 const rider14Profile: RiderModelProfile = {
+  kind: "procedural",
   id: "rider14",
   supportsSway: true,
   groupOf: rider14GroupOf,
@@ -205,6 +223,88 @@ const rider14Profile: RiderModelProfile = {
   },
 };
 
-export function getRiderModelProfile(id: RiderModelProfileId): RiderModelProfile {
+/** rider15 근거리 팔레트의 칸 표 — GLB extras 대신 앱 코드에 둔다. */
+export const RIDER15_PALETTE_SLOTS: PaletteSlots = {
+  jersey: [
+    { x: 0, y: 0, w: 1, h: 1024 },
+    { x: 62, y: 0, w: 1, h: 512 },
+  ],
+  helmet: [
+    { x: 1, y: 0, w: 1, h: 1024 },
+    { x: 63, y: 0, w: 1, h: 435 },
+    { x: 63, y: 589, w: 1, h: 435 },
+  ],
+};
+
+/** rider15 근거리 GLB 머티리얼 이름 접두사. */
+export const RIDER15_BIKE_PALETTE_MATERIAL = "P67 shared palette";
+export const RIDER15_RIDER_PALETTE_MATERIAL = "P75 rider";
+export const RIDER15_LOD2_MESH_NAME = "P79_LOD2";
+
+function authoredName(object: Object3D): string {
+  const authored = object.userData.name;
+  return typeof authored === "string" && authored ? authored : object.name;
+}
+
+function rider15PaletteMaterials(root: Object3D): PaletteMaterial[] {
+  const found = new Set<PaletteMaterial>();
+  root.traverse((item) => {
+    if (!(item instanceof Mesh)) return;
+    const list = Array.isArray(item.material) ? item.material : [item.material];
+    for (const material of list) {
+      if (!material) continue;
+      const name = material.name ?? "";
+      if (
+        !name.startsWith(RIDER15_BIKE_PALETTE_MATERIAL) &&
+        !name.startsWith(RIDER15_RIDER_PALETTE_MATERIAL)
+      ) {
+        continue;
+      }
+      const palette = material as PaletteMaterial;
+      if (!palette.map) continue;
+      found.add(palette);
+    }
+  });
+  return [...found];
+}
+
+/** LOD2 는 텍스처 없이 정점색만 쓴다 — 이름이 맞으면 그 메시 하나로 키트를 만든다. */
+function rider15VertexColorMesh(root: Object3D): Mesh | null {
+  const candidates: Mesh[] = [];
+  root.traverse((item) => {
+    if (!(item instanceof Mesh)) return;
+    if (!item.geometry.getAttribute("color")) return;
+    const list = Array.isArray(item.material) ? item.material : [item.material];
+    const vertexColored = list.some(
+      (material) => material != null && (material as { vertexColors?: boolean }).vertexColors === true,
+    );
+    if (vertexColored) candidates.push(item);
+  });
+  const named = candidates.find((item) => authoredName(item) === RIDER15_LOD2_MESH_NAME);
+  return named ?? (candidates.length === 1 ? candidates[0]! : null);
+}
+
+const rider15Profile: Rider15ModelProfile = {
+  kind: "skinned",
+  id: "rider15",
+  supportsSway: false,
+  clipName: "Ride_Hoods",
+  wheelNodeNames: { front: "P67_FrontWheel", rear: "P67_RearWheel" },
+  createVisualKit(root: Object3D): RiderVisualKit {
+    const palette = rider15PaletteMaterials(root);
+    if (palette.length > 0) {
+      return RiderPaletteKit.fromMaterials(palette, RIDER15_PALETTE_SLOTS);
+    }
+    const vertexMesh = rider15VertexColorMesh(root);
+    if (vertexMesh) return new RiderVertexColorKit(vertexMesh);
+    throw new Error("rider15 visual kit target missing (palette or vertex colours)");
+  },
+};
+
+export function getRiderModelProfile(id: "rider15"): Rider15ModelProfile;
+export function getRiderModelProfile(id: "s5" | "rider14"): RiderModelProfile;
+export function getRiderModelProfile(id: RiderModelProfileId): AnyRiderModelProfile;
+export function getRiderModelProfile(id: RiderModelProfileId): AnyRiderModelProfile {
+  if (id === "rider15") return rider15Profile;
   return id === "rider14" ? rider14Profile : s5Profile;
 }

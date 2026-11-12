@@ -15,6 +15,10 @@ import type { Object3D } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import type { PreservedGuideData } from "../../src/lib/riderPrototype/preservedRiderRig.ts";
+import {
+  RIDER15_BIKE_PALETTE_MATERIAL,
+  RIDER15_RIDER_PALETTE_MATERIAL,
+} from "../../src/lib/riderPrototype/riderModelProfile.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -80,6 +84,7 @@ export function stripGlbTextures(buf: Buffer): Buffer {
 
 export type TestGlb = {
   scene: import("three").Object3D;
+  animations: import("three").AnimationClip[];
   stripped: boolean;
 };
 
@@ -91,7 +96,7 @@ export async function loadPreservedTestGlb(candidateId: string, fileName = "ride
     b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer;
   try {
     const gltf = await loader.parseAsync(slice(raw), "");
-    return { scene: gltf.scene, stripped: false };
+    return { scene: gltf.scene, animations: gltf.animations, stripped: false };
   } catch (error) {
     console.warn(
       `[rider-test] ${candidateId}/${fileName}: parse with images failed (${error instanceof Error ? error.message : String(error)}), retrying with textures stripped`,
@@ -103,7 +108,7 @@ export async function loadPreservedTestGlb(candidateId: string, fileName = "ride
         break;
       }
     }
-    return { scene: gltf.scene, stripped: true };
+    return { scene: gltf.scene, animations: gltf.animations, stripped: true };
   }
 }
 
@@ -147,4 +152,35 @@ export function attachPaletteStubMap(scene: Object3D, width = 128, height = 16):
       }
     }
   });
+}
+
+/**
+ * rider15 근거리 GLB 는 Node 에서 팔레트 이미지를 복원하지 못해 map 이 null 이다.
+ * 두 팔레트 머티리얼이 실제와 같이 같은 텍스처를 map/emissiveMap 으로 쓰게 stub 을 붙인다.
+ */
+export function attachRider15PaletteStubMaps(
+  scene: Object3D,
+  width = 64,
+  height = 1024,
+): DataTexture {
+  const stub = new DataTexture(new Uint8Array(width * height * 4), width, height);
+  scene.traverse((item) => {
+    if (!(item instanceof Mesh)) return;
+    const list = Array.isArray(item.material) ? item.material : [item.material];
+    for (const material of list) {
+      const target = material as
+        | { name?: string; map?: unknown; emissiveMap?: unknown }
+        | null
+        | undefined;
+      if (!target) continue;
+      const name = target.name ?? "";
+      if (name.startsWith(RIDER15_BIKE_PALETTE_MATERIAL)) {
+        if (target.map == null) target.map = stub;
+      } else if (name.startsWith(RIDER15_RIDER_PALETTE_MATERIAL)) {
+        if (target.map == null) target.map = stub;
+        if (target.emissiveMap == null) target.emissiveMap = target.map;
+      }
+    }
+  });
+  return stub;
 }

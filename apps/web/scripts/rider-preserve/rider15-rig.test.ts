@@ -1,0 +1,240 @@
+/**
+ * rider15 전용 리그 시험 (S2).
+ *
+ * GLB 는 neighbouring 테스트와 같은 `rider-glb-test-loader` 로 연다.
+ * 실행: node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs \
+ *   --test scripts/rider-preserve/rider15-rig.test.ts
+ */
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { Box3, DataTexture, Mesh, Quaternion, Vector3 } from "three";
+import {
+  PRESERVED_RIDER_ACTIVE_MODEL,
+  PRESERVED_RIDER_MODELS,
+  resolvePreservedRiderModel,
+} from "../../src/lib/riderPrototype/config.ts";
+import { getRiderModelProfile } from "../../src/lib/riderPrototype/riderModelProfile.ts";
+import { RiderPaletteKit } from "../../src/lib/riderPrototype/riderPaletteKit.ts";
+import { Rider15Rig } from "../../src/lib/riderPrototype/rider15Rig.ts";
+import { attachRider15PaletteStubMaps, loadPreservedTestGlb } from "./rider-glb-test-loader.ts";
+
+const RIDER15_ID = "20261111-025600-ad1d669d";
+const POSE_BONES = ["crank", "foot_L", "foot_R"] as const;
+
+async function buildRig(): Promise<Rider15Rig> {
+  const { scene, animations } = await loadPreservedTestGlb(RIDER15_ID);
+  attachRider15PaletteStubMaps(scene);
+  return new Rider15Rig({ scene, animations }, getRiderModelProfile("rider15"));
+}
+
+/** Node 에는 캔버스가 없으므로 키트 텍스처를 미리 넣어 apply 경로만 확인한다. */
+function injectPeerKitForTests(rig: Rider15Rig): void {
+  let injected = false;
+  rig.object.traverse((item) => {
+    if (injected || !(item instanceof Mesh)) return;
+    const list = Array.isArray(item.material) ? item.material : [item.material];
+    for (const material of list) {
+      if (!material) continue;
+      const kit = RiderPaletteKit.ofMaterialForTests(material);
+      if (!kit) continue;
+      kit.injectKitTextureForTests(
+        "peer",
+        new DataTexture(new Uint8Array(64 * 1024 * 4), 64, 1024),
+      );
+      injected = true;
+      return;
+    }
+  });
+  assert.ok(injected, "rider15 palette kit missing");
+}
+
+function nodeOf(rig: Rider15Rig, name: string) {
+  const found = rig.object.getObjectByName(name);
+  assert.ok(found, `missing node ${name}`);
+  return found;
+}
+
+function matricesOf(rig: Rider15Rig, names: readonly string[]): number[] {
+  rig.object.updateMatrixWorld(true);
+  const out: number[] = [];
+  for (const name of names) {
+    const node = nodeOf(rig, name);
+    node.updateMatrixWorld(true);
+    out.push(...node.matrixWorld.elements);
+  }
+  return out;
+}
+
+function wheelMatrices(rig: Rider15Rig): number[] {
+  return [
+    ...matricesOf(rig, ["P67_FrontWheel"]),
+    ...matricesOf(rig, ["P67_RearWheel"]),
+  ];
+}
+
+function maxDiff(a: readonly number[], b: readonly number[]): number {
+  assert.equal(a.length, b.length, "vector length");
+  let max = 0;
+  for (let i = 0; i < a.length; i++) max = Math.max(max, Math.abs(a[i]! - b[i]!));
+  return max;
+}
+
+function positionOf(rig: Rider15Rig, name: string): Vector3 {
+  rig.object.updateMatrixWorld(true);
+  return nodeOf(rig, `${name}`).getWorldPosition(new Vector3());
+}
+
+describe("rider15-rig", () => {
+  it("GLB 가 로드되고 rig 가 서며 Ride_Hoods 클립을 찾는다", async () => {
+    const rig = await buildRig();
+    try {
+      assert.ok(rig.object.getObjectByName("P67_FrontWheel"), "front wheel node");
+      assert.ok(rig.object.getObjectByName("P67_RearWheel"), "rear wheel node");
+      assert.ok(rig.clipDuration > 0, `clip duration ${rig.clipDuration}`);
+      assert.equal(rig.clipTrackCount, 59, "Ride_Hoods track count");
+      assert.ok(rig.clipKeyFrames > 0, `clip key frames ${rig.clipKeyFrames}`);
+      assert.equal(rig.supportsSway, false);
+      assert.equal(rig.crankPhaseR, 0);
+      assert.doesNotThrow(() => rig.setSway({ shaderRollRad: 0.2, bobM: 0.01 }));
+      injectPeerKitForTests(rig);
+      assert.doesNotThrow(() => rig.setVisualKind("peer"));
+    } finally {
+      rig.dispose();
+    }
+  });
+
+  it("회전 이음매가 매끄럽다 — 위상 0 에서 멈칫하지 않고 끝이 처음으로 이어진다", async () => {
+    const rig = await buildRig();
+    try {
+      const footAt = (phase: number) => {
+        rig.setPhase(phase);
+        return positionOf(rig, "foot_L");
+      };
+      const step = 1 / 64;
+      const mid = footAt(0.5).distanceTo(footAt(0.5 + step));
+      const afterStart = footAt(0).distanceTo(footAt(step));
+      const beforeEnd = footAt(1 - step).distanceTo(footAt(0));
+      console.log("[rider15-rig] seam", { clipStart: rig.clipStart, mid, afterStart, beforeEnd });
+      assert.ok(mid > 1e-3, `foot must move mid-stroke: ${mid}`);
+      // 한 걸음 이동량이 회전 내내 비슷해야 한다(멈칫이면 0, 건너뜀이면 2배 이상).
+      assert.ok(afterStart > mid * 0.5 && afterStart < mid * 1.6, `hold or jump after start: ${afterStart} vs ${mid}`);
+      assert.ok(beforeEnd > mid * 0.5 && beforeEnd < mid * 1.6, `hold or jump before end: ${beforeEnd} vs ${mid}`);
+    } finally {
+      rig.dispose();
+    }
+  });
+
+  it("setPhase(0) 과 setPhase(0.5) 는 발·크랭크 자세가 다르다", async () => {
+    const rig = await buildRig();
+    try {
+      rig.setPhase(0);
+      const pose0 = matricesOf(rig, POSE_BONES);
+      const foot0 = positionOf(rig, "foot_L");
+      const crank0 = nodeOf(rig, "crank").quaternion.clone();
+
+      rig.setPhase(0.5);
+      const pose5 = matricesOf(rig, POSE_BONES);
+      rig.object.updateMatrixWorld(true);
+      const foot5 = positionOf(rig, "foot_L");
+      const crank5 = nodeOf(rig, "crank").quaternion.clone();
+
+      assert.ok(foot0.distanceTo(foot5) > 0.05, `foot moved ${foot0.distanceTo(foot5)} m`);
+      assert.ok(new Quaternion().copy(crank0).angleTo(crank5) > 0.2, "crank rotation changed");
+      assert.ok(maxDiff(pose0, pose5) > 0.05, "bone matrices changed");
+    } finally {
+      rig.dispose();
+    }
+  });
+
+  it("setPhase(0) 과 setPhase(1) 은 같은 자세다", async () => {
+    const rig = await buildRig();
+    try {
+      rig.setPhase(0);
+      const pose0 = matricesOf(rig, POSE_BONES);
+      const wheels0 = wheelMatrices(rig);
+
+      rig.setPhase(1);
+      const pose1 = matricesOf(rig, POSE_BONES);
+      const wheels1 = wheelMatrices(rig);
+
+      assert.ok(maxDiff(pose0, pose1) <= 1e-9, `pose drift ${maxDiff(pose0, pose1)}`);
+      assert.ok(maxDiff(wheels0, wheels1) <= 1e-9, `wheel drift ${maxDiff(wheels0, wheels1)}`);
+    } finally {
+      rig.dispose();
+    }
+  });
+
+  it("같은 위상을 다시 주면 시간이 흐르지 않는다", async () => {
+    const rig = await buildRig();
+    try {
+      rig.setPhase(0.25);
+      const first = [...matricesOf(rig, POSE_BONES), ...wheelMatrices(rig)];
+      rig.setPhase(0.25);
+      const second = [...matricesOf(rig, POSE_BONES), ...wheelMatrices(rig)];
+      assert.ok(maxDiff(first, second) <= 1e-9, `phase drift ${maxDiff(first, second)}`);
+    } finally {
+      rig.dispose();
+    }
+  });
+
+  it("바퀴 노드가 위상에 따라 돌고 0/1 에서 제자리다", async () => {
+    const rig = await buildRig();
+    try {
+      rig.setPhase(0);
+      const front0 = matricesOf(rig, ["P67_FrontWheel"]);
+      const rear0 = matricesOf(rig, ["P67_RearWheel"]);
+
+      rig.setPhase(0.25);
+      const front25 = matricesOf(rig, ["P67_FrontWheel"]);
+      const rear25 = matricesOf(rig, ["P67_RearWheel"]);
+
+      assert.ok(maxDiff(front0, front25) > 1e-3, "front wheel did not turn");
+      assert.ok(maxDiff(rear0, rear25) > 1e-3, "rear wheel did not turn");
+    } finally {
+      rig.dispose();
+    }
+  });
+
+  it("방향·단위·접지: 앞바퀴 +X, 허브 y≈0.336 m, 타이어 바닥 y≈0", async () => {
+    const rig = await buildRig();
+    try {
+      rig.setPhase(0);
+      rig.object.updateMatrixWorld(true);
+      const front = new Box3().setFromObject(nodeOf(rig, "P67_FrontWheel"));
+      const rear = new Box3().setFromObject(nodeOf(rig, "P67_RearWheel"));
+      const frontCenter = front.getCenter(new Vector3());
+      const rearCenter = rear.getCenter(new Vector3());
+      const frontSize = front.getSize(new Vector3());
+      console.log("[rider15-rig] measured", {
+        clipDuration: rig.clipDuration,
+        clipKeyFrames: rig.clipKeyFrames,
+        clipTrackCount: rig.clipTrackCount,
+        frontCenter: frontCenter.toArray(),
+        rearCenter: rearCenter.toArray(),
+        frontSize: frontSize.toArray(),
+        frontBottomY: front.min.y,
+        rearBottomY: rear.min.y,
+      });
+
+      assert.ok(frontCenter.x > rearCenter.x + 0.8, `front ${frontCenter.x} rear ${rearCenter.x}`);
+      assert.ok(Math.abs(frontCenter.y - rearCenter.y) < 0.02, "hub y mismatch");
+      assert.ok(frontCenter.y > 0.2 && frontCenter.y < 0.5, `hub y ${frontCenter.y}`);
+      assert.ok(frontSize.y > 0.5 && frontSize.y < 0.9, `wheel diameter ${frontSize.y}`);
+      assert.ok(Math.abs(front.min.y) < 0.05, `front tyre bottom ${front.min.y}`);
+      assert.ok(Math.abs(rear.min.y) < 0.05, `rear tyre bottom ${rear.min.y}`);
+      assert.deepEqual(rig.object.position.toArray(), [0, 0, 0]);
+      assert.deepEqual(rig.object.scale.toArray(), [1, 1, 1]);
+    } finally {
+      rig.dispose();
+    }
+  });
+
+  it("등록은 rider15 를 DEV 후보로만 추가하고 기본 활성 모델은 rider14 다", () => {
+    assert.equal(PRESERVED_RIDER_ACTIVE_MODEL, "rider14");
+    assert.equal(resolvePreservedRiderModel(), "rider14");
+    assert.equal(PRESERVED_RIDER_MODELS.rider15.candidateId, RIDER15_ID);
+    assert.equal(PRESERVED_RIDER_MODELS.rider15.lod2, "rider-lod2.glb");
+    assert.equal(getRiderModelProfile("rider15").id, "rider15");
+    assert.equal(getRiderModelProfile("rider14").id, "rider14");
+  });
+});

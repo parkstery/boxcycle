@@ -32,6 +32,8 @@ import {
   resolvePreservedRiderModel,
 } from "../riderPrototype/config";
 import { PreservedRiderRig, type PreservedGuideData } from "../riderPrototype/preservedRiderRig";
+import type { PreservedRiderHandle } from "../riderPrototype/preservedRiderHandle";
+import { Rider15Rig } from "../riderPrototype/rider15Rig";
 import { readRequestedRiderSkinMode } from "../riderPrototype/riderSkinMode";
 import { PreservedRiderStatic } from "../riderPrototype/preservedRiderStatic";
 import { getRiderModelProfile } from "../riderPrototype/riderModelProfile";
@@ -77,7 +79,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
   private readonly scene = new Scene();
   private readonly camera = new Camera();
   private readonly riderRoot = new Group();
-  private rig: PreservedRiderRig | null = null;
+  private rig: PreservedRiderHandle | null = null;
   private lod2: PreservedRiderStatic | null = null;
   private specs: readonly RiderGlbModelSpec[] = [];
   private readonly swayEnvelope = new RiderSwayEnvelope();
@@ -166,9 +168,10 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
   }
 
   private fallbackSkinToCpu(): void {
-    if (this.rig && this.rig.skinModeValue === "gpu") {
+    const rig = this.rig;
+    if (rig?.skinModeValue === "gpu") {
       if (import.meta.env.DEV) console.warn("[riderPreserved] skin shader failed, falling back to cpu");
-      this.rig.setSkinMode("cpu");
+      rig.setSkinMode?.("cpu");
       this.map?.triggerRepaint();
     }
   }
@@ -317,6 +320,30 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
     try {
       const loader = new GLTFLoader();
       loader.setMeshoptDecoder(MeshoptDecoder);
+      const modelId = resolvePreservedRiderModel();
+      if (modelId === "rider15") {
+        // 표준 스킨 모델 — 가이드 가중치가 없으므로 rider.glb 만 연다.
+        const gltf = await loader.loadAsync(preservedRiderAssetUrl("rider.glb"));
+        if (generation !== this.generation || !this.map) return;
+        const rig = new Rider15Rig(gltf, getRiderModelProfile("rider15"));
+        if (generation !== this.generation || !this.map) {
+          rig.dispose();
+          return;
+        }
+        this.rig?.dispose();
+        this.lod2?.dispose();
+        this.lod2 = null;
+        this.lod2State = "none";
+        this.riderRoot.clear();
+        this.rig = rig;
+        this.riderRoot.add(rig.object);
+        this.riderRoot.visible = this.specs.length > 0;
+        if (this.specs[0]) rig.setPhase(this.specs[0].phaseRev ?? 0);
+        this.loadState = "ready";
+        this.map.triggerRepaint();
+        void this.loadLod2(generation, "rider-lod2.glb");
+        return;
+      }
       const [gltf, response] = await Promise.all([
         loader.loadAsync(preservedRiderAssetUrl("rider.glb")),
         fetch(preservedRiderAssetUrl("guide-weights.json")),
@@ -324,7 +351,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
       if (!response.ok) throw new Error(`guide weights ${response.status}`);
       const guides = await response.json() as PreservedGuideData;
       if (generation !== this.generation || !this.map) return;
-      const model = PRESERVED_RIDER_MODELS[resolvePreservedRiderModel()];
+      const model = PRESERVED_RIDER_MODELS[modelId];
       const rig = new PreservedRiderRig(gltf.scene, guides, getRiderModelProfile(model.profile), {
         skinMode: readRequestedRiderSkinMode(),
       });
@@ -353,13 +380,14 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
 
   /** LOD0 가 ready 인 뒤에만 호출한다. 실패해도 리그는 그대로 둔다. */
   private async loadLod2(generation: number, fileName: "rider-lod2.glb"): Promise<void> {
+    const modelId = resolvePreservedRiderModel();
     this.lod2State = "loading";
     try {
       const loader = new GLTFLoader();
       loader.setMeshoptDecoder(MeshoptDecoder);
       const gltf = await loader.loadAsync(preservedRiderAssetUrl(fileName));
       if (generation !== this.generation || !this.map) return;
-      const model = PRESERVED_RIDER_MODELS[resolvePreservedRiderModel()];
+      const model = PRESERVED_RIDER_MODELS[modelId];
       const staticRider = new PreservedRiderStatic(gltf.scene, getRiderModelProfile(model.profile));
       if (generation !== this.generation || !this.map) {
         staticRider.dispose();
