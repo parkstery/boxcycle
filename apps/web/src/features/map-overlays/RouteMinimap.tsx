@@ -18,6 +18,7 @@ import {
 import { isMapCutKeyActive } from "../../lib/map/mapCut";
 import { RouteOverviewFoldToggle } from "../../components/route-dock/RouteOverviewFoldToggle";
 import "./RouteMinimap.css";
+import { GoalFlag, RouteStartMarker } from "../../components/map/RouteEndpointMarkers";
 
 export type RouteMinimapProps = {
   /** `riding`·`paused` 일 때만 true — false 면 null 반환(리렌더 방지) */
@@ -59,54 +60,6 @@ function remToPx(rem: number): number {
 /** 펄스 위상을 메인 지도 내 위치 마커·HUD 와 같은 격자에 못 박는다 — 마운트 때 한 번만 */
 function lockRidePulsePhase(el: SVGCircleElement | null): void {
   if (el && !el.style.animationDelay) el.style.animationDelay = ridePulseAnimationDelay();
-}
-
-/** 종점 깃발 — 장대 밑동이 종점. 오른쪽 끝에 붙으면 깃발을 왼쪽으로 단다 */
-const FLAG_POLE_H = 13;
-const FLAG_W = 9;
-const FLAG_H = 6;
-
-function GoalFlag({ x, y, boxW, waving }: { x: number; y: number; boxW: number; waving: boolean }) {
-  const dir = x + FLAG_W + 2 > boxW ? -1 : 1;
-  const top = y - FLAG_POLE_H;
-  const cell = FLAG_W / 3;
-  const cells = [];
-  for (let r = 0; r < 2; r++) {
-    for (let c = 0; c < 3; c++) {
-      const cx = dir > 0 ? x + c * cell : x - (c + 1) * cell;
-      cells.push(
-        <rect
-          key={`${r}-${c}`}
-          x={cx}
-          y={top + r * (FLAG_H / 2)}
-          width={cell}
-          height={FLAG_H / 2}
-          fill={(r + c) % 2 === 0 ? "#10151f" : "#ffffff"}
-        />,
-      );
-    }
-  }
-  return (
-    <g className={`route-minimap__goal${waving ? " route-minimap__goal--waving" : ""}`}>
-      <line className="route-minimap__goal-pole" x1={x} y1={y} x2={x} y2={top} />
-      {/* 깃발 천 — 펄럭일 땐 장대 쪽을 축으로 흔든다 */}
-      <g
-        className="route-minimap__goal-cloth"
-        style={{ transformOrigin: `${x}px ${top + FLAG_H / 2}px` }}
-      >
-        {cells}
-        <rect
-        className="route-minimap__goal-frame"
-        x={dir > 0 ? x : x - FLAG_W}
-        y={top}
-        width={FLAG_W}
-        height={FLAG_H}
-        fill="none"
-      />
-      </g>
-      <circle className="route-minimap__goal-base" cx={x} cy={y} r={1.8} />
-    </g>
-  );
 }
 
 function nearlySame(a: number, b: number, eps = 1): boolean {
@@ -306,12 +259,7 @@ export function RouteMinimap({
         >
           <path className="route-minimap__path-outline" d={layout.pathD} fill="none" />
           <path className="route-minimap__path" d={layout.pathD} fill="none" stroke={ROUTE_LINE_COLOR} />
-          <circle
-            className="route-minimap__endpoint route-minimap__endpoint--start"
-            cx={layout.start.x}
-            cy={layout.start.y}
-            r={3.4}
-          />
+          <RouteStartMarker x={layout.start.x} y={layout.start.y} />
           <GoalFlag x={layout.end.x} y={layout.end.y} boxW={box.w} waving={flagWaving} />
           {livePt ? (
             <g className="route-minimap__live">

@@ -1,0 +1,116 @@
+/* Chief 11-18: RouteDock(35.28vw)·미니맵과 조작 2열의 자리를 항상 예약한다.
+ * 펼침/자동 숨김 여부에 의존하지 않아 패널 폭·위치가 주행 중 흔들리지 않는다. */
+.elevation-overlay {
+  position: absolute;
+  left: calc(env(safe-area-inset-left, 0px) + 20px + 35.28vw + 12px);
+  right: calc(env(safe-area-inset-right, 0px) + 8px + var(--rail-width, 136px) + 12px);
+  bottom: max(40px, calc(env(safe-area-inset-bottom, 0px) + 32px));
+  max-width: 560px;
+  margin-inline: 0;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  z-index: 3;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #f8fafc;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-shadow: var(--rtw-map-text-keyline-strong);
+  pointer-events: none;
+}
+.elevation-overlay__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 24px;
+  padding-right: 30px;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.elevation-overlay__current { margin-left: auto; }
+.elevation-overlay__toggle {
+  position: absolute;
+  top: -6px;
+  right: 0;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  text-shadow: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+.elevation-overlay__toggle:focus-visible { outline: 2px solid #2457d6; outline-offset: 2px; }
+.elevation-overlay__toggle svg { filter: drop-shadow(0 1px 1px #0f172a) drop-shadow(0 -1px 1px #0f172a); }
+@media (hover: hover) { .elevation-overlay__toggle:hover { background: rgba(36, 87, 214, .08); } }
+.elevation-overlay__plot { position: relative; height: 26px; margin-top: 10px; }
+.elevation-overlay__svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.elevation-overlay__cursor { position: absolute; top: 0; bottom: 0; width: 1px; background: #2457d6; }
+.elevation-overlay__marker {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  box-sizing: content-box;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: #2563eb;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, .25);
+  transform: translate(-50%, -50%);
+}
+.elevation-overlay__endpoint { position: absolute; overflow: visible; }
+.elevation-overlay__endpoint--start { transform: translate(-50%, -50%); }
+.elevation-overlay__endpoint--end { transform: translate(-75%, -85%); }
+.elevation-overlay__readout { text-align: center; line-height: 16px; white-space: nowrap; }
+.elevation-overlay__readout .elevation-overlay__current { margin-left: 0; }
+.elevation-overlay__empty { line-height: 1.5; overflow-wrap: anywhere; }
+.elevation-overlay__details { display: flex; flex-direction: column; align-items: flex-start; }
+.elevation-overlay__retry {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-shadow: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.elevation-overlay__retry:focus-visible { outline: 2px solid #2457d6; }
+.elevation-overlay--folded {
+  min-height: 44px;
+  width: max-content;
+  right: auto;
+  margin-inline: 0;
+}
+.elevation-overlay--folded .elevation-overlay__header { height: 30px; }
+.elevation-overlay--folded .elevation-overlay__toggle { top: 0; }
+.elevation-overlay--folded .elevation-overlay__current { margin-left: 0; }
+.elevation-overlay--details {
+  width: auto;
+  right: calc(env(safe-area-inset-right, 0px) + 8px + var(--rail-width, 136px) + 12px);
+}
+/* 낮은 폰의 「펼친 경로 카드 옆 미니맵 버튼」(고정72)보다 위로 띄운다.
+ * 상태에 따라 움직이지 않도록 낮은 화면에서는 항상 같은 하단 여백을 쓴다. */
+@media (max-height: 340px) and (min-aspect-ratio: 1/1) {
+  .elevation-overlay { bottom: max(64px, calc(env(safe-area-inset-bottom, 0px) + 56px)); }
+}
+/* 세로 폰에서는 좌우 사이가 너무 좁다. 하단 스택보다 위에 전폭으로 둔다. */
+@media (max-aspect-ratio: 1/1) {
+  .elevation-overlay {
+    left: calc(env(safe-area-inset-left, 0px) + 20px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 230px);
+  }
+}
+@media (forced-colors: active) {
+  .elevation-overlay { background: Canvas; color: CanvasText; border-color: CanvasText; }
+  .elevation-overlay__marker, .elevation-overlay__cursor { background: Highlight; }
+}

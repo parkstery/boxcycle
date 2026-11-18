@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { LineStringGeometry, LngLat } from "../lib/geo/geo";
 import {
   fetchRouteElevationProfile,
@@ -17,6 +17,8 @@ export type RouteElevationProfileState = {
   /** 실패 원인이 고도 API 일일 한도 초과(429)인가 — 네트워크 오류·코드 회귀와 구분해 표시한다. */
   quotaExceeded: boolean;
   routeSig: string;
+  /** 사용자가 요청할 때만 다시 조회. 기존 캐시 우선순위는 유지한다. */
+  retry?: () => void;
 };
 
 const empty: RouteElevationProfileState = {
@@ -34,9 +36,15 @@ export function useRouteElevationProfile(
 ): RouteElevationProfileState {
   const routeSig = useMemo(() => routeElevationSignature(geometry), [geometry]);
   const [state, setState] = useState<RouteElevationProfileState>(empty);
+  const [retryVersion, setRetryVersion] = useState(0);
 
   const geometryValid =
     !!geometry && geometry.coordinates.length >= 2 && !!routeSig;
+  const retry = useCallback(() => {
+    if (!geometryValid) return;
+    setState({ ...empty, loading: true, routeSig });
+    setRetryVersion(value => value + 1);
+  }, [geometryValid, routeSig]);
 
   useEffect(() => {
     if (!geometryValid || !geometry) return;
@@ -83,9 +91,9 @@ export function useRouteElevationProfile(
     return () => {
       cancelled = true;
     };
-  }, [geometry, geometryValid, routeSig]);
+  }, [geometry, geometryValid, routeSig, retryVersion]);
 
   if (!geometryValid) return empty;
-  if (state.routeSig === routeSig) return state;
-  return { ...empty, loading: true, routeSig };
+  if (state.routeSig === routeSig) return { ...state, retry };
+  return { ...empty, loading: true, routeSig, retry };
 }

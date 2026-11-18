@@ -124,6 +124,30 @@ describe("B. routeSig 세션 캐시", () => {
 });
 
 describe("C. 429 는 다른 실패와 구분된다", () => {
+  it("요청에는 15초 타임아웃 신호가 전달된다", async () => {
+    const timeout = AbortSignal.timeout;
+    let limit = 0;
+    const controller = new AbortController();
+    AbortSignal.timeout = ((ms: number) => { limit = ms; return controller.signal; }) as typeof AbortSignal.timeout;
+    globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+      assert.equal(init?.signal, controller.signal);
+      return jsonResponse({ elevation: [0, -10] });
+    }) as typeof fetch;
+    try {
+      assert.deepEqual(await fetchElevationsForCoords([[1, 2], [3, 4]]), [0, -10]);
+      assert.equal(limit, 15_000);
+    } finally {
+      AbortSignal.timeout = timeout;
+    }
+  });
+
+  it("결측·길이 불일치 응답을 정상 표고로 사용하지 않는다", async () => {
+    for (const values of [[null, 10], [10], [10, 20, 30], ["10", 20]]) {
+      stubFetch(() => jsonResponse({ elevation: values }));
+      await assert.rejects(fetchElevationsForCoords([[1, 2], [3, 4]]), /invalid elevation data/);
+    }
+  });
+
   it("429 는 ElevationQuotaError 로 떨어진다", async () => {
     stubFetch(() =>
       jsonResponse({ reason: "Daily API request limit exceeded. Please try again tomorrow.", error: true }, 429),

@@ -1,5 +1,66 @@
 # 주행 화면 배치 개편
 
+## 11-18 표고 시·종점 마커·하단 현재 표고 (Codex, 미커밋·미배포)
+
+- Chief 「표고 마커 구현해」「하단 거리 숫자 대신 상단 현재 표고값」. 초록 출발점·체크무늬 깃발은 미니맵의 기존 도안을 `components/map/RouteEndpointMarkers.tsx/.css`로 이동해 양쪽에서 같은 컴포넌트/스타일을 사용. 미니맵의 클래스·크기·깃발 펄럭임 계약은 보존.
+- 표고선의 실제 첫 점/끝 점에 고정 크기SVG를 별도로 배치해 그래프 viewBox의 비균등 축소에 눌리지 않음. 끝 깃발의 장대 밑동이 끝 점에 맞으며 천은 왼쪽으로. 그래프와 헤더 사이10px 여백으로 깃발 최고점과 헤더/접기 아이콘을 분리. 무배경·비겹침 배치·파란 현재 위치점·미수신/재시도 정책 유지.
+- 하단0·진행/전체km·종점km는 모두 제거하고 하단 중앙에 `현재 … m`. 펼친 헤더에서 현재값은 제거, 접힌 상태에서만 제목 옆에 표시. 위치 없음은 `현재 —`. 고정83 추가(82 거리 계약 대체).
+- 파일: `RouteElevationOverlay.tsx/.css`, `mapElevationUi.ts`(첫 점 좌표 추가), 신규 `RouteEndpointMarkers.tsx/.css`, `features/map-overlays/RouteMinimap.tsx/.css`, 표고 e2e·기존 실앱 촬영 e2e·표고 마커 단위시험. 원래 타 작업 변경 보존.
+- 최종 **통과**: 표고 e2e14/14(가로4크기, 시작점 중심/깃발 밑동과 실제 SVG 선 양끝의 오차<0.5px, 미니맵과 초록색/6개 체크무늬 동일, 깃대13px, 하단 현재표고·거리 중복 없음), 미니맵/왼쪽 패널 회귀8/8, 표고 단위19/19, tsc·변경TS/TSX ESLint·build·의존성 방향·진입 셀렉터21/21·diff check. 기존 build 대형chunk 경고 남음. 첫 시험은 마커 여백을 포함한88px 높이를84px로 잘못 예상한 검사와 접힌 상태에 숨은 현재값 DOM이 중복된 문제를 발견, 높이 기대/조건부 렌더 수정 뒤14/14 통과.
+- 미실행: 전체quick·실센서/실기기·운영 Firebase 실앱 촬영. 이번 범위는 표고·미니맵 표시여서 실제 컴포넌트 메모리 하네스와 관련 회귀를 검증. `ride-verify` 계약 유지.
+- 증거 `tmp/elevation-panel-20261118/endpoints/{open,closed-map,folded}-{800,736,699,667}.png`.
+
+```powershell
+Set-Location C:\20.HDev\boxcycle\apps\web
+$env:ELEVATION_PANEL_EVIDENCE_DIR='C:/20.HDev/boxcycle/tmp/elevation-panel-20261118/endpoints'
+node ../../node_modules/@playwright/test/cli.js test elevation-panel ride-left-panels --workers=1 --retries=0
+node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/ride-elevation/*.test.ts
+```
+
+- 확인: `http://127.0.0.1:5000/scripts/ui-800x360/preview.html?state=riding&elevation=ready&interval&intervalMs=330000` → 선 양끝 마커·하단 현재표고 → 접었다 펼치기. 실제 주행 화면은 기존 `http://localhost:5000/`에서 새로고침.
+
+## 11-18 표고 후속 — 미수신 축약·무배경 절충안 (Codex, 미커밋·미배포)
+
+- Chief 실앱 오류 캡처 뒤 「구현해」, fallback 후보 및 창이 많은 화면의 절충안 요청. **고정82 후속**: 비겹침 위치는 유지하고 창 배경·테두리·그림자를 제거. 주황 표고선에 얇은 흰 윤곽, 숫자에는 기존 지도 글자 키라인으로 가독성 확보. 접힌 표시도 무배경이다.
+- 미수신 기본은 `표고 ···`(조회 중)/`표고 — ›`(실패·빈 값), 높이44px의 작은 표시만. 눌렀을 때 사유를 펼치며 실패 때 수동 「다시 불러오기」. 반복 자동 재시도 없음. 수신 시 그래프를 펼치되 로딩 중 직접 접은 선택은 보존. `useRouteElevationProfile` 반환에 선택적 `retry` 콜백을 연결해 기존 MapView/App 전달 경로를 유지했다. App.tsx의 타 작업 변경은 건드리지 않음.
+- HTTP 조회15초 timeout, 값 개수/유한수 검사(결측/불완전 응답을 정상 그래프로 표시하지 않음). 기존 세션→공유 저장소→Open-Meteo 우선순위·저장 출처는 유지. Firestore 공유 읽기 전체에 timeout을 추가한 것은 아님.
+- **fallback 조사**: Open-Meteo 공식 문서는 전 세계 GLO-90(90m) 표고 제공. 오류 UI만으로 지역 데이터 부재라고 단정할 수 없음. 별도 셸에서 Florida 인근26.10,-80.15 단일 좌표를 요청했으나15초 안에 응답하지 않았음(사용자 브라우저 실패 원인 확정 근거는 아님). 앱은 이미 Mapbox terrain-rgb·queryTerrainElevation을 사용한다. 후보는 **기존 캐시→기본 조회→Mapbox DEM**. 로드된 위치의 현재 표고와 경로 전체의 표고는 별개이며, 전체 경로 fallback은 추가 타일 조회 비용·소스별 캐시/저장 출처를 결정해야 함. 새 공급원/타일 다운로드·출처 혼합·0m 평지 대체는 이번에 적용하지 않음.
+- 근거: [Open-Meteo 표고 문서](https://open-meteo.com/en/docs/elevation-api), [Mapbox 지형 높이 조회](https://docs.mapbox.com/mapbox-gl-js/example/query-terrain-elevation/). 로컬 `rideCameraFollow.ts`·`rideTerrainGuard.ts`·`riderPreservedLayer.ts`에 기존 지형 처리.
+- 검증 **통과**: 표고 화면14/14(가로4크기·무배경 스타일·진짜 hook의 실패→수동 재시도→수신·수동 접힘 보존), 상태 캡처 추가 뒤 해당4/4 재검증. 표고 캐시/보간/검증/timeout 단위18/18, tsc, 변경TS/TSX ESLint, build, 의존성 방향, 진입 셀렉터21/21, diff check. build의 기존 대형chunk 경고 남음. 전체quick은 직전1560/0 이후 재실행 안 함(이번 변경 관련18개와 실제hook e2e를 검증). 운영 Firebase 실앱 진입/실센서 검증은 미실행. `ride-verify` 셀렉터 계약 적용.
+- 증거: `tmp/elevation-panel-20261118/followup/{open,folded}-800.png`·`status-{loading,error,quota,empty}.png`·`detail-*.png`. 화면 코드는 메모리 하네스, 실제 hook 검증은 HTTP/Firestore adapter를 격리해 운영 쓰기 없음.
+
+```powershell
+Set-Location C:\20.HDev\boxcycle\apps\web
+$env:ELEVATION_PANEL_EVIDENCE_DIR='C:/20.HDev/boxcycle/tmp/elevation-panel-20261118/followup'
+node ../../node_modules/@playwright/test/cli.js test elevation-panel --workers=1 --retries=0
+node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/ride-elevation/*.test.ts
+```
+
+- UI 확인: 기존 `http://127.0.0.1:5000/` 또는 하네스 `http://127.0.0.1:5000/scripts/ui-800x360/preview.html?state=paused&elevation=error`(축약→펼쳐 사유), `elevation=ready`(무배경 그래프). 하네스의 고정 error는 재시도 콜백이 없는 시각 검수용이며 실제 재시도는 e2e의 `elevationFetch` 경로로 검증했다.
+
+## 11-18 표고 패널 (Codex, 구현 완료·미커밋·미배포)
+
+- Chief 이미지 시안 승인·구현 지시. 기존 도로 위 투명 표고선·흩어진 시점/종점·covered 라벨을 하단 독립 카드로 교체. 주황 표고선·파란 현재 위치/세로선·진행 거리/전체 km·현재 지표면 표고를 한곳에 표시. 카메라 높이인 기존 우하단 고도는 별도 의미이므로 보존했다.
+- 미니맵·RouteDock(35.28vw)·오른쪽 2열 공간을 항상 예약해 주변 묶음이 접히거나 자동 숨김돼도 펼친 그래프 위치·폭이 같다. 낮은 폰(높이 340px 이하)은 카드 옆 미니맵 버튼(고정72)을 피해 하단 여백64px, 나머지40px. 기존 계기판·코칭·인터벌·주행 버튼·미니맵 동작은 유지.
+- Chief 후속 「접었을 때 타이틀과 값이 너무 떨어졌다」: 접힌 패널은 내용에 맞는 짧은 폭, 제목/현재 값 간격8px. 왼쪽 위치는 유지하고 다시 펼치면 원래 그래프 폭. 접기 버튼은44×44px·키보드 접근, 버튼 외에는 지도 터치 통과. 로딩·실패·429·데이터/위치 없음 안내 보존. 표고점은 선과 같은 보간으로 계산하며 최고·최저에서도 헤더/거리 행 침범 방지.
+- 파일: `RouteElevationOverlay.tsx`·신규 동명CSS, `MapView.css`(옛 표고 규칙 제거), `mapElevationUi.ts`, 미리보기 `scripts/ui-800x360/preview.tsx`, 신규 `e2e/elevation-panel.spec.ts`·`scripts/ride-elevation/elevation-panel-marker.test.ts`, 기존 실앱 `hud-distance-elevation-shots.spec.ts`의 폐기된 깃발/covered 계약을 새 카드 계약으로 갱신. 고정82.
+- 검증 **통과**: 표고 e2e12/12(800×360·736×300·699×273·667×300, 접힌 제목/값 간격·폭 포함), 기존 센서/왼쪽패널/자동숨김25/25, 보간 단위2/2, 전체quick1560/0, 진입 셀렉터21/21, tsc·변경TS/TSX ESLint·build·의존성 방향·diff check. build의 기존 대형chunk 경고는 남음. 최초 검증의 낮은 폰 옆 미니맵 겹침은 하단 여백으로 해결, 버튼 표시 상태를 `visible` 속성으로 기대한 시험 오류는 실제 계약(속성 제거)으로 수정 후 최종 통과.
+- **미실행**: 운영 Firebase에 쓰는 실앱 진입/표고 촬영 e2e, 실제 센서 연결·실기기. 이번 UI 검증은 실제 컴포넌트를 쓰는 메모리 하네스이며 서버 쓰기 없음. ego-browser에서800px 화면/접근성 구조 확인. 이후 브라우저 공간은 사용자에게 넘어가 추가 조작하지 않음.
+- 증거: `tmp/elevation-panel-20261118/{open,closed-map,folded}-{800,736,699,667}.png`, `browser-800.png`.
+- 실행 폴더 `C:\20.HDev\boxcycle\apps\web`. 복사 가능한 검증 명령:
+
+```powershell
+Set-Location C:\20.HDev\boxcycle\apps\web
+node ../../node_modules/@playwright/test/cli.js test elevation-panel --workers=1 --retries=0
+$env:SENSOR_DOCK_EVIDENCE_DIR='C:/20.HDev/boxcycle/tmp/elevation-panel-20261118/sensor-regression'
+node ../../node_modules/@playwright/test/cli.js test sensor-dock ride-left-panels ride-controls-autohide --workers=1 --retries=0
+node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/ride-elevation/elevation-panel-marker.test.ts
+node scripts/ride-verify/verify-selectors.mjs
+node scripts/test-quick.mjs
+```
+
+- UI 확인: `http://127.0.0.1:5000/scripts/ui-800x360/preview.html?state=riding&elevation=ready&interval&intervalMs=330000` → 표고 접기(짧은 카드)→펼치기→미니맵/경로 카드 토글. 실앱은 `http://127.0.0.1:5000/`에서 기존 경로 진입 후 확인.
+
 [계획](00-plan.md). Claude Code 직접 구현·검증.
 
 ## 1단계 — 순위·Trail 오른쪽 탭 공유 (11-02, 배포됨 9ea27a96·4237de18·c8e4da8a)

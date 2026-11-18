@@ -8,6 +8,8 @@ import { createRoot } from 'react-dom/client';
 import '../../src/tokens.css';
 import '../../src/index.css';
 import { MapHud } from '../../src/components/maphud/MapHud';
+import { RouteElevationOverlay } from '../../src/components/map/RouteElevationOverlay';
+import { useRouteElevationProfile } from '../../src/hooks/useRouteElevationProfile';
 import { RideControlBar } from '../../src/components/ride/RideControlBar';
 import { useRideStartPulseKey } from '../../src/hooks/useRideStartPulseKey';
 import { MapBottomLeftStack } from '../../src/features/map-overlays/MapBottomLeftStack';
@@ -56,6 +58,7 @@ import '../../src/boxcycle-theme.css';
 import './preview.css';
 
 const params = new URLSearchParams(location.search);
+const elevationPreviewGeometry: LineStringGeometry = {type:'LineString',coordinates:[[126.98,37.55],[126.982,37.553],[126.986,37.552],[126.99,37.56]]};
 const initial = params.get('state') ?? 'ready';
 const lbVariant = params.get('lb') ?? 'ten';
 const settingsStress = params.has('settingsStress');
@@ -409,6 +412,7 @@ function sensorSheetMemoryForState(state: string): SensorSheetMemory {
 }
 
 function Preview() {
+  const fetchedElevation = useRouteElevationProfile(params.has('elevationFetch') ? elevationPreviewGeometry : null);
   const glanceStage: RideUiStage =
     initial === 'glance-riding' ? 'riding' : initial === 'glance-summary' ? 'idle' : 'ready-to-start';
   const [stage,setStage] = useState<RideUiStage>(
@@ -567,6 +571,12 @@ function Preview() {
       <circle cx="480" cy="270" r="9" fill="#2563eb" stroke="white" strokeWidth="3"/>
     </svg>
     <div className="audit-map-attribution">검수용 지도 배경 · 실제 제품 컴포넌트 · 서버 기록 없음</div>
+    {params.has('elevation') ? <RouteElevationOverlay
+      routeGeometry={hasRoute ? {type:'LineString',coordinates:[[126.98,37.55],[126.982,37.553],[126.986,37.552],[126.99,37.56]]} : null}
+      liveLngLat={params.has('noPosition') ? null : params.has('atStart') ? [126.98,37.55] : params.has('atEnd') ? [126.99,37.56] : [126.982,37.553]}
+      routeElevationProfile={params.has('elevationFetch') ? fetchedElevation : {values:params.get('elevation')==='empty'?[]:params.get('elevation')==='steep'?[-100,400,600,1500]:[42,48,38,45],sampledCoords:[],
+        loading:params.get('elevation')==='loading',error:['error','quota'].includes(params.get('elevation')??'')?'load failed':null,
+        quotaExceeded:params.get('elevation')==='quota',routeSig:'preview'}} /> : null}
     {panel!=='summary' && initial!=='glance-summary' ? <>
     <EdgePanelHandle edge="left" open={panel==='menu'} panelId="menu-panel" label="메뉴 열기"
       onOpen={()=>setPanel('menu')} onClose={()=>setPanel('ready')}/>

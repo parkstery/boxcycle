@@ -4,30 +4,7 @@ import path from "node:path";
 import { stubMapboxStyle } from "./mapbox-stub";
 import { guestStart as sharedGuestStart } from "./rideEntryHelpers";
 
-/**
- * HUD 거리 1줄화 + 표고 그래프 진행률 라벨 — 렌더 검증 하네스 (2026-09-17).
- *
- * 검증 대상(작업 트리에 이미 적용됨, 이 spec 은 로직을 바꾸지 않는다):
- *  - `MapHud.tsx`/`.css`: 상단 HUD 「거리」 셀 2줄 → 1줄(`0.03 / 0.16 km`).
- *  - `MapView.tsx`/`.css`, `mapElevationUi.ts`: 표고 그래프 마커에 `NN%` 라벨.
- *
- * (2026-09-24 지시03) 예전엔 `.elevation-overlay__progress` 가 `yPct < 20` 이면 `--below` 가
- * 붙어 점 아래로 뒤집혔다 — 「시점/종점」 메타 행이 그래프 **위**에 있어 라벨이 그 행을
- * 침범했기 때문. 메타 행이 화면 하단 코칭 멘트 줄 높이로 옮겨가며 침범할 자리가 없어져
- * `--below` 를 제거했다(MapView.tsx/.css). 시나리오 B(초반 최고점)는 이제 「뒤집기가
- * 붙는지」가 아니라 「뒤집지 않아도 겹치지 않는지」를 본다.
- *
- * 진입 절차는 `ride-entry.spec.ts`/`touch-targets-44.spec.ts` 의 게스트→입문 코스→주행 시작
- * 헬퍼를 그대로 복사해 쓴다(원본 파일은 수정하지 않는다). Mapbox 는 `mapbox-stub.ts` 로 격리한다.
- *
- * 표고는 Open-Meteo(`apps/web/src/lib/route/fetchRouteElevations.ts`) 에서 오는데, 실제 표시값은
- * 거기서 끝나지 않고 `useRouteElevationProfile` → `applyRoadElevationModel` 로 거리창 평균/보정을
- * 거친다(도로형 스무딩). 그래도 단조 증가/감소 원본 배열의 양 끝 값(index 0)은 이 스무딩에서
- * 그대로 유지되므로(`outElev[0] = first`), 배열 앞쪽을 최댓값/최솟값으로 만들면 스무딩 후에도
- * 초반 진행률 마커가 여전히 전체 최댓값/최솟값 부근에 찍힌다.
- *
- * 실행: npm run test:e2e:hud-shots -w boxcycle-web (headless, 에뮬레이터 자동 배선)
- */
+/** HUD 거리 한 줄 + 표고 패널 실앱 검증. 고정82(11-18): 하단 현재 표고·시종점 마커. */
 
 const PHONE_LANDSCAPE = { width: 690, height: 275 };
 
@@ -38,13 +15,13 @@ const MEASURE_PATH = path.join(SHOTS_DIR, "measure.json");
 
 type ScenarioId = "A" | "B";
 
-test.describe("HUD 거리 1줄 + 표고 진행률 라벨 촬영", () => {
-  test("시나리오 A — 완만한 오르막(라벨이 점 위)", async ({ page }) => {
+test.describe("HUD 거리 1줄 + 표고 패널 촬영", () => {
+  test("시나리오 A — 완만한 오르막의 표고 패널", async ({ page }) => {
     test.setTimeout(150_000);
     await runScenario(page, "A");
   });
 
-  test("시나리오 B — 초반이 경로 최고점(라벨이 점 아래로 뒤집힘)", async ({ page }) => {
+  test("시나리오 B — 초반 최고점의 표고 패널", async ({ page }) => {
     test.setTimeout(150_000);
     await runScenario(page, "B");
   });
@@ -357,93 +334,36 @@ async function runScenario(page: Page, scenario: ScenarioId) {
 
   const capsule = page.locator(".hud-metrics__capsule");
   const overlay = page.locator(".elevation-overlay");
-  const progressLabel = page.locator(".elevation-overlay__progress");
-  const metaRow = page.locator(".elevation-overlay__meta");
-
+  const marker = overlay.locator(".elevation-overlay__marker");
+  const distanceRow = overlay.locator(".elevation-overlay__readout");
+  const current = overlay.locator(".elevation-overlay__current");
   await expect(capsule).toBeVisible({ timeout: 15_000 });
-  await expect(overlay).toBeVisible({ timeout: 20_000 });
-  // 표고 로드(스텁 fetch) + 진행률 계산이 끝나야 마커 라벨이 나타난다.
-  await expect(progressLabel).toBeVisible({ timeout: 20_000 });
-  await expect(metaRow).toBeVisible();
+  await expect(marker).toBeVisible({ timeout: 20_000 });
+  await expect(distanceRow).toBeVisible();
+  await expect(current).toHaveText(/^현재 -?\d+\.\d m$/);
+  await expect(overlay.getByLabel("현재 표고", { exact: true })).toHaveText(/^현재 -?\d+\.\d m$/);
+  await expect(overlay).not.toContainText("km");
+  await expect(overlay.getByRole("img", { name: "표고 출발점", exact: true })).toBeVisible();
+  await expect(overlay.getByRole("img", { name: "표고 도착점", exact: true })).toBeVisible();
+  await expect(overlay.locator(".elevation-overlay__line")).toHaveAttribute("stroke", "#c36839");
 
-  // ── 촬영 ────────────────────────────────────────────────────────────────
   await page.screenshot({ path: path.join(SHOTS_DIR, `${scenario}-full.png`) });
   await capsule.screenshot({ path: path.join(SHOTS_DIR, `${scenario}-hud.png`) });
   await overlay.screenshot({ path: path.join(SHOTS_DIR, `${scenario}-elev.png`) });
-
-  // ── 계측 ────────────────────────────────────────────────────────────────
-  const labelBox = await progressLabel.boundingBox();
-  const metaBox = await metaRow.boundingBox();
-  const finishFlag = overlay.locator(".elevation-overlay__finish");
-  const finishBox = await finishFlag.boundingBox();
-  const flagFill = await finishFlag.locator("path").nth(1).getAttribute("fill");
+  const markerBox = await marker.boundingBox();
+  const distanceRowBox = await distanceRow.boundingBox();
   const capsuleBox = await capsule.boundingBox();
-  const labelText = (await progressLabel.textContent())?.trim() ?? "";
-  const labelClass = (await progressLabel.getAttribute("class")) ?? "";
-  const hasBelowClass = labelClass.includes("elevation-overlay__progress--below");
-
+  expect(markerBox).not.toBeNull();
+  expect(distanceRowBox).not.toBeNull();
+  expect(markerBox!.width).toBeGreaterThan(0);
+  expect(markerBox!.height).toBeGreaterThan(0);
+  expect(distanceRowBox!.width).toBeGreaterThan(0);
+  expect(markerBox!.y + markerBox!.height, "현재 위치점과 거리 행은 겹치지 않는다").toBeLessThanOrEqual(distanceRowBox!.y + 1);
   const distanceCell = capsule.locator(".hud-metrics__cell--hero");
   const timeCell = capsule.locator('[title="시간"]');
   const distanceText = (await distanceCell.textContent())?.trim() ?? "";
   const distanceBox = await distanceCell.boundingBox();
   const timeBox = await timeCell.boundingBox();
-
-  // ── M0: 축퇴 자가검산 — 0·상수·센티넬로 항상 참이 되는 게이트부터 배제 ──────
-  expect(labelBox, "라벨 boundingBox 가 null 이면 안 된다").not.toBeNull();
-  expect(labelBox!.width, "라벨 width").toBeGreaterThan(0);
-  expect(labelBox!.height, "라벨 height").toBeGreaterThan(0);
-
-  expect(metaBox, "메타 행 boundingBox 가 null 이면 안 된다").not.toBeNull();
-  expect(metaBox!.width, "메타 width").toBeGreaterThan(0);
-  expect(metaBox!.height, "메타 height").toBeGreaterThan(0);
-
-  expect(labelText, `라벨 텍스트가 NN% covered 형태여야 한다: "${labelText}"`).toMatch(
-    /^\d{1,3}% covered$/,
-  );
-
-  expect(capsuleBox, "캡슐 boundingBox 가 null 이면 안 된다").not.toBeNull();
-  expect(capsuleBox!.width, "캡슐 width").toBeGreaterThan(0);
-  expect(capsuleBox!.height, "캡슐 height").toBeGreaterThan(0);
-
-  // ── 본 단언 1 (공통): 라벨과 메타 행이 겹치지 않는다 ─────────────────────
-  const aTop = labelBox!.y;
-  const aBottom = labelBox!.y + labelBox!.height;
-  const aLeft = labelBox!.x;
-  const aRight = labelBox!.x + labelBox!.width;
-  const bTop = metaBox!.y;
-  const bBottom = metaBox!.y + metaBox!.height;
-  const bLeft = metaBox!.x;
-  const bRight = metaBox!.x + metaBox!.width;
-  const overlaps = aBottom > bTop && aTop < bBottom && aRight > bLeft && aLeft < bRight;
-  expect(overlaps, "진행률 라벨이 시점/종점 메타 행과 겹치면 안 된다").toBe(false);
-
-  // 종점 깃발 — 깃대 밑동이 종점에 앉는지, 그리고 최고점 종점에서 메타 행을 침범하는지.
-  // 축퇴 방어: 박스가 null·0 이면 요소를 못 찾은 것이지 "안 겹침"이 아니다.
-  expect(finishBox, "깃발 boundingBox 가 null 이면 안 된다").not.toBeNull();
-  expect(finishBox!.width, "깃발 width").toBeGreaterThan(0);
-  expect(finishBox!.height, "깃발 height").toBeGreaterThan(0);
-  /*
-   * 깃발 천 색은 표고선(`ELEVATION_LINE_COLOR`)과 같아야 한다 — 2026-09-24 에 경로선(#ef4444)과
-   * 구분하려고 표고 계열을 #c36839 로 바꿨는데 이 줄만 옛 빨강에 남아 있었다. 앞선
-   * 「겹치면 안 된다」가 먼저 터지는 바람에 여기까지 오지 못해 4일간 드러나지 않았다
-   * (2026-09-28). 제품 상수와 같은 값을 적는다.
-   */
-  expect(flagFill, "깃발 천 색은 표고선과 같아야 한다").toBe("#c36839");
-  const fTop = finishBox!.y;
-  const fBottom = finishBox!.y + finishBox!.height;
-  const fLeft = finishBox!.x;
-  const fRight = finishBox!.x + finishBox!.width;
-  const flagOverlapsMeta = fBottom > bTop && fTop < bBottom && fRight > bLeft && fLeft < bRight;
-
-  // ── 본 단언 2: --below 는 더 이상 존재하지 않는 클래스다(2026-09-24 지시03) ──
-  // 「시점/종점」 메타 행이 코칭 멘트 줄 높이로 내려가면서 뒤집기 자체가 죽은 코드가 돼
-  // MapView.tsx/.css 에서 제거됐다. 시나리오 B(초반 최고점, yPct 최소값 근접)에서도
-  // 클래스가 안 붙는 것 자체가 회귀 확인이다 — 겹침 여부는 위 「본 단언 1」이 잡는다.
-  expect(
-    hasBelowClass,
-    `--below 클래스는 제거됐다 — 더 붙으면 회귀다. scenario=${scenario}, class="${labelClass}"`,
-  ).toBe(false);
-
   // ── 본 단언 3: HUD 거리 셀이 1줄(누적 / 전체 km)이고 (NN%) 를 포함하지 않는다 ──
   expect(
     distanceText,
@@ -463,20 +383,7 @@ async function runScenario(page: Page, scenario: ScenarioId) {
     `거리 셀이 2줄이면 시간 셀보다 확연히 높다 — 거리=${distanceBox!.height}, 시간=${timeBox!.height}`,
   ).toBeLessThanOrEqual(timeBox!.height * 1.35);
 
-  recordMeasurement(scenario, {
-    labelBox,
-    metaBox,
-    capsuleBox,
-    labelText,
-    hasBelowClass,
-    finishBox,
-    flagFill,
-    flagOverlapsMeta,
-    distanceText,
-    distanceBox,
-    timeBox,
-    overlaps,
-  });
+  recordMeasurement(scenario, { markerBox, distanceRowBox, capsuleBox, distanceText, distanceBox, timeBox });
 }
 
 /** 요청된 좌표 개수(latitude 콤마 분할)와 같은 길이의 합성 표고 배열을 돌려준다. */
@@ -502,7 +409,7 @@ function buildSyntheticElevations(scenario: ScenarioId, count: number): number[]
     return Array.from({ length: n }, (_, i) => 30 + i * 2);
   }
   // 초반이 경로 최고점인 내리막(단조 감소) — 마커가 그래프 맨 위쪽(작은 yPct)에 찍힌다.
-  // yPct 최소값은 viewBox pad(8)에 의해 8 부근 — 임계 20 미만이라 --below 가 붙어야 한다.
+  // 최고점의 위치점도 헤더·거리 행을 침범하지 않아야 한다.
   return Array.from({ length: n }, (_, i) => 250 - i * 3);
 }
 

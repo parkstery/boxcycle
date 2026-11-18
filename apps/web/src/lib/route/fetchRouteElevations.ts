@@ -47,11 +47,15 @@ export async function fetchElevationsForCoords(sampledCoords: LngLat[]): Promise
   const latitudes = sampledCoords.map((coord) => coord[1].toFixed(6)).join(",");
   const longitudes = sampledCoords.map((coord) => coord[0].toFixed(6)).join(",");
   const url = `https://api.open-meteo.com/v1/elevation?latitude=${latitudes}&longitude=${longitudes}`;
-  const response = await fetch(url);
+  // 응답이 멈춰도 계산 중 상태를 무기한 유지하지 않는다. 재시도는 사용자 요청으로만 한다.
+  const response = await fetch(url, { signal: AbortSignal.timeout(15_000) });
   if (response.status === 429) throw new ElevationQuotaError();
   if (!response.ok) throw new Error("elevation request failed");
   const data = (await response.json()) as { elevation?: number[] };
-  if (!data.elevation || data.elevation.length < 2) throw new Error("empty elevation");
+  if (!Array.isArray(data.elevation) || data.elevation.length !== sampledCoords.length ||
+    data.elevation.length < 2 || !data.elevation.every(value => typeof value === "number" && Number.isFinite(value))) {
+    throw new Error("invalid elevation data");
+  }
   return data.elevation;
 }
 

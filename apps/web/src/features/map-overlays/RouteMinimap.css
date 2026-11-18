@@ -96,33 +96,7 @@
   stroke-linejoin: round;
 }
 
-.route-minimap__endpoint {
-  stroke: #ffffff;
-  stroke-width: 1.4;
-}
-
-/* 시점 — 메인 지도 「S」 핀과 같은 초록 */
-.route-minimap__endpoint--start {
-  fill: #16a34a;
-}
-
-/* 종점 — 체크무늬 깃발(목표) */
-.route-minimap__goal-pole {
-  stroke: #10151f;
-  stroke-width: 1.4;
-  stroke-linecap: round;
-}
-
-.route-minimap__goal-frame {
-  stroke: #10151f;
-  stroke-width: 0.8;
-}
-
-.route-minimap__goal-base {
-  fill: #10151f;
-  stroke: #ffffff;
-  stroke-width: 1;
-}
+/* 시점·종점 도안은 RouteEndpointMarkers.css에서 공유한다. */
 
 /*
  * 현재 위치 — 메인 지도 내 위치 마커와 같은 파랑 + 같은 박자·같은 위상의 펄스.
