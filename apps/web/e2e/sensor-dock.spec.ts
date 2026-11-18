@@ -3,8 +3,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test, expect, type Page } from '@playwright/test';
 
-// Chief 11-02 v4(B단계): 센서 LED·RPM 은 계기판 맨 앞 칸 한 곳 — 위 「RPM」, 아래 LED + 회전수(신호 없으면 「--」).
-// 경로가 없어도·RouteDock 이 접혀 있어도 같은 자리, 누르면 센서 상세 설정. RouteDock 접힘은 40px 경로 손잡이.
+// Chief 11-18 후속: 메뉴 위치 유지, RPM·센서는 나머지 계기 맨 앞.
+// 경로가 없어도·RouteDock 이 접혀 있어도 센서 상세 설정을 연다. RouteDock 접힘은 40px 경로 손잡이.
 const preview = '/scripts/ui-800x360/preview.html';
 const evidenceDir = process.env.SENSOR_DOCK_EVIDENCE_DIR
   ?? path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../document/ops/20261028-sensor-dock/evidence/cursor/review-fix');
@@ -33,7 +33,7 @@ function sheet(page: Page) {
   return page.getByRole('dialog', { name: '케이던스 센서', exact: true });
 }
 
-/** 센서 칸은 언제나 하나, 계기판 맨 앞(왼쪽 위 20px), RouteDock·주행바엔 센서가 없다. */
+/** 센서는 한 곳, 메뉴 오른쪽·나머지 계기 왼쪽에 있고 RouteDock·주행바엔 없다. */
 async function assertSensorCell(page: Page, led: 'white' | 'green', rpm: string) {
   await expect(cell(page)).toHaveCount(1);
   await expect(cell(page)).toHaveAttribute('data-led', led);
@@ -41,7 +41,10 @@ async function assertSensorCell(page: Page, led: 'white' | 'green', rpm: string)
   await expect(cell(page).locator('.hud-metrics__sensor-rpm')).toHaveText(rpm);
   await expect(page.locator('.route-dock-anchor .hud-cadence, .route-dock-anchor [aria-label^="케이던스 센서"], .ride-control-bar [aria-label^="케이던스 센서"]')).toHaveCount(0);
   const box = (await cell(page).boundingBox())!;
-  expect(Math.round(box.x)).toBe(20);
+  const menu = (await page.locator('.edge-panel-tab--left').boundingBox())!;
+  expect(Math.round(menu.x)).toBe(20);
+  expect(Math.round(menu.y)).toBe(4);
+  expect(box.x).toBeGreaterThanOrEqual(menu.x + menu.width);
   expect(box.height).toBeGreaterThanOrEqual(44);
 }
 
@@ -146,16 +149,28 @@ test.describe('센서 계기판 칸·RouteDock 손잡이', () => {
   });
 
   for (const size of sizes) {
-    test(`${size.width}×${size.height} 경계 — 센서 칸 자리·폭은 주행 전후 같고 계기와 겹치지 않는다`, async ({ page }) => {
+    test(`${size.width}×${size.height} 경계 — 메뉴 유지, RPM·센서 다음 나머지 계기`, async ({ page }) => {
       await page.setViewportSize(size);
       const boxes: { x: number; w: number }[] = [];
-      for (const state of ['idle', 'ready', 'riding'] as const) {
+      for (const state of ['idle', 'ready', 'riding', 'paused'] as const) {
         await page.goto(`${preview}?state=${state}`);
         const c = (await cell(page).boundingBox())!;
         boxes.push({ x: Math.round(c.x), w: Math.round(c.width) });
-        // 경로가 없으면 계기(경로·고도)는 없고 센서 칸만 있다.
+        const menu = (await page.locator('.edge-panel-tab--left').boundingBox())!;
+        expect(Math.round(menu.x)).toBe(20);
+        expect(Math.round(menu.y)).toBe(4);
+        expect(c.x, state).toBeGreaterThanOrEqual(menu.x + menu.width);
+        expect(c.x + c.width, state).toBeLessThanOrEqual(size.width);
+        // 주행 전·시작 후 모두 센서는 메뉴 오른쪽, 나머지 계기는 센서 오른쪽.
         const metricsEl = page.locator('.map-hud__tl-metrics');
-        if (await metricsEl.count()) expect((await metricsEl.boundingBox())!.x, state).toBeGreaterThanOrEqual(c.x + c.width);
+        if (await metricsEl.count()) {
+          const m = (await metricsEl.boundingBox())!;
+          expect(m.x, state).toBeGreaterThanOrEqual(c.x + c.width);
+          await expect(page.locator('.map-hud__tl-row .hud-metrics__label')).toHaveText(
+            state === 'ready' ? ['RPM', '경로', '고도'] : ['RPM', '거리', '시간', '속도', '새 도로', '평균'],
+          );
+          await shot(page, `left-${state}-${size.width}x${size.height}.png`);
+        }
         if (state === 'riding') {
           const h = (await handle(page).boundingBox())!;
           expect(h.x).toBeGreaterThanOrEqual(0);

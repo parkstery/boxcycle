@@ -36,7 +36,11 @@ test.describe('주행 UI 정리 v2', () => {
         return {
           width: r.width,
           left: r.left,
-          // Chief 11-02 v4(B단계): 한 행의 맨 앞은 센서 칸(RPM) — 계기는 그 바로 오른쪽.
+          right: r.right,
+          menuLeft: menu.left,
+          menuTop: menu.top,
+          menuRight: menu.right,
+          // Chief 11-18 후속: 메뉴·RPM·나머지 계기 순서.
           sensorLeft: document.querySelector('.hud-metrics__cell--sensor')!.getBoundingClientRect().left,
           sensorRight: document.querySelector('.hud-metrics__cell--sensor')!.getBoundingClientRect().right,
           sensorTop: document.querySelector('.hud-metrics__cell--sensor')!.getBoundingClientRect().top,
@@ -54,7 +58,9 @@ test.describe('주행 UI 정리 v2', () => {
         };
       });
       expect(box.width).toBeLessThanOrEqual(box.vw - 228);
-      expect(box.sensorLeft).toBeCloseTo(20, 0);
+      expect(box.menuLeft).toBeCloseTo(20, 0);
+      expect(box.menuTop).toBeCloseTo(4, 0);
+      expect(box.sensorLeft).toBeGreaterThanOrEqual(box.menuRight);
       expect(box.left).toBeGreaterThanOrEqual(box.sensorRight);
       expect(box.left - box.sensorRight).toBeLessThanOrEqual(8);
       expect(box.sensorTop).toBeLessThanOrEqual(Math.min(...box.cellTops));

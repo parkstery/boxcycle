@@ -1,5 +1,5 @@
 /* ── 케이던스 센서 LED·계기판 센서 칸 ──────────────────────────
- * Chief 11-02 v4(B단계): 센서는 계기판 맨 앞 칸(`CadenceMetricCell`) 한 곳. 우상단·RouteDock 알약 칩은 없앴다.
+ * Chief 11-18 후속: RPM·센서는 계기판 맨 왼쪽(`CadenceMetricCell`). 우상단·RouteDock 알약 칩은 없다.
  */
 
 .hud-cadence__led {
@@ -33,7 +33,7 @@
 }
 
 /*
- * Chief 11-02 v4(B단계): 계기판 맨 앞 센서 칸 — RouteDock LED 를 대신한다.
+ * 계기판 맨 왼쪽 센서 칸 — RouteDock LED 를 대신한다.
  * 글자 모양은 옆 계기 칸과 같고(라벨·값 외곽선), 값 자리에 LED 13px + 회전수(고정 폭).
  */
 .hud-metrics__cell--sensor {

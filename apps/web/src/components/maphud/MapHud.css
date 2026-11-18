@@ -164,6 +164,9 @@
   align-items: center;
   gap: 0.35rem;
   flex-wrap: nowrap;
+  /* Chief 11-18 후속: 메뉴 자리 유지, RPM·센서 다음에 나머지 계기. */
+  padding-left: calc(var(--rail-size, 64px) + 8px);
+  min-height: var(--rail-size, 64px);
 }
 
 /*

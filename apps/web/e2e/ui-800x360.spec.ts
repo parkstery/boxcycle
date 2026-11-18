@@ -291,9 +291,9 @@ test('왼쪽 에지 띠는 20px·화면0에 붙고 빈 가장자리 드래그로
   await expect(page.getByRole('dialog'),'20px 띠 클릭은 열지 않는다').toHaveCount(0);
 });
 
-// Chief 고정71(2026-11-03): 고정14의 왼쪽 반원 탭을 대체 — 오른쪽 묶음과 같은 흰 원 메뉴 버튼, 계기판 아래 빈 자리.
+// Chief 고정81(2026-11-18): 흰 원 메뉴 버튼은 옛 센서 자리(왼쪽 위), 계기판은 그 오른쪽.
 // 누르면 열리고(끌어도 열리지 않음), 열리면 메뉴 패널이 덮는다.
-test('Chief 고정71 — 왼쪽 흰 원 메뉴 버튼: 계기판 아래 빈 자리, 누르면 열리고 끌어도 열리지 않는다',async({page})=>{
+test('Chief 고정81 — 왼쪽 흰 원 메뉴 버튼: 옛 센서 자리, 누르면 열리고 끌어도 열리지 않는다',async({page})=>{
   for(const size of [{width:800,height:360},{width:667,height:300},{width:844,height:390}]){
     await page.setViewportSize(size);
     for(const state of ['ready','riding','paused'] as const){
@@ -332,6 +332,7 @@ test('Chief 고정71 — 왼쪽 흰 원 메뉴 버튼: 계기판 아래 빈 자�
         expect(tab.radius,label).toBe('50%');
         expect(tab.hitOk,label).toBe(true);
         expect(tab.k.x,label).toBeCloseTo(20,0);
+        expect(tab.k.y,label).toBeCloseTo(4,0);
         for(const o of g.others){
           const overlap=tab.k.x<o.right&&tab.k.right>o.left&&tab.k.y<o.bottom&&tab.k.bottom>o.top;
           expect(overlap,`${label} vs ${o.name}`).toBe(false);

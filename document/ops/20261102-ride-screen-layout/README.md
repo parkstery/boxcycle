@@ -121,3 +121,13 @@
 - 후속(같은 날): 접힌 인터벌 알약 → 메뉴 버튼 오른쪽 8px(Chief 「겹치지 않는 위치까지 오른쪽」), 순위 목록·묶음 겹침 허용(대기 합류 시험은 키보드로). 경로 손잡이·미니맵 둘 다 접히면 세로(Chief 「가로보다 세로로」 → 질문 뒤 「둘 다 접혔을 때만 세로」 — 늘 세로면 699×273 에서 펼친 카드가 인터벌 창을 26px 덮어서). 사보타주: 알약 이동 끔 → 2 실패, 늘 가로 → 3 실패, 원복 통과.
 - 회귀: tsc 0·eslint 0·test:quick 1470/0, 화면 e2e 15종 134 통과·5 건너뜀·4 실패(기존: 배치1 3·compact 터치 1 — CDP 끌기 뒤 탭이 클릭이 안 됨, 5단계 기록과 같음).
 - 후속(같은 날, Chief 「세로로 배치 가능하지 않아?」): 접힌 미니맵 버튼은 늘 세로. 가로 예외는 높이 340px 이하 + 인터벌 창 펼침 + 경로 카드 펼침일 때만(699×273 에서 세로면 카드가 인터벌 창을 26px 덮음, 341px 이상은 안 겹침). 사보타주: 예외 끔 → 699 만 실패.
+
+## 11-18 센서·메뉴 위치 변경 (Codex, 미배포)
+
+- Chief 공유 이미지 기반 시안 승인 후 지시: RPM·센서 단추를 계기판 오른쪽 끝(평균 다음), 메뉴 열기는 옛 센서 자리(safe 왼쪽+20px·위+4px). Chief 화면에서 원하는 수정 확인.
+- 변경: `MapHud.tsx/.css` 센서 순서·메뉴 폭 예약, `CadenceHudChip.tsx/.css` 회전수→단추 순서, `EdgePanelHandle.css` 메뉴 위치. 연결 상태·설정 창·메뉴 모양·자동 숨김 유지. 고정81.
+- 검증: `node ../../node_modules/typescript/bin/tsc -b` 통과, `sensor-dock` 10/10·`ride-ui-moments --grep 'HUD 한 행|메뉴 탭 클릭'` 5/5, `git diff --check` 통과. 증거: `tmp/sensor-menu-20261118/`. 전체 회귀·실센서 연결 시험·배포는 이번 범위에서 미실행.
+- 후속 Chief 왼쪽 배치 시안 승인 → 구현 완료: 메뉴 자리 유지, RPM·센서를 나머지 계기 앞으로 이동. 주행 전 `RPM→경로→고도`, 주행 시작 후·일시정지 `RPM→거리→시간→속도→새 도로→평균`. 센서 위치·폭은 경로 없음·주행 전·주행 중·일시정지 모두 동일. tsc 통과, 아래 화면 시험16/16(40.7초), `git diff --check` 통과. 고정81 갱신. 실센서·전체 회귀·커밋·배포 미실행.
+  - 실행 폴더: `C:\20.HDev\boxcycle\apps\web`
+  - 명령: `node ../../node_modules/@playwright/test/cli.js test sensor-dock ride-ui-moments ui-800x360 --grep '센서 계기판|HUD 한 행|메뉴 탭 클릭|Chief 고정81' --workers=1 --retries=0`
+  - 주행 전·중·일시정지 가로4크기 증거: `tmp/sensor-menu-20261118/left-implemented/`(SENSOR_DOCK_EVIDENCE_DIR 지정), `left-moments/`(UI_MOMENTS_EVIDENCE_DIR 지정).

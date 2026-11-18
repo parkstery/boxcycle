@@ -10,6 +10,9 @@
 
 ## 진행 중
 
+**11-18 RPM 왼쪽 구현 완료(Codex, 미커밋·미배포)**: Chief 시안 승인 반영. 메뉴 위치 유지, RPM·센서 다음 나머지 계기. 주행 전·중·일시정지 가로4크기 위치·순서·센서 동작 검증, tsc·화면16/16·diff검사 통과. 고정81 갱신. [기록](20261102-ride-screen-layout/README.md)·증거 `tmp/sensor-menu-20261118/left-implemented/`. 기존 미커밋 보존.
+진행 중: Chief 커밋·푸시 승인. 이번 UI 변경만 선별 후 `git commit` → `git push origin main2`, Git 훅 실행. 배포는 범위 밖.
+
 **11-06 G5 Conquest 지역 통계(수퍼바이저 Claude Code·구현 impl-standard, 배포 완료 428ae1b4)**: S1~S6 구현 끝. functions 282/0·test:quick 1522/0 · 안전장치 A·B 구현(상한·판정 실패 격리)·Rules 6/6·e2e 3/3. 결과 [00-plan §4.4.1](20261103-global-geo-data/00-plan.md)·고정80. 배포(Rules·함수·채우기 92건·Hosting) 2026-11-06 Chief 실행, 검증 완료. 행정구역 칩(A안, c5a6b3b0)도 Hosting 배포·라이브 확인. 남은 것: Chief 폰 확인(계정 창 국가·행정구역 칩·개척 순위 범위 버튼). 셀 연속성 검증은 별도 제안. 이름 표 생성 완료(`apps/web/public/geo-names/v1`, 3813코드 ko·en, 화면 미연결 — 행정구역 선택은 시안 후).
 
 **11-06 목록 지역 필터(구현 impl-standard·감리 Claude Code)**: 퍼블릭 목록·Trail 탭 머리줄에 「세계 ▾」 칩(Chief A안·고정79), 받아 둔 행을 화면에서 거름(읽기 추가 0), 마지막 범위 기기 저장. test:quick 1513/0. 남은 것: chief 폰 가로 확인 — 699×273 퍼블릭 머리줄 폭, Trail 탭 줄 16px 칩. 서버 geo 미채움 Trail은 지역 선택 시 빠짐.
