@@ -75,7 +75,7 @@ const BASE_LAYERS: MapCutStyleLayer[] = [
 ];
 
 describe("mapcut 쿼리 파싱", () => {
-  it("키는 7개", () => {
+  it("키는 8개", () => {
     assert.deepEqual([...MAP_CUT_KEYS], [
       "terrain",
       "buildings",
@@ -84,6 +84,7 @@ describe("mapcut 쿼리 파싱", () => {
       "sky",
       "minimap",
       "roads",
+      "riders",
     ]);
   });
 

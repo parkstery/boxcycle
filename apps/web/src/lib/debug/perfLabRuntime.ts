@@ -4,7 +4,6 @@
  */
 export { noteRiderJitterFrame } from "./riderJitterProbe";
 export {
-  attachMapRenderProbe,
   noteReactProfilerCommit,
   openFrameBreakdownTick,
 } from "./frameBreakdownProbe";
@@ -14,3 +13,12 @@ export {
   measureRiderRenderFrame,
   noteRiderPerfScene,
 } from "./riderRenderCostProbe";
+
+import { attachMapRenderProbe as attachFrameProbe } from "./frameBreakdownProbe";
+import { attachRenderingDiagnostics } from "./renderingDiagnostics";
+export { noteRenderingDiagnostic } from "./renderingDiagnostics";
+export function attachMapRenderProbe(map: object): () => void {
+  const detachFrame = attachFrameProbe(map);
+  const detachDiagnostics = attachRenderingDiagnostics(map);
+  return () => { detachDiagnostics(); detachFrame(); };
+}

@@ -244,6 +244,16 @@
       "added": "2026-10-17"
     },
     {
+      "id": "renderingDiagnostics",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/renderingDiagnostics.ts",
+      "class": "permanent",
+      "purpose": "3D 전환·Context Loss·실제 버퍼 상태의 로컬 perflab 기록. rendering-diagnostics.test.ts",
+      "enable": "?perflab=1",
+      "bundle": "20261119-mobile-3d-investigation",
+      "added": "2026-11-19"
+    },
+    {
       "id": "perfLab",
       "kind": "module",
       "path": "apps/web/src/lib/debug/perfLab.ts",

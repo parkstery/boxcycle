@@ -44,6 +44,8 @@ function openFrameBreakdownTickOff(): FrameBreakdownTick | null {
 
 function noteReactProfilerCommitOff(_actualDuration: number, _commitTime?: number): void {}
 
+export let noteRenderingDiagnostic: (kind: string, detail: string) => void = () => {};
+
 let installRequested = false;
 
 /** 청크 도착 전 설치 요청을 기억했다가 도착 후 실제 설치를 부른다(DEV `__rtwRiderCost` 유지). */
@@ -100,6 +102,7 @@ export let attachMapRenderProbe: (map: object) => () => void = attachWhileLoadin
 if (isPerfLabEnabled() || import.meta.env.DEV) {
   void import(/* webpackChunkName: "perflab-runtime" */ "./perfLabRuntime")
     .then((mod) => {
+      noteRenderingDiagnostic = mod.noteRenderingDiagnostic;
       noteRiderJitterFrame = mod.noteRiderJitterFrame;
       openFrameBreakdownTick = mod.openFrameBreakdownTick;
       noteReactProfilerCommit = mod.noteReactProfilerCommit;

@@ -28,11 +28,13 @@ function fakeMap(){
   };return map;
 }
 test('production MapView effect observes, restores, flattens and disposes without retrying user off',()=>{
-  const map=fakeMap();let now=0,tick,cleared=false;const changes=[];
+  const map=fakeMap();let now=0,tick,cleared=false;const changes=[];const diagnostics=[];let cutTerrain=false;
   const context={mapRef:{current:map},mapLoaded:true,enable3D:true,rideActive:true,
     terrainFallbackRef:{current:false},onTerrainFallbackChangeRef:{current:v=>changes.push(v)},
     liveLngLatRef:{current:[127,37]},performance:{now:()=>now},document:{hidden:false},
     RideTerrainGuard,readRideTerrainHealth,TERRAIN_GUARD_INTERVAL_MS,BUILDING_LAYER_ID:'buildings',TERRAIN_SOURCE_ID:'dem',
+    noteRenderingDiagnostic:(...args)=>diagnostics.push(args),
+    applyMapCutToMap:m=>{if(cutTerrain)m.setTerrain(null);},
     apply3DState:(m,_enabled,_buildings,_dem,opts)=>{m.setTerrain({exaggeration:opts.flatFallback?0:1.3});map.setAltitude(opts.flatFallback?2:132);},
     window:{setInterval:fn=>{tick=fn;return 1;},clearInterval:()=>{cleared=true;}},
   };
@@ -43,12 +45,20 @@ test('production MapView effect observes, restores, flattens and disposes withou
   map.queryTerrainElevation=()=>null;
   for(;now<=6000;now+=250)tick();
   assert.equal(map.getTerrain().exaggeration,0);
+  assert.ok(diagnostics.some(([kind,detail])=>kind==='terrain-health'&&detail==='missing'));
+  assert.ok(diagnostics.some(([kind,detail])=>kind==='terrain-view'&&detail==='3d'));
   cleanup();assert.equal(cleared,true);
   const count=changes.length;tick();assert.equal(changes.length,count);
   context.enable3D=false;
   effect(mapFile,'const guard = new RideTerrainGuard',context)();
   assert.equal(context.terrainFallbackRef.current,false);
   assert.equal(changes.at(-1),false);assert.equal(map.getContainer().dataset.terrainView,undefined);
+  context.enable3D=true;cutTerrain=true;
+  const cutCleanup=effect(mapFile,'const guard = new RideTerrainGuard',context)();
+  assert.equal(map.getTerrain(),null,'guard initialization must preserve terrain cut');
+  for(now=7000;now<=14000;now+=250)tick();
+  assert.equal(map.getTerrain(),null,'terrain cut must stay off');
+  cutCleanup();
 });
 test('production ride-end effect removes terrain/buildings, keeps center and uses 1000m north-up overview',()=>{
   const map=fakeMap();const ref=current=>({current});

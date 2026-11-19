@@ -66,6 +66,7 @@ import {
 import { isFollowCameraJump } from "./followCameraJump";
 import {
   attachMapRenderProbe,
+  noteRenderingDiagnostic,
   noteRiderJitterFrame,
   openFrameBreakdownTick,
 } from "../../lib/debug/perfLabFacade";
@@ -3332,6 +3333,7 @@ export function MapView({
     if (!enable3D || !rideActive) {
       terrainFallbackRef.current = false;
       onTerrainFallbackChangeRef.current?.(false);
+      noteRenderingDiagnostic("terrain-guard", !enable3D ? "manual-off" : "inactive");
       delete map.getContainer().dataset.terrainView;
       return;
     }
@@ -3340,13 +3342,19 @@ export function MapView({
     const apply = (flat: boolean) => {
       terrainFallbackRef.current = flat;
       apply3DState(map, true, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID, { flatFallback: flat, preserveCamera: true });
+      applyMapCutToMap(map);
       map.getContainer().dataset.terrainView = flat ? "auto-2d" : "3d";
+      noteRenderingDiagnostic("terrain-view", flat ? "auto-2d" : "3d");
       onTerrainFallbackChangeRef.current?.(flat);
     };
+    noteRenderingDiagnostic("terrain-guard", "active");
+    noteRenderingDiagnostic("terrain-health", "initializing");
     apply(true);
     const observe = () => {
       if (disposed || document.hidden || !map.getTerrain()) return;
-      const next = guard.update(performance.now(), readRideTerrainHealth(map, liveLngLatRef.current, guard.flat));
+      const health = readRideTerrainHealth(map, liveLngLatRef.current, guard.flat);
+      noteRenderingDiagnostic("terrain-health", health);
+      const next = guard.update(performance.now(), health);
       if (next !== terrainFallbackRef.current) apply(next);
     };
     const timer = window.setInterval(observe, TERRAIN_GUARD_INTERVAL_MS);

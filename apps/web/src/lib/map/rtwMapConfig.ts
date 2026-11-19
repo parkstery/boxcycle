@@ -172,7 +172,8 @@ export function mapStyleHudShortLabel(style: string): string {
  * 화면 회전·창 크기 변경 뒤에도 상한이 유지된다. 지도 위 3D 라이더 레이어(three.js)는
  * `map.getCanvas()` 와 같은 GL 컨텍스트를 공유하므로 지도 캔버스 해상도를 그대로 따른다.
  */
-export const RIDER_MAP_MAX_PIXEL_RATIO = 2;
+// 2026-11-19 Chief: 스마트폰 3D 부담 절감. DPR2 대비 버퍼 픽셀43.75% 감소.
+export const RIDER_MAP_MAX_PIXEL_RATIO = 1.5;
 /** `?maxdpr=` 비교 측정용 키 (운영 포함). 범위를 벗어나면 상수로 복귀. */
 const RIDER_MAP_MAX_DPR_QUERY_KEY = "maxdpr";
 const RIDER_MAP_MAX_DPR_MIN = 1;
@@ -194,7 +195,7 @@ export function parseRiderMapMaxPixelRatio(search: string | null | undefined): n
 }
 
 /**
- * 실측 DPR → 렌더에 쓸 비율. DPR ≤ 2 기기는 그대로라 동작이 바뀌지 않는다.
+ * 실측 DPR → 렌더에 쓸 비율. DPR ≤ 1.5 기기는 원래 배율을 유지한다.
  * `maxRatio` 가 범위를 벗어나면 상수를 쓴다.
  */
 export function resolveRiderMapPixelRatio(

@@ -1,3 +1,4 @@
+import { readRenderingDiagnostics } from "../../lib/debug/renderingDiagnostics";
 import { useEffect, useRef, useState, type PointerEvent, type TouchEvent } from "react";
 import {
   isPerfLabEnabled,
@@ -141,6 +142,7 @@ function buildReport(mapZoom: number, scene: RiderPerfScene) {
     device: readPerfLabDeviceInfo(),
     jitter: readRiderJitterStats(),
     breakdown: readFrameBreakdown(),
+    rendering: readRenderingDiagnostics(),
   };
 }
 

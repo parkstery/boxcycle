@@ -7,6 +7,7 @@
  *
  * 키: `terrain`(지형 끔) `buildings`(3D 건물 끔) `labels`(symbol 숨김)
  * `poi`(POI 계열 symbol 만) `sky`(sky/fog 끔) `minimap`(미니맵 중지·숨김)
+ * `riders`(preserved 라이더 렌더·자세 계산 생략, 자산은 유지).
  * `roads`(도로 세부·보조 line 숨김 — 경로·정복 등 앱 레이어는 유지).
  * 레이어 숨김은 `setLayoutProperty(visibility, none)`, 스타일 재로드 뒤 재적용은
  * 호출부(MapView `style.load`)가 맡는다. 알 수 없는 키는 무시한다.
@@ -22,6 +23,7 @@ export const MAP_CUT_KEYS = [
   "sky",
   "minimap",
   "roads",
+  "riders",
 ] as const;
 
 export type MapCutKey = (typeof MAP_CUT_KEYS)[number];
@@ -103,6 +105,7 @@ export function classifyMapCutLayers(
     sky: [],
     minimap: [],
     roads: [],
+    riders: [],
   };
   const want = new Set(keys);
   if (want.size === 0) return byKey;
@@ -164,7 +167,7 @@ export type MapCutApplyResult = {
 };
 
 function emptyHiddenByKey(): MapCutHiddenByKey {
-  return { terrain: [], buildings: [], labels: [], poi: [], sky: [], minimap: [], roads: [] };
+  return { terrain: [], buildings: [], labels: [], poi: [], sky: [], minimap: [], roads: [], riders: [] };
 }
 
 /**

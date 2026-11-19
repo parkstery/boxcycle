@@ -6,7 +6,9 @@ import {
   measureRiderPose,
   measureRiderRenderFrame,
   noteRiderPerfScene,
+  noteRenderingDiagnostic,
 } from "../debug/perfLabFacade";
+import { isMapCutKeyActive } from "./mapCut";
 import { shouldAnimateRiderPose, shouldUseRiderLod2 } from "../rider/riderDetailLod";
 import { MercatorCoordinate } from "mapbox-gl";
 import {
@@ -228,6 +230,9 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
     const renderer = this.renderer;
     const rig = this.rig;
     if (!map || !renderer || !rig) return;
+    const renderCut = isMapCutKeyActive("riders");
+    if (isPerfLabEnabled()) noteRenderingDiagnostic("rider-render", renderCut ? "skipped-by-mapcut" : "enabled");
+    if (renderCut) return;
     if (this.specs.length === 0) {
       this.swayEnvelope.prune(new Set());
       this.swaySpeed.prune(new Set());

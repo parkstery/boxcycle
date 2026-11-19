@@ -462,6 +462,7 @@
       "debug/perfLab.ts",
       "debug/perfLabFacade.ts",
       "debug/perfLabRuntime.ts",
+      "debug/renderingDiagnostics.ts",
       "debug/riderJitterProbe.ts",
       "debug/riderRenderCostProbe.ts",
       "debug/rideCameraLab.ts",
