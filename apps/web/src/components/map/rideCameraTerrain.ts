@@ -2,8 +2,8 @@ import mapboxgl, { type Map as MapboxMap } from "mapbox-gl";
 import { getDistanceMeters, type LngLat } from "../../lib/geo/geo";
 
 // Keep the low racing view where it is already safe. Never lower the nominal camera.
-export const CAMERA_TERRAIN_CLEARANCE_M = 3;
-export const CAMERA_SIGHT_CLEARANCE_M = 0.6;
+const CAMERA_TERRAIN_CLEARANCE_M = 3;
+const CAMERA_SIGHT_CLEARANCE_M = 0.6;
 const TERRAIN_EXAGGERATION = 1.3;
 const RIDER_SIGHT_HEIGHT_M = 1.5;
 // Include precisely the guard's 0/.33/.66 samples, plus the intervening ridge points.
