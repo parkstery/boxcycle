@@ -3,15 +3,15 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | **Codex** — 퍼블릭4개 등록·릴리스 |
-| 갱신 | 11-19 공개43/9국·기존44 보존. 푸시·Hosting 진행. |
-| 브랜치 | `main2` (= `origin/main2`, 11-12 정리 커밋 3개 포함) |
-| 마지막 배포 | 2026-11-06 (Chief 실행·Claude Code 검증) 428ae1b4 — Rules·함수·regions 채우기·Hosting(G5). 이전 8be180ff |
+| 담당 | **Codex** — 퍼블릭4개 등록·배포 완료 |
+| 갱신 | 11-19 공개43/9국·Hosting ecf600c7·원격 일치. |
+| 브랜치 | `main2` · origin 일치 |
+| 마지막 배포 | 11-19 Hosting ecf600c7. 함수·Rules11-06 428ae1b4 유지. |
 
 ## 진행 중
 
-**11-19 퍼블릭(Codex)**: Chief 승인으로4개 등록·공개43/9국·기존44 보존. 현실 공사 무관, 도로 데이터 기준.
-[등록·릴리스](20261119-public-route-candidates/release.md). 이번 묶음만 선별 커밋·사본 Hosting 진행.
+**11-19 퍼블릭(Codex)**: 4개 공개 등록·43개/9국·기존44 보존·공개read8OK. 공사 무관·도로 데이터 기준.
+[등록·릴리스](20261119-public-route-candidates/release.md). ecf600c7 푸시·Hosting 완료. quick1567/0·오프라인106·운영17에셋 일치. 아라/암스텔 보류.
 
 
 **11-18 RPM 왼쪽 구현 완료(Codex, 미커밋·미배포)**: Chief 시안 승인 반영. 메뉴 위치 유지, RPM·센서 다음 나머지 계기. 주행 전·중·일시정지 가로4크기 위치·순서·센서 동작 검증, tsc·화면16/16·diff검사 통과. 고정81 갱신. [기록](20261102-ride-screen-layout/README.md)·증거 `tmp/sensor-menu-20261118/left-implemented/`. 기존 미커밋 보존.

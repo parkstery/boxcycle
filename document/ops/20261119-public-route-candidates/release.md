@@ -23,11 +23,21 @@ Directions 계산값6.416/10.927/27.845/40.542km와 구분한다. 등록 snapsho
 - 적용 직전 공개39개·심사 대기0개 전수 재조회 후 동일 profile 유사도90% 차단을 적용했다. 길이·좌표·밀도·bbox·제목/소개 구조·금칙어·개인정보·국가·검수 geometry hash를 확인했다.
 - 서버의 기존 listing 트리거가4개 요약을 생성한 뒤 원본/목록을 재조회했다. **공개43개·목록43개·총 원본48개, 국가9개**. KR32 / JP2 / US2 / KP1 / NL1 / FR2 / GB1 / TW1 / CA1.
 - 기존44개 문서의 geometry·제목·거리·status 모두 보존. 신규4개 geometry hash·국가·등록 거리·목록 거리·ID 일치. 증거: `publication-verification.json`.
+- 관리자 인증 없이 Firestore REST로 원본4개·목록4개 **8/8 HTTP200** 및 제목 일치 확인. 목록이 관리자에게만 보이는 상태가 아님을 검증했다.
 - 등록 전 오프라인106검사, 실제 Mapbox/제품 카메라60관측·DEM432점은 검증 문서 참조. `verify-publications.cjs`는 운영 읽기 전용 재검사다.
 
 ## Git·배포
 
-진행 중: 이번 후보 묶음과 검수 도구만 선별 커밋한다. 타 작업의 미커밋 제품 변경을 보존하며 커밋 사본을 별도 폴더에서 빌드해 Hosting만 배포한다. 함수·Rules는 변경하지 않았다.
+- 등록·검증 소스 커밋: `ecf600c717e294fed136d9fbab6336fac55849e7`. 추천 기록 `1ecd0258`과 함께 origin/main2에 푸시 완료.
+- 이번 후보 묶음·검수 도구와 이 작업의 HANDOFF 항목만 선별했다. 공용 HANDOFF의 타 작업 미커밋 내용은 작업 트리에 보존하고 index에는 기존 커밋 내용에 이번 항목만 반영했다. 오래된 완료 기록을 원본 묶음 링크로 압축해 커밋 사본도8KB 이내로 유지했다.
+- Git 원본 pre-commit ESLint 통과. 원본 pre-push를 커밋 사본에서 실행해 의존성·DB 통로·도구 등록·tsc·동행 회귀·진입 셀렉터21·정련·전체quick **1567/0** 통과. 커밋 사본 오프라인106검사도 통과. 기존 도구 만료 경고8개 유지. 전체quick 제외5파일은 기존 에뮬레이터·하네스다.
+- 사본: `C:\20.HDev\boxcycle\tmp\public-route-release-20261119\snapshot`. `git archive HEAD` 추출의 정규 파일 **7,173개**를 아카이브와 바이트 단위로 대조했다. 설치된 node_modules와 변경 없는 functions/lib는 junction으로 재사용하고 production env만 출력 없이 복사했다. 타 작업 미커밋 제품 코드는 사본에 없다.
+- 이 사본에서 `npm run deploy:hosting` 성공. **Hosting release complete** 확인. 함수·Rules 배포 없음. tsc·Vite build 통과, 기존 큰 chunk 경고 유지.
+- 운영 HTTP200·HTML 및 에셋17개가 빌드와 바이트 단위 일치. HTML no-cache 확인. 진입 번들 `assets/index-3GBKEZ_r.js`는 직전4c1f2ef0 배포와 같다. 이번 변경은 카탈로그 데이터·검수 도구·문서이며 제품 실행 코드는 바꾸지 않았다.
+- 운영 Ego 브라우저: `Spinatlas` React root·지도/canvas 초기화, 브라우저 안에서 신규4개 공개 목록을 읽어 국가·거리·제목 확인. 로그인·주행·센서 조작 없음. 물리 폰·실센서 주행은 미실행.
+- 증거 사본: 이 묶음의 `source-verification.json`·`hosting-verification.json`·`browser-verification.json`. 배포 소스는 위 ecf600c7이며 이후 릴리스 결과 문서 커밋은 제품 빌드에 영향을 주지 않는다.
+
+증거: `tmp/public-route-release-20261119/source-verification.json`, `push.log`, `hosting-deploy.log`. 사본에 junction이 있으므로 재귀 삭제하지 않는다.
 
 ## 실행·확인
 
@@ -38,3 +48,10 @@ node document/ops/20261119-public-route-candidates/verify-publications.cjs
 ```
 
 운영: https://boxcycle-dc2df.web.app/ → 새로고침 → 퍼블릭 목록 → 세계 또는 국가 KR/GB/TW/FR → 위4개 이름·등록 거리 확인 → 코스 불러오기. 실제 센서 주행을 이번 확인에 포함하지 않는다.
+
+배포 재현 명령(실행 폴더는 위 커밋 사본):
+
+```powershell
+Set-Location C:\20.HDev\boxcycle\tmp\public-route-release-20261119\snapshot
+& 'C:\Program Files\nodejs\npm.cmd' run deploy:hosting
+```

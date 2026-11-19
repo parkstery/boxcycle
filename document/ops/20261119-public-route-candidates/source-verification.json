@@ -1,0 +1,6 @@
+{
+  "commit": "ecf600c717e294fed136d9fbab6336fac55849e7",
+  "snapshot": "C:\\20.HDev\\boxcycle\\tmp\\public-route-release-20261119\\snapshot",
+  "verifiedFiles": 7173,
+  "method": "git archive HEAD; every regular extracted file compared byte-for-byte to archive"
+}

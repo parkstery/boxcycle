@@ -1,0 +1,41 @@
+{
+  "at": "2026-11-19T11:54:28.519Z",
+  "space": 20,
+  "title": "Spinatlas",
+  "rootChildren": 1,
+  "mapReady": true,
+  "canvas": [
+    1135,
+    648
+  ],
+  "scriptAssets": [
+    "https://boxcycle-dc2df.web.app/assets/index-3GBKEZ_r.js"
+  ],
+  "publicListings": [
+    {
+      "id": "public-kr-yeouido-hangang-20261119",
+      "title": "여의도 한강 · 양화대교에서 여의도 동쪽",
+      "country": "KR",
+      "distanceMeters": 6408.676305395324
+    },
+    {
+      "id": "public-gb-richmond-park-20261119",
+      "title": "리치먼드 파크 · 도로 순환",
+      "country": "GB",
+      "distanceMeters": 10914.853637348013
+    },
+    {
+      "id": "public-tw-sun-moon-lake-20261119",
+      "title": "일월담 · 호수 순환",
+      "country": "TW",
+      "distanceMeters": 27813.65049290368
+    },
+    {
+      "id": "public-fr-lake-annecy-20261119",
+      "title": "안시 호수 · 시계방향 순환",
+      "country": "FR",
+      "distanceMeters": 40496.62019454319
+    }
+  ],
+  "scope": "production root/map initialization and public listing reads; no authentication, rides, or sensor actions"
+}

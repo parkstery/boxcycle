@@ -1,0 +1,95 @@
+{
+  "at": "2026-11-19T11:54:27.278Z",
+  "commit": "ecf600c717e294fed136d9fbab6336fac55849e7",
+  "status": 200,
+  "htmlIdentical": true,
+  "assetsIdentical": 17,
+  "cacheControl": "no-cache, max-age=0, must-revalidate",
+  "assets": [
+    {
+      "name": "ActivityWorldLodDebugPanel-BuZ7mRMF.js",
+      "bytes": 1523,
+      "sha256": "285c5b444d10667efaeab7c8fea8078e0d41a0ae0da374b7320c71d41f996983"
+    },
+    {
+      "name": "frameBreakdownProbe-BVyr9wV8.js",
+      "bytes": 17608,
+      "sha256": "6bbc5be0cf14188cb42fc562303c91a61007a44a2b046d6e4a0a7372bb773bde"
+    },
+    {
+      "name": "DebugMapStage-BeL4i_gY.js",
+      "bytes": 5222,
+      "sha256": "358a30cbf0f9e22725c94c3877ae514eb6cb9cd30ca889bd75249bd798ac91a8"
+    },
+    {
+      "name": "camera1Mode-DgOnuhkM.js",
+      "bytes": 1749154,
+      "sha256": "e7c0f6523fe0fe2e15e9f9dc9e1b0aa66673ecc5d8cfce32226dc03cd88b13fd"
+    },
+    {
+      "name": "jsx-runtime-QUjkQcTq.js",
+      "bytes": 977,
+      "sha256": "ebbbc54e26e97693425ce9abeabfb5b87c89e7a2d5aa4e2903727522b4f7715a"
+    },
+    {
+      "name": "PerfLabPanel-CURDUS2V.js",
+      "bytes": 10098,
+      "sha256": "da1eaa79049e6d4c60d14eb1c5bf1c6e740d235c918e928b33c6489ef571d8e1"
+    },
+    {
+      "name": "index-M8eXKDYp.css",
+      "bytes": 298048,
+      "sha256": "d5d99289fb360e3c77b484c24139d8f1ca83ebd50457031385425faaf6baab85"
+    },
+    {
+      "name": "index-3GBKEZ_r.js",
+      "bytes": 2126044,
+      "sha256": "73301ad47c77927fae2e5da6324f3790deef12303f8ee5fe18822a1b4e47e053"
+    },
+    {
+      "name": "react-dA9wtOGr.js",
+      "bytes": 7527,
+      "sha256": "bdf474361d2a63d906850cfd35b8b6768331fa83a0239240ad3d4e345168c947"
+    },
+    {
+      "name": "PerfLabPanel-DZOMY7nX.css",
+      "bytes": 2142,
+      "sha256": "7c364ab807382fcc7efa101fe4ba21f9bb3f1334192a920e63323109a8e3edc2"
+    },
+    {
+      "name": "perfLabRuntime-CiJxlcFq.js",
+      "bytes": 423,
+      "sha256": "b3ec3281a2e82d9378d5982fc574e633149da505570d17bde1bd21bf637d4d90"
+    },
+    {
+      "name": "RideCameraLabPanel-7byYxskS.js",
+      "bytes": 2110,
+      "sha256": "bd73f4db87fa784d0532e1182927b54cf1d929b6abd435ac89cd7219993307fd"
+    },
+    {
+      "name": "RideCameraLabPanel-CBxK_QRD.css",
+      "bytes": 288,
+      "sha256": "a04dfa221f82194aa4954c9f5501d8dc1cbb3ef933ad09f9871390307b6dce7f"
+    },
+    {
+      "name": "RiderLightLabPanel-B7cLeTli.css",
+      "bytes": 144,
+      "sha256": "3a2415050ee9b05d53b7645973b594f9e4ff60b92cfa7f6cf1888e3c51ebe914"
+    },
+    {
+      "name": "useLabCopy-BP4zUYQ7.js",
+      "bytes": 1734,
+      "sha256": "a34b0424075af492cc13659e56cfa1db906af0a6238c5f1a6b549c7f3a71062d"
+    },
+    {
+      "name": "RiderLightLabPanel-G8bogJvo.js",
+      "bytes": 2637,
+      "sha256": "e32d5192a1c0a3db2b17179fca990feafbc767f7c110b345f26770ec9d650e77"
+    },
+    {
+      "name": "useLabCopy-D8Uvon_0.css",
+      "bytes": 2490,
+      "sha256": "c3ce87bbce8612358b2ac75ae54edfc0fb6126acfbaa0320cda4b3bb0d4267a6"
+    }
+  ]
+}
