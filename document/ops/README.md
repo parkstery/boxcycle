@@ -1,3 +1,5 @@
+2026-11-19 [퍼블릭 코스 추천·새 세션 인계](20261119-public-route-candidates/README.md): 8개국12후보·1차6개. 안내거리/설계목표 구분, 실제 경로·등록 미실행. Codex 문서 기록.
+
 2026-11-19 [QC2·3 지형 추적](20261119-camera-terrain-follow/README.md): Codex 로컬 구현·검증. 최소 지상고·시야·anchor 보정, quick1156/0·실제WebGL800×360 확인. 건물 보류·Hosting4c1f2ef0 반영.
 
 2026-11-19 [3D 부담 비교 도구](20261119-mobile-3d-investigation/implementation.md): Codex 로컬 검증. perflab 전환/버퍼 이력·riders OFF·mapcut 전환 보존·DPR1.5. Hosting4c1f2ef0 배포 완료, 흰화면 조사 보류.
