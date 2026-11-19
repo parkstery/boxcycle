@@ -1,3 +1,5 @@
+2026-11-19 [QC2·3 지형 추적](20261119-camera-terrain-follow/README.md): Codex 로컬 구현·검증. 최소 지상고·시야·anchor 보정, quick1156/0·실제WebGL800×360 확인. 건물 보류·미배포.
+
 2026-11-18 [주행 화면 표고 표시](20261102-ride-screen-layout/20261118-elevation-release.md): DEPLOYED `e0d2acfe`·Hosting(Codex). 무배경·미수신 축약/수동 재시도·공통 시종점 마커·하단 현재 표고. 원본 게이트/quick1563/0·커밋 사본 UI22/22·운영 번들 일치. 타 작업 미커밋 제외.
 
 2026-11-10 [Spinatlas 전체 개발·서비스 진단](20261110-spinatlas-product-audit/README.md): Fable 지시서. 제품 가치·사용자 여정·시스템·운영·출시 검증·AI 개발 방식을 먼저 진단하고 근거 기반 로드맵을 제출한다. 진단 단계는 읽기 전용이며 Chief 선택 후 항목별 리팩터링. DeepSeek 코드 건강 초안은 별도 보존.

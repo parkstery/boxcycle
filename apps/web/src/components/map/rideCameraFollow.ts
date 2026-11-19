@@ -1,3 +1,4 @@
+import { applyRideCameraTerrain, resetRideCameraTerrain } from "./rideCameraTerrain";
 import type { LngLat, LineStringGeometry } from "../../lib/geo/geo";
 import {
   distanceOnRouteByProjectedPoint,
@@ -153,6 +154,7 @@ export function resetCameraSmoothing(
   },
   map: mapboxgl.Map,
 ) {
+  resetRideCameraTerrain(map);
   const c = map.getCenter();
   state.center = [c.lng, c.lat];
   state.bearing = map.getBearing();
@@ -205,6 +207,7 @@ export function tickRideCameraFollow(
   if (opts.nowMs < opts.suppressUntilMs) return;
 
   if (opts.followMode === "free") {
+    resetRideCameraTerrain(map);
     opts.prevLiveRef.current = targetLngLat;
     return;
   }
@@ -230,7 +233,7 @@ export function tickRideCameraFollow(
     distanceM: opts.rideCameraDistanceM,
   });
 
-  // 제품 QC 튜닝 → camlab 순. Follow 스키마만(FreeCamera 없음).
+  // 제품 QC 튜닝 → camlab 순. 기본 Follow 구도 뒤에 QC2·3 지형 보정을 적용한다.
   // productTune 거리는 명시적 userZoom 이 있으면 덮지 않는다. camlab 은 거리 포함 전원 우선.
   const productTune = getQuickCameraProductTune(opts.activeQuickCamera ?? null);
   const lab = getRideCameraLabOverride();
@@ -350,10 +353,14 @@ export function tickRideCameraFollow(
     riderLngLat: targetLngLat,
     t: opts.nowMs,
     stopFirst: true,
+    terrainCameraSlot: opts.activeQuickCamera,
+    terrainScreenAnchor: screenAnchor,
   });
 }
 
 export type FollowCameraJump = {
+  terrainCameraSlot?: QuickCameraSlot | null;
+  terrainScreenAnchor?: number;
   center: LngLat;
   bearing: number;
   pitch: number;
@@ -419,6 +426,7 @@ export function applyFollowCameraJumpTo(map: mapboxgl.Map, jump: FollowCameraJum
       zoom: jump.zoom,
       ...(hasPadding ? { padding: RIDE_FOLLOW_NO_PADDING } : {}),
     });
+    applyRideCameraTerrain(map, jump.riderLngLat, jump.terrainCameraSlot, jump.t, jump.terrainScreenAnchor);
   } finally {
     endFollowCameraJump();
   }
