@@ -1,6 +1,6 @@
-2026-11-19 [QC2·3 지형 추적](20261119-camera-terrain-follow/README.md): Codex 로컬 구현·검증. 최소 지상고·시야·anchor 보정, quick1156/0·실제WebGL800×360 확인. 건물 보류·미배포.
+2026-11-19 [QC2·3 지형 추적](20261119-camera-terrain-follow/README.md): Codex 로컬 구현·검증. 최소 지상고·시야·anchor 보정, quick1156/0·실제WebGL800×360 확인. 건물 보류·Hosting4c1f2ef0 반영.
 
-2026-11-19 [3D 부담 비교 도구](20261119-mobile-3d-investigation/implementation.md): Codex 로컬 검증. perflab 전환/버퍼 이력·riders OFF·mapcut 전환 보존·DPR1.5. Chief 커밋·푸시·Hosting 승인, 흰화면 조사 보류.
+2026-11-19 [3D 부담 비교 도구](20261119-mobile-3d-investigation/implementation.md): Codex 로컬 검증. perflab 전환/버퍼 이력·riders OFF·mapcut 전환 보존·DPR1.5. Hosting4c1f2ef0 배포 완료, 흰화면 조사 보류.
 
 2026-11-18 [주행 화면 표고 표시](20261102-ride-screen-layout/20261118-elevation-release.md): DEPLOYED `e0d2acfe`·Hosting(Codex). 무배경·미수신 축약/수동 재시도·공통 시종점 마커·하단 현재 표고. 원본 게이트/quick1563/0·커밋 사본 UI22/22·운영 번들 일치. 타 작업 미커밋 제외.
 

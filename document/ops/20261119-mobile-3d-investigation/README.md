@@ -1,5 +1,7 @@
 # 스마트폰 3D 부담 — 네 가지 선행 조사
 
+최신: **11-19 Hosting 배포 완료** — [배포 기록](release.md). 아래 미배포 표현은 당시 조사·구현 단계의 기록이다.
+
 11-19 Chief 「1번 실행해」 후속: `rtwMapConfig.ts` 기본 DPR 상한 **2→1.5** 변경. 원래 DPR≤1.5 유지, 공통 상한이라 고해상도 PC에도 적용. 수동 maxdpr 비교 쿼리는 유지. 로컬 변경·미커밋·미배포. 상한/계측 회귀20/0, tsc·변경파일 ESLint·Vite build 통과(번들 크기 경고), diff 공백 검사 통과. 첫 시험 명령은 루트 폴더에서 경로를 잘못 지정해 미실행, apps/web에서 재실행해 통과. 브라우저 첫 관측은 계측 attached 대기15초 실패; 에뮬레이션 재설정·새로고침 후 직접 조회로 CSS800×360·DPR3에서 **기본1.5·canvas/GL1200×540** 확인. 폰 효과 미측정. 실행 폴더 `C:\20.HDev\boxcycle\apps\web`, 명령 `node --experimental-strip-types --import ./scripts/s42/register-vite-env.mjs --test scripts/map/rider-map-pixel-ratio-contract.test.ts scripts/rendering-diagnostics.test.ts scripts/perf-lab.test.ts`. 폰은 기존 운영 `https://boxcycle-dc2df.web.app/?maxdpr=1.5`로 동일 효과 즉시 비교 가능(새로고침, 이전값은 maxdpr=2). 새 기본값의 운영 반영은 아직 없음.
 
 11-19 후속 구현: [전환 원인 기록·DPR/장면 분리 비교 도구](implementation.md). 아래 본문은 구현 전 선행 조사 기록이다.
