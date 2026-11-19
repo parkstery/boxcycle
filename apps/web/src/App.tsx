@@ -819,6 +819,7 @@ export default function App() {
   }, []);
 
   const { handleEndRide } = useRideEndAndPersistence({
+    newRoadMetersAtEnd: conquestLiveMeters,
     mapboxAccessToken: MAPBOX_TOKEN,
     configured,
     user,
@@ -2821,6 +2822,7 @@ export default function App() {
     suggestedRouteName,
     hudMetrics,
   } = computeAppHudValues({
+    lastRideResult,
     rideMetrics,
     sessionStartOffsetMeters,
     startPlaceLabel,
@@ -2833,6 +2835,11 @@ export default function App() {
     avgSpeedLabel,
     routeElevationProfile: rideElevationProfile,
   });
+  const hudNewRoadMeters = summaryVisible
+    ? lastRideResult?.hudSnapshot?.newRoadMeters ?? null : conquestLiveMeters;
+  const hudAlreadyOwnedHint = summaryVisible
+    ? shouldShowAlreadyOwnedHint(hudNewRoadMeters, lastRideResult?.sessionDistanceMeters ?? 0)
+    : conquestAllOwnedHint;
   const accountInitial = (() => {
     if (!user) return null;
     if (user.isAnonymous) return "G";
@@ -3086,8 +3093,8 @@ export default function App() {
                 onModifyFromPause: handleModifyFromPause,
                 ridePresence: mapHudRidePresence,
                 onGoTrailhead: goTrailheadAndCloseMenu,
-                conquestLiveMeters,
-                conquestAllOwnedHint,
+                conquestLiveMeters: hudNewRoadMeters,
+                conquestAllOwnedHint: hudAlreadyOwnedHint,
                 ...mapHudLeaderboard,
                 controlGroup: rideControlGroup,
                 cadence: rideSensorCell,
@@ -3278,8 +3285,8 @@ export default function App() {
               onModifyFromPause: handleModifyFromPause,
               ridePresence: mapHudRidePresence,
               onGoTrailhead: goTrailheadAndCloseMenu,
-              conquestLiveMeters,
-              conquestAllOwnedHint,
+              conquestLiveMeters: hudNewRoadMeters,
+              conquestAllOwnedHint: hudAlreadyOwnedHint,
               ...mapHudLeaderboard,
               controlGroup: rideControlGroup,
               cadence: rideSensorCell,
@@ -3604,6 +3611,7 @@ export default function App() {
       />
 
       <RideSummarySheet
+        riderName={user ? selfRiderDisplayName(user) : undefined}
         open={summaryVisible}
         result={lastRideResult}
         story={rideEndStory}

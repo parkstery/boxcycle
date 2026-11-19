@@ -306,6 +306,7 @@ export function MapHud(props: MapHudProps) {
   const isGate =
     stage === "gate-nickname" || (stage === "gate" && !authGateVisualDismissed);
   const isSummary = stage === "summary";
+  const retainRideMetrics = isSummary && metrics?.mode === "ride";
 
   // 트리거 노출 정책: gate/summary 가 아닌 동안 항상 보임.
   /*
@@ -394,9 +395,8 @@ export function MapHud(props: MapHudProps) {
   const showMetrics =
     metrics !== null &&
     !isGate &&
-    !isSummary &&
-    (riding || paused || metrics.mode === "route-preview");
-  const showSensor = !isGate && sensorChipSlot({ stage, hasCadence: cadence !== null }) === "hud";
+    (riding || paused || (isSummary && metrics.mode === "ride") || metrics.mode === "route-preview");
+  const showSensor = !isGate && sensorChipSlot({ stage: retainRideMetrics ? "paused" : stage, hasCadence: cadence !== null }) === "hud";
   const intervalCoachingActive = props.rideInterval != null && props.rideInterval.phase !== "complete";
   const showCoach = Boolean(momentEvent && (!intervalCoachingActive || momentEvent.kind.startsWith("interval"))) || (!intervalCoachingActive && coachLineEnabled && coachData !== null && (riding || paused));
   const showMc = stage === "setup" && Boolean(routeError);
@@ -429,7 +429,7 @@ export function MapHud(props: MapHudProps) {
 
   return (
     <div
-      className={`map-hud${activeRide ? " map-hud--active-ride" : ""}`}
+      className={`map-hud${activeRide || retainRideMetrics ? " map-hud--active-ride" : ""}`}
       aria-label="라이딩 HUD"
     >
       {showMenuTrigger ? (
@@ -455,7 +455,7 @@ export function MapHud(props: MapHudProps) {
                     state={cadence.state}
                     open={cadence.open}
                     onOpen={cadence.onOpen}
-                    riding={activeRide}
+                    riding={activeRide || retainRideMetrics}
                     attention={Boolean(cadence.attention)}
                   />
                 </div>
@@ -505,7 +505,7 @@ export function MapHud(props: MapHudProps) {
                       <>
                     <HudMetricCell label="시간" value={metrics.elapsed} variant="time" />
                     <HudMetricCell label="속도" value={String(metrics.speedKmh)} unit="km/h" variant="speed" />
-                    {(riding || paused) && conquestLiveMeters != null ? (
+                    {(riding || paused || isSummary) && conquestLiveMeters != null ? (
                         <span
                           className={`hud-metrics__cell hud-metrics__cell--conquest${
                             conquestPulse ? " hud-metrics__cell--conquest-pulsing" : ""
@@ -526,7 +526,7 @@ export function MapHud(props: MapHudProps) {
                             </span>
                           ) : null}
                         </span>
-                    ) : (riding || paused) ? (
+                    ) : (riding || paused || isSummary) ? (
                       <HudMetricCell label="새 도로" value="—" variant="speed" />
                     ) : null}
                     <HudMetricCell label="평균" value={metrics.avgKmh} unit="km/h" variant="speed" />

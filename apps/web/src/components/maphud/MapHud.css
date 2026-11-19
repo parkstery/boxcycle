@@ -1510,3 +1510,37 @@
 }
 .map-hud--active-ride .hud-metrics__value-total { font-size: 12px; }
 .map-hud--active-ride .hud-metrics__cell-unit { font-size: 9px; }
+
+/* Chief 11-19: RPM을 포함한 모든 타이틀의 높이를 통일한다.
+   센서 단추(30px)와 새 도로 보조 안내가 칸을 키워도 타이틀/값은 움직이지 않는다. */
+.map-hud--active-ride .map-hud__tl-row {
+  align-items: flex-start;
+}
+
+.map-hud--active-ride .hud-metrics__capsule {
+  align-items: start;
+}
+
+.map-hud.map-hud--active-ride .hud-metrics--sensor .hud-metrics__capsule {
+  padding: 2px 0;
+}
+
+.map-hud--active-ride .hud-metrics__capsule .hud-metrics__cell {
+  justify-content: flex-start;
+}
+
+.map-hud--active-ride .hud-metrics__label {
+  height: 11px;
+  line-height: 11px;
+  flex: none;
+}
+
+.map-hud--active-ride .hud-metrics__capsule .hud-metrics__value {
+  height: 18px;
+  min-height: 18px;
+  line-height: 18px;
+}
+
+.map-hud--active-ride .hud-metrics__sensor-rpm {
+  line-height: 18px;
+}

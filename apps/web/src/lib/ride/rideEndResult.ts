@@ -47,6 +47,14 @@ export type RideEndResult = {
   profile: RouteProfile;
   /** 이번 주행이 달린 Route 전장(m) — 다음 목표 거리의 근거 */
   routeDistanceMeters: number;
+  /** 종료 화면 전용 스냅샷. 서버 저장 payload에는 포함하지 않는다. */
+  hudSnapshot?: {
+    cumulativeDistanceMeters: number;
+    speedKmh: number;
+    newRoadMeters: number | null;
+  };
+  startPlaceLabel?: string | null;
+  endPlaceLabel?: string | null;
   /** F3: Conquest 결과 (rides/{serverRideId}.conquestResult). serverRideId가 없으면 unsaved */
   conquest?: RideConquestResult;
   /** F4: Ride save 상태 (Firestore rides 저장 성공 여부). 기록 폐기 시 "n/a" */

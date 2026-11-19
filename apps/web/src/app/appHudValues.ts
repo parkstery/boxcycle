@@ -4,6 +4,7 @@ import { buildSuggestedRouteName } from "../lib/route/repo/firestoreSavedRoutes"
 import type { LineStringGeometry } from "../lib/geo/geo";
 import type { RideMetricsUi, RideSessionStatus } from "../hooks/useVirtualRideSession";
 import type { RouteElevationProfileState } from "../hooks/useRouteElevationProfile";
+import type { RideEndResult } from "../lib/ride/rideEndResult";
 
 export type RoutePreviewElevationHud =
   | { status: "ready"; startM: number; endM: number }
@@ -21,6 +22,7 @@ export type AppHudValuesInput = {
   rideStatus: RideSessionStatus;
   routeGeometry: LineStringGeometry | null;
   summaryVisible: boolean;
+  lastRideResult?: RideEndResult | null;
   avgSpeedLabel: string;
   routeElevationProfile?: RouteElevationProfileState | null;
 };
@@ -54,6 +56,7 @@ export function computeAppHudValues({
   rideStatus,
   routeGeometry,
   summaryVisible,
+  lastRideResult,
   avgSpeedLabel,
   routeElevationProfile = null,
 }: AppHudValuesInput) {
@@ -70,8 +73,8 @@ export function computeAppHudValues({
   // 저장 폼 기본 이름 제안 — "출발지 → 도착지 · 거리"(역지오코딩된 지명 + 저장될 경로 거리).
   // 거리는 세션 주행 거리가 아니라 저장 대상 경로 거리를 써서 이름이 경로를 안정적으로 식별하게 한다.
   const suggestedRouteName = buildSuggestedRouteName({
-    startPlaceLabel,
-    endPlaceLabel,
+    startPlaceLabel: summaryVisible ? lastRideResult?.startPlaceLabel ?? startPlaceLabel : startPlaceLabel,
+    endPlaceLabel: summaryVisible ? lastRideResult?.endPlaceLabel ?? endPlaceLabel : endPlaceLabel,
     distanceMeters: lastEndedWasAdhoc?.distanceMeters ?? routeDistanceMeters,
   });
   const hudRoutePreview =
@@ -80,8 +83,22 @@ export function computeAppHudValues({
     routeDistanceMeters > 0 &&
     !summaryVisible;
 
+  const ended = summaryVisible ? lastRideResult : null;
   const hudMetrics =
-    rideStatus !== "idle"
+    ended
+      ? {
+          mode: "ride" as const,
+          elapsed: formatElapsedFromMs(ended.elapsedSec * 1000),
+          distanceKm: formatRideDistanceKmNumber(ended.sessionDistanceMeters),
+          cumulativeKm: formatRideDistanceKmNumber(
+            ended.hudSnapshot?.cumulativeDistanceMeters ?? (ended.hasRoute
+              ? ended.routeDistanceMeters * ended.progressRatio : ended.sessionDistanceMeters),
+          ),
+          avgKmh: ended.avgSpeedKmh.toFixed(1),
+          speedKmh: ended.hudSnapshot?.speedKmh ?? 0,
+          routeTotalKm: ended.routeDistanceMeters > 0 ? (ended.routeDistanceMeters / 1000).toFixed(2) : null,
+        }
+      : rideStatus !== "idle"
       ? {
           mode: "ride" as const,
           elapsed: elapsedLabel,

@@ -9,12 +9,13 @@ import { formatNewRoadHero, formatConquestStatusCopy } from "../../lib/ride/ride
 import { formatCaloriesEstimateLabel } from "../../lib/ride/caloriesEstimate";
 import type { RideStory } from "../../lib/ride/rideStory";
 import type { RideRankChangeLine } from "../leaderboard/leaderboardLiveRank";
-import { formatElapsedFromMs } from "../../lib/ride/rideFormat";
+
 import { useDialogFocus } from "../ui/useDialogFocus";
 import "./RideSummarySheet.css";
 
 type RideSummarySheetProps = {
   open: boolean;
+  riderName?: string;
   arrivalCompleted: boolean;
   elapsedLabel: string;
   avgKmh: string;
@@ -77,22 +78,9 @@ type RideSummarySheetProps = {
 /**
  * 주행 종료 후 하단 시트.
  * - 도착 여부·ad-hoc 여부로 노출을 제한하지 않는다 — 폐기되지 않은 **모든 유효 Ride** 가 연다(§3.5).
- * - 컴팩트 4행 구성: 헤더 → 2열 히어로(새 도로 + 오늘, 완주/진행률 배지) → 보조 수치(+저장 상태) → 저장 폼.
- *   스크롤 없이 가로 폰 화면 한 장에 들어가야 한다.
+ * - 닉네임·주행 이야기·출발/도착 두 줄·저장 폼을 단일 열로 표시한다.
+ *   수치 계기는 기존 HUD에서 유지하며, 추가 안내가 많으면 결과 창 안에서 스크롤한다.
  */
-/**
- * 진행 블록 거리 — 자릿수는 **경로 전체 거리**가 정하고 블록 안 숫자가 모두 따른다
- * (「2.0km 중 0.18km」처럼 섞이지 않게). 1km 미만 경로는 소수 둘째 자리 — 짧은 경로가
- * 「0.2km 중 0.2km」로 뭉개지지 않게.
- */
-function sheetKmDigits(totalKm: number): number {
-  return totalKm < 1 ? 2 : totalKm < 100 ? 1 : 0;
-}
-
-function formatSheetKm(km: number, digits: number): string {
-  return `${Math.max(0, km).toFixed(digits)}km`;
-}
-
 export function RideSummarySheet(props: RideSummarySheetProps) {
   const suggested = props.suggestedName ?? "";
   const [name, setName] = useState(suggested);
@@ -188,75 +176,19 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
 
   if (!props.open) return null;
 
-  /*
-   * 시간·평속은 **주행이 끝난 순간에 고정된 결과**에서 읽는다. props 의 두 값은 실시간 주행
-   * 계기(rideMetrics)라 종료 직후 계기가 초기화되면 「00:00 · 0.0 km/h」로 바뀌었다
-   * (2026-10-07 Chief 스크린샷). 결과가 없을 때만 props 로 내려간다.
-   */
-  const elapsedLabel =
-    result && Number.isFinite(result.elapsedSec)
-      ? formatElapsedFromMs(result.elapsedSec * 1000)
-      : props.elapsedLabel;
-  const avgKmhLabel =
-    result && Number.isFinite(result.avgSpeedKmh) ? result.avgSpeedKmh.toFixed(1) : props.avgKmh;
-
   const routeCompleted = Boolean(result?.routeCompleted);
   /** 미완주 저장 경로 주행 — 이전→신규 진행률을 보여 줄 수 있는 경우 */
   const showProgressLine = Boolean(result && result.savedRouteId && !routeCompleted);
 
-  // RIDE-CLAIM-RESULT-1: 새 도로 conquest 표시 로직
-  const newRoadHero = formatNewRoadHero(conquestResult.newMeters, conquestResult.status);
-  const conquestStatusCopy = formatConquestStatusCopy(
-    conquestResult.status,
-    isDelayed,
-    isTimedOut,
-  );
-
-  // 저장 중(serverRideId 없음)이면 conquest hero 블록을 표시하지 않음
-  const showConquestBlock = Boolean(result);
-  /*
-   * 내용이 실제로 있을 때만 새 도로 칸을 연다. `confirmed_zero`(새 도로 0m 확정)에서는
-   * hero 도 statusCopy 도 null 이라, 설명문을 걷어낸 뒤로는 **테두리만 남은 빈 박스**가 됐다.
-   * 「0 은 노출하지 않는다」는 기존 결정(50m 미만 미표시)을 뒤집지 않으려면 숫자를 채울 게
-   * 아니라 칸 자체를 접는 것이 맞다 — 그러면 「오늘」이 1열로 자리를 넓혀 쓴다.
-   */
-  const hasConquestContent = showConquestBlock && Boolean(newRoadHero || conquestStatusCopy);
-  /*
-   * 「이번 주행」 세 값 — 주행거리 / 총거리 / 새 도로(2026-09-17 Chief).
-   * 「오늘」(하루 누적)은 이 화면이 답할 질문이 아니다. 단위 km 는 헤더가 한 번만 말하고
-   * 숫자에는 붙이지 않는다.
-   *
-   * 주행거리는 **경로상 누적 위치**다(세션 거리가 아니다, Chief 확정). 이어달리기로 경로
-   * 중간부터 재개해 끝낸 경우에도 「완주 = 0.50 / 0.50」 이 성립해야 하고, 주행 중 상단
-   * 계기판이 보여 주던 「누적 / 전체」와 같은 숫자여야 화면이 이어지기 때문이다.
-   */
-  const routeTotalKmNum = result ? result.routeDistanceMeters / 1000 : null;
-  /*
-   * 완주면 분자를 전체거리로 맞춘다. 완주 인정 기준은 100% 가 아니라 **98%**
-   * (`ROUTE_COMPLETION_RATIO_THRESHOLD`)라, 그대로 두면 완주해도 「0.99 / 1.00」 처럼
-   * 보인다. 「완주」 배지를 뺀 근거가 「숫자를 보고 완주를 확인한다」(Chief)인데
-   * 0.99/1.00 으로는 완주인지 알 수 없어 그 근거가 무너진다.
-   */
-  const riddenKmNum =
-    result && Number.isFinite(result.progressRatio)
-      ? result.routeCompleted
-        ? result.routeDistanceMeters / 1000
-        : (result.routeDistanceMeters * Math.max(0, Math.min(1, result.progressRatio))) / 1000
-      : null;
-  const distancePair =
-    routeTotalKmNum != null && riddenKmNum != null && routeTotalKmNum > 0
-      ? `${riddenKmNum.toFixed(2)} / ${routeTotalKmNum.toFixed(2)}`
-      : null;
-  const kmDigits = sheetKmDigits(routeTotalKmNum ?? 0);
-  // 진행 막대 — 지난번까지(이전 진행률) + 이번 주행분. 완주면 꽉 채운다
-  const progressNowPct = routeCompleted
-    ? 100
-    : Math.round(Math.max(0, Math.min(1, result?.progressRatio ?? 0)) * 1000) / 10;
-  const progressBeforePct = Math.min(
-    progressNowPct,
-    Math.round(Math.max(0, Math.min(1, result?.previousProgressRatio ?? 0)) * 1000) / 10,
-  );
-  const progressThisPct = Math.max(0, progressNowPct - progressBeforePct);
+  const displayConquest = conquestResult.status === "none" && result?.conquest
+    ? result.conquest : conquestResult;
+  const newRoadHero = formatNewRoadHero(displayConquest.newMeters, displayConquest.status);
+  const conquestStatusCopy = formatConquestStatusCopy(displayConquest.status, isDelayed, isTimedOut);
+  const endedCopy = routeCompleted || props.arrivalCompleted ? "완주했어요." : "주행을 마쳤어요.";
+  // 확정 수치를 사용한다. 확인 전에는 늘어난 거리를 단정하지 않는다.
+  const headline = newRoadHero
+    ? `${endedCopy} 내 도로망이 ${newRoadHero} km 더 늘어났어요.`
+    : endedCopy;
   function requestClose() {
     if (busy) return;
     props.onClose();
@@ -310,113 +242,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
         role="dialog"
         aria-labelledby="ride-summary-title"
       >
-        <div className="ride-summary__handle" aria-hidden />
         <div className="ride-summary__cols">
-          <div className="ride-summary__col ride-summary__col--primary">
-            {/*
-              스토리 — 숫자를 사람의 말로(2026-10-07 Chief). 문장은 lib/ride/rideStory.ts 가
-              기록의 사실로만 만든다. 가로 800 판에서는 왼쪽 요약 열의 맨 위.
-            */}
-            {props.story ? (
-              <div className="ride-summary__story" aria-live="polite">
-                <p className="ride-summary__story-headline">{props.story.headline}</p>
-                {props.story.detail ? (
-                  <p className="ride-summary__story-detail">{props.story.detail}</p>
-                ) : null}
-              </div>
-            ) : null}
-
-            {/* §3.1 히어로 — 새 도로 + 진행. 가로 판에서는 왼쪽 열에 세로로 쌓는다 */}
-            <div className="ride-summary__heroes">
-          <div
-            className={
-              hasConquestContent && distancePair
-                ? "ride-summary__heroes-main"
-                : "ride-summary__heroes-main ride-summary__heroes-main--solo"
-            }
-          >
-            {hasConquestContent ? (
-              <div className="ride-summary__conquest-hero" aria-live="polite">
-                {newRoadHero ? (
-                  <>
-                    <div className="ride-summary__conquest-label">새 도로</div>
-                    <strong className="ride-summary__conquest-value" aria-label="새 도로">
-                      +{newRoadHero}
-                      <span className="ride-summary__conquest-km" aria-hidden="true"> km</span>
-                    </strong>
-                  </>
-                ) : conquestStatusCopy ? (
-                  <p className="ride-summary__conquest-status">
-                    {conquestStatusCopy}
-                    {isTimedOut ? (
-                      <>
-                        {" "}
-                        <button
-                          type="button"
-                          className="ride-summary__conquest-retry"
-                          onClick={() => {
-                            setIsDelayed(false);
-                            setIsTimedOut(false);
-                          }}
-                        >
-                          다시 확인
-                        </button>
-                      </>
-                    ) : null}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-
-            {/*
-              진행 블록(2026-10-08 Chief) — 큰 숫자 「0.17 / 2.02」를 걷어내고 「2.0km 중 0.2km」를
-              주인공으로. 막대는 지난번까지 온 길(흐린 흰색) + **이번에 달린 구간(골드)** + 남은 길.
-              숫자 계약은 화면 문구가 아니라 data-* 로 남긴다(e2e 가 문구에 묶이지 않게).
-            */}
-            {distancePair && routeTotalKmNum != null && riddenKmNum != null ? (
-              <div
-                className={`ride-summary__progress${routeCompleted ? " ride-summary__progress--done" : ""}`}
-                aria-label="주행 거리 / 경로 전체거리"
-                data-ridden-km={riddenKmNum.toFixed(2)}
-                data-total-km={routeTotalKmNum.toFixed(2)}
-              >
-                <div className="ride-summary__progress-text">
-                  {routeCompleted ? (
-                    <span className="ride-summary__progress-main">
-                      <strong className="ride-summary__progress-v">{formatSheetKm(routeTotalKmNum, kmDigits)}</strong>
-                      <span className="ride-summary__progress-of">완주</span>
-                    </span>
-                  ) : (
-                    <span className="ride-summary__progress-main">
-                      <span className="ride-summary__progress-of">{formatSheetKm(routeTotalKmNum, kmDigits)} 중</span>
-                      <strong className="ride-summary__progress-v">{formatSheetKm(riddenKmNum, kmDigits)}</strong>
-                    </span>
-                  )}
-                </div>
-                {/* 남은 거리는 막대 끝에 작게 — 해낸 거리가 먼저다(N2) */}
-                {routeCompleted ? null : (
-                <div className="ride-summary__progress-track">
-                  <div className="ride-summary__progress-bar" aria-hidden>
-                    <span
-                      className="ride-summary__progress-before"
-                      style={{ width: `${progressBeforePct}%` }}
-                    />
-                    <span
-                      className="ride-summary__progress-this"
-                      style={{ width: `${progressThisPct}%` }}
-                    />
-                  </div>
-                    <span className="ride-summary__progress-left">
-                      남은 {formatSheetKm(Math.max(0, routeTotalKmNum - riddenKmNum), kmDigits)}
-                    </span>
-                </div>
-                )}
-              </div>
-            ) : null}
-          </div>
-            </div>
-          </div>
-
           <div className="ride-summary__col ride-summary__col--detail">
             <div
               className={[
@@ -429,7 +255,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
               <div className="ride-summary__head-left">
                 <h2 id="ride-summary-title" className="ride-summary__title">
                   주행 결과
-                  <span className="ride-summary__title-unit">km</span>
+
                 </h2>
                 {!routeCompleted && showProgressLine && result ? (
                   <span className="ride-summary__heroes-badge" aria-label="전체 진행">
@@ -438,6 +264,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                   </span>
                 ) : null}
               </div>
+              {props.riderName ? <span className="ride-summary__rider" title={props.riderName}>{props.riderName}</span> : null}
               {props.adhocSaveAvailable ? null : (
                 <button
                   type="button"
@@ -451,6 +278,15 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
               )}
             </div>
 
+        <div className="ride-summary__story" aria-live="polite">
+          <p className="ride-summary__story-headline">{headline}</p>
+          {conquestStatusCopy ? <p className="ride-summary__conquest-status">
+            {conquestStatusCopy}
+            {isTimedOut ? <button type="button" className="ride-summary__conquest-retry" onClick={() => {
+              setIsDelayed(false); setIsTimedOut(false);
+            }}>다시 확인</button> : null}
+          </p> : null}
+        </div>
         {props.rankChange && props.onOpenLeaderboard ? (
           <button
             type="button"
@@ -495,14 +331,6 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
         ) : null}
 
         <div className="ride-summary__substats">
-          <span className="ride-summary__substat">
-            <span className="ride-summary__substat-label">시간</span>
-            <span className="ride-summary__substat-metric">{elapsedLabel}</span>
-          </span>
-          <span className="ride-summary__substat">
-            <span className="ride-summary__substat-label">평균</span>
-            <span className="ride-summary__substat-metric">{avgKmhLabel}&nbsp;km/h</span>
-          </span>
           {(() => {
             const kcal =
               result?.caloriesEstimate !== undefined
@@ -511,6 +339,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
             const label = formatCaloriesEstimateLabel(kcal);
             const signalGap = Boolean(result?.caloriesMeta?.signalGap);
             if (kcal == null) {
+              if (props.calorieProfileComplete || !props.onOpenCalorieSettings) return null;
               return (
                 <span
                   className="ride-summary__substat ride-summary__substat--calorie"
@@ -520,7 +349,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                   <span className="ride-summary__substat-metric">
                     {props.calorieProfileComplete ? "센서 주행 후 표시" : "체중·체력 입력 후 표시"}
                   </span>
-                  {props.onOpenCalorieSettings && !props.calorieProfileComplete ? (
+                  {(
                     <button
                       type="button"
                       className="ride-summary__calorie-setup"
@@ -528,7 +357,7 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
                     >
                       체중·체력 설정
                     </button>
-                  ) : null}
+                  )}
                 </span>
               );
             }
@@ -584,6 +413,12 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
           </div>
         ) : null}
 
+        {result?.hasRoute ? (
+          <div className="ride-summary__route" aria-label="주행 경로">
+            <div className="ride-summary__point"><span className="ride-summary__badge" aria-label="출발">S</span><span className="ride-summary__address" title={result.startPlaceLabel ?? undefined}>{result.startPlaceLabel || "출발 지점"}</span></div>
+            <div className="ride-summary__point"><span className="ride-summary__badge ride-summary__badge--end" aria-label="도착">E</span><span className="ride-summary__address" title={result.endPlaceLabel ?? undefined}>{result.endPlaceLabel || "도착 지점"}</span></div>
+          </div>
+        ) : null}
         {props.adhocSaveAvailable ? (
           <>
             {/*
@@ -591,7 +426,9 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
               경로명은 일반 텍스트처럼 표시하고, 화면 폭과 관계없이 저장 버튼 윗줄에 둔다.
             */}
             <div className="ride-summary__form">
+              <label className="ride-summary__name-label" htmlFor="ride-summary-route-name">경로명</label>
               <input
+                id="ride-summary-route-name"
                 type="text"
                 className="ride-summary__input"
                 aria-label="저장할 경로 이름"

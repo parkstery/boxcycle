@@ -349,21 +349,15 @@ export const ENTRY_STEPS = [
   },
   {
     step: "ride-result-progress",
-    desc: "주행 결과 시트 — 오늘 거리 + 전체 진행(이전→신규) + 완주/진행률 배지(RIDE-CONTINUE-1 §3.5)",
+    desc: "주행 결과 시트 — 닉네임·주행 이야기·출발/도착 두 줄·미완주 전체 진행. 수치는 기존 HUD 유지(Chief 11-19)",
     file: "src/components/ride/RideSummarySheet.tsx",
     anchors: [
       { name: "결과 시트 region", re: /aria-label="주행 결과"/ },
       { name: "결과판 내부 닫기(배경 scrim과 구분)", re: /className="ride-summary__close"/ },
-      // 2026-09-17 Chief: 「오늘」·「거리」 라벨과 「완주/도착」 배지를 뺐다 — 숫자가 스스로 말한다.
-      // 남은 표면은 「주행거리 / 총거리」 쌍이다.
-      { name: "주행거리/총거리 쌍", re: /aria-label="주행 거리 \/ 경로 전체거리"/ },
+      // Chief 11-19: 거리/시간/평균은 유지된 기존 HUD에서 확인한다.
+      { name: "닉네임", re: /ride-summary__rider/ },
+      { name: "출발·도착 두 줄", re: /aria-label="주행 경로"/ },
       { name: "전체 진행 라인", re: /aria-label="전체 진행"/ },
-      // 2026-09-17 컴팩트 재설계(Chief 지시)로 「다음 출발점이 저장되었습니다」 문구와
-      // 「끝점에서 새 경로」/「지금 새 경로 연결」 버튼은 시트에서 제거됐다 — 이어가기 기능
-      // 자체(handleStartRouteFromAnchor, App.tsx)는 살아있고 진입점만 UserInfoSheet 최근
-      // 주행 「여기서 새 경로」로 옮겨졌다. 시트가 새로 내놓는 표면(2열 히어로·완주/진행률
-      // 배지)으로 앵커를 옮긴다.
-      { name: "2열 히어로 컨테이너", re: /ride-summary__heroes"/ },
       { name: "완주/진행률 배지", re: /ride-summary__heroes-badge/ },
     ],
     selector: `getByRole('region',{name:'주행 결과'}) → getByLabel('전체 진행')`,

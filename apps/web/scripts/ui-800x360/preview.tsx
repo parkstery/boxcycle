@@ -7,6 +7,7 @@ import { IntervalRouteConfirm } from '../../src/components/ride/IntervalRouteCon
 import { createRoot } from 'react-dom/client';
 import '../../src/tokens.css';
 import '../../src/index.css';
+import { computeAppHudValues } from '../../src/app/appHudValues';
 import { MapHud } from '../../src/components/maphud/MapHud';
 import { RouteElevationOverlay } from '../../src/components/map/RouteElevationOverlay';
 import { useRouteElevationProfile } from '../../src/hooks/useRouteElevationProfile';
@@ -186,6 +187,10 @@ const result: RideEndResult = {
   routeName:'남산공원길', hasRoute:true, previousProgressRatio:0.2, progressRatio:summaryCompleted?1:0.44,
   routeCompleted:summaryCompleted, anchorLngLat:[126.98,37.55], anchorPlaceLabel:'남산공원길',
   profile:'cycling', routeDistanceMeters:5000,
+  startPlaceLabel:long?'日本東京都新宿区四谷三丁目とても長い住所の表示検証':'일본 도쿄도 신주쿠구 요쓰야 3',
+  endPlaceLabel:long?'日本東京都豊島区南池袋一丁目とても長い目的地の住所':'일본 도쿄도 도시마구 미나미이케부쿠로 1',
+  hudSnapshot:{cumulativeDistanceMeters:summaryCompleted?5000:2200,speedKmh:24,newRoadMeters:summaryVariant==='zero'?0:4860},
+  conquest:summaryVariant==='pending'?{status:'pending',newMeters:0}:summaryVariant==='zero'?{status:'confirmed_zero',newMeters:0}:{status:'positive',newMeters:4860},
   rideSaveStatus: summaryVariant === 'saving' ? 'pending' : 'success',
   savedRouteProgressStatus: summaryVariant === 'progress-fail' ? 'failed' : 'n/a',
 };
@@ -458,6 +463,13 @@ function Preview() {
   const [flatCameraMode,setFlatCameraMode] = useState<Camera1Mode>('aerial500');
   const [routeSetupToken,setRouteSetupToken] = useState<object>({});
   const [panel,setPanel] = useState(resolveInitialPanel(initial));
+  const summaryShown = panel === 'summary';
+  const endedHud = computeAppHudValues({
+    rideMetrics:{virtualDistanceMeters:0,accumulatedMs:0,liveLngLat:null,appliedSpeedKmh:0},
+    sessionStartOffsetMeters:0,startPlaceLabel:null,endPlaceLabel:null,lastEndedWasAdhoc:null,
+    routeDistanceMeters:0,rideStatus:'idle',routeGeometry:null,summaryVisible:summaryShown,
+    lastRideResult:summaryShown?result:null,avgSpeedLabel:'0.0',
+  }).hudMetrics;
   const [trailPreviewCalls, setTrailPreviewCalls] = useState({joined:'',visibility:'open'});
   const [toolbarCalls,setToolbarCalls] = useState({zoomIn:0,zoomOut:0});
   const trailPreview = params.has('trailPreview');
@@ -589,13 +601,13 @@ function Preview() {
     </MapBottomLeftStack>
 
     {params.has('short') ? <button type="button" style={{position:'absolute',left:'45%',bottom:4,zIndex:9}} onClick={()=>setRouteSetupToken({})}>검수용 새 경로 확정</button> : null}
-    <MapHud stage={stage} onOpenMenu={()=>setPanel('menu')} menuOpen={panel==='menu'}
+    <MapHud stage={summaryShown?'summary':stage} onOpenMenu={()=>setPanel('menu')} menuOpen={panel==='menu'}
       rideInterval={interval.view} intervalCadenceRpm={params.has('noSensor') ? null : 92}
       account={glanceCapture?{initial:'R',isGuest:false,label:'Ridingman12',mileageKm:178}:{initial:'G',isGuest:true,label:long?'아주긴닉네임라이더테스트':'게스트 라이더',mileageKm:null}}
       onOpenUserInfo={()=>setPanel('account')} userInfoOpen={panel==='account'}
       coachData={active?{tip:'Relax and find your rhythm',resistance:'Resistance 3',intensity:'MODERATE',action:'PEDAL',tipId:'tip_26'}:null} coachLineEnabled={active}
-      metrics={hasRoute?active?{mode:'ride',elapsed:glanceRiding?'00:13':'24:08',distanceKm:glanceRiding?'0.07':'4.20',cumulativeKm:glanceRiding?'0.07':long?'1234.56':'4.20',avgKmh:glanceRiding?'19.8':'18.6',speedKmh:glanceRiding?37:24,routeTotalKm:glanceRiding?'2.02':long?'9999.99':'10.00'}:{mode:'route-preview',distanceKm:long?'1234.56':'2.02',elevation:{status:'ready',startM:46,endM:30}}:null}
-      conquestLiveMeters={active?420:null} onClearPins={noop} routeError={params.has('error')?'경로를 찾지 못했습니다. 다른 지점을 선택해 주세요.':null}
+      metrics={summaryShown?endedHud:initial==='summary'||initial==='glance-summary'?null:hasRoute?active?{mode:'ride',elapsed:glanceRiding?'00:13':'24:08',distanceKm:glanceRiding?'0.07':'4.20',cumulativeKm:glanceRiding?'0.07':long?'1234.56':'4.20',avgKmh:glanceRiding?'19.8':'18.6',speedKmh:glanceRiding?37:24,routeTotalKm:glanceRiding?'2.02':long?'9999.99':'10.00'}:{mode:'route-preview',distanceKm:long?'1234.56':'2.02',elevation:{status:'ready',startM:46,endM:30}}:null}
+      conquestLiveMeters={summaryShown?result.hudSnapshot?.newRoadMeters:active?params.has('ownedHint')?0:420:null} conquestAllOwnedHint={params.has('ownedHint')} onClearPins={noop} routeError={params.has('error')?'경로를 찾지 못했습니다. 다른 지점을 선택해 주세요.':null}
       onResumeFromPause={()=>setStage('riding')} onEndFromPause={()=>setPanel('summary')} onModifyFromPause={()=>setStage('setup')}
       quickCamera={active&&!glanceRiding?{active:camera,camera1Mode:flatCameraMode,enable3D,terrainFallback:params.has('terrainFallback'),onEnable3D:setEnable3D,onSelect:setCamera,onSelectFlat:(mode)=>{setFlatCameraMode(mode);setCamera(1);}}:null} mapControls={{styleLabel:mapStyleLabel,styleAriaLabel:`맵 스타일 ${mapStyleLabel}, 클릭 시 ${mapStyleLabel==='위성'?'야외':'위성'}`,onToggleStyle:()=>setMapStyleLabel(value=>value==='위성'?'야외':'위성'),onZoomOut:()=>setToolbarCalls(c=>({...c,zoomOut:c.zoomOut+1})),onZoomIn:()=>setToolbarCalls(c=>({...c,zoomIn:c.zoomIn+1})),zoomOutDisabled:false,zoomInDisabled:false}}
       leaderboardGlancePanel={initial!=='glance-summary'?<LeaderboardGlancePanel {...glanceView} />:undefined}
@@ -610,7 +622,7 @@ function Preview() {
         rank: initial!=='glance-summary' ? {open:rankOpen,onToggle:()=>setRankOpen(open=>!open)} : null,
       }}
       rideMoments={active?{status:stage==='paused'?'paused':'running',elapsedMs:intervalElapsedMs,routeMeters:2020,traveledMeters:420,waypointMeters:[700,1400],newRoadKm:0.42,ended:null,intervalRunKey:interval.runKey,soundEnabled:rideMomentSoundEnabled}:null} />
-    <RideSummarySheet open={panel==='summary'||initial==='glance-summary'} result={result} arrivalCompleted={false} elapsedLabel="07:00" avgKmh="18" caloriesEstimate={null}
+    <RideSummarySheet riderName={long?'Ridingman_123456':'Ridingman12'} open={summaryShown} result={result} arrivalCompleted={false} elapsedLabel="07:00" avgKmh="18" caloriesEstimate={null}
       story={initial==='glance-summary'?{headline:'첫 라이딩을 마치셨어요. 시작이 가장 어려운 법이에요.',detail:undefined}:{headline:'오늘도 나만의 길을 이었습니다.',detail:'남산공원길에서 1.2km를 달렸습니다.'}}
       adhocSaveAvailable={initial!=='glance-summary' && summaryVariant !== 'closed'}
       onGuestLinkGoogle={initial==='glance-summary' || summaryVariant === 'guest-full' ? noop : undefined}

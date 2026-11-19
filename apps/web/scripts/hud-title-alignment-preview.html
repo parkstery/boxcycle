@@ -1,0 +1,32 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>계기판 타이틀 정렬 시안</title>
+<style>*{box-sizing:border-box}body{margin:0;padding:24px;background:#f2f5fa;color:#25354b;font:13px 'Malgun Gothic',sans-serif}main{width:667px;max-width:100%;margin:auto}h1{font-size:19px;margin:0 0 8px}p{color:#64748b;line-height:1.7;margin:0 0 20px}h2{font-size:13px;margin:18px 0 8px}iframe{display:block;border:1px solid #d1dbe8;width:100%;height:100px;border-radius:5px}label{display:block;margin-top:20px;font-size:12px}button{font:inherit;border:1px solid #cbd5e1;border-radius:6px;background:white;padding:6px 10px;margin-left:6px;cursor:pointer}.good{color:#2457d6}.footer{margin-top:18px;font-size:12px}</style>
+<main><h1>계기판 타이틀 높이 통일</h1><p>기존 글꼴·크기·색·순서·센서 도안 유지 · 타이틀 정렬만 조정하는 시안</p>
+<h2>현재 — 센서와 보조 안내의 높이에 따라 타이틀이 어긋남</h2><iframe id="before" title="현재 계기판" src="/scripts/ui-800x360/preview.html?state=riding"></iframe>
+<h2 class="good">수정안 — 모든 타이틀과 숫자의 높이를 일정하게</h2><iframe id="after" title="타이틀 정렬 수정안" src="/scripts/ui-800x360/preview.html?state=riding"></iframe>
+<label>보조 안내 확인<button id="toggle">‘이미 내 도로’ 숨기기</button></label><p class="footer">‘이미 내 도로’가 나타나거나 사라져도 타이틀과 숫자는 움직이지 않습니다.<br>실제 컴포넌트의 DOM·스타일을 복제한 표시 시안입니다. 앱 코드·센서 기능에는 적용하지 않았습니다.</p></main>
+<script>
+const proposal=`
+.map-hud .map-hud__tl-row { align-items:flex-start; }
+.map-hud .hud-metrics__capsule { align-items:start; }
+.map-hud .hud-metrics--sensor .hud-metrics__capsule { padding:2px 0; }
+.map-hud .hud-metrics__capsule .hud-metrics__cell { justify-content:flex-start; }
+.map-hud .hud-metrics__label { line-height:11px; height:11px; flex:none; }
+.map-hud .hud-metrics__capsule .hud-metrics__value { height:18px; min-height:18px; line-height:18px; }
+.map-hud .hud-metrics--sensor .hud-metrics__value--sensor { align-items:center; }
+.map-hud .hud-metrics__sensor-rpm { line-height:18px; }
+`;
+let hints=true;
+for(const id of ['before','after']) document.getElementById(id).onload=async()=>{
+ const d=document.getElementById(id).contentDocument;
+ await new Promise(resolve=>{const timer=setInterval(()=>{if(d.querySelector('[aria-label="주행 지표"]')){clearInterval(timer);resolve()}},50);setTimeout(()=>{clearInterval(timer);resolve()},10000)});
+ const hud=d.querySelector('.map-hud');if(!hud)return;
+ const clone=hud.cloneNode(true);d.body.replaceChildren(clone);
+ const style=d.createElement('style');style.textContent=`html,body{margin:0;background:#4a92c9!important;height:100%;overflow:hidden}.map-hud .map-hud__tl{left:16px;top:22px}.map-hud .map-hud__tl-row{padding-left:0}.map-hud > :not(.map-hud__tl),.map-hud__tl-stack{display:none!important}*{animation:none!important;transition:none!important}`+(id==='after'?proposal:'');d.head.append(style);
+ const cells=clone.querySelector('[aria-label="주행 지표"]').querySelectorAll('.hud-metrics__cell');
+ const replace=(cell,value)=>{const texts=[...cell.querySelector('.hud-metrics__value').childNodes].filter(n=>n.nodeType===3);texts.forEach((node,index)=>node.textContent=index===0?value:'')};
+ replace(cells[0],'0.07');cells[0].querySelector('.hud-metrics__value-total').textContent='/ 0.50';replace(cells[1],'00:23');replace(cells[2],'11');replace(cells[3],'+0.00');replace(cells[4],'10.4');
+ const hint=d.createElement('span');hint.className='hud-metrics__conquest-owned-hint';hint.textContent='이미 내 도로';cells[3].append(hint);
+ document.getElementById(id).dataset.ready='true';
+};
+document.getElementById('toggle').onclick=()=>{hints=!hints;for(const id of ['before','after']){const hint=document.getElementById(id).contentDocument.querySelector('.hud-metrics__conquest-owned-hint');if(hint)hint.style.display=hints?'':'none'}document.getElementById('toggle').textContent=hints?'‘이미 내 도로’ 숨기기':'‘이미 내 도로’ 표시하기'};
+</script></html>

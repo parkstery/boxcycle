@@ -36,13 +36,13 @@ for (const size of sizes) {
     });
     const box = await sheet.locator('.ride-summary__sheet').boundingBox();
     expect(box).not.toBeNull();
-    // Chief 10-26: 종전 740×324 의 60%(444×194)
-    expect(box!.width).toBeGreaterThanOrEqual(Math.min(440, size.width - 24));
-    expect(box!.width).toBeLessThanOrEqual(445);
-    expect(box!.height).toBeGreaterThanOrEqual(190);
-    expect(box!.height).toBeLessThanOrEqual(198);
+    // Chief 11-19: 단일 열 344px, 계기판 아래 내용 높이
+    expect(box!.width).toBeGreaterThanOrEqual(Math.min(343, size.width - 24));
+    expect(box!.width).toBeLessThanOrEqual(345);
+    expect(box!.height).toBeGreaterThan(140);
+    expect(box!.height).toBeLessThanOrEqual(size.height - 88);
     // 줄인 판에서 글자가 넘쳐 잘리거나 스크롤로 숨지 않는다(D5)
-    for (const col of ['.ride-summary__col--primary', '.ride-summary__col--detail']) {
+    for (const col of ['.ride-summary__col--detail']) {
       const overflow = await sheet.locator(col).evaluate((el) => el.scrollHeight - el.clientHeight);
       expect(overflow, `${col} 넘침`).toBeLessThanOrEqual(1);
     }
@@ -55,30 +55,19 @@ for (const size of sizes) {
     await expect(headline).toBeVisible();
     const headlineSize = parsePx(await headline.evaluate((el) => getComputedStyle(el).fontSize));
     expect(headlineSize).toBeGreaterThanOrEqual(10);
-    expect(headlineSize).toBeLessThanOrEqual(11);
+    expect(headlineSize).toBeLessThanOrEqual(13);
 
     const title = sheet.locator('#ride-summary-title');
     const titleSize = parsePx(await title.evaluate((el) => getComputedStyle(el).fontSize));
     expect(titleSize).toBeGreaterThanOrEqual(11);
 
-    const timeRow = sheet.locator('.ride-summary__substat').filter({ hasText: '시간' }).first();
-    await expect(timeRow).toBeVisible();
-    const rowBox = await timeRow.boundingBox();
-    const detailCol = sheet.locator('.ride-summary__col--detail');
-    const detailBox = await detailCol.boundingBox();
-    expect(rowBox).not.toBeNull();
-    expect(detailBox).not.toBeNull();
-    expect(rowBox!.width).toBeGreaterThanOrEqual(detailBox!.width * 0.85);
-
-    const conquestHero = sheet.locator('.ride-summary__conquest-hero');
-    if ((await conquestHero.count()) > 0) {
-      const heroBg = await conquestHero.evaluate((el) => getComputedStyle(el).backgroundColor);
-      expect(heroBg).toBe('rgba(0, 0, 0, 0)');
-    }
-
-    await expect(sheet.locator('.ride-summary__progress')).toHaveAttribute('data-ridden-km', /^\d+\.\d{2}$/);
-    await expect(sheet.locator('.ride-summary__progress')).toHaveAttribute('data-total-km', '5.00');
-    await expect(sheet.getByText('시간', { exact: true })).toBeVisible();
+    await expect(sheet.getByText('시간', { exact: true })).toHaveCount(0);
+    await expect(sheet.getByText('평균', { exact: true })).toHaveCount(0);
+    await expect(sheet.locator('.ride-summary__rider')).toHaveText('Ridingman12');
+    const points = sheet.locator('.ride-summary__point');
+    await expect(points).toHaveCount(2);
+    expect((await points.nth(1).boundingBox())!.y).toBeGreaterThan((await points.nth(0).boundingBox())!.y);
+    await expect(page.getByRole('group', {name:'주행 지표',exact:true})).toBeVisible();
     await expect(sheet.getByRole('button', { name: '내 경로로 저장' })).toBeVisible();
     await expect(sheet.getByRole('button', { name: '저장 안 함' })).toBeVisible();
     await expect(sheet.locator('.ride-summary__close')).toHaveCount(0);
@@ -137,14 +126,14 @@ test('주행 결과 저장 중·진행률 실패 문구와 닫기', async ({ pag
 
 for (const size of sizes) {
   // Chief 10-26 화면: 게스트 안내·칼로리 설정·저장 줄이 한꺼번에 있어도 60% 판 안에 든다
-  test(`주행 결과 60% 판에 게스트 안내·저장이 함께 든다 ${size.width}×${size.height}`, async ({ page }) => {
+  test(`주행 결과 단일 열에 게스트 안내·저장이 함께 든다 ${size.width}×${size.height}`, async ({ page }) => {
     await page.setViewportSize(size);
     await page.goto(`${preview}?state=summary&variant=guest-full`);
     const sheet = page.getByRole('region', { name: '주행 결과', exact: true });
     await expect(sheet.getByRole('button', { name: 'Google 연결', exact: true })).toBeVisible();
     await expect(sheet.getByRole('button', { name: '체중·체력 설정', exact: true })).toBeVisible();
     await expect(sheet.getByRole('button', { name: '저장 안 함' })).toBeVisible();
-    for (const col of ['.ride-summary__col--primary', '.ride-summary__col--detail']) {
+    for (const col of ['.ride-summary__col--detail']) {
       const overflow = await sheet.locator(col).evaluate((el) => el.scrollHeight - el.clientHeight);
       expect(overflow, `${col} 넘침`).toBeLessThanOrEqual(1);
     }

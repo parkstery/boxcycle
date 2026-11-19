@@ -69,6 +69,7 @@ export type UseRideEndAndPersistenceOptions = {
   rideStatus: RideSessionStatus;
   setRideStatus: Dispatch<SetStateAction<RideSessionStatus>>;
   rideMetrics: RideMetricsUi;
+  newRoadMetersAtEnd?: number | null;
   routeGeometry: LineStringGeometry | null;
   routeDistanceMeters: number;
   routeDurationSec: number;
@@ -137,6 +138,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     rideStatus,
     setRideStatus,
     rideMetrics,
+    newRoadMetersAtEnd,
     routeGeometry,
     routeDistanceMeters,
     routeDurationSec,
@@ -364,6 +366,13 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
         anchorPlaceLabel: record.sessionEndPlaceLabel ?? null,
         profile,
         routeDistanceMeters,
+        hudSnapshot: {
+          cumulativeDistanceMeters: Math.max(0, rideMetrics.virtualDistanceMeters),
+          speedKmh: Math.round(rideMetrics.appliedSpeedKmh),
+          newRoadMeters: newRoadMetersAtEnd ?? null,
+        },
+        startPlaceLabel: startPlaceSnapshot ?? null,
+        endPlaceLabel: endPlaceSnapshot ?? null,
         // F4: persistence status (independent axes)
         rideSaveStatus: discardRecord ? "n/a" : "pending",
         savedRouteProgressStatus:
@@ -481,7 +490,12 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
               const resolvedAnchorLabel = sessionForPersist.sessionEndPlaceLabel ?? null;
               setLastRideResult?.((prev) =>
                 prev && prev.recordId === record.id
-                  ? { ...prev, anchorPlaceLabel: resolvedAnchorLabel }
+                  ? {
+                      ...prev,
+                      anchorPlaceLabel: resolvedAnchorLabel,
+                      startPlaceLabel: sessionForPersist.startPlaceLabel ?? prev.startPlaceLabel,
+                      endPlaceLabel: sessionForPersist.endPlaceLabel ?? prev.endPlaceLabel,
+                    }
                   : prev,
               );
             }
@@ -749,6 +763,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     calorieSessionSnapshotRef,
     calorieSignalGapRef,
     publicationIdRef,
+    newRoadMetersAtEnd,
     publishedCatalogRef,
     setSavedRoutes,
     setLastEndedWasAdhoc,
