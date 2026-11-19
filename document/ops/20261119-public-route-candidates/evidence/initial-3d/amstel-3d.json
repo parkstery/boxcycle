@@ -1,0 +1,711 @@
+{
+  "id": "amstel",
+  "at": "2026-11-19T11:15:31.171Z",
+  "method": "local production camera/terrain components + real Mapbox imagery/DEM; marker replaces rider; no Firebase",
+  "samples": [
+    {
+      "id": "amstel",
+      "slot": 2,
+      "rider": [
+        4.903377999999999,
+        52.363076
+      ],
+      "rawElevation": 1.2133811546132465,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 21.138687841049006,
+      "riderPixel": [
+        399.9999983159626,
+        228.7204653639315
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0
+    },
+    {
+      "id": "amstel",
+      "slot": 3,
+      "rider": [
+        4.903377999999999,
+        52.363076
+      ],
+      "rawElevation": 1.2133811546132465,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 22.509108218748594,
+      "riderPixel": [
+        400.0000000383528,
+        235.44144252245462
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0
+    },
+    {
+      "id": "amstel",
+      "slot": 2,
+      "rider": [
+        4.904000458036567,
+        52.349175587739246
+      ],
+      "rawElevation": 3.7775262724892062,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 16.432201152741612,
+      "riderPixel": [
+        399.9999982650438,
+        245.91424337103166
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.1
+    },
+    {
+      "id": "amstel",
+      "slot": 3,
+      "rider": [
+        4.904000458036567,
+        52.349175587739246
+      ],
+      "rawElevation": 3.7775262724892062,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 17.471954146121394,
+      "riderPixel": [
+        399.99999835821944,
+        220.52989808860684
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.1
+    },
+    {
+      "id": "amstel",
+      "slot": 2,
+      "rider": [
+        4.890514266919879,
+        52.33392978406099
+      ],
+      "rawElevation": 1,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 18.054184236228316,
+      "riderPixel": [
+        400.0000005810696,
+        245.801088149779
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.2
+    },
+    {
+      "id": "amstel",
+      "slot": 3,
+      "rider": [
+        4.890514266919879,
+        52.33392978406099
+      ],
+      "rawElevation": 1,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 19.215969203766818,
+      "riderPixel": [
+        400.00000094136476,
+        224.07258431015845
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.2
+    },
+    {
+      "id": "amstel",
+      "slot": 2,
+      "rider": [
+        4.88931321339503,
+        52.318955897470055
+      ],
+      "rawElevation": -5.47446213788427,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 18.07146513921711,
+      "riderPixel": [
+        400.00000242313604,
+        245.8678759590624
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.3
+    },
+    {
+      "id": "amstel",
+      "slot": 3,
+      "rider": [
+        4.88931321339503,
+        52.318955897470055
+      ],
+      "rawElevation": -5.47446213788427,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 19.26323825573291,
+      "riderPixel": [
+        400.0000032039573,
+        221.9030179750509
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.3
+    },
+    {
+      "id": "amstel",
+      "slot": 2,
+      "rider": [
+        4.886353647928144,
+        52.30625327251387
+      ],
+      "rawElevation": -5.367427545557099,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 16.331149837911546,
+      "riderPixel": [
+        400.0000005356732,
+        246.06692049705967
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.4
+    },
+    {
+      "id": "amstel",
+      "slot": 3,
+      "rider": [
+        4.886353647928144,
+        52.30625327251387
+      ],
+      "rawElevation": -5.367427545557099,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 17.426563224106527,
+      "riderPixel": [
+        400.00000316408176,
+        215.5625667801364
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.4
+    },
+    {
+      "id": "amstel",
+      "slot": 2,
+      "rider": [
+        4.906955862078213,
+        52.29910315019174
+      ],
+      "rawElevation": -2.4366523397063147,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 15.578625024460058,
+      "riderPixel": [
+        400.0000006156745,
+        245.92996748680923
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.5
+    },
+    {
+      "id": "amstel",
+      "slot": 3,
+      "rider": [
+        4.906955862078213,
+        52.29910315019174
+      ],
+      "rawElevation": -2.4366523397063147,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 16.610758249139828,
+      "riderPixel": [
+        400.0000031842832,
+        219.59085282663517
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.5
+    },
+    {
+      "id": "amstel",
+      "slot": 2,
+      "rider": [
+        4.922312444975181,
+        52.312774234942694
+      ],
+      "rawElevation": -1.669964810127298,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 21.825697836647112,
+      "riderPixel": [
+        400.00000299492825,
+        245.579312998622
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.6
+    },
+    {
+      "id": "amstel",
+      "slot": 3,
+      "rider": [
+        4.922312444975181,
+        52.312774234942694
+      ],
+      "rawElevation": -1.669964810127298,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 23.19447701875037,
+      "riderPixel": [
+        400.00000177589857,
+        230.28056244552823
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.6
+    },
+    {
+      "id": "amstel",
+      "slot": 2,
+      "rider": [
+        4.902175831668461,
+        52.32584858367297
+      ],
+      "rawElevation": -3.6976108611842755,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 17.0966456277118,
+      "riderPixel": [
+        400.00000314949517,
+        245.7968051772972
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.7
+    },
+    {
+      "id": "amstel",
+      "slot": 3,
+      "rider": [
+        4.902175831668461,
+        52.32584858367297
+      ],
+      "rawElevation": -3.6976108611842755,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 18.13555808842593,
+      "riderPixel": [
+        400.0000018005811,
+        224.03922317314763
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.7
+    },
+    {
+      "id": "amstel",
+      "slot": 2,
+      "rider": [
+        4.894224492299367,
+        52.33403331456232
+      ],
+      "rawElevation": 4.850980713307759,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 18.502800426182084,
+      "riderPixel": [
+        400.00000302916317,
+        245.65635965770554
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.8
+    },
+    {
+      "id": "amstel",
+      "slot": 3,
+      "rider": [
+        4.894224492299367,
+        52.33403331456232
+      ],
+      "rawElevation": 4.850980713307759,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 19.597022541678577,
+      "riderPixel": [
+        400.000001748036,
+        228.44316921055199
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.8
+    },
+    {
+      "id": "amstel",
+      "slot": 2,
+      "rider": [
+        4.905132870089351,
+        52.34694941635315
+      ],
+      "rawElevation": 4.16933912718349,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 20.079891090284416,
+      "riderPixel": [
+        400.0000013883232,
+        245.66921535612113
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.9
+    },
+    {
+      "id": "amstel",
+      "slot": 3,
+      "rider": [
+        4.905132870089351,
+        52.34694941635315
+      ],
+      "rawElevation": 4.16933912718349,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 21.31059904005392,
+      "riderPixel": [
+        399.99999953075667,
+        228.3859045268401
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.9
+    },
+    {
+      "id": "amstel",
+      "slot": 2,
+      "rider": [
+        4.903377999999999,
+        52.363076
+      ],
+      "rawElevation": 1.2133811546132465,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 21.149101190455823,
+      "riderPixel": [
+        399.99999804253054,
+        228.73650837407314
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 1
+    },
+    {
+      "id": "amstel",
+      "slot": 3,
+      "rider": [
+        4.903377999999999,
+        52.363076
+      ],
+      "rawElevation": 1.2133811546132465,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 22.518011433721444,
+      "riderPixel": [
+        399.9999995796804,
+        235.46061000559365
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 1
+    }
+  ]
+}

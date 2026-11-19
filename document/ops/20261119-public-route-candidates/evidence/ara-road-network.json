@@ -1,0 +1,1534 @@
+{
+  "id": "ara",
+  "at": "2026-11-19T11:25:22.794Z",
+  "method": "72 equal-distance samples vs downloaded OSM highway line segments; 28m buffer; road connectivity is separately supplied by Directions",
+  "within28m": 72,
+  "total": 72,
+  "samples": [
+    {
+      "point": [
+        126.603848,
+        37.557043
+      ],
+      "id": 931455676,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.011119492794399347
+    },
+    {
+      "point": [
+        126.60617915108647,
+        37.55525810772687
+      ],
+      "id": 931455676,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.018432407076106893
+    },
+    {
+      "point": [
+        126.60911289116953,
+        37.555340252944525
+      ],
+      "id": 931455678,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.02177525292614503
+    },
+    {
+      "point": [
+        126.61221882269164,
+        37.555221766714396
+      ],
+      "id": 237078709,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.04338883395806109
+    },
+    {
+      "point": [
+        126.61544765111249,
+        37.55544313274103
+      ],
+      "id": 237078709,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.04325261759627694
+    },
+    {
+      "point": [
+        126.61861055064932,
+        37.55599967459106
+      ],
+      "id": 237078709,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.012483791611685306
+    },
+    {
+      "point": [
+        126.62174586348564,
+        37.55664588606258
+      ],
+      "id": 237078709,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.003180674775617416
+    },
+    {
+      "point": [
+        126.62112081658863,
+        37.558871875571484
+      ],
+      "id": 931345839,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.005629201919816024
+    },
+    {
+      "point": [
+        126.62247272657685,
+        37.56048503071608
+      ],
+      "id": 931345839,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.0018047981583817782
+    },
+    {
+      "point": [
+        126.62160321941624,
+        37.56291925807102
+      ],
+      "id": 931345839,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.011497217297746979
+    },
+    {
+      "point": [
+        126.6207598657554,
+        37.565095189088886
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.018651796183125
+    },
+    {
+      "point": [
+        126.6238098694213,
+        37.565957986255015
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.03331244699027667
+    },
+    {
+      "point": [
+        126.62686813656943,
+        37.56680931480607
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.02054372733735417
+    },
+    {
+      "point": [
+        126.62995839642501,
+        37.567533544524544
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.029147759280513216
+    },
+    {
+      "point": [
+        126.63303480376437,
+        37.56834290835282
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.04915299523131993
+    },
+    {
+      "point": [
+        126.63589561819971,
+        37.56938776613781
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.013826802011146293
+    },
+    {
+      "point": [
+        126.63900584668768,
+        37.570099521244785
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.006660492717909819
+    },
+    {
+      "point": [
+        126.64223183250678,
+        37.57033202420707
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.02511035216846661
+    },
+    {
+      "point": [
+        126.6454656723645,
+        37.57050914458199
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.012924918203109913
+    },
+    {
+      "point": [
+        126.64869030640156,
+        37.57060652290429
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.010753856512830734
+    },
+    {
+      "point": [
+        126.65191731482373,
+        37.57084989894419
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.0011615845323491275
+    },
+    {
+      "point": [
+        126.65514432324589,
+        37.5710932741888
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.01298893569149997
+    },
+    {
+      "point": [
+        126.65837133166806,
+        37.571336648638116
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.02472819775637384
+    },
+    {
+      "point": [
+        126.66158780968365,
+        37.57147808718755
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.031678622307549774
+    },
+    {
+      "point": [
+        126.664791486552,
+        37.571770263268206
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.04389236636994355
+    },
+    {
+      "point": [
+        126.66802186639678,
+        37.571589710976255
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.03550162337474422
+    },
+    {
+      "point": [
+        126.6712032193054,
+        37.571181343856935
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.035432457530052607
+    },
+    {
+      "point": [
+        126.67442702740853,
+        37.57101260545643
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.04407103990275735
+    },
+    {
+      "point": [
+        126.67759480308966,
+        37.57053161836488
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.012084831224315388
+    },
+    {
+      "point": [
+        126.68074314359369,
+        37.57067260643994
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.013935190072902047
+    },
+    {
+      "point": [
+        126.68398403727146,
+        37.570697514629
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.018747919772733733
+    },
+    {
+      "point": [
+        126.68721099653061,
+        37.570855548570925
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.016615427246383613
+    },
+    {
+      "point": [
+        126.69045231175384,
+        37.57088814280029
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.03255989149569783
+    },
+    {
+      "point": [
+        126.69368510654074,
+        37.57105584669386
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.0183228547199869
+    },
+    {
+      "point": [
+        126.6969213817722,
+        37.57120297796524
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.024471511114230904
+    },
+    {
+      "point": [
+        126.70015765700367,
+        37.57135010894598
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.03058789438095552
+    },
+    {
+      "point": [
+        126.70339393223514,
+        37.57149723963604
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.03667200136210706
+    },
+    {
+      "point": [
+        126.7066302074666,
+        37.57164437003544
+      ],
+      "id": 300536477,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.042723835261318815
+    },
+    {
+      "point": [
+        126.70986657679654,
+        37.571790495072044
+      ],
+      "id": 931455683,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.012952326423085175
+    },
+    {
+      "point": [
+        126.71310287918864,
+        37.57193767126449
+      ],
+      "id": 931455683,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.01823747346431613
+    },
+    {
+      "point": [
+        126.71633918158074,
+        37.57208484716608
+      ],
+      "id": 931455683,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.023554916561967048
+    },
+    {
+      "point": [
+        126.71957548397283,
+        37.57223202277682
+      ],
+      "id": 931455683,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.028904656415107692
+    },
+    {
+      "point": [
+        126.72280990830072,
+        37.57229527674036
+      ],
+      "id": 931455683,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.0008794328341825622
+    },
+    {
+      "point": [
+        126.7260451619735,
+        37.57245158540827
+      ],
+      "id": 931455683,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.0026782474482937775
+    },
+    {
+      "point": [
+        126.72928310524884,
+        37.57257419500098
+      ],
+      "id": 931455683,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.03883991031619378
+    },
+    {
+      "point": [
+        126.73251887808502,
+        37.57272828941437
+      ],
+      "id": 931455682,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.01796435891441575
+    },
+    {
+      "point": [
+        126.7357489444691,
+        37.57294409022381
+      ],
+      "id": 931455682,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.021438543847302653
+    },
+    {
+      "point": [
+        126.73897701871074,
+        37.57294223651043
+      ],
+      "id": 931455682,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.022840532582447174
+    },
+    {
+      "point": [
+        126.74220636328543,
+        37.57310373271129
+      ],
+      "id": 931455682,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.0001806178286692334
+    },
+    {
+      "point": [
+        126.74544448220064,
+        37.573223154799045
+      ],
+      "id": 931455682,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.00003861493740575071
+    },
+    {
+      "point": [
+        126.74867471052967,
+        37.57334835449741
+      ],
+      "id": 931455682,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.024239512803237932
+    },
+    {
+      "point": [
+        126.75190350421434,
+        37.57355866911334
+      ],
+      "id": 931455682,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.028717787776086072
+    },
+    {
+      "point": [
+        126.75506032990201,
+        37.573837613137314
+      ],
+      "id": 931455682,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.0127238158084619
+    },
+    {
+      "point": [
+        126.75814437339598,
+        37.57361945252875
+      ],
+      "id": 931455685,
+      "tags": {
+        "bicycle": "designated",
+        "bridge": "yes",
+        "bridge:name": "굴포천1교",
+        "cycleway:surface": "concrete",
+        "foot": "designated",
+        "footway:surface": "concrete",
+        "highway": "cycleway",
+        "layer": "1",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "concrete",
+        "width": "3"
+      },
+      "distanceM": 0.015745554458914002
+    },
+    {
+      "point": [
+        126.76100932936042,
+        37.57474472413789
+      ],
+      "id": 931455686,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.040029664642427555
+    },
+    {
+      "point": [
+        126.76330201144253,
+        37.57643613165182
+      ],
+      "id": 224903233,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.006257301376030019
+    },
+    {
+      "point": [
+        126.76574454688617,
+        37.5781229879408
+      ],
+      "id": 224903233,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.029768363242361304
+    },
+    {
+      "point": [
+        126.76802394452653,
+        37.57994396111758
+      ],
+      "id": 224903233,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.007539804494079273
+    },
+    {
+      "point": [
+        126.77034891494147,
+        37.58173453765406
+      ],
+      "id": 224903233,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.03240392104608831
+    },
+    {
+      "point": [
+        126.77266696665878,
+        37.58350480591028
+      ],
+      "id": 224903233,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.02089437081912866
+    },
+    {
+      "point": [
+        126.77501245911573,
+        37.585278620744795
+      ],
+      "id": 224903233,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.0321633123513148
+    },
+    {
+      "point": [
+        126.77735160942858,
+        37.587057688397344
+      ],
+      "id": 224903233,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.031310485877477055
+    },
+    {
+      "point": [
+        126.77968144271766,
+        37.58884449216851
+      ],
+      "id": 224903233,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.014435401809951601
+    },
+    {
+      "point": [
+        126.78201848803236,
+        37.590625437558934
+      ],
+      "id": 224903233,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.02116392070987894
+    },
+    {
+      "point": [
+        126.78436905980668,
+        37.5923944821697
+      ],
+      "id": 224903233,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.005622865651110489
+    },
+    {
+      "point": [
+        126.78704589591668,
+        37.59172022888232
+      ],
+      "id": 931455688,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "yes",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.021145084360477122
+    },
+    {
+      "point": [
+        126.78974387980351,
+        37.59033816884045
+      ],
+      "id": 931455688,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "yes",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.05432542758078218
+    },
+    {
+      "point": [
+        126.7925579354561,
+        37.591283008580874
+      ],
+      "id": 931455698,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "crossing": "traffic_signals",
+        "cycleway": "crossing",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 3.941908161781405
+    },
+    {
+      "point": [
+        126.79545780493432,
+        37.59243243890008
+      ],
+      "id": 931455697,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "yes",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 8.63309687924055
+    },
+    {
+      "point": [
+        126.79800147627304,
+        37.593713202980176
+      ],
+      "id": 940671155,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "foot": "designated",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.03214636925201266
+    },
+    {
+      "point": [
+        126.79685854575068,
+        37.59610048132046
+      ],
+      "id": 279281624,
+      "tags": {
+        "bicycle": "designated",
+        "bridge:name": "굴포천1교",
+        "check_date:surface": "2026-09-09",
+        "cycleway:surface": "asphalt",
+        "foot": "designated",
+        "footway:surface": "asphalt",
+        "highway": "cycleway",
+        "name": "아라 자전거길",
+        "name:en": "ARA Bicycle Path",
+        "name:ja": "アラ自転車道路",
+        "name:ko": "아라 자전거길",
+        "oneway": "no",
+        "segregated": "yes",
+        "surface": "asphalt",
+        "width": "3"
+      },
+      "distanceM": 0.00788047876749159
+    },
+    {
+      "point": [
+        126.797941,
+        37.59801300000001
+      ],
+      "id": 224903238,
+      "tags": {
+        "highway": "cycleway"
+      },
+      "distanceM": 0.023644575449851025
+    }
+  ]
+}

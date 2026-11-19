@@ -1,0 +1,74 @@
+{
+  "at": "2026-11-19T11:44:17.999Z",
+  "project": "boxcycle-dc2df",
+  "planHash": "027deba2fe797dcb5584ca9e84042eb59780f7c3c32c354bc50ce06782eb1319",
+  "actions": [
+    "create",
+    "create",
+    "create",
+    "create"
+  ],
+  "publicationsBefore": 39,
+  "pendingScanned": 0,
+  "rows": [
+    {
+      "id": "yeouido",
+      "publicationId": "public-kr-yeouido-hangang-20261119",
+      "action": "create",
+      "geometryHash": "cc90423947f306ac8e57d87cbd5e187a3338bbafb16e6ac7adad58279a7e3bd7",
+      "title": "여의도 한강 · 양화대교에서 여의도 동쪽",
+      "distanceMeters": 6408.676305395324,
+      "durationSec": 1472.616,
+      "profile": "cycling",
+      "coordinateCount": 250,
+      "geoCountry": "KR",
+      "geoAdmin1": "KR-11",
+      "routeFingerprint": "65091e5985ac8e66d1ac498e1ed938dcba7f6055203f84b8abec8b2ff221afa0"
+    },
+    {
+      "id": "richmond",
+      "publicationId": "public-gb-richmond-park-20261119",
+      "action": "create",
+      "geometryHash": "118c7ff2e8b1cb1d43ca37884b6ec8f46a4e74b95011478652d56b352c4f4a0e",
+      "title": "리치먼드 파크 · 도로 순환",
+      "distanceMeters": 10914.853637348013,
+      "durationSec": 2293.573,
+      "profile": "cycling",
+      "coordinateCount": 332,
+      "geoCountry": "GB",
+      "geoAdmin1": "GB-ENG",
+      "routeFingerprint": "2bd2b350ea4e87ca565fd01fdb904c0b6088b597077ab642faefedebf69a1ff9"
+    },
+    {
+      "id": "sunmoon",
+      "publicationId": "public-tw-sun-moon-lake-20261119",
+      "action": "create",
+      "geometryHash": "42d175139cd7b0f7bcef7d78b715dcf93a5c8f2509f302e339d9d623fcf1f48a",
+      "title": "일월담 · 호수 순환",
+      "distanceMeters": 27813.65049290368,
+      "durationSec": 7357.288,
+      "profile": "cycling",
+      "coordinateCount": 1319,
+      "geoCountry": "TW",
+      "geoAdmin1": "TW-NAN",
+      "routeFingerprint": "3ac8f8eb89e761d04b28390c48743c659f8206966c3531038f764da5cabcc5b0"
+    },
+    {
+      "id": "annecy",
+      "publicationId": "public-fr-lake-annecy-20261119",
+      "action": "create",
+      "geometryHash": "46ee9b6998df48e27f3d61281ccd5be99f6798144f1a6a3e7968e45627c41a70",
+      "title": "안시 호수 · 시계방향 순환",
+      "distanceMeters": 40496.62019454319,
+      "durationSec": 8956.716,
+      "profile": "cycling",
+      "coordinateCount": 2008,
+      "geoCountry": "FR",
+      "geoAdmin1": "FR-ARA",
+      "routeFingerprint": "ce6467f205f8ee9efd7c8c343699fb3d8e795c838edeac10bb3f2feee17218c7"
+    }
+  ],
+  "authorization": "Chief: 공개등록해. 커밋 푸시 배포해",
+  "mode": "apply",
+  "appliedAt": "2026-11-19T11:44:20.719Z"
+}

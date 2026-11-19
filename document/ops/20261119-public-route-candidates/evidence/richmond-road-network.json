@@ -1,0 +1,1369 @@
+{
+  "id": "richmond",
+  "at": "2026-11-19T11:25:23.280Z",
+  "method": "72 equal-distance samples vs downloaded OSM highway line segments; 28m buffer; road connectivity is separately supplied by Directions",
+  "within28m": 72,
+  "total": 72,
+  "samples": [
+    {
+      "point": [
+        -0.25801,
+        51.453511
+      ],
+      "id": 109430045,
+      "tags": {
+        "bicycle": "yes",
+        "coach": "private",
+        "foot": "yes",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "motor_vehicle": "private",
+        "motor_vehicle:conditional": "yes @ (Mo-Fr sunrise-sunset open; PH closed)",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.005758815247103526
+    },
+    {
+      "point": [
+        -0.25999182536855686,
+        51.453012693266146
+      ],
+      "id": 211052091,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.03387727360746594
+    },
+    {
+      "point": [
+        -0.2621040824323863,
+        51.45258983945897
+      ],
+      "id": 211052091,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.0441080048857506
+    },
+    {
+      "point": [
+        -0.26424553421506003,
+        51.45222982529696
+      ],
+      "id": 211052091,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.04407178072529782
+    },
+    {
+      "point": [
+        -0.26642080504674964,
+        51.45197180565759
+      ],
+      "id": 211052091,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.022365027557104573
+    },
+    {
+      "point": [
+        -0.2685905475301604,
+        51.45200268336205
+      ],
+      "id": 570569176,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.004196104083895204
+    },
+    {
+      "point": [
+        -0.27080205699109455,
+        51.45190440961275
+      ],
+      "id": 570569176,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.002723509710216318
+    },
+    {
+      "point": [
+        -0.2729856608306267,
+        51.45166055640685
+      ],
+      "id": 570569176,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.02373022684492076
+    },
+    {
+      "point": [
+        -0.27513032891884,
+        51.45131196809054
+      ],
+      "id": 570569176,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.02301767775482846
+    },
+    {
+      "point": [
+        -0.27725069229617755,
+        51.45090710452222
+      ],
+      "id": 570569176,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.016179912438570948
+    },
+    {
+      "point": [
+        -0.2793717073415323,
+        51.4505086324175
+      ],
+      "id": 570569176,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.027831630655038204
+    },
+    {
+      "point": [
+        -0.28141245046493757,
+        51.44996972715445
+      ],
+      "id": 570569176,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.015534608844978318
+    },
+    {
+      "point": [
+        -0.2833402187738854,
+        51.44928664385244
+      ],
+      "id": 570569176,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.020860153817508036
+    },
+    {
+      "point": [
+        -0.2854512264428537,
+        51.44890358223042
+      ],
+      "id": 570569176,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.04580499978129542
+    },
+    {
+      "point": [
+        -0.2876654027710602,
+        51.4488707915012
+      ],
+      "id": 570569176,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.015338751588915707
+    },
+    {
+      "point": [
+        -0.28986753817014393,
+        51.44902719886408
+      ],
+      "id": 570569176,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.0216459050771341
+    },
+    {
+      "point": [
+        -0.2920439399125335,
+        51.44929370772688
+      ],
+      "id": 570569176,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.04212766884848892
+    },
+    {
+      "point": [
+        -0.2941676651220144,
+        51.449692577289156
+      ],
+      "id": 570569176,
+      "tags": {
+        "bicycle": "designated",
+        "foot": "designated",
+        "highway": "cycleway",
+        "lit": "no",
+        "oneway": "no",
+        "segregated": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.030329306413338777
+    },
+    {
+      "point": [
+        -0.29536488448637344,
+        51.44960901251857
+      ],
+      "id": 330400511,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "1",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queens Road",
+        "name:signed": "no",
+        "not:name": "Queen's Road",
+        "oneway": "yes",
+        "oneway_type": "roundabout_flare",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.004763435746486254
+    },
+    {
+      "point": [
+        -0.29478068246522077,
+        51.448282777442984
+      ],
+      "id": 1159989054,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queens Road",
+        "name:signed": "no",
+        "not:name": "Queen's Road",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.004171396011705567
+    },
+    {
+      "point": [
+        -0.29465252660133423,
+        51.44690273031982
+      ],
+      "id": 1159989054,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queens Road",
+        "name:signed": "no",
+        "not:name": "Queen's Road",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.019030084757424758
+    },
+    {
+      "point": [
+        -0.2940990853306075,
+        51.445567382691266
+      ],
+      "id": 1159989054,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queens Road",
+        "name:signed": "no",
+        "not:name": "Queen's Road",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.040578397119807916
+    },
+    {
+      "point": [
+        -0.29331302235828993,
+        51.444276578787566
+      ],
+      "id": 1159989054,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queens Road",
+        "name:signed": "no",
+        "not:name": "Queen's Road",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.03222852324268419
+    },
+    {
+      "point": [
+        -0.29280614794704357,
+        51.44293840304915
+      ],
+      "id": 330400510,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queens Road",
+        "name:signed": "no",
+        "not:name": "Queen's Road",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.0073101120081738745
+    },
+    {
+      "point": [
+        -0.2921629405503886,
+        51.44162360175513
+      ],
+      "id": 330400510,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queens Road",
+        "name:signed": "no",
+        "not:name": "Queen's Road",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.0898805396414634
+    },
+    {
+      "point": [
+        -0.2913488154912262,
+        51.44033806667946
+      ],
+      "id": 330400510,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queens Road",
+        "name:signed": "no",
+        "not:name": "Queen's Road",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.03871538575055254
+    },
+    {
+      "point": [
+        -0.2909958231489457,
+        51.438981441700165
+      ],
+      "id": 330400510,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queens Road",
+        "name:signed": "no",
+        "not:name": "Queen's Road",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.024327998075100533
+    },
+    {
+      "point": [
+        -0.29099720610402247,
+        51.43759995468461
+      ],
+      "id": 330400510,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queens Road",
+        "name:signed": "no",
+        "not:name": "Queen's Road",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.006699589057799305
+    },
+    {
+      "point": [
+        -0.2901336299148038,
+        51.436348508845995
+      ],
+      "id": 330400510,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queens Road",
+        "name:signed": "no",
+        "not:name": "Queen's Road",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.0035087338585404067
+    },
+    {
+      "point": [
+        -0.28892694954583525,
+        51.43518861237177
+      ],
+      "id": 330400510,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queens Road",
+        "name:signed": "no",
+        "not:name": "Queen's Road",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.005848892023232107
+    },
+    {
+      "point": [
+        -0.28781574792628006,
+        51.433993894147704
+      ],
+      "id": 330400510,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queens Road",
+        "name:signed": "no",
+        "not:name": "Queen's Road",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.004355706096590851
+    },
+    {
+      "point": [
+        -0.28699035834333925,
+        51.43272388872457
+      ],
+      "id": 211043501,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queen's Road",
+        "name:signed": "no",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.004934357392815538
+    },
+    {
+      "point": [
+        -0.2879353379804192,
+        51.431546252807955
+      ],
+      "id": 211043501,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queen's Road",
+        "name:signed": "no",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.006040713441971804
+    },
+    {
+      "point": [
+        -0.2883562862348271,
+        51.43023720554615
+      ],
+      "id": 211043501,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queen's Road",
+        "name:signed": "no",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.03209271182364842
+    },
+    {
+      "point": [
+        -0.2879932625832091,
+        51.42887983927584
+      ],
+      "id": 211043501,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queen's Road",
+        "name:signed": "no",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.006024150952448873
+    },
+    {
+      "point": [
+        -0.28738995928182887,
+        51.42755626024819
+      ],
+      "id": 211043501,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queen's Road",
+        "name:signed": "no",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.00022602555632292184
+    },
+    {
+      "point": [
+        -0.28667047311796545,
+        51.4262537658482
+      ],
+      "id": 211043501,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queen's Road",
+        "name:signed": "no",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.045373245767170244
+    },
+    {
+      "point": [
+        -0.28613620917216825,
+        51.42491941852183
+      ],
+      "id": 211043501,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queen's Road",
+        "name:signed": "no",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.022123682292185663
+    },
+    {
+      "point": [
+        -0.2859056067223912,
+        51.42354449921121
+      ],
+      "id": 211043501,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queen's Road",
+        "name:signed": "no",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.00605435166948629
+    },
+    {
+      "point": [
+        -0.2861636607836304,
+        51.422175624440115
+      ],
+      "id": 211043501,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Queen's Road",
+        "name:signed": "no",
+        "source:name": "OS OpenData Locator and street signs in Kingston",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.021805235693493234
+    },
+    {
+      "point": [
+        -0.28467469077457797,
+        51.422091522119274
+      ],
+      "id": 4005274,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Dark Hill"
+      },
+      "distanceM": 9.71355850334923
+    },
+    {
+      "point": [
+        -0.2826548052551277,
+        51.422621617865026
+      ],
+      "id": 4005274,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Dark Hill"
+      },
+      "distanceM": 0.014519131177158112
+    },
+    {
+      "point": [
+        -0.28056420532124215,
+        51.42292056172399
+      ],
+      "id": 4005274,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Dark Hill"
+      },
+      "distanceM": 0.025877826025079986
+    },
+    {
+      "point": [
+        -0.2797444025159071,
+        51.42420083235589
+      ],
+      "id": 4005274,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Dark Hill"
+      },
+      "distanceM": 0.023458553863433283
+    },
+    {
+      "point": [
+        -0.278829751726428,
+        51.42545844405455
+      ],
+      "id": 4005274,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Dark Hill"
+      },
+      "distanceM": 0.015145703071653705
+    },
+    {
+      "point": [
+        -0.27725668862071523,
+        51.42642207123089
+      ],
+      "id": 209209230,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Dark Hill"
+      },
+      "distanceM": 0.03523155618282011
+    },
+    {
+      "point": [
+        -0.27595314788034586,
+        51.427536322936945
+      ],
+      "id": 209209237,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Broomfield Hill"
+      },
+      "distanceM": 0.02990174855121952
+    },
+    {
+      "point": [
+        -0.27456398214355854,
+        51.42861338621953
+      ],
+      "id": 209209237,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Broomfield Hill"
+      },
+      "distanceM": 0.004897103553498236
+    },
+    {
+      "point": [
+        -0.27315337799630257,
+        51.42967998452919
+      ],
+      "id": 209209237,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Broomfield Hill"
+      },
+      "distanceM": 0.02027516769895775
+    },
+    {
+      "point": [
+        -0.27176083921055877,
+        51.43075512279268
+      ],
+      "id": 209209237,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Broomfield Hill"
+      },
+      "distanceM": 0.01090749884395439
+    },
+    {
+      "point": [
+        -0.2704260187910543,
+        51.43185897912572
+      ],
+      "id": 209209237,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Broomfield Hill"
+      },
+      "distanceM": 0.0039877686830364495
+    },
+    {
+      "point": [
+        -0.268868394667386,
+        51.43283749300598
+      ],
+      "id": 209209237,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "name": "Broomfield Hill"
+      },
+      "distanceM": 0.0031813475519107577
+    },
+    {
+      "point": [
+        -0.26802169834795175,
+        51.43401874433968
+      ],
+      "id": 838833357,
+      "tags": {
+        "bicycle": "yes",
+        "highway": "pedestrian",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "motor_vehicle": "no",
+        "name": "Broomfield Hill",
+        "sidewalk": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.0067097653415608355
+    },
+    {
+      "point": [
+        -0.2664914191751281,
+        51.43479941800514
+      ],
+      "id": 838833357,
+      "tags": {
+        "bicycle": "yes",
+        "highway": "pedestrian",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "motor_vehicle": "no",
+        "name": "Broomfield Hill",
+        "sidewalk": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.029317736380602786
+    },
+    {
+      "point": [
+        -0.26434058279533884,
+        51.43473881926212
+      ],
+      "id": 838833357,
+      "tags": {
+        "bicycle": "yes",
+        "highway": "pedestrian",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "motor_vehicle": "no",
+        "name": "Broomfield Hill",
+        "sidewalk": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.038753584102713234
+    },
+    {
+      "point": [
+        -0.2623971149620594,
+        51.435316792454344
+      ],
+      "id": 838833357,
+      "tags": {
+        "bicycle": "yes",
+        "highway": "pedestrian",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "motor_vehicle": "no",
+        "name": "Broomfield Hill",
+        "sidewalk": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.007481524277165636
+    },
+    {
+      "point": [
+        -0.2605658008482476,
+        51.43609129584483
+      ],
+      "id": 838833357,
+      "tags": {
+        "bicycle": "yes",
+        "highway": "pedestrian",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "motor_vehicle": "no",
+        "name": "Broomfield Hill",
+        "sidewalk": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.02857563794789097
+    },
+    {
+      "point": [
+        -0.25843589156933633,
+        51.4364274501194
+      ],
+      "id": 838833357,
+      "tags": {
+        "bicycle": "yes",
+        "highway": "pedestrian",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "motor_vehicle": "no",
+        "name": "Broomfield Hill",
+        "sidewalk": "no",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.008914825092556127
+    },
+    {
+      "point": [
+        -0.25746307731575313,
+        51.43746432476268
+      ],
+      "id": 31461387,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "oneway": "no",
+        "sidewalk": "no"
+      },
+      "distanceM": 0.016081328386211402
+    },
+    {
+      "point": [
+        -0.2573997667284123,
+        51.43884493319339
+      ],
+      "id": 31461387,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "oneway": "no",
+        "sidewalk": "no"
+      },
+      "distanceM": 0.01408411720386686
+    },
+    {
+      "point": [
+        -0.25672200090349023,
+        51.440146682147045
+      ],
+      "id": 31461387,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "oneway": "no",
+        "sidewalk": "no"
+      },
+      "distanceM": 0.0053118763984605
+    },
+    {
+      "point": [
+        -0.25659226132654867,
+        51.44152468652309
+      ],
+      "id": 31461387,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "oneway": "no",
+        "sidewalk": "no"
+      },
+      "distanceM": 0.025723570707150423
+    },
+    {
+      "point": [
+        -0.2561990887967796,
+        51.442881395380674
+      ],
+      "id": 31461387,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "oneway": "no",
+        "sidewalk": "no"
+      },
+      "distanceM": 0.005833406444782738
+    },
+    {
+      "point": [
+        -0.256098249867407,
+        51.444262081640126
+      ],
+      "id": 31461387,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "oneway": "no",
+        "sidewalk": "no"
+      },
+      "distanceM": 0.006081191048554606
+    },
+    {
+      "point": [
+        -0.2561598150818265,
+        51.44564369764241
+      ],
+      "id": 31461387,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "oneway": "no",
+        "sidewalk": "no"
+      },
+      "distanceM": 0.006306931909113215
+    },
+    {
+      "point": [
+        -0.25629174532003995,
+        51.44702334732732
+      ],
+      "id": 31461387,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "oneway": "no",
+        "sidewalk": "no"
+      },
+      "distanceM": 0.007996721064978375
+    },
+    {
+      "point": [
+        -0.25606647216390704,
+        51.44839614470781
+      ],
+      "id": 31461387,
+      "tags": {
+        "coach": "private",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "oneway": "no",
+        "sidewalk": "no"
+      },
+      "distanceM": 0.007470373227334554
+    },
+    {
+      "point": [
+        -0.25598464832391077,
+        51.44954766448901
+      ],
+      "id": 222738709,
+      "tags": {
+        "highway": "path"
+      },
+      "distanceM": 0.03153001751511042
+    },
+    {
+      "point": [
+        -0.2574307980459185,
+        51.45055841828678
+      ],
+      "id": 917791906,
+      "tags": {
+        "highway": "path"
+      },
+      "distanceM": 0.012325232046000396
+    },
+    {
+      "point": [
+        -0.2587101828254893,
+        51.451682665726494
+      ],
+      "id": 917791896,
+      "tags": {
+        "highway": "path"
+      },
+      "distanceM": 0.03129938642248357
+    },
+    {
+      "point": [
+        -0.2598034214781906,
+        51.45286342780039
+      ],
+      "id": 312063940,
+      "tags": {
+        "foot": "permissive",
+        "highway": "bridleway",
+        "lit": "no",
+        "surface": "ground"
+      },
+      "distanceM": 0.0072753456318403196
+    },
+    {
+      "point": [
+        -0.25801,
+        51.45351099999999
+      ],
+      "id": 109430045,
+      "tags": {
+        "bicycle": "yes",
+        "coach": "private",
+        "foot": "yes",
+        "goods": "private",
+        "hgv": "private",
+        "highway": "unclassified",
+        "lane_markings": "no",
+        "lanes": "2",
+        "lit": "no",
+        "maxspeed": "20 mph",
+        "motor_vehicle": "private",
+        "motor_vehicle:conditional": "yes @ (Mo-Fr sunrise-sunset open; PH closed)",
+        "surface": "asphalt"
+      },
+      "distanceM": 0.005758816051807195
+    }
+  ]
+}

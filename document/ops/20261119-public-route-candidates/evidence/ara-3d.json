@@ -1,0 +1,328 @@
+{
+  "id": "ara",
+  "at": "2026-11-19T11:22:56.267Z",
+  "geometryHash": "ad7ea05728f5c8f4a38d98c1f086bc318ffcbd4651ebf8dec878e8f0696f602b",
+  "method": "local production camera/terrain components + real Mapbox imagery/DEM; marker replaces rider; no Firebase",
+  "samples": [
+    {
+      "id": "ara",
+      "slot": 2,
+      "rider": [
+        126.603848,
+        37.55704299999999
+      ],
+      "rawElevation": 6.729620938393374,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 25.076095372426778,
+      "riderPixel": [
+        399.99999904914233,
+        242.75715340361438
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0
+    },
+    {
+      "id": "ara",
+      "slot": 3,
+      "rider": [
+        126.603848,
+        37.55704299999999
+      ],
+      "rawElevation": 6.729620938393374,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 26.790452675712324,
+      "riderPixel": [
+        399.99999992291384,
+        214.28309574251617
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0
+    },
+    {
+      "id": "ara",
+      "slot": 2,
+      "rider": [
+        126.64465724228556,
+        37.57046450484556
+      ],
+      "rawElevation": 2.3325070705957773,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 21.33241649273925,
+      "riderPixel": [
+        399.99999890440296,
+        242.63826424969312
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.25
+    },
+    {
+      "id": "ara",
+      "slot": 3,
+      "rider": [
+        126.64465724228556,
+        37.57046450484556
+      ],
+      "rawElevation": 2.3325070705957773,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 22.542426727527424,
+      "riderPixel": [
+        399.999999892699,
+        218.900675587056
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.25
+    },
+    {
+      "id": "ara",
+      "slot": 2,
+      "rider": [
+        126.70177579461942,
+        37.57142367432734
+      ],
+      "rawElevation": 40.50787730286863,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 19.729509120149977,
+      "riderPixel": [
+        399.9999990116625,
+        242.8094949868783
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.5
+    },
+    {
+      "id": "ara",
+      "slot": 3,
+      "rider": [
+        126.70177579461942,
+        37.57142367432734
+      ],
+      "rawElevation": 40.50787730286863,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 21.122538629861047,
+      "riderPixel": [
+        399.9999998880446,
+        212.65912537528337
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.5
+    },
+    {
+      "id": "ara",
+      "slot": 2,
+      "rider": [
+        126.75892681383647,
+        37.573783498509535
+      ],
+      "rawElevation": 7.257828360998219,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 21.003900517063244,
+      "riderPixel": [
+        399.99999907795547,
+        242.60321070916336
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.75
+    },
+    {
+      "id": "ara",
+      "slot": 3,
+      "rider": [
+        126.75892681383647,
+        37.573783498509535
+      ],
+      "rawElevation": 7.257828360998219,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 22.49726049131743,
+      "riderPixel": [
+        399.99999984769505,
+        220.89468202846186
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.75
+    },
+    {
+      "id": "ara",
+      "slot": 2,
+      "rider": [
+        126.797941,
+        37.59801300000001
+      ],
+      "rawElevation": 9.914085156761427,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 22.93914536124848,
+      "riderPixel": [
+        399.99999913607707,
+        242.5562206299452
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 1
+    },
+    {
+      "id": "ara",
+      "slot": 3,
+      "rider": [
+        126.797941,
+        37.59801300000001
+      ],
+      "rawElevation": 9.914085156761427,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 24.30079718072369,
+      "riderPixel": [
+        399.9999998808135,
+        222.12087293047196
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 1
+    }
+  ]
+}

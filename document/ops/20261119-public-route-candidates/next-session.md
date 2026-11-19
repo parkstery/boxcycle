@@ -1,3 +1,7 @@
+> 최초 추천 커밋 당시의 입력문 보존. 후속 검증을 이어받을 때는 `validation.md`·`audit.json`과 최신 HANDOFF를 먼저 읽고 보류 조건부터 확인한다. 운영 등록 권한은 여전히 별도 지시에 따른다.
+
+> Chief 후속 확정: 현실 공사·통행 제한은 선정 조건에서 제외한다. OSM 기반 도로 데이터가 존재하고 앱 경로가 연결되면 달린다. 안시·일월담·리치먼드는 등록 검토 가능으로 정정했다. 아라는 지역 코드, 암스텔은 경로 품질 확인이 남는다.
+
 C:\20.HDev\boxcycle에서 퍼블릭 코스 확충 작업을 이어가라.
 
 먼저 node scripts/handoff-check.mjs를 실행하고 document/ops/HANDOFF.md와 document/ops/20261119-public-route-candidates/README.md를 읽어라.

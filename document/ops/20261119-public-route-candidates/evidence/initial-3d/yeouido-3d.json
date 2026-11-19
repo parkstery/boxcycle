@@ -1,0 +1,711 @@
+{
+  "id": "yeouido",
+  "at": "2026-11-19T11:10:43.474Z",
+  "method": "local production camera/terrain components + real Mapbox imagery/DEM; marker replaces rider; no Firebase",
+  "samples": [
+    {
+      "id": "yeouido",
+      "slot": 2,
+      "rider": [
+        126.89161900000002,
+        37.546064000000015
+      ],
+      "rawElevation": 8.9250918580292,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 20.956374432640423,
+      "riderPixel": [
+        399.99999916951657,
+        242.81274629587926
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0
+    },
+    {
+      "id": "yeouido",
+      "slot": 3,
+      "rider": [
+        126.89161900000002,
+        37.546064000000015
+      ],
+      "rawElevation": 8.9250918580292,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 22.36202555772747,
+      "riderPixel": [
+        400.0000000461389,
+        231.18723551517917
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0
+    },
+    {
+      "id": "yeouido",
+      "slot": 2,
+      "rider": [
+        126.89627144275217,
+        37.54193876098901
+      ],
+      "rawElevation": 10.696690063617673,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 10.68014564587121,
+      "riderPixel": [
+        399.99999897437357,
+        243.27793278331515
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.1
+    },
+    {
+      "id": "yeouido",
+      "slot": 3,
+      "rider": [
+        126.89627144275217,
+        37.54193876098901
+      ],
+      "rawElevation": 10.696690063617673,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 11.642495617121739,
+      "riderPixel": [
+        399.9999998613592,
+        231.66166884659606
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.1
+    },
+    {
+      "id": "yeouido",
+      "slot": 2,
+      "rider": [
+        126.90216600540893,
+        37.53863263679785
+      ],
+      "rawElevation": 15.542847099400827,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 22.31198163264717,
+      "riderPixel": [
+        399.9999991677955,
+        242.7724640254003
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.2
+    },
+    {
+      "id": "yeouido",
+      "slot": 3,
+      "rider": [
+        126.90216600540893,
+        37.53863263679785
+      ],
+      "rawElevation": 15.542847099400827,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 23.669563589462477,
+      "riderPixel": [
+        399.99999991160655,
+        213.22173464565319
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.2
+    },
+    {
+      "id": "yeouido",
+      "slot": 2,
+      "rider": [
+        126.90776921311588,
+        37.53497891019732
+      ],
+      "rawElevation": 6.03549832785472,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 12.007452002686957,
+      "riderPixel": [
+        399.9999988584255,
+        242.8051707016717
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.3
+    },
+    {
+      "id": "yeouido",
+      "slot": 3,
+      "rider": [
+        126.90776921311588,
+        37.53497891019732
+      ],
+      "rawElevation": 6.03549832785472,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 13.024317691254563,
+      "riderPixel": [
+        399.9999997106375,
+        212.5237308750547
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.3
+    },
+    {
+      "id": "yeouido",
+      "slot": 2,
+      "rider": [
+        126.91351539899576,
+        37.5345976823855
+      ],
+      "rawElevation": 5,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 21.24696762283517,
+      "riderPixel": [
+        399.9999988574019,
+        242.69427877639305
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.4
+    },
+    {
+      "id": "yeouido",
+      "slot": 3,
+      "rider": [
+        126.91351539899576,
+        37.5345976823855
+      ],
+      "rawElevation": 5,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 22.60253150844577,
+      "riderPixel": [
+        399.99999962757175,
+        216.63684700616372
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.4
+    },
+    {
+      "id": "yeouido",
+      "slot": 2,
+      "rider": [
+        126.92053088270039,
+        37.53401661643285
+      ],
+      "rawElevation": 5,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 21.247068029331576,
+      "riderPixel": [
+        399.9999988782082,
+        242.69419481285868
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.5
+    },
+    {
+      "id": "yeouido",
+      "slot": 3,
+      "rider": [
+        126.92053088270039,
+        37.53401661643285
+      ],
+      "rawElevation": 5,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 22.602638320855313,
+      "riderPixel": [
+        399.9999997508656,
+        216.63664719813517
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.5
+    },
+    {
+      "id": "yeouido",
+      "slot": 2,
+      "rider": [
+        126.92656554693487,
+        37.5310868420663
+      ],
+      "rawElevation": 15.643711774667626,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 17.502912700068613,
+      "riderPixel": [
+        399.9999988630202,
+        242.75039756306734
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.6
+    },
+    {
+      "id": "yeouido",
+      "slot": 3,
+      "rider": [
+        126.92656554693487,
+        37.5310868420663
+      ],
+      "rawElevation": 15.643711774667626,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 18.697358464845934,
+      "riderPixel": [
+        399.99999967949435,
+        214.57395018364153
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.6
+    },
+    {
+      "id": "yeouido",
+      "slot": 2,
+      "rider": [
+        126.93203703847205,
+        37.52831217416506
+      ],
+      "rawElevation": 17.462873456372005,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 17.808949427022814,
+      "riderPixel": [
+        399.9999989273141,
+        243.00819890422343
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.7
+    },
+    {
+      "id": "yeouido",
+      "slot": 3,
+      "rider": [
+        126.93203703847205,
+        37.52831217416506
+      ],
+      "rawElevation": 17.462873456372005,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 19.525121610035406,
+      "riderPixel": [
+        399.9999993659799,
+        231.36126380566256
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.7
+    },
+    {
+      "id": "yeouido",
+      "slot": 2,
+      "rider": [
+        126.93705395121682,
+        37.524260429308455
+      ],
+      "rawElevation": 15.620937656841578,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 24.231709003909202,
+      "riderPixel": [
+        399.99999873816523,
+        242.74915454058544
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.8
+    },
+    {
+      "id": "yeouido",
+      "slot": 3,
+      "rider": [
+        126.93705395121682,
+        37.524260429308455
+      ],
+      "rawElevation": 15.620937656841578,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 25.441621129249654,
+      "riderPixel": [
+        399.99999943490315,
+        214.28925836805476
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.8
+    },
+    {
+      "id": "yeouido",
+      "slot": 2,
+      "rider": [
+        126.94134424788001,
+        37.5197887208166
+      ],
+      "rawElevation": 23.097478450432234,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 16.784574056416886,
+      "riderPixel": [
+        399.9999999973489,
+        242.98079173267217
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.9
+    },
+    {
+      "id": "yeouido",
+      "slot": 3,
+      "rider": [
+        126.94134424788001,
+        37.5197887208166
+      ],
+      "rawElevation": 23.097478450432234,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 16.900549130051687,
+      "riderPixel": [
+        399.9999987395054,
+        231.37703538991656
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 0.9
+    },
+    {
+      "id": "yeouido",
+      "slot": 2,
+      "rider": [
+        126.93903,
+        37.52297400000001
+      ],
+      "rawElevation": 13.758625626549556,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 21.469054767045193,
+      "riderPixel": [
+        399.99999816705224,
+        242.80178393174853
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 1
+    },
+    {
+      "id": "yeouido",
+      "slot": 3,
+      "rider": [
+        126.93903,
+        37.52297400000001
+      ],
+      "rawElevation": 13.758625626549556,
+      "health": "ready",
+      "terrain": {
+        "source": "review-dem",
+        "exaggeration": 1.3
+      },
+      "cameraClearance": 22.818486295675044,
+      "riderPixel": [
+        399.9999987791567,
+        231.18185981199258
+      ],
+      "inFrame": true,
+      "tilesLoaded": true,
+      "contextLost": false,
+      "viewport": [
+        800,
+        360
+      ],
+      "canvas": [
+        1000,
+        450
+      ],
+      "errors": [],
+      "fraction": 1
+    }
+  ]
+}

@@ -1,0 +1,862 @@
+{
+  "at": "2026-11-19T11:16:20.231Z",
+  "inventoryAt": "2026-11-19T10:57:56.579Z",
+  "publicationCount": 44,
+  "published": 39,
+  "countries": {
+    "KR": {
+      "count": 31,
+      "bins": {
+        "0–5": 24,
+        "5–10": 6,
+        "10–20": 1
+      },
+      "cycling": 10
+    },
+    "JP": {
+      "count": 2,
+      "bins": {
+        "0–5": 2
+      },
+      "cycling": 2
+    },
+    "US": {
+      "count": 2,
+      "bins": {
+        "5–10": 1,
+        "0–5": 1
+      },
+      "cycling": 1
+    },
+    "KP": {
+      "count": 1,
+      "bins": {
+        "5–10": 1
+      },
+      "cycling": 0
+    },
+    "NL": {
+      "count": 1,
+      "bins": {
+        "0–5": 1
+      },
+      "cycling": 1
+    },
+    "FR": {
+      "count": 1,
+      "bins": {
+        "0–5": 1
+      },
+      "cycling": 1
+    },
+    "CA": {
+      "count": 1,
+      "bins": {
+        "5–10": 1
+      },
+      "cycling": 0
+    }
+  },
+  "profiles": {
+    "driving": 16,
+    "cycling": 15,
+    "walking": 8
+  },
+  "duplicates": [
+    {
+      "a": "U3zVrn6oufMyuJOElwRi",
+      "b": "YP5lMe50BvrIUysBb1A4",
+      "titles": [
+        "짧은 거리",
+        "짧은 거리"
+      ],
+      "profile": "cycling",
+      "similarity": 1
+    }
+  ],
+  "mismatches": [],
+  "candidates": [
+    {
+      "id": "yeouido",
+      "geometryHash": "cc90423947f306ac8e57d87cbd5e187a3338bbafb16e6ac7adad58279a7e3bd7",
+      "distanceM": 6415.871,
+      "polylineM": 6408.676305395324,
+      "coords": 250,
+      "intermediateWaypoints": 0,
+      "repeatedM": 0,
+      "maxSegmentM": 175.96510524231968,
+      "bboxDiagonalM": 5279.080519799048,
+      "geo": {
+        "geoQuadkey": "1321103200311233",
+        "geoContinent": "AS",
+        "geoCountry": "KR",
+        "geoAdmin1": "KR-11",
+        "geoResolverVersion": 1
+      },
+      "countries": [
+        "KR"
+      ],
+      "waypoints": [
+        {
+          "label": "양화대교 남단 자전거길",
+          "requested": [
+            126.891619,
+            37.546064
+          ],
+          "snapped": [
+            126.891619,
+            37.546064
+          ],
+          "snapM": 0.015,
+          "road": "한강남자전거길"
+        },
+        {
+          "label": "여의도 동쪽 한강공원",
+          "requested": [
+            126.939,
+            37.523
+          ],
+          "snapped": [
+            126.93903,
+            37.522974
+          ],
+          "snapM": 3.943,
+          "road": ""
+        }
+      ],
+      "nearestExisting": {
+        "id": "AomuhPR8mn4fdJmSlxx0",
+        "title": "서울 5.38km 강남에서 강북으로",
+        "similarity": 0
+      },
+      "checks": {
+        "length": {
+          "ok": true
+        },
+        "coordCount": {
+          "ok": true
+        },
+        "density": {
+          "ok": true
+        },
+        "bbox": {
+          "ok": true
+        }
+      },
+      "specialSteps": [],
+      "roads": [
+        "한강남자전거길",
+        "원효대교 출입로"
+      ]
+    },
+    {
+      "id": "richmond",
+      "geometryHash": "118c7ff2e8b1cb1d43ca37884b6ec8f46a4e74b95011478652d56b352c4f4a0e",
+      "distanceM": 10927.125,
+      "polylineM": 10914.853637348013,
+      "coords": 332,
+      "intermediateWaypoints": 3,
+      "repeatedM": 104.62079204288449,
+      "maxSegmentM": 135.94007148632994,
+      "bboxDiagonalM": 4483.58670674089,
+      "geo": {
+        "geoQuadkey": "0313131311230001",
+        "geoContinent": "EU",
+        "geoCountry": "GB",
+        "geoAdmin1": "GB-ENG",
+        "geoResolverVersion": 1
+      },
+      "countries": [
+        "GB"
+      ],
+      "waypoints": [
+        {
+          "label": "Roehampton Gate 내부 도로",
+          "requested": [
+            -0.258,
+            51.4535
+          ],
+          "snapped": [
+            -0.25801,
+            51.453511
+          ],
+          "snapM": 1.399,
+          "road": ""
+        },
+        {
+          "label": "Queens Road 북쪽",
+          "requested": [
+            -0.294504,
+            51.4463767
+          ],
+          "snapped": [
+            -0.294504,
+            51.446377
+          ],
+          "snapM": 0.009,
+          "road": "Queens Road"
+        },
+        {
+          "label": "Kingston Gate 내부 Dark Hill",
+          "requested": [
+            -0.2845422,
+            51.4221199
+          ],
+          "snapped": [
+            -0.284542,
+            51.42212
+          ],
+          "snapM": 0.018,
+          "road": "Dark Hill"
+        },
+        {
+          "label": "Broomfield Hill",
+          "requested": [
+            -0.2710178,
+            51.4313844
+          ],
+          "snapped": [
+            -0.271018,
+            51.431384
+          ],
+          "snapM": 0.016,
+          "road": "Broomfield Hill"
+        },
+        {
+          "label": "Roehampton Gate 내부 도로",
+          "requested": [
+            -0.258,
+            51.4535
+          ],
+          "snapped": [
+            -0.25801,
+            51.453511
+          ],
+          "snapM": 1.399,
+          "road": ""
+        }
+      ],
+      "nearestExisting": {
+        "id": "AomuhPR8mn4fdJmSlxx0",
+        "title": "서울 5.38km 강남에서 강북으로",
+        "similarity": 0
+      },
+      "checks": {
+        "length": {
+          "ok": true
+        },
+        "coordCount": {
+          "ok": true
+        },
+        "density": {
+          "ok": true
+        },
+        "bbox": {
+          "ok": true
+        }
+      },
+      "specialSteps": [
+        {
+          "mode": "cycling",
+          "name": "The Tamsin Trail",
+          "distance": 4.057
+        }
+      ],
+      "roads": [
+        "The Tamsin Trail",
+        "Sawyer's Hill",
+        "Queens Road",
+        "Dark Hill",
+        "Broomfield Hill"
+      ]
+    },
+    {
+      "id": "ara",
+      "geometryHash": "ad7ea05728f5c8f4a38d98c1f086bc318ffcbd4651ebf8dec878e8f0696f602b",
+      "distanceM": 20306.791,
+      "polylineM": 20283.994531611774,
+      "coords": 399,
+      "intermediateWaypoints": 3,
+      "repeatedM": 0,
+      "maxSegmentM": 1415.5286079815096,
+      "bboxDiagonalM": 17768.22028400694,
+      "geo": {
+        "geoQuadkey": "1321103200200313",
+        "geoContinent": "AS",
+        "geoCountry": "KR",
+        "geoAdmin1": "KR-41",
+        "geoResolverVersion": 1
+      },
+      "countries": [
+        "KR"
+      ],
+      "waypoints": [
+        {
+          "label": "서해갑문 자전거길 기점",
+          "requested": [
+            126.603848,
+            37.5570429
+          ],
+          "snapped": [
+            126.603848,
+            37.557043
+          ],
+          "snapM": 0.011,
+          "road": "아라 자전거길"
+        },
+        {
+          "label": "시천교 남안 자전거길",
+          "requested": [
+            126.6424929,
+            37.5703452
+          ],
+          "snapped": [
+            126.642493,
+            37.570345
+          ],
+          "snapM": 0.023,
+          "road": "아라 자전거길"
+        },
+        {
+          "label": "계양대교 남안 자전거길",
+          "requested": [
+            126.6861617,
+            37.5708451
+          ],
+          "snapped": [
+            126.686162,
+            37.570845
+          ],
+          "snapM": 0.016,
+          "road": "아라 자전거길"
+        },
+        {
+          "label": "굴포천 합류 남안 자전거길",
+          "requested": [
+            126.7366893,
+            37.5730098
+          ],
+          "snapped": [
+            126.736689,
+            37.57301
+          ],
+          "snapM": 0.02,
+          "road": "아라 자전거길"
+        },
+        {
+          "label": "한강갑문 자전거길 종점",
+          "requested": [
+            126.7979414,
+            37.5980128
+          ],
+          "snapped": [
+            126.797941,
+            37.598013
+          ],
+          "snapM": 0.042,
+          "road": "아라 자전거길"
+        }
+      ],
+      "nearestExisting": {
+        "id": "AomuhPR8mn4fdJmSlxx0",
+        "title": "서울 5.38km 강남에서 강북으로",
+        "similarity": 0
+      },
+      "checks": {
+        "length": {
+          "ok": true
+        },
+        "coordCount": {
+          "ok": true
+        },
+        "density": {
+          "ok": true
+        },
+        "bbox": {
+          "ok": true
+        }
+      },
+      "specialSteps": [],
+      "roads": [
+        "아라 자전거길",
+        "아라육로"
+      ]
+    },
+    {
+      "id": "amstel",
+      "geometryHash": "eec33f5e271dcd4d37c31956dc0b8e7a99784d3130c42d23d81b315e9f57a358",
+      "distanceM": 22724.086,
+      "polylineM": 22698.642060297643,
+      "coords": 962,
+      "intermediateWaypoints": 3,
+      "repeatedM": 1821.0950112533844,
+      "maxSegmentM": 376.9977329823898,
+      "bboxDiagonalM": 7962.006348167215,
+      "geo": {
+        "geoQuadkey": "1202021101311122",
+        "geoContinent": "EU",
+        "geoCountry": "NL",
+        "geoAdmin1": "NL-NH",
+        "geoResolverVersion": 1
+      },
+      "countries": [
+        "NL"
+      ],
+      "waypoints": [
+        {
+          "label": "Magere Brug 서안",
+          "requested": [
+            4.9029,
+            52.363
+          ],
+          "snapped": [
+            4.903378,
+            52.363076
+          ],
+          "snapM": 33.605,
+          "road": "Amstel"
+        },
+        {
+          "label": "Riekermolen 강변",
+          "requested": [
+            4.893765,
+            52.324078
+          ],
+          "snapped": [
+            4.893747,
+            52.324337
+          ],
+          "snapM": 28.868,
+          "road": "De Borcht"
+        },
+        {
+          "label": "Ouderkerk N522 도로교",
+          "requested": [
+            4.8992,
+            52.2986
+          ],
+          "snapped": [
+            4.899166,
+            52.298637
+          ],
+          "snapM": 4.725,
+          "road": "Burgemeester Stramanweg"
+        },
+        {
+          "label": "Ouderkerkerdijk 동안",
+          "requested": [
+            4.9,
+            52.326
+          ],
+          "snapped": [
+            4.899994,
+            52.325909
+          ],
+          "snapM": 10.161,
+          "road": ""
+        },
+        {
+          "label": "Magere Brug 서안",
+          "requested": [
+            4.9029,
+            52.363
+          ],
+          "snapped": [
+            4.903378,
+            52.363076
+          ],
+          "snapM": 33.605,
+          "road": "Amstel"
+        }
+      ],
+      "nearestExisting": {
+        "id": "AomuhPR8mn4fdJmSlxx0",
+        "title": "서울 5.38km 강남에서 강북으로",
+        "similarity": 0
+      },
+      "checks": {
+        "length": {
+          "ok": true
+        },
+        "coordCount": {
+          "ok": true
+        },
+        "density": {
+          "ok": true
+        },
+        "bbox": {
+          "ok": true
+        }
+      },
+      "specialSteps": [],
+      "roads": [
+        "Amstel",
+        "Nieuwe Prinsengracht",
+        "Weesperstraat",
+        "Amsteldijk",
+        "Tweede Jan Steenstraat",
+        "Van Woustraat",
+        "Rooseveltlaan",
+        "Europaplein",
+        "Europaboulevard",
+        "De Borcht",
+        "Kalfjeslaan",
+        "Kostverlorenweg",
+        "Aanloop",
+        "Frits Mullerlaan",
+        "Olympiadelaan",
+        "Lien Gisolflaan",
+        "Bankrasweg",
+        "Oranjebaan",
+        "Amstelslag",
+        "Burgemeester Stramanweg",
+        "Rozenoordpad",
+        "Vrijheidslaan",
+        "Rijnstraat",
+        "Westeinde",
+        "Frederiksplein"
+      ]
+    },
+    {
+      "id": "sunmoon",
+      "geometryHash": "42d175139cd7b0f7bcef7d78b715dcf93a5c8f2509f302e339d9d623fcf1f48a",
+      "distanceM": 27844.91,
+      "polylineM": 27813.65049290368,
+      "coords": 1319,
+      "intermediateWaypoints": 3,
+      "repeatedM": 225.65833748798525,
+      "maxSegmentM": 267.2432939645057,
+      "bboxDiagonalM": 6828.1654865320015,
+      "geo": {
+        "geoQuadkey": "1321232131111221",
+        "geoContinent": "AS",
+        "geoCountry": "TW",
+        "geoAdmin1": "TW-NAN",
+        "geoResolverVersion": 1
+      },
+      "countries": [
+        "TW"
+      ],
+      "waypoints": [
+        {
+          "label": "Xiangshang 방문자센터 연결 중산로",
+          "requested": [
+            120.901175,
+            23.851815
+          ],
+          "snapped": [
+            120.901175,
+            23.851815
+          ],
+          "snapM": 0,
+          "road": "中山路"
+        },
+        {
+          "label": "북동부 중정로",
+          "requested": [
+            120.93748,
+            23.863687
+          ],
+          "snapped": [
+            120.93748,
+            23.863687
+          ],
+          "snapM": 0,
+          "road": "月潭自行車道"
+        },
+        {
+          "label": "Ita Thao 중정로",
+          "requested": [
+            120.93171,
+            23.846354
+          ],
+          "snapped": [
+            120.93171,
+            23.846354
+          ],
+          "snapM": 0,
+          "road": "中正路"
+        },
+        {
+          "label": "남서부 환호공로",
+          "requested": [
+            120.905099,
+            23.832264
+          ],
+          "snapped": [
+            120.905099,
+            23.832264
+          ],
+          "snapM": 0,
+          "road": "平和巷"
+        },
+        {
+          "label": "Xiangshang 방문자센터 연결 중산로",
+          "requested": [
+            120.901175,
+            23.851815
+          ],
+          "snapped": [
+            120.901175,
+            23.851815
+          ],
+          "snapM": 0,
+          "road": "中山路"
+        }
+      ],
+      "nearestExisting": {
+        "id": "AomuhPR8mn4fdJmSlxx0",
+        "title": "서울 5.38km 강남에서 강북으로",
+        "similarity": 0
+      },
+      "checks": {
+        "length": {
+          "ok": true
+        },
+        "coordCount": {
+          "ok": true
+        },
+        "density": {
+          "ok": true
+        },
+        "bbox": {
+          "ok": true
+        }
+      },
+      "specialSteps": [
+        {
+          "mode": "walking",
+          "name": "",
+          "distance": 8.522
+        },
+        {
+          "mode": "walking",
+          "name": "",
+          "distance": 12.136
+        }
+      ],
+      "roads": [
+        "中山路",
+        "月潭自行車道",
+        "中潭公路",
+        "中正路",
+        "平和巷"
+      ]
+    },
+    {
+      "id": "annecy",
+      "geometryHash": "46ee9b6998df48e27f3d61281ccd5be99f6798144f1a6a3e7968e45627c41a70",
+      "distanceM": 40542.117,
+      "polylineM": 40496.62019454319,
+      "coords": 2008,
+      "intermediateWaypoints": 3,
+      "repeatedM": 913.1895683204723,
+      "maxSegmentM": 436.95493465813377,
+      "bboxDiagonalM": 15844.246876793988,
+      "geo": {
+        "geoQuadkey": "1202212201213213",
+        "geoContinent": "EU",
+        "geoCountry": "FR",
+        "geoAdmin1": "FR-ARA",
+        "geoResolverVersion": 1
+      },
+      "countries": [
+        "FR"
+      ],
+      "waypoints": [
+        {
+          "label": "안시 시청 호숫가",
+          "requested": [
+            6.1285,
+            45.899
+          ],
+          "snapped": [
+            6.128634,
+            45.899034
+          ],
+          "snapM": 11.059,
+          "road": "Quai Eustache Chappuis"
+        },
+        {
+          "label": "Talloires",
+          "requested": [
+            6.213,
+            45.84
+          ],
+          "snapped": [
+            6.213001,
+            45.839997
+          ],
+          "snapM": 0.322,
+          "road": ""
+        },
+        {
+          "label": "Doussard 호수 남단",
+          "requested": [
+            6.222,
+            45.795
+          ],
+          "snapped": [
+            6.220131,
+            45.793139
+          ],
+          "snapM": 252.907,
+          "road": ""
+        },
+        {
+          "label": "Saint-Jorioz",
+          "requested": [
+            6.164,
+            45.835
+          ],
+          "snapped": [
+            6.163885,
+            45.834953
+          ],
+          "snapM": 10.385,
+          "road": ""
+        },
+        {
+          "label": "안시 시청 호숫가",
+          "requested": [
+            6.1285,
+            45.899
+          ],
+          "snapped": [
+            6.128634,
+            45.899034
+          ],
+          "snapM": 11.059,
+          "road": "Quai Eustache Chappuis"
+        }
+      ],
+      "nearestExisting": {
+        "id": "AomuhPR8mn4fdJmSlxx0",
+        "title": "서울 5.38km 강남에서 강북으로",
+        "similarity": 0
+      },
+      "checks": {
+        "length": {
+          "ok": true
+        },
+        "coordCount": {
+          "ok": true
+        },
+        "density": {
+          "ok": true
+        },
+        "bbox": {
+          "ok": true
+        }
+      },
+      "specialSteps": [],
+      "roads": [
+        "Quai Eustache Chappuis",
+        "Quai Napoléon III",
+        "Pont des Amours",
+        "Voie Verte Tour du Lac d'Annecy",
+        "Route d'Annecy",
+        "Route du Port",
+        "Route de la Brune",
+        "Route des tennis",
+        "Route des Crozettes",
+        "Chemin de Rampon",
+        "Le Thoron",
+        "Route du Crêt",
+        "Rue Noblemaire",
+        "Chemin de la Colombière",
+        "Chemin Clos du Moine",
+        "Place du Port",
+        "Chemin de la Ruaz",
+        "Chemin de Quoex",
+        "Rue André Theuriet",
+        "RD 909a",
+        "Route de la Vieille Église",
+        "Route de la Plage",
+        "Allée de la Nublière",
+        "Route du Bout du Lac",
+        "Route du Taillefer",
+        "Route du Laudon",
+        "Voie Verte",
+        "Rue Saint-Maurice"
+      ]
+    }
+  ],
+  "candidatePairs": [
+    {
+      "a": "yeouido",
+      "b": "richmond",
+      "similarity": 0
+    },
+    {
+      "a": "yeouido",
+      "b": "ara",
+      "similarity": 0
+    },
+    {
+      "a": "yeouido",
+      "b": "amstel",
+      "similarity": 0
+    },
+    {
+      "a": "yeouido",
+      "b": "sunmoon",
+      "similarity": 0
+    },
+    {
+      "a": "yeouido",
+      "b": "annecy",
+      "similarity": 0
+    },
+    {
+      "a": "richmond",
+      "b": "ara",
+      "similarity": 0
+    },
+    {
+      "a": "richmond",
+      "b": "amstel",
+      "similarity": 0
+    },
+    {
+      "a": "richmond",
+      "b": "sunmoon",
+      "similarity": 0
+    },
+    {
+      "a": "richmond",
+      "b": "annecy",
+      "similarity": 0
+    },
+    {
+      "a": "ara",
+      "b": "amstel",
+      "similarity": 0
+    },
+    {
+      "a": "ara",
+      "b": "sunmoon",
+      "similarity": 0
+    },
+    {
+      "a": "ara",
+      "b": "annecy",
+      "similarity": 0
+    },
+    {
+      "a": "amstel",
+      "b": "sunmoon",
+      "similarity": 0
+    },
+    {
+      "a": "amstel",
+      "b": "annecy",
+      "similarity": 0
+    },
+    {
+      "a": "sunmoon",
+      "b": "annecy",
+      "similarity": 0
+    }
+  ]
+}
