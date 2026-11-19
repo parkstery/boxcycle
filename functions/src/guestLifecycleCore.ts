@@ -703,6 +703,20 @@ export async function runGuestLifecycleSweep(ports: GuestLifecyclePorts): Promis
     let profile: UserProfileSnap | null;
     try {
       authUser = byUid.get(uid) ?? (await ports.auth.getUser(uid));
+      // Auth 만으로 제외가 확정된 계정은 프로필·수명 문서를 매일 다시 읽지 않는다.
+      // disabled 등록 계정은 수명 작업이 끈 계정의 복구 경로를 계속 통과해야 한다.
+      if (ports.protectedUids.has(uid)) {
+        report.skippedProtected += 1;
+        continue;
+      }
+      if (authUser?.admin) {
+        report.skippedAdmin += 1;
+        continue;
+      }
+      if (authUser && !isGuestAuth(authUser) && !authUser.disabled) {
+        report.skippedRegistered += 1;
+        continue;
+      }
       profile = await ports.readUserProfile(uid);
     } catch {
       report.retryable += 1;

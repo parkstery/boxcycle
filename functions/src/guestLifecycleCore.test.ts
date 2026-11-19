@@ -122,6 +122,42 @@ test("Auth 만 있는 Guest 는 처음 관찰하고, 관찰 30일 뒤에 삭제�
   assert.equal(deleted, 1);
 });
 
+test("보호·Auth admin·활성 등록 계정은 프로필과 수명 문서를 읽지 않는다", async () => {
+  const auth = new MemoryGuestAuth();
+  const store = new MemoryGuestStore();
+  const rtdb = new MemoryGuestRtdb();
+  auth.users.set("protected", guest("protected"));
+  auth.users.set("admin", { ...guest("admin"), admin: true });
+  auth.users.set("registered", { ...guest("registered"), anonymous: false, email: "a@b.c" });
+  let reads = 0;
+  const unexpectedRead = async (): Promise<never> => { reads += 1; throw new Error("unexpected read"); };
+  const report = await runGuestLifecycleSweep(portsFor(auth, store, rtdb, 1_000, {
+    protectedUids: new Set(["protected"]),
+    readUserProfile: unexpectedRead,
+    store: { get: unexpectedRead, runTransaction: unexpectedRead },
+  }));
+  assert.equal(reads, 0);
+  assert.equal(report.skippedProtected, 1);
+  assert.equal(report.skippedAdmin, 1);
+  assert.equal(report.skippedRegistered, 1);
+  assert.equal(report.retryable, 0);
+  assert.deepEqual(auth.disabled, []);
+  assert.deepEqual(auth.deleted, []);
+});
+
+test("disabled 등록 계정은 제외 최적화 뒤에도 lifecycle 소유 비활성화를 복구한다", async () => {
+  const auth = new MemoryGuestAuth();
+  const store = new MemoryGuestStore();
+  const rtdb = new MemoryGuestRtdb();
+  auth.users.set("linked", { ...guest("linked"), anonymous: false, disabled: true, email: "a@b.c" });
+  await seed(store, "linked", { status: "failed", disabledByLifecycle: true });
+  const report = await runGuestLifecycleSweep(portsFor(auth, store, rtdb, 1_000));
+  assert.equal(report.restored, 1);
+  assert.equal(auth.users.get("linked")?.disabled, false);
+  assert.equal((await store.get(guestLifecyclePath("linked")))?.status, "exempt");
+  assert.deepEqual(auth.deleted, []);
+});
+
 test("삭제 도중 실패하면 차단을 유지하고 다음 실행이 끝낸다", async () => {
   const now = GUEST_INACTIVITY_MS + 5;
   const auth = new MemoryGuestAuth();
