@@ -1,0 +1,15 @@
+{
+  "at": "2026-11-19T21:05:25.242Z",
+  "release": "5a5b3170cebb7739542f26ed17ee11441bf0fd3a",
+  "target": {
+    "name": "projects/boxcycle-dc2df/locations/asia-northeast3/functions/guestLifecycleSweep",
+    "updateTime": "2026-11-19T21:05:01.978818873Z",
+    "state": "ACTIVE",
+    "runtime": "nodejs24",
+    "build": "projects/410234803358/locations/asia-northeast3/builds/32e33be6-4aa2-429b-857f-f178cf577552",
+    "revision": "guestlifecyclesweep-00011-cej"
+  },
+  "unchangedFunctions": 38,
+  "hostingUnchanged": true,
+  "hostingSha256": "0d4e584577cc501dc427313d671b5733cd63b5465bb759d1cb78157a3a14d73e"
+}

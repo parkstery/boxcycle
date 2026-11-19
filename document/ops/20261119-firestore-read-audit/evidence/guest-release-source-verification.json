@@ -1,0 +1,25 @@
+{
+  "commit": "5a5b3170cebb7739542f26ed17ee11441bf0fd3a",
+  "tree": "43275b54e37137dcfa7d2e6095a2763670eb6d44",
+  "snapshot": "C:\\20.HDev\\boxcycle\\tmp\\guest-read-followup-20261120\\snapshot",
+  "verifiedFiles": 7196,
+  "copied": 7086,
+  "linkedLargeAssets": 95,
+  "changedFiles": [
+    "document/ops/20261119-firestore-read-audit/02-phase1-implementation.md",
+    "document/ops/20261119-firestore-read-audit/03-road-incremental-sync.md",
+    "document/ops/20261119-firestore-read-audit/04-release.md",
+    "document/ops/20261119-firestore-read-audit/05-guest-and-measurement.md",
+    "document/ops/20261119-firestore-read-audit/README.md",
+    "document/ops/20261119-firestore-read-audit/evidence/function-release-verification.json",
+    "document/ops/20261119-firestore-read-audit/evidence/hosting-release-verification.json",
+    "document/ops/20261119-firestore-read-audit/evidence/read-post-release-baseline.json",
+    "document/ops/20261119-firestore-read-audit/evidence/release-source-verification.json",
+    "document/ops/20261119-firestore-read-audit/tools/collect-read-metrics.mjs",
+    "document/ops/20261119-firestore-read-audit/tools/collect-read-metrics.test.mjs",
+    "document/ops/HANDOFF.md",
+    "document/ops/README.md",
+    "functions/src/guestLifecycleCore.test.ts",
+    "functions/src/guestLifecycleCore.ts"
+  ]
+}

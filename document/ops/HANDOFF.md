@@ -3,15 +3,15 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | **Codex** — read 절감 배포 완료 |
-| 갱신 | 11-20 read 112131aa·함수/Hosting 운영 대조 완료. |
+| 담당 | **Codex** — read 후속 배포·감사 주기 대기 |
+| 갱신 | 11-20 Guest5a5b3170 단일 함수 운영 확인. |
 | 브랜치 | `main2` · origin 일치 |
-| 마지막 배포 | 11-20 Hosting·conquest 함수112131aa. 다른 함수·Rules11-06 유지. |
+| 마지막 배포 | 11-20 Guest5a5b3170. Hosting·conquest112131aa. |
 
 ## 진행 중
 
-**11-20 read 배포완료(Codex)**: 112131aa 원격·대상함수ACTIVE·Hosting18파일 일치. [결과](20261119-firestore-read-audit/04-release.md).
-시험격리·도로망 증분。web1584/0·서버305/0·FS1/0。다음: Guest 전수스캔 개선·운영 절감 측정.
+**11-20 read 후속(Codex)**: Guest 제외계정 읽기 절감5a5b3170 배포·web1584/0·서버307/0。
+고아 감사 주기 답변 대기·전수스캔 유지。다음: 주기 결정→후보 큐·감사 분리. [기록](20261119-firestore-read-audit/05-guest-and-measurement.md).
 
 **11-19 퍼블릭(Codex)**: 4개 공개 등록·43개/9국·기존44 보존·공개read8OK. 공사 무관·도로 데이터 기준.
 [등록·릴리스](20261119-public-route-candidates/release.md). ecf600c7 푸시·Hosting 완료. quick1567/0·오프라인106·운영17에셋 일치. 아라/암스텔 보류.

@@ -1,3 +1,5 @@
+2026-11-20 [Guest 읽기·운영 측정 후속](20261119-firestore-read-audit/05-guest-and-measurement.md): 5a5b3170 단일 함수 배포·운영 대조. web1584/0·서버307/0. 고아 감사 주기 결정 대기.
+
 2026-11-20 [Firestore read 절감 1·2차 릴리스](20261119-firestore-read-audit/04-release.md): 시험격리·도로망 영속캐시/증분. 112131aa 함수+Hosting 배포·운영 대조 완료. web1584/0·서버305/0·FS1/0. Guest 정리·동행 구조 제외.
 
 2026-11-19 [퍼블릭 코스 추천·새 세션 인계](20261119-public-route-candidates/README.md): 8개국12후보·1차6개. 안내거리/설계목표 구분, 실제 경로·등록 미실행. Codex 문서 기록.

@@ -4,7 +4,7 @@
 
 ## 이번 구현
 
-상태: LOCAL_VERIFIED, 선별 커밋·원본 게이트·guestLifecycleSweep 단일 배포 준비.
+상태: **DEPLOYED**. 소스 `5a5b3170` 원격 반영·guestLifecycleSweep 단일 배포 완료. 새 revision `guestlifecyclesweep-00011-cej` ACTIVE, 다른 38개 함수 updateTime 동일. Hosting HTML 해시는 기존112131aa 배포와 동일. 배포·관리 API 확인 시각 `2026-11-19T21:05:25.242Z`.
 
 `guestLifecycleCore.ts`는 Auth 목록으로 이미 제외가 확정된 보호 UID·Auth admin·활성 등록 계정을 처리할 때 users·guestLifecycle 문서를 읽지 않는다. 등록 계정 1명당 기존 최대 2회, 보호/Admin은 최대 1회 조회가 줄어든다. Auth가 disabled인 등록 계정은 기존 복구 경로로 보내 lifecycle이 끈 계정을 다시 허용한다. 만료·관찰 30일, 연결 lease, 재시도·소유권·활동 재확인·RTDB 차단·삭제 cap은 유지한다.
 
@@ -19,7 +19,7 @@
 - 루트에서 `node --test document/ops/20261119-firestore-read-audit/tools/collect-read-metrics.test.mjs`: **2/0**. 페이지 넘김·겨울/여름 PT 자정·배포 경계·배포 후 데이터 부재·빈 결과·반복 토큰·잘못된 구간 검증.
 - 최초 Monitoring 요청은 존재하지 않는 database_id 리소스 라벨 때문에 400. 저장된 descriptor/시계열의 firestore_instance 리소스로 고쳐 재요청 성공했다.
 - 05:57 KST 수집: 11/19 05:00~11/20 05:47 KST 요청 구간 **22,750**(LOOKUP1164·NOT_FOUND431·QUERY21155). KST11/20 부분일3,320, PT11/19 부분일8,091. 부분일을 하루 총량/청구 한도와 직접 비교하지 않는다.
-- 최신 관측 포인트는 **11/20 03:54 KST**로, 04:58 함수·Hosting 배포 이전이다. `postReleaseObserved=false`, 배포 후 포인트0. 따라서 after 합계0을 읽기0·절감률100%로 해석하지 않는다. 지표 부재 원인(활동 부재/보고 지연)은 이 결과만으로 구분하지 못한다.
+- 최신 관측 포인트는 **11/20 03:54 KST**로, 04:57~04:59 함수·Hosting 배포 이전이다. `postReleaseObserved=false`, 배포 후 포인트0. 따라서 after 합계0을 읽기0·절감률100%로 해석하지 않는다. 지표 부재 원인(활동 부재/보고 지연)은 이 결과만으로 구분하지 못한다.
 - 수집 증거: 로컬 `evidence/post-release/2026-11-19T20-57-44-070Z-{summary.json,series.json.gz}`. 개인 식별정보/토큰을 출력하거나 커밋하지 않는다.
 
 ## 핵심 Guest 개선의 결정 항목
@@ -44,3 +44,5 @@ node document/ops/20261119-firestore-read-audit/tools/collect-read-metrics.mjs -
 ```
 
 배포 후 최초 정상 계정 집계·캐시 저장이 이뤄진 다음, 최초 진입·같은 계정 재방문·신규 도로 반영을 분리해 비교한다. 빈 쿼리/Rules·네트워크 재연결·누적량 차이가 있어 Monitoring 총량만으로 캐시의 개별 효과를 귀속하지 않는다.
+
+원본 pre-commit ESLint·pre-push DB 통로/서버307/0/웹1584/0(95.6초) 통과 후 푸시했다. 선별 Git 사본 7,196파일을 blob과 대조하고 큰 정적 자산95개는 hardlink로 보존했다(변경 없음), 의존성만 junction이다. 배포는 이 사본에서 수행했다. 증거는 `evidence/guest-release-source-verification.json`, `evidence/guest-function-release-verification.json`, 상세 로컬 로그는 `tmp/guest-read-followup-20261120/{push.log,deploy.log}`. 배포 함수의 실제 정리 실행은 수동 호출하지 않았다. 다음 정기 실행 로그의 제외/관찰/삭제/실패 수치로 확인한다.
