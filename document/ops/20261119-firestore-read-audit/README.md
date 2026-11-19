@@ -2,6 +2,8 @@
 
 완성분의 구현·검증·배포 기록이다.
 
+2026-11-20 **DEPLOYED**: 소스 `112131aa` 원격 반영, conquest 함수·Hosting 운영 대조 완료. 웹1584/0·서버305/0·FS1/0.
+
 - [시험 격리·초기 중복 제거](02-phase1-implementation.md)
 - [도로망 영속 캐시·변경분 동기화](03-road-incremental-sync.md)
 - [승인된 릴리스와 운영 검증](04-release.md)

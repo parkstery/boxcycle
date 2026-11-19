@@ -1,0 +1,40 @@
+{
+  "tree": "d65c2dd758dc4cd2b7a2529ec0a67e9beae95855",
+  "snapshot": "C:\\20.HDev\\boxcycle\\tmp\\read-cost-release-20261120\\snapshot-3",
+  "verifiedFiles": 7189,
+  "stagedFiles": [
+    "apps/web/README.md",
+    "apps/web/dep-layers.json",
+    "apps/web/e2e/firebase-isolation.spec.ts",
+    "apps/web/e2eIsolation.ts",
+    "apps/web/package.json",
+    "apps/web/playwright.config.ts",
+    "apps/web/scripts/conquest/conquest-cache-dom.test.mjs",
+    "apps/web/scripts/conquest/conquest-loading-dom.test.mjs",
+    "apps/web/scripts/conquest/conquest-road-sync.emulator.test.mjs",
+    "apps/web/scripts/conquest/conquest-road-sync.test.ts",
+    "apps/web/scripts/e2e/dev-port-agreement-contract.test.ts",
+    "apps/web/scripts/e2e/firebase-isolation.test.ts",
+    "apps/web/scripts/route-token/firebase-exec.mjs",
+    "apps/web/src/hooks/useConquest.ts",
+    "apps/web/src/lib/conquest/conquestRoadSync.ts",
+    "apps/web/src/lib/conquest/repo/conquestRoadCache.ts",
+    "apps/web/src/lib/conquest/repo/firestoreConquest.ts",
+    "apps/web/src/lib/identity/guestAccountReset.ts",
+    "apps/web/vite.config.ts",
+    "document/ops/20261119-firestore-read-audit/02-phase1-implementation.md",
+    "document/ops/20261119-firestore-read-audit/03-road-incremental-sync.md",
+    "document/ops/20261119-firestore-read-audit/04-release.md",
+    "document/ops/20261119-firestore-read-audit/README.md",
+    "document/ops/HANDOFF.md",
+    "document/ops/README.md",
+    "functions/src/conquestOnRideCreated.test.ts",
+    "functions/src/conquestOnRideCreated.ts",
+    "scripts/check-code-tidy.mjs",
+    "scripts/emulatorPorts.mjs"
+  ],
+  "copiedEnvNames": [
+    "apps/web/.env"
+  ],
+  "at": "2026-11-19T19:49:23.998Z"
+}

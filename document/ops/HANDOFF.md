@@ -3,15 +3,15 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | **Codex** — 퍼블릭4개 등록·배포 완료 |
-| 갱신 | 11-19 공개43/9국·Hosting ecf600c7·원격 일치. |
+| 담당 | **Codex** — read 절감 배포 완료 |
+| 갱신 | 11-20 read 112131aa·함수/Hosting 운영 대조 완료. |
 | 브랜치 | `main2` · origin 일치 |
-| 마지막 배포 | 11-19 Hosting ecf600c7. 함수·Rules11-06 428ae1b4 유지. |
+| 마지막 배포 | 11-20 Hosting·conquest 함수112131aa. 다른 함수·Rules11-06 유지. |
 
 ## 진행 중
 
-**11-20 read 릴리스(Codex)**: Chief 커밋·푸시·배포 승인. 시험격리·도로망 증분만.
-파일: 선별 소스·커밋 사본. 다음: 원본 게이트→conquest 함수→Hosting 대조. [결과](20261119-firestore-read-audit/04-release.md).
+**11-20 read 배포완료(Codex)**: 112131aa 원격·대상함수ACTIVE·Hosting18파일 일치. [결과](20261119-firestore-read-audit/04-release.md).
+시험격리·도로망 증분。web1584/0·서버305/0·FS1/0。다음: Guest 전수스캔 개선·운영 절감 측정.
 
 **11-19 퍼블릭(Codex)**: 4개 공개 등록·43개/9국·기존44 보존·공개read8OK. 공사 무관·도로 데이터 기준.
 [등록·릴리스](20261119-public-route-candidates/release.md). ecf600c7 푸시·Hosting 완료. quick1567/0·오프라인106·운영17에셋 일치. 아라/암스텔 보류.

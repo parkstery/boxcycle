@@ -1,0 +1,22 @@
+{
+  "at": "2026-11-19T19:58:00.267Z",
+  "release": "112131aa46635f61ff74f4c86d7aa152d90a4ec4",
+  "updatedFunctions": [
+    "projects/boxcycle-dc2df/locations/asia-northeast3/functions/conquestOnRideCreated"
+  ],
+  "unchangedFunctions": 38,
+  "target": {
+    "name": "projects/boxcycle-dc2df/locations/asia-northeast3/functions/conquestOnRideCreated",
+    "updateTime": "2026-11-19T19:57:06.133721684Z",
+    "state": "ACTIVE",
+    "runtime": "nodejs24",
+    "build": "projects/410234803358/locations/asia-northeast3/builds/2bb8fe05-a35e-4856-8993-7d6fbcb17a47",
+    "source": {
+      "bucket": "gcf-v2-sources-410234803358-asia-northeast3",
+      "object": "conquestOnRideCreated/function-source.zip",
+      "generation": "1795118184918616"
+    },
+    "revision": "conquestonridecreated-00036-tuh",
+    "service": "projects/boxcycle-dc2df/locations/asia-northeast3/services/conquestonridecreated"
+  }
+}
