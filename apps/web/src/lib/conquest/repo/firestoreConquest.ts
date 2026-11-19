@@ -4,16 +4,21 @@ import {
   documentId,
   getDoc,
   getDocs,
+  getDocsFromServer,
+  getDocFromServer,
   onSnapshot,
   query,
   where,
   type Unsubscribe,
+  type Firestore,
 } from "firebase/firestore";
-import { getFirebaseFirestore } from "../../firebase/app";
+import { getFirebaseApp, getFirebaseFirestore } from "../../firebase/app";
 import type { LineStringGeometry } from "../../geo/geo";
 import { trackVisibilityListener } from "../../debug/visibilityReadMeters";
 import { normalizeAcquisitionDay } from "../recentNewRoadDisplay";
 import { parseConquestPathItem } from "../conquestPathGeometry";
+import { roadCacheFor } from "./conquestRoadCache";
+import { parseRoadSummaryToken, roadSyncCursor, syncConquestRoadData, type RoadChunk, type RoadSyncToken, type RoadTrace } from "../conquestRoadSync";
 
 /**
  * Conquest(정복) v2 — 도로 셀·궤적. 읽기 전용 클라이언트(쓰기는 CF `conquestOnRideCreated`).
@@ -24,14 +29,10 @@ export type ConquestSummary = {
   /** 신규로 정복한 도로 누적(m) */
   totalMeters: number;
   totalCells: number;
+  roadSync?: RoadSyncToken | null;
 };
 
-export type ConquestTrace = {
-  id: string;
-  geometry: LineStringGeometry;
-  newMeters: number;
-  day?: string;
-};
+export type ConquestTrace = RoadTrace;
 
 export type RecentNewRoad = {
   day: string;
@@ -49,25 +50,27 @@ function parseRecentGeometry(raw: unknown): LineStringGeometry[] {
 
 export function subscribeConquestSummary(
   userId: string,
-  onChange: (summary: ConquestSummary | null) => void,
+  onChange: (summary: ConquestSummary | null, fromCache: boolean) => void,
 ): Unsubscribe {
   const db = getFirebaseFirestore();
   return trackVisibilityListener(
     "conquest",
     onSnapshot(
       doc(db, "conquest", userId),
+      { includeMetadataChanges: true },
       (snap) => {
         if (!snap.exists()) {
-          onChange(null);
+          onChange(null, snap.metadata.fromCache);
           return;
         }
         const data = snap.data();
         onChange({
           totalMeters: Math.max(0, Number(data.totalMeters) || 0),
           totalCells: Math.max(0, Number(data.totalCells) || 0),
-        });
+          roadSync: parseRoadSummaryToken(data),
+        }, snap.metadata.fromCache);
       },
-      () => onChange(null),
+      () => onChange(null, false),
     ),
   );
 }
@@ -102,22 +105,6 @@ export function subscribeRecentNewRoad(
       () => onChange(null),
     ),
   );
-}
-
-/** Reuses the existing chunks read; acquisition dates also restore legacy highlights. */
-export async function loadConquestCellDays(userId: string): Promise<Map<string, string>> {
-  const db = getFirebaseFirestore();
-  const snap = await getDocs(collection(db, "conquest", userId, "chunks"));
-  const out = new Map<string, string>();
-  snap.forEach((chunkDoc) => {
-    const cells = chunkDoc.data().cells;
-    if (cells && typeof cells === "object") {
-      for (const id of Object.keys(cells as Record<string, unknown>)) {
-        if (id.startsWith("20_")) out.set(id, typeof cells[id] === "string" ? cells[id] : "");
-      }
-    }
-  });
-  return out;
 }
 
 /** 지역별 누적 한 건(G5) — 서버가 쓰는 `conquest/{uid}/regions/{scopeCode}`. */
@@ -209,29 +196,64 @@ export async function loadRideRegionTotal(
   }
 }
 
-/** 「내 도로망」 궤적 전체 — 지도 영구 렌더용. path 는 평탄 배열 [lng0,lat0,...] */
-export async function loadConquestTraces(userId: string): Promise<ConquestTrace[]> {
+function decodeTrace(id: string, data: Record<string, unknown>): ConquestTrace | null {
+  const path = data.path;
+  if (!Array.isArray(path) || path.length < 4 || path.length % 2 !== 0) return null;
+  const coordinates: [number, number][] = [];
+  for (let i = 0; i + 1 < path.length; i += 2) {
+    const lng = path[i];
+    const lat = path[i + 1];
+    if (typeof lng !== "number" || typeof lat !== "number" || !Number.isFinite(lng) || !Number.isFinite(lat)) return null;
+    coordinates.push([lng, lat]);
+  }
+  if (coordinates.length < 2) return null;
+  return {
+    id,
+    day: typeof data.day === "string" ? data.day : undefined,
+    geometry: { type: "LineString", coordinates },
+    newMeters: Math.max(0, Number(data.newMeters) || 0),
+  };
+}
+
+/** Persistent full baseline plus only changed chunk/trace documents thereafter. */
+export async function loadConquestRoadData(userId: string, token: RoadSyncToken | null) {
   const db = getFirebaseFirestore();
-  const snap = await getDocs(collection(db, "conquest", userId, "traces"));
-  const out: ConquestTrace[] = [];
-  snap.forEach((traceDoc) => {
-    const data = traceDoc.data();
-    const path = data.path;
-    if (!Array.isArray(path) || path.length < 4 || path.length % 2 !== 0) return;
-    const coordinates: [number, number][] = [];
-    for (let i = 0; i + 1 < path.length; i += 2) {
-      const lng = path[i];
-      const lat = path[i + 1];
-      if (typeof lng !== "number" || typeof lat !== "number") return;
-      coordinates.push([lng, lat]);
-    }
-    if (coordinates.length < 2) return;
-    out.push({
-      id: traceDoc.id,
-      day: typeof data.day === "string" ? data.day : undefined,
-      geometry: { type: "LineString", coordinates },
-      newMeters: Math.max(0, Number(data.newMeters) || 0),
-    });
+  const parent = doc(db, "conquest", userId);
+  const namespace = `${getFirebaseApp().options.projectId}:${import.meta.env.VITE_USE_EMULATOR === "1" ? "emulator" : "production"}`;
+  const result = await syncConquestRoadData(userId, token, {
+    ...roadCacheFor(namespace, userId),
+    readToken: async () => parseRoadSummaryToken((await getDocFromServer(parent)).data()),
+    readRemote: (since, currentToken) => readConquestRoadRecords(db, userId, since, currentToken),
   });
-  return out;
+  const cellDays = new Map<string, string>();
+  for (const chunk of result.chunks) for (const [id, day] of Object.entries(chunk.cells)) cellDays.set(id, day);
+  return { cellDays, traces: result.traces };
+}
+
+/** Shared server query path; exported for emulator verification against actual Rules. */
+export async function readConquestRoadRecords(db: Firestore, userId: string, since: number | null, currentToken: RoadSyncToken | null) {
+  const parent = doc(db, "conquest", userId);
+  const changed = (name: string) => {
+    const coll = collection(parent, name);
+    return since === null || !currentToken ? query(coll) : query(coll,
+      where("roadSyncCursor", ">", roadSyncCursor(currentToken, since)),
+      where("roadSyncCursor", "<", `${currentToken.epoch}:\uf8ff`));
+  };
+  const fetchSnapshot = currentToken ? getDocsFromServer : getDocs;
+  const [chunkSnap, traceSnap] = await Promise.all([
+    fetchSnapshot(changed("chunks")), fetchSnapshot(changed("traces")),
+  ]);
+  const chunks: RoadChunk[] = chunkSnap.docs.map(d => {
+    const cells: Record<string, string> = {};
+    const raw = d.data().cells;
+    if (raw && typeof raw === "object") for (const [id, day] of Object.entries(raw)) {
+      if (id.startsWith("20_")) cells[id] = typeof day === "string" ? day : "";
+    }
+    return { id: d.id, cells };
+  });
+  const traces = traceSnap.docs.flatMap(d => {
+    const trace = decodeTrace(d.id, d.data());
+    return trace ? [trace] : [];
+  });
+  return { chunks, traces };
 }

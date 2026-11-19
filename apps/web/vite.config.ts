@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolveDevPort } from './devPort'
+import { e2eIsolationPlugin } from './e2eIsolation'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), ...(mode === 'harness' ? [{
+  plugins: [react(), ...(process.env.RTW_E2E_ISOLATED === '1' ? [e2eIsolationPlugin()] : []), ...(mode === 'harness' ? [{
     name: 'harness-entry-guide',
     configureServer(server: import('vite').ViteDevServer) {
       server.middlewares.use((request, response, next) => {

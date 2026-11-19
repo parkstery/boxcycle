@@ -256,10 +256,12 @@
       "conquest/conquestPathGeometry.ts",
       "conquest/conquestOverviewFrame.ts",
       "conquest/recentNewRoadDisplay.ts",
-      "conquest/conquestRegionPick.ts"
+      "conquest/conquestRegionPick.ts",
+      "conquest/conquestRoadSync.ts"
     ],
     "conquest/repo": [
-      "conquest/repo/firestoreConquest.ts"
+      "conquest/repo/firestoreConquest.ts",
+      "conquest/repo/conquestRoadCache.ts"
     ],
     "trail": [
       "trail/trailAccessPolicy.ts",

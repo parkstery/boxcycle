@@ -1,8 +1,9 @@
 import type { DocumentReference, Firestore, Transaction } from "firebase-admin/firestore";
-import { FieldValue, getFirestore } from "firebase-admin/firestore";
+import { FieldValue, getFirestore, Timestamp } from "firebase-admin/firestore";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { isGuestLifecycleBlockedError, assertGuestLifecycleWritableInTx } from "./guestLifecycleGuard.js";
 import { REGION } from "./region.js";
+import { randomUUID } from "node:crypto";
 import { conquestCellIdAt, type LngLat } from "./geoTiles.js";
 import { resolveGeoRegion } from "./geoRegion/geoRegionData.js";
 import { planRegionAccounting, toScopeTotals, type ChunkRegionResolver } from "./conquestRegion.js";
@@ -430,10 +431,25 @@ export async function applyConquestInTransaction(
       : null;
 
   /* ---- 쓰기 ---- */
+  // Additive sync protocol: legacy documents need no migration. Initial clients
+  // read all of them once; subsequent reads select only changed documents.
+  // Whole-document removals / maintenance corrections must rotate this epoch.
+  const previousSync = summary.roadSync as { schema?: unknown; epoch?: unknown; version?: unknown; updatedAt?: unknown } | undefined;
+  const validSync = previousSync?.schema === 1 && typeof previousSync.epoch === "string" && previousSync.epoch.length > 0 &&
+    Number.isSafeInteger(previousSync.version) && Number(previousSync.version) >= 1 && Number(previousSync.version) < Number.MAX_SAFE_INTEGER &&
+    previousSync.updatedAt instanceof Timestamp && summary.updatedAt instanceof Timestamp && previousSync.updatedAt.isEqual(summary.updatedAt);
+  const roadChanged = newCellsByChunk.size > 0 || (newMeters > 0 && path.length >= 4);
+  const roadSync = {
+    schema: 1,
+    epoch: validSync ? previousSync!.epoch as string : randomUUID(),
+    version: validSync ? Number(previousSync!.version) + (roadChanged ? 1 : 0) : 1,
+    updatedAt: FieldValue.serverTimestamp(),
+  };
+  const roadSyncCursor = `${roadSync.epoch}:${String(roadSync.version).padStart(16, "0")}`;
   for (const [cid, ids] of newCellsByChunk) {
     const patch: Record<string, string> = {};
     for (const id of ids) patch[id] = today;
-    tx.set(summaryRef.collection("chunks").doc(cid), { cells: patch }, { merge: true });
+    tx.set(summaryRef.collection("chunks").doc(cid), { cells: patch, roadSyncCursor }, { merge: true });
   }
 
   // 「내 도로망」 궤적 — 신규 도로가 있을 때만(중복 렌더·문서 낭비 방지). path 는 평탄 배열.
@@ -443,6 +459,7 @@ export async function applyConquestInTransaction(
       newMeters,
       day: today,
       createdAt: FieldValue.serverTimestamp(),
+      roadSyncCursor,
     });
   }
 
@@ -451,6 +468,7 @@ export async function applyConquestInTransaction(
     {
       totalMeters: FieldValue.increment(newMeters),
       totalCells: FieldValue.increment(newCells),
+      roadSync,
       daily: {
         day: today,
         usedSec: usedSec + (tier === "t1" ? (pedalSec ?? 0) : 0),

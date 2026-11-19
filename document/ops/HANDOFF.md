@@ -10,6 +10,9 @@
 
 ## 진행 중
 
+**11-20 read 릴리스(Codex)**: Chief 커밋·푸시·배포 승인. 시험격리·도로망 증분만.
+파일: 선별 소스·커밋 사본. 다음: 원본 게이트→conquest 함수→Hosting 대조. [결과](20261119-firestore-read-audit/04-release.md).
+
 **11-19 퍼블릭(Codex)**: 4개 공개 등록·43개/9국·기존44 보존·공개read8OK. 공사 무관·도로 데이터 기준.
 [등록·릴리스](20261119-public-route-candidates/release.md). ecf600c7 푸시·Hosting 완료. quick1567/0·오프라인106·운영17에셋 일치. 아라/암스텔 보류.
 
@@ -28,7 +31,7 @@
 
 **11-04 PR #21**: 004e4261 배포·지역/국가 순위 구현. Chief 폰 확인과 위치 쓰기 측정은 [지역 묶음](20261103-global-geo-data/README.md)·[비용 묶음](20261103-cost-squeeze/README.md) 참조.
 
-**11-03~04 비용 절감·지역 데이터(Claude Code) — 배포됨 54bd409d**: L1·L2·L3·L4·L6(G3-1 누적 점수로 근본 해결)·P1·P2·G1. Chief 실주행 3회+관전 PASS(11-04). **L4b 배포됨(6f125e1c)**: 가속 중 연속 쓰기 제한+`rides.netStats`([기록](20261103-cost-squeeze/02-design-l4.md)). 다음: Chief 2인 재주행 → 분당 쓰기(Cloud Monitoring)·`rides.netStats`로 4초 구간 원인 확정. 남은 것: 유럽 RTDB 2차. [cost-squeeze](20261103-cost-squeeze/README.md)·[00-plan](20261103-global-geo-data/00-plan.md).
+**11-03~04 비용**: 54bd409d·6f125e1c 배포. L4b 재주행/4초 원인·유럽 RTDB 2차는 [비용 기록](20261103-cost-squeeze/README.md).
 
 
 

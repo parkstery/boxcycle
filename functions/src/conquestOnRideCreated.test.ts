@@ -6,7 +6,7 @@ import {
   resolveConquestClaimProjection,
 } from "./conquestOnRideCreated.js";
 import { conquestCellIdAt, lngLatToTileXY } from "./geoTiles.js";
-import { FieldValue, type DocumentReference, type Firestore, type Transaction } from "firebase-admin/firestore";
+import { FieldValue, Timestamp, type DocumentReference, type Firestore, type Transaction } from "firebase-admin/firestore";
 import { applyConquestInTransaction } from "./conquestOnRideCreated.js";
 
 test("server projection emits only the newly claimed geometry", () => {
@@ -132,6 +132,50 @@ const baseInput = {
   elapsedSec: 3600,
   distanceMeters: 20000,
 };
+
+test("road sync bootstraps legacy data and stamps changed documents with the same transaction version", async () => {
+  const f = fakeRegionTx({ "conquest/u1": { totalMeters: 5000 } });
+  await applyConquestInTransaction(f.tx, f.db, f.rideRef, {
+    ...baseInput, cells: cellsAt(126.978, 37.5665, 1), path: [126.978, 37.5665, 126.979, 37.567],
+  });
+  const summary = f.writes.find(w => w.path === "conquest/u1")!.data;
+  const sync = summary.roadSync as { schema: number; epoch: string; version: number };
+  assert.equal(sync.schema, 1);
+  assert.equal(sync.version, 1);
+  assert.match(sync.epoch, /^[0-9a-f-]{36}$/);
+  const changed = f.writes.filter(w => /\/(chunks|traces)\//.test(w.path));
+  assert.equal(changed.length, 2);
+  for (const w of changed) assert.equal(w.data.roadSyncCursor, `${sync.epoch}:0000000000000001`);
+});
+
+test("road sync advances on changed roads, stays fixed for an already owned ride", async () => {
+  const updatedAt = Timestamp.fromMillis(1000);
+  const roadSync = { schema: 1, epoch: "existing-epoch", version: 9, updatedAt };
+  const cells = cellsAt(126.978, 37.5665, 1);
+  const changed = fakeRegionTx({ "conquest/u1": { roadSync, updatedAt } });
+  await applyConquestInTransaction(changed.tx, changed.db, changed.rideRef, { ...baseInput, cells });
+  assert.deepEqual(changed.writes.find(w => w.path === "conquest/u1")!.data.roadSync, { ...roadSync, version: 10, updatedAt: FieldValue.serverTimestamp() });
+  const c = cells[0].id.split("_").slice(1).map(Number);
+  const chunkId = `12_${Math.floor(c[0] / 256)}_${Math.floor(c[1] / 256)}`;
+  const unchanged = fakeRegionTx({
+    "conquest/u1": { roadSync, updatedAt },
+    [`conquest/u1/chunks/${chunkId}`]: { cells: { [cells[0].id]: "2026-11-19" } },
+  });
+  await applyConquestInTransaction(unchanged.tx, unchanged.db, unchanged.rideRef, { ...baseInput, cells });
+  assert.deepEqual(unchanged.writes.find(w => w.path === "conquest/u1")!.data.roadSync, { ...roadSync, updatedAt: FieldValue.serverTimestamp() });
+  assert.equal(unchanged.writes.filter(w => /\/(chunks|traces)\//.test(w.path)).length, 0);
+});
+
+test("new server rotates epoch after an older writer changed only the parent timestamp", async () => {
+  const f = fakeRegionTx({ "conquest/u1": {
+    updatedAt: Timestamp.fromMillis(2000),
+    roadSync: { schema: 1, epoch: "before-old-writer", version: 9, updatedAt: Timestamp.fromMillis(1000) },
+  } });
+  await applyConquestInTransaction(f.tx, f.db, f.rideRef, { ...baseInput, cells: [] });
+  const sync = f.writes.find(w => w.path === "conquest/u1")!.data.roadSync as { epoch: string; version: number };
+  assert.notEqual(sync.epoch, "before-old-writer");
+  assert.equal(sync.version, 1);
+});
 
 type ByRegion = { country: string | null; meters: number; cells: number }[];
 

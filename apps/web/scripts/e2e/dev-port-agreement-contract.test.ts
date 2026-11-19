@@ -26,6 +26,8 @@ type WebServer = { url?: string; env?: Record<string, string> };
 async function loadConfigs(env: Record<string, string | undefined>) {
   const saved = { ...process.env };
   Object.assign(process.env, env);
+  // Undefined means absent, not the string "undefined" in Node process.env.
+  for (const [key, value] of Object.entries(env)) if (value === undefined) delete process.env[key];
   // 캐시를 피해 매번 새로 부른다.
   const bust = `?t=${Date.now()}-${Math.random()}`;
   try {
@@ -70,7 +72,7 @@ function viteModeFor(underEmulator: boolean, harness: boolean): string {
 const CASES = [
   { name: "에뮬레이터 · Functions 없음 (동행 e2e — 실제로 깨졌던 조합)", env: { FIRESTORE_EMULATOR_HOST: "127.0.0.1:8080" }, emu: true, harness: false },
   { name: "에뮬레이터 · Functions 포함", env: { FIRESTORE_EMULATOR_HOST: "127.0.0.1:8080", RTW_E2E_WITH_FUNCTIONS: "1" }, emu: true, harness: false },
-  { name: "에뮬레이터 없음 (평상시 e2e)", env: {}, emu: false, harness: false },
+  { name: "독립 demo 하네스 · 전용 포트", env: { FIRESTORE_EMULATOR_HOST: "127.0.0.1:8080", ROUTE_TOKEN_UI_LIVE: "1", GCLOUD_PROJECT: "demo-rtw-route-token", RTW_DEV_PORT: "5010" }, emu: true, harness: true },
 ];
 
 describe("playwright 가 기다리는 포트 = vite 가 띄우는 포트", () => {
@@ -81,6 +83,8 @@ describe("playwright 가 기다리는 포트 = vite 가 띄우는 포트", () =>
         RTW_E2E_WITH_FUNCTIONS: undefined,
         ROUTE_TOKEN_UI_LIVE: undefined,
         RTW_DEV_PORT: undefined,
+        FIREBASE_AUTH_EMULATOR_HOST: "127.0.0.1:9099",
+        FIREBASE_DATABASE_EMULATOR_HOST: "127.0.0.1:9000",
         ...c.env,
       });
 
@@ -107,6 +111,8 @@ describe("playwright 가 기다리는 포트 = vite 가 띄우는 포트", () =>
         RTW_E2E_WITH_FUNCTIONS: undefined,
         ROUTE_TOKEN_UI_LIVE: undefined,
         RTW_DEV_PORT: undefined,
+        FIREBASE_AUTH_EMULATOR_HOST: "127.0.0.1:9099",
+        FIREBASE_DATABASE_EMULATOR_HOST: "127.0.0.1:9000",
         ...c.env,
       });
       assert.ok(
@@ -117,8 +123,20 @@ describe("playwright 가 기다리는 포트 = vite 가 띄우는 포트", () =>
   });
 
   it("M0 — 포트를 실제로 읽고 있다 (둘 다 0 이면 전부 공짜로 통과한다)", async () => {
-    const { pw, viteFactory } = await loadConfigs({ FIRESTORE_EMULATOR_HOST: "127.0.0.1:8080" });
+    const { pw, viteFactory } = await loadConfigs({
+      FIRESTORE_EMULATOR_HOST: "127.0.0.1:8080",
+      FIREBASE_AUTH_EMULATOR_HOST: "127.0.0.1:9099",
+      FIREBASE_DATABASE_EMULATOR_HOST: "127.0.0.1:9000",
+    });
     assert.ok(portOf(pw.webServer?.url) > 0);
     assert.ok(vitePort(viteFactory, "emulator", undefined) > 0);
+  });
+
+  it("에뮬레이터 설정이 없으면 spec import 전에 중단한다", async () => {
+    await assert.rejects(loadConfigs({
+      FIRESTORE_EMULATOR_HOST: undefined,
+      FIREBASE_AUTH_EMULATOR_HOST: undefined,
+      FIREBASE_DATABASE_EMULATOR_HOST: undefined,
+    }), /e2e isolation/);
   });
 });

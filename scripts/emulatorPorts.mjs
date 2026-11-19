@@ -50,6 +50,7 @@ export const HARNESS_PORTS = Object.freeze([
   HARNESS_DEV_PORT,
   EMULATOR_PORTS.firestore,
   EMULATOR_PORTS.auth,
+  EMULATOR_PORTS.database,
 ]);
 
 export const LOOPBACK = "127.0.0.1";

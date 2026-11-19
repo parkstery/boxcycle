@@ -1,3 +1,5 @@
+2026-11-20 [Firestore read 절감 1·2차 릴리스](20261119-firestore-read-audit/04-release.md): 시험격리·도로망 영속캐시/증분. 함수+Hosting 준비, Guest 정리·동행 구조 제외.
+
 2026-11-19 [퍼블릭 코스 추천·새 세션 인계](20261119-public-route-candidates/README.md): 8개국12후보·1차6개. 안내거리/설계목표 구분, 실제 경로·등록 미실행. Codex 문서 기록.
 
 2026-11-19 [QC2·3 지형 추적](20261119-camera-terrain-follow/README.md): Codex 로컬 구현·검증. 최소 지상고·시야·anchor 보정, quick1156/0·실제WebGL800×360 확인. 건물 보류·Hosting4c1f2ef0 반영.

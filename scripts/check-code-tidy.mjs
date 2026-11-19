@@ -45,7 +45,7 @@ function fingerprint() {
 }
 
 /** 패키지의 bin 스크립트를 셸 없이 node 로 직접 돌린다(Windows 의 npx.cmd 는 셸이 필요해 인자가 이스케이프되지 않는다). */
-function runBin(pkg, binName, cmdArgs, cwd) {
+function runBin(pkg, binName, cmdArgs, cwd, env = process.env) {
   // exports 가 ./package.json 을 막는 패키지가 있어 resolve 대신 node_modules 를 위로 찾는다
   const pkgJsonPath = [WEB, ROOT]
     .map((dir) => path.join(dir, "node_modules", pkg, "package.json"))
@@ -55,6 +55,7 @@ function runBin(pkg, binName, cmdArgs, cwd) {
   const rel = typeof bin === "string" ? bin : bin[binName];
   return execFileSync(process.execPath, [path.join(path.dirname(pkgJsonPath), rel), ...cmdArgs], {
     cwd,
+    env,
     encoding: "utf8",
     maxBuffer: 64 * 1024 * 1024,
     stdio: ["ignore", "pipe", "pipe"],
@@ -62,7 +63,16 @@ function runBin(pkg, binName, cmdArgs, cwd) {
 }
 
 function measureKnip() {
-  const out = runBin("knip", "knip", ["--config", KNIP_CONFIG, "--reporter", "json", "--no-exit-code", "--no-progress"], WEB);
+  // Knip evaluates Playwright config while analysing its entry points. Supply
+  // loopback emulator destinations only to this static-analysis child; never
+  // bypass the config guard or alter the measured files / allowed baseline.
+  const out = runBin("knip", "knip", ["--config", KNIP_CONFIG, "--reporter", "json", "--no-exit-code", "--no-progress"], WEB, {
+    ...process.env,
+    FIREBASE_AUTH_EMULATOR_HOST: "127.0.0.1:9099",
+    FIRESTORE_EMULATOR_HOST: "127.0.0.1:8080",
+    FIREBASE_DATABASE_EMULATOR_HOST: "127.0.0.1:9000",
+    FIREBASE_FUNCTIONS_EMULATOR_HOST: "127.0.0.1:5001",
+  });
   const report = JSON.parse(out.slice(out.indexOf("{")));
   const counts = Object.fromEntries(KNIP_KINDS.map((k) => [k, 0]));
   for (const issue of report.issues) {

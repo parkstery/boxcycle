@@ -43,28 +43,22 @@ export function clearAppLocalStorage(): string[] {
 }
 
 export async function clearFirebaseAuthIndexedDb(): Promise<void> {
-  if (typeof indexedDB === "undefined" || typeof indexedDB.databases !== "function") return;
+  if (typeof indexedDB === "undefined") return;
+  // The known road cache must be erased even when database enumeration is not
+  // supported (or fails). No open cache connection is held between operations.
+  const names = new Set(["spinatlas-conquest-cache-v1"]);
   try {
-    const dbs = await indexedDB.databases();
+    const dbs = typeof indexedDB.databases === "function" ? await indexedDB.databases() : [];
+    for (const d of dbs) if (d.name && /firebase|firebaseLocalStorage|firebase-heartbeat/i.test(d.name)) names.add(d.name);
+  } catch { /* the known app cache is still cleared below */ }
+  try {
     await Promise.all(
-      dbs
-        .filter((d) => {
-          const n = d.name ?? "";
-          return /firebase|firebaseLocalStorage|firebase-heartbeat/i.test(n);
-        })
-        .map(
-          (d) =>
-            new Promise<void>((resolve) => {
-              if (!d.name) {
-                resolve();
-                return;
-              }
-              const req = indexedDB.deleteDatabase(d.name);
-              req.onsuccess = () => resolve();
-              req.onerror = () => resolve();
-              req.onblocked = () => resolve();
-            }),
-        ),
+      [...names].map(name => new Promise<void>((resolve) => {
+        const req = indexedDB.deleteDatabase(name);
+        req.onsuccess = () => resolve();
+        req.onerror = () => resolve();
+        req.onblocked = () => resolve();
+      })),
     );
   } catch {
     /* ignore */

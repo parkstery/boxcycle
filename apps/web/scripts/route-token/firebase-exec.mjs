@@ -29,7 +29,7 @@ export function runFirebaseEmulatorsExec({
     "--config",
     configPath,
     "--only",
-    "auth,firestore,functions",
+    "auth,firestore,database,functions",
     "--project",
     "demo-rtw-route-token",
     innerCommand,
