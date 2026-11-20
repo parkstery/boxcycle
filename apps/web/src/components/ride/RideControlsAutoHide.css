@@ -2,15 +2,12 @@
  * Chief 11-02 D3: 주행 중 5초 무입력이면 오른쪽 2열 4줄 묶음이 오른쪽으로 빠지며 사라진다(v4 — 왼쪽 아래는 그대로).
  * 숨은 동안은 visibility hidden 이라 눌리지도 포커스되지도 않는다. 순위 목록은 원래 오른쪽 가장자리라 움직이지 않는다.
  */
-.map-hud__rail {
-  transition: opacity .3s ease, transform .3s ease, visibility 0s linear 0s;
-}
+/* 지도 탭으로 다시 열 때는 버튼이 즉시 원래 자리에서 눌려야 한다. */
 body[data-ride-controls="hidden"] .map-hud__rail {
   opacity: 0; transform: translateX(calc(100% + 16px)); visibility: hidden;
   transition: opacity .3s ease, transform .3s ease, visibility 0s linear .3s;
 }
 @media (prefers-reduced-motion: reduce) {
-  .map-hud__rail,
   body[data-ride-controls="hidden"] .map-hud__rail { transition: none; }
 }
 

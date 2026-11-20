@@ -63,7 +63,7 @@ export function addRouteLine(map: mapboxgl.Map, beforeId: string | undefined): v
       type: "line",
       source: "route",
       layout: { "line-cap": "round", "line-join": "round" },
-      paint: { "line-color": ROUTE_LINE_COLOR, "line-width": ROUTE_LINE_WIDTH },
+      paint: { "line-color": ROUTE_LINE_COLOR, "line-width": ROUTE_LINE_WIDTH, "line-emissive-strength": 1 },
     },
     beforeId,
   );

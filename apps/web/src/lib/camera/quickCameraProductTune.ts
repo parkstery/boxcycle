@@ -8,10 +8,10 @@
 export type QuickCameraSlot = 1 | 2 | 3 | 4 | 5 | 6;
 
 /**
- * 지면 가까이 눕는 QC2~6 은 도로·지명을 읽는 시점이라 Outdoors 만 쓴다.
+ * 지면 가까이 눕는 QC2~6 에서는 Outdoors와 Standard 벡터 지도를 쓴다.
  * QC1 은 전체 경로/상공 보기이므로 기존 Satellite 진입·사용자 토글 정책을 유지한다.
  */
-export function isQuickCameraOutdoorsOnly(
+export function isQuickCameraVectorOnly(
   slot: QuickCameraSlot | null | undefined,
 ): boolean {
   return slot != null && slot >= 2;

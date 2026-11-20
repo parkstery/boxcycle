@@ -157,7 +157,7 @@ export type MapHudProps = {
     onEnable3D?: (enabled: boolean) => void;
   } | null;
   /**
-   * Outdoors/Satellite 토글 + 줌 + − — 카메라 유무와 무관하게 우상단 한 줄
+   * 지도 스타일 + 줌 + − — 카메라 유무와 무관하게 같은 조작 묶음
    * (QC 와 계정 사이 · idle 이면 계정 바로 왼쪽). 지시66: 확대가 축소보다 앞.
    */
   mapControls?: {
@@ -706,7 +706,12 @@ export function MapHud(props: MapHudProps) {
               >
                 <svg
                   className="hud-ride-map-controls__style-icon"
-                  data-map-style={mapControls.styleLabel === "위성" ? "satellite" : "outdoors"}
+                  data-map-style={
+                    mapControls.styleLabel === "위성" ? "satellite"
+                      : mapControls.styleLabel === "Standard 낮" ? "standard-day"
+                      : mapControls.styleLabel === "Standard 해질녘" ? "standard-dusk"
+                      : "outdoors"
+                  }
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -721,6 +726,13 @@ export function MapHud(props: MapHudProps) {
                       <path d="m13 7-4-4-6 6 4 4m10-2 4 4-6 6-4-4M8 12l4 4 6-6-4-4Z" />
                       <path d="m16 8 3-3M9 21a6 6 0 0 0-6-6m0 6h.01" />
                     </>
+                  ) : mapControls.styleLabel === "Standard 낮" ? (
+                    <>
+                      <circle cx="12" cy="12" r="4" />
+                      <path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19m0-14-1.5 1.5m-11 11L5 19" />
+                    </>
+                  ) : mapControls.styleLabel === "Standard 해질녘" ? (
+                    <path d="M3 17h18M6 21h12m-11-4a5 5 0 0 1 10 0M12 5v2M4 10l1.5 1.5M20 10l-1.5 1.5" />
                   ) : (
                     <>
                       <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z" />

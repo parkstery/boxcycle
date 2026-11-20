@@ -478,9 +478,12 @@ export function apply3DState(
   enabled: boolean,
   buildingLayerId: string,
   terrainSourceId: string,
-  options?: { flatFallback?: boolean; preserveCamera?: boolean },
+  options?: { flatFallback?: boolean; preserveCamera?: boolean; standardBasemap?: boolean },
 ) {
   try {
+  if (options?.standardBasemap) {
+    map.setConfigProperty("basemap", "show3dObjects", enabled && !options.flatFallback);
+  }
   if (!enabled) {
     map.setTerrain(null);
     if (map.getLayer(buildingLayerId)) map.removeLayer(buildingLayerId);
@@ -504,7 +507,7 @@ export function apply3DState(
     if (map.getLayer(buildingLayerId)) map.removeLayer(buildingLayerId);
     return;
   }
-  if (!map.getLayer(buildingLayerId)) {
+  if (!options?.standardBasemap && !map.getLayer(buildingLayerId)) {
     let symbolLayer: { id: string } | undefined;
     try {
       const layers = map.getStyle()?.layers ?? [];

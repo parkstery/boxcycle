@@ -188,6 +188,7 @@ import { QuickIntervalStatus } from "./components/ride/QuickIntervalStatus";
 import {
   DEFAULT_MAP_STYLE,
   MAP_STYLE_SATELLITE,
+  mapStyleRenderSettings,
 } from "./lib/map/rtwMapConfig";
 import { isRideInputReady } from "./lib/sensor/cadenceSensorUi";
 import { CadenceSensorSheet } from "./components/sensor";
@@ -655,7 +656,7 @@ export default function App() {
           follow: followModeSnapshotRef.current,
           zoom: mapZoomSnapshotRef.current,
         };
-        setEnable3D(false);
+        setEnable3D(true);
         setMapZoom(RIDE_START_ZOOM);
         /*
          * 2026-11-03 Chief: 주행 시작 기본 카메라 = 퀵 카메라 2번(종전 10-06 의 1번 500m 위성 대체).
@@ -691,6 +692,7 @@ export default function App() {
         camera1StyleBeforeEnterRef.current = null;
         camera1UserToggledStyleRef.current = false;
       }
+      setMapStyle((style) => mapStyleRenderSettings(style).lightPreset ? DEFAULT_MAP_STYLE : style);
       setActiveQuickCamera(null);
     }
   }, [rideStatus, arrivalSceneVisible, camera1StyleBeforeEnterRef, camera1UserToggledStyleRef, followModeSnapshotRef, mapZoomSnapshotRef, rideCameraRestoreRef, setActiveQuickCamera, setEnable3D, setFollowMode, setLockBaseHeading, setMapStyle, setMapZoom, setRideCameraDistanceM, setRideCameraSpanFloorMode, setRideFollowCameraNonce, setRideJoinBurstNonce]);
@@ -2669,8 +2671,8 @@ export default function App() {
         return;
       }
       setLockBaseHeading(n === 6 ? 0 : null);
-      // 지면 가까이 눕는 QC2~6 은 도로 판독이 우선 — 위성으로 남거나 바뀌지 않게 한다.
-      setMapStyle(DEFAULT_MAP_STYLE);
+      // QC2~6에서는 벡터 지도를 사용하고 카메라 간 전환 시 비교 스타일을 유지한다.
+      setMapStyle((style) => style === MAP_STYLE_SATELLITE ? DEFAULT_MAP_STYLE : style);
       const modeByN: Record<2 | 3 | 4 | 5 | 6, FollowMode> = {
         2: "forward",
         3: "backward",
@@ -3102,7 +3104,7 @@ export default function App() {
           <Suspense fallback={null}>
             <DebugMapStage
               accessToken={MAPBOX_TOKEN || undefined}
-              mapStyle={mapStyle}
+              mapStyle={mapStyleRenderSettings(mapStyle).url}
               mapZoom={mapZoom}
               onMapZoom={setMapZoom}
               onMapViewport={onMapViewport}

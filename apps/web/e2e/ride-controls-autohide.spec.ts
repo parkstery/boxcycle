@@ -45,6 +45,8 @@ for (const size of [{ width: 800, height: 360 }, { width: 699, height: 273 }]) {
 
     await page.mouse.click(size.width / 2, size.height / 2);
     await expect(rail).toBeVisible();
+    const style = page.getByRole('button', { name: /^맵 스타일/ });
+    await expect(style).toBeInViewport({ ratio: 1 });
     await expect(pause).toBeVisible();
     await pause.click();
     await expect(page.getByRole('button', { name: '재개', exact: true })).toBeVisible();

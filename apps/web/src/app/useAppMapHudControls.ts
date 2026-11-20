@@ -1,8 +1,8 @@
 import type { useAppMapCameraState } from "./useAppMapCameraState";
 import { MAP_GLOBE_MIN_ZOOM, MAP_ZOOM_SLIDER_MAX } from "../lib/map/mapGlobeView";
 import { nextRideUserZoomInDistanceM, nextRideUserZoomOutDistanceM } from "../lib/camera/rideUserZoom";
-import { DEFAULT_MAP_STYLE, mapStyleHudShortLabel, nextOutdoorsSatelliteMapStyle } from "../lib/map/rtwMapConfig";
-import { isQuickCameraOutdoorsOnly } from "../lib/camera/quickCameraProductTune";
+import { mapStyleHudShortLabel, nextOutdoorsSatelliteMapStyle, nextRideComparisonMapStyle } from "../lib/map/rtwMapConfig";
+import { isQuickCameraVectorOnly } from "../lib/camera/quickCameraProductTune";
 
 type Cam = Pick<
   ReturnType<typeof useAppMapCameraState>,
@@ -38,7 +38,9 @@ export function useAppMapHudControls(
   onRideCameraDistance: (distanceM: number) => void,
 ): MapHudControls {
   const { mapStyle, setMapStyle, mapZoom, rideCameraDistanceM, followMode, activeQuickCamera } = cam;
-  const outdoorsOnly = isQuickCameraOutdoorsOnly(activeQuickCamera);
+  const nextStyle = isQuickCameraVectorOnly(activeQuickCamera)
+    ? nextRideComparisonMapStyle(mapStyle)
+    : nextOutdoorsSatelliteMapStyle(mapStyle);
   const rideActive = rideStatus === "running" || rideStatus === "paused";
   const mapZoomStep =
     !rideActive || followMode === "free" || followMode === "topDown" || followMode === "north" || followMode === "keep";
@@ -48,17 +50,10 @@ export function useAppMapHudControls(
   };
   return {
     styleLabel: mapStyleHudShortLabel(mapStyle),
-    styleAriaLabel: outdoorsOnly
-      ? "맵 스타일 야외, 카메라 2~6에서는 야외 고정"
-      : `맵 스타일 ${mapStyleHudShortLabel(mapStyle)}, 클릭 시 ${mapStyleHudShortLabel(nextOutdoorsSatelliteMapStyle(mapStyle))}`,
-    styleToggleDisabled: outdoorsOnly,
+    styleAriaLabel: `맵 스타일 ${mapStyleHudShortLabel(mapStyle)}, 클릭 시 ${mapStyleHudShortLabel(nextStyle)}`,
     onToggleStyle: () => {
-      if (outdoorsOnly) {
-        setMapStyle(DEFAULT_MAP_STYLE);
-        return;
-      }
       if (activeQuickCamera === 1) cam.camera1UserToggledStyleRef.current = true;
-      setMapStyle(nextOutdoorsSatelliteMapStyle(mapStyle));
+      setMapStyle(nextStyle);
     },
     onZoomOut: () => {
       if (mapZoomStep) stepMapZoom(-1);

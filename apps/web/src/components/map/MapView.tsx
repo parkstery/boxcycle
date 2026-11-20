@@ -45,6 +45,7 @@ import {
 } from "../../lib/map/mapPickRouteDock";
 import {
   installRiderMapPixelRatioCap,
+  mapStyleRenderSettings,
   RTW_TRACE_ACCUMULATED_HALO_PAINT,
   RTW_TRACE_ACCUMULATED_PAINT,
   RTW_TRACE_LIVE_GLOW_PAINT,
@@ -651,8 +652,8 @@ export function MapView({
   const riderTurnRef = useRef(new RiderTurnSmoother());
   /** 동행 feature 에 속도가 없을 때, 직전 경로 거리. */
   const peerTurnDistPrevRef = useRef(new Map<string, number>());
-  const initialMapStyleRef = useRef(mapStyle);
   const currentStyleRef = useRef(mapStyle);
+  const loadedMapStyleUrlRef = useRef<string | null>(null);
   const onSelectPointRef = useRef(onSelectPoint);
   const routeWaypointsRef = useRef(routeWaypoints);
   const startLngLatRef = useRef(startLngLat);
@@ -1018,7 +1019,7 @@ export function MapView({
     installRiderMapPixelRatioCap();
     const map = new mapboxgl.Map({
       container: el,
-      style: initialMapStyleRef.current,
+      style: mapStyleRenderSettings(currentStyleRef.current).url,
       center: bootCenter,
       zoom: bootZoom,
       minZoom: MAP_GLOBE_MIN_ZOOM,
@@ -1192,8 +1193,14 @@ export function MapView({
     map.on("zoomend", onZoomEndCount);
     map.on("idle", onIdleCount);
 
+    let loadedStyleOnce = false;
     map.on("style.load", () => {
       try {
+      const { url, lightPreset } = mapStyleRenderSettings(currentStyleRef.current);
+      loadedMapStyleUrlRef.current = url;
+      if (lightPreset) map.setConfigProperty("basemap", "lightPreset", lightPreset);
+      const preserveCamera = loadedStyleOnce;
+      loadedStyleOnce = true;
       forgetActivityWorldLayerOrder(map);
       const latestRoute = routeGeometryRef.current;
       if (latestRoute?.coordinates?.length) {
@@ -1210,7 +1217,11 @@ export function MapView({
       if (shouldMoveActivityWorldLayersToTop()) {
         moveActivityWorldLayersToTop(map);
       }
-      apply3DState(map, enable3DRef.current, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID, { flatFallback: terrainFallbackRef.current });
+      apply3DState(map, enable3DRef.current, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID, {
+        flatFallback: terrainFallbackRef.current,
+        preserveCamera,
+        standardBasemap: lightPreset !== null,
+      });
       // mapcut 측정 스위치 — 쿼리 있을 때만. apply3DState 가 지형·건물을 되살린 뒤라 순서가 중요.
       try {
         applyMapCutToMap(map);
@@ -1823,6 +1834,7 @@ export function MapView({
           /* noop */
         }
         mapRef.current = null;
+        loadedMapStyleUrlRef.current = null;
       }
       setMapLoaded(false);
     };
@@ -2478,8 +2490,20 @@ export function MapView({
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
     if (currentStyleRef.current === mapStyle) return;
+    const previous = mapStyleRenderSettings(currentStyleRef.current);
+    const next = mapStyleRenderSettings(mapStyle);
     currentStyleRef.current = mapStyle;
-    map.setStyle(mapStyle);
+    if (next.url !== previous.url) {
+      loadedMapStyleUrlRef.current = null;
+      if (previous.lightPreset || next.lightPreset) {
+        // Rebuild app layers through style.load when switching to/from the imported basemap.
+        map.setStyle(next.url, { diff: false, localFontFamily: null, localIdeographFontFamily: "sans-serif" });
+      } else {
+        map.setStyle(next.url);
+      }
+    } else if (next.lightPreset && loadedMapStyleUrlRef.current === next.url) {
+      map.setConfigProperty("basemap", "lightPreset", next.lightPreset);
+    }
   }, [mapStyle, mapLoaded]);
 
 
@@ -3316,9 +3340,12 @@ export function MapView({
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded) return;
+    if (!map || !mapLoaded || !loadedMapStyleUrlRef.current) return;
     try {
-      apply3DState(map, enable3D, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID);
+      apply3DState(map, enable3D, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID, {
+        flatFallback: terrainFallbackRef.current,
+        standardBasemap: mapStyleRenderSettings(currentStyleRef.current).lightPreset !== null,
+      });
     } catch (err) {
       console.warn("[MapView] apply3DState failed", err);
     }
@@ -3346,8 +3373,14 @@ export function MapView({
     let disposed = false;
     const apply = (flat: boolean) => {
       terrainFallbackRef.current = flat;
-      apply3DState(map, true, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID, { flatFallback: flat, preserveCamera: true });
-      applyMapCutToMap(map);
+      if (loadedMapStyleUrlRef.current) {
+        apply3DState(map, true, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID, {
+          flatFallback: flat,
+          preserveCamera: true,
+          standardBasemap: mapStyleRenderSettings(currentStyleRef.current).lightPreset !== null,
+        });
+        applyMapCutToMap(map);
+      }
       map.getContainer().dataset.terrainView = flat ? "auto-2d" : "3d";
       noteRenderingDiagnostic("terrain-view", flat ? "auto-2d" : "3d");
       onTerrainFallbackChangeRef.current?.(flat);

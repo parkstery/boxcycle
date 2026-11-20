@@ -126,6 +126,8 @@ export const RTW_TRACE_ACCUMULATED_HALO_PAINT: LinePaint = {
  */
 const MAP_STYLE_OUTDOORS = "mapbox://styles/mapbox/outdoors-v12";
 export const MAP_STYLE_SATELLITE = "mapbox://styles/mapbox/satellite-streets-v12";
+const MAP_STYLE_STANDARD = "mapbox://styles/mapbox/standard";
+const MAP_STYLE_STANDARD_DUSK = "standard-dusk";
 
 /** 제거된 Spinatlas Dark(navigation-night·dark-v11) — 복원·저장값 방어용 */
 const LEGACY_MAP_STYLE_DARK_URLS = new Set([
@@ -153,8 +155,26 @@ export function nextOutdoorsSatelliteMapStyle(current: string): string {
   return MAP_STYLE_SATELLITE;
 }
 
-/** HUD 칩용 짧은 라벨(2~4자). */
+export function nextRideComparisonMapStyle(current: string): string {
+  if (current === MAP_STYLE_OUTDOORS) return MAP_STYLE_STANDARD;
+  if (current === MAP_STYLE_STANDARD) return MAP_STYLE_STANDARD_DUSK;
+  return MAP_STYLE_OUTDOORS;
+}
+
+export function mapStyleRenderSettings(style: string): {
+  url: string;
+  lightPreset: "day" | "dusk" | null;
+} {
+  if (style === MAP_STYLE_STANDARD || style === MAP_STYLE_STANDARD_DUSK) {
+    return { url: MAP_STYLE_STANDARD, lightPreset: style === MAP_STYLE_STANDARD_DUSK ? "dusk" : "day" };
+  }
+  return { url: style, lightPreset: null };
+}
+
+/** HUD 지도 스타일 라벨. */
 export function mapStyleHudShortLabel(style: string): string {
+  if (style === MAP_STYLE_STANDARD) return "Standard 낮";
+  if (style === MAP_STYLE_STANDARD_DUSK) return "Standard 해질녘";
   const normalized = normalizeMapStyle(style);
   if (normalized === MAP_STYLE_SATELLITE) return "위성";
   if (normalized === MAP_STYLE_OUTDOORS) return "야외";

@@ -11,7 +11,8 @@ import {
   resolveCamera1ExitMapStyle,
   type Camera1Mode,
 } from "../../src/lib/camera/camera1Mode.ts";
-import { isQuickCameraOutdoorsOnly } from "../../src/lib/camera/quickCameraProductTune.ts";
+import { isQuickCameraVectorOnly } from "../../src/lib/camera/quickCameraProductTune.ts";
+import { DEFAULT_MAP_STYLE, mapStyleRenderSettings, nextRideComparisonMapStyle } from "../../src/lib/map/rtwMapConfig.ts";
 import { RIDE_CAMERA_DISTANCE_MAX_M, RIDE_CAMERA_DISTANCE_MIN_M } from "../../src/lib/map/mapGlobeView.ts";
 
 /**
@@ -178,17 +179,26 @@ describe("맵 스타일 진입/이탈 (지시11)", () => {
   });
 });
 
-describe("QC2~6 맵 스타일 잠금 (2026-10-26 Chief)", () => {
-  it("2~6은 Outdoors 전용이다", () => {
+describe("QC2~6 주행 지도 비교", () => {
+  it("2~6에서 벡터 지도 비교를 사용한다", () => {
     for (const slot of [2, 3, 4, 5, 6] as const) {
-      assert.equal(isQuickCameraOutdoorsOnly(slot), true, `QC${slot}`);
+      assert.equal(isQuickCameraVectorOnly(slot), true, `QC${slot}`);
     }
   });
 
   it("QC1·미선택은 위성/야외 기존 정책을 유지한다", () => {
-    assert.equal(isQuickCameraOutdoorsOnly(1), false);
-    assert.equal(isQuickCameraOutdoorsOnly(null), false);
-    assert.equal(isQuickCameraOutdoorsOnly(undefined), false);
+    assert.equal(isQuickCameraVectorOnly(1), false);
+    assert.equal(isQuickCameraVectorOnly(null), false);
+    assert.equal(isQuickCameraVectorOnly(undefined), false);
+  });
+
+  it("야외, Standard 낮, Standard 해질녘 순서로 전환한다", () => {
+    const day = nextRideComparisonMapStyle(DEFAULT_MAP_STYLE);
+    const dusk = nextRideComparisonMapStyle(day);
+    assert.equal(mapStyleRenderSettings(day).lightPreset, "day");
+    assert.equal(mapStyleRenderSettings(dusk).lightPreset, "dusk");
+    assert.equal(mapStyleRenderSettings(day).url, mapStyleRenderSettings(dusk).url);
+    assert.equal(nextRideComparisonMapStyle(dusk), DEFAULT_MAP_STYLE);
   });
 });
 
