@@ -4,11 +4,14 @@
 | 항목 | 값 |
 |---|---|
 | 담당 | **Codex** — read 후속 배포·감사 주기 대기 |
-| 갱신 | 11-20 Guest5a5b3170 단일 함수 운영 확인. |
+| 갱신 | 11-20 간편 인터벌 배포 및 계정 인계. |
 | 브랜치 | `main2` · origin 일치 |
-| 마지막 배포 | 11-20 Guest5a5b3170. Hosting·conquest112131aa. |
+| 마지막 배포 | 11-20 인터벌 `9ff9b78f`. |
 
 ## 진행 중
+
+**11-20 인터벌(Codex)**: `9ff9b78f` 배포. [계정 인계](20261029-quick-interval-ride/README.md).
+다음: 실폰·센서 확인.
 
 **11-20 read 후속(Codex)**: Guest 제외계정 읽기 절감5a5b3170 배포·web1584/0·서버307/0。
 고아 감사 주기 답변 대기·전수스캔 유지。다음: 주기 결정→후보 큐·감사 분리. [기록](20261119-firestore-read-audit/05-guest-and-measurement.md).
