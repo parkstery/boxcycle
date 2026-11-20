@@ -250,6 +250,16 @@ export function lineStringLengthMeters(geometry: LineStringGeometry): number {
   return cum.length ? cum[cum.length - 1] : 0;
 }
 
+/** Keep the original vertices and end at the same interpolated point used by the ride marker. */
+export function routePrefixAtDistance(geometry: LineStringGeometry, distanceMeters: number): LineStringGeometry | null {
+  const { coords, cum } = routeMeterIndex(geometry);
+  if (coords.length < 2 || !Number.isFinite(distanceMeters) || distanceMeters <= 0 || cum[cum.length - 1] <= 0) return null;
+  if (distanceMeters >= cum[cum.length - 1]) return geometry;
+  const endIndex = lowerBoundCum(cum, distanceMeters);
+  const end = cum[endIndex] === distanceMeters ? coords[endIndex] : getPointOnRouteByDistance(geometry, distanceMeters);
+  return end ? { type: "LineString", coordinates: [...coords.slice(0, endIndex), end] } : null;
+}
+
 /** 경로상 투영점까지의 누적 거리(m). */
 export function distanceOnRouteByProjectedPoint(
   geometry: LineStringGeometry,

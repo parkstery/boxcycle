@@ -1,12 +1,13 @@
 import { isDiscardableRideRecord } from "./rideRecordPolicy";
 import type { StoredRideSession } from "./rideSessionsStorage";
+import type { IntervalWorkoutRecord } from "./intervalWorkout";
 
 /**
  * 통계 기간 축. `day` 는 2026-09-15 에 합류했다 — 종전에는 「일일 주행」이 탭 밖에서
  * 별도 블록으로 그려져 같은 타일 세트가 두 벌 쌓였다. 일일도 기간의 하나이므로
  * 같은 축에 넣어 통계 블록을 하나로 만든다.
  */
-export type RideStatsPeriod = "day" | "week" | "month" | "year";
+export type RideStatsPeriod = "day" | "week" | "month" | "quarter" | "year";
 
 export type AggregatedRideStats = {
   rides: number;
@@ -93,6 +94,16 @@ export function getRideStatsPeriodRange(period: RideStatsPeriod, now: Date = new
       labelKo: `${now.getFullYear()}년 ${now.getMonth() + 1}월 (${formatKoShort(start)} ~ ${formatKoShort(lastInclusive)})`,
     };
   }
+  if (period === "quarter") {
+    const quarterMonth = Math.floor(now.getMonth() / 3) * 3;
+    const start = new Date(now.getFullYear(), quarterMonth, 1);
+    const endExclusive = new Date(now.getFullYear(), quarterMonth + 3, 1);
+    return {
+      start,
+      endExclusive,
+      labelKo: `${now.getFullYear()}년 ${quarterMonth / 3 + 1}분기 (${quarterMonth + 1}~${quarterMonth + 3}월)`,
+    };
+  }
   const start = startOfYearLocal(now);
   const endExclusive = endOfYearExclusiveLocal(now);
   return {
@@ -100,6 +111,18 @@ export function getRideStatsPeriodRange(period: RideStatsPeriod, now: Date = new
     endExclusive,
     labelKo: `${now.getFullYear()}년 1월 1일 ~ 12월 31일`,
   };
+}
+
+/** 기간 시작점을 먼저 구해 월말·윤년의 날짜 넘침 없이 이전/다음 기간으로 이동한다. */
+export function shiftRideStatsReference(period: RideStatsPeriod, reference: Date, offset: number): Date {
+  const result = new Date(getRideStatsPeriodRange(period, reference).start);
+  const steps = Number.isFinite(offset) ? Math.trunc(offset) : 0;
+  if (period === "day") result.setDate(result.getDate() + steps);
+  else if (period === "week") result.setDate(result.getDate() + 7 * steps);
+  else if (period === "month") result.setMonth(result.getMonth() + steps);
+  else if (period === "quarter") result.setMonth(result.getMonth() + 3 * steps);
+  else result.setFullYear(result.getFullYear() + steps);
+  return result;
 }
 
 export function aggregateRideStatsInRange(
@@ -152,7 +175,7 @@ export function aggregateRideStatsForPeriod(
 
 /** 통계·마지막 주행 — 폐기 기준과 동일하게 유효 Ride 만 남긴다 */
 export function filterValidRideSessions(sessions: StoredRideSession[]): StoredRideSession[] {
-  return sessions.filter((s) => !isDiscardableRideRecord(s.distanceMeters, s.elapsedSec));
+  return sessions.filter((s) => !isDiscardableRideRecord(s.distanceMeters, s.elapsedSec, s.intervalWorkouts));
 }
 
 export function getLocalDayRange(now: Date = new Date()): PeriodRange {
@@ -188,4 +211,71 @@ export function aggregateRideStatsForLocalDay(
   const range = getLocalDayRange(now);
   const stats = aggregateRideStatsInRange(sessions, range.start, range.endExclusive);
   return { stats, range };
+}
+
+export type IntervalWorkoutStats = {
+  started: number;
+  completed: number;
+  elapsedSec: number;
+  activeSec: number;
+  activeUnknownCount: number;
+  caloriesEstimate: number;
+  caloriesUnknownCount: number;
+  signalGapCount: number;
+  activityDays: number;
+  unclassifiedRideCount: number;
+  intensitySeconds: Record<IntervalWorkoutRecord["intensity"], number>;
+  entries: { key: string; endedAt: string; workout: IntervalWorkoutRecord }[];
+};
+
+/** 원본 운동 기록만 집계한다. 지역별 거리 비율로 수행 시간을 나누지 않으며 주행 종료일에 귀속한다. */
+export function aggregateIntervalWorkoutStatsInRange(
+  sessions: readonly StoredRideSession[],
+  start: Date,
+  endExclusive: Date,
+): IntervalWorkoutStats {
+  const stats: IntervalWorkoutStats = {
+    started: 0, completed: 0, elapsedSec: 0, activeSec: 0, activeUnknownCount: 0,
+    caloriesEstimate: 0, caloriesUnknownCount: 0, signalGapCount: 0, activityDays: 0,
+    unclassifiedRideCount: 0, intensitySeconds: { light: 0, moderate: 0, vigorous: 0 }, entries: [],
+  };
+  const seenRides = new Set<string>();
+  const seenWorkouts = new Set<string>();
+  const days = new Set<string>();
+  const t0 = start.getTime();
+  const t1 = endExclusive.getTime();
+  const safeSeconds = (value: number) => Number.isFinite(value) ? Math.max(0, value) : 0;
+  for (const session of sessions) {
+    const ended = new Date(session.endedAt);
+    const time = ended.getTime();
+    if (!Number.isFinite(time) || time < t0 || time >= t1) continue;
+    const rideKey = session.serverRideId ?? session.id;
+    if (!Array.isArray(session.intervalWorkouts)) {
+      if (!seenRides.has(rideKey)) stats.unclassifiedRideCount += 1;
+      seenRides.add(rideKey);
+      continue;
+    }
+    seenRides.add(rideKey);
+    for (const workout of session.intervalWorkouts) {
+      const key = `${rideKey}:${workout.id}`;
+      if (seenWorkouts.has(key) || safeSeconds(workout.elapsedSec) === 0) continue;
+      seenWorkouts.add(key);
+      stats.started += 1;
+      if (workout.status === "completed") stats.completed += 1;
+      const elapsedSec = safeSeconds(workout.elapsedSec);
+      stats.elapsedSec += elapsedSec;
+      stats.intensitySeconds[workout.intensity] += elapsedSec;
+      if (workout.activeSec == null) stats.activeUnknownCount += 1;
+      else stats.activeSec += Math.min(elapsedSec, safeSeconds(workout.activeSec));
+      if (workout.caloriesEstimate == null) stats.caloriesUnknownCount += 1;
+      else stats.caloriesEstimate += safeSeconds(workout.caloriesEstimate);
+      if (workout.signalGap) stats.signalGapCount += 1;
+      days.add(`${ended.getFullYear()}-${ended.getMonth()}-${ended.getDate()}`);
+      stats.entries.push({ key, endedAt: session.endedAt, workout });
+    }
+  }
+  stats.activityDays = days.size;
+  stats.entries.sort((a, b) => new Date(b.endedAt).getTime() - new Date(a.endedAt).getTime()
+    || b.workout.startElapsedSec - a.workout.startElapsedSec);
+  return stats;
 }

@@ -10,6 +10,7 @@ import {
 import { useDialogFocus } from "../ui/useDialogFocus";
 import { useEscapeKeyClose } from "../ui/useEscapeKeyClose";
 import { SettingsCloseIcon } from "../ui/SettingsCloseIcon";
+import { INTERVAL_INTENSITIES, type WorkoutIntensity } from "../../lib/ride/intervalWorkout";
 import "./RideIntervalSettingsSheet.css";
 
 type Props = {
@@ -20,6 +21,8 @@ type Props = {
   onClose: () => void;
   enabled?: boolean;
   onEnabled?: (enabled: boolean) => void;
+  intensity?: WorkoutIntensity;
+  onIntensity?: (intensity: WorkoutIntensity) => void;
   /** 「간편 인터벌」 — 고른 값을 적용한 뒤 그 총 시간에 맞는 경로를 자동 생성(10-30 Chief: 메뉴에서 이 창 하단으로 이동) */
   onQuickIntervalRide?: (intervalTotalSec: number) => void;
   /** 값이 있으면 「간편 인터벌」을 끄고 이 문구를 title 에 보여 준다(주행 중·Route Token 부족·기록 로딩) */
@@ -100,9 +103,10 @@ function sameConfig(a: RideIntervalConfig, b: RideIntervalConfig): boolean {
 }
 
 /** 별도 편집 초안: 적용 전에는 진행 중인 운동을 바꾸지 않는다. */
-function IntervalEditor({ config, restartOnApply, onApply, onClose, enabled, onEnabled, onQuickIntervalRide, quickIntervalDisabledReason }: Omit<Props, "open">) {
+function IntervalEditor({ config, restartOnApply, onApply, onClose, enabled, onEnabled, intensity = "moderate", onIntensity, onQuickIntervalRide, quickIntervalDisabledReason }: Omit<Props, "open">) {
   const titleId = useId();
   const [draft, setDraft] = useState(() => toDraft(config));
+  const [draftIntensity, setDraftIntensity] = useState<WorkoutIntensity>(intensity);
   const [mode, setMode] = useState(() => matchRideIntervalPreset({
     highSec: config.highSec,
     lowSec: config.lowSec,
@@ -120,6 +124,8 @@ function IntervalEditor({ config, restartOnApply, onApply, onClose, enabled, onE
   const candidate = parseDraft(draft);
   const valid = Object.values(draft).every((raw) => raw.trim() !== "") && isRideIntervalConfig(candidate);
   const changed = valid && !sameConfig(candidate, config);
+  const intensityChanged = draftIntensity !== intensity;
+  const selectedIntensity = INTERVAL_INTENSITIES.find((option) => option.id === draftIntensity)!;
   const showRounds = mode === "short" || (valid && (candidate.rounds ?? 1) > 1) || customOpen;
   const fields = [
     { key: "warmupSec", label: "준비", unit: "초", min: 0, max: 1800, change: 30 },
@@ -182,6 +188,24 @@ function IntervalEditor({ config, restartOnApply, onApply, onClose, enabled, onE
         </button>
       </header>
       <div className="ride-interval-settings__body">
+        {onIntensity && customOpen ? (
+          <div className="ride-interval-settings__intensity-compact">
+            <span>목표 강도 · {selectedIntensity.label}</span>
+            <button type="button" onClick={() => setCustomOpen(false)}>변경</button>
+          </div>
+        ) : onIntensity ? (
+          <fieldset className="ride-interval-settings__intensity">
+            <legend>운동 구간의 목표 강도</legend>
+            <div className="ride-interval-settings__intensity-options">
+              {INTERVAL_INTENSITIES.map((option) => (
+                <button key={option.id} type="button" aria-pressed={draftIntensity === option.id}
+                  onClick={() => setDraftIntensity(option.id)}>{option.label}</button>
+              ))}
+            </div>
+            <p aria-live="polite">{selectedIntensity.description}</p>
+            <small>호흡과 다리의 부담을 기준으로 저항을 조절하세요. 준비·회복·마무리는 편안하게.</small>
+          </fieldset>
+        ) : null}
         {!customOpen ? (
           <div className="ride-interval-settings__compact">
             <div className="ride-interval-settings__compact-main">
@@ -260,7 +284,7 @@ function IntervalEditor({ config, restartOnApply, onApply, onClose, enabled, onE
           {valid ? (
             <small>
               {customOpen ? <span className="ride-interval-settings__total">총 <strong aria-live="polite">{formatRideIntervalClock(getRideIntervalTotalSec(candidate))}</strong></span> : "준비·마무리 0초는 건너뜀"}
-              {restartOnApply && changed ? " · 적용하면 처음부터 다시 시작해요" : ""}
+              {restartOnApply && (changed || intensityChanged) ? " · 적용하면 처음부터 다시 시작해요" : ""}
             </small>
           ) : (
             <small role="alert">고·저 5~600초 · 준비·마무리 0~1800초 · 반복 1~30회 · 라운드 1~3</small>
@@ -277,6 +301,7 @@ function IntervalEditor({ config, restartOnApply, onApply, onClose, enabled, onE
             onClick={() => {
               if (!valid) return;
               if (changed && !onApply(candidate)) return;
+              if (intensityChanged) onIntensity?.(draftIntensity);
               onQuickIntervalRide(getRideIntervalTotalSec(candidate));
             }}
           >
@@ -285,6 +310,7 @@ function IntervalEditor({ config, restartOnApply, onApply, onClose, enabled, onE
         ) : null}
         <button type="button" className="ride-interval-settings__apply" disabled={!valid} onClick={() => {
           if (!valid || !onApply(candidate)) return;
+          if (intensityChanged) onIntensity?.(draftIntensity);
           // Chief 11-03 A안: 「설정 적용」은 인터벌 사용도 켠다 — 이 창에서 스위치를 직접 끈 경우만 꺼진 채로 둔다.
           if (onEnabled && !enabled && !switchedOff.current) onEnabled(true);
           onClose();
@@ -303,7 +329,7 @@ export function RideIntervalSettingsSheet(props: Props) {
     <div className="ride-interval-settings" role="dialog" aria-label="인터벌 운동 설정" aria-modal="true">
       <button type="button" className="ride-interval-settings__scrim" aria-label="인터벌 운동 설정 배경 닫기" title="인터벌 운동 설정 닫기" onClick={props.onClose} />
       <div className="ride-interval-settings__panel" ref={panelRef}>
-        <IntervalEditor config={props.config} restartOnApply={props.restartOnApply} onApply={props.onApply} onClose={props.onClose} enabled={props.enabled} onEnabled={props.onEnabled} onQuickIntervalRide={props.onQuickIntervalRide} quickIntervalDisabledReason={props.quickIntervalDisabledReason} />
+        <IntervalEditor config={props.config} restartOnApply={props.restartOnApply} onApply={props.onApply} onClose={props.onClose} enabled={props.enabled} onEnabled={props.onEnabled} intensity={props.intensity} onIntensity={props.onIntensity} onQuickIntervalRide={props.onQuickIntervalRide} quickIntervalDisabledReason={props.quickIntervalDisabledReason} />
       </div>
     </div>
   );

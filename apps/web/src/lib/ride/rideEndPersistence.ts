@@ -23,6 +23,7 @@ import type { RouteProfile } from "../../services/mapboxDirections";
 import type { ConquestRidePayload } from "../conquest/conquestTiles";
 import type { RouteRideEntry } from "../route/routePublicationResolve";
 import type { LastEndedAdhocState } from "../../hooks/useSavedRoutesWorkspace";
+import { cutQuickIntervalRoute } from "./quickIntervalRoute";
 import { MAX_ROUTE_WAYPOINTS } from "../geo/routeWaypoints";
 import {
   loadSavedRoutesFromLocal,
@@ -96,6 +97,7 @@ export type PersistRideEndCoreInput = {
   routeDistanceMeters: number;
   routeDurationSec: number;
   routeGeometry: LineStringGeometry | null;
+  quickIntervalRiddenMeters?: number;
   routeWaypoints: LngLat[];
   startLngLat: LngLat | null;
   endLngLat: LngLat | null;
@@ -180,6 +182,7 @@ export async function persistRideEndCore(
     routeDistanceMeters,
     routeDurationSec,
     routeGeometry,
+    quickIntervalRiddenMeters,
     routeWaypoints,
     startLngLat,
     endLngLat,
@@ -384,7 +387,7 @@ export async function persistRideEndCore(
       routeDistanceMeters > 0
     ) {
       // ad-hoc 저장 컨텍스트 — 진행률·완주는 §5 와 같은 산출값을 그대로 싣는다
-      setLastEndedWasAdhoc({
+      const route: LastEndedAdhocState = {
         distanceMeters: routeDistanceMeters,
         durationSec: routeDurationSec,
         geometry: routeGeometry,
@@ -395,7 +398,8 @@ export async function persistRideEndCore(
         rideId,
         progressRatio: progressToSave,
         completedRoute: rideCompletedRoute,
-      });
+      };
+      setLastEndedWasAdhoc(quickIntervalRiddenMeters === undefined ? route : cutQuickIntervalRoute(route, quickIntervalRiddenMeters));
     }
 
     // ── 6. 남은 "pending" 정리 ───────────────────────────────────────────────

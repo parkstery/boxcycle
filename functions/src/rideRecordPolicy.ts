@@ -18,9 +18,16 @@ export const MIN_MEANINGFUL_RIDE_DURATION_SEC = 5;
  * 즉시 종료 등 가치 없는 주행 — 거리·시간 중 하나라도 기준 이하면 기록에서 제외.
  * (100m 이하 **또는** 5초 이하 — 테스트 기준. 출시 기준은 200m·3분)
  */
-export function isDiscardableRideRecord(distanceMeters: number, elapsedSec: number): boolean {
+export function isDiscardableRideRecord(distanceMeters: number, elapsedSec: number, intervalWorkouts?: unknown): boolean {
   const d = Number(distanceMeters);
   const t = Number(elapsedSec);
   if (!Number.isFinite(d) || !Number.isFinite(t)) return true;
+  // 수동 사이클 운동은 가상 이동거리와 별도로 보존한다. Claim 자격은 종전 2인자 판정 유지.
+  if (d >= 0 && Array.isArray(intervalWorkouts) && intervalWorkouts.some((raw: unknown) => {
+    if (!raw || typeof raw !== "object") return false;
+    const w = raw as Record<string, unknown>;
+    return w.version === 1 && typeof w.elapsedSec === "number" && Number.isFinite(w.elapsedSec)
+      && w.elapsedSec >= 180 && w.elapsedSec <= t + 1;
+  })) return false;
   return d <= MIN_MEANINGFUL_RIDE_DISTANCE_METERS || t <= MIN_MEANINGFUL_RIDE_DURATION_SEC;
 }

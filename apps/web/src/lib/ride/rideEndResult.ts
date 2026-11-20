@@ -1,6 +1,7 @@
 import type { RouteProfile } from "../../services/mapboxDirections";
 import type { LngLat } from "../geo/geo";
 import type { CaloriesEstimateMeta } from "./caloriesEstimate";
+import type { IntervalWorkoutRecord } from "./intervalWorkout";
 import type { RideConquestResult } from "./rideConquestResult";
 
 /**
@@ -13,6 +14,7 @@ import type { RideConquestResult } from "./rideConquestResult";
  * 문구 조합은 컴포넌트가 한다(App 에 누적하지 않는다).
  */
 export type RideEndResult = {
+  intervalWorkouts?: IntervalWorkoutRecord[];
   /** 로컬 기록 id(낙관 표시용). Firestore rides 문서 id 와는 다르다. */
   recordId: string;
   /** Firestore rides/{} 문서 ID (서버 부여). 저장 완료 후 채워진다. */

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { offsetLngLatByBearingMeters, type LngLat } from "../lib/geo/geo";
+import { offsetLngLatByBearingMeters, type LineStringGeometry, type LngLat } from "../lib/geo/geo";
 import { resolveDistanceAutoRouteGuideRadiusKm } from "../lib/route/distanceAutoRouteGuideRing";
 import { resolveQuickIntervalTargetKm, runQuickIntervalAttempts } from "../lib/ride/quickIntervalRoute";
 import type { RouteProfile } from "../services/mapboxDirections";
@@ -50,10 +50,11 @@ export type UseQuickIntervalRideOptions = {
     point: LngLat;
     targetKm: number;
     profile: RouteProfile;
+    onApplied?: (geometry: LineStringGeometry) => void;
   }) => Promise<DistanceAutoRouteSearchResult | null>;
   disarm: () => void;
   /** 경로가 적용된 직후 — 인터벌을 켠다. 주행은 시작하지 않는다 */
-  onFound: () => void;
+  onFound: (geometry: LineStringGeometry | null) => void;
   /** 시험 주입용. 기본 Math.random */
   random?: () => number;
 };
@@ -92,6 +93,7 @@ export function useQuickIntervalRide(options: UseQuickIntervalRideOptions) {
       setPhase("searching");
       setMessage(formatQuickIntervalSearchingMessage(targetKm));
       const radiusMeters = resolveDistanceAutoRouteGuideRadiusKm(targetKm) * 1000;
+      let appliedGeometry: LineStringGeometry | null = null;
       const result = await runQuickIntervalAttempts({
         random: optionsRef.current.random,
         search: async (bearingDeg) => {
@@ -101,6 +103,7 @@ export function useQuickIntervalRide(options: UseQuickIntervalRideOptions) {
             point,
             targetKm,
             profile: prepared.profile,
+            onApplied: (geometry) => { appliedGeometry = geometry; },
           });
           if (runRef.current !== run || outcome === null) return "cancelled";
           return outcome.status === "found" ? "found" : "failed";
@@ -109,7 +112,7 @@ export function useQuickIntervalRide(options: UseQuickIntervalRideOptions) {
       if (runRef.current !== run) return null;
       if (result.status === "found") {
         optionsRef.current.disarm();
-        optionsRef.current.onFound();
+        optionsRef.current.onFound(appliedGeometry);
         setPhase("idle");
         setMessage(null);
         return { status: "found", message: "" };

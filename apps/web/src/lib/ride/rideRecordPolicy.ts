@@ -18,10 +18,17 @@ export const MIN_MEANINGFUL_RIDE_DURATION_SEC = 5;
  * 즉시 종료 등 가치 없는 주행 — 거리·시간 중 하나라도 기준 이하면 기록에서 제외.
  * (100m 이하 **또는** 5초 이하 — 테스트 기준. 출시 기준은 200m·3분)
  */
-export function isDiscardableRideRecord(distanceMeters: number, elapsedSec: number): boolean {
+export function isDiscardableRideRecord(distanceMeters: number, elapsedSec: number, intervalWorkouts?: unknown): boolean {
   const d = Number(distanceMeters);
   const t = Number(elapsedSec);
   if (!Number.isFinite(d) || !Number.isFinite(t)) return true;
+  // 수동 사이클 운동은 가상 이동거리와 별도로 보존한다. Claim 자격은 종전 2인자 판정 유지.
+  if (d >= 0 && Array.isArray(intervalWorkouts) && intervalWorkouts.some((raw: unknown) => {
+    if (!raw || typeof raw !== "object") return false;
+    const w = raw as Record<string, unknown>;
+    return w.version === 1 && typeof w.elapsedSec === "number" && Number.isFinite(w.elapsedSec)
+      && w.elapsedSec >= 180 && w.elapsedSec <= t + 1;
+  })) return false;
   return d <= MIN_MEANINGFUL_RIDE_DISTANCE_METERS || t <= MIN_MEANINGFUL_RIDE_DURATION_SEC;
 }
 
@@ -46,6 +53,8 @@ export function isRouteCompletion(completionRatio: number): boolean {
 export type RideEndDisposition = {
   /** rides 문서·로컬 세션·칼로리 통계에서 제외 */
   discardRecord: boolean;
+  /** 기존 거리·시간 기준을 충족해 경로 저장과 Claim을 적용할 수 있음 */
+  qualifiesAsRide: boolean;
   /** 저장 경로 진행률 갱신·완주 promote 수행 */
   applySavedRouteProgress: boolean;
 };
@@ -53,6 +62,7 @@ export type RideEndDisposition = {
 export function resolveRideEndDisposition(input: {
   distanceMeters: number;
   elapsedSec: number;
+  intervalWorkouts?: unknown;
   /** 저장 경로 주행인가(ad-hoc 이면 false) */
   hasSavedRoute: boolean;
   /** 이번 주행 전 저장 진행률(0..1) */
@@ -60,9 +70,10 @@ export function resolveRideEndDisposition(input: {
   /** 이번 세션 누적 진행률(0..1) */
   completionRatio: number;
 }): RideEndDisposition {
-  const discardRecord = isDiscardableRideRecord(input.distanceMeters, input.elapsedSec);
+  const qualifiesAsRide = !isDiscardableRideRecord(input.distanceMeters, input.elapsedSec);
+  const discardRecord = !qualifiesAsRide && isDiscardableRideRecord(input.distanceMeters, input.elapsedSec, input.intervalWorkouts);
   if (!input.hasSavedRoute) {
-    return { discardRecord, applySavedRouteProgress: false };
+    return { discardRecord, qualifiesAsRide, applySavedRouteProgress: false };
   }
   const prev = Number.isFinite(input.previousProgressRatio)
     ? Math.max(0, Math.min(1, input.previousProgressRatio))
@@ -70,12 +81,8 @@ export function resolveRideEndDisposition(input: {
   const next = Number.isFinite(input.completionRatio)
     ? Math.max(0, Math.min(1, input.completionRatio))
     : 0;
-  if (!discardRecord) {
-    // 일반 유효 주행 — 종전처럼 저장 경로면 진행 반영 시도(단조 정책이 no-op 가능)
-    return { discardRecord: false, applySavedRouteProgress: true };
-  }
-  // 폐기된 짧은 주행: 누적 진행이 기존보다 높을 때만 경로 반영
-  return { discardRecord: true, applySavedRouteProgress: next > prev };
+  // 거리 기준 미달은 운동 기록이 남아도 진행이 증가한 경우에만 경로에 반영한다.
+  return { discardRecord, qualifiesAsRide, applySavedRouteProgress: qualifiesAsRide || next > prev };
 }
 
 /**

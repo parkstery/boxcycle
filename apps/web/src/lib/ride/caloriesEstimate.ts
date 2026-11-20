@@ -4,6 +4,7 @@
  */
 
 export const CALORIES_METHOD_VERSION = "MET-gross-v1" as const;
+export const INTERVAL_CALORIES_METHOD_VERSION = "MET-interval-v2" as const;
 
 export const WEIGHT_KG_MIN = 30;
 export const WEIGHT_KG_MAX = 300;
@@ -26,7 +27,7 @@ export const CALORIE_INTENSITY_OPTIONS = [
 export type CalorieIntensityId = (typeof CALORIE_INTENSITY_OPTIONS)[number]["id"];
 
 export type CaloriesEstimateMeta = {
-  version: typeof CALORIES_METHOD_VERSION;
+  version: typeof CALORIES_METHOD_VERSION | typeof INTERVAL_CALORIES_METHOD_VERSION;
   met: number;
   activeSec: number;
   inputMethod: "cadence";
@@ -72,14 +73,14 @@ export function clampActiveSecForCalories(
 export function parseCaloriesMeta(raw: unknown): CaloriesEstimateMeta | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
-  if (o.version !== CALORIES_METHOD_VERSION) return null;
+  if (o.version !== CALORIES_METHOD_VERSION && o.version !== INTERVAL_CALORIES_METHOD_VERSION) return null;
   const met = Number(o.met);
   const activeSec = Number(o.activeSec);
   if (!Number.isFinite(met) || met <= 0 || !Number.isFinite(activeSec) || activeSec < 0) {
     return null;
   }
   return {
-    version: CALORIES_METHOD_VERSION,
+    version: o.version,
     met,
     activeSec: Math.round(activeSec),
     inputMethod: "cadence",
@@ -157,5 +158,5 @@ export function isLegacyDistanceCalories(
   session: { caloriesEstimate?: number | null; caloriesMeta?: CaloriesEstimateMeta | null },
 ): boolean {
   if (session.caloriesEstimate == null) return false;
-  return session.caloriesMeta?.version !== CALORIES_METHOD_VERSION;
+  return session.caloriesMeta?.version !== CALORIES_METHOD_VERSION && session.caloriesMeta?.version !== INTERVAL_CALORIES_METHOD_VERSION;
 }

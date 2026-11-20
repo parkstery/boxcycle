@@ -462,7 +462,13 @@ service cloud.firestore {
     match /rides/{rideId} {
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if clientMayWrite() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if false;
+      // 운동 측정 본문은 불변. 본인의 주관적 평가만 별도 필드에서 수정한다.
+      allow update: if clientMayWrite() && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['intervalFeedback'])
+        && request.resource.data.intervalFeedback is map
+        && request.resource.data.intervalFeedback.size() <= 64
+        && request.resource.data.intervalFeedback.values().hasOnly(['easier', 'as-planned', 'harder']);
+      allow delete: if false;
     }
 
     /**

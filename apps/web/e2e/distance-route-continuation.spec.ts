@@ -36,6 +36,12 @@ test('실제 hook: 여기에서 계속→방향 자동생성·수단 변경·삭
   await expect(page.locator('.mapboxgl-canvas')).toBeVisible();
   const state=page.locator('#distance-runtime-state');
   const popup=page.locator('.map-view__pick');
+  const clickOpenMap = async () => {
+    const point = await page.evaluate(() => [[400, 300], [470, 240], [550, 220]].find(([x, y]) =>
+      document.elementFromPoint(x, y)?.classList.contains('mapboxgl-canvas')));
+    expect(point, '표고와 경로 카드에 가리지 않은 지도 지점').toBeDefined();
+    await page.mouse.click(point![0], point![1]);
+  };
   await page.getByRole('button',{name:'여기에서 계속',exact:true}).click();
   await expect(popup.getByRole('tab',{name:'거리·방향',exact:true})).toHaveAttribute('aria-selected','true');
   await expect(state).toContainText('"mode":"direction"');
@@ -85,8 +91,7 @@ test('실제 hook: 여기에서 계속→방향 자동생성·수단 변경·삭
   await expect(page.locator('.map-view__temporary-pick-marker')).toHaveCount(0);
   await popup.getByRole('button',{name:'목표 거리 5km',exact:true}).click();
   await expect(state).toContainText('"mode":"direction"');
-  expect(await page.evaluate(()=>document.elementFromPoint(400,300)?.className)).toContain('mapboxgl-canvas');
-  await page.mouse.click(400,300);
+  await clickOpenMap();
   await expect(state).toContainText('"applied":7');
   const requests=await page.evaluate(()=>{
     // @ts-expect-error API fixture capture
@@ -104,8 +109,7 @@ test('실제 hook: 여기에서 계속→방향 자동생성·수단 변경·삭
     window.__holdDistanceNext=true;
   });
   await popup.getByRole('button',{name:'목표 거리 3km',exact:true}).click();
-  expect(await page.evaluate(()=>document.elementFromPoint(400,300)?.className)).toContain('mapboxgl-canvas');
-  await page.mouse.click(400,300);
+  await clickOpenMap();
   await expect(state).toContainText('"step":"searching"');
   await popup.getByRole('button',{name:'경로 전체 삭제',exact:true}).click();
   await expect(state).toContainText('"start":null');
@@ -114,8 +118,7 @@ test('실제 hook: 여기에서 계속→방향 자동생성·수단 변경·삭
   await expect(page.locator('.map-view__temporary-pick-marker')).toHaveCount(0);
   await expect(state).not.toContainText('"start":null');
   await popup.getByRole('button',{name:'목표 거리 5km',exact:true}).click();
-  expect(await page.evaluate(()=>document.elementFromPoint(400,300)?.className)).toContain('mapboxgl-canvas');
-  await page.mouse.click(400,300);
+  await clickOpenMap();
   await expect(state).toContainText('"applied":8');
   await page.evaluate(()=>{
     // @ts-expect-error API fixture control

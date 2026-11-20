@@ -7,6 +7,12 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  startAfter,
+  doc,
+  updateDoc,
+  FieldPath,
+  type QueryDocumentSnapshot,
+  type DocumentData,
   Timestamp,
   where,
 } from "firebase/firestore";
@@ -19,6 +25,8 @@ import { parseCaloriesMeta } from "../caloriesEstimate";
 import type { StoredRideSession } from "../rideSessionsStorage";
 import { isDiscardableRideRecord } from "../rideRecordPolicy";
 import { sanitizeLngLat } from "../sanitizeLngLat";
+
+import { parseIntervalWorkouts, type IntervalWorkoutFeedback, type IntervalWorkoutRecord } from "../intervalWorkout";
 
 const RIDES_COLLECTION = "rides";
 
@@ -34,6 +42,8 @@ function parseCaloriesMetaField(v: unknown): CaloriesEstimateMeta | null {
 }
 
 type RideDoc = {
+  intervalWorkouts?: IntervalWorkoutRecord[];
+  intervalFeedback?: Record<string, IntervalWorkoutFeedback>;
   userId: string;
   trailId: string | null;
   /** @deprecated read fallback only — 신규 write 없음 */
@@ -154,7 +164,7 @@ export async function saveRideSessionToFirestore(input: {
   /** 정복 페이로드(진행 구간 타일 + pedalSec). 계산 실패·경로 없음 시 null */
   conquest?: ConquestRidePayload | null;
 }): Promise<string | null> {
-  if (isDiscardableRideRecord(input.session.distanceMeters, input.session.elapsedSec)) {
+  if (isDiscardableRideRecord(input.session.distanceMeters, input.session.elapsedSec, input.session.intervalWorkouts)) {
     return null;
   }
   const db = getFirebaseFirestore();
@@ -189,6 +199,7 @@ export async function saveRideSessionToFirestore(input: {
         ? null
         : Number(input.session.caloriesEstimate),
     caloriesMeta: input.session.caloriesMeta ?? null,
+    intervalWorkouts: parseIntervalWorkouts(input.session.intervalWorkouts),
     routeDistanceMeters: input.session.routeDistanceMeters,
     routeDurationSec: input.session.routeDurationSec,
     source: "web",
@@ -232,7 +243,7 @@ export async function backfillRideSessionsToFirestore(input: {
 }): Promise<void> {
   const ordered = [...input.sessions]
     .filter((s) => s && Number.isFinite(s.elapsedSec))
-    .filter((s) => !isDiscardableRideRecord(s.distanceMeters, s.elapsedSec))
+    .filter((s) => !isDiscardableRideRecord(s.distanceMeters, s.elapsedSec, s.intervalWorkouts))
     .sort((a, b) => new Date(a.endedAt).getTime() - new Date(b.endedAt).getTime());
   for (const session of ordered) {
     await saveRideSessionToFirestore({
@@ -258,16 +269,29 @@ export async function loadRideSessionsForStatsFromFirestore(
   );
   const snap = await getDocs(q);
   return snap.docs
-    .map((d) => {
-      const data = d.data() as Partial<RideDoc>;
+    .map((d) => parseRideSessionDoc(d.id, d.data() as Partial<RideDoc>))
+    .filter((s) => !isDiscardableRideRecord(s.distanceMeters, s.elapsedSec, s.intervalWorkouts));
+}
+
+export async function loadRecentRideSessionsFromFirestore(
+  userId: string,
+  limitCount = 50,
+): Promise<StoredRideSession[]> {
+  return loadRideSessionsForStatsFromFirestore(userId, limitCount);
+}
+
+function parseRideSessionDoc(id: string, data: Partial<RideDoc>): StoredRideSession {
       const endedAt =
         data.endedAt instanceof Timestamp
           ? data.endedAt.toDate().toISOString()
           : new Date().toISOString();
       return {
-        id: d.id,
-        serverRideId: d.id, // F1: 서버 세션의 id = serverRideId (merge 시 매칭용)
+        id,
+        serverRideId: id, // F1: 서버 세션의 id = serverRideId (merge 시 매칭용)
         endedAt,
+        ...(Array.isArray(data.intervalWorkouts) ? { intervalWorkouts: parseIntervalWorkouts(data.intervalWorkouts).map((workout) => ({
+          ...workout, ...(data.intervalFeedback?.[workout.id] ? { feedback: data.intervalFeedback[workout.id] } : {}),
+        })) } : {}),
         elapsedSec: Number(data.elapsedSec ?? 0),
         distanceMeters: Number(data.distanceMeters ?? 0),
         avgSpeedKmh: Number(data.avgSpeedKmh ?? 0),
@@ -300,13 +324,30 @@ export async function loadRideSessionsForStatsFromFirestore(
         sessionEndPlaceLabel: trimmedOrNull(data.sessionEndPlaceLabel) ?? undefined,
         regionDistances: parseRegionDistances((data as Record<string, unknown>).regionDistances),
       };
-    })
-    .filter((s) => !isDiscardableRideRecord(s.distanceMeters, s.elapsedSec));
+
 }
 
-export async function loadRecentRideSessionsFromFirestore(
-  userId: string,
-  limitCount = 50,
+/** 기간 전체를 페이지로 읽는다. 최근 N건으로 과거 기간을 잘라내지 않는다. */
+export async function loadRideSessionsInRangeFromFirestore(
+  userId: string, start: Date, endExclusive: Date,
 ): Promise<StoredRideSession[]> {
-  return loadRideSessionsForStatsFromFirestore(userId, limitCount);
+  if (!Number.isFinite(start.getTime()) || !Number.isFinite(endExclusive.getTime()) || start >= endExclusive) throw new Error("올바르지 않은 통계 기간입니다.");
+  const db = getFirebaseFirestore();
+  const rows: StoredRideSession[] = [];
+  let cursor: QueryDocumentSnapshot<DocumentData> | undefined;
+  while (true) {
+    const constraints = [where("userId", "==", userId), where("endedAt", ">=", Timestamp.fromDate(start)), where("endedAt", "<", Timestamp.fromDate(endExclusive)), orderBy("endedAt", "desc"), limit(200)];
+    const q = query(collection(db, RIDES_COLLECTION), ...constraints, ...(cursor ? [startAfter(cursor)] : []));
+    const page = await getDocs(q);
+    rows.push(...page.docs.map((d) => parseRideSessionDoc(d.id, d.data() as Partial<RideDoc>)));
+    if (page.size < 200) break;
+    cursor = page.docs[page.docs.length - 1];
+  }
+  return rows.filter((s) => !isDiscardableRideRecord(s.distanceMeters, s.elapsedSec, s.intervalWorkouts));
+}
+
+/** Ride 본문은 불변으로 두고 본인 체감 평가만 별도 보존한다. */
+export async function saveIntervalWorkoutFeedback(rideId: string, workoutId: string, effort: IntervalWorkoutFeedback): Promise<void> {
+  if (!["easier", "as-planned", "harder"].includes(effort)) throw new Error("올바르지 않은 운동 평가입니다.");
+  await updateDoc(doc(getFirebaseFirestore(), RIDES_COLLECTION, rideId), new FieldPath("intervalFeedback", workoutId), effort);
 }

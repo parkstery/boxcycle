@@ -27,6 +27,7 @@ export type AccountInfo = {
 
 /** rides 문서에서 뽑은 원시 행. 폐기 기준 판정은 집계 함수가 한다. */
 export type RideInputRow = {
+  intervalWorkouts?: unknown;
   userId: string;
   /** endedAt ?? createdAt (ms). 읽을 수 없으면 null. */
   ms: number | null;
@@ -171,7 +172,7 @@ export function aggregateRideMetrics(input: {
   let discarded = 0;
   let valid = 0;
   for (const r of rides) {
-    if (isDiscardableRideRecord(r.distanceMeters, r.elapsedSec)) {
+    if (isDiscardableRideRecord(r.distanceMeters, r.elapsedSec, r.intervalWorkouts)) {
       discarded += 1;
       continue;
     }
@@ -350,6 +351,7 @@ export async function loadRideRows(
         ms: toMillis(data.endedAt) ?? toMillis(data.createdAt),
         distanceMeters: Number(data.distanceMeters),
         elapsedSec: Number(data.elapsedSec),
+        intervalWorkouts: data.intervalWorkouts,
         newMeters: Math.max(0, Number(conquest?.newMeters) || 0),
       });
     }

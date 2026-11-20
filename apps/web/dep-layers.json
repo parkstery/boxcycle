@@ -344,6 +344,8 @@
       "ride/backgroundSafeInterval.ts",
       "ride/calorieProfileSync.ts",
       "ride/caloriesEstimate.ts",
+      "ride/intervalRideCalories.ts",
+      "ride/intervalWorkout.ts",
       "ride/companionHudCount.ts",
       "ride/liveLocationSnapshot.ts",
       "ride/liveRideHudSignal.ts",

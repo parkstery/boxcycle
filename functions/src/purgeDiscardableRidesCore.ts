@@ -32,7 +32,7 @@ export async function purgeDiscardableRidesWithAdminSdk(input: {
       const data = doc.data();
       const distanceMeters = Number(data.distanceMeters ?? 0);
       const elapsedSec = Number(data.elapsedSec ?? 0);
-      if (!isDiscardableRideRecord(distanceMeters, elapsedSec)) continue;
+      if (!isDiscardableRideRecord(distanceMeters, elapsedSec, data.intervalWorkouts)) continue;
       matched += 1;
       if (!input.dryRun) refsToDelete.push(doc.ref);
     }

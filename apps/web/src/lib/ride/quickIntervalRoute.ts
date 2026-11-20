@@ -3,6 +3,40 @@ import {
   DISTANCE_AUTO_ROUTE_KM_MIN,
 } from "../route/distanceAutoRouteErrors";
 import { resolveIntervalBasisKmh } from "../route/intervalRouteDistance";
+import { distanceOnRouteByProjectedPoint, lineStringLengthMeters, routePrefixAtDistance, type LineStringGeometry, type LngLat } from "../geo/geo";
+import { rideDistanceAlongRoute } from "../geo/routeProgressMath";
+
+/** The saved Route ends where the rider stopped. The Ride keeps the original plan. */
+export function cutQuickIntervalRoute<T extends {
+  distanceMeters: number;
+  durationSec: number;
+  geometry: LineStringGeometry;
+  endLngLat: LngLat;
+  waypoints: LngLat[];
+  progressRatio: number;
+  completedRoute: boolean;
+}>(route: T, riddenMeters: number): T | null {
+  if (!Number.isFinite(riddenMeters) || riddenMeters <= 0 || !(route.distanceMeters > 0)) return null;
+  const distanceMeters = Math.min(riddenMeters, route.distanceMeters);
+  const fullRoute = distanceMeters === route.distanceMeters;
+  const geoLength = lineStringLengthMeters(route.geometry);
+  const cutMeters = fullRoute ? geoLength : rideDistanceAlongRoute(distanceMeters, route.distanceMeters, geoLength);
+  const geometry = routePrefixAtDistance(route.geometry, cutMeters);
+  if (!geometry) return null;
+  return {
+    ...route,
+    geometry,
+    endLngLat: fullRoute ? route.endLngLat : geometry.coordinates[geometry.coordinates.length - 1],
+    distanceMeters,
+    durationSec: Math.round(route.durationSec * distanceMeters / route.distanceMeters),
+    waypoints: fullRoute ? route.waypoints : route.waypoints.filter((point) => {
+      const offset = distanceOnRouteByProjectedPoint(route.geometry, point);
+      return offset != null && offset <= cutMeters;
+    }),
+    progressRatio: 1,
+    completedRoute: true,
+  };
+}
 
 /** 간편 인터벌 목표 거리 여유분 — 인터벌을 마치기 전에 경로가 끝나지 않게 한다 */
 export const QUICK_INTERVAL_DISTANCE_MARGIN = 1.3;

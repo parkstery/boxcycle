@@ -4,6 +4,8 @@
 const UID_LOCAL_KEYS = [
   "boxcycle_ride_resume_slot_v1_",
   "boxcycle_calorie_profile_v1_",
+  "spinatlas.rideInterval.config.v1.",
+  "spinatlas.interval.intensity.v1.",
 ] as const;
 
 function uidLocalCacheKeys(uid: string): string[] {

@@ -1,0 +1,53 @@
+.interval-workout-stats {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  background: #fff;
+  color: #121417;
+  font-size: 12px;
+}
+
+.interval-workout-stats button {
+  min-height: 30px;
+  border: 1px solid #c9d6ee;
+  border-radius: 8px;
+  padding: 3px 9px;
+  color: #2a2e37;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.interval-workout-stats button:disabled { opacity: .4; cursor: default; }
+.interval-workout-stats button:focus-visible { outline: 2px solid #2457d6; outline-offset: 2px; }
+.interval-workout-stats__head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.interval-workout-stats__head h2 { margin: 0; font-size: 15px; }
+.interval-workout-stats__period { display: flex; align-items: center; gap: 5px; }
+.interval-workout-stats__period [role="tablist"] { display: flex; gap: 3px; margin-right: auto; }
+.interval-workout-stats__period [aria-selected="true"] { background: #2457d6; border-color: #2457d6; color: #fff; }
+.interval-workout-stats__period > span { text-align: center; font-size: 11px; }
+.interval-workout-stats__body { overflow-y: auto; overscroll-behavior: contain; min-height: 0; flex: 1; padding-right: 3px; }
+.interval-workout-stats__body > p { margin: 5px 0; line-height: 1.5; }
+.interval-workout-stats__note { color: #596273; font-size: 10px; }
+.interval-workout-stats__summary { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 12px; margin: 8px 0; }
+.interval-workout-stats__summary > div { border-bottom: 1px solid #e7edf5; padding-bottom: 5px; }
+.interval-workout-stats__summary dt { color: #596273; font-size: 10px; }
+.interval-workout-stats__summary dd { margin: 3px 0 0; font-weight: 700; }
+.interval-workout-stats__intensities { display: flex; flex-wrap: wrap; gap: 5px 12px; }
+.interval-workout-stats__list { list-style: none; padding: 0; margin: 6px 0; }
+.interval-workout-stats__list li { padding: 7px 0; border-top: 1px solid #e7edf5; }
+.interval-workout-stats__list li > div { display: flex; justify-content: space-between; gap: 8px; }
+.interval-workout-stats__list strong { font-size: 11px; font-weight: 600; }
+.interval-workout-stats__list p { margin: 3px 0 0; font-size: 11px; color: #596273; }
+
+@media (max-width: 460px) {
+  .interval-workout-stats { padding: 9px; }
+  .interval-workout-stats__period { flex-wrap: wrap; }
+  .interval-workout-stats__period [role="tablist"] { flex-basis: 100%; }
+  .interval-workout-stats__period > span { flex: 1; }
+}

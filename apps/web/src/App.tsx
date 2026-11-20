@@ -1,4 +1,4 @@
-import { lazy, startTransition, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, startTransition, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { PublicationSharedPresence } from "./components/PublicationSharedPresence";
 import { peerHudLabels, type PeerHudEntry } from "./lib/peerMotion/peerHud";
 import { SignUpNicknameCard } from "./components/auth/SignUpNicknameCard";
@@ -173,6 +173,9 @@ import {
 import { useAppTrail } from "./hooks/useAppTrail";
 import { useRoutePlanning } from "./hooks/useRoutePlanning";
 import { useScreenWakeLock } from "./hooks/useScreenWakeLock";
+import { saveIntervalWorkoutFeedback } from "./lib/ride/repo/firestoreRides";
+import { loadRideSessions, saveRideSessions } from "./lib/ride/rideSessionsStorage";
+import type { IntervalWorkoutFeedback } from "./lib/ride/intervalWorkout";
 import { useRecentRideSessions } from "./hooks/useRecentRideSessions";
 import { usePublicationCatalogHub } from "./hooks/usePublicationCatalogHub";
 import { usePublicRouteReviewMeta } from "./hooks/usePublicRouteReviewMeta";
@@ -507,9 +510,11 @@ export default function App() {
     clearSavedRouteArtifactsRef.current();
   };
 
+  const [quickIntervalGeometry, setQuickIntervalGeometry] = useState<LineStringGeometry | null>(null);
   const clearRouteArtifactsRef = useRef<() => void>(() => {});
   const onRouteDirectionsErrorRef = useRef<() => void>(() => {});
   clearRouteArtifactsRef.current = () => {
+    setQuickIntervalGeometry(null);
     clearSavedRouteArtifactsRef.current();
     setActiveOfficialCourseId(null);
     setPlaceSearchMarkerLngLat(null);
@@ -560,9 +565,65 @@ export default function App() {
     clearRouteArtifactsRef,
     onRouteDirectionsErrorRef,
   });
+  /**
+   * Conquest Trust Tier — 세션 중 케이던스>0 누적 초.
+   * null = 센서 신호를 한 번도 못 봄(T0 no-sensor). 주행 시작 시 리셋.
+   * 칼로리 실제 활동초와 동일 신호(pause·수동 가상속도는 미산정).
+   */
+  const pedalActiveSecRef = useRef<number | null>(null);
+  const calorieSessionSnapshotRef = useRef<CalorieSessionSnapshot | null>(null);
+  const calorieSignalGapRef = useRef(false);
+  const { profile: calorieProfile, setWeightKg: setCalorieWeightKg, setIntensityId: setCalorieIntensityId } =
+    useCalorieProfile(user);
+  const { enabled: pacerEnabled, setEnabled: setPacerEnabled } = usePacerPreference(user);
+  const [profileEditOpen, setProfileEditOpen] = useState(false);
+  /** uid 切替 시 이전 계정 활동초·스냅샷이 남지 않게 렌더 중 ref 정렬 */
+  const calorieUidRef = useRef(user?.uid ?? null);
+  if (calorieUidRef.current !== (user?.uid ?? null)) {
+    calorieUidRef.current = user?.uid ?? null;
+    pedalActiveSecRef.current = null;
+    calorieSignalGapRef.current = false;
+    if (rideStatus === "running") {
+      calorieSessionSnapshotRef.current = {
+        weightKg: calorieProfile.weightKg,
+        intensityId: calorieProfile.intensityId,
+        met: resolveMet(calorieProfile.intensityId),
+      };
+    } else {
+      calorieSessionSnapshotRef.current = null;
+    }
+  }
+
+  const prevRideStatusRef = useRef(rideStatus);
+  useEffect(() => {
+    if (
+      (prevRideStatusRef.current === "running" || prevRideStatusRef.current === "paused") &&
+      rideStatus === "idle"
+    ) {
+      sessionPedalQualifiedRef.current = pedalActiveSecRef.current != null;
+    }
+    if (prevRideStatusRef.current === "idle" && rideStatus === "running") {
+      // 새 세션 시작 — 센서 신호를 보기 전까지는 null(T0) 유지
+      pedalActiveSecRef.current = bleCrankRpm.crankRpm == null ? null : 0;
+      calorieSignalGapRef.current = false;
+      // 체중·MET 스냅샷 고정(중간 설정 변경은 다음 주행부터)
+      calorieSessionSnapshotRef.current = {
+        weightKg: calorieProfile.weightKg,
+        intensityId: calorieProfile.intensityId,
+        met: resolveMet(calorieProfile.intensityId),
+      };
+    }
+    prevRideStatusRef.current = rideStatus;
+  // 시작 스냅샷은 새 주행에서만 고정한다.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rideStatus]);
   const leaderboardGlance = useLeaderboardGlance(user, rideStatus !== "idle");
-  const { enabled: rideIntervalEnabled, onEnabled: handleRideIntervalEnabled, view: rideInterval, config: rideIntervalConfig, onConfig: handleRideIntervalConfig, runKey: rideIntervalRunKey } =
-    useRideInterval(rideStatus, rideMetrics.accumulatedMs);
+  const { enabled: rideIntervalEnabled, onEnabled: handleRideIntervalEnabled, view: rideInterval, config: rideIntervalConfig, onConfig: handleRideIntervalConfig, runKey: rideIntervalRunKey, intensity: intervalIntensity, onIntensity: setIntervalIntensity, sampleWorkouts, finishWorkouts } =
+    useRideInterval(rideStatus, rideMetrics.accumulatedMs, false, undefined, { ownerUid: user?.uid ?? null, weightKg: calorieProfile.weightKg, activeSecRef: pedalActiveSecRef, signalGapRef: calorieSignalGapRef });
+  const isQuickIntervalRoute = rideIntervalEnabled && !routeLoading && quickIntervalGeometry !== null && quickIntervalGeometry === routeGeometry;
+  useEffect(() => {
+    if (!isQuickIntervalRoute) setQuickIntervalGeometry(null);
+  }, [isQuickIntervalRoute]);
   const [rideIntervalSettingsOpen, setRideIntervalSettingsOpen] = useState(false);
   const [intervalSettingsFromRideSettings, setIntervalSettingsFromRideSettings] = useState(false);
   const [intervalRouteConfirmation, setIntervalRouteConfirmation] = useState<{ fromStart: boolean; key: string; speedKmh: number } | null>(null);
@@ -746,35 +807,6 @@ export default function App() {
     );
   }, [setRouteSummary]);
 
-  /**
-   * Conquest Trust Tier — 세션 중 케이던스>0 누적 초.
-   * null = 센서 신호를 한 번도 못 봄(T0 no-sensor). 주행 시작 시 리셋.
-   * 칼로리 실제 활동초와 동일 신호(pause·수동 가상속도는 미산정).
-   */
-  const pedalActiveSecRef = useRef<number | null>(null);
-  const calorieSessionSnapshotRef = useRef<CalorieSessionSnapshot | null>(null);
-  const calorieSignalGapRef = useRef(false);
-  const { profile: calorieProfile, setWeightKg: setCalorieWeightKg, setIntensityId: setCalorieIntensityId } =
-    useCalorieProfile(user);
-  const { enabled: pacerEnabled, setEnabled: setPacerEnabled } = usePacerPreference(user);
-  const [profileEditOpen, setProfileEditOpen] = useState(false);
-  /** uid 切替 시 이전 계정 활동초·스냅샷이 남지 않게 렌더 중 ref 정렬 */
-  const calorieUidRef = useRef(user?.uid ?? null);
-  if (calorieUidRef.current !== (user?.uid ?? null)) {
-    calorieUidRef.current = user?.uid ?? null;
-    pedalActiveSecRef.current = null;
-    calorieSignalGapRef.current = false;
-    if (rideStatus === "running") {
-      calorieSessionSnapshotRef.current = {
-        weightKg: calorieProfile.weightKg,
-        intensityId: calorieProfile.intensityId,
-        met: resolveMet(calorieProfile.intensityId),
-      };
-    } else {
-      calorieSessionSnapshotRef.current = null;
-    }
-  }
-
   /** Conquest — 주행 중 실시간 「새 도로」 카운터(낙관) */
   const { liveNewMeters: conquestLiveMeters } = useLiveConquestPaint({
     riding: rideStatus === "running" || rideStatus === "paused",
@@ -818,6 +850,27 @@ export default function App() {
     setProgressAppliedSeq((n) => n + 1);
   }, []);
 
+  const feedbackOwnerRef = useRef(user?.uid);
+  useEffect(() => { feedbackOwnerRef.current = user?.uid; }, [user?.uid]);
+  const handleIntervalFeedback = async (workoutId: string, effort: IntervalWorkoutFeedback) => {
+    const result = lastRideResult;
+    const owner = user;
+    if (!result || !owner || !result.intervalWorkouts?.some((workout) => workout.id === workoutId)) return;
+    if (configured) {
+      if (!result.serverRideId) throw new Error("주행 기록 저장 후 다시 선택해주세요.");
+      await saveIntervalWorkoutFeedback(result.serverRideId, workoutId, effort);
+    }
+    if (feedbackOwnerRef.current !== owner.uid) return;
+    const updated = loadRideSessions().map((session) => session.ownerUid === owner.uid && session.id === result.recordId
+      ? { ...session, intervalWorkouts: session.intervalWorkouts?.map((workout) => workout.id === workoutId ? { ...workout, feedback: effort } : workout) }
+      : session);
+    saveRideSessions(updated, owner);
+    setRecentSessions(updated);
+    setLastRideResult((previous) => previous?.recordId === result.recordId ? {
+      ...previous, intervalWorkouts: previous.intervalWorkouts?.map((workout) => workout.id === workoutId ? { ...workout, feedback: effort } : workout),
+    } : previous);
+  };
+
   const { handleEndRide } = useRideEndAndPersistence({
     newRoadMetersAtEnd: conquestLiveMeters,
     mapboxAccessToken: MAPBOX_TOKEN,
@@ -845,6 +898,8 @@ export default function App() {
     pedalActiveSecRef,
     calorieSessionSnapshotRef,
     calorieSignalGapRef,
+    finishIntervalWorkouts: finishWorkouts,
+    isQuickIntervalRoute,
     publishedCatalogRef,
     setSavedRoutes,
     setLastEndedWasAdhoc,
@@ -1151,36 +1206,21 @@ export default function App() {
   useEffect(() => {
     crankRpmForConquestRef.current = bleCrankRpm.crankRpm;
   }, [bleCrankRpm.crankRpm]);
-  const prevRideStatusRef = useRef(rideStatus);
+  const sampleWorkoutsRef = useRef(sampleWorkouts);
+  useEffect(() => { sampleWorkoutsRef.current = sampleWorkouts; }, [sampleWorkouts]);
   useEffect(() => {
-    if (
-      (prevRideStatusRef.current === "running" || prevRideStatusRef.current === "paused") &&
-      rideStatus === "idle"
-    ) {
-      sessionPedalQualifiedRef.current = pedalActiveSecRef.current != null;
-    }
-    if (prevRideStatusRef.current === "idle" && rideStatus === "running") {
-      // 새 세션 시작 — 센서 신호를 보기 전까지는 null(T0) 유지
-      pedalActiveSecRef.current = null;
-      calorieSignalGapRef.current = false;
-      // 체중·MET 스냅샷 고정(중간 설정 변경은 다음 주행부터)
-      calorieSessionSnapshotRef.current = {
-        weightKg: calorieProfile.weightKg,
-        intensityId: calorieProfile.intensityId,
-        met: resolveMet(calorieProfile.intensityId),
-      };
-    }
-    prevRideStatusRef.current = rideStatus;
     if (rideStatus !== "running") return;
     const timer = setInterval(() => {
       const rpm = crankRpmForConquestRef.current;
       if (rpm == null) {
         // 연결 전 구간도 이후 센서가 연결되면 일부 구간만 산정한 것으로 표시한다.
         calorieSignalGapRef.current = true;
+        sampleWorkoutsRef.current();
         return;
       }
       if (pedalActiveSecRef.current == null) pedalActiveSecRef.current = 0;
       if (rpm > 0) pedalActiveSecRef.current += 1;
+      sampleWorkoutsRef.current();
     }, 1000);
     return () => clearInterval(timer);
   }, [rideStatus]);
@@ -1611,7 +1651,10 @@ export default function App() {
     })();
   }
 
+  const rideEndingRef = useRef(false);
   const handleEndRideWithTrailCleanup = useCallback(() => {
+    if (rideStatus === "idle" || rideEndingRef.current) return;
+    rideEndingRef.current = true;
     const endedTrailId = sanitizeTrailId(
       ridingTrailId && (rideStatus === "running" || rideStatus === "paused")
         ? ridingTrailId
@@ -1620,6 +1663,7 @@ export default function App() {
     const uid = user?.uid ?? null;
     setRidingTrailId(null);
     handleEndRide();
+    setQuickIntervalGeometry(null);
     void (async () => {
       /*
        * 2026-09-27: 종전에는 **개설자일 때만** `closeTrailInstance()` 를 불러 Trail 을
@@ -1645,9 +1689,16 @@ export default function App() {
     })();
   }, [trailId, ridingTrailId, rideStatus, user?.uid, handleEndRide, returnToTrailhead]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     handleEndRideRef.current = handleEndRideWithTrailCleanup;
-  }, [handleEndRideWithTrailCleanup]);
+    if (rideStatus === "idle") rideEndingRef.current = false;
+  }, [handleEndRideWithTrailCleanup, rideStatus]);
+
+  useEffect(() => {
+    if (isQuickIntervalRoute && rideStatus === "running" && rideInterval?.phase === "complete") {
+      handleEndRideWithTrailCleanup();
+    }
+  }, [handleEndRideWithTrailCleanup, isQuickIntervalRoute, rideInterval?.phase, rideStatus]);
 
   function handlePause() {
     if (rideStatus !== "running") return;
@@ -2046,6 +2097,7 @@ export default function App() {
         return;
       }
       if (routeMenuLockedForProd) return;
+      setQuickIntervalGeometry(null);
       if (id === "start") {
         anchorFixedStartRef.current = null;
         setStartLngLat(null);
@@ -2064,6 +2116,7 @@ export default function App() {
   const swapRegenerateProfileRef = useRef<RouteProfile | null>(null);
   const handleSwapRouteEndpoints = useCallback(() => {
     if (routeMenuLockedForProd || !startLngLat || !endLngLat) return;
+    setQuickIntervalGeometry(null);
     anchorFixedStartRef.current = null;
     swapRegenerateProfileRef.current = routeGeometry ? profile : null;
     setStartLngLat(endLngLat);
@@ -2520,7 +2573,10 @@ export default function App() {
     armStartPick,
     searchTowardPoint,
     disarm,
-    onFound: () => handleRideIntervalEnabled(true),
+    onFound: (geometry) => {
+      setQuickIntervalGeometry(geometry);
+      handleRideIntervalEnabled(true);
+    },
   });
 
   const nextRideCard =
@@ -3191,6 +3247,7 @@ export default function App() {
               canClearRouteNow: () => !routeClearBlockedByRide,
               onSelectPoint: (type, lngLat, waypointSlot) => {
                 if (!user || routeMenuLockedForProd) return;
+                setQuickIntervalGeometry(null);
                 setActiveOfficialCourseId(null);
                 setPlaceSearchMarkerLngLat(null);
                 if (type === "start") {
@@ -3476,6 +3533,8 @@ export default function App() {
       <RideIntervalSettingsSheet
         open={rideIntervalSettingsOpen}
         config={rideIntervalConfig}
+        intensity={intervalIntensity}
+        onIntensity={setIntervalIntensity}
         restartOnApply={rideIntervalEnabled && rideStatus !== "idle"}
         enabled={rideIntervalEnabled}
         onEnabled={handleRideIntervalEnabled}
@@ -3614,6 +3673,7 @@ export default function App() {
         riderName={user ? selfRiderDisplayName(user) : undefined}
         open={summaryVisible}
         result={lastRideResult}
+        onIntervalFeedback={handleIntervalFeedback}
         story={rideEndStory}
         arrivalCompleted={arrivalToastTick > 0}
         elapsedLabel={elapsedLabel}

@@ -1,10 +1,13 @@
 import type { User } from "firebase/auth";
 import { canPersistAppData } from "../storage/clientPersistencePolicy";
 import type { CaloriesEstimateMeta } from "./caloriesEstimate";
+import type { IntervalWorkoutRecord } from "./intervalWorkout";
 
 const SESSIONS_KEY = "boxcycle_web_ride_sessions_v1";
 
 export type StoredRideSession = {
+  /** 인터벌 계획·수행 스냅샷. 없는 옛 기록은 수행 여부를 알 수 없다. */
+  intervalWorkouts?: IntervalWorkoutRecord[];
   id: string;
   /**
    * 이 기록을 만든 계정(로컬 전용, 서버에 저장하지 않는다). 없으면 2026-11-04 이전 기록이다.

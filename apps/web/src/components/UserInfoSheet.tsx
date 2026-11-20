@@ -38,6 +38,7 @@ import { useConquestAdmin1 } from "../hooks/useConquestAdmin1";
 import { useConquestRegions } from "../hooks/useConquestRegions";
 import { useRideRegionTotals } from "../hooks/useRideRegionTotals";
 import { filterSessionsByRegion, type RideRegionKey } from "../lib/ride/regionStatsFilter";
+import { IntervalWorkoutStatsSheet } from "./ride/IntervalWorkoutStatsSheet";
 
 type UserInfoSheetProps = {
   conquestDisplayMode?: ConquestDisplayMode;
@@ -207,6 +208,7 @@ function periodRangeLabelKo(
       : `${head} ~ ${last.getMonth() + 1}월 ${last.getDate()}일`;
   }
   if (period === "month") return `${start.getMonth() + 1}월`;
+  if (period === "quarter") return `${start.getFullYear()}년 ${Math.floor(start.getMonth() / 3) + 1}분기`;
   return `${start.getFullYear()}년`;
 }
 
@@ -214,6 +216,7 @@ const PERIOD_WORD_KO: Record<RideStatsPeriod, string> = {
   day: "오늘",
   week: "이번 주",
   month: "이번 달",
+  quarter: "이번 분기",
   year: "올해",
 };
 
@@ -249,6 +252,7 @@ function rideCompletionDisplay(s: StoredRideSession): {
  * - 오른쪽: 이름·닫기, 내 도로망·누적·마지막 주행·플랜 줄, 하단 버튼.
  */
 export function UserInfoSheet(props: UserInfoSheetProps) {
+  const { onClose } = props;
   // 관리자 확인은 시트를 열 때 한 번 — 메뉴 노출용일 뿐, 숫자는 서버가 다시 권한을 확인한다
   const [adminUid, setAdminUid] = useState<string | null>(null);
   const adminCheckUser = props.open && props.onOpenAdmin ? props.user : null;
@@ -264,6 +268,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   }, [adminCheckUser]);
   const showAdminEntry = Boolean(props.onOpenAdmin && props.user && adminUid === props.user.uid);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [intervalStatsOpen, setIntervalStatsOpen] = useState(false);
   const [regionPick, setRegionPick] = useState<ListRegionKey>(WORLD_REGION);
   const conquestRegions = useConquestRegions(props.user?.uid ?? null, props.open, props.conquest?.totalMeters ?? null);
   const regionGeos = useMemo(() => regionGeosOf(conquestRegions), [conquestRegions]);
@@ -284,16 +289,19 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
   const [confirmingLogout, setConfirmingLogout] = useState(false);
 
   const panelRef = useRef<HTMLElement>(null);
-  useDialogFocus(props.open, panelRef);
+  useDialogFocus(props.open && !intervalStatsOpen, panelRef);
 
   useEffect(() => {
     if (!props.open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") props.onClose();
+      if (e.key === "Escape") {
+        if (intervalStatsOpen) setIntervalStatsOpen(false);
+        else onClose();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [props.open, props.onClose]);
+  }, [props.open, onClose, intervalStatsOpen]);
 
   // 시트가 닫힐 때 펼침·로그아웃 확인을 default 로 리셋 — effect 대신 이전값 비교.
   const [prevOpen, setPrevOpen] = useState(props.open);
@@ -301,6 +309,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
     setPrevOpen(props.open);
     if (!props.open) {
       setHistoryOpen(false);
+      setIntervalStatsOpen(false);
       setConfirmingLogout(false);
     }
   }
@@ -503,7 +512,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
       />
       <aside ref={panelRef} className="user-info-sheet" role="dialog" aria-label="사용자 정보">
         {/* 왼쪽 요약판: 기간 탭 + 거리(주인공) + 시간·평균 속도 */}
-        <div className="user-info-sheet__left">
+        <div className="user-info-sheet__left" {...(intervalStatsOpen ? { inert: true, "aria-hidden": true as const } : {})}>
           <div className="user-info-sheet__stats-head" role="tablist" aria-label="통계 기간">
             {([
               { id: "day" as const, label: "오늘" },
@@ -586,7 +595,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
         </div>
 
         {/* 오른쪽: 이름·닫기 + 줄 목록 + 하단 버튼 */}
-        <div className="user-info-sheet__right">
+        <div className="user-info-sheet__right" {...(intervalStatsOpen ? { inert: true, "aria-hidden": true as const } : {})}>
           <header className="user-info-sheet__head">
             <div className="user-info-sheet__id">
               <strong>{nickname}</strong>
@@ -896,6 +905,11 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
               </div>
             ) : (
               <>
+                {props.user ? (
+                  <button type="button" className="user-info-sheet__btn" onClick={() => setIntervalStatsOpen(true)}>
+                    인터벌 기록
+                  </button>
+                ) : null}
                 {props.onEditProfile ? (
                   <button
                     type="button"
@@ -938,6 +952,14 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
             )}
           </div>
         </div>
+        {props.open && intervalStatsOpen ? (
+          <IntervalWorkoutStatsSheet
+            key={props.user?.uid ?? "no-user"}
+            userId={props.user?.uid ?? null}
+            fallbackSessions={props.recentSessions}
+            onClose={() => setIntervalStatsOpen(false)}
+          />
+        ) : null}
       </aside>
     </div>
   );

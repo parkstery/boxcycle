@@ -28,11 +28,12 @@ import { formatLngLat, getDistanceMeters } from "../lib/geo/geo";
 import { computeRideSessionAnchors } from "../lib/ride/rideSessionAnchors";
 import type { RideEndResult } from "../lib/ride/rideEndResult";
 import {
-  buildCaloriesMeta,
   clampActiveSecForCalories,
-  estimateGrossKcal,
   type CalorieSessionSnapshot,
 } from "../lib/ride/caloriesEstimate";
+import { estimateRideCaloriesWithIntervals } from "../lib/ride/intervalRideCalories";
+import { cutQuickIntervalRoute } from "../lib/ride/quickIntervalRoute";
+import type { IntervalWorkoutRecord } from "../lib/ride/intervalWorkout";
 import { MAX_ROUTE_WAYPOINTS } from "../lib/geo/routeWaypoints";
 import { safeRideSpeechCancel } from "../lib/ride/rideSpeech";
 import { loadRideSessions, saveRideSessions, type StoredRideSession } from "../lib/ride/rideSessionsStorage";
@@ -98,6 +99,8 @@ export type UseRideEndAndPersistenceOptions = {
   calorieSessionSnapshotRef?: RefObject<CalorieSessionSnapshot | null>;
   /** 세션 중 센서 일시 끊김 여부 */
   calorieSignalGapRef?: RefObject<boolean>;
+  finishIntervalWorkouts?: () => IntervalWorkoutRecord[];
+  isQuickIntervalRoute?: boolean;
   /** `resolvePublishedRouteLink` 카탈로그 1차 힌트 */
   publishedCatalogRef?: RefObject<readonly PublishedPublicCourseSummary[]>;
   setSavedRoutes: Dispatch<SetStateAction<SavedRoute[]>>;
@@ -155,6 +158,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     pedalActiveSecRef,
     calorieSessionSnapshotRef,
     calorieSignalGapRef,
+    finishIntervalWorkouts,
+    isQuickIntervalRoute,
     publishedCatalogRef,
     setSavedRoutes,
     setLastEndedWasAdhoc,
@@ -180,24 +185,18 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
       Math.min(startOffsetMetersRef?.current ?? 0, rideMetrics.virtualDistanceMeters),
     );
     const sessionDistanceMeters = rideMetrics.virtualDistanceMeters - startOffsetMeters;
+    const quickIntervalRiddenMeters = isQuickIntervalRoute ? sessionDistanceMeters : undefined;
     const snap = calorieSessionSnapshotRef?.current ?? null;
     const rawPedalForCal = clampActiveSecForCalories(
       pedalActiveSecRef?.current ?? null,
       elapsedSec,
     );
-    const caloriesEstimate = estimateGrossKcal({
-      weightKg: snap?.weightKg ?? null,
-      met: snap?.met ?? null,
-      activeSec: rawPedalForCal,
+    const intervalWorkouts = finishIntervalWorkouts?.() ?? [];
+    const { caloriesEstimate, caloriesMeta } = estimateRideCaloriesWithIntervals({
+      snapshot: snap, activeSec: rawPedalForCal,
+      signalGap: calorieSignalGapRef?.current ?? false,
+      workouts: intervalWorkouts,
     });
-    const caloriesMeta =
-      caloriesEstimate != null && snap?.met != null && rawPedalForCal != null
-        ? buildCaloriesMeta({
-            met: snap.met,
-            activeSec: rawPedalForCal,
-            signalGap: calorieSignalGapRef?.current ?? false,
-          })
-        : null;
     const savedRouteIdAtEnd = loadedSavedRouteIdRef.current;
     const savedRouteNameAtEnd = loadedSavedRouteNameRef.current;
     // Codex -03 Fix 2: R1/F2 — Keep historical meaning of saved ratios (routeDistanceMeters 기준)
@@ -265,6 +264,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
 
     const record: StoredRideSession = {
       ownerUid: user?.uid ?? null,
+      intervalWorkouts,
       id: crypto.randomUUID(),
       endedAt: new Date().toISOString(),
       elapsedSec,
@@ -298,16 +298,16 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     const disposition = resolveRideEndDisposition({
       distanceMeters: record.distanceMeters,
       elapsedSec: record.elapsedSec,
+      intervalWorkouts,
       hasSavedRoute: Boolean(savedRouteIdAtEnd),
       previousProgressRatio,
       completionRatio,
     });
-    const discardRecord = disposition.discardRecord;
-    const applySavedRouteProgress = disposition.applySavedRouteProgress;
+    const { discardRecord, qualifiesAsRide, applySavedRouteProgress } = disposition;
 
     /** Conquest 페이로드 — 이번 세션 실주행 구간(offset..virtualDistance) 도로 셀 + 궤적 + 검증된 페달링 초 */
     let conquestPayload: ConquestRidePayload | null = null;
-    if (!discardRecord && routeGeometry && routeGeometry.coordinates.length >= 2) {
+    if (qualifiesAsRide && routeGeometry && routeGeometry.coordinates.length >= 2) {
       try {
         const cells = buildConquestCellsFromRoute(
           routeGeometry,
@@ -350,6 +350,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     if (!discardRecord || applySavedRouteProgress) {
       setLastRideResult?.({
         recordId: record.id,
+        intervalWorkouts,
         endedAtIso: record.endedAt,
         sessionDistanceMeters: record.distanceMeters,
         elapsedSec: record.elapsedSec,
@@ -503,13 +504,14 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
             /* noop */
           }
         }
-        let persistedPublicationId = publicationIdRef.current?.trim() || null;
+        let persistedPublicationId = qualifiesAsRide ? publicationIdRef.current?.trim() || null : null;
         let canonicalRouteId = savedRouteIdAtEnd;
         let publicationId: string | null = persistedPublicationId;
         let publicTitleSnap: string | null = null;
-        let routeEntry: RouteRideEntry | null = rideEntryRef?.current ?? null;
+        let routeEntry: RouteRideEntry | null = qualifiesAsRide ? rideEntryRef?.current ?? null : null;
 
         if (
+          qualifiesAsRide &&
           !persistedPublicationId &&
           savedRouteIdAtEnd &&
           routeGeometry &&
@@ -548,7 +550,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
           }
         }
 
-        if (savedRouteIdAtEnd && !routeEntry) routeEntry = "owner_library";
+        if (qualifiesAsRide && savedRouteIdAtEnd && !routeEntry) routeEntry = "owner_library";
         if (persistedPublicationId && !savedRouteIdAtEnd && !routeEntry) {
           routeEntry = "public_catalog";
         }
@@ -564,7 +566,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
             sessionForPersist,
             userId: user.uid,
             trailId,
-            savedRouteIdAtEnd,
+            savedRouteIdAtEnd: applySavedRouteProgress ? savedRouteIdAtEnd : null,
             rideCompletedRoute,
             progressToSave,
             completionRatio,
@@ -578,7 +580,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
             conquestPayload,
             routeDistanceMeters,
             routeDurationSec,
-            routeGeometry,
+            routeGeometry: qualifiesAsRide ? routeGeometry : null,
+            quickIntervalRiddenMeters,
             routeWaypoints,
             startLngLat,
             endLngLat,
@@ -675,14 +678,14 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
         });
       }
     } else if (
-      !discardRecord &&
+      qualifiesAsRide &&
       routeGeometry &&
       routeGeometry.coordinates.length >= 2 &&
       startLngLat &&
       endLngLat &&
       routeDistanceMeters > 0
     ) {
-      setLastEndedWasAdhoc({
+      const route: LastEndedAdhocState = {
         distanceMeters: routeDistanceMeters,
         durationSec: routeDurationSec,
         geometry: routeGeometry,
@@ -693,7 +696,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
         rideId: null,
         progressRatio: progressToSave,
         completedRoute: rideCompletedRoute,
-      });
+      };
+      setLastEndedWasAdhoc(quickIntervalRiddenMeters === undefined ? route : cutQuickIntervalRoute(route, quickIntervalRiddenMeters));
     }
 
     if (!(configured && user) && !discardRecord) {
@@ -731,7 +735,7 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     if (rideEntryRef) rideEntryRef.current = null;
 
     const publicationIdAtEnd = publicationIdRef.current?.trim() || null;
-    if (publicationIdAtEnd && !discardRecord) {
+    if (publicationIdAtEnd && qualifiesAsRide) {
       markRouteActivityRideCompletedOptimistic(publicationIdAtEnd);
       onRideEndedWithPublication?.(publicationIdAtEnd);
     }
@@ -762,6 +766,8 @@ export function useRideEndAndPersistence(options: UseRideEndAndPersistenceOption
     pedalActiveSecRef,
     calorieSessionSnapshotRef,
     calorieSignalGapRef,
+    finishIntervalWorkouts,
+    isQuickIntervalRoute,
     publicationIdRef,
     newRoadMetersAtEnd,
     publishedCatalogRef,

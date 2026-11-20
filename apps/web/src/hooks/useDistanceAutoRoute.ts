@@ -272,6 +272,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
       point: LngLat;
       targetKm: number;
       profile: RouteProfile;
+      onApplied?: (geometry: ScoredAutoRoute["route"]["geometry"]) => void;
     }): Promise<DistanceAutoRouteSearchResult | null> => {
       const effectiveStart = input.start;
       const lngLat = input.point;
@@ -342,6 +343,7 @@ export function useDistanceAutoRoute(options: UseDistanceAutoRouteOptions) {
           geometry: response.geometry,
           summary: response.summary,
         });
+        input.onApplied?.(response.geometry);
 
         const isOffered = response.outcome === "offered";
         const isShortfall = response.outcome === "shortfall";

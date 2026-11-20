@@ -8,6 +8,8 @@ import { getRideSaveStatusLabel, getSavedRouteProgressStatusLabel } from "../../
 import { formatNewRoadHero, formatConquestStatusCopy } from "../../lib/ride/rideSessionPreview";
 import { formatCaloriesEstimateLabel } from "../../lib/ride/caloriesEstimate";
 import type { RideStory } from "../../lib/ride/rideStory";
+import { formatRideIntervalClock } from "../../lib/ride/rideInterval";
+import type { IntervalWorkoutRecord } from "../../lib/ride/intervalWorkout";
 import type { RideRankChangeLine } from "../leaderboard/leaderboardLiveRank";
 
 import { useDialogFocus } from "../ui/useDialogFocus";
@@ -69,11 +71,74 @@ type RideSummarySheetProps = {
   /** 이번 주 순위 변화 한 줄 — 탭하면 큰 리더보드 */
   rankChange?: RideRankChangeLine | null;
   onOpenLeaderboard?: () => void;
+  /** 사용자가 느낀 강도. workoutId 는 이 주행 안의 개별 인터벌 수행 ID다. */
+  onIntervalFeedback?: (workoutId: string, effort: "easier" | "as-planned" | "harder") => void | Promise<void>;
   /**
    * RIDE-CLAIM-RESULT-1: 이미 로드된 내 도로망 geometries.
    * 세션 bounds 클리핑은 preview lib 에서 수행. 새 조회 없음.
    */
 };
+
+/** 종료 평가를 다른 주행에 승계하지 않도록 상위에서 recordId를 key로 준다. */
+function IntervalWorkoutSummary({ workouts, onFeedback }: {
+  workouts: IntervalWorkoutRecord[];
+  onFeedback?: RideSummarySheetProps["onIntervalFeedback"];
+}) {
+  const [feedback, setFeedback] = useState<"easier" | "as-planned" | "harder" | null>(() => workouts[workouts.length - 1]?.feedback ?? null);
+  const [feedbackBusy, setFeedbackBusy] = useState(false);
+  const [feedbackError, setFeedbackError] = useState(false);
+  const meaningful = workouts.filter((workout) => workout.elapsedSec > 0);
+  if (meaningful.length === 0) return null;
+  const completed = meaningful.filter((workout) => workout.status === "completed").length;
+  const elapsedSec = meaningful.reduce((sum, workout) => sum + workout.elapsedSec, 0);
+  const knownCalories = meaningful.filter((workout) => workout.caloriesEstimate != null);
+  const calories = knownCalories.reduce((sum, workout) => sum + workout.caloriesEstimate!, 0);
+  const lastWorkout = meaningful[meaningful.length - 1]!;
+  const submitFeedback = async (effort: "easier" | "as-planned" | "harder") => {
+    if (!onFeedback || feedbackBusy) return;
+    const previous = feedback;
+    setFeedback(effort);
+    setFeedbackBusy(true);
+    setFeedbackError(false);
+    try {
+      await onFeedback(lastWorkout.id, effort);
+    } catch {
+      setFeedback(previous);
+      setFeedbackError(true);
+    } finally {
+      setFeedbackBusy(false);
+    }
+  };
+  return (
+    <section className="ride-summary__interval" aria-label="인터벌 수행 결과">
+      <p className="ride-summary__interval-result">
+        <strong>인터벌</strong><span>프로그램 완료 {completed}/{meaningful.length}회 · 수행 {formatRideIntervalClock(elapsedSec)}</span>
+      </p>
+      <p className="ride-summary__interval-calories">
+        {knownCalories.length > 0
+          ? `선택 강도 기준 추정 ${Math.round(calories)} kcal${knownCalories.length < meaningful.length ? " · 일부 구간 미산정" : ""}`
+          : "칼로리 미산정 · 페달 활동시간과 체중이 필요해요"}
+      </p>
+      {onFeedback ? (
+        <fieldset className="ride-summary__interval-feedback">
+          <legend>{meaningful.length > 1 ? "마지막 인터벌은 어땠나요? (선택)" : "오늘 인터벌은 어땠나요? (선택)"}</legend>
+          <div>
+            {([
+              { id: "easier", label: "목표보다 편했어요" },
+              { id: "as-planned", label: "목표와 비슷했어요" },
+              { id: "harder", label: "목표보다 힘들었어요" },
+            ] as const).map((option) => (
+              <button key={option.id} type="button" aria-pressed={feedback === option.id} disabled={feedbackBusy}
+                onClick={() => void submitFeedback(option.id)}>{option.label}</button>
+            ))}
+          </div>
+          {feedbackBusy ? <p role="status">체감 평가를 저장하고 있어요</p> : null}
+          {feedbackError ? <p role="alert">체감 평가를 저장하지 못했어요. 다시 선택해 주세요.</p> : null}
+        </fieldset>
+      ) : null}
+    </section>
+  );
+}
 
 /**
  * 주행 종료 후 하단 시트.
@@ -397,6 +462,10 @@ export function RideSummarySheet(props: RideSummarySheetProps) {
             </span>
           ) : null}
         </div>
+
+        {result?.intervalWorkouts?.length ? (
+          <IntervalWorkoutSummary key={result.recordId} workouts={result.intervalWorkouts} onFeedback={props.onIntervalFeedback} />
+        ) : null}
 
         {props.onGuestLinkGoogle ? (
           <div className="ride-summary__guest-cta" role="group" aria-label="기록 지키기">
