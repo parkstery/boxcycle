@@ -13,7 +13,7 @@ test.use({ viewport: { width: 800, height: 360 } });
 test.describe.configure({ timeout: 110_000 });
 test.skip(!emulator, '로컬 Firestore 에뮬레이터 전용');
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page }, testInfo) => {
   page.setDefaultTimeout(15_000);
   await page.route(/\/getDistanceAutoRoute(?:\?|$)/, async (route) => {
     const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' };
@@ -36,7 +36,7 @@ test.beforeEach(async ({ page }) => {
   const settings = page.getByRole('dialog', { name: '인터벌 운동 설정', exact: true });
   await settings.getByRole('button', { name: '직접 조절', exact: true }).click();
   for (const [name, value] of [
-    ['고강도 시간 초', '15'], ['저강도 시간 초', '5'], ['반복 수', '1'],
+    ['고강도 시간 초', testInfo.title.includes(' manual:') ? '40' : '15'], ['저강도 시간 초', '5'], ['반복 수', '1'],
     ['라운드 수', '1'], ['라운드 사이 휴식 시간 초', '0'], ['준비 시간 초', '0'], ['마무리 시간 초', '0'],
   ]) await settings.getByRole('spinbutton', { name, exact: true }).fill(value);
   await settings.getByRole('button', { name: '접기', exact: true }).click();
@@ -58,7 +58,7 @@ for (const mode of ['auto', 'manual'] as const) {
     await page.getByRole('button', { name: '주행 시작', exact: true }).click();
     await expect(end).toBeVisible();
     if (mode === 'manual') {
-      await expect(page.locator('[data-phase="work"] [role="timer"]')).toHaveAttribute('aria-label', /남은 시간 [1-5]초/, { timeout: 20_000 });
+      await expect(page.locator('[data-phase="work"] [role="timer"]')).toHaveAttribute('aria-label', /남은 시간 1[5-9]초/, { timeout: 40_000 });
       if (!(await end.isVisible())) await page.mouse.click(520, 200);
       await end.click();
     }

@@ -9,8 +9,8 @@ import { parseWeightKg } from "./caloriesEstimate";
 
 export type WorkoutIntensity = "light" | "moderate" | "vigorous";
 export type IntervalWorkoutFeedback = "easier" | "as-planned" | "harder";
-export type IntervalWorkoutPhase = Exclude<RideIntervalPhase, "complete">;
-export type PhaseSeconds = Record<IntervalWorkoutPhase, number>;
+type IntervalWorkoutPhase = Exclude<RideIntervalPhase, "complete">;
+type PhaseSeconds = Record<IntervalWorkoutPhase, number>;
 
 /**
  * Self-selected stationary-cycle categories, not measured output or an RPE→MET conversion.
@@ -60,7 +60,7 @@ function emptyPhases(): PhaseSeconds {
   return { warmup: 0, work: 0, recovery: 0, rest: 0, cooldown: 0 };
 }
 
-export function isWorkoutIntensity(value: unknown): value is WorkoutIntensity {
+function isWorkoutIntensity(value: unknown): value is WorkoutIntensity {
   return value === "light" || value === "moderate" || value === "vigorous";
 }
 

@@ -213,7 +213,7 @@ export function aggregateRideStatsForLocalDay(
   return { stats, range };
 }
 
-export type IntervalWorkoutStats = {
+type IntervalWorkoutStats = {
   started: number;
   completed: number;
   elapsedSec: number;

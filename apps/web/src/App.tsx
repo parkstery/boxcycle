@@ -173,9 +173,7 @@ import {
 import { useAppTrail } from "./hooks/useAppTrail";
 import { useRoutePlanning } from "./hooks/useRoutePlanning";
 import { useScreenWakeLock } from "./hooks/useScreenWakeLock";
-import { saveIntervalWorkoutFeedback } from "./lib/ride/repo/firestoreRides";
-import { loadRideSessions, saveRideSessions } from "./lib/ride/rideSessionsStorage";
-import type { IntervalWorkoutFeedback } from "./lib/ride/intervalWorkout";
+import { useIntervalWorkoutFeedback } from "./hooks/useIntervalWorkoutFeedback";
 import { useRecentRideSessions } from "./hooks/useRecentRideSessions";
 import { usePublicationCatalogHub } from "./hooks/usePublicationCatalogHub";
 import { usePublicRouteReviewMeta } from "./hooks/usePublicRouteReviewMeta";
@@ -850,26 +848,7 @@ export default function App() {
     setProgressAppliedSeq((n) => n + 1);
   }, []);
 
-  const feedbackOwnerRef = useRef(user?.uid);
-  useEffect(() => { feedbackOwnerRef.current = user?.uid; }, [user?.uid]);
-  const handleIntervalFeedback = async (workoutId: string, effort: IntervalWorkoutFeedback) => {
-    const result = lastRideResult;
-    const owner = user;
-    if (!result || !owner || !result.intervalWorkouts?.some((workout) => workout.id === workoutId)) return;
-    if (configured) {
-      if (!result.serverRideId) throw new Error("주행 기록 저장 후 다시 선택해주세요.");
-      await saveIntervalWorkoutFeedback(result.serverRideId, workoutId, effort);
-    }
-    if (feedbackOwnerRef.current !== owner.uid) return;
-    const updated = loadRideSessions().map((session) => session.ownerUid === owner.uid && session.id === result.recordId
-      ? { ...session, intervalWorkouts: session.intervalWorkouts?.map((workout) => workout.id === workoutId ? { ...workout, feedback: effort } : workout) }
-      : session);
-    saveRideSessions(updated, owner);
-    setRecentSessions(updated);
-    setLastRideResult((previous) => previous?.recordId === result.recordId ? {
-      ...previous, intervalWorkouts: previous.intervalWorkouts?.map((workout) => workout.id === workoutId ? { ...workout, feedback: effort } : workout),
-    } : previous);
-  };
+  const handleIntervalFeedback = useIntervalWorkoutFeedback({ user, configured, result: lastRideResult, setRecentSessions, setLastRideResult });
 
   const { handleEndRide } = useRideEndAndPersistence({
     newRoadMetersAtEnd: conquestLiveMeters,
