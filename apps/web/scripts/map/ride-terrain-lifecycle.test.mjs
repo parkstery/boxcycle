@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import { runInNewContext } from 'node:vm';
 import test from 'node:test';
 import { RideTerrainGuard, readRideTerrainHealth, TERRAIN_GUARD_INTERVAL_MS } from '../../src/components/map/rideTerrainGuard.ts';
+import { DEFAULT_MAP_STYLE, mapStyleRenderSettings, nextRideComparisonMapStyle } from '../../src/lib/map/rtwMapConfig.ts';
 import { easeMapNorthUpAfterRideEnd,rideEndOverviewZoom,shouldEaseNorthUpOnRideActiveChange,RIDE_END_NORTH_UP_DURATION_MS } from '../../src/lib/map/rideEndNorthUp.ts';
 const ts=createRequire(import.meta.url)('typescript');
 function effect(file,match,context){
@@ -30,6 +31,7 @@ function fakeMap(){
 test('production MapView effect observes, restores, flattens and disposes without retrying user off',()=>{
   const map=fakeMap();let now=0,tick,cleared=false;const changes=[];const diagnostics=[];let cutTerrain=false;
   const context={mapRef:{current:map},mapLoaded:true,enable3D:true,rideActive:true,
+    loadedMapStyleUrlRef:{current:DEFAULT_MAP_STYLE},currentStyleRef:{current:DEFAULT_MAP_STYLE},mapStyleRenderSettings,
     terrainFallbackRef:{current:false},onTerrainFallbackChangeRef:{current:v=>changes.push(v)},
     liveLngLatRef:{current:[127,37]},performance:{now:()=>now},document:{hidden:false},
     RideTerrainGuard,readRideTerrainHealth,TERRAIN_GUARD_INTERVAL_MS,BUILDING_LAYER_ID:'buildings',TERRAIN_SOURCE_ID:'dem',
@@ -75,13 +77,17 @@ test('production ride-end effect removes terrain/buildings, keeps center and use
   assert.equal(context.mapZoomRef.current,map.lastEase.zoom);
   assert.equal(map.lastEase.center.lng,127);assert.equal(map.lastEase.center.lat,37);
 });
-test('production App end resets requested 3D after the arrival scene; pause preserves it',()=>{
+test('production App end resets 3D and the comparison style after the arrival scene; pause preserves both',()=>{
   for(const [status, arrivalSceneVisible] of [['idle',false],['idle',true],['paused',false]]){
+    const dusk = nextRideComparisonMapStyle(nextRideComparisonMapStyle(DEFAULT_MAP_STYLE));
+    let style = dusk;
     const values=[];const context={rideStatus:status,arrivalSceneVisible,rideCameraRestoreRef:{current:{follow:'free',zoom:18}},
       setEnable3D:v=>values.push(['3d',v]),setTerrainFallback:v=>values.push(['fallback',v]),setFollowMode:()=>{},setMapZoom:()=>{},setActiveQuickCamera:()=>{},
+      setMapStyle:update=>{style=update(style);},DEFAULT_MAP_STYLE,mapStyleRenderSettings,
       camera1StyleBeforeEnterRef:{current:null},camera1UserToggledStyleRef:{current:false},
     };
     effect('../../src/App.tsx','if (rideStatus === "idle" && !arrivalSceneVisible && rideCameraRestoreRef.current)',context)();
     assert.deepEqual(values,status==='idle'&&!arrivalSceneVisible?[['3d',false],['fallback',false]]:[]);
+    assert.equal(style,status==='idle'&&!arrivalSceneVisible?DEFAULT_MAP_STYLE:dusk);
   }
 });
