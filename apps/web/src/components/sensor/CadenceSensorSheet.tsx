@@ -2,7 +2,6 @@ import { useEffect, useRef } from "react";
 import { cadenceRpmToVirtualSpeedKmh, type RideInputMode } from "../../lib/sensor/cadenceRideInput";
 import {
   cadenceSensorShortStatus,
-  rideInputBlockedReason,
   type BleCrankRpmUiState,
   type RideInputReadiness,
 } from "../../lib/sensor/cadenceSensorUi";
@@ -41,7 +40,7 @@ function rpmLine(props: CadenceSensorSheetProps): string | null {
   if (props.crankRpm == null) return "페달을 돌려 센서를 확인하세요";
   const rpm = Math.max(0, Math.round(props.crankRpm));
   const kmh = Math.round(cadenceRpmToVirtualSpeedKmh(props.crankRpm));
-  return `${rpm} rpm · 가상 ${kmh} km/h`;
+  return `${rpm} rpm · ${kmh} km/h`;
 }
 
 /**
@@ -77,8 +76,7 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
     props.capable && !connected && !connecting && (allowFirstSetup || cadenceMode);
   const rpm = rpmLine(props);
   const manualReady = props.readiness === "manual-ready";
-  const blockedReason = rideInputBlockedReason(props.readiness);
-  // 체험 속도가 명시 선택된 상태에서는 제목 표기만 바꾼다 — dialog aria-label·콜백·조건 불변.
+  // 체험 속도를 선택한 상태는 중복된 센서 상태 안내를 생략한다.
   const manualSelected = manualReady && !cadenceMode;
   const sensorOnly = props.leaderboardSensorOnly ?? true;
   const manualRankLabel = sensorOnly ? "센서 없이 달리기 · 순위 제외" : "센서 없이 달리기 · 테스트 중 순위 포함";
@@ -93,15 +91,6 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
         onClick={onClose}
       />
       <div className="cadence-sheet__panel settings-surface__panel" ref={panelRef}>
-        <section className="cadence-sheet__hero" aria-label="센서 상태">
-          <span className="cadence-sheet__hero-label">케이던스</span>
-          <p className={`cadence-sheet__hero-value${connected && props.crankRpm != null ? "" : " cadence-sheet__hero-value--empty"}`} aria-label={rpm ?? "센서를 연결해 페달을 확인하세요"}>
-            {manualSelected ? <svg className="cadence-sheet__mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M4 19a9 9 0 1 1 16 0M12 4v3M5 8l2 2M19 8l-2 2M12 15l3-4" /><circle cx="12" cy="15" r="1.5" /></svg> : null}
-            {connected && props.crankRpm != null ? <>{Math.max(0, Math.round(props.crankRpm))}{" "}<small>rpm</small></> : connected ? "페달을 돌려 보세요" : manualSelected ? "체험 속도" : "센서를 연결하세요"}
-          </p>
-          <p className="cadence-sheet__status"><span className={connected ? "is-connected" : ""} />{manualSelected ? "센서 없이 달리기" : cadenceSensorShortStatus(props)}</p>
-          {props.deviceLabel ? <p className="cadence-sheet__device">{props.deviceLabel}</p> : null}
-        </section>
         <div className="cadence-sheet__detail">
         {/*
          * 폰에는 Escape 키가 없고, 가로에서는 시트가 화면을 거의 채워 scrim 이 얇은 띠만
@@ -123,27 +112,17 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
           </button>
         </div>
 
-        <p className="cadence-sheet__intro">{manualSelected ? "원하는 속도로 가볍게 달려보세요." : <>페달을 돌리면 왼쪽 숫자가 바뀌어요.<br />{sensorOnly ? "센서로 달린 주행만 순위에 올라가요." : "테스트 중에는 센서 없는 주행도 순위에 올라가요."}</>}</p>
-
-        {/* Go 가 잠긴 이유는 실제로 해소할 수 있는 이 자리에서만 말한다(RouteDock 에 두지 않는다) */}
-        {/* 「센서를 연결해 페달을 확인하거나 체험 속도를 선택하세요」(choice-required)는
-            아래 두 버튼이 이미 말한다 — 제거(2026-09-18 Chief). 연결 중·페달 대기 안내는 남긴다. */}
-        {blockedReason && props.readiness !== "choice-required" ? (
-          <p className="cadence-sheet__blocked" role="status">
-            {blockedReason}
-          </p>
+        {!manualSelected ? (
+          <section className="cadence-sheet__status" role="status" aria-label="센서 상태">
+            <span className={connected ? "is-connected" : ""} />
+            <span>{rpm ?? cadenceSensorShortStatus(props)}</span>
+            {props.deviceLabel ? <span className="cadence-sheet__device">{props.deviceLabel}</span> : null}
+          </section>
         ) : null}
 
         {!props.capable ? (
           <p className="cadence-sheet__help">
-            이 브라우저는 Web Bluetooth 를 지원하지 않습니다. Chrome 또는 Edge 에서 HTTPS 또는
-            localhost 로 열어 주세요.
-          </p>
-        ) : null}
-
-        {props.capable && props.riding && !cadenceMode ? (
-          <p className="cadence-sheet__help">
-            체험 속도로 주행 중입니다 — 센서는 다음 주행 전에 설정하세요.
+            Bluetooth 미지원 · Chrome 또는 Edge에서 연결하세요.
           </p>
         ) : null}
 
@@ -164,18 +143,14 @@ export function CadenceSensorSheet(props: CadenceSensorSheetProps) {
         */}
         {!cadenceMode && (!props.riding || ALLOW_MANUAL_SPEED_WHILE_RIDING) ? (
           <div className="cadence-sheet__speed">
-            {!manualSelected ? <span className="cadence-sheet__speed-label">{manualRankLabel}</span> : null}
             <SessionSpeedControl
               speedKmh={props.manualSpeedKmh}
               onSpeedKmh={props.onManualSpeedKmh}
             />
           </div>
         ) : null}
-        {manualSelected ? <p className="cadence-sheet__rank-note">{sensorOnly ? "센서로 달린 주행만 순위에 올라가요." : "테스트 중에는 센서 없이도 순위에 올라가요."}</p> : null}
 
         <div className="cadence-sheet__actions">
-          {connecting ? <span className="cadence-sheet__help">검색·연결 중…</span> : null}
-
           {showReconnect ? (
             <button
               type="button"
