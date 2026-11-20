@@ -75,13 +75,13 @@ test('production ride-end effect removes terrain/buildings, keeps center and use
   assert.equal(context.mapZoomRef.current,map.lastEase.zoom);
   assert.equal(map.lastEase.center.lng,127);assert.equal(map.lastEase.center.lat,37);
 });
-test('production App end resets requested 3D; pause preserves it',()=>{
-  for(const status of ['idle','paused']){
-    const values=[];const context={rideStatus:status,rideCameraRestoreRef:{current:{follow:'free',zoom:18}},
+test('production App end resets requested 3D after the arrival scene; pause preserves it',()=>{
+  for(const [status, arrivalSceneVisible] of [['idle',false],['idle',true],['paused',false]]){
+    const values=[];const context={rideStatus:status,arrivalSceneVisible,rideCameraRestoreRef:{current:{follow:'free',zoom:18}},
       setEnable3D:v=>values.push(['3d',v]),setTerrainFallback:v=>values.push(['fallback',v]),setFollowMode:()=>{},setMapZoom:()=>{},setActiveQuickCamera:()=>{},
       camera1StyleBeforeEnterRef:{current:null},camera1UserToggledStyleRef:{current:false},
     };
-    effect('../../src/App.tsx','if (rideStatus === "idle" && rideCameraRestoreRef.current)',context)();
-    assert.deepEqual(values,status==='idle'?[['3d',false],['fallback',false]]:[]);
+    effect('../../src/App.tsx','if (rideStatus === "idle" && !arrivalSceneVisible && rideCameraRestoreRef.current)',context)();
+    assert.deepEqual(values,status==='idle'&&!arrivalSceneVisible?[['3d',false],['fallback',false]]:[]);
   }
 });

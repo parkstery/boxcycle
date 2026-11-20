@@ -70,6 +70,9 @@ export const RTW_LAYER_RANK = {
   "boxcycle-global-live-presence-dot": 810,
   "boxcycle-global-live-presence-label": 820,
 
+  /** 주행 이정표와 피니시 게이트 */
+  "boxcycle-ride-milestones": 890,
+
   /**
    * 라이더 — **사람이 최상단**이다. 내 위치를 점·흔적이 덮으면 주행을 읽을 수 없다.
    * 두 모드는 동시에 존재하지 않는다(`preserved` 또는 `glb`).

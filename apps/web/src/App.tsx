@@ -619,6 +619,17 @@ export default function App() {
   const { enabled: rideIntervalEnabled, onEnabled: handleRideIntervalEnabled, view: rideInterval, config: rideIntervalConfig, onConfig: handleRideIntervalConfig, runKey: rideIntervalRunKey, intensity: intervalIntensity, onIntensity: setIntervalIntensity, sampleWorkouts, finishWorkouts } =
     useRideInterval(rideStatus, rideMetrics.accumulatedMs, false, undefined, { ownerUid: user?.uid ?? null, weightKg: calorieProfile.weightKg, activeSecRef: pedalActiveSecRef, signalGapRef: calorieSignalGapRef });
   const isQuickIntervalRoute = rideIntervalEnabled && !routeLoading && quickIntervalGeometry !== null && quickIntervalGeometry === routeGeometry;
+  const debugMapPhase = getMapDebugPhase();
+  const debugMapIsolationActive = debugMapPhase === "A" || debugMapPhase === "B" || debugMapPhase === "C";
+  const { arrivalToastTick, arrivalSceneStartedAt, resetArrivalToast, resetArrivalGate } = useRideArrivalAutoEnd({
+    rideStatus,
+    routeDistanceMeters,
+    virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
+    endRideRef: handleEndRideRef,
+    showArrivalScene: Boolean(MAPBOX_TOKEN && routeGeometry && enable3D &&
+      followMode !== "free" && pageVisible && !debugMapIsolationActive),
+  });
+  const arrivalSceneVisible = arrivalSceneStartedAt != null && pageVisible;
   useEffect(() => {
     if (!isQuickIntervalRoute) setQuickIntervalGeometry(null);
   }, [isQuickIntervalRoute]);
@@ -665,7 +676,7 @@ export default function App() {
       }
       return;
     }
-    if (rideStatus === "idle" && rideCameraRestoreRef.current) {
+    if (rideStatus === "idle" && !arrivalSceneVisible && rideCameraRestoreRef.current) {
       const { follow, zoom } = rideCameraRestoreRef.current;
       rideCameraRestoreRef.current = null;
       setEnable3D(false);
@@ -682,7 +693,7 @@ export default function App() {
       }
       setActiveQuickCamera(null);
     }
-  }, [rideStatus, camera1StyleBeforeEnterRef, camera1UserToggledStyleRef, followModeSnapshotRef, mapZoomSnapshotRef, rideCameraRestoreRef, setActiveQuickCamera, setEnable3D, setFollowMode, setLockBaseHeading, setMapStyle, setMapZoom, setRideCameraDistanceM, setRideCameraSpanFloorMode, setRideFollowCameraNonce, setRideJoinBurstNonce]);
+  }, [rideStatus, arrivalSceneVisible, camera1StyleBeforeEnterRef, camera1UserToggledStyleRef, followModeSnapshotRef, mapZoomSnapshotRef, rideCameraRestoreRef, setActiveQuickCamera, setEnable3D, setFollowMode, setLockBaseHeading, setMapStyle, setMapZoom, setRideCameraDistanceM, setRideCameraSpanFloorMode, setRideFollowCameraNonce, setRideJoinBurstNonce]);
 
   const { recentSessions, recentSessionsLoading, setRecentSessions, reloadRecentSessionsFromLocalStorage } =
     useRecentRideSessions({
@@ -1048,10 +1059,6 @@ export default function App() {
     () => resolveTrailDisplayLabel(sanitizedTrailId, trailMetaForDisplay),
     [sanitizedTrailId, trailMetaForDisplay],
   );
-  const debugMapPhase = getMapDebugPhase();
-  const debugMapIsolationActive =
-    debugMapPhase === "A" || debugMapPhase === "B" || debugMapPhase === "C";
-
   const coursePeerHudIds = useMemo(
     () => coursePeerHud.map((p) => p.id),
     [coursePeerHud],
@@ -1266,12 +1273,6 @@ export default function App() {
     intervalCoachingActive: rideIntervalEnabled && rideStatus !== "idle" && (rideInterval?.phase !== "complete" || coachingResumeRunKey !== rideIntervalRunKey),
   });
   const rideElevationProfileLoading = rideElevationProfile.loading;
-  const { arrivalToastTick, resetArrivalToast, resetArrivalGate } = useRideArrivalAutoEnd({
-    rideStatus,
-    routeDistanceMeters,
-    virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
-    endRideRef: handleEndRideRef,
-  });
 
   /** 비로그인 상태에서는 사용자 시트 액션(Trailhead/로그아웃)이 없으므로 시트를 닫음 */
   useEffect(() => {
@@ -3216,7 +3217,14 @@ export default function App() {
               resumeAnchor: resumePreview
                 ? { lngLat: resumePreview.lngLat, label: resumePreview.label }
                 : null,
-              rideActive: rideStatus === "running" || rideStatus === "paused",
+              rideActive: rideStatus === "running" || rideStatus === "paused" || arrivalSceneVisible,
+              rideMilestoneProgress: rideStatus !== "idle" || arrivalSceneVisible
+                ? {
+                    distanceM: rideMetrics.virtualDistanceMeters,
+                    startOffsetM: sessionStartOffsetMeters,
+                    arrivalStartedAt: arrivalSceneVisible ? arrivalSceneStartedAt : null,
+                  }
+                : null,
               rideCameraDistanceM,
               lockBaseHeading,
               activeQuickCamera,
@@ -3650,7 +3658,7 @@ export default function App() {
 
       <RideSummarySheet
         riderName={user ? selfRiderDisplayName(user) : undefined}
-        open={summaryVisible}
+        open={summaryVisible && !arrivalSceneVisible}
         result={lastRideResult}
         onIntervalFeedback={handleIntervalFeedback}
         story={rideEndStory}

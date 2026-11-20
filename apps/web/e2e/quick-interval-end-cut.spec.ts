@@ -15,6 +15,19 @@ test.skip(!emulator, '로컬 Firestore 에뮬레이터 전용');
 
 test.beforeEach(async ({ page }, testInfo) => {
   page.setDefaultTimeout(15_000);
+  if (testInfo.title.includes('FINISH')) {
+    await page.addInitScript(() => {
+      const diagnostics = globalThis as unknown as { milestoneErrors: string[] };
+      diagnostics.milestoneErrors = [];
+      const original = console.error;
+      console.error = (...args: unknown[]) => {
+        if (String(args[0]).includes('Maximum update depth')) {
+          diagnostics.milestoneErrors.push(`${args.map(String).join(' ')}\n${new Error().stack}`);
+        }
+        original(...args);
+      };
+    });
+  }
   await page.route(/\/getDistanceAutoRoute(?:\?|$)/, async (route) => {
     const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' };
     if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
@@ -23,7 +36,7 @@ test.beforeEach(async ({ page }, testInfo) => {
     const start: [number, number] = input.start;
     const end: [number, number] = [start[0] + 0.02, start[1]];
     return route.fulfill({ headers: cors, json: { result: {
-      status: 'found', outcome: 'exact', end, distance: routeMeters, duration: 180,
+      status: 'found', outcome: 'exact', end, distance: testInfo.title.includes('FINISH') ? 600 : routeMeters, duration: 180,
       routeTokenBalance: 99, targetDistanceMeters: input.targetDistanceMeters,
       geometry: { type: 'LineString', coordinates: [start, end] }, summary: '간편 인터벌 자르기 검수',
     } } });
@@ -36,19 +49,60 @@ test.beforeEach(async ({ page }, testInfo) => {
   const settings = page.getByRole('dialog', { name: '인터벌 운동 설정', exact: true });
   await settings.getByRole('button', { name: '직접 조절', exact: true }).click();
   for (const [name, value] of [
-    ['고강도 시간 초', testInfo.title.includes(' manual:') ? '40' : '15'], ['저강도 시간 초', '5'], ['반복 수', '1'],
+    ['고강도 시간 초', testInfo.title.includes('이정표') ? '75' : testInfo.title.includes(' manual:') ? '40' : '15'],
+    ['저강도 시간 초', '5'], ['반복 수', '1'],
     ['라운드 수', '1'], ['라운드 사이 휴식 시간 초', '0'], ['준비 시간 초', '0'], ['마무리 시간 초', '0'],
   ]) await settings.getByRole('spinbutton', { name, exact: true }).fill(value);
   await settings.getByRole('button', { name: '접기', exact: true }).click();
   await settings.getByRole('button', { name: '간편 인터벌 주행', exact: true }).click();
-  await expect(page.locator('[data-quick-interval-status]')).toHaveText('출발 위치를 맵에서 클릭하세요');
-  await page.mouse.click(520, 200);
-  await expect(page.getByRole('button', { name: '주행 시작', exact: true })).toBeVisible();
+  const status = page.locator('[data-quick-interval-status]');
+  const pickPrompt = '출발 위치를 맵에서 클릭하세요';
+  const canvas = page.locator('.mapboxgl-canvas').first();
+  await expect(status).toHaveText(pickPrompt);
+  await expect(async () => {
+    if ((await status.textContent({ timeout: 500 }).catch(() => null)) === pickPrompt) {
+      await canvas.click({ position: { x: 450, y: 175 }, timeout: 1500 });
+    }
+    await expect.poll(() => status.textContent({ timeout: 500 }).catch(() => null), { timeout: 1600 }).not.toBe(pickPrompt);
+  }).toPass({ timeout: 15_000 });
+  await expect(page.getByRole('button', { name: '주행 시작', exact: true })).toBeVisible({ timeout: 20_000 });
   await expect(page.locator('.map-hud__rail-int--active')).toBeVisible();
   await ensureRideInputReady(page);
   const sensor = await openCadenceSheet(page);
-  await sensor.getByRole('slider', { name: '세션 속도 km/h' }).fill('50');
+  await sensor.getByRole('slider', { name: '세션 속도 km/h' }).fill(testInfo.title.includes('FINISH') ? '38' : '50');
   await closeCadenceSheet(page);
+});
+
+test('간편 인터벌 경로에서도 ¼과 HALF 이정표가 나타나고 통과하면 사라진다', async ({ page }) => {
+  await page.getByRole('button', { name: '주행 시작', exact: true }).click();
+  const marker = page.locator('[data-ride-milestone]');
+  for (const label of ['¼', 'HALF']) {
+    await expect(marker).toHaveAttribute('data-ride-milestone', label, { timeout: 30_000 });
+    await expect(page.locator('.ride-milestone-label')).toHaveCount(0);
+    await expect(marker).toHaveCount(0, { timeout: 15_000 });
+  }
+  await expect(page.getByRole('region', { name: '주행 결과' })).toBeHidden();
+});
+
+test('이정표 일시정지·재개와 FINISH 도착에서 반복 렌더 오류 없이 결과를 연다', async ({ page }) => {
+  await page.getByRole('button', { name: '주행 시작', exact: true }).click();
+  await expect(page.locator('.ride-milestone-label')).toContainText('FINISH', { timeout: 55_000 });
+  const pause = page.getByRole('button', { name: '일시정지', exact: true });
+  const body = page.locator('body');
+  if (await body.getAttribute('data-ride-controls') === 'hidden') await page.mouse.click(400, 180);
+  await expect(body).not.toHaveAttribute('data-ride-controls', 'hidden');
+  await pause.click();
+  await expect(page.getByRole('button', { name: '재개', exact: true })).toBeVisible();
+  const endPin = page.locator('.map-view__pin-marker--end');
+  await expect(endPin).toBeAttached();
+  await expect(endPin).toBeHidden();
+  await page.waitForTimeout(1000);
+  const readErrors = () => page.evaluate(() => (globalThis as unknown as { milestoneErrors: string[] }).milestoneErrors);
+  expect(await readErrors()).toEqual([]);
+  await page.getByRole('button', { name: '재개', exact: true }).click();
+  await expect(page.locator('.ride-milestone-label')).toContainText('FINISH', { timeout: 55_000 });
+  await expect(page.getByRole('region', { name: '주행 결과' })).toBeVisible({ timeout: 35_000 });
+  expect(await readErrors()).toEqual([]);
 });
 
 for (const mode of ['auto', 'manual'] as const) {

@@ -1,0 +1,16 @@
+.ride-milestone-label {
+  pointer-events: none;
+  white-space: nowrap;
+  border: 1px solid #ffce63;
+  border-radius: 5px;
+  padding: 3px 6px;
+  color: #fff2c6;
+  background: #2b2111ed;
+  box-shadow: 0 2px 8px #10151046;
+  font: 750 11px/1.25 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-ride-milestone="FINISH"] .map-view__pin-marker--end {
+  display: none;
+}

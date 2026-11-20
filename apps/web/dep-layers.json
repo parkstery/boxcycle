@@ -299,6 +299,7 @@
       "route/distanceAutoRouteEta.ts",
       "route/distanceAutoRouteGuideRing.ts",
       "route/intervalRouteDistance.ts",
+      "route/rideMilestones.ts",
       "route/fetchRouteElevations.ts",
       "route/publicRouteAutoReview.ts",
       "route/publicRouteContentPolicy.ts",
@@ -447,6 +448,7 @@
       "map/rideLabels.ts",
       "map/rideEndNorthUp.ts",
       "map/riderPreservedLayer.ts",
+      "map/rideMilestoneLayer.ts",
       "map/rtwMapConfig.ts"
     ],
     "debug": [

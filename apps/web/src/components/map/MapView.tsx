@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/refs */
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import mapboxgl from "mapbox-gl";
+import { useRideMilestoneMap, type RideMilestoneProgress } from "./useRideMilestoneMap";
 import { RideTerrainGuard, readRideTerrainHealth, TERRAIN_GUARD_INTERVAL_MS } from "./rideTerrainGuard";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../../lib/map/disableMapboxTelemetry";
@@ -375,6 +376,7 @@ export type MapViewProps = {
    * 걸려 있어 개발·시험 빌드에서는 항상 false 라 정리가 통째로 안 걸린다.
    */
   rideActive?: boolean;
+  rideMilestoneProgress?: RideMilestoneProgress | null;
   /** 주행 카메라 라이더~카메라 거리(m) — 개발용 거리 슬라이더, 최적값 확정 후 제거 예정 */
   rideCameraDistanceM?: number;
   /** Quick Camera 6 — baseHeading 고정(북쪽=0). null 이면 일반 heading 소스 */
@@ -521,6 +523,7 @@ export function MapView({
   onMapLodViewport,
   rideFollowCameraNonce = 0,
   rideActive = false,
+  rideMilestoneProgress,
   rideCameraDistanceM = RIDE_CAMERA_DISTANCE_DEFAULT_M,
   lockBaseHeading = null,
   activeQuickCamera = null,
@@ -1824,6 +1827,8 @@ export function MapView({
       setMapLoaded(false);
     };
   }, [accessToken]);
+
+  useRideMilestoneMap(mapRef, mapLoaded, routeGeometry, routeDistanceMeters, rideMilestoneProgress, prefersReducedMotion);
 
   /** 경로 레이어 */
   useEffect(() => {

@@ -166,8 +166,8 @@ function meshName(object: Object3D): string {
 /**
  * 키트 → 지오메트리 → 머티리얼 → 텍스처 순서로 해제한다. 리그와 LOD2 정적 메시가 같이 쓴다.
  */
-export function disposeRiderObject(object: Object3D, visualKit: RiderVisualKit): void {
-  visualKit.dispose();
+export function disposeRiderObject(object: Object3D, visualKit?: RiderVisualKit): void {
+  visualKit?.dispose();
   const materials = new Set<unknown>();
   const textures = new Set<{ dispose: () => void }>();
   object.traverse((item) => {
