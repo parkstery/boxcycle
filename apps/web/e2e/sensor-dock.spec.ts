@@ -155,6 +155,11 @@ test.describe('센서 계기판 칸·RouteDock 손잡이', () => {
       for (const state of ['idle', 'ready', 'riding', 'paused'] as const) {
         await page.goto(`${preview}?state=${state}`);
         const c = (await cell(page).boundingBox())!;
+        const knob = (await cell(page).locator('.hud-cadence__knob').boundingBox())!;
+        const rpm = (await cell(page).locator('.hud-metrics__sensor-rpm').boundingBox())!;
+        const label = (await cell(page).locator('.hud-metrics__label').boundingBox())!;
+        expect(knob.x + knob.width, '센서 단추 다음 RPM 숫자').toBeLessThanOrEqual(rpm.x);
+        expect(Math.abs(label.x + label.width/2 - rpm.x - rpm.width/2), 'RPM 라벨은 숫자 위').toBeLessThanOrEqual(1);
         boxes.push({ x: Math.round(c.x), w: Math.round(c.width) });
         const menu = (await page.locator('.edge-panel-tab--left').boundingBox())!;
         expect(Math.round(menu.x)).toBe(20);

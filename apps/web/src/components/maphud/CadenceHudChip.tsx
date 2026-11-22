@@ -9,7 +9,7 @@ export type CadenceChipBinding = {
 };
 
 /**
- * Chief 11-18 후속: 계기판 맨 왼쪽 칸 — 위 「RPM」, 아래 페달 회전수 + LED(신호 없으면 「--」).
+ * Chief 11-18 후속: 계기판 맨 왼쪽 칸 — 센서 단추 다음 RPM 숫자(신호 없으면 「--」).
  * 폭은 고정이라 숫자가 바뀌어도 계기판이 밀리지 않는다. 누르면 센서 상세 설정.
  * 접근성 이름은 칩과 같은 「케이던스 센서: …」(`cadenceChipView`).
  */
@@ -37,13 +37,13 @@ export function CadenceMetricCell({
     >
       <span className="hud-metrics__label">RPM</span>
       <span className="hud-metrics__value hud-metrics__value--sensor">
-        <span className="hud-metrics__sensor-rpm">{rpm}</span>
         {/* Chief 11-03 A2: LED(13px 그대로)를 볼록한 흰 둥근 단추 안에 — 누르는 버튼으로 읽히게. */}
         <span className="hud-cadence__knob" aria-hidden>
           <span
             className={`hud-cadence__led hud-cadence__led--${view.led}${view.pulsing ? " hud-cadence__led--pulse" : ""}`}
           />
         </span>
+        <span className="hud-metrics__sensor-rpm">{rpm}</span>
       </span>
     </button>
   );
