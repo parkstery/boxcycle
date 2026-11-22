@@ -1,0 +1,245 @@
+{
+  "metricDescriptors": [
+    {
+      "name": "projects/boxcycle-dc2df/metricDescriptors/firestore.googleapis.com/document/billable_managed_delete_write_units",
+      "metricKind": "DELTA",
+      "valueType": "INT64",
+      "unit": "1",
+      "description": "The number of billable managed delete write units. This metric is only available for Firestore databases with Enterprise Edition.",
+      "displayName": "Billable managed delete write units",
+      "type": "firestore.googleapis.com/document/billable_managed_delete_write_units",
+      "metadata": {
+        "launchStage": "GA",
+        "samplePeriod": "60s",
+        "ingestDelay": "240s",
+        "timeSeriesResourceHierarchyLevel": [
+          "PROJECT"
+        ]
+      },
+      "launchStage": "GA",
+      "monitoredResourceTypes": [
+        "firestore.googleapis.com/Database"
+      ]
+    },
+    {
+      "name": "projects/boxcycle-dc2df/metricDescriptors/firestore.googleapis.com/document/delete_count",
+      "labels": [
+        {
+          "key": "module",
+          "description": "The service/module name."
+        },
+        {
+          "key": "version",
+          "description": "The version name."
+        }
+      ],
+      "metricKind": "DELTA",
+      "valueType": "INT64",
+      "unit": "1",
+      "description": "The number of successful document deletes.",
+      "displayName": "Document Deletes",
+      "type": "firestore.googleapis.com/document/delete_count",
+      "metadata": {
+        "launchStage": "GA",
+        "samplePeriod": "60s",
+        "ingestDelay": "240s",
+        "timeSeriesResourceHierarchyLevel": [
+          "PROJECT"
+        ]
+      },
+      "launchStage": "GA",
+      "monitoredResourceTypes": [
+        "firestore_instance"
+      ]
+    },
+    {
+      "name": "projects/boxcycle-dc2df/metricDescriptors/firestore.googleapis.com/document/delete_ops_count",
+      "metricKind": "DELTA",
+      "valueType": "INT64",
+      "unit": "1",
+      "description": "The number of successful document deletes.",
+      "displayName": "Document deletes",
+      "type": "firestore.googleapis.com/document/delete_ops_count",
+      "metadata": {
+        "launchStage": "GA",
+        "samplePeriod": "60s",
+        "ingestDelay": "240s",
+        "timeSeriesResourceHierarchyLevel": [
+          "PROJECT"
+        ]
+      },
+      "launchStage": "GA",
+      "monitoredResourceTypes": [
+        "firestore.googleapis.com/Database"
+      ]
+    },
+    {
+      "name": "projects/boxcycle-dc2df/metricDescriptors/firestore.googleapis.com/document/read_count",
+      "labels": [
+        {
+          "key": "module",
+          "description": "The service/module name."
+        },
+        {
+          "key": "version",
+          "description": "The version name."
+        },
+        {
+          "key": "type",
+          "description": "The type of the read (e.g. 'LOOKUP', 'QUERY')."
+        }
+      ],
+      "metricKind": "DELTA",
+      "valueType": "INT64",
+      "unit": "1",
+      "description": "The number of successful document reads from queries or lookups.",
+      "displayName": "Document Reads",
+      "type": "firestore.googleapis.com/document/read_count",
+      "metadata": {
+        "launchStage": "GA",
+        "samplePeriod": "60s",
+        "ingestDelay": "240s",
+        "timeSeriesResourceHierarchyLevel": [
+          "PROJECT"
+        ]
+      },
+      "launchStage": "GA",
+      "monitoredResourceTypes": [
+        "firestore_instance"
+      ]
+    },
+    {
+      "name": "projects/boxcycle-dc2df/metricDescriptors/firestore.googleapis.com/document/read_ops_count",
+      "labels": [
+        {
+          "key": "type",
+          "description": "The type of the read, one of [LOOKUP, QUERY]."
+        }
+      ],
+      "metricKind": "DELTA",
+      "valueType": "INT64",
+      "unit": "1",
+      "description": "The number of successful document reads from queries or lookups.",
+      "displayName": "Document reads",
+      "type": "firestore.googleapis.com/document/read_ops_count",
+      "metadata": {
+        "launchStage": "GA",
+        "samplePeriod": "60s",
+        "ingestDelay": "240s",
+        "timeSeriesResourceHierarchyLevel": [
+          "PROJECT"
+        ]
+      },
+      "launchStage": "GA",
+      "monitoredResourceTypes": [
+        "firestore.googleapis.com/Database"
+      ]
+    },
+    {
+      "name": "projects/boxcycle-dc2df/metricDescriptors/firestore.googleapis.com/document/ttl_deletion_count",
+      "metricKind": "DELTA",
+      "valueType": "INT64",
+      "unit": "1",
+      "description": "Total count of documents deleted by TTL services.",
+      "displayName": "TTL deletion count",
+      "type": "firestore.googleapis.com/document/ttl_deletion_count",
+      "metadata": {
+        "launchStage": "GA",
+        "samplePeriod": "60s",
+        "ingestDelay": "240s",
+        "timeSeriesResourceHierarchyLevel": [
+          "PROJECT"
+        ]
+      },
+      "launchStage": "GA",
+      "monitoredResourceTypes": [
+        "firestore.googleapis.com/Database",
+        "firestore_instance"
+      ]
+    },
+    {
+      "name": "projects/boxcycle-dc2df/metricDescriptors/firestore.googleapis.com/document/ttl_expiration_to_deletion_delays",
+      "metricKind": "DELTA",
+      "valueType": "DISTRIBUTION",
+      "unit": "s",
+      "description": "Time elapsed between when a document with a TTL expired, and when it was actually deleted.",
+      "displayName": "TTL expiration to deletion delays",
+      "type": "firestore.googleapis.com/document/ttl_expiration_to_deletion_delays",
+      "metadata": {
+        "launchStage": "GA",
+        "samplePeriod": "60s",
+        "ingestDelay": "240s",
+        "timeSeriesResourceHierarchyLevel": [
+          "PROJECT"
+        ]
+      },
+      "launchStage": "GA",
+      "monitoredResourceTypes": [
+        "firestore.googleapis.com/Database",
+        "firestore_instance"
+      ]
+    },
+    {
+      "name": "projects/boxcycle-dc2df/metricDescriptors/firestore.googleapis.com/document/write_count",
+      "labels": [
+        {
+          "key": "module",
+          "description": "The service/module name."
+        },
+        {
+          "key": "version",
+          "description": "The version name."
+        },
+        {
+          "key": "op",
+          "description": "The operation name for the write (e.g. 'CREATE', 'UPDATE')."
+        }
+      ],
+      "metricKind": "DELTA",
+      "valueType": "INT64",
+      "unit": "1",
+      "description": "The number of successful document writes.",
+      "displayName": "Document Writes",
+      "type": "firestore.googleapis.com/document/write_count",
+      "metadata": {
+        "launchStage": "GA",
+        "samplePeriod": "60s",
+        "ingestDelay": "240s",
+        "timeSeriesResourceHierarchyLevel": [
+          "PROJECT"
+        ]
+      },
+      "launchStage": "GA",
+      "monitoredResourceTypes": [
+        "firestore_instance"
+      ]
+    },
+    {
+      "name": "projects/boxcycle-dc2df/metricDescriptors/firestore.googleapis.com/document/write_ops_count",
+      "labels": [
+        {
+          "key": "op",
+          "description": "The operation name for the write, one of [CREATE, UPDATE]."
+        }
+      ],
+      "metricKind": "DELTA",
+      "valueType": "INT64",
+      "unit": "1",
+      "description": "The number of successful document writes.",
+      "displayName": "Document writes",
+      "type": "firestore.googleapis.com/document/write_ops_count",
+      "metadata": {
+        "launchStage": "GA",
+        "samplePeriod": "60s",
+        "ingestDelay": "240s",
+        "timeSeriesResourceHierarchyLevel": [
+          "PROJECT"
+        ]
+      },
+      "launchStage": "GA",
+      "monitoredResourceTypes": [
+        "firestore.googleapis.com/Database"
+      ]
+    }
+  ]
+}

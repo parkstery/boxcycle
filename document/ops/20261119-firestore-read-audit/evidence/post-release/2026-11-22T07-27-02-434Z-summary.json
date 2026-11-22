@@ -1,0 +1,43 @@
+{
+  "collectedAt": "2026-11-22T07:27:02.434Z",
+  "project": "boxcycle-dc2df",
+  "metric": "firestore.googleapis.com/document/read_count",
+  "start": "2026-11-17T15:00:00Z",
+  "end": "2026-11-22T07:16:00Z",
+  "releaseAt": "2026-11-19T19:59:08.661Z",
+  "total": 71079,
+  "points": 8739,
+  "series": 10,
+  "latestPointEnd": "2026-11-22T00:09:00.000Z",
+  "byType": {
+    "LOOKUP": 6040,
+    "NOT_FOUND": 1974,
+    "QUERY": 63065
+  },
+  "dailyKst": {
+    "2026-11-22": 6178,
+    "2026-11-21": 5336,
+    "2026-11-20": 22364,
+    "2026-11-19": 26343,
+    "2026-11-18": 10858
+  },
+  "dailyPt": {
+    "2026-11-21": 7261,
+    "2026-11-20": 15676,
+    "2026-11-19": 15712,
+    "2026-11-18": 26814,
+    "2026-11-17": 5616
+  },
+  "releaseWindows": {
+    "before": 40521,
+    "after": 30558,
+    "overlap": 0
+  },
+  "releaseWindowPoints": {
+    "before": 4517,
+    "after": 4222,
+    "overlap": 0
+  },
+  "postReleaseObserved": true,
+  "caveat": "Monitoring 지표이며 청구 내역·클라이언트별 귀속·배포의 인과 효과가 아니다. 부분일과 집계 지연에 유의한다."
+}

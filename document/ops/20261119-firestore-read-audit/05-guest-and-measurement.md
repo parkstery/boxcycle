@@ -2,6 +2,38 @@
 
 2026-11-20, 수행 agent: Codex 직접. Chief 「잔여 작업 계속해」. 완성분 커밋·푸시·배포 승인은 앞선 지시를 이어 적용한다.
 
+## 2026-11-22 빠른 후속 처리 — Codex
+
+Chief는 구현 비용이 작은 항목부터 처리·커밋하고 큰 구조 변경은 후속으로 미루도록 지시했다.
+
+- **Guest 전수 감사: 매일 유지 확정.** 기존 KST 03:15(`15 3 * * *`, Asia/Seoul)를 변경하지 않는다. 주간 감사·순환 감사 전환의 결정 대기는 종료한다. Functions 코드·스케줄 변경이나 배포는 없다. Cloud Logging 읽기 전용 조회에서 11/21·11/22 KST 03:15의 완료 기록을 확인했다. 양일 모두 scanned=13, registered 제외6, fresh 제외7, deleted=0, failed=0, capped=false였다. scanned는 후보 UID 수이며 Firestore 읽기 문서 수가 아니다. 함수를 수동 실행하거나 데이터를 삭제하지 않았다.
+- **다인 백업의 작은 개선:** `useTrailLivePublicationRideSpectatorOverlay`의 구독 의존성을 User 객체에서 UID로 바꿨다. 동일 UID의 새 객체가 들어올 때 불필요한 초기 재조회와 listener 해제/재연결을 막는다. 상시 Firestore 백업·RTDB 전송 주기·표시 알고리즘·Rules·데이터 모델은 유지한다. 계정/Trail 변경·비활성·로그아웃·unmount 해제와 오류 전달을 회귀시험으로 확인했다. 이 수정은 다인 fanout의 제곱 증가를 해결하지 않는다. 중계 보드/묶음 전달과 장애 복구 경로의 큰 개편은 후속이다.
+- **배포 후 지표 수집 완료:** 11/18 KST 00:00부터 11/22 16:16까지 요청, 수집16:27. 최신 관측은11/22 09:09 KST다. `112131aa` Hosting 확인 시각(11/20 04:59:08.661 KST)을 기준으로 이전40,521·이후30,558건, 이후4,222포인트를 확보했다. 기간 길이가 다르므로 두 합계의 비율을 절감률로 계산하지 않는다.
+
+| 한국 날짜 | 프로젝트 read 지표 | 범위 |
+|---|---:|---|
+| 11/18 | 10,858 | 배포 전 날짜 |
+| 11/19 | 26,343 | 배포 전 날짜 |
+| 11/20 | 22,364 | 배포 전/후 혼합 날짜 |
+| 11/21 | 5,336 | 배포 후 날짜 |
+| 11/22 | 6,178 | 09:09까지의 관측·부분일 |
+
+합계71,079, LOOKUP6,040·NOT_FOUND1,974·QUERY63,065. 원시 시계열의 metric/resource/분 구간 중복은0이다. 03:14~03:20의 프로젝트 전체 read는11/21 3,398·11/22 3,476이었다. 감사 시각과 겹치지만 그 구간 전부를 단일 함수의 청구로 귀속하지 않는다. 활동량·다른 배포가 섞여 있어 **운영 캐시 절감률과 이번 작은 수정의 비용 효과는 미확정**이다. 이번 훅 수정은 아직 운영에 배포하지 않았으므로 위 지표에 그 효과가 포함되지 않는다.
+
+새 증거(UID·토큰 제외): `evidence/post-release/2026-11-22T07-27-02-434Z-{summary.json,series.json.gz}`, `20261122-guest-sweep-counters.json`. 후자는 완료 로그의 시각·수치만 보존한다. 기존 계정 UID 포함 counts와 원시 실행 로그는 로컬에 유지하며 이 커밋에서 제외한다.
+
+검증: 실제 훅+hub 회귀1/1(수정 전 동일UID 교체에서 opens=2로 실패, 수정 후 opens=1·closes=0), 정상/RTDB 무응답/명시적 오류/Firestore 단독 재생4/4, meters59/59, 지표 수집기2/2, tsc 통과, 변경 파일 lint 오류0·기존 경고6. 새 훅 시험의 외부 HTTP 요청은0이다. 전체quick·전체build·실폰/실센서·실제 다인 청구 실측은 이번 미실행이다. 푸시·배포 없음.
+
+재검증(각 명령은 독립 실행):
+
+```powershell
+Set-Location "C:\20.HDev\boxcycle\apps\web"; node --test "C:\20.HDev\boxcycle\apps\web\scripts\trail\spectator-subscription-lifecycle.test.mjs"
+Set-Location "C:\20.HDev\boxcycle\apps\web"; node --test "C:\20.HDev\boxcycle\apps\web\scripts\peer-sync\live-ride-query-fallback.test.mjs"
+node --test "C:\20.HDev\boxcycle\document\ops\20261119-firestore-read-audit\tools\collect-read-metrics.test.mjs"
+```
+
+아래 11/20 구현·관측 및 당시 선택지는 과거 기록이다. 감사 주기의 현재 결정과 최신 관측은 이 절을 따른다.
+
 ## 이번 구현
 
 상태: **DEPLOYED**. 소스 `5a5b3170` 원격 반영·guestLifecycleSweep 단일 배포 완료. 새 revision `guestlifecyclesweep-00011-cej` ACTIVE, 다른 38개 함수 updateTime 동일. Hosting HTML 해시는 기존112131aa 배포와 동일. 배포·관리 API 확인 시각 `2026-11-19T21:05:25.242Z`.
@@ -22,7 +54,7 @@
 - 최신 관측 포인트는 **11/20 03:54 KST**로, 04:57~04:59 함수·Hosting 배포 이전이다. `postReleaseObserved=false`, 배포 후 포인트0. 따라서 after 합계0을 읽기0·절감률100%로 해석하지 않는다. 지표 부재 원인(활동 부재/보고 지연)은 이 결과만으로 구분하지 못한다.
 - 수집 증거: 로컬 `evidence/post-release/2026-11-19T20-57-44-070Z-{summary.json,series.json.gz}`. 개인 식별정보/토큰을 출력하거나 커밋하지 않는다.
 
-## 핵심 Guest 개선의 결정 항목
+## 11/20 당시 Guest 개선 선택지 — 11/22 매일 유지 확정
 
 기존 전수 조회는 Auth가 이미 사라지고 users 프로필도 없는 개인 자료를 발견하는 유일한 경로다. 이 경로를 매일 생략하면 발견 주기가 바뀌므로 AGENTS의 데이터·기능 의미 변경 결정 규칙에 따라 Chief 선호를 질문했다. 답변 전에는 매일 전수 감사·정상 Guest 만료·재시도를 유지한다.
 
