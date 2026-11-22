@@ -86,6 +86,16 @@ if (process.argv.includes('--refresh-ui')) {
     }
   }
 } else {
+  // A repeated launch should reuse our existing server, not rebuild then fail.
+  const existing = await fetch('http://127.0.0.1:5216/terrain-scale-preview.js', {
+    signal: AbortSignal.timeout(2000),
+  }).then(async response => response.ok ? response.text() : '').catch(() => '');
+  if (existing.includes('__manualTerrainScalePreview') && !process.argv.includes('--prepare')) {
+    console.log('기존 지형 배율 프리뷰를 재사용합니다. 서버 재시작은 필요 없습니다.');
+    console.log('http://127.0.0.1:5216/?maxdpr=1.5&perflab=1&terrainscale=1');
+    console.log('브라우저에서 Ctrl+F5 하세요. 코드 수정 후 재빌드는 --rebuild-only를 사용하세요.');
+    process.exit(0);
+  }
   await fs.access(firebase);
   mapboxToken();
   // Reuse already-running isolated emulators without interrupting other previews.

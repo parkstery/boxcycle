@@ -9,8 +9,8 @@
 
 ## 진행 중
 
-**11-22 지형1배 채택(Codex)**: Chief 「차이 체감 없음·1배 변경 후 커밋」. [결정·검증](20261119-camera-terrain-follow/20261122-terrain-scale-preview.md).
-제품/프리뷰기본1배·지도/카메라/guard/복귀 일치. 회귀75·전환판2·map183/0·tsc·제품/격리빌드·HTTP·등록/방향PASS. 관련17파일 본 커밋·원본lint훅PASS; 표고/코칭·추적 유지, 미배포.
+**11-22 지형1배(Codex)**: 2dfb84c8·회귀75/2/map183·빌드PASS.[결정·검증](20261119-camera-terrain-follow/20261122-terrain-scale-preview.md).
+푸시첫실패npm shim/App줄수. Chief: App초과WARN·+500(4157)허용; 경계2/0·제품App미수정. 다음: 원본게이트(PATH수정)·푸시. 5216재실행은재사용·Ctrl+F5, 미배포.
 
 **11-22 중복호출 정리**: FPS효과와 분리해5파일 커밋. 계약28·활동갱신/동기실패재시도·tsc/lint 통과.
 Chief 검수는 FPS차이없음. 5214 현재앱·5212 실험서버 유지. GPU효과 미주장. 정련은 기존App3830>3807로 실패·HEAD동일. 푸시/배포 없음.
