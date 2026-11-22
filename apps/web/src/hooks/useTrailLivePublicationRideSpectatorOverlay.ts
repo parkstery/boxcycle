@@ -45,7 +45,7 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
   const myUid = user?.uid ?? null;
 
   useEffect(() => {
-    if (!enabled || !user) {
+    if (!enabled || !myUid) {
       startTransition(() => {
         setRows([]);
         setError(null);
@@ -65,14 +65,16 @@ export function useTrailLivePublicationRideSpectatorOverlay(opts: UseTrailLivePu
       (err) => {
         if (!cancelled) setError(err.message);
       },
-      user.uid,
+      myUid,
     );
 
     return () => {
       cancelled = true;
       release();
     };
-  }, [enabled, trailId, user]);
+    // Auth can replace the User object without changing accounts. Keep the backup
+    // listener available instead of repeating its initial query for the same UID.
+  }, [enabled, trailId, myUid]);
 
   const activeRows = useMemo(() => {
     if (!myUid) return [];
