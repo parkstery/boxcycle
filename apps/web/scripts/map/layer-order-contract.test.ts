@@ -97,6 +97,26 @@ describe("G4 — 레이어 순서 레지스트리", () => {
     assert.ok(RTW_LAYER_RANK[PULSE_DOTS] < RTW_LAYER_RANK[RIDER_PRESERVED]);
   });
 
+  it("직렬화에서 빠진 라이더를 기준으로 활동 점을 교정하고 제자리에서는 이동하지 않는다", () => {
+    const target = fakeMap([ROUTE, RIDER_PRESERVED, PULSE_DOTS]);
+    let moves = 0;
+    const map = {
+      get style() { return { _order: target.order }; },
+      getStyle: () => ({ layers: target.order.filter((id) => id !== RIDER_PRESERVED).map((id) => ({ id })) }),
+      getLayer: target.getLayer,
+      moveLayer: (id: string, beforeId?: string) => {
+        moves++;
+        target.moveLayer(id, beforeId);
+      },
+    };
+    assert.equal(resolveBeforeIdByRank(map, PULSE_DOTS), RIDER_PRESERVED);
+    moveLayerByRank(map, PULSE_DOTS);
+    assert.deepEqual(target.order, [ROUTE, PULSE_DOTS, RIDER_PRESERVED]);
+    moveLayerByRank(map, PULSE_DOTS);
+    moveLayerByRank(map, RIDER_PRESERVED);
+    assert.equal(moves, 1);
+  });
+
   it("활동 선은 경로선 아래, 활동 점은 경로선 위", () => {
     assert.ok(RTW_LAYER_RANK["boxcycle-activity-pulse-routes-line"] < RTW_LAYER_RANK[ROUTE]);
     assert.ok(RTW_LAYER_RANK[PULSE_DOTS] > RTW_LAYER_RANK[ROUTE]);

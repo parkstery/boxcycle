@@ -16,6 +16,7 @@ import {
   RTW_TRACE_LIVE_PAINT,
 } from "../../lib/map/rtwMapConfig";
 import type { ConquestLayerEmphasis } from "../../lib/conquest/conquestLayerEmphasis";
+import { getMapLayerIds } from "../../lib/map/layerOrder";
 
 /** 사용자 경로 탐색 결과 폴리라인 (`route` 소스·레이어) */
 export const ROUTE_LINE_COLOR = "#ef4444";
@@ -92,20 +93,16 @@ const CONQUEST_ORDERED_LAYERS = [
 
 function orderConquestLayers(map: mapboxgl.Map, aboveRoute: boolean): void {
   try {
-    const ids = (map.getStyle()?.layers ?? []).map((l) => l.id);
+    const ids = getMapLayerIds(map);
     const routeIdx = ids.indexOf("route");
     if (routeIdx < 0) return;
-    if (!aboveRoute) {
-      for (const id of CONQUEST_ORDERED_LAYERS) {
-        if (map.getLayer(id)) map.moveLayer(id, "route");
-      }
-      return;
-    }
-    const ours = new Set<string>(CONQUEST_ORDERED_LAYERS);
-    const afterRoute = ids.slice(routeIdx + 1).find((id) => !ours.has(id));
-    for (const id of CONQUEST_ORDERED_LAYERS) {
-      if (map.getLayer(id)) map.moveLayer(id, afterRoute);
-    }
+    const present = CONQUEST_ORDERED_LAYERS.filter((id) => map.getLayer(id));
+    const start = aboveRoute ? routeIdx + 1 : routeIdx - present.length;
+    if (present.every((id, i) => ids[start + i] === id)) return;
+
+    const ours = new Set<string>(present);
+    const before = aboveRoute ? ids.slice(routeIdx + 1).find((id) => !ours.has(id)) : "route";
+    for (const id of present) map.moveLayer(id, before);
   } catch {
     /* noop */
   }

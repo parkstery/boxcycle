@@ -40,6 +40,16 @@ const GLOBAL_LIVE_PRESENCE_LABEL_LAYER = "boxcycle-global-live-presence-label";
 
 const EMPTY_GEOJSON_FC = { type: "FeatureCollection" as const, features: [] as never[] };
 
+const activityDataBySource = new WeakMap<mapboxgl.GeoJSONSource, string>();
+
+function setActivityData(source: mapboxgl.GeoJSONSource, data: GeoJSON.FeatureCollection): void {
+  const serialized = JSON.stringify(data);
+  // Unchanged activity data would still dirty the Mapbox terrain tile cache.
+  if (activityDataBySource.get(source) === serialized) return;
+  source.setData(data);
+  activityDataBySource.set(source, serialized);
+}
+
 const ACTIVITY_PULSE_SRC = "boxcycle-activity-pulse-routes";
 const ACTIVITY_PULSE_GLOW = "boxcycle-activity-pulse-routes-glow";
 const ACTIVITY_PULSE_LINE = "boxcycle-activity-pulse-routes-line";
@@ -231,7 +241,7 @@ export function syncWorldRedDots(
     return;
   }
   try {
-    src.setData(fc);
+    setActivityData(src, fc);
     moveLayerByRank(map, ACTIVITY_PULSE_DOTS_LAYER);
   } catch (e) {
     console.warn("[MapView] red dot setData/move failed", e);
@@ -339,7 +349,7 @@ export function syncWorldHeatDots(
   const src = map.getSource(ACTIVITY_HEAT_DOTS_SRC) as mapboxgl.GeoJSONSource | undefined;
   if (!src) return;
   try {
-    src.setData(fc);
+    setActivityData(src, fc);
     moveLayerByRank(map, ACTIVITY_HEAT_DOTS_LAYER);
   } catch (e) {
     console.warn("[MapView] heat dot setData/move failed", e);
@@ -407,7 +417,7 @@ export function syncCourseActivityLayers(
         beforeRoute,
       );
     } else {
-      (map.getSource(ACTIVITY_PULSE_SRC) as mapboxgl.GeoJSONSource).setData(pulseFc);
+      setActivityData(map.getSource(ACTIVITY_PULSE_SRC) as mapboxgl.GeoJSONSource, pulseFc);
     }
 
     if (!map.getSource(ACTIVITY_HEAT_SRC)) {
@@ -443,7 +453,7 @@ export function syncCourseActivityLayers(
         beforeRoute,
       );
     } else {
-      (map.getSource(ACTIVITY_HEAT_SRC) as mapboxgl.GeoJSONSource).setData(heatFc);
+      setActivityData(map.getSource(ACTIVITY_HEAT_SRC) as mapboxgl.GeoJSONSource, heatFc);
     }
   } catch (e) {
     console.warn("[MapView] course activity layers", e);

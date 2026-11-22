@@ -13,6 +13,7 @@ import {
   RTW_TRACE_ACCUMULATED_PAINT,
   rtwAccumulatedWidthExpression,
 } from "../../src/lib/map/rtwMapConfig.ts";
+import { applyConquestEmphasis } from "../../src/components/map/routeConquestLayers.ts";
 
 /** 경로선은 줌과 무관하게 4px 고정(MapView `ROUTE_LINE_WIDTH`) */
 const ROUTE_LINE_WIDTH = 4;
@@ -97,6 +98,37 @@ describe("conquestLayerEmphasis — 단계별 주인공", () => {
 });
 
 describe("경로선 테두리 · 적용 배선", () => {
+  it("주행 단계의 순서를 적용하되 이미 배치된 도로망 레이어는 다시 움직이지 않는다", () => {
+    const traces = "boxcycle-conquest-traces-line";
+    const live = "boxcycle-conquest-live-line";
+    const rider = "boxcycle-rider-preserved-layer";
+    const order = [traces, live, "route", rider];
+    let moves = 0;
+    const map = {
+      style: { _order: order },
+      getLayer: (id: string) => order.includes(id) ? {} : undefined,
+      getStyle: () => ({ layers: order.filter((id) => id !== rider).map((id) => ({ id })) }),
+      moveLayer: (id: string, beforeId?: string) => {
+        moves++;
+        order.splice(order.indexOf(id), 1);
+        order.splice(beforeId === undefined ? order.length : order.indexOf(beforeId), 0, id);
+      },
+      setPaintProperty() {},
+    } as unknown as Parameters<typeof applyConquestEmphasis>[0];
+    const ready = conquestLayerEmphasis({ rideActive: false, hasRoute: true });
+    const riding = conquestLayerEmphasis({ rideActive: true, hasRoute: true });
+    applyConquestEmphasis(map, ready);
+    assert.equal(moves, 0);
+    applyConquestEmphasis(map, riding);
+    applyConquestEmphasis(map, riding);
+    assert.deepEqual(order, ["route", traces, live, rider]);
+    assert.equal(moves, 2);
+    applyConquestEmphasis(map, ready);
+    applyConquestEmphasis(map, ready);
+    assert.deepEqual(order, [traces, live, "route", rider]);
+    assert.equal(moves, 4);
+  });
+
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const mapView = fs.readFileSync(
     path.resolve(__dirname, "../../src/components/map/MapView.tsx"),

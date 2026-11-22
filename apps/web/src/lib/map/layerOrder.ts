@@ -121,10 +121,17 @@ export function effectiveRank(id: string, tracesAboveRoute: boolean): number | n
 
 /** 지도에서 레이어 id 목록을 읽는다. 스타일 전환 중에는 빈 배열. */
 type MapLike = {
+  style?: { _order?: readonly string[] } | null;
   getStyle: () => { layers?: { id: string }[] } | undefined;
   getLayer: (id: string) => unknown;
   moveLayer: (id: string, beforeId?: string) => void;
 };
+
+/** Mapbox의 실제 순서는 getStyle()에서 빠지는 커스텀 레이어도 포함한다. */
+export function getMapLayerIds(map: Pick<MapLike, "style" | "getStyle">): readonly string[] {
+  const order = map.style?._order;
+  return Array.isArray(order) ? order : (map.getStyle()?.layers ?? []).map((layer) => layer.id);
+}
 
 /**
  * `id` 가 들어갈 자리 바로 위의 레이어 id.
@@ -137,14 +144,16 @@ export function resolveBeforeIdByRank(
   id: string,
   tracesAboveRoute = false,
 ): string | undefined {
-  const myRank = effectiveRank(id, tracesAboveRoute);
-  if (myRank === null) return undefined;
-  let live: { id: string }[];
   try {
-    live = map.getStyle()?.layers ?? [];
+    return beforeIdByRank(getMapLayerIds(map), id, tracesAboveRoute);
   } catch {
     return undefined;
   }
+}
+
+function beforeIdByRank(live: readonly string[], id: string, tracesAboveRoute: boolean): string | undefined {
+  const myRank = effectiveRank(id, tracesAboveRoute);
+  if (myRank === null) return undefined;
   /*
    * 「내 랭크보다 큰 것 중 **가장 작은** 것」을 고른다.
    *
@@ -154,13 +163,12 @@ export function resolveBeforeIdByRank(
    */
   let bestId: string | undefined;
   let bestRank = Number.POSITIVE_INFINITY;
-  for (const layer of live) {
-    if (layer.id === id) continue;
-    const r = effectiveRank(layer.id, tracesAboveRoute);
+  for (const layerId of live) {
+    const r = effectiveRank(layerId, tracesAboveRoute);
     if (r === null || r <= myRank) continue;
     if (r < bestRank) {
       bestRank = r;
-      bestId = layer.id;
+      bestId = layerId;
     }
   }
   return bestId;
@@ -178,7 +186,12 @@ export function resolveBeforeIdByRank(
 export function moveLayerByRank(map: MapLike, id: string, tracesAboveRoute = false): void {
   if (!map.getLayer(id)) return;
   try {
-    map.moveLayer(id, resolveBeforeIdByRank(map, id, tracesAboveRoute));
+    const live = getMapLayerIds(map);
+    const before = beforeIdByRank(live, id, tracesAboveRoute);
+    const index = live.indexOf(id);
+    // Mapbox는 제자리 이동에도 라벨 전체 배치를 다시 요청한다.
+    if (index >= 0 && live[index + 1] === before) return;
+    map.moveLayer(id, before);
   } catch {
     /* style switching */
   }
