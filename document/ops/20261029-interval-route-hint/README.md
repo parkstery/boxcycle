@@ -1,6 +1,6 @@
 # 일반 주행 + 인터벌 — 경로 거리 부족 안내
 
-상태: APPROVED / NOT_STARTED. 2026-10-29 Chief 지시. Supervisor Claude Code(Opus 5.5) 작성. [왼쪽 메뉴 정비](../20261029-left-menu/README.md)가 감리 PASS를 받은 뒤 착수한다. 같은 App.tsx를 고친다. 커밋·푸시·배포 없음.
+상태: COMMIT_APPROVED — 2026-11-22 Chief가 현재 구현 커밋 지시. 구현·검증 기록은 [결과](02-result-claude-code.md). 푸시·배포는 이번 범위에 포함하지 않는다.
 
 관련 묶음: [간편 인터벌 주행](../20261029-quick-interval-ride/README.md). 이 안내는 **일반 주행 전용**이다. 간편 인터벌 경로에는 띄우지 않는다.
 

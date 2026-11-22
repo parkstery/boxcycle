@@ -7,6 +7,7 @@ import { ProfileEditSheet } from "./components/ProfileEditSheet";
 import type { RouteListSource } from "./components/ride/RouteListModalShell";
 import { RideRoutePanel } from "./components/ride/RideRoutePanel";
 import { IntervalRouteConfirm } from "./components/ride/IntervalRouteConfirm";
+import { IntervalRouteHint } from "./components/ride/IntervalRouteHint";
 import type { FollowMode } from "./lib/map/mapGlobeView";
 import { PublicRouteRequestModal } from "./components/PublicRouteRequestModal";
 import { useTrailSession } from "./hooks/useTrailSession";
@@ -30,7 +31,7 @@ import {
 
 import { rideDistanceAlongRoute } from "./lib/ride/liveLocationSnapshot";
 import { getRideIntervalTotalSec } from "./lib/ride/rideInterval";
-import { DISTANCE_AUTO_ROUTE_FALLBACK_KMH, isRouteShorterThanInterval, resolveUserAverageKmh } from "./lib/route/distanceAutoRouteEta";
+import { intervalRouteHintRouteKey, resolveIntervalRouteShortfall } from "./lib/route/intervalRouteDistance";
 import { AuthGateCard } from "./components/auth/AuthGateCard";
 import { AuthSessionGate } from "./components/auth/AuthSessionGate";
 import { AppIntroScreen } from "./components/auth/AppIntroScreen";
@@ -184,6 +185,7 @@ import { computeConquestOverviewFrame } from "./lib/conquest/conquestOverviewFra
 import type { ConquestDisplayMode } from "./components/map/routeConquestLayers";
 import { useDistanceAutoRoute } from "./hooks/useDistanceAutoRoute";
 import { useQuickIntervalRide } from "./hooks/useQuickIntervalRide";
+import { useIntervalRouteHint } from "./hooks/useIntervalRouteHint";
 import { QuickIntervalStatus } from "./components/ride/QuickIntervalStatus";
 import {
   DEFAULT_MAP_STYLE,
@@ -1533,12 +1535,13 @@ export default function App() {
       !restart && resumeRatio != null && loadedSavedRouteIdRef.current === resumeCandidateId && routeGeometry
         ? resumeOffsetMetersFrom(resumeRatio, routeDistanceMeters)
         : 0;
-    const estimateKmh = resolveUserAverageKmh(userTier.mileageTotalMeters, userTier.mileageTotalSec) ?? DISTANCE_AUTO_ROUTE_FALLBACK_KMH;
+    // 인터벌 계산은 모두 같은 기준 속도(25 km/h) — 거리 부족 안내와 같은 판정 함수(2026-10-29 Chief).
     const remainingMeters = Math.max(0, routeDistanceMeters - rideStartOffsetMeters);
-    if (rideIntervalEnabled && isRouteShorterThanInterval(remainingMeters, estimateKmh, getRideIntervalTotalSec(rideIntervalConfig))) {
-      const key = JSON.stringify([routeGeometry, remainingMeters, estimateKmh, rideIntervalConfig, restart]);
+    const shortfall = resolveIntervalRouteShortfall({ remainingMeters, intervalSec: getRideIntervalTotalSec(rideIntervalConfig) });
+    if (rideIntervalEnabled && shortfall.short) {
+      const key = JSON.stringify([routeGeometry, remainingMeters, shortfall.basisKmh, rideIntervalConfig, restart]);
       if (acceptedWarningKey !== key) {
-        setIntervalRouteConfirmation({ fromStart: restart, key, speedKmh: estimateKmh });
+        setIntervalRouteConfirmation({ fromStart: restart, key, speedKmh: shortfall.basisKmh });
         return;
       }
     }
@@ -2561,6 +2564,17 @@ export default function App() {
     },
   });
 
+  const intervalRouteHint = useIntervalRouteHint({
+    idle: rideStatus === "idle",
+    intervalEnabled: rideIntervalEnabled,
+    intervalSec: getRideIntervalTotalSec(rideIntervalConfig),
+    intervalKey: rideIntervalRunKey,
+    routeKey: intervalRouteHintRouteKey(routeGeometry, routeDistanceMeters),
+    remainingMeters: Math.max(0, routeDistanceMeters - (resumeRatio != null ? resumeOffsetMetersFrom(resumeRatio, routeDistanceMeters) : 0)),
+    quickSearching: quickInterval.phase === "searching" || quickInterval.phase === "pick_start",
+    deferred: rideIntervalSettingsOpen || intervalRouteConfirmation !== null,
+  });
+
   const nextRideCard =
     nextRideCardVisible && nextRideView ? (
       <NextRideCard
@@ -3550,6 +3564,16 @@ export default function App() {
           setIntervalRouteConfirmation(null);
           if (pending) handleStartRide(pending.fromStart, pending.key);
         }}
+      />
+
+      <IntervalRouteHint
+        open={intervalRouteHint.open}
+        variant={intervalRouteHint.variant}
+        intervalSec={getRideIntervalTotalSec(rideIntervalConfig)}
+        minKm={intervalRouteHint.minKm}
+        routeKm={intervalRouteHint.routeKm}
+        basisKmh={intervalRouteHint.basisKmh}
+        onClose={intervalRouteHint.dismiss}
       />
 
       <CadenceSensorSheet
