@@ -1,3 +1,5 @@
+import { rideTerrainScale } from "../../src/lib/map/rideTerrainScale.ts";
+const scale = rideTerrainScale();
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -15,7 +17,7 @@ function effect(file,match,context){
 }
 const mapFile='../../src/components/map/MapView.tsx';
 function fakeMap(){
-  let terrain={exaggeration:1.3},hasBuildings=true,altitude=132;
+  let terrain={exaggeration:scale},hasBuildings=true,altitude=100*scale+2;
   const element={dataset:{}};
   const map={
     getTerrain:()=>terrain,setTerrain:v=>{terrain=v;},
@@ -37,13 +39,13 @@ test('production MapView effect observes, restores, flattens and disposes withou
     RideTerrainGuard,readRideTerrainHealth,TERRAIN_GUARD_INTERVAL_MS,BUILDING_LAYER_ID:'buildings',TERRAIN_SOURCE_ID:'dem',
     noteRenderingDiagnostic:(...args)=>diagnostics.push(args),
     applyMapCutToMap:m=>{if(cutTerrain)m.setTerrain(null);},
-    apply3DState:(m,_enabled,_buildings,_dem,opts)=>{m.setTerrain({exaggeration:opts.flatFallback?0:1.3});map.setAltitude(opts.flatFallback?2:132);},
+    apply3DState:(m,_enabled,_buildings,_dem,opts)=>{m.setTerrain({exaggeration:opts.flatFallback?0:scale});map.setAltitude(opts.flatFallback?2:100*scale+2);},
     window:{setInterval:fn=>{tick=fn;return 1;},clearInterval:()=>{cleared=true;}},
   };
   const cleanup=effect(mapFile,'const guard = new RideTerrainGuard',context)();
   assert.equal(map.getTerrain().exaggeration,0);assert.equal(map.getContainer().dataset.terrainView,'auto-2d');
   for(now=250;now<=4000;now+=250)tick();
-  assert.equal(map.getTerrain().exaggeration,1.3);
+  assert.equal(map.getTerrain().exaggeration,scale);
   map.queryTerrainElevation=()=>null;
   for(;now<=6000;now+=250)tick();
   assert.equal(map.getTerrain().exaggeration,0);

@@ -4,6 +4,7 @@ import type { Map as MapboxMap } from "mapbox-gl";
 import { applyRideCameraTerrain, CAMERA_SIGHT_SAMPLES, smoothTerrainCameraLift, terrainCameraLiftM } from "../../src/components/map/rideCameraTerrain.ts";
 import { readRideTerrainHealth } from "../../src/components/map/rideTerrainGuard.ts";
 import { applyFollowCameraJumpTo } from "../../src/components/map/rideCameraFollow.ts";
+import { rideTerrainScale } from "../../src/lib/map/rideTerrainScale.ts";
 import { isFollowCameraJump } from "../../src/components/map/followCameraJump.ts";
 
 test("flat terrain keeps an already safe camera and raises a low camera to 3m", () => {
@@ -28,17 +29,19 @@ test("missing DEM is not treated as sea level and descent never compromises requ
   assert.ok(descent > 7 && descent < 8);
 });
 
+const scale = rideTerrainScale();
+
 function fixture(flat = false, elevation = 100) {
-  let altitude = flat ? 1 : elevation * 1.3 + 1;
+  let altitude = flat ? 1 : elevation * scale + 1;
   let pitch = 83.5;
   let writes = 0, queries = 0;
   let available = true, terrainOn = true, transitioning = false;
   const cameraLL = { lng: 127, lat: 37 };
   const map = {
-    getTerrain: () => terrainOn ? { exaggeration: flat ? 0 : 1.3 } : null,
+    getTerrain: () => terrainOn ? { exaggeration: flat ? 0 : scale } : null,
     getCenter: () => ({ lng: 127.00005, lat: 37 }),
     getPitch: () => pitch, getBearing: () => 90,
-    queryTerrainElevation: (_point: unknown, options?: { exaggerated?: boolean }) => { queries++; return available ? (options?.exaggerated ? ((flat !== transitioning) ? 0 : elevation * 1.3) : elevation) : null; },
+    queryTerrainElevation: (_point: unknown, options?: { exaggerated?: boolean }) => { queries++; return available ? (options?.exaggerated ? ((flat !== transitioning) ? 0 : elevation * scale) : elevation) : null; },
     getFreeCameraOptions: () => ({ position: { toLngLat: () => cameraLL, toAltitude: () => altitude }, setPitchBearing: (p: number) => { pitch = p; } }),
     setFreeCameraOptions: (cam: { position: { toAltitude: () => number } }) => { altitude = cam.position.toAltitude(); writes++; },
   };
@@ -52,7 +55,7 @@ for (const slot of [2, 3]) for (const flat of [false, true]) {
     assert.equal(readRideTerrainHealth(f.map, rider, flat), "ready");
     applyRideCameraTerrain(f.map, rider, slot, 0);
     assert.equal(f.state().writes, 1);
-    assert.ok(Math.abs(f.state().altitude - (flat ? 3 : 133)) < 1e-7);
+    assert.ok(Math.abs(f.state().altitude - (flat ? 3 : 100 * scale + 3)) < 1e-7);
     assert.ok(f.state().pitch > 0 && f.state().pitch <= 85);
     assert.equal(readRideTerrainHealth(f.map, rider, flat), "ready");
   });

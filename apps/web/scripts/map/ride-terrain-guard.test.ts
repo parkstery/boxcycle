@@ -1,3 +1,5 @@
+import { rideTerrainScale } from "../../src/lib/map/rideTerrainScale.ts";
+const scale = rideTerrainScale();
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { RideTerrainGuard, readRideTerrainHealth } from '../../src/components/map/rideTerrainGuard.ts';
@@ -30,7 +32,7 @@ function fakeMap(raw=100, flat=false) {
   const queries: unknown[]=[];
   return {queries,
     getCenter:()=>({lng:0,lat:0}),
-    getFreeCameraOptions:()=>({position:{toLngLat:()=>({lng:0,lat:-0.0001}),toAltitude:()=>flat?2:raw*1.3+2}}),
+    getFreeCameraOptions:()=>({position:{toLngLat:()=>({lng:0,lat:-0.0001}),toAltitude:()=>flat?2:raw*scale+2}}),
     queryTerrainElevation:(_p: unknown,options: unknown)=>{queries.push(options);return raw;},
   };
 }
@@ -55,7 +57,7 @@ test('missing, NaN and exceptions remain flat rather than manufacturing elevatio
 });
 test('camera below real terrain is detected, including prospective recovery in flat mode',()=>{
   const map=fakeMap(100);
-  map.getFreeCameraOptions=()=>({position:{toLngLat:()=>({lng:0,lat:0}),toAltitude:()=>120}});
+  map.getFreeCameraOptions=()=>({position:{toLngLat:()=>({lng:0,lat:0}),toAltitude:()=>100*scale-10}});
   assert.equal(readRideTerrainHealth(map as never,[0,0],false),'camera-obstructed');
   const flat=fakeMap(100,true);
   flat.queryTerrainElevation=(p: unknown)=> (p as {lat:number}).lat<0?110:100;

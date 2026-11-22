@@ -3,17 +3,19 @@
 | 항목 | 값 |
 |---|---|
 | 담당 | **Codex** |
-| 갱신 | 11-22 중복호출 정리5파일 커밋. FPS효과 미확인 유지. |
-| 브랜치 | `main2` · 잔여5파일과 검증기록 커밋 정리 |
+| 갱신 | 11-22 Chief 비교 후 지형 기본1배 채택·커밋 완료. |
+| 브랜치 | `main2` · 지형 기본1배 |
 | 마지막 배포 | 11-20 Hosting `66a0fac8`. |
 
 ## 진행 중
 
+**11-22 지형1배 채택(Codex)**: Chief 「차이 체감 없음·1배 변경 후 커밋」. [결정·검증](20261119-camera-terrain-follow/20261122-terrain-scale-preview.md).
+제품/프리뷰기본1배·지도/카메라/guard/복귀 일치. 회귀75·전환판2·map183/0·tsc·제품/격리빌드·HTTP·등록/방향PASS. 관련17파일 본 커밋·원본lint훅PASS; 표고/코칭·추적 유지, 미배포.
+
 **11-22 중복호출 정리**: FPS효과와 분리해5파일 커밋. 계약28·활동갱신/동기실패재시도·tsc/lint 통과.
 Chief 검수는 FPS차이없음. 5214 현재앱·5212 실험서버 유지. GPU효과 미주장. 정련은 기존App3830>3807로 실패·HEAD동일. 푸시/배포 없음.
 
-**3D(Codex,11-22)**: [Chief 검수](20261119-camera-terrain-follow/20261122-reuse-approach.md#v2-직접-주행-검수) 후보29.6FPS·지형 정지 UX불합격.
-다음: [새 세션 인계](20261119-camera-terrain-follow/20261122-next-session-terrain-scale.md). 1.3/1 비교 준비·Chief 시험.
+**3D 후보**: [Chief 검수](20261119-camera-terrain-follow/20261122-reuse-approach.md#v2-직접-주행-검수) 29.6FPS·지형 정지 UX불합격 유지. 배율은5216에서 시험.
 
 지도3모드 `66a0fac8` 배포.
 비용: Mapbox 0회↑·GTX 비교. Standard 도로명 지원.

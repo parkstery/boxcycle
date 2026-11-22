@@ -1,10 +1,10 @@
 import mapboxgl, { type Map as MapboxMap } from "mapbox-gl";
 import { getDistanceMeters, type LngLat } from "../../lib/geo/geo";
+import { rideTerrainScale } from "../../lib/map/rideTerrainScale";
 
 // Keep the low racing view where it is already safe. Never lower the nominal camera.
 const CAMERA_TERRAIN_CLEARANCE_M = 3;
 const CAMERA_SIGHT_CLEARANCE_M = 0.6;
-const TERRAIN_EXAGGERATION = 1.3;
 const RIDER_SIGHT_HEIGHT_M = 1.5;
 // Include precisely the guard's 0/.33/.66 samples, plus the intervening ridge points.
 export const CAMERA_SIGHT_SAMPLES = [0, 0.165, 0.33, 0.495, 0.66, 0.825, 0.9] as const;
@@ -60,17 +60,18 @@ export function applyRideCameraTerrain(
     const riderGroundM = map.queryTerrainElevation(rider, { exaggerated: false });
     if (![ll.lng, ll.lat, actualM, centerM, riderGroundM, ...rider].every(finite)) return;
     const flat = terrain.exaggeration === 0;
+    const exaggeration = rideTerrainScale();
     // setTerrain updates the requested style before the renderer's elevation scale.
     // Do not mix old rendered camera coordinates with the new requested scale.
     const shownCenterM = map.queryTerrainElevation(map.getCenter(), { exaggerated: true });
-    const expectedCenterM = flat ? 0 : centerM! * TERRAIN_EXAGGERATION;
+    const expectedCenterM = flat ? 0 : centerM! * exaggeration;
     if (!finite(shownCenterM) || Math.abs(shownCenterM - expectedCenterM) > 0.01) return;
-    const nominalM = actualM + (flat ? centerM! * TERRAIN_EXAGGERATION : 0);
-    const riderM = riderGroundM! * TERRAIN_EXAGGERATION + RIDER_SIGHT_HEIGHT_M;
+    const nominalM = actualM + (flat ? centerM! * exaggeration : 0);
+    const riderM = riderGroundM! * exaggeration + RIDER_SIGHT_HEIGHT_M;
     const deltaLng = ((rider[0] - ll.lng + 540) % 360) - 180;
     const grounds = CAMERA_SIGHT_SAMPLES.map(t => {
       const value = map.queryTerrainElevation([ll.lng + deltaLng * t, ll.lat + (rider[1] - ll.lat) * t], { exaggerated: false });
-      return finite(value) ? value * TERRAIN_EXAGGERATION : Number.NaN;
+      return finite(value) ? value * exaggeration : Number.NaN;
     });
     let required = terrainCameraLiftM(nominalM, riderM, grounds);
     if (required == null) return;

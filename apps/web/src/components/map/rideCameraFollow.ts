@@ -1,4 +1,5 @@
 import { applyRideCameraTerrain, resetRideCameraTerrain } from "./rideCameraTerrain";
+import { rideTerrainScale } from "../../lib/map/rideTerrainScale";
 import type { LngLat, LineStringGeometry } from "../../lib/geo/geo";
 import {
   distanceOnRouteByProjectedPoint,
@@ -502,7 +503,7 @@ export function apply3DState(
       maxzoom: 14,
     });
   }
-  map.setTerrain({ source: terrainSourceId, exaggeration: options?.flatFallback ? 0 : 1.3 });
+  map.setTerrain({ source: terrainSourceId, exaggeration: options?.flatFallback ? 0 : rideTerrainScale() });
   if (options?.flatFallback) {
     if (map.getLayer(buildingLayerId)) map.removeLayer(buildingLayerId);
     return;

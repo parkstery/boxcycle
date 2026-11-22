@@ -447,6 +447,7 @@
       "map/mapCut.ts",
       "map/rideLabels.ts",
       "map/rideEndNorthUp.ts",
+      "map/rideTerrainScale.ts",
       "map/riderPreservedLayer.ts",
       "map/rideMilestoneLayer.ts",
       "map/rtwMapConfig.ts"

@@ -1,12 +1,12 @@
 import type { Map as MapboxMap } from "mapbox-gl";
 import type { LngLat } from "../../lib/geo/geo";
+import { rideTerrainScale } from "../../lib/map/rideTerrainScale";
 
 export const TERRAIN_GUARD_INTERVAL_MS = 250;
 const BAD_FOR_MS = 750;
 const GOOD_FOR_MS = 2500;
 const FLAT_HOLD_MS = 4000;
 const SETTLE_MS = 1000;
-const DISPLAY_EXAGGERATION = 1.3;
 
 /** Missing data is distinct from valid coastal/negative elevations. */
 const finite = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n);
@@ -21,6 +21,7 @@ type TerrainMap = Pick<MapboxMap, "queryTerrainElevation" | "getFreeCameraOption
  */
 export function readRideTerrainHealth(map: TerrainMap, rider: LngLat | null, flat: boolean): TerrainHealth {
   try {
+    const exaggeration = rideTerrainScale();
     if (!rider || !rider.every(finite)) return "missing";
     const position = map.getFreeCameraOptions().position;
     if (!position) return "missing";
@@ -31,14 +32,14 @@ export function readRideTerrainHealth(map: TerrainMap, rider: LngLat | null, fla
     const centerM = elevation(center);
     const riderM = elevation({ lng: rider[0], lat: rider[1] });
     if (![camera.lng, camera.lat, altitude, centerM, riderM].every(finite)) return "missing";
-    const cameraM = altitude + (flat ? centerM! * DISPLAY_EXAGGERATION : 0);
+    const cameraM = altitude + (flat ? centerM! * exaggeration : 0);
     // Avoid a long camera-to-rider segment at the date line.
     const deltaLng = ((rider[0] - camera.lng + 540) % 360) - 180;
     for (const t of [0, 0.33, 0.66]) {
       const groundM = elevation({ lng: camera.lng + deltaLng * t, lat: camera.lat + (rider[1] - camera.lat) * t });
       if (!finite(groundM)) return "missing";
-      const sightM = cameraM + (riderM! * DISPLAY_EXAGGERATION + 1.5 - cameraM) * t;
-      if (sightM - groundM * DISPLAY_EXAGGERATION < 0.3) return "camera-obstructed";
+      const sightM = cameraM + (riderM! * exaggeration + 1.5 - cameraM) * t;
+      if (sightM - groundM * exaggeration < 0.3) return "camera-obstructed";
     }
     return "ready";
   } catch {
