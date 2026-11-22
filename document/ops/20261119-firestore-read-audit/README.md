@@ -156,3 +156,7 @@ Get-Content document/ops/20261119-firestore-read-audit/evidence/sweep-logs.json
 ```
 
 순서: 날짜 집계 → 계정별/스캔별 문서 수 → 03:15 실행 로그 → 본문 코드 경로. 웹 접속이나 추가 실주행은 필요 없다. 운영 그래프 확인이 필요하면 Firebase Console의 `boxcycle-dc2df` Firestore 사용량과 Cloud Monitoring `document/read_count`를 같은 시간대로 맞춘다.
+
+## 11-22 원시 증거 보관 정리
+
+계정 UID 포함 `evidence/counts.json`과 원시 `evidence/sweep-logs.json`은 로컬에 보존하고 Git에서 제외한다. 공유용 `evidence/counts-summary.json`은 UID·Auth 자료 없이 컬렉션별 합계·계정 수·상위 도로망 문서 수만 남겼다. 스캔 합계3,290·최대411·UID 미포함을 재검증했다. 이 조치는 운영 데이터나 보관 파일을 삭제하지 않는다.

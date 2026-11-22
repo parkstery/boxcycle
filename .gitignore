@@ -78,3 +78,12 @@ document/ops/**/.out/
 /.out/
 /claude-headless.err
 document/ops/**/evidence/*.zip
+
+# Obsidian 볼트 설정(로컬 전용·추적하지 않는다) — 문서 폴더를 볼트로 열면 생긴다
+/.obsidian/
+/document/.obsidian/
+document/ops/**/.obsidian/
+
+# 운영 계정 식별자가 포함된 원본은 로컬 보존. 공유 집계는 counts-summary.json.
+/document/ops/20261119-firestore-read-audit/evidence/counts.json
+/document/ops/20261119-firestore-read-audit/evidence/sweep-logs.json

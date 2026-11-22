@@ -1,0 +1,36 @@
+{
+  "at": "2026-11-19T11:46:16.566Z",
+  "source": "counts.json (local, ignored)",
+  "accountCount": 9,
+  "accountTotals": {
+    "chunks": 134,
+    "traces": 487,
+    "rides": 1245,
+    "savedRoutes": 217
+  },
+  "largestRoadDocumentCounts": [
+    411,
+    127,
+    30
+  ],
+  "scanCounts": {
+    "users": 13,
+    "userPrivate": 6,
+    "livePresence": 0,
+    "conquest": 9,
+    "rides": 1245,
+    "savedRoutes": 217,
+    "routeAutoRouteCache": 573,
+    "routeTokenLedger": 393,
+    "nicknames": 8,
+    "publicRouteRequests": 52,
+    "routePublications": 48,
+    "openTrailListings": 0,
+    "group:members": 103,
+    "group:livePublicationRides": 2,
+    "group:chunks": 134,
+    "group:traces": 487
+  },
+  "scanSum": 3290,
+  "note": "Aggregate snapshot from 2026-11-19; account UIDs and Auth records omitted. Not current usage or billed reads."
+}
