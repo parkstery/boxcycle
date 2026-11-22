@@ -22,6 +22,14 @@
 | AI 대화의 Spinatlas 장기 맥락 | [장기 맥락 메모](reference/operations/261110-Spinatlas-장기-맥락-메모.md) | 정본·최신 인계를 대신하지 않는 요약 |
 | 문서 생성·종료·이동 절차 | [문서 지침](260509-BOXCYCLE-문서-생성-및-수정-지침.md) | 수명과 보관 위치의 단일 기준 |
 
+## Obsidian 에서 볼 때
+
+이 `document/` 폴더가 문서 정본이다(1,616개 .md). Obsidian 볼트로 쓰는 방법은 둘이다.
+
+- **권장 — 볼트에 바로가기**: `mklink /J "C:\20.HDev\spinatlas-vault\document" "C:\20.HDev\boxcycle\document"` 후 Obsidian 에서 `C:\20.HDev\spinatlas-vault` 열기. 사본이 없고 Obsidian 의 편집이 곧 저장소 저장이다.
+- **간단 — 문서 폴더를 볼트로 열기**: Obsidian → 다른 볼트 열기 → `C:\20.HDev\boxcycle\document`. 볼트 이름은 "document" 로 뜬다. `C:\20.HDev\boxcycle\document\.obsidian` 은 `.gitignore` 에 있다.
+- 주의: `README.md` 가 95개라 `[[README]]` 식 위키링크는 겹친다 → 경로를 같이 쓸 것. 링크 1건(`출시%20전%20확인사항.md`)은 공백 인코딩이라 Obsidian 에서 안 열린다.
+
 ## 현재 기준과 검토 중인 문서
 
 `reference/`는 주제별 탐색 공간이다. **위치만으로 채택된 기준이 되지는 않는다.** 검토 중인 경제 설계와 부록은 아래 상태를 확인한다. 상태보드의 구현 기호와 문서의 채택 상태도 서로 다르다.
@@ -61,6 +69,7 @@
 | [개발 워크플로](reference/operations/260719-개발-워크플로-브랜치-커밋-게이트.md) | 브랜치·커밋·검증 게이트 | SoT |
 | [Skill·Harness 아키텍처](reference/operations/260722-Skill-Harness-아키텍처.md) | 규율·도구·실행코드 3계층 | SoT |
 | [구조 게이트 운용](reference/operations/260926-RTW-구조-게이트-운용-지침.md) | 구조 도구·게이트 규율 | SoT |
+| [MiniMax M Plan 개발 워커](reference/operations/261114-RTW-MiniMax-MPlan-개발워커.md) | 과거 MiniMax 워커 운영 기록(실행 지침 아님) | 폐기(11-22) |
 
 ## 작업과 기록
 
