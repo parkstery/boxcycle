@@ -1,6 +1,8 @@
-2026-11-20 [Guest 읽기·운영 측정 후속](20261119-firestore-read-audit/05-guest-and-measurement.md): 5a5b3170 단일 함수 배포·운영 대조. web1584/0·서버307/0. 고아 감사 주기 결정 대기.
+2026-11-22 **저비용 미커밋 정리 / Codex**: 완료 상태·절대경로 지침·기존 조사/도구 보존을 우선 처리. 지도 성능 3소스·2시험과 반응형/중계 구조의 새 구현은 후속이다. [현재 인계](HANDOFF.md). 아래 일자별 기록은 당시 범위를 보존한다.
 
-2026-11-20 [Firestore read 절감 1·2차 릴리스](20261119-firestore-read-audit/04-release.md): 시험격리·도로망 영속캐시/증분. 112131aa 함수+Hosting 배포·운영 대조 완료. web1584/0·서버305/0·FS1/0. Guest 정리·동행 구조 제외.
+2026-11-20 [Guest 읽기·운영 측정 후속](20261119-firestore-read-audit/05-guest-and-measurement.md): 5a5b3170 단일 함수 배포·운영 대조. web1584/0·서버307/0. 11-22 Chief가 매일 전수 감사 유지로 확정.
+
+2026-11-19 [Firestore read 조사·2차 구현](20261119-firestore-read-audit/03-road-incremental-sync.md): 초기 로컬 검증 후 `112131aa` 커밋·대상 함수/Hosting 배포 완료. 실제FS411→재방문0·증분2+확인1은 에뮬레이터 수치. Guest 전수스캔·다인 비용은 남음.
 
 2026-11-19 [퍼블릭 코스 추천·새 세션 인계](20261119-public-route-candidates/README.md): 8개국12후보·1차6개. 안내거리/설계목표 구분, 실제 경로·등록 미실행. Codex 문서 기록.
 
@@ -20,9 +22,9 @@
 
 2026-10-29 [왼쪽 메뉴 정비](20261029-left-menu/03-audit-claude.md): COMMITTED·미푸시·미배포. Cursor 구현, Claude Code가 Codex에서 감리 인수. 인터벌 「사용」 알약 스위치+직접조절 시 프리셋 숨김(Chief A안). 묶음별 커밋 4b4f5427(지도아이콘100)·2264047e(미니맵접기102)·f2b1b882(메뉴). 관련UI 실패 9건은 HEAD 기존 실패.
 
-2026-10-29 [일반 주행+인터벌 경로 거리 부족 안내](20261029-interval-route-hint/README.md): APPROVED·NOT_STARTED. Chief 25km/h 기준 최소거리(0.1km 올림) 안내: 인터벌 먼저→경로 설정 시, 경로 먼저→인터벌 설정 시. 기본값=고정48 흰창 재사용·확인 1버튼, 시작경고도 25km/h 통일(Chief 확인 대기). 왼쪽 메뉴 감리 PASS 후 착수. Supervisor Claude Code 지시 작성.
+2026-11-22 [일반 주행+인터벌 경로 거리 부족 안내](20261029-interval-route-hint/README.md): `baf65e9f` 커밋·미배포. 25km/h·0.1km 올림·고정48 흰창/확인1버튼, 시작 경고도 같은 기준. 실제 App 흐름·실폰 확인은 남음.
 
-2026-10-29 [간편 인터벌 주행 1단계](20261029-quick-interval-ride/README.md): APPROVED·NOT_STARTED. Chief 권장안 승인(목표거리=인터벌시간×평균속도(없으면20)×1.3, 마지막 종료점 또는 클릭 출발, 무작위 방향 최대3회, 자동출발 없음). 1-B: 간편 모드만 인터벌 완료 시 자동종료·끝지점 잘라 완주 저장, 일반주행 인터벌은 고정40 유지. 왼쪽 메뉴 묶음 감리 PASS 후 01→01-B 순서로 착수. Supervisor Claude Code 지시 작성, 제품 변경 없음.
+2026-11-20 [간편 인터벌 주행](20261029-quick-interval-ride/README.md): 01·01-B는 `9ff9b78f`로 배포. 목표거리=시간×25km/h×1.3·자동출발 없음. 간편 프로그램 완료 시 종료·실제 종료 지점까지 저장, 일반 주행은 자유 주행 유지. 이정표는 `542d04cb` 배포. 실폰·실센서는 남음.
 
 2026-10-29 **트래픽저감1단계 DEPLOYED / Codex직접**: Chief새명시승인후78f0dd19+7483402a+78e30476정상훅origin/main2푸시·격리Hosting배포완료. 전체1449PASS/0FAIL·운영index+JS/CSS5개HTTP200/bytes/SHA256일치(index-BZ3jLtJM.js). [08릴리스](20261029-peer-cost-quality/08-traffic-release.md). 동일5Hz·정밀도·보간·D600보존, 로컬RTDB요청JSON−47.1%/upTCP−24.7%/down−21.7%·동일decoded상태(Rules/정지완주/재연결복구PASS). 운영청구절감률미측정·FS읽기/Functions불변·큰수신공백미해결. 구현설계검증푸시배포모두Codex직접/위임없음. 타UI dirty보존·Rules/Functions미배포. 다음Firestore위치fanout역할분리와운영원가귀속. 실행 C:\20.HDev\boxcycle\apps\web → node --test scripts/peer-sync/motion-delta-writer.test.mjs; https://boxcycle-dc2df.web.app 다음접속새로고침(지금육안테스트요구없음)。
 
@@ -283,40 +285,30 @@ Supervisor는 아키텍처, 도메인 경계, 데이터 모델, Firestore·RTDB�
 2. 종료가 확정되면 현재 표와 PROGRESS에서 빼고 [종료 색인](../archive/README.md)에 결과와 위치를 남긴다. APPROVED는 CLOSED와 다르다. 종료 시 [02-rules §6](20261017-dev-byproducts/02-rules.md) 정리.
 3. 종료된 폴더는 **코드·스킬·명령이 그 경로를 가리키지 않을 때만** `archive/ops/` 로 옮긴다. 가리키면 제자리에 둔다.
 
-## 진행·대기 묶음 (2026-10-09)
+## 진행·대기 묶음 (2026-11-14 정리 기록)
 
 | 폴더 | 상태 | 무엇 | 결과·입구 | 이동 |
 |---|---|---|---|---|
-| [20261018-intro-blend](20261018-intro-blend/README.md) | **IN_PROGRESS** · 후속03 LongCat | 좌상단브랜드·곡선로고·인증후컨트롤 | [지시03](20261018-intro-blend/02-task-03.md) | 기존감리02보존·배포없음 |
-| [20261018-lint16](20261018-lint16/README.md) | **APPROVED** · Codex 감리 통과 | 시험4파일 lint16→0·17시험PASS·기존72파일 보존 | [감리01](20261018-lint16/04-review-01.md) | 커밋·push·배포 없음 |
+| [20261018-intro-blend](20261018-intro-blend/README.md) | **APPROVED** · Chief 확인 대기 | 좌상단브랜드·곡선로고·인증후컨트롤 | [검수03](20261018-intro-blend/04-review-03.md) | 기존감리02보존·배포없음 |
 | [20261018-spinatlas-brand](20261018-spinatlas-brand/README.md) | **APPROVED** · Chief 화면 확인 대기 | Spinatlas 표시·A안 인트로, LongCat 구현·Codex 감리 | [최종감리02](20261018-spinatlas-brand/04-review-02.md) | 로컬5000·배포 없음 |
-| [20261013-face-redesign2](20261013-face-redesign2/README.md) | **APPROVED** · 로컬main2 통합 | 디자인수정 완료·병합83079c3·quick1066 PASS | [검수65](20261013-face-redesign2/04-review-65.md) | 실기기/실인증/실주행 검증 별도 |
-| [20261009-mobile-design-collaboration](20261009-mobile-design-collaboration/README.md) | **AWAITING_CHIEF** · 확장 05 · 준비·센서 패널 | 스마트폰 우선 디자인·Muse / Cursor 협업 체계, 코드 작성 금지 | [디자인 초안](20261009-mobile-design-collaboration/17-design-preparation-sensor.md) · [인계 검수](20261009-mobile-design-collaboration/04-review-01.md) | — |
-| [20261008-pacer-riders](20261008-pacer-riders/README.md) | **APPROVED** · main2 병합·배포 | 혼자 주행 시 로컬 페이서 2명(±20m 추월, 기본 켜짐) | [계획](20261008-pacer-riders/01-plan.md) · [검수 01](20261008-pacer-riders/04-review-01.md) | — |
-| [20261007-lint-baseline-react-hooks](20261007-lint-baseline-react-hooks/README.md) | **APPROVED** · 커밋 완료 | 기존 lint 오류 15파일 36건 제거(의미 보존) | [검수 01](20261007-lint-baseline-react-hooks/04-review-01.md) | — |
-| [20261006-account-deletion](20261006-account-deletion/README.md) | **APPROVED** · 배포 대기 | 계정 탈퇴 기능 | [계획](20261006-account-deletion/01-plan.md) · [검수 15](20261006-account-deletion/04-review-15.md) | — |
-| [20261006-rider-missing](20261006-rider-missing/README.md) | **CLOSED** · 서버 중지 탓(Chief 확인) | 주행 중 3D 라이더 사라짐 | [기록](20261006-rider-missing/README.md) | — |
-| [20261006-resume-finish-discard](20261006-resume-finish-discard/README.md) | **APPROVED** · 커밋 완료 | 이어 달리기 마지막 구간 완주가 짧은 주행 폐기에 막힘 | [검수 13](20261006-resume-finish-discard/04-review-13.md) | — |
-| [20261006-bottom-right-stack](20261006-bottom-right-stack/README.md) | **APPROVED** · 커밋 완료 | 우하단 시계·다음 주행 카드·고도/축척 고정 | [검수 12-2](20261006-bottom-right-stack/04-review-12b.md) | — |
+| [20261013-face-redesign2](20261013-face-redesign2/README.md) | **AWAITING_CHIEF** · 검수58 통과 | 디자인수정 완료·병합83079c3·quick1066 PASS | [검수65](20261013-face-redesign2/04-review-65.md) | 실기기/실인증/실주행 검증 별도 |
+| [20261009-mobile-design-collaboration](20261009-mobile-design-collaboration/README.md) | **DESIGN_ACCEPTED** · 코드 작성 금지 | 스마트폰 우선 디자인·Muse / Cursor 협업 체계, 코드 작성 금지 | [디자인 초안](20261009-mobile-design-collaboration/17-design-preparation-sensor.md) · [인계 검수](20261009-mobile-design-collaboration/04-review-01.md) | — |
+| [20261006-account-deletion](20261006-account-deletion/README.md) | **APPROVED** · functions 배포 대기(Chief) | 계정 탈퇴 기능 | [계획](20261006-account-deletion/01-plan.md) · [검수 15](20261006-account-deletion/04-review-15.md) | — |
 | [20261006-camera1-presets](20261006-camera1-presets/README.md) | **DEVELOPMENT_DONE** · Cursor · 검수 대기 | 카메라 1번 경로전체/500m/20m · 위성 기본 | [지시 11](20261006-camera1-presets/02-task-11.md) · [결과 11](20261006-camera1-presets/03-result-11.md) | — |
-| [20261006-ride-end-north-up](20261006-ride-end-north-up/README.md) | **APPROVED** · 커밋 완료 | 주행 종료 시 지도 정북 복귀 | [검수 10](20261006-ride-end-north-up/04-review-10.md) | — |
-| [20261006-ride-summary-layout](20261006-ride-summary-layout/README.md) | **APPROVED** · 커밋 완료 | 주행 결과 히어로 정리·✕ 닫기 | [검수 09-2](20261006-ride-summary-layout/04-review-09b.md) | — |
-| [20261006-lint-baseline-saved-routes](20261006-lint-baseline-saved-routes/README.md) | **APPROVED** · 커밋 완료 | pre-commit 막는 기존 lint 오류 제거 | [검수 08](20261006-lint-baseline-saved-routes/04-review-08.md) | — |
-| [20261006-minimap-dock-overlap](20261006-minimap-dock-overlap/README.md) | **APPROVED** · 커밋 완료 | PC 에서 미니맵·RouteDock 겹침 | [검수 07](20261006-minimap-dock-overlap/04-review-07.md) | — |
-| [20261006-hud-clock-map-controls](20261006-hud-clock-map-controls/README.md) | **DEVELOPMENT_DONE** · Cursor · 검수 대기 | 시계 HUD 우하단·맵 상시 + Mapbox 제자리·카드 비킴(06-4) | [지시 06-4](20261006-hud-clock-map-controls/02-task-06d.md) · [결과 06d](20261006-hud-clock-map-controls/03-result-06d.md) | — |
-| [20261006-saved-route-integrity](20261006-saved-route-integrity/README.md) | **APPROVED** · 커밋 완료, functions 배포 대기(Chief) | 퍼블릭 신청 지문 오거절·「내 경로로 저장」 미완주 기록·이어달리기 대상 교체 | [지시 03](20261006-saved-route-integrity/02-task-03.md) · [지시 04](20261006-saved-route-integrity/02-task-04.md) | — |
-| [20261006-route-modal-public-badge](20261006-route-modal-public-badge/README.md) | **APPROVED** · 미커밋 | 경로 선택 창 — Public 배지·등록자 우측·공개 시 창 전환 | [검수 01](20261006-route-modal-public-badge/04-review-01.md) · [검수 02](20261006-route-modal-public-badge/04-review-02.md) | — |
-| [20261006-calories-resume](20261006-calories-resume/README.md) | **APPROVED** · origin/main2 반영 완료 | 칼로리 계산 변경·단일 재개 대상 유지 | [18 검수](20261006-calories-resume/18-review-supervisor.md) · [24 push 완료](20261006-calories-resume/24-result-remote-push.md) | 사용 확인·종료 대기 |
-| [20261006-saved-route-readability](20261006-saved-route-readability/README.md) | **APPROVED** · origin/main2 반영 완료 | Edge 내 경로 글자 가독성 | [03 검수](20261006-saved-route-readability/03-review.md) | 사용 확인·종료 대기 |
-| [20261005-ride-map-controls](20261005-ride-map-controls/README.md) | **APPROVED** · origin/main2 반영 완료 | 카메라 아래 맵 제어·축척 왼쪽 고도 | [09 고도 검수](20261005-ride-map-controls/09-review-camera-altitude.md) | Chief 사용 확인·종료 대기 |
-| [20261005-product-value-name-calories](20261005-product-value-name-calories/README.md) | **AWAITING_CHIEF** · 조사 문서 local 커밋 | 제품 동기·새 이름·칼로리 근거 조사와 제안 | [02 조사·제안](20261005-product-value-name-calories/02-result-and-proposal.md) | 제품 변경 미실시 |
-| [20261005-document-system](20261005-document-system/README.md) | **APPROVED** · origin/main2 반영 완료 | 문서 체계 정리·상태보드 입구 유지 | [03 검수](20261005-document-system/03-review-document-system.md) | Chief 종료 승인 전 |
-| [20261003-focus-read-spike](20261003-focus-read-spike/README.md) | **APPROVED** — main2 FF 완료(로컬) | 앱 foreground 복귀만으로 발생하는 Firestore read spike 조사·저감 | [21 최종 승인](20261003-focus-read-spike/21-review-final-approval.md) · [23 통합 결과](20261003-focus-read-spike/23-result-merge-main2.md) | — |
-| [20261002-public-trail-traffic-followup](20261002-public-trail-traffic-followup/README.md) | **AWAITING_CHIEF** — 측정 도구 검수 완료, 운영 데이터 Ø | Public Trail 트래픽 후속 — phase-aligned 측정 준비 | [08 재작업](20261002-public-trail-traffic-followup/08-result-phase-aligned-measurement-rework.md) · [09 검수 PASS](20261002-public-trail-traffic-followup/09-review-phase-aligned-measurement-rework.md) | — |
-| [sync-relay](sync-relay/INSTRUCTION.md) | **대기** | 동행 위치 동기화. 활성 지시 없음, S4-4(동행 튐) 재개 보류 | 후속 계획: [동행 지연과 경쟁 판정](20260927-peer-competition/260927-RTW-동행-지연과-경쟁-판정.md) | 불가 — `apps/web/scripts/peer-sync`·e2e·`/싱크지시` 가 경로 사용 |
-| [20260923-minimap](20260923-minimap/HANDOFF.md) | **대기** | 미니맵·HUD 재배치. 지시04까지 병합 후 중단 | 보류01(배경에 실제 지도) 완료 2026-10-07. 남은 일: 보류02 | 가능(종료 시) |
-| [20260927-peer-competition](20260927-peer-competition/README.md) | **대기** · PLANNING | 경쟁 판정 분리·느낌 보정의 기존 미착수 계획 | [계획](20260927-peer-competition/260927-RTW-동행-지연과-경쟁-판정.md) | 재개 시 새 지시 |
+| [20261006-hud-clock-map-controls](20261006-hud-clock-map-controls/README.md) | **APPROVED** · 커밋 완료 (잔여: 카드↔시계) | 시계 HUD 우하단·맵 상시 + Mapbox 제자리·카드 비킴(06-4) | [지시 06-4](20261006-hud-clock-map-controls/02-task-06d.md) · [결과 06d](20261006-hud-clock-map-controls/03-result-06d.md) | — |
+| [20261006-saved-route-integrity](20261006-saved-route-integrity/README.md) | 03 **APPROVED**(배포 대기) · 04 A PASS · 05(B 재작업) **DEVELOPMENT_DONE** · 미커밋 | 퍼블릭 신청 지문 오거절·「내 경로로 저장」 미완주 기록·이어달리기 대상 교체 | [지시 03](20261006-saved-route-integrity/02-task-03.md) · [지시 04](20261006-saved-route-integrity/02-task-04.md) | — |
+| [20261006-route-modal-public-badge](20261006-route-modal-public-badge/README.md) | **APPROVED**(지시 01·02) · 미커밋, Chief 실기 확인·커밋 승인 대기 | 경로 선택 창 — Public 배지·등록자 우측·공개 시 창 전환 | [검수 01](20261006-route-modal-public-badge/04-review-01.md) · [검수 02](20261006-route-modal-public-badge/04-review-02.md) | — |
+| [20261006-calories-resume](20261006-calories-resume/README.md) | **APPROVED** · origin/main2 반영 완료 · Chief 사용 확인 대기 | 칼로리 계산 변경·단일 재개 대상 유지 | [18 검수](20261006-calories-resume/18-review-supervisor.md) · [24 push 완료](20261006-calories-resume/24-result-remote-push.md) | 사용 확인·종료 대기 |
+| [20261006-saved-route-readability](20261006-saved-route-readability/README.md) | **APPROVED** · origin/main2 반영 완료 · Chief 사용 확인 대기 | Edge 내 경로 글자 가독성 | [03 검수](20261006-saved-route-readability/03-review.md) | 사용 확인·종료 대기 |
+| [20261005-ride-map-controls](20261005-ride-map-controls/README.md) | **APPROVED** · 맵 제어·고도 검수 완료 · origin/main2 반영 완료 · Chief 사용 확인 대기 | 카메라 아래 맵 제어·축척 왼쪽 고도 | [09 고도 검수](20261005-ride-map-controls/09-review-camera-altitude.md) | Chief 사용 확인·종료 대기 |
+| [20261005-product-value-name-calories](20261005-product-value-name-calories/README.md) | **AWAITING_CHIEF** · 조사·검토 완료, 제품 변경 아님 | 제품 동기·새 이름·칼로리 근거 조사와 제안 | [02 조사·제안](20261005-product-value-name-calories/02-result-and-proposal.md) | 제품 변경 미실시 |
+| [20261005-document-system](20261005-document-system/README.md) | **APPROVED** · Supervisor 검수 PASS, Chief 최종 종료 승인 전 | 문서 체계 정리·상태보드 입구 유지 | [03 검수](20261005-document-system/03-review-document-system.md) | Chief 종료 승인 전 |
+| [20261003-focus-read-spike](20261003-focus-read-spike/README.md) | **APPROVED** — main2 fast-forward 통합 완료(로컬) · push·배포 미실시 | 앱 foreground 복귀만으로 발생하는 Firestore read spike 조사·저감 | [21 최종 승인](20261003-focus-read-spike/21-review-final-approval.md) · [23 통합 결과](20261003-focus-read-spike/23-result-merge-main2.md) | — |
+| [20261002-public-trail-traffic-followup](20261002-public-trail-traffic-followup/README.md) | **AWAITING_CHIEF** — TASK-02R 검수 APPROVED, 배포 후 운영 1/2명 입력 대기 | Public Trail 트래픽 후속 — phase-aligned 측정 준비 | [08 재작업](20261002-public-trail-traffic-followup/08-result-phase-aligned-measurement-rework.md) · [09 검수 PASS](20261002-public-trail-traffic-followup/09-review-phase-aligned-measurement-rework.md) | — |
+| [sync-relay](sync-relay/INSTRUCTION.md) | **PLANNING**(기존 대기) · S4-4 재개 보류 | 동행 위치 동기화. 활성 지시 없음 | 후속 계획: [동행 지연과 경쟁 판정](20260927-peer-competition/260927-RTW-동행-지연과-경쟁-판정.md) | 불가 — `apps/web/scripts/peer-sync`·e2e·`/싱크지시` 가 경로 사용 |
+| [20260923-minimap](20260923-minimap/HANDOFF.md) | **PLANNING**(기존 대기) · 보류01·02 | 미니맵·HUD 재배치. 지시04까지 병합 후 중단 | 보류01(배경에 실제 지도) 완료 2026-10-07. 남은 일: 보류02 | 가능(종료 시) |
+| [20260927-peer-competition](20260927-peer-competition/README.md) | **PLANNING**(기존 미착수) | 경쟁 판정 분리·느낌 보정의 기존 미착수 계획 | [계획](20260927-peer-competition/260927-RTW-동행-지연과-경쟁-판정.md) | 재개 시 새 지시 |
 
-종료 작업과 옛 relay 이력은 [완료 기록 색인](../archive/README.md)에 있다. 코드·시험·스킬이 경로를 사용하는 종료 묶음은 제자리에 보존하지만 현재 작업으로 표시하지 않는다.
+2026-11-14 정리 기록: 검수 완료·종료 결과 10건을 이 표에서 분리하고 [완료 기록 색인](../archive/README.md)에 남겼다. `APPROVED` 는 `CLOSED` 와 다르므로 CLOSED 로 단정하지 않는다. 당시 남은 19건은 Chief 확인·배포·검수·계획 단계였으며, 최신 활성 상태는 HANDOFF를 따른다. 종료 작업과 옛 relay 이력은 [완료 기록 색인](../archive/README.md)에 있다. 코드·시험·스킬이 경로를 사용하는 종료 묶음은 제자리에 보존하지만 현재 작업으로 표시하지 않는다.
 
 

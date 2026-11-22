@@ -1,63 +1,86 @@
 # HANDOFF — 지금 상태 한 장
 
-
 | 항목 | 값 |
 |---|---|
 | 담당 | **Codex** |
-| 갱신 | 11-22 비용후속: 매일감사·관전구독·운영측정 정리. |
-| 브랜치 | `main2` · 미커밋 혼재(기존 작업 보존) |
+| 갱신 | 11-22 저비용 정리 완료. 잔여는 지도성능 5파일. |
+| 브랜치 | `main2` · 지도성능 3소스·2시험 미커밋 보존 |
 | 마지막 배포 | 11-20 Hosting `66a0fac8`. |
 
 ## 진행 중
 
-**11-22 비용후속**: Guest 매일03:15 전수감사 확정·11/21/22 실패0. 관전 동일UID 구독유지 `965254c7`.
-지표 재수집:11/21 읽기5,336·11/22 부분6,178. 인과절감률 미확정. 큰 중계구조는 후속·백업 유지. 푸시/배포 없음.
+**11-22 저비용 정리**: 지침/로컬설정 `68148584`·완료상태 정정·조사/보조도구 보존. 제품변경 없음.
+문서460·CJS구문3·JSON집계/UID제외 검사 통과. 잔여3소스+2시험은 검수후 처리. 원시식별증거는 로컬보존·Git제외.
 
-**11-22 정리 완료**: 거리안내 `baf65e9f`·센서/RPM `60c5cb7f` 커밋. 화면14·단위13·진입21·tsc 통과.
-MiniMax 제외·시안9/인터벌검증6 보존. 표고60초 철회(15초 유지·지연 미해결). 푸시·배포 없음.
+**3D(Codex,11-22)**: [Chief 검수](20261119-camera-terrain-follow/20261122-reuse-approach.md#v2-직접-주행-검수) 후보29.6FPS·지형 정지 UX불합격.
+다음: [새 세션 인계](20261119-camera-terrain-follow/20261122-next-session-terrain-scale.md). 1.3/1 비교 준비·Chief 시험.
+
+지도3모드 `66a0fac8` 배포.
+비용: Mapbox 0회↑·GTX 비교. Standard 도로명 지원.
+
+센서창 a29728e1·280×108。
+lint PASS·Hosting 배포。
+
+이정표542d04cb 배포·FINISH PASS·반복렌더 미확정(간편03).
 
 **11-20 인터벌(Codex)**: `9ff9b78f` 배포. [계정 인계](20261029-quick-interval-ride/README.md).
 다음: 실폰·센서 확인.
 
+**11-19 시작3D ON(Codex)**: App.tsx false→true·고정87·b70c824c 배포。
+셀렉터·회귀115·tsc/lint 통과. e2e 미실행(에뮬레이터 없음); 로컬 3D 시작 확인 대기.
+
+**11-19 중계기(릴레이) 설계 검토(Codex)**: 코드 미작성. [설계·정량](20261119-firestore-read-audit/10-multi-rider-relay-design.md).
+RTDB motion 은 이미 스타(중계) 구조. 남은 n:n 은 Firestore 백업 컬렉션 구독. 읽기 300·N·(N−1)/시간 → 후보B(라이더 RTDB만·관전자 보드1개)는 선형.
+RTDB 대역·복구 품질을 포함한 큰 구조 변경은 후속. 후보B 미채택·상시 백업 유지.
+
 **11-20 read 후속(Codex)**: Guest 제외계정 읽기 절감5a5b3170 배포·web1584/0·서버307/0。
 11-22 Chief: 매일 전수감사 유지 확정. 주기 결정 대기 종료. [기록](20261119-firestore-read-audit/05-guest-and-measurement.md).
 
-**11-19 퍼블릭(Codex)**: 4개 공개 등록·43개/9국·기존44 보존·공개read8OK. 공사 무관·도로 데이터 기준.
-[등록·릴리스](20261119-public-route-candidates/release.md). ecf600c7 푸시·Hosting 완료. quick1567/0·오프라인106·운영17에셋 일치. 아라/암스텔 보류.
+**11-19 배포**: 결과·RPM·카메라·DPR·계측 [4c1f2ef0](20261119-mobile-3d-investigation/release.md).
 
+**11-19 퍼블릭(Codex)**: 4개 등록·공개43/9국·기존44 보존·공개read8OK.
+[릴리스](20261119-public-route-candidates/release.md). ecf600c7 푸시·Hosting 완료. 아라/암스텔 보류.
 
-**11-18 RPM 왼쪽 구현 완료(Codex, 미커밋·미배포)**: Chief 시안 승인 반영. 메뉴 위치 유지, RPM·센서 다음 나머지 계기. 주행 전·중·일시정지 가로4크기 위치·순서·센서 동작 검증, tsc·화면16/16·diff검사 통과. 고정81 갱신. [기록](20261102-ride-screen-layout/README.md)·증거 `tmp/sensor-menu-20261118/left-implemented/`. 기존 미커밋 보존.
-진행 중: Chief 커밋·푸시 승인. 이번 UI 변경만 선별 후 `git commit` → `git push origin main2`, Git 훅 실행. 배포는 범위 밖.
+**표고 조회**: 11-22 Chief 반려로60초 연장안 철회. 기존15초 유지·지연 원인 미해결. [과거 분석](20261102-ride-screen-layout/20261118-elevation-timeout-analysis.md).
 
-**11-06 G5**: 배포428ae1b4 완료·Chief 폰 확인/셀 연속성 검증 남음. [계획·검증](20261103-global-geo-data/00-plan.md).
+**11-18 RPM 왼쪽 완료(Codex)**: `f3efe8ce`(10파일). 메뉴→RPM·센서→나머지 계기. 가로4크기16/16·tsc/lint 통과. 고정81·[기록](20261102-ride-screen-layout/README.md)·증거 `tmp/sensor-menu-20261118/left-implemented/`. 표고와 함께Hosting 반영.
+**푸시**: f3efe8ce·원본 pre-push·quick1558/0. npm PATH는 실행용만 우회.
 
-**11-06 목록 지역 필터(구현 impl-standard·감리 Claude Code)**: 퍼블릭 목록·Trail 탭 머리줄에 「세계 ▾」 칩(Chief A안·고정79), 받아 둔 행을 화면에서 거름(읽기 추가 0), 마지막 범위 기기 저장. test:quick 1513/0. 남은 것: chief 폰 가로 확인 — 699×273 퍼블릭 머리줄 폭, Trail 탭 줄 16px 칩. 서버 geo 미채움 Trail은 지역 선택 시 빠짐.
+**거리 안내**: 11-22 Chief 현행 구현 승인·`baf65e9f` 커밋. 25km/h·0.1km 올림·고정48.
+[결과·검증 한계](20261029-interval-route-hint/02-result-claude-code.md). App 실제흐름·실폰 미검증.
 
-**11-06 PR #22**: 0276202f 푸시·위치 저장 임계값 조정 완료. 당시 Hosting 승인 거부·운영 반영 확인은 [지역 묶음](20261103-global-geo-data/README.md) 참조.
+**11-16 Chief 결정**: ① MiniMax는11-22 개발도구에서 제외(이전 보류 결정 대체) ② Obsidian 볼트는 `C:\20.HDev\spinatlas-vault`(경로만 수정·스크립트 실행 안 함) ③ rider15 는 모델 수정 후 교체 ④ 전체 진단(11-10)은 보류 ⑤ 루트 `.out\` 정리 완료(약 3.0GB → 70MB, 링크 먼저 끊음). `.env` 4종은 `.out\env-backup-20261116\` 에 보관.
 
+**11-16 점검**: 지역 필터 Hosting f0068146 확인. 함수·Rules는 [묶음](20261106-region-ride-stats/README.md) 확인.
 
-**11-11 rider15 앱 통합(수퍼바이저 Claude Code·구현 DeepSeek `dsh`)**: 모델 V3.0 승인본을 후보 `20261111-025600-ad1d669d`로 복사(S1 완료, 해시 일치). S2 완료 = 등록+전용 리그(`rider15Rig.ts`)+레이어 분기, DEV `?riderModel=rider15` 전용, 활성 모델은 rider14 유지. S4(색상 구분 근·원거리, 슬롯 표는 앱 코드 — Chief 결정) 완료. S2·S4·후보 폴더 **11-12 커밋됨**(Chief 승인, 운영 화면 영향 없음). 리그 8/8·색상 4/4·test:quick 1545/0·tsc 0·check:dep 통과. **Chief 화면 확인에서 모델 결함 3건 발견(발목 가늘어짐=굽힘 고리 1줄·엉덩이 뒤 수직선=골반 메시 형상·체인링 72구간 중 17구간 면 없음=P77 원본부터, README 진단)** → S5 보류, 모델 원본(P77 blend) 수정·재빌드가 먼저. 수정은 **Claude 앱이 진행(Chief 결정 11-11)**, 지시·진단서 = `OneDrive\Documents\img\rider15_model_work\docs\rider15_V3.0_결함3건_수정_지시.md`(미커밋). 새 release가 오면 후보 폴더 복사 → 리그 8·색상 4 시험 재실행. 계획·기록·결정 대기: [README](20261111-rider15-app-integration/README.md). dsh는 `apps/web`에서 자체 셸이 권한 오류라 검증은 수퍼바이저가 돌린다. 모델 archive는 `C:\20.HDev\rider_model_archive`.
+**11-14~15 도구**: PROGRESS 참조. 키 없음·직접 구현.
 
-**11-04 PR #21**: 004e4261 배포·지역/국가 순위 구현. Chief 폰 확인과 위치 쓰기 측정은 [지역 묶음](20261103-global-geo-data/README.md)·[비용 묶음](20261103-cost-squeeze/README.md) 참조.
+**11-06 G5**: 배포 완료 428ae1b4·고정80. Chief 폰 확인·셀 연속성 제안 남음.
 
-**11-03~04 비용**: 54bd409d·6f125e1c 배포. L4b 재주행/4초 원인·유럽 RTDB 2차는 [비용 기록](20261103-cost-squeeze/README.md).
+**11-06 지역 필터**: 고정79·폰 확인 대기. geo 없는 Trail 제외.
 
+**11-06 PR #22**: 푸시 완료 0276202f. 위치 쓰기 임계값 조정, 효과는 측정5(분당5.0·6.4). 당시 Hosting 자동 승인 거부, 운영 반영은 관련 묶음 확인.
 
+**11-11 rider15**: DEV 전용·활성 rider14·리그8·색상4 통과. [README](20261111-rider15-app-integration/README.md)·보존 기록에 원본 경로·진단.
 
+**11-04 PR #21**: 배포004e4261·국가별 점수·폰 확인 대기.
 
+**11-03~04 비용**: 54bd409d·6f125e1c 배포. 후속 read 조사 진행.
 
-**11-02 주행 화면 배치 개편 1~5단계·A~C·인터벌 「설정 적용」 전부 배포됨(Claude Code)** — 기록은 [README](20261102-ride-screen-layout/README.md)·고정63~70·git log. App.tsx 래칫 한도 3807 — 더하지 말고 훅·컴포넌트로. 하네스 e2e 남은 실패 14건은 개편 이전부터(9e27638b). 실앱 측정 시험은 5초 숨김 때문에 화면 누름 필요.
+**11-02 주행 화면**: 배포. App 래칫3807. 기존 하네스14실패·5초 숨김 유의.
 
-10-30~11-01 배포분 기록은 각 묶음 README·git log. 주행 중 인터벌 진입: 일시정지에서 INT(Chief 결정).
+10-30~11-01 배포는 묶음 README·git log. 주행 중 인터벌: 일시정지→INT.
 
-간편 인터벌 01: 실앱 live FAIL 원인 = 시험 결함(결과시트 닫기 오인), 제품 루프 없음. 재작업 2 재감리 대기.
-별도 기존 결함 후보: 일반 주행 결과시트 「닫기」가 10초 내 클릭 안 됨(HEAD 동일), rideEntryHelpers.loadIntroCourse 의 Trail 메뉴 클릭이 지도에 가려짐 → test:e2e:ride 확인 필요.
+간편 인터벌01·01-B는 배포됨. 이정표/FINISH도542d04cb 배포. 반복 렌더링 제보의 원인·실폰/실센서 확인은 남음.
+과거 진입시험 결함 후보(현재 미재검): 결과창 닫기/지도에 가린 메뉴 클릭. 재개 시 실제 App 진입 시험과 구분한다.
+
+배포 상세: [보존 기록](20261102-ride-screen-layout/20261118-handoff-background.md).
 
 ## 다음 한 걸음
 
-1. Firestore 타인 위치fanout 구조 저감과 운영원가귀속. 자기 문서 제외는 배포됨. 상시 백업을 끊는 안은 복구 지연 때문에 채택 안 함. ([09](20261029-peer-cost-quality/09-firestore-read-reduction.md))
-2. [인터벌 경로 계획](20261029-quick-interval-ride/00-plan.md)(Chief 순서 변경): 간편 01(진행 중) → [거리 부족 안내](20261029-interval-route-hint/01-task.md) → [01-B](20261029-quick-interval-ride/01b-task-end-and-cut.md). 인터벌 기준 모두 25km/h(`resolveIntervalBasisKmh` 한 곳), 간편=25×1.3.
-3. 11-12 정리: 루트 `.out/`·`claude-headless.err`·`document/ops/**/evidence/*.zip`은 `.gitignore`로 제외(파일은 그대로). 시험이 덮어쓴 증거 PNG 30개는 Chief 승인으로 커밋본으로 되돌림. 루트 `.out/` 3.1GB 옛 복사본 삭제 여부는 Chief 결정 대기.
+1. 지도성능 5파일 검수: `mapLiveOverlayLayers.ts`·`routeConquestLayers.ts`·`layerOrder.ts`와 계약시험2개. [측정·한계](20261119-camera-terrain-follow/README.md). 내부 `_order` 참조·즉시출발·실기기 확인 후 채택 판단.
+2. 중계 보드/장애 복구와 반응형·적응형 정책은 후속. Guest 감사는 매일 유지로 확정, 상시 Firestore 백업 유지.
+3. 인터벌·이정표 실폰/실센서 확인, 반복 렌더링 스택 확보. 거리 안내·센서/RPM·관전 UID 수정은 로컬 커밋·미배포.
 
 ## Chief 결정 대기
 
@@ -72,9 +95,9 @@ MiniMax 제외·시안9/인터벌검증6 보존. 표고60초 철회(15초 유지
 
 ## 지킬 것
 
-- 타인의 변경 보존: `git restore`·`checkout -- .`·`clean`·`stash`·worktree·일괄 되돌리기 금지. 비추적 `.out/`·`cdbox.bat`은 손대지 않는다.
-- 다른 프로젝트(imgman) 개발 서버(포트 3000·3001)는 종료하지 않는다.
-- Chief에게 링크를 주지 않는다(터미널에서 안 열림). 보여줄 파일은 `Start-Process "<전체 경로>"`로 직접 연다.
+- 타인의 변경 보존: `git restore`·`checkout -- .`·`clean`·`stash`·worktree·일괄 되돌리기 금지. 비추적 `.out/`·`cdbox.bat`은 손대지 않는다(`.out/` 안 폴더를 지울 땐 링크부터 끊는다 — 실제 node_modules 로 이어져 있다).
+- imgman 서버(3000·3001) 종료 금지.
+- 파일은 링크 대신 `Start-Process "<절대경로>"`. 사용자 명령: 모든 경로 절대경로·한 줄 독립 실행(11-22).
 - 보고에 수행 agent 명시.
 - 실행자 호출·게이트 명령·배포·환경 사실: [수퍼바이저 교대 플레이북](../reference/operations/261023-RTW-수퍼바이저-교대-플레이북.md) §3~§7. 화면 고정 항목: [Chief 지정 디자인 고정](../reference/product/261024-RTW-Chief-지정-디자인-고정.md).
 - 옛 구역(10-24~25 묶음3~5 완료 기록, 배포 방법 복제본 절차, 포트 PID 기록)은 archive에 있다.

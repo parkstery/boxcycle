@@ -10,6 +10,12 @@
 
 기록은 당시 판단·증거를 보존한다. 현재 규칙은 [reference](../README.md#현재-기준과-검토-중인-문서)와 [상태보드](../260707-RTW-기능-인벤토리-상태보드.md)에서 찾는다.
 
+## 조사 보고
+
+- 2026-11-21 [Spinatlas 3D 주행 FPS 원인과 대안](reports/261121-Spinatlas-3D-FPS-Report.md) · 사용자 실주행 관측, 로컬 생산 빌드 검수, 반영 내역과 우선순위.
+
+- 2026-11-19 [거리·방향 자동 경로와 출발·도착 비교 조사](reports/261119-Spinatlas-거리방향-자동경로와-출발도착-비교조사.md): 현행 코드·146개 회귀시험, 절단·짧은 클릭 실패·수단·토큰·저장·Ready Ride 구분.
+
 ## 보관 위치
 
 | 위치 | 내용 |
@@ -21,12 +27,22 @@
 
 기존 기록은 날짜·주제로 `rg --files document/archive` 또는 `rg '<키워드>' document/archive`로 찾는다. 전수 과거 링크 검사: `node scripts/check-document-system.mjs --all`. 기존 누락 링크도 실패로 보고한다.
 
-## 종료 묶음 — 제자리 보관
+## 종료·검수 완료 묶음 — 제자리 보관
 
-아래 묶음은 종료됐다. 현재 작업이 아니며 자동 재개하지 않는다. 코드·시험·스킬·명령·주석이 기존 경로에 의존해 이동을 보류했다. 재개는 별도 새 지시로 한다.
+아래는 CLOSED 또는 검수 승인 결과를 보존하는 색인이다. **APPROVED는 Chief 최종 종료(CLOSED)를 뜻하지 않는다.** 현재 활성 지시는 [HANDOFF](../ops/HANDOFF.md)를 따른다. 11-14 표 정리로 분리한 10건은 11-22 README·검수 원문과 판정을 대조했다. 코드·시험·문서의 경로를 보존하며 자동 재개하거나 폴더를 이동하지 않는다.
 
 | 묶음 | 종료 결과 | 이동을 막는 참조 |
 |---|---|---|
+| [20261008-pacer-riders](../ops/20261008-pacer-riders/README.md) | APPROVED 2026-10-08 · Chief 육안 승인 · main2 병합·배포 | 참조 없음(11-14 기록) — 경로 이동은 별도 정리 시 검토 |
+| [20261006-rider-missing](../ops/20261006-rider-missing/README.md) | CLOSED · Chief 확인(서버 재실행 후 정상) | 참조 없음(11-14 기록) |
+| [20261018-lint16](../ops/20261018-lint16/README.md) | APPROVED · lint 오류 16건 정리 · 검수 01 통과 | `scripts/prepare-pre-ui-release.mjs` 가 이 경로를 복사 · `document/ops/20261020-pre-ui-release/README.md` 링크 |
+| [20261007-lint-baseline-react-hooks](../ops/20261007-lint-baseline-react-hooks/README.md) | APPROVED · 검수 01 통과 · 기존 lint 오류 15파일 36건 제거 | 참조 없음(11-14 기록) |
+| [20261006-bottom-right-stack](../ops/20261006-bottom-right-stack/README.md) | APPROVED · 커밋 완료 · 검수 12b 통과 | 참조 없음(11-14 기록) |
+| [20261006-ride-end-north-up](../ops/20261006-ride-end-north-up/README.md) | APPROVED · 커밋 완료 · 검수 10 통과 | 참조 없음(11-14 기록) |
+| [20261006-ride-summary-layout](../ops/20261006-ride-summary-layout/README.md) | APPROVED · 커밋 완료 · 검수 09b 통과 | `document/ops/20261006-hud-clock-map-controls/02-task-06c.md` 링크 |
+| [20261006-lint-baseline-saved-routes](../ops/20261006-lint-baseline-saved-routes/README.md) | APPROVED · 커밋 완료 · 검수 08 통과 | 참조 없음(11-14 기록) |
+| [20261006-resume-finish-discard](../ops/20261006-resume-finish-discard/README.md) | APPROVED · 검수 13 통과 · 이어 달리기 마지막 구간 폐기 교착 수정 | 참조 없음(11-14 기록) |
+| [20261006-minimap-dock-overlap](../ops/20261006-minimap-dock-overlap/README.md) | APPROVED · 검수 07 통과 · PC 겹침 65.3px→0 | 참조 없음(11-14 기록) |
 | [20261017-dev-byproducts](../ops/20261017-dev-byproducts/README.md) | CLOSED 2026-10-17 · 부산물 삭제·패널 분리·등록부 게이트 | `document/ops/README.md` 규칙이 이 묶음의 [관리 규칙](../ops/20261017-dev-byproducts/02-rules.md)을 가리킴(현행 규칙 문서) |
 | [20261016-map-cut](../ops/20261016-map-cut/04-review-m4.md) | CLOSED 2026-10-17 · [보고](reports/261017-RTW-주행-지도-글자-names-모드.md) | `apps/web/scripts/map/ride-label-names-headless.mjs` 주석 |
 | [20261005-peer-spacing-jitter](../ops/20261005-peer-spacing-jitter/README.md) | Chief PASS · main2/main 통합 · [최종 보고](261005-RTW-동행-위치-동기화와-반복진동-해결-결과보고.md) | `apps/web/scripts/peer-sync/*harness*`·mutation 도구의 입력/출력 경로 |
