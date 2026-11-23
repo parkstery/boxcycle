@@ -9,11 +9,15 @@
 
 ## 진행 중
 
-**11-22 지형1배(Codex)**: 2dfb84c8·회귀75/2/map183·빌드PASS.[결정·검증](20261119-camera-terrain-follow/20261122-terrain-scale-preview.md).
-1c8457a9까지origin/main2 푸시완료. 원본게이트·전체1642/0. App초과WARN·+500(4157)허용·경계2/0, 제품App미수정. 5216재실행은재사용·Ctrl+F5, 미배포.
+**11-23 공식선(Codex)**: [실험총괄/5218](20261119-camera-terrain-follow/20261123-fps-experiments-summary.md). ground+0.15·Mercator공통·36/0·주행8속성/6분리·가시성/복원확인。
+후속:Chief 지시로 보고서/원기록/exports/생성기만 문서 커밋으로 정리. 실험코드 미커밋·미푸시. ZIP/HTML 검증 통과·공식선6.8FPS 불합격·비용분리 미실행.
 
-**11-22 중복호출 정리**: FPS효과와 분리해5파일 커밋. 계약28·활동갱신/동기실패재시도·tsc/lint 통과.
-Chief 검수는 FPS차이없음. 5214 현재앱·5212 실험서버 유지. GPU효과 미주장. 정련은 기존App3830>3807로 실패·HEAD동일. 현재 원격 반영·미배포.
+**11-23 추적오차**: [5218 비교/0.1배 후속](20261119-camera-terrain-follow/20261123-camera-tolerance-preview.md) 주행전환·32/map183·tsc/lint/build PASS。재투영 미구현·FPS미확정·미배포。
+
+**11-22 지형1배(Codex)**: 2dfb84c8·회귀75/2/map183·빌드PASS.[결정·검증](20261119-camera-terrain-follow/20261122-terrain-scale-preview.md).
+1c8457a9 origin/main2 푸시완료·전체1642/0. App초과WARN·+500(4157)허용·경계2/0. 5216재사용·Ctrl+F5·미배포.
+
+**11-22 중복호출 정리**:5파일 커밋·원격반영·미배포. 계약28·tsc/lint 통과. Chief FPS차이없음. 5214/5212 유지。정련 기존App3830>3807 실패。
 
 **3D 후보**: [Chief 검수](20261119-camera-terrain-follow/20261122-reuse-approach.md#v2-직접-주행-검수) 29.6FPS·지형 정지 UX불합격 유지. 배율은5216에서 시험.
 
@@ -80,7 +84,7 @@ RTDB 대역·복구 품질을 포함한 큰 구조 변경은 후속. 후보B 미
 
 ## 다음 한 걸음
 
-1. 중복호출 정리는 커밋 완료. FPS차이없음과 내부 `_order` 의존성을 [측정·한계](20261119-camera-terrain-follow/README.md)에 기록했다. 큰 FPS 개선은 별도 후속이며 실패 후보를 재채택하지 않는다.
+1. 지형재사용 우선: 현재Standard 무효화원인→정적표면/동적선분리→추적오차비교. 기존실패 유지·최소24FPS。
 2. 중계 보드/장애 복구와 반응형·적응형 정책은 후속. Guest 감사는 매일 유지로 확정, 상시 Firestore 백업 유지.
 3. 인터벌·이정표 실폰/실센서 확인, 반복 렌더링 스택 확보. 거리 안내·센서/RPM·관전 UID 수정은 로컬 커밋·미배포.
 
