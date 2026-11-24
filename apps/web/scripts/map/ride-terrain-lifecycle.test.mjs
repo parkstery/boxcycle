@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { runInNewContext } from 'node:vm';
 import test from 'node:test';
 import { RideTerrainGuard, readRideTerrainHealth, TERRAIN_GUARD_INTERVAL_MS } from '../../src/components/map/rideTerrainGuard.ts';
-import { DEFAULT_MAP_STYLE, mapStyleRenderSettings, nextRideComparisonMapStyle } from '../../src/lib/map/rtwMapConfig.ts';
+import { DEFAULT_MAP_STYLE, MAP_STYLE_STANDARD, mapStyleRenderSettings, nextRideComparisonMapStyle } from '../../src/lib/map/rtwMapConfig.ts';
 import { easeMapNorthUpAfterRideEnd,rideEndOverviewZoom,shouldEaseNorthUpOnRideActiveChange,RIDE_END_NORTH_UP_DURATION_MS } from '../../src/lib/map/rideEndNorthUp.ts';
 const ts=createRequire(import.meta.url)('typescript');
 function effect(file,match,context){
@@ -63,6 +63,10 @@ test('production MapView effect observes, restores, flattens and disposes withou
   for(now=7000;now<=14000;now+=250)tick();
   assert.equal(map.getTerrain(),null,'terrain cut must stay off');
   cutCleanup();
+  context.enable3D=false;
+  context.terrainFallbackRef.current=true;
+  assert.equal(effect(mapFile,'const guard = new RideTerrainGuard',context)(),undefined);
+  assert.equal(context.terrainFallbackRef.current,false,'intentional terrain OFF must not start automatic flat recovery');
 });
 test('production ride-end effect removes terrain/buildings, keeps center and uses 1000m north-up overview',()=>{
   const map=fakeMap();const ref=current=>({current});
@@ -85,11 +89,18 @@ test('production App end resets 3D and the comparison style after the arrival sc
     let style = dusk;
     const values=[];const context={rideStatus:status,arrivalSceneVisible,rideCameraRestoreRef:{current:{follow:'free',zoom:18}},
       setEnable3D:v=>values.push(['3d',v]),setTerrainFallback:v=>values.push(['fallback',v]),setFollowMode:()=>{},setMapZoom:()=>{},setActiveQuickCamera:()=>{},
-      setMapStyle:update=>{style=update(style);},DEFAULT_MAP_STYLE,mapStyleRenderSettings,
+      setMapStyle:update=>{style=update(style);},MAP_STYLE_STANDARD,mapStyleRenderSettings,
       camera1StyleBeforeEnterRef:{current:null},camera1UserToggledStyleRef:{current:false},
     };
     effect('../../src/App.tsx','if (rideStatus === "idle" && !arrivalSceneVisible && rideCameraRestoreRef.current)',context)();
     assert.deepEqual(values,status==='idle'&&!arrivalSceneVisible?[['3d',false],['fallback',false]]:[]);
-    assert.equal(style,status==='idle'&&!arrivalSceneVisible?DEFAULT_MAP_STYLE:dusk);
+    assert.equal(style,status==='idle'&&!arrivalSceneVisible?MAP_STYLE_STANDARD:dusk);
   }
+});
+test('arrival scene does not depend on the terrain switch',()=>{
+  const app=readFileSync(new URL('../../src/App.tsx',import.meta.url),'utf8');
+  const condition=/showArrivalScene: Boolean\(([\s\S]*?)\),/.exec(app)?.[1];
+  assert.ok(condition,'arrival scene condition moved — update this contract');
+  assert.ok(condition.includes('routeGeometry'));
+  assert.ok(!condition.includes('enable3D'),'terrain is OFF by default; arrival must still play');
 });

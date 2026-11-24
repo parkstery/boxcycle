@@ -189,6 +189,7 @@ import { useIntervalRouteHint } from "./hooks/useIntervalRouteHint";
 import { QuickIntervalStatus } from "./components/ride/QuickIntervalStatus";
 import {
   DEFAULT_MAP_STYLE,
+  MAP_STYLE_STANDARD,
   MAP_STYLE_SATELLITE,
   mapStyleRenderSettings,
 } from "./lib/map/rtwMapConfig";
@@ -629,7 +630,7 @@ export default function App() {
     routeDistanceMeters,
     virtualDistanceMeters: rideMetrics.virtualDistanceMeters,
     endRideRef: handleEndRideRef,
-    showArrivalScene: Boolean(MAPBOX_TOKEN && routeGeometry && enable3D &&
+    showArrivalScene: Boolean(MAPBOX_TOKEN && routeGeometry &&
       followMode !== "free" && pageVisible && !debugMapIsolationActive),
   });
   const arrivalSceneVisible = arrivalSceneStartedAt != null && pageVisible;
@@ -658,7 +659,7 @@ export default function App() {
           follow: followModeSnapshotRef.current,
           zoom: mapZoomSnapshotRef.current,
         };
-        setEnable3D(true);
+        setEnable3D(false);
         setMapZoom(RIDE_START_ZOOM);
         /*
          * 2026-11-03 Chief: 주행 시작 기본 카메라 = 퀵 카메라 2번(종전 10-06 의 1번 500m 위성 대체).
@@ -666,7 +667,7 @@ export default function App() {
          */
         camera1StyleBeforeEnterRef.current = null;
         camera1UserToggledStyleRef.current = false;
-        setMapStyle(DEFAULT_MAP_STYLE);
+        setMapStyle(MAP_STYLE_STANDARD);
         setActiveQuickCamera(2);
         setLockBaseHeading(null);
         setFollowMode("forward");
@@ -694,7 +695,7 @@ export default function App() {
         camera1StyleBeforeEnterRef.current = null;
         camera1UserToggledStyleRef.current = false;
       }
-      setMapStyle((style) => mapStyleRenderSettings(style).lightPreset ? DEFAULT_MAP_STYLE : style);
+      setMapStyle((style) => mapStyleRenderSettings(style).lightPreset ? MAP_STYLE_STANDARD : style);
       setActiveQuickCamera(null);
     }
   }, [rideStatus, arrivalSceneVisible, camera1StyleBeforeEnterRef, camera1UserToggledStyleRef, followModeSnapshotRef, mapZoomSnapshotRef, rideCameraRestoreRef, setActiveQuickCamera, setEnable3D, setFollowMode, setLockBaseHeading, setMapStyle, setMapZoom, setRideCameraDistanceM, setRideCameraSpanFloorMode, setRideFollowCameraNonce, setRideJoinBurstNonce]);

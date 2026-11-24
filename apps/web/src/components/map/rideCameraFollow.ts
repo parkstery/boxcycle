@@ -1,5 +1,6 @@
 import { applyRideCameraTerrain, resetRideCameraTerrain } from "./rideCameraTerrain";
 import { rideTerrainScale } from "../../lib/map/rideTerrainScale";
+import { disable3dCutoff } from "../../lib/map/disable3dCutoff";
 import type { LngLat, LineStringGeometry } from "../../lib/geo/geo";
 import {
   distanceOnRouteByProjectedPoint,
@@ -479,22 +480,32 @@ export function apply3DState(
   enabled: boolean,
   buildingLayerId: string,
   terrainSourceId: string,
-  options?: { flatFallback?: boolean; preserveCamera?: boolean; standardBasemap?: boolean },
+  options?: { flatFallback?: boolean; preserveCamera?: boolean; holdCamera?: boolean; standardBasemap?: boolean },
 ) {
   try {
+  const flatFallback = Boolean(options?.flatFallback);
+  const buildingsEnabled = (enabled || options?.preserveCamera) && !flatFallback;
   if (options?.standardBasemap) {
-    map.setConfigProperty("basemap", "show3dObjects", enabled && !options.flatFallback);
+    // Terrain is independent of Standard's buildings, landmarks and vegetation.
+    map.setConfigProperty("basemap", "show3dObjects", true);
+    map.setConfigProperty("basemap", "show3dBuildings", true);
+    map.setConfigProperty("basemap", "show3dLandmarks", true);
+    map.setConfigProperty("basemap", "show3dTrees", true);
+    map.setConfigProperty("basemap", "show3dFacades", true);
   }
+  disable3dCutoff(map);
   if (!enabled) {
     map.setTerrain(null);
-    if (map.getLayer(buildingLayerId)) map.removeLayer(buildingLayerId);
+    if (!buildingsEnabled && map.getLayer(buildingLayerId)) map.removeLayer(buildingLayerId);
     // pitch→0 만 — 주행 종료 정북은 lib/map/rideEndNorthUp.easeMapNorthUpAfterRideEnd.
     // 여기서 bearing 을 넣으면 3D 토글마다 북향이 강제된다.
     // 이미 2D인 초기 지도에서 easeTo를 호출하면 진행 중인 위치 flyTo까지 취소된다.
-    if (Math.abs(map.getPitch()) > 0.01) map.easeTo({ pitch: 0, duration: 400 });
-    return;
+    // holdCamera: 주행 종료 정북·1km 이동이 진행 중이면 그 이동을 취소하지 않는다.
+    if (!options?.preserveCamera && !options?.holdCamera && Math.abs(map.getPitch()) > 0.01) map.easeTo({ pitch: 0, duration: 400 });
+    if (!options?.preserveCamera) return;
   }
 
+  if (enabled) {
   if (!map.getSource(terrainSourceId)) {
     map.addSource(terrainSourceId, {
       type: "raster-dem",
@@ -503,12 +514,13 @@ export function apply3DState(
       maxzoom: 14,
     });
   }
-  map.setTerrain({ source: terrainSourceId, exaggeration: options?.flatFallback ? 0 : rideTerrainScale() });
-  if (options?.flatFallback) {
-    if (map.getLayer(buildingLayerId)) map.removeLayer(buildingLayerId);
-    return;
+  map.setTerrain({ source: terrainSourceId, exaggeration: flatFallback ? 0 : rideTerrainScale() });
   }
-  if (!options?.standardBasemap && !map.getLayer(buildingLayerId)) {
+  if (!buildingsEnabled) {
+    if (map.getLayer(buildingLayerId)) map.removeLayer(buildingLayerId);
+  }
+  if (flatFallback) return;
+  if (!options?.standardBasemap && buildingsEnabled && !map.getLayer(buildingLayerId)) {
     let symbolLayer: { id: string } | undefined;
     try {
       const layers = map.getStyle()?.layers ?? [];
@@ -534,7 +546,7 @@ export function apply3DState(
       symbolLayer?.id,
     );
   }
-  if (!options?.preserveCamera && map.getPitch() < 35) {
+  if (!options?.preserveCamera && !options?.holdCamera && map.getPitch() < 35) {
     map.easeTo({ pitch: 60, bearing: map.getBearing(), duration: 450 });
   }
   } catch (err) {

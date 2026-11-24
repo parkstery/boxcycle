@@ -31,6 +31,10 @@
 export const RTW_LAYER_RANK = {
   /** 3D 건물 — 모든 오버레이 아래 */
   "boxcycle-3d-buildings": 100,
+  "boxcycle-standard-road-names": 110,
+  "boxcycle-standard-poi-names": 114,
+  "boxcycle-standard-transit-names": 116,
+  "boxcycle-standard-place-names": 120,
 
   /** 주행 가능 도로 커버리지(OSRM) — 경로선 아래 */
   "boxcycle-routable-roads-overlay": 200,

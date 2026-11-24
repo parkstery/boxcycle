@@ -188,7 +188,7 @@ function readApply3DState() {
   const fn = file.statements.find((node) => ts.isFunctionDeclaration(node) && node.name?.text === "apply3DState");
   assert.ok(fn);
   const compiled = ts.transpileModule(`(${fn.getText(file).replace(/^export /, "")})`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
-  return runInNewContext(compiled);
+  return runInNewContext(compiled, { disable3dCutoff: () => {} });
 }
 
 test("첫 지도 load에서 2D 초기화가 현재 위치 비행을 취소하지 않는다", () => {
@@ -203,12 +203,12 @@ test("첫 지도 load에서 2D 초기화가 현재 위치 비행을 취소하지
     bootFlyMovedRef:{current:false},bootFlyTargetRef:{current:{center:[126.978,37.5665],zoom:15}},
     mapRef:{current:map},mapLoaded:true,bootFlyHold:false,getReducedMotionSnapshot:()=>false,
     suppressCameraFollowUntilRef:{current:0},performance:{now:()=>0},getDistanceMeters,resolveEntryLocationFlightMs,
-    enable3D:false,apply3DState:readApply3DState(),BUILDING_LAYER_ID:"buildings",TERRAIN_SOURCE_ID:"terrain",applyMapCutToMap:()=>{},
+    enable3D:false,rideActive:false,holdCameraAfterRideEndRef:{current:false},apply3DState:readApply3DState(),BUILDING_LAYER_ID:"buildings",TERRAIN_SOURCE_ID:"terrain",applyMapCutToMap:()=>{},
     loadedMapStyleUrlRef:{current:"outdoors"},currentStyleRef:{current:"outdoors"},
     terrainFallbackRef:{current:false},mapStyleRenderSettings:()=>({lightPreset:null}),
   };
   effectFor("mapLoaded,bootFlyHold,bootFlyTarget",context)();
-  effectFor("enable3D,mapLoaded",context)();
+  effectFor("enable3D,mapLoaded,rideActive",context)();
   assert.deepEqual(Array.from(destination ?? []), [126.978,37.5665]);
 });
 

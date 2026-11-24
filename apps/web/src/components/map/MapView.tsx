@@ -3,6 +3,9 @@ import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } fr
 import mapboxgl from "mapbox-gl";
 import { useRideMilestoneMap, type RideMilestoneProgress } from "./useRideMilestoneMap";
 import { RideTerrainGuard, readRideTerrainHealth, TERRAIN_GUARD_INTERVAL_MS } from "./rideTerrainGuard";
+import { addStandardRideNames } from "./standardRideNames";
+import { setStandardShadows } from "../../lib/map/standardShadows";
+import { installRideViewDistance, parseRideViewDistanceM, type RideViewDistanceController } from "../../lib/map/rideViewDistance";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../../lib/map/disableMapboxTelemetry";
 import {
@@ -233,6 +236,12 @@ import { RouteElevationOverlay } from "./RouteElevationOverlay";
 import { useMapPinMarkers } from "./useMapPinMarkers";
 
 
+
+/**
+ * 주행 중 계속 갱신되는 선의 조각 줌. 기본 18은 z22 카메라에서 갱신마다 14~16조각을 다시 만든다.
+ * z16 조각도 좌표 간격이 약 6cm이고 최대 줌에서는 단순화하지 않아 선 모양은 같다.
+ */
+const RIDE_LIVE_LINE_MAX_TILE_ZOOM = 16;
 
 const EMPTY_ACTIVITY_WORLD_RAW: ActivityWorldRawOverlay = {
   pulseRoutes: [],
@@ -647,6 +656,7 @@ export function MapView({
   const prefersReducedMotionRef = useRef(false);
   const enable3DRef = useRef(enable3D);
   const terrainFallbackRef = useRef(false);
+  const rideViewDistanceRef = useRef<RideViewDistanceController | null>(null);
   const onTerrainFallbackChangeRef = useRef(onTerrainFallbackChange);
   /** 본인·동행·페이서의 화면 방향·기울기. 라이더 id 하나당 상태 하나. */
   const riderTurnRef = useRef(new RiderTurnSmoother());
@@ -750,6 +760,8 @@ export function MapView({
   const BUILDING_LAYER_ID = "boxcycle-3d-buildings";
   const TERRAIN_SOURCE_ID = "boxcycle-dem";
 
+  const rideActiveRef = useRef(rideActive);
+  useAssignRef(rideActiveRef, rideActive);
   useAssignRef(liveRiderNametagRef, liveRiderNametag);
 
   useAssignRef(routeGeometryRef, routeGeometry);
@@ -1030,6 +1042,8 @@ export function MapView({
     map.addControl(createFixedScaleBoxControl(), "bottom-right");
     map.addControl(new MapCameraAltitudeControl(), "bottom-right");
     mapRef.current = map;
+    const viewDistance = installRideViewDistance(map, parseRideViewDistanceM(window.location.search));
+    rideViewDistanceRef.current = viewDistance;
     let stopCircleAttention: (() => void) | undefined;
     const stopDistanceCircleAttention = () => {
       stopCircleAttention?.();
@@ -1198,7 +1212,14 @@ export function MapView({
       try {
       const { url, lightPreset } = mapStyleRenderSettings(currentStyleRef.current);
       loadedMapStyleUrlRef.current = url;
-      if (lightPreset) map.setConfigProperty("basemap", "lightPreset", lightPreset);
+      if (lightPreset) {
+        map.setConfigProperty("basemap", "lightPreset", lightPreset);
+        map.setConfigProperty("basemap", "showRoadLabels", true);
+        map.setConfigProperty("basemap", "showPlaceLabels", true);
+        map.setConfigProperty("basemap", "showPointOfInterestLabels", true);
+        map.setConfigProperty("basemap", "showTransitLabels", true);
+        addStandardRideNames(map);
+      }
       const preserveCamera = loadedStyleOnce;
       loadedStyleOnce = true;
       forgetActivityWorldLayerOrder(map);
@@ -1222,6 +1243,7 @@ export function MapView({
         preserveCamera,
         standardBasemap: lightPreset !== null,
       });
+      if (rideActiveRef.current) setStandardShadows(map, false);
       // mapcut 측정 스위치 — 쿼리 있을 때만. apply3DState 가 지형·건물을 되살린 뒤라 순서가 중요.
       try {
         applyMapCutToMap(map);
@@ -1829,6 +1851,7 @@ export function MapView({
       peerDomMarkersRef.current.clear();
       if (mapRef.current === map) {
         try {
+          viewDistance.dispose();
           map.remove();
         } catch {
           /* noop */
@@ -1918,6 +1941,9 @@ export function MapView({
       }
       return;
     }
+
+    // 도착 연출 중(세션은 끝났고 rideActive 만 유지)에는 경로 전체 보기가 연출 카메라를 뺏지 않는다.
+    if (rideActiveRef.current) return;
 
     // 주행 종료 정북 hold: 같은 경로 재-fitBounds 금지. 좌표가 바뀌면 hold 해제.
     if (holdCameraAfterRideEndRef.current) {
@@ -2364,7 +2390,7 @@ export function MapView({
         if (src) {
           src.setData(fc);
         } else {
-          map.addSource(CONQUEST_RECENT_NEW_SRC, { type: "geojson", data: fc });
+          map.addSource(CONQUEST_RECENT_NEW_SRC, { type: "geojson", data: fc, maxzoom: RIDE_LIVE_LINE_MAX_TILE_ZOOM });
         }
         if (!map.getLayer(CONQUEST_RECENT_NEW_GLOW_LAYER)) {
           map.addLayer({
@@ -2447,7 +2473,7 @@ export function MapView({
       if (src) {
         src.setData(fc);
       } else {
-        map.addSource(CONQUEST_LIVE_SRC, { type: "geojson", data: fc });
+        map.addSource(CONQUEST_LIVE_SRC, { type: "geojson", data: fc, maxzoom: RIDE_LIVE_LINE_MAX_TILE_ZOOM });
       }
       if (!map.getLayer(CONQUEST_LIVE_GLOW_LAYER)) {
         // glow 를 본선보다 먼저(아래) 추가 — Mapbox drop-shadow 대체
@@ -3343,6 +3369,8 @@ export function MapView({
     if (!map || !mapLoaded || !loadedMapStyleUrlRef.current) return;
     try {
       apply3DState(map, enable3D, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID, {
+        preserveCamera: rideActive,
+        holdCamera: holdCameraAfterRideEndRef.current && performance.now() < suppressCameraFollowUntilRef.current,
         flatFallback: terrainFallbackRef.current,
         standardBasemap: mapStyleRenderSettings(currentStyleRef.current).lightPreset !== null,
       });
@@ -3355,7 +3383,19 @@ export function MapView({
     } catch {
       /* lab 스위치 */
     }
-  }, [enable3D, mapLoaded]);
+  }, [enable3D, mapLoaded, rideActive]);
+
+  // 시야 확장은 지형 OFF 주행에서만 — 지형 ON·종료·대기 지도는 SDK 기본을 쓴다.
+  useEffect(() => {
+    if (mapLoaded) rideViewDistanceRef.current?.setActive(rideActive && !enable3D);
+  }, [mapLoaded, rideActive, enable3D]);
+
+  // 주행 중에는 3D 그림자를 끈다 — 화면 차이는 작고 비용이 크다(2026-11-24 Chief 권장안). 종료하면 되돌린다.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    setStandardShadows(map, !rideActive);
+  }, [rideActive, mapLoaded]);
 
   // Automatic 2D is flat terrain, not setTerrain(null): retain DEM availability
   // for recovery without a second map, raw tile downloads or retry flashes.

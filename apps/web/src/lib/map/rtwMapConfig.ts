@@ -126,7 +126,7 @@ export const RTW_TRACE_ACCUMULATED_HALO_PAINT: LinePaint = {
  */
 const MAP_STYLE_OUTDOORS = "mapbox://styles/mapbox/outdoors-v12";
 export const MAP_STYLE_SATELLITE = "mapbox://styles/mapbox/satellite-streets-v12";
-const MAP_STYLE_STANDARD = "mapbox://styles/mapbox/standard";
+export const MAP_STYLE_STANDARD = "mapbox://styles/mapbox/standard";
 const MAP_STYLE_STANDARD_DUSK = "standard-dusk";
 
 /** 제거된 Spinatlas Dark(navigation-night·dark-v11) — 복원·저장값 방어용 */

@@ -32,3 +32,62 @@ test("production terrain setup, automatic flat recovery and manual OFF use the s
   apply3DState(map as never, false, "buildings", "dem");
   assert.equal(terrain, null);
 });
+
+test("turning terrain off during a ride preserves the camera pitch", () => {
+  let terrain: unknown = {};
+  const moves: unknown[] = [];
+  const map = {
+    setTerrain: (value: unknown) => { terrain = value; }, getLayer: () => null,
+    getStyle: () => ({ layers: [] }), addLayer: () => {},
+    getPitch: () => 78, easeTo: (value: unknown) => moves.push(value),
+  };
+  apply3DState(map as never, false, "buildings", "dem", { preserveCamera: true });
+  assert.equal(terrain, null);
+  assert.equal(moves.length, 0);
+});
+
+test("non-Standard map retains buildings during a flat ride and removes them at exit", () => {
+  let terrain: unknown = {};
+  let building = false;
+  const map = {
+    setTerrain: (value: unknown) => { terrain = value; },
+    getLayer: () => building ? {} : null,
+    getStyle: () => ({ layers: [] }),
+    addLayer: () => { building = true; }, removeLayer: () => { building = false; },
+    getPitch: () => 0, easeTo: () => {},
+  };
+  apply3DState(map as never, false, "buildings", "dem", { preserveCamera: true });
+  assert.equal(terrain, null);
+  assert.equal(building, true);
+  apply3DState(map as never, false, "buildings", "dem");
+  assert.equal(building, false);
+});
+
+test("ride-end overview flight is not cancelled by the terrain cleanup", () => {
+  const moves: unknown[] = [];
+  const map = {
+    setTerrain: () => {}, getLayer: () => null, removeLayer: () => {}, getSource: () => ({}),
+    getStyle: () => ({ layers: [] }), addLayer: () => {},
+    getPitch: () => 20, easeTo: (value: unknown) => moves.push(value),
+  };
+  apply3DState(map as never, false, "buildings", "dem", { holdCamera: true });
+  apply3DState(map as never, true, "buildings", "dem", { holdCamera: true });
+  assert.equal(moves.length, 0);
+  apply3DState(map as never, false, "buildings", "dem");
+  assert.equal(moves.length, 1, "ordinary manual OFF still flattens the camera");
+});
+
+test("Standard retains 3D objects while terrain is off", () => {
+  let terrain: unknown = {};
+  const config = new Map<string, unknown>();
+  const map = {
+    setConfigProperty: (_id: string, key: string, value: unknown) => config.set(key, value),
+    setTerrain: (value: unknown) => { terrain = value; }, getLayer: () => null,
+    getPitch: () => 78, easeTo: () => { throw new Error("camera must not move"); },
+  };
+  apply3DState(map as never, false, "buildings", "dem", { standardBasemap: true, preserveCamera: true });
+  assert.equal(terrain, null);
+  for (const key of ["show3dObjects", "show3dBuildings", "show3dLandmarks", "show3dTrees", "show3dFacades"]) {
+    assert.equal(config.get(key), true, key);
+  }
+});

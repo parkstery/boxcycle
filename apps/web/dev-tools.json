@@ -9,6 +9,17 @@
   ],
   "tools": [
     {
+      "id": "q-viewdist",
+      "kind": "query",
+      "key": "viewdist",
+      "class": "temporary",
+      "purpose": "지형 OFF 주행 시야 거리 비교. ride-view-distance.test.ts",
+      "enable": "주소에 ?viewdist=0(SDK 기본) 또는 200~3000(m)",
+      "bundle": "20261124-terrain-off-3d-plan",
+      "added": "2026-11-24",
+      "expires": "2026-12-24"
+    },
+    {
       "id": "q-terrainscale",
       "kind": "query",
       "key": "terrainscale",
