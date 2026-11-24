@@ -31,6 +31,9 @@
 export const RTW_LAYER_RANK = {
   /** 3D 건물 — 모든 오버레이 아래 */
   "boxcycle-3d-buildings": 100,
+  /** 가상 가로수 — 조각 확보용 면과 나무. 글자보다 아래 */
+  "boxcycle-ride-tree-data": 102,
+  "boxcycle-ride-trees": 106,
   "boxcycle-standard-road-names": 110,
   "boxcycle-standard-poi-names": 114,
   "boxcycle-standard-transit-names": 116,

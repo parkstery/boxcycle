@@ -449,6 +449,8 @@
       "map/rideLabels.ts",
       "map/rideEndNorthUp.ts",
       "map/rideTerrainScale.ts",
+      "map/rideTreeLayer.ts",
+      "map/rideTreePlacement.ts",
       "map/rideViewDistance.ts",
       "map/riderPreservedLayer.ts",
       "map/rideMilestoneLayer.ts",

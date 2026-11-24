@@ -1,6 +1,6 @@
 import type { ExpressionSpecification, FilterSpecification, Map as MapboxMap, SymbolLayerSpecification } from "mapbox-gl";
+import { STANDARD_RIDE_DATA_SOURCE as SOURCE } from "../../lib/map/rideViewDistance";
 
-const SOURCE = "boxcycle-standard-ride-names";
 const NAME: ExpressionSpecification = ["coalesce", ["get", "name_en"], ["get", "name"]];
 /** Standard 는 피치 55° 를 넘으면 글자를 거의 감춘다. 그 구간에서만 보충한다. */
 const atHighPitch = (...extra: unknown[]): FilterSpecification =>
@@ -19,9 +19,10 @@ function pointNames(id: string, sourceLayer: string, filter: FilterSpecification
 
 /**
  * 주행 글자 보충 — 도로명·지명·상호·교통(역·정류장) 모두 ON (2026-11-24 Chief).
+ * models-v1 의 실제 나무 위치는 가상 가로수(rideTreeLayer)가 겹쳐 심지 않으려고 함께 받는다.
  */
 export function addStandardRideNames(map: MapboxMap): void {
-  if (!map.getSource(SOURCE)) map.addSource(SOURCE, { type: "vector", url: "mapbox://mapbox.mapbox-streets-v8" });
+  if (!map.getSource(SOURCE)) map.addSource(SOURCE, { type: "vector", url: "mapbox://mapbox.mapbox-streets-v8,mapbox.mapbox-models-v1" });
   const layers: SymbolLayerSpecification[] = [
     {
       id: "boxcycle-standard-road-names", type: "symbol", source: SOURCE, "source-layer": "road", slot: "top", minzoom: 15,

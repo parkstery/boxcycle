@@ -22,6 +22,10 @@ const MIN_PITCH_DEG = 60;
 const CORNER_REACH = 1.3;
 /** 글자·앱 선이 쓰는 조각의 거리. 종전 시야(카메라 2는 94~135m)보다 넓다. */
 export const RIDE_NEAR_DETAIL_M = 300;
+/** 글자 보충·나무 배치가 함께 쓰는 벡터 소스 — 가까운 조각이면 충분하다. */
+export const STANDARD_RIDE_DATA_SOURCE = "boxcycle-standard-ride-names";
+/** 앱 GeoJSON 이지만 원경에 필요한 소스(가상 가로수). */
+export const RIDE_TREES_SRC = "boxcycle-ride-trees-src";
 const EARTH_CIRCUMFERENCE_M = 40_075_016.686;
 
 type TileId = {
@@ -158,6 +162,14 @@ function trackSourceCaches(caches: Record<string, SourceCache> | undefined): voi
   };
 }
 
+function isNearOnly(cache: SourceCache | null): boolean {
+  const id = cache?.id ?? "";
+  if (id.startsWith("symbol:")) return true;
+  const name = id.slice(id.indexOf(":") + 1);
+  if (name === RIDE_TREES_SRC) return false;
+  return name === STANDARD_RIDE_DATA_SOURCE || cache?._source?.type === "geojson";
+}
+
 const NOOP: RideViewDistanceController = { setActive() {}, dispose() {} };
 
 export function installRideViewDistance(map: MapboxMap, distanceM: number): RideViewDistanceController {
@@ -206,7 +218,7 @@ export function installRideViewDistance(map: MapboxMap, distanceM: number): Ride
       const maxZoom = options.maxzoom;
       if (!active || failed || options.isTerrainDEM || !isEligible(this)) return tiles;
       try {
-        if (updatingCache?._source?.type === "geojson" || updatingCache?.id?.startsWith("symbol:")) return keepNear(this, tiles);
+        if (isNearOnly(updatingCache)) return keepNear(this, tiles);
         // 15·16 = Standard 건물·나무 벡터. 랜드마크(14) 등 나머지는 SDK 결과 그대로.
         if (maxZoom !== 15 && maxZoom !== 16) return tiles;
         return refineCover(this, tiles, maxZoom, distanceM);

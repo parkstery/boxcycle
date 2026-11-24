@@ -9,6 +9,17 @@
   ],
   "tools": [
     {
+      "id": "q-ridetrees",
+      "kind": "query",
+      "key": "ridetrees",
+      "class": "temporary",
+      "purpose": "가상 가로수 있음/없음 비교. ride-trees.test.ts",
+      "enable": "주소에 ?ridetrees=0 이면 나무 없음",
+      "bundle": "20261124-terrain-off-3d-plan",
+      "added": "2026-11-24",
+      "expires": "2026-12-24"
+    },
+    {
       "id": "q-viewdist",
       "kind": "query",
       "key": "viewdist",
