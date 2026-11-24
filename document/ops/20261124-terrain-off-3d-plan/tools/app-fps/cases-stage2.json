@@ -1,0 +1,53 @@
+[
+ {
+  "id": "s2-namsan-1000-r1",
+  "course": "남산",
+  "viewdist": 1000
+ },
+ {
+  "id": "s2-paris-1000-r1",
+  "course": "파리",
+  "viewdist": 1000
+ },
+ {
+  "id": "s2-nyc-1000-r1",
+  "course": "센트럴",
+  "viewdist": 1000
+ },
+ {
+  "id": "s2-ams-1000-r1",
+  "course": "폰델",
+  "viewdist": 1000
+ },
+ {
+  "id": "s2-namsan-0",
+  "course": "남산",
+  "viewdist": 0
+ },
+ {
+  "id": "s2-namsan-1000-r2",
+  "course": "남산",
+  "viewdist": 1000
+ },
+ {
+  "id": "s2-paris-1000-r2",
+  "course": "파리",
+  "viewdist": 1000
+ },
+ {
+  "id": "s2-nyc-1000-r2",
+  "course": "센트럴",
+  "viewdist": 1000
+ },
+ {
+  "id": "s2-ams-1000-r2",
+  "course": "폰델",
+  "viewdist": 1000
+ },
+ {
+  "id": "s2-diag-paris",
+  "kind": "diag",
+  "course": "파리",
+  "viewdist": 1000
+ }
+]

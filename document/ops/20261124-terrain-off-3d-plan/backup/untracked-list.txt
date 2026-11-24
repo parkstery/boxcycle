@@ -1,0 +1,7 @@
+apps/web/public/building-appearance-preview.js
+apps/web/scripts/map/disable-3d-cutoff.test.ts
+apps/web/src/components/map/standardRideNames.ts
+apps/web/src/lib/map/disable3dCutoff.ts
+apps/web/src/lib/map/ride3DPreview.ts
+apps/web/src/lib/map/rideCameraPosePreview.ts
+apps/web/src/lib/map/rideCameraTolerancePreview.ts

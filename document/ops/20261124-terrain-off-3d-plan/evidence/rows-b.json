@@ -1,0 +1,357 @@
+[
+ {
+  "site": "gangnam",
+  "id": "qc2-off",
+  "h": 1.064,
+  "pitch": 83.5,
+  "fps": 56.3,
+  "min1": 47,
+  "p95": 23.2,
+  "maxMs": 33,
+  "proj": "mercator",
+  "zoom": 22.83,
+  "pitchAct": 83.5,
+  "farM": 94,
+  "nearM": 0.125,
+  "camToCenterM": 9.4,
+  "camAltM": 1.1,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "16": 1
+   },
+   "symbol:composite\u001fbasemap": {
+    "16": 1
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "16": 1
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 4
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 1
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 4
+   }
+  },
+  "bcount": 4,
+  "bmax": 130,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   4,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "gangnam",
+  "id": "h3-off-nocut",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 47.1,
+  "min1": 37,
+  "p95": 31.6,
+  "maxMs": 51,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 265,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 4
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 1
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 4
+   }
+  },
+  "bcount": 68,
+  "bmax": 308,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   66,
+   2,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "gangnam",
+  "id": "h3-off",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 49.7,
+  "min1": 43,
+  "p95": 28.9,
+  "maxMs": 56,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 265,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 4
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 1
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 4
+   }
+  },
+  "bcount": 68,
+  "bmax": 308,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   66,
+   2,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "gangnam",
+  "id": "h3-off-far1k",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 34.1,
+  "min1": 33,
+  "p95": 36.8,
+  "maxMs": 44,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 3,
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 3,
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 3,
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 8
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 8
+   }
+  },
+  "bcount": 68,
+  "bmax": 308,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   66,
+   2,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "gangnam",
+  "id": "h3-off-far2k",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 30.6,
+  "min1": 26,
+  "p95": 43.5,
+  "maxMs": 199,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 2000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "12": 1,
+    "15": 3,
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "12": 1,
+    "15": 3,
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "12": 1,
+    "15": 3,
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 8
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 8
+   }
+  },
+  "bcount": 68,
+  "bmax": 308,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   66,
+   2,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "gangnam",
+  "id": "h3-off-far2k-lod",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 1.4,
+  "min1": 1,
+  "p95": 801.3,
+  "maxMs": 801,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 2000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "16": 24
+   },
+   "symbol:composite\u001fbasemap": {
+    "16": 24
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "16": 24
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 8
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 8
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 8
+   }
+  },
+  "bcount": 68,
+  "bmax": 308,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   66,
+   2,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "gangnam",
+  "id": "h3-on",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 9.8,
+  "min1": 8,
+  "p95": 130.8,
+  "maxMs": 176,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 2591,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 29.3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "13": 1,
+    "14": 2,
+    "16": 11
+   },
+   "symbol:composite\u001fbasemap": {
+    "13": 1,
+    "14": 2,
+    "16": 11
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "13": 1,
+    "14": 2,
+    "16": 11
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 13
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 13
+   },
+   "other:dem": {
+    "12": 1,
+    "14": 3
+   }
+  },
+  "bcount": 68,
+  "bmax": 308,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   66,
+   2,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ }
+]

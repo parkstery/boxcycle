@@ -1,0 +1,53 @@
+{
+ "log": [
+  {
+   "step": "riding-cam2",
+   "far": 1000,
+   "center": 13.5,
+   "pitch": 83.5,
+   "zoom": 22.3,
+   "terrain": false
+  },
+  {
+   "step": "cam1-500m",
+   "far": 559,
+   "center": 486.5,
+   "pitch": 0,
+   "zoom": 17.1,
+   "terrain": false
+  },
+  {
+   "step": "back-cam2",
+   "far": 1000,
+   "center": 13.5,
+   "pitch": 83.5,
+   "zoom": 22.3,
+   "terrain": false
+  },
+  {
+   "step": "terrain-on",
+   "far": 27370,
+   "center": 38,
+   "pitch": 85,
+   "zoom": 20.8,
+   "terrain": true
+  },
+  {
+   "step": "arrival",
+   "far": 253,
+   "center": 25.3,
+   "pitch": 58.9,
+   "zoom": 21.4,
+   "terrain": true
+  },
+  {
+   "step": "after-ride",
+   "far": 1020,
+   "center": 1000,
+   "pitch": 0,
+   "zoom": 16.1,
+   "terrain": false
+  }
+ ],
+ "arrivalSeen": true
+}

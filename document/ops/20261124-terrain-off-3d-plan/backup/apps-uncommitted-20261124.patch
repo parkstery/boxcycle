@@ -1,0 +1,603 @@
+diff --git a/apps/web/dep-layers.json b/apps/web/dep-layers.json
+index 7f108588..8917ad20 100644
+--- a/apps/web/dep-layers.json
++++ b/apps/web/dep-layers.json
+@@ -448,6 +448,9 @@
+       "map/rideLabels.ts",
+       "map/rideEndNorthUp.ts",
+       "map/rideTerrainScale.ts",
++      "map/ride3DPreview.ts",
++      "map/rideCameraTolerancePreview.ts",
++      "map/rideCameraPosePreview.ts",
+       "map/riderPreservedLayer.ts",
+       "map/rideMilestoneLayer.ts",
+       "map/rtwMapConfig.ts"
+diff --git a/apps/web/index.html b/apps/web/index.html
+index fd640b95..89b52cac 100644
+--- a/apps/web/index.html
++++ b/apps/web/index.html
+@@ -18,5 +18,13 @@
+     <!-- 본 개발: Vite + React + Firebase. 진입점은 #root 단일. -->
+     <div id="root"></div>
+     <script type="module" src="/src/main.tsx"></script>
++    <script type="module">
++      if (import.meta.env.DEV && new URLSearchParams(location.search).get('buildingpreview') === '1') {
++        const script = document.createElement('script');
++        script.type = 'module';
++        script.src = '/building-appearance-preview.js';
++        document.head.append(script);
++      }
++    </script>
+   </body>
+ </html>
+diff --git a/apps/web/scripts/map/entry-location-camera.test.mjs b/apps/web/scripts/map/entry-location-camera.test.mjs
+index 59ebcb81..d6e56d78 100644
+--- a/apps/web/scripts/map/entry-location-camera.test.mjs
++++ b/apps/web/scripts/map/entry-location-camera.test.mjs
+@@ -188,7 +188,7 @@ function readApply3DState() {
+   const fn = file.statements.find((node) => ts.isFunctionDeclaration(node) && node.name?.text === "apply3DState");
+   assert.ok(fn);
+   const compiled = ts.transpileModule(`(${fn.getText(file).replace(/^export /, "")})`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+-  return runInNewContext(compiled);
++  return runInNewContext(compiled, { getRide3DPreview: () => null, disable3dCutoff: () => {} });
+ }
+ 
+ test("첫 지도 load에서 2D 초기화가 현재 위치 비행을 취소하지 않는다", () => {
+@@ -203,12 +203,12 @@ test("첫 지도 load에서 2D 초기화가 현재 위치 비행을 취소하지
+     bootFlyMovedRef:{current:false},bootFlyTargetRef:{current:{center:[126.978,37.5665],zoom:15}},
+     mapRef:{current:map},mapLoaded:true,bootFlyHold:false,getReducedMotionSnapshot:()=>false,
+     suppressCameraFollowUntilRef:{current:0},performance:{now:()=>0},getDistanceMeters,resolveEntryLocationFlightMs,
+-    enable3D:false,apply3DState:readApply3DState(),BUILDING_LAYER_ID:"buildings",TERRAIN_SOURCE_ID:"terrain",applyMapCutToMap:()=>{},
++    enable3D:false,rideActive:false,apply3DState:readApply3DState(),BUILDING_LAYER_ID:"buildings",TERRAIN_SOURCE_ID:"terrain",applyMapCutToMap:()=>{},
+     loadedMapStyleUrlRef:{current:"outdoors"},currentStyleRef:{current:"outdoors"},
+     terrainFallbackRef:{current:false},mapStyleRenderSettings:()=>({lightPreset:null}),
+   };
+   effectFor("mapLoaded,bootFlyHold,bootFlyTarget",context)();
+-  effectFor("enable3D,mapLoaded",context)();
++  effectFor("enable3D,mapLoaded,preview3DSelection,previewTerrainScale,rideActive",context)();
+   assert.deepEqual(Array.from(destination ?? []), [126.978,37.5665]);
+ });
+ 
+diff --git a/apps/web/scripts/map/layer-order-contract.test.ts b/apps/web/scripts/map/layer-order-contract.test.ts
+index ea3edfab..93a1b990 100644
+--- a/apps/web/scripts/map/layer-order-contract.test.ts
++++ b/apps/web/scripts/map/layer-order-contract.test.ts
+@@ -223,6 +223,7 @@ describe("G4 — 레이어 순서 레지스트리", () => {
+       "boxcycle-routable-roads-src",
+       "boxcycle-rider-prototype-source",
+       "boxcycle-dem",
++      "boxcycle-standard-ride-names",
+       // CSS 키프레임 style 태그 id — 지도 레이어가 아니다
+       "boxcycle-rider-pedal-strip-keyframes",
+     ]);
+diff --git a/apps/web/scripts/map/ride-terrain-guard.test.ts b/apps/web/scripts/map/ride-terrain-guard.test.ts
+index 10f6a36b..50468759 100644
+--- a/apps/web/scripts/map/ride-terrain-guard.test.ts
++++ b/apps/web/scripts/map/ride-terrain-guard.test.ts
+@@ -60,7 +60,8 @@ test('camera below real terrain is detected, including prospective recovery in f
+   map.getFreeCameraOptions=()=>({position:{toLngLat:()=>({lng:0,lat:0}),toAltitude:()=>100*scale-10}});
+   assert.equal(readRideTerrainHealth(map as never,[0,0],false),'camera-obstructed');
+   const flat=fakeMap(100,true);
+-  flat.queryTerrainElevation=(p: unknown)=> (p as {lat:number}).lat<0?110:100;
++  // Keep this obstruction 10 rendered metres high at every preview scale.
++  flat.queryTerrainElevation=(p: unknown)=> (p as {lat:number}).lat<0?100+10/scale:100;
+   assert.equal(readRideTerrainHealth(flat as never,[0,0],true),'camera-obstructed');
+ });
+ test('hill between camera and rider is detected even when endpoints are safe',()=>{
+diff --git a/apps/web/scripts/map/ride-terrain-lifecycle.test.mjs b/apps/web/scripts/map/ride-terrain-lifecycle.test.mjs
+index d7edeaa3..f4d5888a 100644
+--- a/apps/web/scripts/map/ride-terrain-lifecycle.test.mjs
++++ b/apps/web/scripts/map/ride-terrain-lifecycle.test.mjs
+@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
+ import { runInNewContext } from 'node:vm';
+ import test from 'node:test';
+ import { RideTerrainGuard, readRideTerrainHealth, TERRAIN_GUARD_INTERVAL_MS } from '../../src/components/map/rideTerrainGuard.ts';
+-import { DEFAULT_MAP_STYLE, mapStyleRenderSettings, nextRideComparisonMapStyle } from '../../src/lib/map/rtwMapConfig.ts';
++import { DEFAULT_MAP_STYLE, MAP_STYLE_STANDARD, mapStyleRenderSettings, nextRideComparisonMapStyle } from '../../src/lib/map/rtwMapConfig.ts';
+ import { easeMapNorthUpAfterRideEnd,rideEndOverviewZoom,shouldEaseNorthUpOnRideActiveChange,RIDE_END_NORTH_UP_DURATION_MS } from '../../src/lib/map/rideEndNorthUp.ts';
+ const ts=createRequire(import.meta.url)('typescript');
+ function effect(file,match,context){
+@@ -33,6 +33,7 @@ function fakeMap(){
+ test('production MapView effect observes, restores, flattens and disposes without retrying user off',()=>{
+   const map=fakeMap();let now=0,tick,cleared=false;const changes=[];const diagnostics=[];let cutTerrain=false;
+   const context={mapRef:{current:map},mapLoaded:true,enable3D:true,rideActive:true,
++    previewTerrainEnabled:true,
+     loadedMapStyleUrlRef:{current:DEFAULT_MAP_STYLE},currentStyleRef:{current:DEFAULT_MAP_STYLE},mapStyleRenderSettings,
+     terrainFallbackRef:{current:false},onTerrainFallbackChangeRef:{current:v=>changes.push(v)},
+     liveLngLatRef:{current:[127,37]},performance:{now:()=>now},document:{hidden:false},
+@@ -63,6 +64,10 @@ test('production MapView effect observes, restores, flattens and disposes withou
+   for(now=7000;now<=14000;now+=250)tick();
+   assert.equal(map.getTerrain(),null,'terrain cut must stay off');
+   cutCleanup();
++  context.previewTerrainEnabled=false;
++  context.terrainFallbackRef.current=true;
++  assert.equal(effect(mapFile,'const guard = new RideTerrainGuard',context)(),undefined);
++  assert.equal(context.terrainFallbackRef.current,false,'intentional terrain OFF must not start automatic flat recovery');
+ });
+ test('production ride-end effect removes terrain/buildings, keeps center and uses 1000m north-up overview',()=>{
+   const map=fakeMap();const ref=current=>({current});
+@@ -85,11 +90,11 @@ test('production App end resets 3D and the comparison style after the arrival sc
+     let style = dusk;
+     const values=[];const context={rideStatus:status,arrivalSceneVisible,rideCameraRestoreRef:{current:{follow:'free',zoom:18}},
+       setEnable3D:v=>values.push(['3d',v]),setTerrainFallback:v=>values.push(['fallback',v]),setFollowMode:()=>{},setMapZoom:()=>{},setActiveQuickCamera:()=>{},
+-      setMapStyle:update=>{style=update(style);},DEFAULT_MAP_STYLE,mapStyleRenderSettings,
++      setMapStyle:update=>{style=update(style);},MAP_STYLE_STANDARD,mapStyleRenderSettings,
+       camera1StyleBeforeEnterRef:{current:null},camera1UserToggledStyleRef:{current:false},
+     };
+     effect('../../src/App.tsx','if (rideStatus === "idle" && !arrivalSceneVisible && rideCameraRestoreRef.current)',context)();
+     assert.deepEqual(values,status==='idle'&&!arrivalSceneVisible?[['3d',false],['fallback',false]]:[]);
+-    assert.equal(style,status==='idle'&&!arrivalSceneVisible?DEFAULT_MAP_STYLE:dusk);
++    assert.equal(style,status==='idle'&&!arrivalSceneVisible?MAP_STYLE_STANDARD:dusk);
+   }
+ });
+diff --git a/apps/web/scripts/map/ride-terrain-scale.test.ts b/apps/web/scripts/map/ride-terrain-scale.test.ts
+index 192dcc7a..a087fcb0 100644
+--- a/apps/web/scripts/map/ride-terrain-scale.test.ts
++++ b/apps/web/scripts/map/ride-terrain-scale.test.ts
+@@ -3,12 +3,13 @@ import { test } from "node:test";
+ import { resolveRideTerrainScale, rideTerrainScale } from "../../src/lib/map/rideTerrainScale.ts";
+ import { apply3DState } from "../../src/components/map/rideCameraFollow.ts";
+ 
+-test("normal product builds use real height; only explicit preview 1.3 exaggerates terrain", () => {
+-  for (const search of ["", "?terrainscale=1", "?terrainscale=1.3", "?terrainscale=0", "?terrainscale=2"]) {
++test("normal product builds use real height; only explicit preview changes terrain scale", () => {
++  for (const search of ["", "?terrainscale=1", "?terrainscale=1.3", "?terrainscale=0.1", "?terrainscale=0", "?terrainscale=2"]) {
+     assert.equal(resolveRideTerrainScale(false, search), 1);
+   }
+   assert.equal(resolveRideTerrainScale(true, "?terrainscale=1"), 1);
+   assert.equal(resolveRideTerrainScale(true, "?terrainscale=1.3"), 1.3);
++  assert.equal(resolveRideTerrainScale(true, "?terrainscale=0.1"), 0.1);
+   for (const search of ["", "?terrainscale=0", "?terrainscale=NaN"]) {
+     assert.equal(resolveRideTerrainScale(true, search), 1);
+   }
+@@ -32,3 +33,48 @@ test("production terrain setup, automatic flat recovery and manual OFF use the s
+   apply3DState(map as never, false, "buildings", "dem");
+   assert.equal(terrain, null);
+ });
++
++test("turning terrain off during a ride preserves the camera pitch", () => {
++  let terrain: unknown = {};
++  const moves: unknown[] = [];
++  const map = {
++    setTerrain: (value: unknown) => { terrain = value; }, getLayer: () => null,
++    getStyle: () => ({ layers: [] }), addLayer: () => {},
++    getPitch: () => 78, easeTo: (value: unknown) => moves.push(value),
++  };
++  apply3DState(map as never, false, "buildings", "dem", { preserveCamera: true });
++  assert.equal(terrain, null);
++  assert.equal(moves.length, 0);
++});
++
++test("non-Standard map retains buildings during a flat ride and removes them at exit", () => {
++  let terrain: unknown = {};
++  let building = false;
++  const map = {
++    setTerrain: (value: unknown) => { terrain = value; },
++    getLayer: () => building ? {} : null,
++    getStyle: () => ({ layers: [] }),
++    addLayer: () => { building = true; }, removeLayer: () => { building = false; },
++    getPitch: () => 0, easeTo: () => {},
++  };
++  apply3DState(map as never, false, "buildings", "dem", { preserveCamera: true });
++  assert.equal(terrain, null);
++  assert.equal(building, true);
++  apply3DState(map as never, false, "buildings", "dem");
++  assert.equal(building, false);
++});
++
++test("Standard retains 3D objects while terrain is off", () => {
++  let terrain: unknown = {};
++  const config = new Map<string, unknown>();
++  const map = {
++    setConfigProperty: (_id: string, key: string, value: unknown) => config.set(key, value),
++    setTerrain: (value: unknown) => { terrain = value; }, getLayer: () => null,
++    getPitch: () => 78, easeTo: () => { throw new Error("camera must not move"); },
++  };
++  apply3DState(map as never, false, "buildings", "dem", { standardBasemap: true, preserveCamera: true });
++  assert.equal(terrain, null);
++  for (const key of ["show3dObjects", "show3dBuildings", "show3dLandmarks", "show3dTrees", "show3dFacades"]) {
++    assert.equal(config.get(key), true, key);
++  }
++});
+diff --git a/apps/web/src/App.tsx b/apps/web/src/App.tsx
+index 8dd4bbaa..b35df9b8 100644
+--- a/apps/web/src/App.tsx
++++ b/apps/web/src/App.tsx
+@@ -189,6 +189,7 @@ import { useIntervalRouteHint } from "./hooks/useIntervalRouteHint";
+ import { QuickIntervalStatus } from "./components/ride/QuickIntervalStatus";
+ import {
+   DEFAULT_MAP_STYLE,
++  MAP_STYLE_STANDARD,
+   MAP_STYLE_SATELLITE,
+   mapStyleRenderSettings,
+ } from "./lib/map/rtwMapConfig";
+@@ -658,7 +659,7 @@ export default function App() {
+           follow: followModeSnapshotRef.current,
+           zoom: mapZoomSnapshotRef.current,
+         };
+-        setEnable3D(true);
++        setEnable3D(false);
+         setMapZoom(RIDE_START_ZOOM);
+         /*
+          * 2026-11-03 Chief: 주행 시작 기본 카메라 = 퀵 카메라 2번(종전 10-06 의 1번 500m 위성 대체).
+@@ -666,7 +667,7 @@ export default function App() {
+          */
+         camera1StyleBeforeEnterRef.current = null;
+         camera1UserToggledStyleRef.current = false;
+-        setMapStyle(DEFAULT_MAP_STYLE);
++        setMapStyle(MAP_STYLE_STANDARD);
+         setActiveQuickCamera(2);
+         setLockBaseHeading(null);
+         setFollowMode("forward");
+@@ -694,7 +695,7 @@ export default function App() {
+         camera1StyleBeforeEnterRef.current = null;
+         camera1UserToggledStyleRef.current = false;
+       }
+-      setMapStyle((style) => mapStyleRenderSettings(style).lightPreset ? DEFAULT_MAP_STYLE : style);
++      setMapStyle((style) => mapStyleRenderSettings(style).lightPreset ? MAP_STYLE_STANDARD : style);
+       setActiveQuickCamera(null);
+     }
+   }, [rideStatus, arrivalSceneVisible, camera1StyleBeforeEnterRef, camera1UserToggledStyleRef, followModeSnapshotRef, mapZoomSnapshotRef, rideCameraRestoreRef, setActiveQuickCamera, setEnable3D, setFollowMode, setLockBaseHeading, setMapStyle, setMapZoom, setRideCameraDistanceM, setRideCameraSpanFloorMode, setRideFollowCameraNonce, setRideJoinBurstNonce]);
+diff --git a/apps/web/src/app/useAppMapCameraState.ts b/apps/web/src/app/useAppMapCameraState.ts
+index b4c76cec..11732441 100644
+--- a/apps/web/src/app/useAppMapCameraState.ts
++++ b/apps/web/src/app/useAppMapCameraState.ts
+@@ -1,5 +1,5 @@
+ /* eslint-disable react-hooks/refs -- App.tsx 에서 옮긴 기존 패턴, eslint.config.js 의 App.tsx 예외와 같은 범위 */
+-import { useCallback, useRef, useState } from "react";
++import { useCallback, useEffect, useRef, useState } from "react";
+ import type { MapViewportBounds } from "../lib/activity/activityWorldLod";
+ import type { Camera1Mode } from "../lib/camera/camera1Mode";
+ import type { LngLat } from "../lib/geo/geo";
+@@ -11,12 +11,12 @@ import {
+   type FollowMode,
+ } from "../lib/map/mapGlobeView";
+ import { MAP_FALLBACK_CENTER, MAP_FALLBACK_ZOOM } from "../lib/map/mapBootCenter";
+-import { MAP_STYLE_SATELLITE } from "../lib/map/rtwMapConfig";
++import { MAP_STYLE_STANDARD } from "../lib/map/rtwMapConfig";
+ 
+ /** 지도 스타일·줌·카메라 팔로우 상태 묶음 — 훅 순서는 App 원문 그대로 */
+ export function useAppMapCameraState() {
+   /** 첫 지도는 저장 지역이 아니라 콜로세움. 실제 목적지는 위치 선택이 정한다. */
+-  const [mapStyle, setMapStyle] = useState(MAP_STYLE_SATELLITE);
++  const [mapStyle, setMapStyle] = useState(MAP_STYLE_STANDARD);
+   const [mapZoom, setMapZoom] = useState(MAP_FALLBACK_ZOOM);
+   /** 주행 카메라 라이더~카메라 거리(m) — 개발용 거리 슬라이더, 최적값 확정 후 제거 예정 */
+   const [rideCameraDistanceM, setRideCameraDistanceM] = useState(RIDE_CAMERA_DISTANCE_DEFAULT_M);
+@@ -65,6 +65,15 @@ export function useAppMapCameraState() {
+   } | null>(null);
+   const mapZoomStepSeqRef = useRef(0);
+   const [enable3D, setEnable3D] = useState(DEFAULT_MAP_ENABLE_3D);
++  useEffect(() => {
++    if (!import.meta.env.DEV || new URLSearchParams(window.location.search).get("buildingpreview") !== "1") return;
++    const listener = (event: Event) => {
++      const enabled = (event as CustomEvent<unknown>).detail;
++      if (typeof enabled === "boolean") setEnable3D(enabled);
++    };
++    window.addEventListener("spinatlas:building-preview-terrain", listener);
++    return () => window.removeEventListener("spinatlas:building-preview-terrain", listener);
++  }, []);
+   const followModeSnapshotRef = useRef(followMode);
+   const mapZoomSnapshotRef = useRef(mapZoom);
+   followModeSnapshotRef.current = followMode;
+diff --git a/apps/web/src/components/map/MapView.tsx b/apps/web/src/components/map/MapView.tsx
+index 442dfe44..2f652b07 100644
+--- a/apps/web/src/components/map/MapView.tsx
++++ b/apps/web/src/components/map/MapView.tsx
+@@ -3,6 +3,9 @@ import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } fr
+ import mapboxgl from "mapbox-gl";
+ import { useRideMilestoneMap, type RideMilestoneProgress } from "./useRideMilestoneMap";
+ import { RideTerrainGuard, readRideTerrainHealth, TERRAIN_GUARD_INTERVAL_MS } from "./rideTerrainGuard";
++import { addStandardRideNames } from "./standardRideNames";
++import { getRide3DPreviewSnapshot, subscribeRide3DPreview } from "../../lib/map/ride3DPreview";
++import { getTerrainScalePreviewSnapshot, subscribeTerrainScalePreview } from "../../lib/map/rideTerrainScale";
+ import "mapbox-gl/dist/mapbox-gl.css";
+ import "../../lib/map/disableMapboxTelemetry";
+ import {
+@@ -748,6 +751,9 @@ export function MapView({
+     getReducedMotionServerSnapshot,
+   );
+   const BUILDING_LAYER_ID = "boxcycle-3d-buildings";
++  const preview3DSelection = useSyncExternalStore(subscribeRide3DPreview, getRide3DPreviewSnapshot, () => -1);
++  const previewTerrainScale = useSyncExternalStore(subscribeTerrainScalePreview, getTerrainScalePreviewSnapshot, () => -1);
++  const previewTerrainEnabled = preview3DSelection < 0 || Boolean(preview3DSelection & 1);
+   const TERRAIN_SOURCE_ID = "boxcycle-dem";
+ 
+   useAssignRef(liveRiderNametagRef, liveRiderNametag);
+@@ -1198,7 +1204,13 @@ export function MapView({
+       try {
+       const { url, lightPreset } = mapStyleRenderSettings(currentStyleRef.current);
+       loadedMapStyleUrlRef.current = url;
+-      if (lightPreset) map.setConfigProperty("basemap", "lightPreset", lightPreset);
++      if (lightPreset) {
++        map.setConfigProperty("basemap", "lightPreset", lightPreset);
++        map.setConfigProperty("basemap", "showRoadLabels", true);
++        map.setConfigProperty("basemap", "showPlaceLabels", true);
++        map.setConfigProperty("basemap", "showPointOfInterestLabels", true);
++        addStandardRideNames(map);
++      }
+       const preserveCamera = loadedStyleOnce;
+       loadedStyleOnce = true;
+       forgetActivityWorldLayerOrder(map);
+@@ -3343,6 +3355,7 @@ export function MapView({
+     if (!map || !mapLoaded || !loadedMapStyleUrlRef.current) return;
+     try {
+       apply3DState(map, enable3D, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID, {
++        preserveCamera: rideActive,
+         flatFallback: terrainFallbackRef.current,
+         standardBasemap: mapStyleRenderSettings(currentStyleRef.current).lightPreset !== null,
+       });
+@@ -3355,14 +3368,14 @@ export function MapView({
+     } catch {
+       /* lab 스위치 */
+     }
+-  }, [enable3D, mapLoaded]);
++  }, [enable3D, mapLoaded, preview3DSelection, previewTerrainScale, rideActive]);
+ 
+   // Automatic 2D is flat terrain, not setTerrain(null): retain DEM availability
+   // for recovery without a second map, raw tile downloads or retry flashes.
+   useEffect(() => {
+     const map = mapRef.current;
+     if (!map || !mapLoaded) return;
+-    if (!enable3D || !rideActive) {
++    if (!enable3D || !rideActive || !previewTerrainEnabled) {
+       terrainFallbackRef.current = false;
+       onTerrainFallbackChangeRef.current?.(false);
+       noteRenderingDiagnostic("terrain-guard", !enable3D ? "manual-off" : "inactive");
+@@ -3400,7 +3413,7 @@ export function MapView({
+       disposed = true;
+       window.clearInterval(timer);
+     };
+-  }, [enable3D, rideActive, mapLoaded]);
++  }, [enable3D, rideActive, mapLoaded, previewTerrainEnabled]);
+ 
+   /**
+    * mapcut 측정 스위치 — 스타일 재로드마다 재적용. 생성 effect 의 `style.load`
+diff --git a/apps/web/src/components/map/rideCameraFollow.ts b/apps/web/src/components/map/rideCameraFollow.ts
+index 4f3455a4..1d01c0f8 100644
+--- a/apps/web/src/components/map/rideCameraFollow.ts
++++ b/apps/web/src/components/map/rideCameraFollow.ts
+@@ -1,5 +1,8 @@
+-import { applyRideCameraTerrain, resetRideCameraTerrain } from "./rideCameraTerrain";
++import { applyPreviewCameraPose, applyRideCameraTerrain, resetRideCameraTerrain } from "./rideCameraTerrain";
+ import { rideTerrainScale } from "../../lib/map/rideTerrainScale";
++import { disable3dCutoff } from "../../lib/map/disable3dCutoff";
++import { getRide3DPreview } from "../../lib/map/ride3DPreview";
++import { filterPreviewFollowJump, publishPreviewFollow } from "../../lib/map/rideCameraTolerancePreview";
+ import type { LngLat, LineStringGeometry } from "../../lib/geo/geo";
+ import {
+   distanceOnRouteByProjectedPoint,
+@@ -406,6 +409,7 @@ function markFollowJumpForRasterAlign(map: mapboxgl.Map): void {
+ 
+ /** jumpTo 직전 계측 + 적용. */
+ export function applyFollowCameraJumpTo(map: mapboxgl.Map, jump: FollowCameraJump): void {
++  jump = filterPreviewFollowJump(map, jump);
+   noteFollowJumpToValues(jump);
+   markFollowJumpForRasterAlign(map);
+   noteCameraWrite({
+@@ -420,14 +424,17 @@ export function applyFollowCameraJumpTo(map: mapboxgl.Map, jump: FollowCameraJum
+   try {
+     const pad = map.getPadding();
+     const hasPadding = pad.top !== 0 || pad.bottom !== 0 || pad.left !== 0 || pad.right !== 0;
+-    map.jumpTo({
+-      center: jump.center,
+-      bearing: jump.bearing,
+-      pitch: jump.pitch,
+-      zoom: jump.zoom,
+-      ...(hasPadding ? { padding: RIDE_FOLLOW_NO_PADDING } : {}),
+-    });
+-    applyRideCameraTerrain(map, jump.riderLngLat, jump.terrainCameraSlot, jump.t, jump.terrainScreenAnchor);
++    if (!applyPreviewCameraPose(map, jump.riderLngLat, jump.terrainCameraSlot, jump.bearing, jump.t)) {
++      map.jumpTo({
++        center: jump.center,
++        bearing: jump.bearing,
++        pitch: jump.pitch,
++        zoom: jump.zoom,
++        ...(hasPadding ? { padding: RIDE_FOLLOW_NO_PADDING } : {}),
++      });
++      applyRideCameraTerrain(map, jump.riderLngLat, jump.terrainCameraSlot, jump.t, jump.terrainScreenAnchor);
++    } else { resetRideCameraTerrain(map); }
++    publishPreviewFollow(map, jump);
+   } finally {
+     endFollowCameraJump();
+   }
+@@ -482,19 +489,31 @@ export function apply3DState(
+   options?: { flatFallback?: boolean; preserveCamera?: boolean; standardBasemap?: boolean },
+ ) {
+   try {
++  const preview = getRide3DPreview();
++  const flatFallback = Boolean(options?.flatFallback && preview?.terrain !== false);
++  const buildingsEnabled = (enabled || options?.preserveCamera) && !flatFallback && preview?.buildings !== false;
+   if (options?.standardBasemap) {
+-    map.setConfigProperty("basemap", "show3dObjects", enabled && !options.flatFallback);
++    // Terrain is independent of Standard's buildings, landmarks and vegetation.
++    map.setConfigProperty("basemap", "show3dObjects", true);
++    map.setConfigProperty("basemap", "show3dBuildings", preview?.buildings !== false);
++    map.setConfigProperty("basemap", "show3dLandmarks", preview?.buildings !== false);
++    map.setConfigProperty("basemap", "show3dTrees", true);
++    map.setConfigProperty("basemap", "show3dFacades", true);
+   }
++  disable3dCutoff(map);
+   if (!enabled) {
+     map.setTerrain(null);
+-    if (map.getLayer(buildingLayerId)) map.removeLayer(buildingLayerId);
++    if (!buildingsEnabled && map.getLayer(buildingLayerId)) map.removeLayer(buildingLayerId);
+     // pitch→0 만 — 주행 종료 정북은 lib/map/rideEndNorthUp.easeMapNorthUpAfterRideEnd.
+     // 여기서 bearing 을 넣으면 3D 토글마다 북향이 강제된다.
+     // 이미 2D인 초기 지도에서 easeTo를 호출하면 진행 중인 위치 flyTo까지 취소된다.
+-    if (Math.abs(map.getPitch()) > 0.01) map.easeTo({ pitch: 0, duration: 400 });
+-    return;
++    if (!options?.preserveCamera && Math.abs(map.getPitch()) > 0.01) map.easeTo({ pitch: 0, duration: 400 });
++    if (!options?.preserveCamera) return;
+   }
+ 
++  if (!enabled || preview?.terrain === false) {
++    map.setTerrain(null);
++  } else {
+   if (!map.getSource(terrainSourceId)) {
+     map.addSource(terrainSourceId, {
+       type: "raster-dem",
+@@ -503,12 +522,13 @@ export function apply3DState(
+       maxzoom: 14,
+     });
+   }
+-  map.setTerrain({ source: terrainSourceId, exaggeration: options?.flatFallback ? 0 : rideTerrainScale() });
+-  if (options?.flatFallback) {
++  map.setTerrain({ source: terrainSourceId, exaggeration: flatFallback ? 0 : rideTerrainScale() });
++  }
++  if (!buildingsEnabled) {
+     if (map.getLayer(buildingLayerId)) map.removeLayer(buildingLayerId);
+-    return;
+   }
+-  if (!options?.standardBasemap && !map.getLayer(buildingLayerId)) {
++  if (flatFallback) return;
++  if (!options?.standardBasemap && buildingsEnabled && !map.getLayer(buildingLayerId)) {
+     let symbolLayer: { id: string } | undefined;
+     try {
+       const layers = map.getStyle()?.layers ?? [];
+diff --git a/apps/web/src/components/map/rideCameraTerrain.ts b/apps/web/src/components/map/rideCameraTerrain.ts
+index 33af6e44..b72f4294 100644
+--- a/apps/web/src/components/map/rideCameraTerrain.ts
++++ b/apps/web/src/components/map/rideCameraTerrain.ts
+@@ -1,6 +1,61 @@
+ import mapboxgl, { type Map as MapboxMap } from "mapbox-gl";
+-import { getDistanceMeters, type LngLat } from "../../lib/geo/geo";
++import { getDistanceMeters, offsetLngLatByBearingMeters, type LngLat } from "../../lib/geo/geo";
+ import { rideTerrainScale } from "../../lib/map/rideTerrainScale";
++import { filterPreviewTerrainAim } from "../../lib/map/rideCameraTolerancePreview";
++import { getCameraPosePreview, publishCameraPosePreview } from "../../lib/map/rideCameraPosePreview";
++
++/** Height/pitch experiment. Heading and translation still follow every ride tick. */
++export function applyPreviewCameraPose(map: MapboxMap, rider: LngLat, slot: number | null | undefined,
++  bearing: number, nowMs: number): boolean {
++  const config = getCameraPosePreview();
++  if (!config) return false;
++  const pending = (status: string) => { publishCameraPosePreview({ status, slot }, nowMs); return false; };
++  if (slot !== 2) return pending("카메라2를 선택하세요");
++  const terrain = map.getTerrain();
++  if (!terrain || !(Number(terrain.exaggeration) > 0)) return pending("지형 ON/안전 복귀 대기");
++  try {
++    const elevation = (point: LngLat) => map.queryTerrainElevation(point, { exaggerated: true });
++    const riderGround = elevation(rider);
++    if (!finite(riderGround)) return pending("라이더 DEM 준비 대기");
++    const rawRiderGround = map.queryTerrainElevation(rider, { exaggerated: false });
++    if (!finite(rawRiderGround) || Math.abs(riderGround - rawRiderGround * rideTerrainScale()) > 0.01) {
++      return pending("지형 배율 적용 대기");
++    }
++    const riderEye = riderGround + RIDER_SIGHT_HEIGHT_M;
++    let altitude = riderGround + config.heightM, cameraLL = rider;
++    // Set follow distance from the chosen height and pitch, then account for
++    // the ground below the resulting camera. The final safety lift is explicit.
++    for (let iteration = 0; iteration < 3; iteration++) {
++      const distance = Math.max(0.5, altitude - riderEye) * Math.tan(config.pitchDeg * Math.PI / 180);
++      cameraLL = offsetLngLatByBearingMeters(rider, bearing + 180, distance);
++      const ground = elevation(cameraLL);
++      if (!finite(ground)) return pending("카메라 DEM 준비 대기");
++      altitude = Math.max(ground + config.heightM, riderEye + 0.5);
++    }
++    const deltaLng = ((rider[0] - cameraLL[0] + 540) % 360) - 180;
++    const grounds = CAMERA_SIGHT_SAMPLES.map(t => elevation([
++      cameraLL[0] + deltaLng * t, cameraLL[1] + (rider[1] - cameraLL[1]) * t,
++    ]));
++    if (!grounds.every(finite)) return pending("시야 DEM 준비 대기");
++    const lift = terrainCameraLiftM(altitude, riderEye, grounds as number[]);
++    if (lift === null) return pending("지형 안전 확인 대기");
++    const camera = map.getFreeCameraOptions();
++    camera.position = mapboxgl.MercatorCoordinate.fromLngLat(cameraLL, altitude + lift);
++    camera.setPitchBearing(config.pitchDeg, bearing);
++    map.setFreeCameraOptions(camera);
++    const actual = map.getFreeCameraOptions().position;
++    if (!actual) return pending("실제 카메라 확인 대기");
++    const ll = actual.toLngLat(), actualGround = elevation([ll.lng, ll.lat]);
++    const point = map.project(rider), canvas = map.getCanvas();
++    publishCameraPosePreview({ active: true, status: "수동 높이/피치 적용", slot,
++      actualHeightM: finite(actualGround) ? actual.toAltitude() - actualGround : null,
++      actualPitchDeg: map.getPitch(), cameraAltitudeM: actual.toAltitude(), safetyLiftM: lift,
++      distanceM: getDistanceMeters([ll.lng, ll.lat], rider),
++      riderScreen: { x: point.x / canvas.clientWidth, y: point.y / canvas.clientHeight },
++    }, nowMs);
++    return true;
++  } catch { return pending("카메라/스타일 준비 대기"); }
++}
+ 
+ // Keep the low racing view where it is already safe. Never lower the nominal camera.
+ const CAMERA_TERRAIN_CLEARANCE_M = 3;
+@@ -90,7 +145,8 @@ export function applyRideCameraTerrain(
+     states.set(map, { liftM, at: nowMs, slot });
+     // Aim the rider at the established QC screen anchor. Preserving the nominal
+     // ray is insufficient on slopes: the uncorrected rider can already be offscreen.
+-    const pitch = Math.atan2(horizontalM, nominalM + liftM - riderM) * 180 / Math.PI + anchorAngle * 180 / Math.PI;
++    const desiredPitch = Math.atan2(horizontalM, nominalM + liftM - riderM) * 180 / Math.PI + anchorAngle * 180 / Math.PI;
++    const pitch = filterPreviewTerrainAim(map, desiredPitch, slot, fov, required > (previous?.liftM ?? 0) + 0.001);
+     if (liftM < 0.001 && Math.abs(pitch - map.getPitch()) < 2) return;
+     camera.position = mapboxgl.MercatorCoordinate.fromLngLat(ll, actualM + liftM);
+     camera.setPitchBearing(Math.max(0, Math.min(85, pitch)), map.getBearing());
+diff --git a/apps/web/src/lib/map/layerOrder.ts b/apps/web/src/lib/map/layerOrder.ts
+index 574e28b2..6d80ed89 100644
+--- a/apps/web/src/lib/map/layerOrder.ts
++++ b/apps/web/src/lib/map/layerOrder.ts
+@@ -31,6 +31,8 @@
+ export const RTW_LAYER_RANK = {
+   /** 3D 건물 — 모든 오버레이 아래 */
+   "boxcycle-3d-buildings": 100,
++  "boxcycle-standard-road-names": 110,
++  "boxcycle-standard-place-names": 120,
+ 
+   /** 주행 가능 도로 커버리지(OSRM) — 경로선 아래 */
+   "boxcycle-routable-roads-overlay": 200,
+diff --git a/apps/web/src/lib/map/rideTerrainScale.ts b/apps/web/src/lib/map/rideTerrainScale.ts
+index 37e533e7..8bcdf45f 100644
+--- a/apps/web/src/lib/map/rideTerrainScale.ts
++++ b/apps/web/src/lib/map/rideTerrainScale.ts
+@@ -1,11 +1,34 @@
+ /** Real terrain height by default; only the isolated comparison can exaggerate it. */
+-export function resolveRideTerrainScale(preview: boolean, search: string): 1 | 1.3 {
+-  return preview && new URLSearchParams(search).get("terrainscale") === "1.3" ? 1.3 : 1;
++export const TERRAIN_SCALE_PREVIEW_EVENT = "spinatlas:terrain-scale-preview";
++let liveScale: number | null = null;
++const enabled = () => import.meta.env.VITE_TERRAIN_SCALE_PREVIEW === "1";
++export function resolveRideTerrainScale(preview: boolean, search: string): 0.1 | 1 | 1.3 {
++  if (!preview) return 1;
++  const value = new URLSearchParams(search).get("terrainscale");
++  return value === "0.1" ? 0.1 : value === "1.3" ? 1.3 : 1;
+ }
+ 
+-export function rideTerrainScale(): 1 | 1.3 {
++export function rideTerrainScale(): number {
++  if (enabled() && liveScale !== null) return liveScale;
+   return resolveRideTerrainScale(
+-    import.meta.env.VITE_TERRAIN_SCALE_PREVIEW === "1",
++    enabled(),
+     typeof window === "undefined" ? "" : window.location.search,
+   );
+ }
++
++export function getTerrainScalePreviewSnapshot(): number {
++  return enabled() ? rideTerrainScale() : -1;
++}
++
++/** Every subscriber is notified, including multiple map instances. */
++export function subscribeTerrainScalePreview(changed: () => void): () => void {
++  if (!enabled() || typeof window === "undefined") return () => {};
++  const listener = (event: Event) => {
++    const value = (event as CustomEvent<unknown>).detail;
++    if (typeof value !== "number" || !Number.isFinite(value) || value < 0.1 || value > 2) return;
++    liveScale = Math.round(value * 10) / 10;
++    changed();
++  };
++  window.addEventListener(TERRAIN_SCALE_PREVIEW_EVENT, listener);
++  return () => window.removeEventListener(TERRAIN_SCALE_PREVIEW_EVENT, listener);
++}
+diff --git a/apps/web/src/lib/map/rtwMapConfig.ts b/apps/web/src/lib/map/rtwMapConfig.ts
+index 5c11a470..3ec9fe53 100644
+--- a/apps/web/src/lib/map/rtwMapConfig.ts
++++ b/apps/web/src/lib/map/rtwMapConfig.ts
+@@ -126,7 +126,7 @@ export const RTW_TRACE_ACCUMULATED_HALO_PAINT: LinePaint = {
+  */
+ const MAP_STYLE_OUTDOORS = "mapbox://styles/mapbox/outdoors-v12";
+ export const MAP_STYLE_SATELLITE = "mapbox://styles/mapbox/satellite-streets-v12";
+-const MAP_STYLE_STANDARD = "mapbox://styles/mapbox/standard";
++export const MAP_STYLE_STANDARD = "mapbox://styles/mapbox/standard";
+ const MAP_STYLE_STANDARD_DUSK = "standard-dusk";
+ 
+ /** 제거된 Spinatlas Dark(navigation-night·dark-v11) — 복원·저장값 방어용 */

@@ -2,24 +2,26 @@
 
 | 항목 | 값 |
 |---|---|
-| 담당 | **Codex** |
-| 갱신 | 11-22 지형1배·App500줄 정책·실행기 수정 푸시 완료. |
+| 담당 | **Claude Code** |
+| 갱신 | 11-24 시야1km·글자ON 2단계 로컬 완료. |
 | 브랜치 | `main2` · 지형 기본1배 |
 | 마지막 배포 | 11-20 Hosting `66a0fac8`. |
 
 ## 진행 중
 
-**11-23 공식선(Codex)**: [실험총괄/5218](20261119-camera-terrain-follow/20261123-fps-experiments-summary.md). ground+0.15·Mercator공통·36/0·주행8속성/6분리·가시성/복원확인。
-후속:Chief 지시로 보고서/원기록/exports/생성기만 문서 커밋으로 정리. 실험코드 미커밋·미푸시. ZIP/HTML 검증 통과·공식선6.8FPS 불합격·비용분리 미실행.
+**11-24 지형OFF·3D최대(Claude Code)**: 0·1·2단계 로컬 커밋·미푸시·미배포(rider15 병행 작업 제외). [2단계](20261124-terrain-off-3d-plan/02-result-stage2.md)·[0·1단계](20261124-terrain-off-3d-plan/01-result-stage0-1.md)·[계획](20261124-terrain-off-3d-plan/README.md). Chief 확정: 시야1km(고정91)·글자 모두ON(고정92). 실앱 31~37FPS, 8표본 중4 합격(나머지 p95 +0.2~2.1ms). 전체1665/0. 사본 `backup/`.
+Chief 1·2단계 승인. 3단계 [나무 시안](20261124-terrain-off-3d-plan/03-tree-options.md) 모양A/B·빽빽함①②③ → Chief 「각진·여유」 확정, 구현 중. 비교 `?viewdist=0`.
 
-**11-23 추적오차**: [5218 비교/0.1배 후속](20261119-camera-terrain-follow/20261123-camera-tolerance-preview.md) 주행전환·32/map183·tsc/lint/build PASS。재투영 미구현·FPS미확정·미배포。
+**11-24 Chief 판정(해제됨)**: 지형OFF에도 건물 일부만 표시·지평선까지 미충족 → 위 계획 1단계가 해결 대상.
 
-**11-22 지형1배(Codex)**: 2dfb84c8·회귀75/2/map183·빌드PASS.[결정·검증](20261119-camera-terrain-follow/20261122-terrain-scale-preview.md).
-1c8457a9 origin/main2 푸시완료·전체1642/0. App초과WARN·+500(4157)허용·경계2/0. 5216재사용·Ctrl+F5·미배포.
+**11-24 객체 거리(Codex)**: 5000 비교판 SDK cutoff 0.25~4배·기본 minZoom15. Miami 전후 차이·복원 확인.
+미커밋/미배포.
 
-**11-22 중복호출 정리**:5파일 커밋·원격반영·미배포. 계약28·tsc/lint 통과. Chief FPS차이없음. 5214/5212 유지。정련 기존App3830>3807 실패。
+**11-24 자동조건탐색(Codex)**: [35표본/재현](20261119-camera-terrain-follow/20261124-automatic-fps-sweep.md)·Standard낮/GTX1660/1562×754/5kmh。최소24 통과0/35, 절충8m35°0.5배23.6/27.1FPS·최저18/22。최대29도최저23。exports ZIP/JSON·5218 reports 준비。
+미커밋/미푸시/미배포。**프리뷰 상태**: [5218 슬라이더/반복예외 수정](20261119-camera-terrain-follow/20261124-terrain-sliders-preview.md)·높이/피치/배율/거리·패널드래그 준비。[보존 인계](20261124-handoff-background.md)。
 
-**3D 후보**: [Chief 검수](20261119-camera-terrain-follow/20261122-reuse-approach.md#v2-직접-주행-검수) 29.6FPS·지형 정지 UX불합격 유지. 배율은5216에서 시험.
+ **기존 FPS 기록**: [실험총괄](20261119-camera-terrain-follow/20261123-fps-experiments-summary.md)·공식선6.8FPS/정지배경29.6FPS 후보불합격. 공식선36·추적오차32/map183 통과, 재투영 미구현·비용분리 미확정. 문서만bec2a14b 커밋·미푸시, 실험코드는 미커밋。
+**11-22 제품 지형1배**: 2dfb84c8/1c8457a9 푸시·전체1642/0·App허용4157. 중복호출5파일 정리도 반영, Chief FPS차이없음. [원기록/기타 인계](20261124-handoff-background.md) 참조。
 
 지도3모드 `66a0fac8` 배포.
 비용: Mapbox 0회↑·GTX 비교. Standard 도로명 지원.
@@ -32,8 +34,7 @@ lint PASS·Hosting 배포。
 **11-20 인터벌(Codex)**: `9ff9b78f` 배포. [계정 인계](20261029-quick-interval-ride/README.md).
 다음: 실폰·센서 확인.
 
-**11-19 시작3D ON(Codex)**: App.tsx false→true·고정87·b70c824c 배포。
-셀렉터·회귀115·tsc/lint 통과. e2e 미실행(에뮬레이터 없음); 로컬 3D 시작 확인 대기.
+**11-19 시작3D**: b70c824c 배포; 이후 고정90이 기본 OFF로 대체.
 
 **11-19 중계기(릴레이) 설계 검토(Codex)**: 코드 미작성. [설계·정량](20261119-firestore-read-audit/10-multi-rider-relay-design.md).
 RTDB motion 은 이미 스타(중계) 구조. 남은 n:n 은 Firestore 백업 컬렉션 구독. 읽기 300·N·(N−1)/시간 → 후보B(라이더 RTDB만·관전자 보드1개)는 선형.
@@ -49,17 +50,12 @@ RTDB 대역·복구 품질을 포함한 큰 구조 변경은 후속. 후보B 미
 
 **표고 조회**: 11-22 Chief 반려로60초 연장안 철회. 기존15초 유지·지연 원인 미해결. [과거 분석](20261102-ride-screen-layout/20261118-elevation-timeout-analysis.md).
 
-**11-18 RPM 왼쪽 완료(Codex)**: `f3efe8ce`(10파일). 메뉴→RPM·센서→나머지 계기. 가로4크기16/16·tsc/lint 통과. 고정81·[기록](20261102-ride-screen-layout/README.md)·증거 `tmp/sensor-menu-20261118/left-implemented/`. 표고와 함께Hosting 반영.
-**푸시**: f3efe8ce·원본 pre-push·quick1558/0. npm PATH는 실행용만 우회.
-
-**거리 안내**: 11-22 Chief 현행 구현 승인·`baf65e9f` 커밋. 25km/h·0.1km 올림·고정48.
-[결과·검증 한계](20261029-interval-route-hint/02-result-claude-code.md). App 실제흐름·실폰 미검증.
-
-**11-16 Chief 결정**: ① MiniMax는11-22 개발도구에서 제외(이전 보류 결정 대체) ② Obsidian 볼트는 `C:\20.HDev\spinatlas-vault`(경로만 수정·스크립트 실행 안 함) ③ rider15 는 모델 수정 후 교체 ④ 전체 진단(11-10)은 보류 ⑤ 루트 `.out\` 정리 완료(약 3.0GB → 70MB, 링크 먼저 끊음). `.env` 4종은 `.out\env-backup-20261116\` 에 보관.
+**RPM/거리/도구 인계**: RPM f3efe8ce 배포·가로16/16, 거리baf65e9f 커밋·미배포/실폰 미검증. [기록](20261102-ride-screen-layout/README.md)·[거리 결과](20261029-interval-route-hint/02-result-claude-code.md)·[압축 전 인계](20261124-handoff-background.md) 참조。
+MiniMax 개발도구 제외·Obsidian C:\20.HDev\spinatlas-vault·rider15 수정후교체·전체진단 보류. .out 정리 완료·env백업 .out/env-backup-20261116。
 
 **11-16 점검**: 지역 필터 Hosting f0068146 확인. 함수·Rules는 [묶음](20261106-region-ride-stats/README.md) 확인.
 
-**11-14~15 도구**: PROGRESS 참조. 키 없음·직접 구현.
+**11-14~15 도구**: PROGRESS 참조.
 
 **11-06 G5**: 배포 완료 428ae1b4·고정80. Chief 폰 확인·셀 연속성 제안 남음.
 
@@ -84,7 +80,7 @@ RTDB 대역·복구 품질을 포함한 큰 구조 변경은 후속. 후보B 미
 
 ## 다음 한 걸음
 
-1. 지형재사용 우선: 현재Standard 무효화원인→정적표면/동적선분리→추적오차비교. 기존실패 유지·최소24FPS。
+1. 지형OFF·3D최대 3단계(가로수·숲 시안). 지형ON 비용분리 조사는 보류.
 2. 중계 보드/장애 복구와 반응형·적응형 정책은 후속. Guest 감사는 매일 유지로 확정, 상시 Firestore 백업 유지.
 3. 인터벌·이정표 실폰/실센서 확인, 반복 렌더링 스택 확보. 거리 안내·센서/RPM·관전 UID 수정은 로컬 커밋·미배포.
 

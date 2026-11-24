@@ -1,0 +1,2396 @@
+[
+ {
+  "site": "gangnam",
+  "id": "A-now#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 50.3,
+  "min1": 47,
+  "p95": 30,
+  "maxMs": 50,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 265,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 4
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 1
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 4
+   }
+  },
+  "bcount": 68,
+  "bmax": 308,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   66,
+   2,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "gangnam",
+  "id": "B-far1k#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 33,
+  "min1": 28,
+  "p95": 44,
+  "maxMs": 59,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 3,
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 3,
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 3,
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 8
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 8
+   }
+  },
+  "bcount": 68,
+  "bmax": 308,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   66,
+   2,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "gangnam",
+  "id": "C-far2k#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 21.1,
+  "min1": 20,
+  "p95": 61,
+  "maxMs": 252,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 2000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 11,
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 11,
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 11,
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 8
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 8
+   }
+  },
+  "bcount": 68,
+  "bmax": 308,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   66,
+   2,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "gangnam",
+  "id": "D-far1k-tr1500#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 33.3,
+  "min1": 32,
+  "p95": 37.1,
+  "maxMs": 52,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 3,
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 3,
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 3,
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 8
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 8
+   },
+   "other:tr": {
+    "15": 4
+   }
+  },
+  "bcount": 68,
+  "bmax": 308,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   66,
+   2,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "gangnam",
+  "id": "E-terrainOn#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 11.7,
+  "min1": 11,
+  "p95": 106.3,
+  "maxMs": 127,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 2591,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 29.3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "13": 1,
+    "14": 2,
+    "16": 11
+   },
+   "symbol:composite\u001fbasemap": {
+    "13": 1,
+    "14": 2,
+    "16": 11
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "13": 1,
+    "14": 2,
+    "16": 11
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 13
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 13
+   },
+   "other:dem": {
+    "12": 1,
+    "14": 3
+   }
+  },
+  "bcount": 68,
+  "bmax": 308,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   66,
+   2,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "gangnam",
+  "id": "D-far1k-tr1500#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 27.2,
+  "min1": 22,
+  "p95": 49.5,
+  "maxMs": 58,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 3,
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 3,
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 3,
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 8
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 8
+   },
+   "other:tr": {
+    "15": 4
+   }
+  },
+  "bcount": 68,
+  "bmax": 308,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   66,
+   2,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "gangnam",
+  "id": "C-far2k#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 22.5,
+  "min1": 22,
+  "p95": 58.2,
+  "maxMs": 73,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 2000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 11,
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 11,
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 11,
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 8
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 8
+   }
+  },
+  "bcount": 68,
+  "bmax": 308,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   66,
+   2,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "gangnam",
+  "id": "B-far1k#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 26.3,
+  "min1": 22,
+  "p95": 52.8,
+  "maxMs": 57,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 3,
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 3,
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 3,
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 8
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 8
+   }
+  },
+  "bcount": 68,
+  "bmax": 308,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   66,
+   2,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "gangnam",
+  "id": "A-now#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 50.9,
+  "min1": 47,
+  "p95": 26.2,
+  "maxMs": 39,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 265,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 4
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 1
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 4
+   }
+  },
+  "bcount": 68,
+  "bmax": 308,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   66,
+   2,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "paris",
+  "id": "A-now#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 29.1,
+  "min1": 27,
+  "p95": 43.3,
+  "maxMs": 51,
+  "proj": "mercator",
+  "zoom": 21.07,
+  "pitchAct": 83.5,
+  "farM": 265,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "16": 4
+   },
+   "symbol:composite\u001fbasemap": {
+    "16": 4
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "16": 4
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 6
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 2
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 6
+   }
+  },
+  "bcount": 11,
+  "bmax": 326,
+  "bDist_100_300_700_1500_inf": [
+   3,
+   4,
+   4,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "paris",
+  "id": "B-far1k#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 20.4,
+  "min1": 16,
+  "p95": 67.1,
+  "maxMs": 123,
+  "proj": "mercator",
+  "zoom": 21.07,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "14": 1,
+    "15": 2,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "14": 1,
+    "15": 2,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "14": 1,
+    "15": 2,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   }
+  },
+  "bcount": 11,
+  "bmax": 326,
+  "bDist_100_300_700_1500_inf": [
+   3,
+   4,
+   4,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "paris",
+  "id": "C-far2k#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 15.9,
+  "min1": 15,
+  "p95": 70.8,
+  "maxMs": 91,
+  "proj": "mercator",
+  "zoom": 21.07,
+  "pitchAct": 83.5,
+  "farM": 2000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 14,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 14,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 14,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 14
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 14
+   }
+  },
+  "bcount": 11,
+  "bmax": 326,
+  "bDist_100_300_700_1500_inf": [
+   3,
+   4,
+   4,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "paris",
+  "id": "D-far1k-tr1500#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 20.7,
+  "min1": 20,
+  "p95": 58.8,
+  "maxMs": 161,
+  "proj": "mercator",
+  "zoom": 21.07,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "14": 1,
+    "15": 2,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "14": 1,
+    "15": 2,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "14": 1,
+    "15": 2,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   },
+   "other:tr": {
+    "14": 1,
+    "15": 4
+   }
+  },
+  "bcount": 11,
+  "bmax": 326,
+  "bDist_100_300_700_1500_inf": [
+   3,
+   4,
+   4,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "paris",
+  "id": "E-terrainOn#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 8.3,
+  "min1": 6,
+  "p95": 154.9,
+  "maxMs": 263,
+  "proj": "mercator",
+  "zoom": 21.07,
+  "pitchAct": 83.5,
+  "farM": 3759,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 42.6,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "13": 2,
+    "14": 3,
+    "15": 3,
+    "16": 8
+   },
+   "symbol:composite\u001fbasemap": {
+    "13": 2,
+    "14": 3,
+    "15": 3,
+    "16": 8
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "13": 2,
+    "14": 3,
+    "15": 3,
+    "16": 8
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 17
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 7
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 17
+   },
+   "other:dem": {
+    "11": 1,
+    "13": 1,
+    "14": 5
+   }
+  },
+  "bcount": 4,
+  "bmax": 326,
+  "bDist_100_300_700_1500_inf": [
+   1,
+   0,
+   3,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "paris",
+  "id": "D-far1k-tr1500#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 20.9,
+  "min1": 21,
+  "p95": 61.2,
+  "maxMs": 143,
+  "proj": "mercator",
+  "zoom": 21.07,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "14": 1,
+    "15": 2,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "14": 1,
+    "15": 2,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "14": 1,
+    "15": 2,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   },
+   "other:tr": {
+    "14": 1,
+    "15": 4
+   }
+  },
+  "bcount": 11,
+  "bmax": 326,
+  "bDist_100_300_700_1500_inf": [
+   3,
+   4,
+   4,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "paris",
+  "id": "C-far2k#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 15.9,
+  "min1": 15,
+  "p95": 75.1,
+  "maxMs": 106,
+  "proj": "mercator",
+  "zoom": 21.07,
+  "pitchAct": 83.5,
+  "farM": 2000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 14,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 14,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 14,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 14
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 14
+   }
+  },
+  "bcount": 11,
+  "bmax": 326,
+  "bDist_100_300_700_1500_inf": [
+   3,
+   4,
+   4,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "paris",
+  "id": "B-far1k#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 21.2,
+  "min1": 21,
+  "p95": 57.1,
+  "maxMs": 134,
+  "proj": "mercator",
+  "zoom": 21.07,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "14": 1,
+    "15": 2,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "14": 1,
+    "15": 2,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "14": 1,
+    "15": 2,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   }
+  },
+  "bcount": 11,
+  "bmax": 326,
+  "bDist_100_300_700_1500_inf": [
+   3,
+   4,
+   4,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "paris",
+  "id": "A-now#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 28.4,
+  "min1": 25,
+  "p95": 45.6,
+  "maxMs": 54,
+  "proj": "mercator",
+  "zoom": 21.07,
+  "pitchAct": 83.5,
+  "farM": 265,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "16": 4
+   },
+   "symbol:composite\u001fbasemap": {
+    "16": 4
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "16": 4
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 6
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 2
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 6
+   }
+  },
+  "bcount": 11,
+  "bmax": 326,
+  "bDist_100_300_700_1500_inf": [
+   3,
+   4,
+   4,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "miami",
+  "id": "A-now#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 63.2,
+  "min1": 56,
+  "p95": 22.3,
+  "maxMs": 34,
+  "proj": "mercator",
+  "zoom": 21.52,
+  "pitchAct": 83.5,
+  "farM": 265,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 4
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 1
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 4
+   }
+  },
+  "bcount": 8,
+  "bmax": 318,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   7,
+   1,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "miami",
+  "id": "B-far1k#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 37.9,
+  "min1": 36,
+  "p95": 32.5,
+  "maxMs": 38,
+  "proj": "mercator",
+  "zoom": 21.52,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 6
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 2
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 6
+   }
+  },
+  "bcount": 8,
+  "bmax": 318,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   7,
+   1,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "miami",
+  "id": "C-far2k#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 38.5,
+  "min1": 37,
+  "p95": 32.8,
+  "maxMs": 44,
+  "proj": "mercator",
+  "zoom": 21.52,
+  "pitchAct": 83.5,
+  "farM": 2000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 2
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   }
+  },
+  "bcount": 8,
+  "bmax": 318,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   7,
+   1,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "miami",
+  "id": "D-far1k-tr1500#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 38.7,
+  "min1": 36,
+  "p95": 33,
+  "maxMs": 42,
+  "proj": "mercator",
+  "zoom": 21.52,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 6
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 2
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 6
+   },
+   "other:tr": {
+    "15": 10
+   }
+  },
+  "bcount": 8,
+  "bmax": 318,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   7,
+   1,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "miami",
+  "id": "E-terrainOn#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 27.7,
+  "min1": 26,
+  "p95": 41.9,
+  "maxMs": 58,
+  "proj": "mercator",
+  "zoom": 21.52,
+  "pitchAct": 83.5,
+  "farM": 2966,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3.1,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "8": 1,
+    "14": 3,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "8": 1,
+    "14": 3,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "8": 1,
+    "14": 3,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 11
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 2
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 11
+   },
+   "other:dem": {
+    "8": 1,
+    "14": 5
+   }
+  },
+  "bcount": 8,
+  "bmax": 318,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   7,
+   1,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "miami",
+  "id": "D-far1k-tr1500#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 38.1,
+  "min1": 36,
+  "p95": 32.5,
+  "maxMs": 44,
+  "proj": "mercator",
+  "zoom": 21.52,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 6
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 2
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 6
+   },
+   "other:tr": {
+    "15": 10
+   }
+  },
+  "bcount": 8,
+  "bmax": 318,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   7,
+   1,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "miami",
+  "id": "C-far2k#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 32.2,
+  "min1": 26,
+  "p95": 43.6,
+  "maxMs": 57,
+  "proj": "mercator",
+  "zoom": 21.52,
+  "pitchAct": 83.5,
+  "farM": 2000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 2
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   }
+  },
+  "bcount": 8,
+  "bmax": 318,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   7,
+   1,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "miami",
+  "id": "B-far1k#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 33,
+  "min1": 31,
+  "p95": 38.3,
+  "maxMs": 47,
+  "proj": "mercator",
+  "zoom": 21.52,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 8,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 6
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 2
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 6
+   }
+  },
+  "bcount": 8,
+  "bmax": 318,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   7,
+   1,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "miami",
+  "id": "A-now#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 56.9,
+  "min1": 52,
+  "p95": 23.6,
+  "maxMs": 36,
+  "proj": "mercator",
+  "zoom": 21.52,
+  "pitchAct": 83.5,
+  "farM": 265,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 4
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 1
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 4
+   }
+  },
+  "bcount": 8,
+  "bmax": 318,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   7,
+   1,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "namsan",
+  "id": "A-now#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 62.3,
+  "min1": 55,
+  "p95": 22.6,
+  "maxMs": 42,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 265,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 4
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 1
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 4
+   }
+  },
+  "bcount": 1,
+  "bmax": 276,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "namsan",
+  "id": "B-far1k#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 35.5,
+  "min1": 35,
+  "p95": 35.7,
+  "maxMs": 50,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 1,
+    "16": 7
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 1,
+    "16": 7
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 1,
+    "16": 7
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   }
+  },
+  "bcount": 1,
+  "bmax": 276,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "namsan",
+  "id": "C-far2k#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 22.1,
+  "min1": 15,
+  "p95": 64.1,
+  "maxMs": 124,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 2000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 9,
+    "16": 7
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 9,
+    "16": 7
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 9,
+    "16": 7
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   }
+  },
+  "bcount": 1,
+  "bmax": 276,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "namsan",
+  "id": "D-far1k-tr1500#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 35.7,
+  "min1": 32,
+  "p95": 35.9,
+  "maxMs": 46,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 1,
+    "16": 7
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 1,
+    "16": 7
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 1,
+    "16": 7
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   },
+   "other:tr": {
+    "15": 4
+   }
+  },
+  "bcount": 1,
+  "bmax": 276,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "namsan",
+  "id": "E-terrainOn#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 12.1,
+  "min1": 10,
+  "p95": 104.3,
+  "maxMs": 113,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 19717,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 187.2,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "11": 2,
+    "12": 5,
+    "13": 3,
+    "14": 1,
+    "15": 3,
+    "16": 7
+   },
+   "symbol:composite\u001fbasemap": {
+    "11": 2,
+    "12": 5,
+    "13": 3,
+    "14": 1,
+    "15": 3,
+    "16": 7
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "11": 2,
+    "12": 5,
+    "13": 3,
+    "14": 1,
+    "15": 3,
+    "16": 7
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 16
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 6
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 16
+   },
+   "other:dem": {
+    "10": 1,
+    "11": 2,
+    "12": 2,
+    "13": 3,
+    "14": 6
+   }
+  },
+  "bcount": 1,
+  "bmax": 276,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "namsan",
+  "id": "D-far1k-tr1500#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 33.5,
+  "min1": 28,
+  "p95": 40,
+  "maxMs": 53,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 1,
+    "16": 7
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 1,
+    "16": 7
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 1,
+    "16": 7
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   },
+   "other:tr": {
+    "15": 4
+   }
+  },
+  "bcount": 1,
+  "bmax": 276,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "namsan",
+  "id": "C-far2k#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 22.5,
+  "min1": 16,
+  "p95": 57.1,
+  "maxMs": 151,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 2000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 9,
+    "16": 7
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 9,
+    "16": 7
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 9,
+    "16": 7
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   }
+  },
+  "bcount": 1,
+  "bmax": 276,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "namsan",
+  "id": "B-far1k#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 35.6,
+  "min1": 32,
+  "p95": 35.6,
+  "maxMs": 45,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 1,
+    "16": 7
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 1,
+    "16": 7
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 1,
+    "16": 7
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 4
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   }
+  },
+  "bcount": 1,
+  "bmax": 276,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "namsan",
+  "id": "A-now#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 62.1,
+  "min1": 54,
+  "p95": 21.7,
+  "maxMs": 44,
+  "proj": "mercator",
+  "zoom": 21.34,
+  "pitchAct": 83.5,
+  "farM": 265,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "16": 2
+   },
+   "symbol:composite\u001fbasemap": {
+    "16": 2
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "16": 2
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 4
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 1
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 4
+   }
+  },
+  "bcount": 1,
+  "bmax": 276,
+  "bDist_100_300_700_1500_inf": [
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "stelvio",
+  "id": "A-now#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 66,
+  "min1": 61,
+  "p95": 19.2,
+  "maxMs": 28,
+  "proj": "mercator",
+  "zoom": 21.13,
+  "pitchAct": 83.5,
+  "farM": 265,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "16": 3
+   },
+   "symbol:composite\u001fbasemap": {
+    "16": 3
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "16": 3
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 4
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 2
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 4
+   }
+  },
+  "bcount": 12,
+  "bmax": 224,
+  "bDist_100_300_700_1500_inf": [
+   9,
+   3,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "stelvio",
+  "id": "B-far1k#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 52.9,
+  "min1": 49,
+  "p95": 24,
+  "maxMs": 30,
+  "proj": "mercator",
+  "zoom": 21.13,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 3,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 3,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 3,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 5
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   }
+  },
+  "bcount": 12,
+  "bmax": 224,
+  "bDist_100_300_700_1500_inf": [
+   9,
+   3,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "stelvio",
+  "id": "C-far2k#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 42.3,
+  "min1": 37,
+  "p95": 31.6,
+  "maxMs": 46,
+  "proj": "mercator",
+  "zoom": 21.13,
+  "pitchAct": 83.5,
+  "farM": 2000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "14": 1,
+    "15": 15,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "14": 1,
+    "15": 15,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "14": 1,
+    "15": 15,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 5
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   }
+  },
+  "bcount": 12,
+  "bmax": 224,
+  "bDist_100_300_700_1500_inf": [
+   9,
+   3,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "stelvio",
+  "id": "D-far1k-tr1500#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 57.5,
+  "min1": 52,
+  "p95": 23.1,
+  "maxMs": 34,
+  "proj": "mercator",
+  "zoom": 21.13,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 3,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 3,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 3,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 5
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   },
+   "other:tr": {
+    "15": 5
+   }
+  },
+  "bcount": 12,
+  "bmax": 224,
+  "bDist_100_300_700_1500_inf": [
+   9,
+   3,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "stelvio",
+  "id": "E-terrainOn#1",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 11.2,
+  "min1": 11,
+  "p95": 106.4,
+  "maxMs": 122,
+  "proj": "mercator",
+  "zoom": 21.13,
+  "pitchAct": 83.5,
+  "farM": 247428,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 2763.9,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "6": 1,
+    "7": 1,
+    "8": 3,
+    "10": 3,
+    "11": 4,
+    "12": 6,
+    "13": 4,
+    "14": 9,
+    "15": 9,
+    "16": 12
+   },
+   "symbol:composite\u001fbasemap": {
+    "6": 1,
+    "7": 1,
+    "8": 3,
+    "10": 3,
+    "11": 4,
+    "12": 6,
+    "13": 4,
+    "14": 9,
+    "15": 9,
+    "16": 12
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "6": 1,
+    "7": 1,
+    "8": 3,
+    "10": 3,
+    "11": 4,
+    "12": 6,
+    "13": 4,
+    "14": 9,
+    "15": 9,
+    "16": 12
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 21
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 13
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 21
+   },
+   "other:dem": {
+    "6": 1,
+    "7": 1,
+    "8": 3,
+    "9": 1,
+    "10": 4,
+    "11": 2,
+    "12": 4,
+    "13": 1,
+    "14": 9
+   }
+  },
+  "bcount": 11,
+  "bmax": 224,
+  "bDist_100_300_700_1500_inf": [
+   8,
+   3,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "stelvio",
+  "id": "D-far1k-tr1500#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 57.5,
+  "min1": 51,
+  "p95": 23.3,
+  "maxMs": 32,
+  "proj": "mercator",
+  "zoom": 21.13,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 3,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 3,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 3,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 5
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   },
+   "other:tr": {
+    "15": 5
+   }
+  },
+  "bcount": 12,
+  "bmax": 224,
+  "bDist_100_300_700_1500_inf": [
+   9,
+   3,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "stelvio",
+  "id": "C-far2k#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 45.7,
+  "min1": 43,
+  "p95": 28.8,
+  "maxMs": 35,
+  "proj": "mercator",
+  "zoom": 21.13,
+  "pitchAct": 83.5,
+  "farM": 2000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "14": 1,
+    "15": 15,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "14": 1,
+    "15": 15,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "14": 1,
+    "15": 15,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 5
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   }
+  },
+  "bcount": 12,
+  "bmax": 224,
+  "bDist_100_300_700_1500_inf": [
+   9,
+   3,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "stelvio",
+  "id": "B-far1k#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 62.1,
+  "min1": 54,
+  "p95": 21.3,
+  "maxMs": 32,
+  "proj": "mercator",
+  "zoom": 21.13,
+  "pitchAct": 83.5,
+  "farM": 1000,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "15": 3,
+    "16": 5
+   },
+   "symbol:composite\u001fbasemap": {
+    "15": 3,
+    "16": 5
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "15": 3,
+    "16": 5
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 9
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 5
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 9
+   }
+  },
+  "bcount": 12,
+  "bmax": 224,
+  "bDist_100_300_700_1500_inf": [
+   9,
+   3,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ },
+ {
+  "site": "stelvio",
+  "id": "A-now#2",
+  "h": 3,
+  "pitch": 83.5,
+  "fps": 82.5,
+  "min1": 73,
+  "p95": 17.2,
+  "maxMs": 28,
+  "proj": "mercator",
+  "zoom": 21.13,
+  "pitchAct": 83.5,
+  "farM": 265,
+  "nearM": 0.353,
+  "camToCenterM": 26.5,
+  "camAltM": 3,
+  "tiles": {
+   "other:composite\u001fbasemap": {
+    "16": 3
+   },
+   "symbol:composite\u001fbasemap": {
+    "16": 3
+   },
+   "fill-extrusion:composite\u001fbasemap": {
+    "16": 3
+   },
+   "other:3dbuildings\u001fbasemap": {
+    "14": 4
+   },
+   "other:procedural-buildings\u001fbasemap": {
+    "15": 2
+   },
+   "other:mapbox-3d-events\u001fbasemap": {
+    "14": 4
+   }
+  },
+  "bcount": 12,
+  "bmax": 224,
+  "bDist_100_300_700_1500_inf": [
+   9,
+   3,
+   0,
+   0,
+   0
+  ],
+  "berr": null,
+  "gpu": "ANGLE (NVIDIA, NVIDIA GeForce GTX 1660 (0x00002184) Direct3D"
+ }
+]

@@ -1,0 +1,10 @@
+{"sites":[{"id":"gangnam","center":[127.0276,37.4979],"bearing":10}],
+"cases":[
+{"id":"qc2-off","h":1.064,"pitch":83.5,"cutoff0":true},
+{"id":"h3-off-nocut","h":3,"pitch":83.5},
+{"id":"h3-off","h":3,"pitch":83.5,"cutoff0":true},
+{"id":"h3-off-far1k","h":3,"pitch":83.5,"cutoff0":true,"farM":1000},
+{"id":"h3-off-far2k","h":3,"pitch":83.5,"cutoff0":true,"farM":2000},
+{"id":"h3-off-far2k-lod","h":3,"pitch":83.5,"cutoff0":true,"farM":2000,"lodOff":true},
+{"id":"h3-on","h":3,"pitch":83.5,"cutoff0":true,"terrain":true}
+]}

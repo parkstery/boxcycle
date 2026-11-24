@@ -1,0 +1,197 @@
+[
+ {
+  "n": "Basic 1 · 서울 남산공원길",
+  "c": [
+   126.986948,
+   37.548224
+  ],
+  "z13": "bld1/ext1 tree0 gen0 green40",
+  "z14": "bld2/ext2 tree0 gen0 green32",
+  "z15": "bld542/ext542 tree1 gen0 green12",
+  "z16": "bld198/ext198 tree0 gen0 green5",
+  "proc": "none",
+  "lm": "204:0KB"
+ },
+ {
+  "n": "Basic 2 · 파리 퐁뇌프",
+  "c": [
+   2.341281,
+   48.856861
+  ],
+  "z13": "bld9/ext9 tree0 gen0 green27",
+  "z14": "bld35/ext35 tree0 gen0 green21",
+  "z15": "bld1161/ext1161 tree811 gen0 green14",
+  "z16": "bld427/ext427 tree119 gen0 green3",
+  "proc": "procedural_buildings5078",
+  "lm": "200:2948KB"
+ },
+ {
+  "n": "Basic 3 · 뉴욕 센트럴파크",
+  "c": [
+   -73.97089,
+   40.780071
+  ],
+  "z13": "bld9/ext9 tree0 gen0 green32",
+  "z14": "bld9/ext9 tree0 gen0 green27",
+  "z15": "bld580/ext580 tree171 gen0 green16",
+  "z16": "bld17/ext17 tree20 gen0 green12",
+  "proc": "procedural_buildings1929",
+  "lm": "200:1320KB"
+ },
+ {
+  "n": "Basic 4 · 암스테르담 폰델파크",
+  "c": [
+   4.8761,
+   52.361111
+  ],
+  "z13": "bld5/ext5 tree0 gen0 green45",
+  "z14": "bld3/ext3 tree0 gen0 green27",
+  "z15": "bld1226/ext1226 tree291 gen0 green21",
+  "z16": "bld259/ext259 tree74 gen0 green15",
+  "proc": "procedural_buildings4659",
+  "lm": "200:199KB"
+ },
+ {
+  "n": "여의도 한강 — 양화대교에서 여의도 동쪽",
+  "c": [
+   126.939,
+   37.523
+  ],
+  "z13": "bld1/ext1 tree0 gen0 green33",
+  "z14": "bld1/ext1 tree0 gen0 green20",
+  "z15": "bld57/ext57 tree42 gen0 green14",
+  "z16": "bld13/ext13 tree37 gen0 green9",
+  "proc": "none",
+  "lm": "204:0KB"
+ },
+ {
+  "n": "리치먼드 파크 도로 순환",
+  "c": [
+   -0.2845422,
+   51.4221199
+  ],
+  "z13": "bld2/ext2 tree0 gen0 green52",
+  "z14": "bld0/ext0 tree0 gen0 green33",
+  "z15": "bld251/ext251 tree11 gen0 green13",
+  "z16": "bld116/ext116 tree0 gen0 green5",
+  "proc": "none",
+  "lm": "204:0KB"
+ },
+ {
+  "n": "아라자전거길 — 서해에서 한강갑문",
+  "c": [
+   126.6861617,
+   37.5708451
+  ],
+  "z13": "bld2/ext2 tree0 gen0 green29",
+  "z14": "bld2/ext2 tree0 gen0 green8",
+  "z15": "bld24/ext24 tree0 gen0 green2",
+  "z16": "bld2/ext2 tree0 gen0 green2",
+  "proc": "none",
+  "lm": "204:0KB"
+ },
+ {
+  "n": "암스텔강 — 오우데르케르크 양안 순환",
+  "c": [
+   4.8992,
+   52.2986
+  ],
+  "z13": "bld1/ext1 tree0 gen0 green52",
+  "z14": "bld5/ext5 tree0 gen0 green37",
+  "z15": "bld248/ext248 tree28 gen0 green27",
+  "z16": "bld191/ext191 tree5 gen0 green14",
+  "proc": "procedural_buildings501",
+  "lm": "204:0KB"
+ },
+ {
+  "n": "일월담 도로 순환",
+  "c": [
+   120.93171,
+   23.846354
+  ],
+  "z13": "bld0/ext0 tree0 gen0 green13",
+  "z14": "bld0/ext0 tree0 gen0 green10",
+  "z15": "bld131/ext131 tree0 gen0 green14",
+  "z16": "bld123/ext123 tree0 gen2 green7",
+  "proc": "none",
+  "lm": "204:0KB"
+ },
+ {
+  "n": "안시 호수 시계방향 순환",
+  "c": [
+   6.222,
+   45.795
+  ],
+  "z13": "bld0/ext0 tree0 gen0 green23",
+  "z14": "bld0/ext0 tree0 gen0 green13",
+  "z15": "bld24/ext24 tree2 gen0 green7",
+  "z16": "bld0/ext0 tree0 gen0 green1",
+  "proc": "none",
+  "lm": "204:0KB"
+ },
+ {
+  "n": "강남역",
+  "c": [
+   127.0276,
+   37.4979
+  ],
+  "z13": "bld1/ext1 tree0 gen0 green22",
+  "z14": "bld2/ext2 tree0 gen0 green13",
+  "z15": "bld942/ext942 tree0 gen0 green8",
+  "z16": "bld257/ext257 tree0 gen0 green2",
+  "proc": "none",
+  "lm": "204:0KB"
+ },
+ {
+  "n": "원주시내",
+  "c": [
+   127.9459,
+   37.3422
+  ],
+  "z13": "bld0/ext0 tree0 gen0 green30",
+  "z14": "bld5/ext5 tree0 gen0 green36",
+  "z15": "bld449/ext449 tree12 gen0 green26",
+  "z16": "bld277/ext277 tree0 gen0 green3",
+  "proc": "none",
+  "lm": "204:0KB"
+ },
+ {
+  "n": "마이애미비치",
+  "c": [
+   -80.1306,
+   25.7726
+  ],
+  "z13": "bld1/ext1 tree0 gen0 green21",
+  "z14": "bld0/ext0 tree0 gen0 green18",
+  "z15": "bld248/ext248 tree154 gen0 green12",
+  "z16": "bld101/ext101 tree72 gen0 green10",
+  "proc": "none",
+  "lm": "204:0KB"
+ },
+ {
+  "n": "평창시골",
+  "c": [
+   128.39,
+   37.37
+  ],
+  "z13": "bld0/ext0 tree0 gen0 green10",
+  "z14": "bld0/ext0 tree0 gen0 green14",
+  "z15": "bld280/ext280 tree0 gen0 green9",
+  "z16": "bld77/ext77 tree0 gen0 green5",
+  "proc": "none",
+  "lm": "204:0KB"
+ },
+ {
+  "n": "스텔비오",
+  "c": [
+   10.453,
+   46.5287
+  ],
+  "z13": "bld0/ext0 tree0 gen0 green14",
+  "z14": "bld0/ext0 tree0 gen0 green9",
+  "z15": "bld14/ext14 tree0 gen0 green9",
+  "z16": "bld18/ext18 tree0 gen0 green5",
+  "proc": "none",
+  "lm": "204:0KB"
+ }
+]

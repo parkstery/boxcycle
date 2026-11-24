@@ -1,0 +1,122 @@
+[
+ {
+  "id": "tree2-namsan",
+  "kind": "trees",
+  "course": "남산",
+  "viewdist": 1000,
+  "kmh": 5,
+  "variants": [
+   {
+    "id": "A",
+    "style": "round",
+    "opt": {}
+   },
+   {
+    "id": "B",
+    "style": "facet",
+    "opt": {}
+   },
+   {
+    "id": "B-few",
+    "style": "facet",
+    "opt": {
+     "greenScale": 0.45,
+     "routeSpacing": 20,
+     "roadDensity": 0.6,
+     "max": 900
+    }
+   },
+   {
+    "id": "B-many",
+    "style": "facet",
+    "opt": {
+     "greenScale": 1.6,
+     "routeSpacing": 9,
+     "roadDensity": 1.3,
+     "shrubs": true,
+     "max": 2500
+    }
+   }
+  ]
+ },
+ {
+  "id": "tree2-nyc",
+  "kind": "trees",
+  "course": "센트럴",
+  "viewdist": 1000,
+  "kmh": 5,
+  "variants": [
+   {
+    "id": "A",
+    "style": "round",
+    "opt": {}
+   },
+   {
+    "id": "B",
+    "style": "facet",
+    "opt": {}
+   },
+   {
+    "id": "B-few",
+    "style": "facet",
+    "opt": {
+     "greenScale": 0.45,
+     "routeSpacing": 20,
+     "roadDensity": 0.6,
+     "max": 900
+    }
+   },
+   {
+    "id": "B-many",
+    "style": "facet",
+    "opt": {
+     "greenScale": 1.6,
+     "routeSpacing": 9,
+     "roadDensity": 1.3,
+     "shrubs": true,
+     "max": 2500
+    }
+   }
+  ]
+ },
+ {
+  "id": "tree2-paris",
+  "kind": "trees",
+  "course": "파리",
+  "viewdist": 1000,
+  "kmh": 5,
+  "variants": [
+   {
+    "id": "A",
+    "style": "round",
+    "opt": {}
+   },
+   {
+    "id": "B",
+    "style": "facet",
+    "opt": {}
+   },
+   {
+    "id": "B-few",
+    "style": "facet",
+    "opt": {
+     "greenScale": 0.45,
+     "routeSpacing": 20,
+     "roadDensity": 0.6,
+     "max": 900
+    }
+   },
+   {
+    "id": "B-many",
+    "style": "facet",
+    "opt": {
+     "greenScale": 1.6,
+     "routeSpacing": 9,
+     "roadDensity": 1.3,
+     "shrubs": true,
+     "max": 2500
+    }
+   }
+  ]
+ }
+]

@@ -1,0 +1,266 @@
+[
+ {
+  "id": "namsan-0-r1",
+  "course": "남산",
+  "viewdist": 0
+ },
+ {
+  "id": "namsan-1000-r1",
+  "course": "남산",
+  "viewdist": 1000
+ },
+ {
+  "id": "namsan-2000-r1",
+  "course": "남산",
+  "viewdist": 2000
+ },
+ {
+  "id": "paris-0-r1",
+  "course": "파리",
+  "viewdist": 0
+ },
+ {
+  "id": "paris-1000-r1",
+  "course": "파리",
+  "viewdist": 1000
+ },
+ {
+  "id": "paris-2000-r1",
+  "course": "파리",
+  "viewdist": 2000
+ },
+ {
+  "id": "nyc-0-r1",
+  "course": "센트럴",
+  "viewdist": 0
+ },
+ {
+  "id": "nyc-1000-r1",
+  "course": "센트럴",
+  "viewdist": 1000
+ },
+ {
+  "id": "nyc-2000-r1",
+  "course": "센트럴",
+  "viewdist": 2000
+ },
+ {
+  "id": "ams-0-r1",
+  "course": "폰델",
+  "viewdist": 0
+ },
+ {
+  "id": "ams-1000-r1",
+  "course": "폰델",
+  "viewdist": 1000
+ },
+ {
+  "id": "ams-2000-r1",
+  "course": "폰델",
+  "viewdist": 2000
+ },
+ {
+  "id": "namsan-1000-lite-r1",
+  "course": "남산",
+  "viewdist": 1000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ },
+ {
+  "id": "namsan-2000-lite-r1",
+  "course": "남산",
+  "viewdist": 2000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ },
+ {
+  "id": "paris-1000-lite-r1",
+  "course": "파리",
+  "viewdist": 1000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ },
+ {
+  "id": "paris-2000-lite-r1",
+  "course": "파리",
+  "viewdist": 2000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ },
+ {
+  "id": "nyc-1000-lite-r1",
+  "course": "센트럴",
+  "viewdist": 1000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ },
+ {
+  "id": "nyc-2000-lite-r1",
+  "course": "센트럴",
+  "viewdist": 2000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ },
+ {
+  "id": "ams-1000-lite-r1",
+  "course": "폰델",
+  "viewdist": 1000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ },
+ {
+  "id": "ams-2000-lite-r1",
+  "course": "폰델",
+  "viewdist": 2000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ },
+ {
+  "id": "namsan-2000-r2",
+  "course": "남산",
+  "viewdist": 2000
+ },
+ {
+  "id": "namsan-1000-r2",
+  "course": "남산",
+  "viewdist": 1000
+ },
+ {
+  "id": "namsan-0-r2",
+  "course": "남산",
+  "viewdist": 0
+ },
+ {
+  "id": "paris-2000-r2",
+  "course": "파리",
+  "viewdist": 2000
+ },
+ {
+  "id": "paris-1000-r2",
+  "course": "파리",
+  "viewdist": 1000
+ },
+ {
+  "id": "paris-0-r2",
+  "course": "파리",
+  "viewdist": 0
+ },
+ {
+  "id": "nyc-2000-r2",
+  "course": "센트럴",
+  "viewdist": 2000
+ },
+ {
+  "id": "nyc-1000-r2",
+  "course": "센트럴",
+  "viewdist": 1000
+ },
+ {
+  "id": "nyc-0-r2",
+  "course": "센트럴",
+  "viewdist": 0
+ },
+ {
+  "id": "ams-2000-r2",
+  "course": "폰델",
+  "viewdist": 2000
+ },
+ {
+  "id": "ams-1000-r2",
+  "course": "폰델",
+  "viewdist": 1000
+ },
+ {
+  "id": "ams-0-r2",
+  "course": "폰델",
+  "viewdist": 0
+ },
+ {
+  "id": "namsan-1000-lite-r2",
+  "course": "남산",
+  "viewdist": 1000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ },
+ {
+  "id": "namsan-2000-lite-r2",
+  "course": "남산",
+  "viewdist": 2000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ },
+ {
+  "id": "paris-1000-lite-r2",
+  "course": "파리",
+  "viewdist": 1000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ },
+ {
+  "id": "paris-2000-lite-r2",
+  "course": "파리",
+  "viewdist": 2000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ },
+ {
+  "id": "nyc-1000-lite-r2",
+  "course": "센트럴",
+  "viewdist": 1000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ },
+ {
+  "id": "nyc-2000-lite-r2",
+  "course": "센트럴",
+  "viewdist": 2000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ },
+ {
+  "id": "ams-1000-lite-r2",
+  "course": "폰델",
+  "viewdist": 1000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ },
+ {
+  "id": "ams-2000-lite-r2",
+  "course": "폰델",
+  "viewdist": 2000,
+  "lite": {
+   "poi": true,
+   "shadow": true
+  }
+ }
+]
