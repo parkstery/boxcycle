@@ -40,6 +40,8 @@ export interface Rider15ModelProfile {
   readonly supportsSway: false;
   readonly clipName: "Ride_Hoods";
   readonly wheelNodeNames: { readonly front: "P67_FrontWheel"; readonly rear: "P67_RearWheel" };
+  /** P177 부터 앞·뒷바퀴는 자전거 스킨 메시(프레임+바퀴 1개)의 허브 뼈다. 뼈가 있으면 뼈를, 없으면 예전 바퀴 메시 노드를 돌린다. */
+  readonly wheelBoneNames: { readonly front: "wheel_front"; readonly rear: "wheel_rear" };
   /** 근거리는 팔레트 텍스처, LOD2 는 정점색 키트를 만든다. */
   createVisualKit(root: Object3D): RiderVisualKit;
 }
@@ -290,6 +292,7 @@ const rider15Profile: Rider15ModelProfile = {
   supportsSway: false,
   clipName: "Ride_Hoods",
   wheelNodeNames: { front: "P67_FrontWheel", rear: "P67_RearWheel" },
+  wheelBoneNames: { front: "wheel_front", rear: "wheel_rear" },
   createVisualKit(root: Object3D): RiderVisualKit {
     const palette = rider15PaletteMaterials(root);
     if (palette.length > 0) {

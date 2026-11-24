@@ -24,13 +24,23 @@ export type Rider15Gltf = {
   readonly animations: readonly AnimationClip[];
 };
 
-type WheelSpin = {
-  readonly node: Object3D;
-  /** 부모 공간의 회전 중심. 휠 노드 원점이든 지오메트리 중심이든 같은 식으로 돈다. */
-  readonly pivot: Vector3;
-  readonly axis: Vector3;
-  readonly restMatrix: Matrix4;
-};
+type WheelSpin =
+  | {
+      /** 예전 GLB — 바퀴가 별도 메시 노드다. 노드 행렬을 허브 중심으로 돌린다. */
+      readonly kind: "mesh";
+      readonly node: Object3D;
+      /** 부모 공간의 회전 중심. 휠 노드 원점이든 지오메트리 중심이든 같은 식으로 돈다. */
+      readonly pivot: Vector3;
+      readonly axis: Vector3;
+      readonly restMatrix: Matrix4;
+    }
+  | {
+      /** P177 이후 — 프레임·바퀴가 스킨 메시 1개이고 바퀴는 허브 뼈다. 뼈 원점이 허브라 제자리에서 돈다. */
+      readonly kind: "bone";
+      readonly node: Object3D;
+      readonly axis: Vector3;
+      readonly restQuaternion: Quaternion;
+    };
 
 function wrapPhase(phaseRev: number): number {
   if (!Number.isFinite(phaseRev)) return 0;
@@ -110,8 +120,8 @@ export class Rider15Rig implements PreservedRiderHandle {
     this.action.play();
 
     this.wheels = [
-      this.bindWheel(profile.wheelNodeNames.front),
-      this.bindWheel(profile.wheelNodeNames.rear),
+      this.bindWheel(profile.wheelBoneNames.front, profile.wheelNodeNames.front),
+      this.bindWheel(profile.wheelBoneNames.rear, profile.wheelNodeNames.rear),
     ];
     this.visualKit = profile.createVisualKit(this.object);
     this.setPhase(0);
@@ -145,7 +155,16 @@ export class Rider15Rig implements PreservedRiderHandle {
     disposeRiderObject(this.object, this.visualKit);
   }
 
-  private bindWheel(name: string): WheelSpin {
+  /** 허브 뼈가 있으면 뼈로, 없으면 예전 바퀴 메시 노드로 돌린다(두 바퀴는 같은 각도). */
+  private bindWheel(boneName: string, name: string): WheelSpin {
+    const bone = this.root.getObjectByName(boneName);
+    if (bone) {
+      const parent = bone.parent;
+      if (!parent) throw new Error(`rider15 wheel bone has no parent: ${boneName}`);
+      const parentWorldQuat = parent.getWorldQuaternion(new Quaternion());
+      const axis = Z_AXIS.clone().applyQuaternion(parentWorldQuat.invert()).normalize();
+      return { kind: "bone", node: bone, axis, restQuaternion: bone.quaternion.clone() };
+    }
     const node = this.root.getObjectByName(name);
     if (!node) throw new Error(`rider15 wheel node missing: ${name}`);
     const parent = node.parent;
@@ -159,12 +178,17 @@ export class Rider15Rig implements PreservedRiderHandle {
     const parentWorldQuat = parent.getWorldQuaternion(new Quaternion());
     const axis = Z_AXIS.clone().applyQuaternion(parentWorldQuat.invert()).normalize();
     node.matrixAutoUpdate = false;
-    return { node, pivot, axis, restMatrix };
+    return { kind: "mesh", node, pivot, axis, restMatrix };
   }
 
   private setWheels(phase: number): void {
     const angle = -phase * Math.PI * 2 * WHEEL_REVOLUTIONS_PER_CRANK;
     for (const wheel of this.wheels) {
+      if (wheel.kind === "bone") {
+        // 뼈 원점 = 허브. 부모 공간 축으로 돌린 뒤 원래 자세를 곱한다(위치는 그대로).
+        wheel.node.quaternion.setFromAxisAngle(wheel.axis, angle).multiply(wheel.restQuaternion);
+        continue;
+      }
       wheel.node.matrix.copy(rotationAt(wheel.axis, angle, wheel.pivot)).multiply(wheel.restMatrix);
       wheel.node.matrixWorldNeedsUpdate = true;
     }

@@ -7,7 +7,7 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { Box3, DataTexture, Mesh, Quaternion, Vector3 } from "three";
+import { AnimationClip, Bone, Box3, DataTexture, Group, Mesh, Object3D, Quaternion, Vector3 } from "three";
 import {
   PRESERVED_RIDER_ACTIVE_MODEL,
   PRESERVED_RIDER_MODELS,
@@ -224,6 +224,44 @@ describe("rider15-rig", () => {
       assert.ok(Math.abs(rear.min.y) < 0.05, `rear tyre bottom ${rear.min.y}`);
       assert.deepEqual(rig.object.position.toArray(), [0, 0, 0]);
       assert.deepEqual(rig.object.scale.toArray(), [1, 1, 1]);
+    } finally {
+      rig.dispose();
+    }
+  });
+
+  it("P177 구조: 바퀴가 허브 뼈면 두 뼈가 같은 각도로 제자리에서 돈다(프레임+바퀴 메시 1개)", () => {
+    // 실제 GLB 대신 같은 노드 구조를 만든다: P72_BikeRoll 아래 허브 뼈 2개, 바퀴 메시 노드는 없다.
+    const scene = new Group();
+    const bikeRoll = new Object3D();
+    bikeRoll.name = "P72_BikeRoll";
+    scene.add(bikeRoll);
+    const hubs = { wheel_front: [0.583, 0.336, 0.00057], wheel_rear: [-0.412, 0.336, 0.00057] } as const;
+    for (const [name, at] of Object.entries(hubs)) {
+      const bone = new Bone();
+      bone.name = name;
+      bone.position.fromArray(at);
+      bikeRoll.add(bone);
+    }
+    const profile = {
+      ...getRiderModelProfile("rider15"),
+      createVisualKit: () => ({ apply: () => {}, dispose: () => {} }),
+    };
+    const rig = new Rider15Rig({ scene, animations: [new AnimationClip("Ride_Hoods", 1, [])] }, profile);
+    try {
+      const front = nodeOf(rig, "wheel_front");
+      const rear = nodeOf(rig, "wheel_rear");
+      rig.setPhase(0);
+      const q0 = front.quaternion.clone();
+      rig.setPhase(0.1);
+      // 0.1 위상 = 0.32 회전. 두 바퀴는 같은 각도, Z 축(진행 방향 기준 바퀴 축)으로 돈다.
+      const turned = q0.angleTo(front.quaternion);
+      assert.ok(Math.abs(turned - 0.32 * Math.PI * 2) < 1e-6 || Math.abs(turned - (2 * Math.PI - 0.32 * Math.PI * 2)) < 1e-6, `front angle ${turned}`);
+      assert.ok(front.quaternion.angleTo(rear.quaternion) < 1e-9, "front/rear must share one angle");
+      assert.ok(Math.abs(front.quaternion.x) < 1e-9 && Math.abs(front.quaternion.y) < 1e-9, "spin axis must be Z");
+      assert.deepEqual(front.position.toArray(), [...hubs.wheel_front], "hub stays put");
+      assert.deepEqual(rear.position.toArray(), [...hubs.wheel_rear], "hub stays put");
+      rig.setPhase(1);
+      assert.ok(front.quaternion.angleTo(q0) < 1e-9, "phase 1 == phase 0");
     } finally {
       rig.dispose();
     }
