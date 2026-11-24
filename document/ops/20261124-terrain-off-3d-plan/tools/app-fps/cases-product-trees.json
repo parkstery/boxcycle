@@ -1,0 +1,34 @@
+[
+ {
+  "id": "pt-namsan",
+  "kind": "product-trees",
+  "course": "남산",
+  "viewdist": 1000,
+  "kmh": 15,
+  "end": true
+ },
+ {
+  "id": "pt-paris",
+  "kind": "product-trees",
+  "course": "파리",
+  "viewdist": 1000,
+  "kmh": 15,
+  "end": false
+ },
+ {
+  "id": "pt-nyc",
+  "kind": "product-trees",
+  "course": "센트럴",
+  "viewdist": 1000,
+  "kmh": 15,
+  "end": false
+ },
+ {
+  "id": "pt-ams",
+  "kind": "product-trees",
+  "course": "폰델",
+  "viewdist": 1000,
+  "kmh": 15,
+  "end": false
+ }
+]

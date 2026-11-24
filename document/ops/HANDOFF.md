@@ -3,14 +3,15 @@
 | 항목 | 값 |
 |---|---|
 | 담당 | **Claude Code** |
-| 갱신 | 11-24 시야1km·글자ON 2단계 로컬 완료. |
+| 갱신 | 11-24 나무 3단계 로컬 완료. |
 | 브랜치 | `main2` · 지형 기본1배 |
 | 마지막 배포 | 11-20 Hosting `66a0fac8`. |
 
 ## 진행 중
 
-**11-24 지형OFF·3D최대(Claude Code)**: 0·1·2단계 로컬 커밋·미푸시·미배포(rider15 병행 작업 제외). [2단계](20261124-terrain-off-3d-plan/02-result-stage2.md)·[0·1단계](20261124-terrain-off-3d-plan/01-result-stage0-1.md)·[계획](20261124-terrain-off-3d-plan/README.md). Chief 확정: 시야1km(고정91)·글자 모두ON(고정92). 실앱 31~37FPS, 8표본 중4 합격(나머지 p95 +0.2~2.1ms). 전체1665/0. 사본 `backup/`.
-Chief 1·2단계 승인. 3단계 [나무 시안](20261124-terrain-off-3d-plan/03-tree-options.md) 모양A/B·빽빽함①②③ → Chief 「각진·여유」 확정, 구현 중. 비교 `?viewdist=0`.
+**11-24 지형OFF·3D최대(Claude Code)**: 0~2단계 로컬 커밋 75c50ef1·9fe89bb7(미푸시). 3단계 나무(각진·여유) Chief 확인·로컬 커밋: [결과](20261124-terrain-off-3d-plan/04-result-stage3.md)·[계획](20261124-terrain-off-3d-plan/README.md). 고정91~93. 전체1677/0.
+**병행 주의**: rider15 작업이 같은 폴더에서 진행 중·knip 2건은 그쪽. 커밋은 파일 지정.
+다음: 조용한 PC 재측정(Edge 닫고)→4단계 건물 외관 시안. 비교 `?ridetrees=0`·`?viewdist=0`.
 
 **11-24 Chief 판정(해제됨)**: 지형OFF에도 건물 일부만 표시·지평선까지 미충족 → 위 계획 1단계가 해결 대상.
 
@@ -80,7 +81,7 @@ MiniMax 개발도구 제외·Obsidian C:\20.HDev\spinatlas-vault·rider15 수정
 
 ## 다음 한 걸음
 
-1. 지형OFF·3D최대 3단계(가로수·숲 시안). 지형ON 비용분리 조사는 보류.
+1. 지형OFF·3D최대 FPS 재측정→4단계 시안. 지형ON 비용분리 조사는 보류.
 2. 중계 보드/장애 복구와 반응형·적응형 정책은 후속. Guest 감사는 매일 유지로 확정, 상시 Firestore 백업 유지.
 3. 인터벌·이정표 실폰/실센서 확인, 반복 렌더링 스택 확보. 거리 안내·센서/RPM·관전 UID 수정은 로컬 커밋·미배포.
 

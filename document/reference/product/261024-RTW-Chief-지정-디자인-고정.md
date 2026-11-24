@@ -160,3 +160,5 @@
 | 91 | 2026-11-24 | 지형 OFF 주행 시야 | **지형 OFF 주행의 시야 거리는 1km로 고정한다.** 지형 ON·카메라 1·대기·종료 지도는 SDK 기본. | Chief 「1km 로 확정한다」, [결과](../../ops/20261124-terrain-off-3d-plan/01-result-stage0-1.md) | `ride-view-distance.test.ts` |
 
 | 92 | 2026-11-24 | 주행 글자와 그림자 | **도로명·지명·상호·교통(역·정류장 등) 글자를 모두 ON.** 3D 그림자는 주행 중 OFF(권장안), 종료 시 복원. | Chief 「도로명, 지명, 상호, 교통과 같은 텍스트를 모두 On 상태로 한다」, [결과](../../ops/20261124-terrain-off-3d-plan/02-result-stage2.md) | `standard-ride-names.test.ts`·`standard-shadows.test.ts` |
+
+| 93 | 2026-11-24 | 가상 가로수·숲 | **지형 OFF 주행에 각진 나무를 「여유」 밀도로 표시(최대 900그루·450m).** 경로선·차도·건물·물·카메라 시선은 비운다. | Chief 「나무스타일은 각진 나무로 해」·「여유」, [결과](../../ops/20261124-terrain-off-3d-plan/04-result-stage3.md) | `ride-trees.test.ts` |

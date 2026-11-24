@@ -113,6 +113,38 @@ for (const c of cases) test(c.id, async ({ page }) => {
     }
     return;
   }
+  if (c.kind === 'product-trees') {
+    page.on('console', (m) => { if (/rideTrees|rideViewDistance|MAPERR/i.test(m.text())) console.log('PAGE', m.text().slice(0, 200)); });
+    page.on('pageerror', (e) => console.log('PAGEERR', e.message.slice(0, 200)));
+    await page.evaluate(() => { const w = window as any; w.__tasks = []; new PerformanceObserver((l) => l.getEntries().forEach((e) => w.__tasks.push(Math.round(e.duration)))).observe({ entryTypes: ['longtask'] }); });
+    for (let i = 0; i < (c.shots ?? 4); i++) {
+      await page.waitForTimeout(6000);
+      await page.screenshot({ path: `${out}/${c.id}-${i}.png` });
+    }
+    const info = await page.evaluate(async () => {
+      const m = (window as any).__RTW_MAP__;
+      const src = m.getSource('boxcycle-ride-trees-src');
+      const data = src?._data ?? null;
+      const by: any = {}; for (const f of data?.features ?? []) by[f.properties.m] = (by[f.properties.m] ?? 0) + 1;
+      const fps = async (ms: number) => { let n = 0; const f = () => n++; m.on('render', f); const t = performance.now(); await new Promise((r) => setTimeout(r, ms)); m.off('render', f); return +(n * 1000 / (performance.now() - t)).toFixed(1); };
+      const on: number[] = [], off: number[] = [];
+      for (let i = 0; i < 4; i++) {
+        on.push(await fps(2500)); m.setLayoutProperty('boxcycle-ride-trees', 'visibility', 'none'); await new Promise((r) => setTimeout(r, 500));
+        off.push(await fps(2500)); m.setLayoutProperty('boxcycle-ride-trees', 'visibility', 'visible'); await new Promise((r) => setTimeout(r, 500));
+      }
+      return { total: data?.features?.length ?? null, by, on, off, tasks: (window as any).__tasks.filter((x: number) => x > 80).length };
+    });
+    console.log('PT', c.id, JSON.stringify(info));
+    fs.writeFileSync(`${out}/${c.id}.json`, JSON.stringify(info, null, 1));
+    if (c.end) {
+      const stop = page.getByRole('button', { name: '주행 종료' });
+      if (!(await stop.isVisible())) await page.mouse.click(700, 200);
+      await stop.click();
+      await page.waitForTimeout(5000);
+      console.log('PTEND', c.id, JSON.stringify(await page.evaluate(() => { const m = (window as any).__RTW_MAP__; return { layer: !!m.getLayer('boxcycle-ride-trees'), src: !!m.getSource('boxcycle-ride-trees-src'), data: !!m.getLayer('boxcycle-ride-tree-data') }; })));
+    }
+    return;
+  }
   if (c.kind === 'ablate') {
     await setSpeedKmh(page, 5);
     await page.waitForTimeout(8000);
