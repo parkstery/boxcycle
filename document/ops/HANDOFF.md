@@ -3,15 +3,15 @@
 | 항목 | 값 |
 |---|---|
 | 담당 | **Claude Code** |
-| 갱신 | 11-24 나무 3단계 로컬 완료. |
+| 갱신 | 11-25 나무 켬 확정. |
 | 브랜치 | `main2` · 지형 기본1배 |
 | 마지막 배포 | 11-20 Hosting `66a0fac8`. |
 
 ## 진행 중
 
-**11-24 지형OFF·3D최대(Claude Code)**: 0~2단계 로컬 커밋 75c50ef1·9fe89bb7(미푸시). 3단계 나무(각진·여유) Chief 확인·로컬 커밋: [결과](20261124-terrain-off-3d-plan/04-result-stage3.md)·[계획](20261124-terrain-off-3d-plan/README.md). 고정91~93. 전체1677/0.
+**11-24 지형OFF·3D최대(Claude Code)**: 0~3단계 커밋·미배포. 나무(각진·여유) 켬 기본 Chief 확정: [결과](20261124-terrain-off-3d-plan/04-result-stage3.md)·[계획](20261124-terrain-off-3d-plan/README.md). 고정91~93. 전체1677/0.
 **병행 주의**: rider15 작업이 같은 폴더에서 진행 중·knip 2건은 그쪽. 커밋은 파일 지정.
-FPS 패널 `?fps=1`(끄기 `?fps=0`) 로컬 커밋. 다음: 조용한 PC 재측정(Edge 닫고)→4단계 건물 외관 시안. 비교 `?ridetrees=0`·`?viewdist=0`.
+FPS 패널 `?fps=1`(끄기 `?fps=0`) 커밋. 재측정 생략(Chief). 다음: 4단계 건물 외관·원경 시안(그림→Chief). 비교 `?ridetrees=0`·`?viewdist=0`.
 
 **11-24 Chief 판정(해제됨)**: 지형OFF에도 건물 일부만 표시·지평선까지 미충족 → 위 계획 1단계가 해결 대상.
 
