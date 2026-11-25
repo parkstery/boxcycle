@@ -34,6 +34,8 @@ export const RTW_LAYER_RANK = {
   /** 가상 가로수 — 조각 확보용 면과 나무. 글자보다 아래 */
   "boxcycle-ride-tree-data": 102,
   "boxcycle-ride-trees": 106,
+  /** 먼 산 능선 — 시야 끝의 얇은 띠. 깊이 검사로 건물·나무 뒤에 선다 */
+  "boxcycle-ride-ridge": 108,
   "boxcycle-standard-road-names": 110,
   "boxcycle-standard-poi-names": 114,
   "boxcycle-standard-transit-names": 116,

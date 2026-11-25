@@ -31,6 +31,17 @@
       "expires": "2026-12-25"
     },
     {
+      "id": "q-ridelook",
+      "kind": "query",
+      "key": "ridelook",
+      "class": "temporary",
+      "purpose": "4단계 풍경(건물 외관·안개·능선) 있음/없음 비교. ride-scenery.test.ts",
+      "enable": "주소에 ?ridelook=0",
+      "bundle": "20261124-terrain-off-3d-plan",
+      "added": "2026-11-25",
+      "expires": "2026-12-25"
+    },
+    {
       "id": "q-ridetrees",
       "kind": "query",
       "key": "ridetrees",
