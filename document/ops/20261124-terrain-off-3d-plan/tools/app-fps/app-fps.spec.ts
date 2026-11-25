@@ -6,7 +6,20 @@ const cases = JSON.parse(fs.readFileSync(process.env.APP_FPS_CASES!, 'utf8'));
 const out = process.env.APP_FPS_OUT!;
 fs.mkdirSync(out, { recursive: true });
 
+/** 입문 1번 경로의 좌표만 다른 실도로로 바꿔 보여 준다(빌드 산출물·제품 코드는 그대로). */
+async function useRoute(page: any, file: string) {
+  const r = JSON.parse(fs.readFileSync(file, 'utf8'));
+  const xs = r.coordinates.map((p: number[]) => p[0]), ys = r.coordinates.map((p: number[]) => p[1]);
+  await page.route('**/assets/index-*.js', async (route: any) => {
+    const res = await route.fetch();
+    const body = (await res.text()).replace(/distanceMeters:414,durationSec:120,([^\[]*\[[^\]]*\]),bounds:\{[^}]*\},coordinates:\[\[126\.988622.*?\]\]/s,
+      (_: string, names: string) => `distanceMeters:${Math.round(r.distance)},durationSec:${Math.round(r.duration)},${names},bounds:{minLng:${Math.min(...xs)},minLat:${Math.min(...ys)},maxLng:${Math.max(...xs)},maxLat:${Math.max(...ys)}},coordinates:${JSON.stringify(r.coordinates)}`);
+    await route.fulfill({ response: res, body });
+  });
+}
+
 for (const c of cases) test(c.id, async ({ page }) => {
+  if (c.routeFile) await useRoute(page, c.routeFile);
   await page.goto(`/?perflab=1&maxdpr=1.5&viewdist=${c.viewdist}${c.query ?? ''}`);
   await guestStart(page);
   await prepareManualRideInput(page);
@@ -111,6 +124,11 @@ for (const c of cases) test(c.id, async ({ page }) => {
       console.log('TREEFPS', c.id, v.id, 'on', on1, 'off', off1, 'on', on2);
       console.log('TREES', c.id, v.id, trees.length, JSON.stringify(trees.reduce((a: any, t: any) => { a[t.kind] = (a[t.kind] ?? 0) + 1; return a; }, {})));
     }
+    return;
+  }
+  if (c.kind === 'look') {
+    const { runLook } = await import('../look/look.mjs');
+    await runLook(page, c, out, (k: number) => setSpeedKmh(page, k));
     return;
   }
   if (c.kind === 'fps-panel') {

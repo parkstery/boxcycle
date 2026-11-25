@@ -1,0 +1,220 @@
+[
+ {
+  "id": "look-street",
+  "kind": "look",
+  "course": "남산",
+  "viewdist": 1000,
+  "kmh": 25,
+  "runMs": 6000,
+  "variants": [
+   {
+    "id": "now"
+   },
+   {
+    "id": "color",
+    "building": "color"
+   },
+   {
+    "id": "windows",
+    "building": "windows",
+    "nearM": 250,
+    "waitMs": 4500
+   },
+   {
+    "id": "fog",
+    "building": "color",
+    "fog": "clear",
+    "waitMs": 2000
+   },
+   {
+    "id": "ridge",
+    "building": "color",
+    "fog": "clear",
+    "ridge": true
+   },
+   {
+    "id": "all",
+    "building": "windows",
+    "nearM": 250,
+    "fog": "clear",
+    "ridge": true,
+    "waitMs": 4500
+   }
+  ],
+  "routeFile": "C:/20.HDev/boxcycle/document/ops/20261124-terrain-off-3d-plan/tools/look/routes/wonju-street.json"
+ },
+ {
+  "id": "look-apt",
+  "kind": "look",
+  "course": "남산",
+  "viewdist": 1000,
+  "kmh": 25,
+  "runMs": 6000,
+  "variants": [
+   {
+    "id": "now"
+   },
+   {
+    "id": "color",
+    "building": "color"
+   },
+   {
+    "id": "windows",
+    "building": "windows",
+    "nearM": 250,
+    "waitMs": 4500
+   },
+   {
+    "id": "fog",
+    "building": "color",
+    "fog": "clear",
+    "waitMs": 2000
+   },
+   {
+    "id": "ridge",
+    "building": "color",
+    "fog": "clear",
+    "ridge": true
+   },
+   {
+    "id": "all",
+    "building": "windows",
+    "nearM": 250,
+    "fog": "clear",
+    "ridge": true,
+    "waitMs": 4500
+   }
+  ],
+  "routeFile": "C:/20.HDev/boxcycle/document/ops/20261124-terrain-off-3d-plan/tools/look/routes/wonju-apt.json"
+ },
+ {
+  "id": "look-river",
+  "kind": "look",
+  "course": "남산",
+  "viewdist": 1000,
+  "kmh": 25,
+  "runMs": 6000,
+  "variants": [
+   {
+    "id": "now"
+   },
+   {
+    "id": "color",
+    "building": "color"
+   },
+   {
+    "id": "windows",
+    "building": "windows",
+    "nearM": 250,
+    "waitMs": 4500
+   },
+   {
+    "id": "fog",
+    "building": "color",
+    "fog": "clear",
+    "waitMs": 2000
+   },
+   {
+    "id": "ridge",
+    "building": "color",
+    "fog": "clear",
+    "ridge": true
+   },
+   {
+    "id": "all",
+    "building": "windows",
+    "nearM": 250,
+    "fog": "clear",
+    "ridge": true,
+    "waitMs": 4500
+   }
+  ],
+  "routeFile": "C:/20.HDev/boxcycle/document/ops/20261124-terrain-off-3d-plan/tools/look/routes/wonju-river.json"
+ },
+ {
+  "id": "look-paris",
+  "kind": "look",
+  "course": "파리",
+  "viewdist": 1000,
+  "kmh": 25,
+  "runMs": 6000,
+  "variants": [
+   {
+    "id": "now"
+   },
+   {
+    "id": "color",
+    "building": "color"
+   },
+   {
+    "id": "windows",
+    "building": "windows",
+    "nearM": 250,
+    "waitMs": 4500
+   },
+   {
+    "id": "fog",
+    "building": "color",
+    "fog": "clear",
+    "waitMs": 2000
+   },
+   {
+    "id": "ridge",
+    "building": "color",
+    "fog": "clear",
+    "ridge": true
+   },
+   {
+    "id": "all",
+    "building": "windows",
+    "nearM": 250,
+    "fog": "clear",
+    "ridge": true,
+    "waitMs": 4500
+   }
+  ]
+ },
+ {
+  "id": "look-namsan",
+  "kind": "look",
+  "course": "남산",
+  "viewdist": 1000,
+  "kmh": 25,
+  "runMs": 6000,
+  "variants": [
+   {
+    "id": "now"
+   },
+   {
+    "id": "color",
+    "building": "color"
+   },
+   {
+    "id": "windows",
+    "building": "windows",
+    "nearM": 250,
+    "waitMs": 4500
+   },
+   {
+    "id": "fog",
+    "building": "color",
+    "fog": "clear",
+    "waitMs": 2000
+   },
+   {
+    "id": "ridge",
+    "building": "color",
+    "fog": "clear",
+    "ridge": true
+   },
+   {
+    "id": "all",
+    "building": "windows",
+    "nearM": 250,
+    "fog": "clear",
+    "ridge": true,
+    "waitMs": 4500
+   }
+  ]
+ }
+]

@@ -162,3 +162,5 @@
 | 92 | 2026-11-24 | 주행 글자와 그림자 | **도로명·지명·상호·교통(역·정류장 등) 글자를 모두 ON.** 3D 그림자는 주행 중 OFF(권장안), 종료 시 복원. | Chief 「도로명, 지명, 상호, 교통과 같은 텍스트를 모두 On 상태로 한다」, [결과](../../ops/20261124-terrain-off-3d-plan/02-result-stage2.md) | `standard-ride-names.test.ts`·`standard-shadows.test.ts` |
 
 | 93 | 2026-11-24 | 가상 가로수·숲 | **지형 OFF 주행에 각진 나무를 「여유」 밀도로 표시(최대 900그루·450m).** 경로선·차도·건물·물·카메라 시선은 비운다. | Chief 「나무스타일은 각진 나무로 해」·「여유」, 11-25 「?fps=1 이 주행 조건을 선택한다」(나무 켬 기본 확정), [결과](../../ops/20261124-terrain-off-3d-plan/04-result-stage3.md) | `ride-trees.test.ts` |
+
+| 94 | 2026-11-25 | 지형 OFF 주행 풍경 | **건물 색 변화+250m 창문, 안개·하늘 1km까지 맑게, 먼 산 능선 켬.** 카메라 1·지형 ON·종료는 원래 지도, 저녁 지도는 건물만. | Chief 「4단계 모두 적용하겠다」, [결과](../../ops/20261124-terrain-off-3d-plan/05-result-stage4.md) | `ride-scenery.test.ts` |
