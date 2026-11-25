@@ -113,6 +113,27 @@ for (const c of cases) test(c.id, async ({ page }) => {
     }
     return;
   }
+  if (c.kind === 'fps-panel') {
+    const panel = page.locator('[data-fps-panel]');
+    await panel.waitFor();
+    const before = (await panel.boundingBox())!;
+    const handle = panel.getByRole('button', { name: 'FPS 패널 옮기기' });
+    const h = (await handle.boundingBox())!;
+    await page.mouse.move(h.x + 10, h.y + 10); await page.mouse.down(); await page.mouse.move(h.x + 10 - 300, h.y + 10 + 150, { steps: 8 }); await page.mouse.up();
+    const after = (await panel.boundingBox())!;
+    console.log('FPSP moved', Math.round(after.x - before.x), Math.round(after.y - before.y));
+    await panel.getByRole('button', { name: '10초 측정' }).click();
+    const truth = page.evaluate(async () => { const m = (window as any).__RTW_MAP__; let n = 0; const f = () => n++; m.on('render', f); const t = performance.now(); await new Promise((r) => setTimeout(r, 10000)); m.off('render', f); return +(n * 1000 / (performance.now() - t)).toFixed(1); });
+    console.log('FPSP truth', await truth);
+    await page.locator('.fps-panel__sample').first().waitFor({ timeout: 5000 });
+    console.log('FPSP sample', (await page.locator('.fps-panel__sample').first().innerText()).replace(/\n/g, ' | '));
+    await page.screenshot({ path: `${out}/fps-panel.png` });
+    await page.goto('/');
+    console.log('FPSP remembered', await panel.waitFor({ timeout: 15000 }).then(() => true, () => false), Math.round(((await panel.boundingBox()) ?? { x: -1 }).x - after.x));
+    await page.goto('/?fps=0'); await page.waitForTimeout(3000);
+    console.log('FPSP off', await panel.count());
+    return;
+  }
   if (c.kind === 'product-trees') {
     page.on('console', (m) => { if (/rideTrees|rideViewDistance|MAPERR/i.test(m.text())) console.log('PAGE', m.text().slice(0, 200)); });
     page.on('pageerror', (e) => console.log('PAGEERR', e.message.slice(0, 200)));

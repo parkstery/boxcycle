@@ -9,6 +9,28 @@
   ],
   "tools": [
     {
+      "id": "fpsMeter",
+      "kind": "module",
+      "path": "apps/web/src/lib/debug/fpsMeter.ts",
+      "class": "temporary",
+      "purpose": "시험용 이동식 FPS 패널 계산부. fps-meter.test.ts",
+      "enable": "?fps=1 (기억됨, ?fps=0 으로 끔)",
+      "bundle": "20261124-terrain-off-3d-plan",
+      "added": "2026-11-25",
+      "expires": "2026-12-25"
+    },
+    {
+      "id": "q-fps",
+      "kind": "query",
+      "key": "fps",
+      "class": "temporary",
+      "purpose": "시험용 이동식 FPS 패널. fps-meter.test.ts",
+      "enable": "주소에 ?fps=1, 끄기 ?fps=0",
+      "bundle": "20261124-terrain-off-3d-plan",
+      "added": "2026-11-25",
+      "expires": "2026-12-25"
+    },
+    {
       "id": "q-ridetrees",
       "kind": "query",
       "key": "ridetrees",

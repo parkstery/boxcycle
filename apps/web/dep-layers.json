@@ -459,6 +459,7 @@
     ],
     "debug": [
       "debug/distanceAutoRouteClickDebugMarker.ts",
+      "debug/fpsMeter.ts",
       "debug/hudCompanionDiag.ts",
       "debug/installHudCompanionDebug.ts",
       "debug/installLiveRideExistsDebug.ts",

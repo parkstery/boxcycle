@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import type { Camera1Mode } from "../../lib/camera/camera1Mode";
 import { isRideCameraLabEnabled, type RideCameraLabQc } from "../../lib/debug/rideCameraLab";
+import { isFpsPanelEnabled } from "../../lib/debug/fpsMeter";
 import { isPerfLabEnabled } from "../../lib/debug/perfLabFacade";
 import { isRiderLightLabEnabled } from "../../lib/riderPrototype/riderLightLabSwitch";
 
@@ -22,6 +23,10 @@ const PerfLabPanel = lazy(() =>
   })),
 );
 
+const FpsPanel = lazy(() =>
+  import(/* webpackChunkName: "fps-panel" */ "../perfLab/FpsPanel").then((m) => ({ default: m.FpsPanel })),
+);
+
 type Props = {
   mapZoom: number;
   activeQuickCamera: RideCameraLabQc | null;
@@ -36,7 +41,8 @@ export function DevLabPanels({ mapZoom, activeQuickCamera, camera1Mode, onDistan
   const lightlab = isRiderLightLabEnabled();
   const camlab = isRideCameraLabEnabled();
   const perflab = isPerfLabEnabled();
-  if (!lightlab && !camlab && !perflab) return null;
+  const fps = isFpsPanelEnabled();
+  if (!lightlab && !camlab && !perflab && !fps) return null;
   return (
     <Suspense fallback={null}>
       {lightlab ? <RiderLightLabPanel /> : null}
@@ -48,6 +54,7 @@ export function DevLabPanels({ mapZoom, activeQuickCamera, camera1Mode, onDistan
         />
       ) : null}
       {perflab ? <PerfLabPanel mapZoom={mapZoom} /> : null}
+      {fps ? <FpsPanel /> : null}
     </Suspense>
   );
 }

@@ -1,0 +1,98 @@
+/* 시험용 FPS 패널(`?fps=1`). 기본 자리는 위쪽 가운데 — 손잡이(⠿)로 옮긴다. */
+.fps-panel {
+  position: fixed;
+  top: 3.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 61;
+  width: max-content;
+  max-width: min(21rem, calc(100vw - 1rem));
+  max-height: calc(100dvh - 4rem);
+  overflow-y: auto;
+  padding: 0.25rem 0.55rem 0.4rem 0.3rem;
+  background: rgba(10, 14, 18, 0.86);
+  border-radius: 12px;
+  color: #edeff2;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  pointer-events: auto;
+}
+
+.fps-panel--moved {
+  transform: none;
+}
+
+.fps-panel__head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.fps-panel__handle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
+  font-size: 1.15rem;
+  color: #9fb0c0;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.fps-panel__handle:active {
+  cursor: grabbing;
+}
+
+.fps-panel__value {
+  min-width: 2.2ch;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.fps-panel__value--good {
+  color: #7be08a;
+}
+
+.fps-panel__value--bad {
+  color: #ff8b7a;
+}
+
+.fps-panel__value--idle {
+  font-size: 1rem;
+  color: #9fb0c0;
+}
+
+.fps-panel__unit,
+.fps-panel__muted {
+  color: #9fb0c0;
+}
+
+.fps-panel__measure {
+  margin-left: 0.5rem;
+  min-height: 34px;
+  padding: 0 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.fps-panel__line {
+  margin: 0 0 0 0.45rem;
+}
+
+.fps-panel__sample {
+  margin-top: 0.3rem;
+  padding-left: 0.4rem;
+  border-left: 3px solid #ff8b7a;
+}
+
+.fps-panel__sample.is-pass {
+  border-left-color: #7be08a;
+}
