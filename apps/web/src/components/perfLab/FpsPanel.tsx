@@ -1,6 +1,7 @@
 import type { Map as MapboxMap } from "mapbox-gl";
 import { useEffect, useRef, useState } from "react";
 import { FPS_WINDOW_MS, FpsMeter, type FpsReading } from "../../lib/debug/fpsMeter";
+import { rideQualityText } from "../../lib/map/rideQuality";
 import { useDraggablePanel } from "./useDraggablePanel";
 import "./FpsPanel.css";
 
@@ -19,7 +20,7 @@ function conditionText(map: MapboxMap | null): string {
     const terrain = map.getTerrain() ? "지형 켬" : "지형 끔";
     const altitude = map.getFreeCameraOptions().position?.toAltitude();
     const height = altitude == null ? "" : ` · 고도 ${altitude < 100 ? altitude.toFixed(1) : Math.round(altitude)}m`;
-    return `${terrain} · 피치 ${Math.round(map.getPitch())}°${height}`;
+    return `${terrain} · 피치 ${Math.round(map.getPitch())}°${height} · 품질 ${rideQualityText()}`;
   } catch {
     return "지도 준비 중";
   }

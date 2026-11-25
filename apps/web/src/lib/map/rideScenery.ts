@@ -43,9 +43,9 @@ function rideFog(unitM: number, viewDistanceM: number): FogSpecification {
 
 type Host = MapboxMap & { version?: string; transform?: { height: number; pixelsPerMeter: number } };
 
-export type RideSceneryController = { setActive(active: boolean): void; dispose(): void };
+export type RideSceneryController = { setActive(active: boolean): void; setWindows(on: boolean): void; dispose(): void };
 
-const NOOP: RideSceneryController = { setActive() {}, dispose() {} };
+const NOOP: RideSceneryController = { setActive() {}, setWindows() {}, dispose() {} };
 
 /** `?ridelook=0` 이면 4단계 풍경 없이 비교한다. */
 export function rideSceneryEnabled(search: string | null | undefined): boolean {
@@ -188,6 +188,7 @@ export function installRideScenery(map: MapboxMap, options: { viewDistanceM: num
       timer = window.setInterval(check, CHECK_MS);
       check();
     },
+    setWindows: buildings.setWindows,
     dispose() {
       stop();
     },

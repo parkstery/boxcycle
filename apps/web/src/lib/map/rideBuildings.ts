@@ -118,6 +118,8 @@ function metersBetween(a: readonly [number, number], b: readonly [number, number
 export type RideBuildings = {
   /** 적용돼 있지 않거나 많이 움직였으면 맞춘다. 여러 번 불러도 된다. Standard 지도가 아니면 false. */
   apply(): boolean;
+  /** 창문 무늬만 켜고 끈다(색은 그대로). 다음 apply 부터 반영. */
+  setWindows(on: boolean): void;
   restore(): void;
 };
 
@@ -128,6 +130,7 @@ export function createRideBuildings(map: MapboxMap, wallImage: typeof drawWall =
   let imagesZoom: number | null = null;
   let windowsAt: [number, number] | null = null;
   let failedOn: Fragment | null = null;
+  let windowsOn = true;
 
   const commit = (): void => {
     if (host.style) host.style._changed = true;
@@ -189,12 +192,23 @@ export function createRideBuildings(map: MapboxMap, wallImage: typeof drawWall =
   const applyTo = (style: Fragment): void => {
     const center = map.getCenter();
     const here: [number, number] = [center.lng, center.lat];
-    if (base !== style) {
+    const firstOnStyle = base !== style;
+    if (firstOnStyle) {
       base = style;
       original = { color: style.getPaintProperty(BUILDING_LAYER, "fill-extrusion-color"), filter: style.getFilter(BUILDING_LAYER) };
       imagesZoom = null;
       windowsAt = null;
       style.setPaintProperty(BUILDING_LAYER, "fill-extrusion-color", RIDE_BUILDING_COLOR);
+    }
+    if (!windowsOn) {
+      // 자동 품질이 창문을 껐다 — 원래 레이어가 모든 건물을 색만 입혀 그린다.
+      if (style._layers?.[RIDE_WINDOW_LAYER]) {
+        dropWindows(style);
+        style.setFilter(BUILDING_LAYER, original?.filter);
+      }
+      if (windowsAt || firstOnStyle) commit();
+      windowsAt = null;
+      return;
     }
     const tileZoom = host.transform?.tileZoom;
     if (tileZoom == null) return;
@@ -225,6 +239,9 @@ export function createRideBuildings(map: MapboxMap, wallImage: typeof drawWall =
         restore();
       }
       return true;
+    },
+    setWindows(on) {
+      windowsOn = on;
     },
     restore,
   };

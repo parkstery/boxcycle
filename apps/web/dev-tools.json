@@ -31,6 +31,17 @@
       "expires": "2026-12-25"
     },
     {
+      "id": "q-ridequality",
+      "kind": "query",
+      "key": "ridequality",
+      "class": "temporary",
+      "purpose": "자동 품질 단계 고정 비교. ride-quality.test.ts",
+      "enable": "주소에 ?ridequality=0~3",
+      "bundle": "20261124-terrain-off-3d-plan",
+      "added": "2026-11-25",
+      "expires": "2026-12-25"
+    },
+    {
       "id": "q-ridelook",
       "kind": "query",
       "key": "ridelook",

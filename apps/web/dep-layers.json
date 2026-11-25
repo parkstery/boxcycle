@@ -450,6 +450,8 @@
       "map/rideEndNorthUp.ts",
       "map/rideTerrainScale.ts",
       "map/rideBuildings.ts",
+      "map/rideEnvironment.ts",
+      "map/rideQuality.ts",
       "map/rideRidge.ts",
       "map/rideScenery.ts",
       "map/rideTreeLayer.ts",

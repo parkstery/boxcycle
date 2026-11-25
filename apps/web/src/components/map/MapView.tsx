@@ -5,9 +5,7 @@ import { useRideMilestoneMap, type RideMilestoneProgress } from "./useRideMilest
 import { RideTerrainGuard, readRideTerrainHealth, TERRAIN_GUARD_INTERVAL_MS } from "./rideTerrainGuard";
 import { addStandardRideNames } from "./standardRideNames";
 import { setStandardShadows } from "../../lib/map/standardShadows";
-import { installRideViewDistance, parseRideViewDistanceM, STANDARD_RIDE_DATA_SOURCE, type RideViewDistanceController } from "../../lib/map/rideViewDistance";
-import { installRideTrees, rideTreesEnabled, type RideTreeController } from "../../lib/map/rideTreeLayer";
-import { installRideScenery, rideSceneryEnabled, type RideSceneryController } from "../../lib/map/rideScenery";
+import { installRideEnvironment, type RideEnvironment } from "../../lib/map/rideEnvironment";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../../lib/map/disableMapboxTelemetry";
 import {
@@ -658,9 +656,7 @@ export function MapView({
   const prefersReducedMotionRef = useRef(false);
   const enable3DRef = useRef(enable3D);
   const terrainFallbackRef = useRef(false);
-  const rideViewDistanceRef = useRef<RideViewDistanceController | null>(null);
-  const rideTreesRef = useRef<RideTreeController | null>(null);
-  const rideSceneryRef = useRef<RideSceneryController | null>(null);
+  const rideEnvironmentRef = useRef<RideEnvironment | null>(null);
   const onTerrainFallbackChangeRef = useRef(onTerrainFallbackChange);
   /** 본인·동행·페이서의 화면 방향·기울기. 라이더 id 하나당 상태 하나. */
   const riderTurnRef = useRef(new RiderTurnSmoother());
@@ -1046,16 +1042,13 @@ export function MapView({
     map.addControl(createFixedScaleBoxControl(), "bottom-right");
     map.addControl(new MapCameraAltitudeControl(), "bottom-right");
     mapRef.current = map;
-    const viewDistance = installRideViewDistance(map, parseRideViewDistanceM(window.location.search));
-    rideViewDistanceRef.current = viewDistance;
-    const rideTrees = installRideTrees(map, {
-      dataSource: STANDARD_RIDE_DATA_SOURCE,
+    const rideEnvironment = installRideEnvironment(map, {
+      search: window.location.search,
+      token: accessToken.trim(),
       modelBaseUrl: new URL(`${import.meta.env.BASE_URL}trees/`, window.location.href).href,
       getRoute: () => (routeGeometryRef.current?.coordinates as [number, number][] | undefined) ?? null,
     });
-    rideTreesRef.current = rideTrees;
-    const rideScenery = installRideScenery(map, { viewDistanceM: parseRideViewDistanceM(window.location.search), token: accessToken.trim() });
-    rideSceneryRef.current = rideScenery;
+    rideEnvironmentRef.current = rideEnvironment;
     let stopCircleAttention: (() => void) | undefined;
     const stopDistanceCircleAttention = () => {
       stopCircleAttention?.();
@@ -1863,9 +1856,7 @@ export function MapView({
       peerDomMarkersRef.current.clear();
       if (mapRef.current === map) {
         try {
-          rideTrees.dispose();
-          rideScenery.dispose();
-          viewDistance.dispose();
+          rideEnvironment.dispose();
           map.remove();
         } catch {
           /* noop */
@@ -3402,9 +3393,7 @@ export function MapView({
   // 시야 확장은 지형 OFF 주행에서만 — 지형 ON·종료·대기 지도는 SDK 기본을 쓴다.
   useEffect(() => {
     if (!mapLoaded) return;
-    rideViewDistanceRef.current?.setActive(rideActive && !enable3D);
-    rideTreesRef.current?.setActive(rideActive && !enable3D && rideTreesEnabled(window.location.search));
-    rideSceneryRef.current?.setActive(rideActive && !enable3D && rideSceneryEnabled(window.location.search));
+    rideEnvironmentRef.current?.setActive(rideActive && !enable3D);
   }, [mapLoaded, rideActive, enable3D]);
 
   // 주행 중에는 3D 그림자를 끈다 — 화면 차이는 작고 비용이 크다(2026-11-24 Chief 권장안). 종료하면 되돌린다.

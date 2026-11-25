@@ -125,7 +125,12 @@ function layerSpec(): ModelLayerSpecification {
   };
 }
 
-export type RideTreeController = { setActive(active: boolean): void; dispose(): void };
+export type RideTreeController = {
+  setActive(active: boolean): void;
+  /** 자동 품질 — 가까운 나무부터 이 수까지만 보인다. 다시 계산하지 않는다. */
+  setLimit(maxTrees: number): void;
+  dispose(): void;
+};
 
 export function installRideTrees(
   map: MapboxMap,
@@ -141,6 +146,13 @@ export function installRideTrees(
   let route: XY[] = [];
   let routeSource: readonly XY[] | null = null;
   const models = new Set<string>();
+  let limit = Infinity;
+  /** 마지막 배치(가까운 순)와 그 원점 — 수만 바꿀 때 다시 쓴다. */
+  let placed: { trees: RideTree[]; origin: XY } | null = null;
+  const show = (): void => {
+    if (!placed) return;
+    (map.getSource(RIDE_TREES_SRC) as GeoJSONSource | undefined)?.setData(rideTreesToGeoJson(placed.trees.slice(0, limit), placed.origin));
+  };
 
   const onData = (e: MapSourceDataEvent): void => {
     if (e.sourceId === options.dataSource && e.tile) dirty = true;
@@ -183,7 +195,8 @@ export function installRideTrees(
         const step = job.next();
         if (step.done) {
           job = null;
-          (map.getSource(RIDE_TREES_SRC) as GeoJSONSource | undefined)?.setData(rideTreesToGeoJson(step.value, origin));
+          placed = { trees: step.value, origin };
+          show();
           return;
         }
         if (performance.now() >= until) break;
@@ -234,6 +247,7 @@ export function installRideTrees(
     if (timer != null) window.clearInterval(timer);
     timer = null;
     stopJob();
+    placed = null;
     map.off("sourcedata", onData);
   };
   return {
@@ -252,6 +266,15 @@ export function installRideTrees(
       map.on("sourcedata", onData);
       timer = window.setInterval(check, CHECK_MS);
       check();
+    },
+    setLimit(maxTrees) {
+      if (limit === maxTrees) return;
+      limit = maxTrees;
+      try {
+        show();
+      } catch {
+        /* 스타일 교체 중이면 다음 배치에서 반영된다 */
+      }
     },
     dispose() {
       stop();
