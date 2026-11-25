@@ -161,6 +161,14 @@ export function nextRideComparisonMapStyle(current: string): string {
   return MAP_STYLE_OUTDOORS;
 }
 
+/**
+ * 주행 카메라 메뉴의 「3D 뷰」(지형) — 지형 OFF 주행이 기본이 되어 숨긴다(6단계).
+ * 코드는 보존한다. `?ride3d=1` 로 다시 보인다.
+ */
+export function rideTerrainMenuVisible(search: string | null | undefined): boolean {
+  return new URLSearchParams(search ?? "").get("ride3d") === "1";
+}
+
 export function mapStyleRenderSettings(style: string): {
   url: string;
   lightPreset: "day" | "dusk" | null;

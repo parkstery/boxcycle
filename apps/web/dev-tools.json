@@ -42,6 +42,17 @@
       "expires": "2026-12-25"
     },
     {
+      "id": "q-ride3d",
+      "kind": "query",
+      "key": "ride3d",
+      "class": "temporary",
+      "purpose": "숨긴 지형 「3D 뷰」 메뉴를 다시 보인다. ride-terrain-menu.test.ts",
+      "enable": "주소에 ?ride3d=1",
+      "bundle": "20261124-terrain-off-3d-plan",
+      "added": "2026-11-25",
+      "expires": "2026-12-25"
+    },
+    {
       "id": "q-ridelook",
       "kind": "query",
       "key": "ridelook",

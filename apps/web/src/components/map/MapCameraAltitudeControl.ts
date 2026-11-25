@@ -1,6 +1,7 @@
 import type { IControl, Map as MapboxMap } from "mapbox-gl";
 
-const ARIA = "카메라 고도(해수면 기준)";
+/** 지형을 켜면 해수면, 끄면 평평한 지면에서 잰 높이다. */
+const ariaFor = (terrain: boolean): string => `카메라 고도(${terrain ? "해수면" : "지면"} 기준)`;
 const PLACEHOLDER = "고도 —";
 
 function readAltitudeM(map: MapboxMap): number | null {
@@ -28,7 +29,7 @@ function formatCameraAltitudeLabel(altM: number | null): string {
 }
 
 /**
- * 우하단 축척 왼쪽 — Mapbox 카메라 해수면 고도(읽기 전용).
+ * 우하단 축척 왼쪽 — Mapbox 카메라 고도(읽기 전용).
  * React 렌더 없이 move/render 로 DOM 텍스트만 갱신.
  */
 export class MapCameraAltitudeControl implements IControl {
@@ -36,6 +37,7 @@ export class MapCameraAltitudeControl implements IControl {
   private _container?: HTMLDivElement;
   private _label?: HTMLSpanElement;
   private _lastText = "";
+  private _lastTerrain: boolean | null = null;
   private _onUpdate = (): void => {
     this._sync();
   };
@@ -49,14 +51,13 @@ export class MapCameraAltitudeControl implements IControl {
     label.className = "map-ctrl-camera-altitude__label";
     label.setAttribute("role", "status");
     label.setAttribute("aria-live", "polite");
-    label.setAttribute("aria-label", ARIA);
-    label.title = ARIA;
     label.textContent = PLACEHOLDER;
 
     root.appendChild(label);
     this._container = root;
     this._label = label;
     this._lastText = "";
+    this._lastTerrain = null;
 
     map.on("move", this._onUpdate);
     map.on("render", this._onUpdate);
@@ -76,6 +77,12 @@ export class MapCameraAltitudeControl implements IControl {
 
   private _sync(): void {
     if (!this._map || !this._label) return;
+    const terrain = this._map.getTerrain() != null;
+    if (terrain !== this._lastTerrain) {
+      this._lastTerrain = terrain;
+      this._label.setAttribute("aria-label", ariaFor(terrain));
+      this._label.title = ariaFor(terrain);
+    }
     const text = formatCameraAltitudeLabel(readAltitudeM(this._map));
     if (text === this._lastText) return;
     this._lastText = text;

@@ -166,3 +166,5 @@
 | 94 | 2026-11-25 | 지형 OFF 주행 풍경 | **건물 색 변화+250m 창문, 안개·하늘 1km까지 맑게, 먼 산 능선 켬.** 카메라 1·지형 ON·종료는 원래 지도, 저녁 지도는 건물만. | Chief 「4단계 모두 적용하겠다」, [결과](../../ops/20261124-terrain-off-3d-plan/05-result-stage4.md) | `ride-scenery.test.ts` |
 
 | 95 | 2026-11-25 | 주행 자동 품질 | **24FPS 미만이 5초 이어지면 나무(1/2→1/4)→창문 순으로 줄이고, 28FPS 이상 20초면 되돌린다.** 글자·라이더·주행선·건물·안개·능선·시야 1km는 낮추지 않는다. | Chief 「5단계 진행해」「5단계 커밋하고」, [결과](../../ops/20261124-terrain-off-3d-plan/06-result-stage5.md) | `ride-quality.test.ts` |
+
+| 96 | 2026-11-25 | 「3D 뷰」 숨김·라이더 평면 | **고정35의 3D 뷰 항목을 주행 카메라 메뉴에서 숨긴다(코드 보존, `?ride3d=1`). 카메라 1~6과 줄 배치는 유지.** 지형 OFF에서 라이더는 평면, 경사는 표고 그래프(고정34는 지형 ON에만). | Chief 「6단계 커밋하고 푸시해」, [결과](../../ops/20261124-terrain-off-3d-plan/07-result-stage6.md) | `ride-terrain-menu.test.ts`·`rider-terrain-slope.test.ts` |

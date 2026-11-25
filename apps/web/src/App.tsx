@@ -192,6 +192,7 @@ import {
   MAP_STYLE_STANDARD,
   MAP_STYLE_SATELLITE,
   mapStyleRenderSettings,
+  rideTerrainMenuVisible,
 } from "./lib/map/rtwMapConfig";
 import { isRideInputReady } from "./lib/sensor/cadenceSensorUi";
 import { CadenceSensorSheet } from "./components/sensor";
@@ -230,6 +231,9 @@ const DebugMapStage = lazy(() =>
     default: m.DebugMapStage,
   })),
 );
+
+/** 지형 OFF 주행 — 「3D 뷰」 메뉴를 숨긴다(6단계). */
+const RIDE_TERRAIN_MENU = rideTerrainMenuVisible(window.location.search);
 
 export default function App() {
   const {
@@ -3361,7 +3365,7 @@ export default function App() {
                       camera1Mode,
                       enable3D,
                       terrainFallback,
-                      onEnable3D: setEnable3D,
+                      onEnable3D: RIDE_TERRAIN_MENU ? setEnable3D : undefined,
                     }
                   : null,
               mapControls: mapHudControls,
