@@ -1,3 +1,4 @@
+import type { RiderRidePosture } from "./riderRidePosture";
 import type { LngLat } from "../geo/geo";
 import type { RiderGlbPedalPose } from "../rider/riderGlbPedalPose";
 
@@ -93,4 +94,9 @@ export type RiderGlbModelSpec = {
   leanDeg?: number;
   /** 흔들림 속도 배율용. 없으면 배율 1. */
   speedMps?: number;
+  /**
+   * rider15 주행 자세. 없으면 `Ride_Hoods`. `Ride_Sprint` 는 엉덩이를 든 자세로,
+   * 자전거가 미는 발의 반대쪽으로 최대 15° 기운다(모델 클립에 포함). 바뀌면 600 ms 동안 섞인다.
+   */
+  ridePosture?: RiderRidePosture;
 };

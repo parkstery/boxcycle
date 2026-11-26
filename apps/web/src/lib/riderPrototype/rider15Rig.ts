@@ -12,6 +12,11 @@ import {
 import type { AnimationAction, AnimationClip, Object3D } from "three";
 import type { RiderVisualKind } from "./iso2dMarker";
 import type { Rider15ModelProfile, RiderVisualKit } from "./riderModelProfile";
+import {
+  RIDER_RIDE_POSTURES,
+  type RiderRidePosture,
+  type RiderRidePostureBlend,
+} from "./riderRidePosture";
 import type { PreservedRiderHandle, PreservedRiderSway } from "./preservedRiderHandle";
 import { disposeRiderObject } from "./preservedRiderRig";
 
@@ -79,9 +84,13 @@ export class Rider15Rig implements PreservedRiderHandle {
 
   private readonly correction = new Group();
   private readonly root: Object3D;
-  private readonly clip: AnimationClip;
   private readonly mixer: AnimationMixer;
   private readonly action: AnimationAction;
+  /** 자세별 클립 동작. GLB 에 없는 자세는 기본 클립(`profile.clipName`)으로 대신한다. */
+  private readonly postureActions = new Map<RiderRidePosture, { action: AnimationAction; start: number }>();
+  /** 이 GLB 가 클립으로 가진 주행 자세. 예전 후보는 Ride_Hoods 하나뿐이다. */
+  readonly ridePostures: ReadonlySet<RiderRidePosture>;
+  private postureWeights = new Map<AnimationAction, number>();
   private readonly wheels: readonly WheelSpin[];
   private readonly visualKit: RiderVisualKit;
   private disposed = false;
@@ -100,7 +109,6 @@ export class Rider15Rig implements PreservedRiderHandle {
 
     const clip = gltf.animations.find((item) => item.name === profile.clipName);
     if (!clip) throw new Error(`rider15 clip missing: ${profile.clipName}`);
-    this.clip = clip;
     this.clipDuration = clip.duration;
     this.clipStart = clip.tracks.length === 0
       ? 0
@@ -118,6 +126,29 @@ export class Rider15Rig implements PreservedRiderHandle {
     this.action.setEffectiveTimeScale(1);
     this.action.setEffectiveWeight(1);
     this.action.play();
+    this.postureWeights.set(this.action, 1);
+
+    const available = new Set<RiderRidePosture>();
+    for (const name of RIDER_RIDE_POSTURES) {
+      const found: AnimationClip | undefined =
+        name === profile.clipName ? clip : gltf.animations.find((item) => item.name === name);
+      if (!found) continue;
+      available.add(name);
+      if (found === clip) {
+        this.postureActions.set(name, { action: this.action, start: this.clipStart });
+        continue;
+      }
+      const action = this.mixer.clipAction(found);
+      action.setLoop(LoopRepeat, Infinity);
+      action.clampWhenFinished = false;
+      action.setEffectiveTimeScale(1);
+      action.setEffectiveWeight(0);
+      action.enabled = false;
+      action.play();
+      const start = found.tracks.length === 0 ? 0 : Math.min(...found.tracks.map((track) => track.times[0] ?? 0));
+      this.postureActions.set(name, { action, start });
+    }
+    this.ridePostures = available;
 
     this.wheels = [
       this.bindWheel(profile.wheelBoneNames.front, profile.wheelNodeNames.front),
@@ -131,9 +162,41 @@ export class Rider15Rig implements PreservedRiderHandle {
   setPhase(phaseRev: number): void {
     const phase = wrapPhase(phaseRev);
     // 한 회전 = 첫 키~끝 키. GLB 첫 키가 1/24s 라 0 부터 재면 회전마다 1.5% 멈칫한다.
-    this.action.time = this.clipStart + phase * (this.clip.duration - this.clipStart);
+    // 섞이는 자세 클립은 모두 같은 위상에 둔다(크랭크·페달이 어긋나지 않는다).
+    for (const action of this.postureWeights.keys()) {
+      const entry = [...this.postureActions.values()].find((item) => item.action === action);
+      const start = entry?.start ?? this.clipStart;
+      action.time = start + phase * (action.getClip().duration - start);
+    }
     this.mixer.update(0);
     this.setWheels(phase);
+  }
+
+  /**
+   * 주행 자세를 정한다. `from`→`to` 를 `amount` 만큼 섞는다. 자전거 틸팅은 각 자세 클립에 들어 있다
+   * (Sprint 최대 15°, Hoods·Aero 8° 이내). GLB 에 없는 자세는 기본 클립으로 대신한다.
+   * 다음 `setPhase` 부터 반영된다.
+   */
+  setRidePosture(blend: RiderRidePostureBlend): void {
+    const resolve = (name: RiderRidePosture): AnimationAction =>
+      (this.postureActions.get(name) ?? { action: this.action }).action;
+    const amount = Math.min(1, Math.max(0, Number.isFinite(blend.amount) ? blend.amount : 1));
+    const weights = new Map<AnimationAction, number>();
+    const from = resolve(blend.from);
+    const to = resolve(blend.to);
+    weights.set(from, (weights.get(from) ?? 0) + (1 - amount));
+    weights.set(to, (weights.get(to) ?? 0) + amount);
+    for (const [action, weight] of [...weights]) if (weight <= 1e-6) weights.delete(action);
+    for (const { action } of this.postureActions.values()) {
+      const weight = weights.get(action) ?? 0;
+      action.enabled = weight > 0;
+      action.setEffectiveWeight(weight);
+    }
+    if (!this.postureActions.size) {
+      this.action.enabled = true;
+      this.action.setEffectiveWeight(1);
+    }
+    this.postureWeights = weights.size ? weights : new Map([[this.action, 1]]);
   }
 
   /** 모델 자체 롤은 S5 에서 붙인다. 지금은 아무것도 하지 않는다. */

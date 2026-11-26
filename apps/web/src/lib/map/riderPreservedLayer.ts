@@ -40,6 +40,7 @@ import { readRequestedRiderSkinMode } from "../riderPrototype/riderSkinMode";
 import { PreservedRiderStatic } from "../riderPrototype/preservedRiderStatic";
 import { getRiderModelProfile } from "../riderPrototype/riderModelProfile";
 import { computeRiderSway, RiderSwayEnvelope, RiderSwaySpeedFollow } from "../riderPrototype/riderSway";
+import { RiderRidePostureFollow } from "../riderPrototype/riderRidePosture";
 import { RiderTerrainSlope, riderTerrainRotation } from "../riderPrototype/riderTerrainSlope";
 import {
   DEFAULT_AMBIENT_INTENSITY,
@@ -86,6 +87,8 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
   private specs: readonly RiderGlbModelSpec[] = [];
   private readonly swayEnvelope = new RiderSwayEnvelope();
   private readonly swaySpeed = new RiderSwaySpeedFollow();
+  /** rider15 주행 자세(Hoods·Aero·Sprint) 전환 — 라이더 id 별 600 ms 섞기. */
+  private readonly ridePosture = new RiderRidePostureFollow();
   private readonly terrainSlope = new RiderTerrainSlope();
   private generation = 0;
   private loadState: "idle" | "loading" | "ready" | "error" = "idle";
@@ -286,6 +289,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
       const terrainPitch = this.terrainSlope.update(
         spec.id, spec.lngLat, spec.bearingDeg, nowMs, terrainEnabled, elevationAt,
       );
+      if (rig.setRidePosture) rig.setRidePosture(this.ridePosture.update(spec.id, spec.ridePosture, nowMs));
       if (animatePose) measureRiderPose(() => rig.setPhase(spec.phaseRev ?? 0));
       // 공용 rig 1개와 LOD2 정적 메시를 self/peer 순으로 그린다. 줌 < 19 이고 LOD2 가 있으면 정적 1콜.
       const staticRider = this.lod2;
@@ -318,6 +322,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
     }, zoom, this.lod2State);
     this.swayEnvelope.prune(liveIds);
     this.swaySpeed.prune(liveIds);
+    this.ridePosture.prune(liveIds);
     this.terrainSlope.prune(liveIds);
   }
 

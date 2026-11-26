@@ -7,7 +7,8 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { AnimationClip, Bone, Box3, DataTexture, Group, Mesh, Object3D, Quaternion, Vector3 } from "three";
+import { AnimationClip, Bone, Box3, DataTexture, Group, Mesh, Object3D, Quaternion, QuaternionKeyframeTrack, Vector3 } from "three";
+import { RiderRidePostureFollow, RIDER_RIDE_POSTURE_BLEND_MS } from "../../src/lib/riderPrototype/riderRidePosture.ts";
 import {
   PRESERVED_RIDER_ACTIVE_MODEL,
   PRESERVED_RIDER_MODELS,
@@ -265,6 +266,59 @@ describe("rider15-rig", () => {
     } finally {
       rig.dispose();
     }
+  });
+
+  it("주행 자세 전환: Hoods↔Sprint 클립을 섞고, 없는 자세는 기본 클립으로 대신한다", () => {
+    const scene = new Group();
+    const bikeRoll = new Object3D();
+    bikeRoll.name = "P72_BikeRoll";
+    scene.add(bikeRoll);
+    for (const [name, x] of [["wheel_front", 0.583], ["wheel_rear", -0.412]] as const) {
+      const bone = new Bone();
+      bone.name = name;
+      bone.position.set(x, 0.336, 0);
+      bikeRoll.add(bone);
+    }
+    // 두 자세의 자전거 롤을 고정값으로 둔 시험 클립(Hoods 0°, Sprint 15°). Aero 는 없다.
+    const roll = (deg: number) => new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), deg * Math.PI / 180);
+    const clip = (name: string, deg: number) => new AnimationClip(name, 2, [
+      new QuaternionKeyframeTrack("P72_BikeRoll.quaternion", [0, 2], [...roll(deg).toArray(), ...roll(deg).toArray()]),
+    ]);
+    const profile = {
+      ...getRiderModelProfile("rider15"),
+      createVisualKit: () => ({ apply: () => {}, dispose: () => {} }),
+    };
+    const rig = new Rider15Rig({ scene, animations: [clip("Ride_Hoods", 0), clip("Ride_Sprint", 15)] }, profile);
+    try {
+      const node = nodeOf(rig, "P72_BikeRoll");
+      const rollDeg = () => new Quaternion().angleTo(node.quaternion) * 180 / Math.PI;
+      assert.deepEqual([...rig.ridePostures].sort(), ["Ride_Hoods", "Ride_Sprint"]);
+      rig.setPhase(0.3);
+      assert.ok(rollDeg() < 1e-6, `hoods roll ${rollDeg()}`);
+      rig.setRidePosture({ from: "Ride_Sprint", to: "Ride_Sprint", amount: 1 });
+      rig.setPhase(0.3);
+      assert.ok(Math.abs(rollDeg() - 15) < 1e-4, `sprint roll ${rollDeg()}`);
+      rig.setRidePosture({ from: "Ride_Hoods", to: "Ride_Sprint", amount: 0.5 });
+      rig.setPhase(0.3);
+      assert.ok(Math.abs(rollDeg() - 7.5) < 1e-3, `half blend roll ${rollDeg()}`);
+      rig.setRidePosture({ from: "Ride_Aero", to: "Ride_Aero", amount: 1 });
+      rig.setPhase(0.3);
+      assert.ok(rollDeg() < 1e-6, `missing Aero falls back to Hoods: ${rollDeg()}`);
+    } finally {
+      rig.dispose();
+    }
+  });
+
+  it("자세 전환 상태: 처음은 바로, 바뀌면 600 ms 동안 섞고, 끝나면 새 자세 하나", () => {
+    const follow = new RiderRidePostureFollow();
+    assert.deepEqual(follow.update("a", undefined, 0), { from: "Ride_Hoods", to: "Ride_Hoods", amount: 1 });
+    assert.deepEqual(follow.update("a", "Ride_Sprint", 1000), { from: "Ride_Hoods", to: "Ride_Sprint", amount: 0 });
+    const mid = follow.update("a", "Ride_Sprint", 1000 + RIDER_RIDE_POSTURE_BLEND_MS / 2);
+    assert.ok(Math.abs(mid.amount - 0.5) < 1e-9, `mid ${mid.amount}`);
+    assert.deepEqual(follow.update("a", "Ride_Sprint", 1000 + RIDER_RIDE_POSTURE_BLEND_MS), { from: "Ride_Sprint", to: "Ride_Sprint", amount: 1 });
+    assert.deepEqual(follow.update("b", "Ride_Sprint", 0), { from: "Ride_Sprint", to: "Ride_Sprint", amount: 1 });
+    follow.prune(new Set(["b"]));
+    assert.deepEqual(follow.update("a", "Ride_Aero", 5000), { from: "Ride_Aero", to: "Ride_Aero", amount: 1 });
   });
 
   it("등록은 rider15 를 DEV 후보로만 추가하고 기본 활성 모델은 rider14 다", () => {

@@ -1,5 +1,6 @@
 import type { Group } from "three";
 import type { RiderVisualKind } from "./iso2dMarker";
+import type { RiderRidePostureBlend } from "./riderRidePosture";
 import type { RiderSkinMode } from "./riderSkinMode";
 
 /** 레이어가 리그에 넘기는 흔들림 값. rider15 는 아직 받지 않는다(S5). */
@@ -19,4 +20,6 @@ export interface PreservedRiderHandle {
   dispose(): void;
   readonly skinModeValue?: RiderSkinMode;
   setSkinMode?(mode: RiderSkinMode): void;
+  /** rider15 전용 — 주행 자세(Hoods·Aero·Sprint) 전환. 다음 `setPhase` 부터 반영된다. */
+  setRidePosture?(blend: RiderRidePostureBlend): void;
 }
