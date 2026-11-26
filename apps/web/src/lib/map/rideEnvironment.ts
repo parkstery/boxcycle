@@ -15,10 +15,11 @@ export type RideEnvironment = {
   dispose(): void;
 };
 
-/** 시험 패널(`?fps=1`)의 비교 스위치. 새로고침하면 기본값(모두 켬)으로 돌아간다. */
+/** 시험 패널(`?fps=1`)의 비교 스위치. 새로고침하면 아래 기본값으로 돌아간다. */
 /** roadFill: 상·하행 두 줄 큰길의 가운데를 도로색으로 메운다(2026-11-26 Chief 채택, 기본 켬). */
 export type RideLab = { roadsideTrees: boolean; fog: boolean; roadFill: boolean };
-const lab: RideLab = { roadsideTrees: true, fog: true, roadFill: true };
+/** 주행 기본값 — 2026-11-26 Chief 「길가 나무 켬, 안개 끔, 도로 메우기 켬, 지형 3D 끔 … 최선」. */
+const lab: RideLab = { roadsideTrees: true, fog: false, roadFill: true };
 let applyLab: ((next: RideLab) => void) | null = null;
 export function readRideLab(): RideLab {
   return { ...lab };

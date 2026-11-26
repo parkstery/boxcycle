@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { FPS_WINDOW_MS, FpsMeter, RIDE_LAB_TERRAIN_EVENT, type FpsReading } from "../../lib/debug/fpsMeter";
 import { readRideLab, setRideLab, type RideLab } from "../../lib/map/rideEnvironment";
 import { rideQualityText } from "../../lib/map/rideQuality";
+import { rideFogText } from "../../lib/map/rideScenery";
 import { useDraggablePanel } from "./useDraggablePanel";
 import "./FpsPanel.css";
 
@@ -21,7 +22,8 @@ function conditionText(map: MapboxMap | null): string {
     const terrain = map.getTerrain() ? "지형 켬" : "지형 끔";
     const altitude = map.getFreeCameraOptions().position?.toAltitude();
     const height = altitude == null ? "" : ` · ${map.getTerrain() ? "고도" : "높이"} ${altitude < 100 ? altitude.toFixed(1) : Math.round(altitude)}m`;
-    return `${terrain} · 피치 ${Math.round(map.getPitch())}°${height} · 품질 ${rideQualityText()}`;
+    const fog = ` · ${rideFogText(map.getFog())}`;
+    return `${terrain} · 피치 ${Math.round(map.getPitch())}°${height} · 품질 ${rideQualityText()}${fog}`;
   } catch {
     return "지도 준비 중";
   }

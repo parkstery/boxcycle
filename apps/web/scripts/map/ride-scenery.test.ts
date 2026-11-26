@@ -2,25 +2,19 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createRideBuildings, RIDE_BUILDING_COLOR, RIDE_WINDOW_LAYER, wallPixelRatio } from "../../src/lib/map/rideBuildings.ts";
 import { computeRidgeProfile, ridgeDemTiles, ridgeVertices, type RidgeProfile } from "../../src/lib/map/rideRidge.ts";
-import { installRideScenery, rideFogRange, rideSceneryEnabled } from "../../src/lib/map/rideScenery.ts";
+import { installRideScenery, rideFogOff, rideFogText, rideSceneryEnabled } from "../../src/lib/map/rideScenery.ts";
 
-/** 설치 SDK(3.23.1)의 안개 식. 시야 끝까지 실제로 얼마나 덮이는지 확인한다. */
-function fogOpacity(range: readonly [number, number], distanceM: number, unitM: number): number {
-  const t = (distanceM / unitM - 1.5 - range[0]) / (range[1] - range[0]);
-  const falloff = 1 - Math.min(1, Math.exp(-6 * t));
-  return Math.min(1, 1.00747 * falloff ** 3);
-}
+/** Standard 낮 안개를 닮은 값 — 거리가 줌에 따른 식이다. */
+const STANDARD_FOG = { range: ["interpolate", ["linear"], ["zoom"], 13, ["literal", [1, 10]], 22, ["literal", [14, 20]]], color: "white", "high-color": "hsl(205, 88%, 86%)", "horizon-blend": 0.03 };
 
-test("안개는 250m 까지 맑고 1km 에서 대부분 덮인다 — 카메라 줌이 달라도 같다", () => {
-  for (const unitM of [4, 6.27, 8.97, 40]) {
-    const range = rideFogRange(unitM, 1000);
-    assert.equal(fogOpacity(range, 250, unitM), 0);
-    assert.ok(fogOpacity(range, 400, unitM) < 0.15, "400m");
-    const end = fogOpacity(range, 1000, unitM);
-    assert.ok(end > 0.85 && end < 0.97, `1km ${end}`);
-  }
-  // Standard 기본값(약 14~20)은 이 시야에서 150m 를 거의 덮는다 — 이 시험이 잡으려는 결함이다.
-  assert.ok(fogOpacity([14, 20], 150, 6.27) > 0.9);
+test("안개 끄기는 SDK 가 받는 값이다 — 거리 −20~20 안, 하늘색은 그대로, 덮는 색만 투명", () => {
+  // 4단계에서 넣으려던 1km 맑게(38~252)는 SDK 범위(−20~20)를 넘어 거부됐다. 다시 그런 값을 쓰지 않는다.
+  const off = rideFogOff(STANDARD_FOG as never);
+  assert.deepEqual(off.range, STANDARD_FOG.range);
+  assert.equal(off["high-color"], STANDARD_FOG["high-color"]);
+  assert.match(String(off.color), /, 0\)$/);
+  const bare = rideFogOff(null);
+  for (const v of bare.range as number[]) assert.ok(v >= -20 && v <= 20);
 });
 
 test("?ridelook=0 만 끈다", () => {
@@ -187,7 +181,7 @@ test("Standard 가 아니면 손대지 않고, SDK 계약이 다르면 되돌린
 test("주행 풍경은 낮은 카메라·지형 OFF 에서만 켜지고, 카메라 1·저녁·종료에서 되돌린다", () => {
   const f = buildingFixture();
   let pitch = 83, terrain: unknown = null, preset = "day";
-  let fog: unknown = "standard-fog";
+  let fog: unknown = STANDARD_FOG;
   const layers = new Set<string>();
   let tick: () => void = () => {};
   const globals = globalThis as unknown as Record<string, unknown>;
@@ -197,6 +191,7 @@ test("주행 풍경은 낮은 카메라·지형 OFF 에서만 켜지고, 카메�
   const context = { fillRect() {}, getImageData: () => ({}) };
   globals.document = { hidden: false, createElement: () => ({ getContext: () => context }) };
   globals.fetch = (url: string) => { requests.push(url); return new Promise(() => {}); };
+  const isOff = () => /, 0\)$/.test(String((fog as { color?: string }).color));
   try {
     const map = Object.assign(f.map, {
       version: "3.23.1", on() {}, off() {}, triggerRepaint() {},
@@ -206,32 +201,31 @@ test("주행 풍경은 낮은 카메라·지형 OFF 에서만 켜지고, 카메�
     });
     const scenery = installRideScenery(map as never, { viewDistanceM: 1000, token: "t" });
     tick();
-    assert.equal(fog, "standard-fog", "주행 전에는 손대지 않는다");
     scenery.setActive(true);
-    assert.notEqual(fog, "standard-fog");
+    assert.equal(fog, STANDARD_FOG, "안개 켬(기본)은 Mapbox 안개 그대로");
     assert.ok(f.layers[RIDE_WINDOW_LAYER]);
     const asked = requests.length;
     assert.ok(asked >= 1 && asked <= 9);
     tick();
     assert.equal(requests.length, asked, "받는 동안 되풀이해 요청하지 않는다");
 
+    scenery.setFogVisible(false);
+    tick();
+    assert.ok(isOff());
     const applied = fog;
     tick();
-    assert.equal(fog, applied, "단위가 같으면 안개를 다시 정하지 않는다");
-    f.transform.pixelsPerMeter = 50;
-    tick();
-    assert.notEqual(fog, applied);
+    assert.equal(fog, applied, "끈 상태면 다시 넣지 않는다");
 
     pitch = 0;
     tick();
-    assert.equal(fog, "standard-fog");
+    assert.equal(fog, STANDARD_FOG);
     assert.equal(f.layers["3d-building"].color, "original");
     pitch = 83;
     tick();
-    assert.notEqual(fog, "standard-fog");
+    assert.ok(isOff());
     preset = "dusk";
     tick();
-    assert.equal(fog, "standard-fog");
+    assert.equal(fog, STANDARD_FOG);
     assert.equal(f.layers["3d-building"].color, RIDE_BUILDING_COLOR, "저녁에도 건물 외관은 유지");
     preset = "day";
     terrain = {};
@@ -239,8 +233,13 @@ test("주행 풍경은 낮은 카메라·지형 OFF 에서만 켜지고, 카메�
     assert.equal(f.layers[RIDE_WINDOW_LAYER], undefined);
     terrain = null;
     tick();
+    scenery.setFogVisible(true);
+    tick();
+    assert.equal(fog, STANDARD_FOG, "다시 켜면 처음 안개");
+    scenery.setFogVisible(false);
+    tick();
     scenery.setActive(false);
-    assert.equal(fog, "standard-fog");
+    assert.equal(fog, STANDARD_FOG);
     assert.equal(f.layers["3d-building"].color, "original");
   } finally {
     Object.assign(globals, saved);
@@ -255,10 +254,49 @@ test("SDK 버전이 다르거나 시야 확장을 끄면 아무것도 하지 않
   assert.equal(f.layers["3d-building"].color, "original");
 });
 
-test("시험 패널의 「안개 끔」은 하늘색은 두고 먼 곳을 덮지 않는다", async () => {
-  const { rideFog } = await import("../../src/lib/map/rideScenery.ts");
-  const on = rideFog(6.27, 1000), off = rideFog(6.27, 1000, false);
-  assert.match(String(off.color), /, 0\)$/);
-  assert.equal(off["horizon-blend"], 0);
-  assert.deepEqual({ ...off, color: on.color, "horizon-blend": on["horizon-blend"] }, on);
+test("끈 안개를 다른 곳에서 되돌리면 다음 점검에서 다시 끄고, 종료하면 처음 안개로", () => {
+  const f = buildingFixture();
+  let fog: unknown = STANDARD_FOG;
+  let tick: () => void = () => {};
+  const globals = globalThis as unknown as Record<string, unknown>;
+  const saved = { window: globals.window, document: globals.document, fetch: globals.fetch };
+  const context = { fillRect() {}, getImageData: () => ({}) };
+  globals.window = { setInterval: (fn: () => void) => { tick = fn; return 1; }, clearInterval() {}, setTimeout() {} };
+  globals.document = { hidden: false, createElement: () => ({ getContext: () => context }) };
+  globals.fetch = () => new Promise(() => {});
+  const info = console.info;
+  console.info = () => {};
+  try {
+    const layers = new Set<string>();
+    const map = Object.assign(f.map, {
+      version: "3.23.1", on() {}, off() {}, triggerRepaint() {},
+      getPitch: () => 83, getZoom: () => 22, getTerrain: () => null, getConfigProperty: () => "day",
+      getFog: () => fog, setFog: (next: unknown) => { fog = next; },
+      getLayer: (id: string) => layers.has(id), addLayer: (l: { id: string }) => layers.add(l.id), removeLayer: (id: string) => layers.delete(id),
+    });
+    const scenery = installRideScenery(map as never, { viewDistanceM: 1000, token: "t" });
+    scenery.setFogVisible(false);
+    scenery.setActive(true);
+    const off = fog;
+    assert.notEqual(off, STANDARD_FOG);
+    fog = { ...STANDARD_FOG };
+    tick();
+    assert.deepEqual(fog, off, "다시 끈다");
+    scenery.setActive(false);
+    assert.equal(fog, STANDARD_FOG, "종료하면 처음 안개로");
+  } finally {
+    Object.assign(globals, saved);
+    console.info = info;
+  }
+});
+
+test("패널 안개 표시는 끔·켬(Mapbox 기본)을 구별한다", () => {
+  assert.equal(rideFogText(null), "안개 없음");
+  assert.equal(rideFogText(rideFogOff(STANDARD_FOG as never)), "안개 끔");
+  assert.match(rideFogText(STANDARD_FOG as never), /켬\(Mapbox 기본/);
+});
+
+test("주행 기본값은 Chief 선택 — 길가 나무 켬·안개 끔·도로 메우기 켬", async () => {
+  const { readRideLab } = await import("../../src/lib/map/rideEnvironment.ts");
+  assert.deepEqual(readRideLab(), { roadsideTrees: true, fog: false, roadFill: true });
 });

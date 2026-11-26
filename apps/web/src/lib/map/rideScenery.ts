@@ -14,35 +14,26 @@ const MIN_ZOOM = 15;
 const RIDGE_MOVE_M = 600;
 const RIDGE_RETRY_MS = 60_000;
 const SLICE_MS = 4;
-/** 시야 거리에 대한 안개 시작·끝. SDK 는 지수식이라 끝을 시야보다 멀리 둬야 시야 끝에서 약 90% 가 된다. */
-const FOG_START_RATIO = 0.25;
-const FOG_END_RATIO = 1.59;
-/** SDK 안개 거리의 0 은 화면 중심이고, 카메라에서 중심까지가 이 값이다(fov 36.87° 고정). */
-const FOG_CENTER_UNITS = 1.5;
-
 /**
- * 안개 거리의 단위는 「화면 높이만큼의 거리」다. Standard 기본값은 카메라 2 에서 약 120m 부터
- * 건물을 하얗게 덮어 시야 1km 를 가렸다 — 실제 미터로 정한다.
+ * 안개 (2026-11-26 정정). SDK 3.23.1 의 안개 거리는 −20~20(화면 높이 단위)까지만 받는다 — 카메라 2 에서
+ * 약 130~190m 다. 4단계에서 넣으려던 「1km 까지 맑게」(38~252)는 범위를 넘어 SDK 가 말없이 거부했고,
+ * 화면에는 처음부터 Standard 기본 안개(약 100m 부터 흰색)가 보였다. 끄기는 색을 투명하게 해서 한다.
  */
-export function rideFogRange(unitM: number, viewDistanceM: number): [number, number] {
-  const at = (m: number): number => m / unitM - FOG_CENTER_UNITS;
-  return [at(viewDistanceM * FOG_START_RATIO), at(viewDistanceM * FOG_END_RATIO)];
+const FOG_OFF_COLOR = "rgba(255, 255, 255, 0)";
+
+/** 「안개 끔」 — 하늘(높은 곳 색·우주 색 등)은 원래 안개 설정 그대로 두고, 덮는 색만 투명하게. */
+export function rideFogOff(original: FogSpecification | null | undefined): FogSpecification {
+  return { ...(original ?? { range: [0.5, 10] }), color: FOG_OFF_COLOR };
 }
 
-/** visible=false 는 시험 패널의 「안개 끔」 — 하늘색은 같고 먼 곳을 덮지 않는다. */
-export function rideFog(unitM: number, viewDistanceM: number, visible = true): FogSpecification {
-  return {
-    range: rideFogRange(unitM, viewDistanceM),
-    color: visible ? "hsla(208, 62%, 91%, 0.95)" : "hsla(208, 62%, 91%, 0)",
-    "high-color": "hsl(208, 78%, 80%)",
-    "space-color": "hsl(212, 82%, 68%)",
-    "horizon-blend": visible ? 0.07 : 0,
-    "star-intensity": 0,
-    "vertical-range": [80, 400],
-  };
+/** 시험 패널 표시. */
+export function rideFogText(fog: FogSpecification | null | undefined): string {
+  if (!fog) return "안개 없음";
+  if (fog.color === FOG_OFF_COLOR) return "안개 끔";
+  return "안개 켬(Mapbox 기본, 약 100m~)";
 }
 
-type Host = MapboxMap & { version?: string; transform?: { height: number; pixelsPerMeter: number } };
+type Host = MapboxMap & { version?: string };
 
 export type RideSceneryController = {
   setActive(active: boolean): void;
@@ -65,7 +56,9 @@ export function installRideScenery(map: MapboxMap, options: { viewDistanceM: num
   const buildings = createRideBuildings(map);
   let active = false;
   let timer: number | null = null;
-  let fog: { original: FogSpecification | null | undefined; unitM: number; visible: boolean } | null = null;
+  /** 끈 동안만 값이 있다 — 켜면(기본) 처음 안개로 돌려놓는다. */
+  let fog: { original: FogSpecification | null | undefined } | null = null;
+  let fogResetNoted = false;
   let fogVisible = true;
   let ridge: RidgeProfile | null = null;
   let ridgeAt: [number, number] | null = null;
@@ -81,13 +74,18 @@ export function installRideScenery(map: MapboxMap, options: { viewDistanceM: num
     map.setFog(original ?? null);
   };
   const applyFog = (): void => {
-    const t = host.transform;
-    if (!t) return;
-    const unitM = t.height / t.pixelsPerMeter;
-    // 카메라를 바꾸면 단위가 달라진다. 작은 흔들림에는 다시 정하지 않는다.
-    if (fog && fog.visible === fogVisible && Math.abs(unitM / fog.unitM - 1) < 0.08) return;
-    fog = { original: fog ? fog.original : map.getFog(), unitM, visible: fogVisible };
-    map.setFog(rideFog(unitM, options.viewDistanceM, fogVisible));
+    if (fogVisible) {
+      restoreFog();
+      return;
+    }
+    const current = map.getFog();
+    if (fog && current?.color === FOG_OFF_COLOR) return;
+    // 다른 곳에서 안개를 되돌렸으면 다시 끈다.
+    if (fog && !fogResetNoted) console.info("[rideScenery] 안개가 바뀌어 다시 끕니다.");
+    if (fog) fogResetNoted = true;
+    fog = { original: fog ? fog.original : current };
+    map.setFog(rideFogOff(fog.original));
+    if (map.getFog()?.color !== FOG_OFF_COLOR) console.warn("[rideScenery] SDK 가 안개 끄기를 받지 않았습니다.");
   };
 
   const removeRidge = (): void => {
