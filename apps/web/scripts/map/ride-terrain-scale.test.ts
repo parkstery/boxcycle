@@ -91,3 +91,25 @@ test("Standard retains 3D objects while terrain is off", () => {
     assert.equal(config.get(key), true, key);
   }
 });
+
+test("camera 1 removes 3D buildings and terrain and restores them on exit", () => {
+  let terrain: unknown = {};
+  let building = true;
+  const config = new Map<string, unknown>();
+  const map = {
+    setConfigProperty: (_id: string, key: string, value: unknown) => config.set(key, value),
+    setTerrain: (value: unknown) => { terrain = value; }, getSource: () => ({}),
+    getLayer: () => building ? {} : null, removeLayer: () => { building = false; },
+    getStyle: () => ({ layers: [] }), addLayer: () => { building = true; },
+    getPitch: () => 0, easeTo: () => {},
+  };
+  apply3DState(map as never, false, "buildings", "dem", { preserveCamera: true, disable3DObjects: true });
+  assert.equal(terrain, null);
+  assert.equal(building, false);
+  apply3DState(map as never, false, "buildings", "dem", { preserveCamera: true });
+  assert.equal(building, true);
+  apply3DState(map as never, false, "buildings", "dem", { preserveCamera: true, standardBasemap: true, disable3DObjects: true });
+  assert.equal(config.get("show3dObjects"), false);
+  apply3DState(map as never, false, "buildings", "dem", { preserveCamera: true, standardBasemap: true });
+  assert.equal(config.get("show3dObjects"), true);
+});

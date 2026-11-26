@@ -480,18 +480,18 @@ export function apply3DState(
   enabled: boolean,
   buildingLayerId: string,
   terrainSourceId: string,
-  options?: { flatFallback?: boolean; preserveCamera?: boolean; holdCamera?: boolean; standardBasemap?: boolean },
+  options?: { flatFallback?: boolean; preserveCamera?: boolean; holdCamera?: boolean; standardBasemap?: boolean; disable3DObjects?: boolean },
 ) {
   try {
   const flatFallback = Boolean(options?.flatFallback);
-  const buildingsEnabled = (enabled || options?.preserveCamera) && !flatFallback;
+  const buildingsEnabled = (enabled || options?.preserveCamera) && !flatFallback && !options?.disable3DObjects;
   if (options?.standardBasemap) {
     // Terrain is independent of Standard's buildings, landmarks and vegetation.
-    map.setConfigProperty("basemap", "show3dObjects", true);
-    map.setConfigProperty("basemap", "show3dBuildings", true);
-    map.setConfigProperty("basemap", "show3dLandmarks", true);
-    map.setConfigProperty("basemap", "show3dTrees", true);
-    map.setConfigProperty("basemap", "show3dFacades", true);
+    map.setConfigProperty("basemap", "show3dObjects", !options?.disable3DObjects);
+    map.setConfigProperty("basemap", "show3dBuildings", !options?.disable3DObjects);
+    map.setConfigProperty("basemap", "show3dLandmarks", !options?.disable3DObjects);
+    map.setConfigProperty("basemap", "show3dTrees", !options?.disable3DObjects);
+    map.setConfigProperty("basemap", "show3dFacades", !options?.disable3DObjects);
   }
   disable3dCutoff(map);
   if (!enabled) {

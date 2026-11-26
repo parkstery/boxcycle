@@ -1243,7 +1243,8 @@ export function MapView({
       if (shouldMoveActivityWorldLayersToTop()) {
         moveActivityWorldLayersToTop(map);
       }
-      apply3DState(map, enable3DRef.current, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID, {
+      apply3DState(map, enable3DRef.current && !(rideActiveRef.current && activeQuickCameraRef.current === 1), BUILDING_LAYER_ID, TERRAIN_SOURCE_ID, {
+        disable3DObjects: rideActiveRef.current && activeQuickCameraRef.current === 1,
         flatFallback: terrainFallbackRef.current,
         preserveCamera,
         standardBasemap: lightPreset !== null,
@@ -3373,7 +3374,8 @@ export function MapView({
     const map = mapRef.current;
     if (!map || !mapLoaded || !loadedMapStyleUrlRef.current) return;
     try {
-      apply3DState(map, enable3D, BUILDING_LAYER_ID, TERRAIN_SOURCE_ID, {
+      apply3DState(map, enable3D && !(rideActive && activeQuickCamera === 1), BUILDING_LAYER_ID, TERRAIN_SOURCE_ID, {
+        disable3DObjects: rideActive && activeQuickCamera === 1,
         preserveCamera: rideActive,
         holdCamera: holdCameraAfterRideEndRef.current && performance.now() < suppressCameraFollowUntilRef.current,
         flatFallback: terrainFallbackRef.current,
@@ -3388,7 +3390,7 @@ export function MapView({
     } catch {
       /* lab 스위치 */
     }
-  }, [enable3D, mapLoaded, rideActive]);
+  }, [enable3D, mapLoaded, rideActive, activeQuickCamera]);
 
   // 시야 확장은 지형 OFF 주행에서만 — 지형 ON·종료·대기 지도는 SDK 기본을 쓴다.
   useEffect(() => {
@@ -3408,7 +3410,7 @@ export function MapView({
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
-    if (!enable3D || !rideActive) {
+    if (!enable3D || !rideActive || activeQuickCamera === 1) {
       terrainFallbackRef.current = false;
       onTerrainFallbackChangeRef.current?.(false);
       noteRenderingDiagnostic("terrain-guard", !enable3D ? "manual-off" : "inactive");
@@ -3446,7 +3448,7 @@ export function MapView({
       disposed = true;
       window.clearInterval(timer);
     };
-  }, [enable3D, rideActive, mapLoaded]);
+  }, [enable3D, rideActive, mapLoaded, activeQuickCamera]);
 
   /**
    * mapcut 측정 스위치 — 스타일 재로드마다 재적용. 생성 effect 의 `style.load`
