@@ -117,7 +117,11 @@ test('센서는 계기판 맨 앞 칸, RouteDock 머리줄엔 센서가 없다',
     await expect(cell.locator('.hud-metrics__label')).toHaveText('RPM');
     await expect(cell.locator('.hud-metrics__sensor-rpm')).toHaveText('--');
     const led = await cell.locator('.hud-cadence__led').evaluate((el) => { const r = el.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; });
-    expect(led).toEqual([13, 13]);
+    expect(led).toEqual([9, 9]);
+    const knob = cell.locator(".hud-cadence__knob");
+    await expect(knob.locator(".hud-cadence__crank")).toHaveCount(1);
+    const size = await knob.evaluate((el) => { const r = el.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; });
+    expect(size).toEqual([54, 28]);
   }
 });
 

@@ -3,6 +3,7 @@ import { SpinatlasMark } from "./brand/SpinatlasMark";
 import type { RouteListSource } from "./ride/RouteListModalShell";
 import { cadenceChipView, type CadenceHudState } from "../lib/sensor/cadenceSensorUi";
 import "./maphud/CadenceHudChip.css";
+import { CadenceKnob } from "./maphud/CadenceKnob";
 import { useDialogFocus } from "./ui/useDialogFocus";
 import { usePanelHeaderCloseDrag } from "./ui/usePanelHeaderCloseDrag";
 import "./MenuPanel.css";
@@ -199,14 +200,7 @@ export function MenuPanel({
                 title={sensorView ? sensorView.ariaLabel : "센서"}
                 data-led={sensorView?.led ?? "white"}
               >
-                {/* 계기판 RPM 칸과 같은 단추·LED·깜빡임(CadenceHudChip.css 공용 클래스). */}
-                <span className="hud-cadence__knob" aria-hidden>
-                  <span
-                    className={`hud-cadence__led hud-cadence__led--${sensorView?.led ?? "white"}${
-                      sensorView?.pulsing ?? true ? " hud-cadence__led--pulse" : ""
-                    }`}
-                  />
-                </span>
+                <CadenceKnob led={sensorView?.led ?? "white"} pulsing={sensorView?.pulsing ?? true} />
               </button>
             ) : null}
           </div>

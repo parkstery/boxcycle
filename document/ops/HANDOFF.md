@@ -9,18 +9,25 @@
 
 ## 진행 중
 
-**11-26 배포 진행(Codex)**: 미니맵·카메라1 변경 커밋·푸시 후 Hosting 배포.
-다음: `npm run deploy:hosting`, 운영 번들 확인.
+**11-26 배포 진행(Codex)**: 센서 B·메뉴 표시 수정 커밋, 기존 rider 자세 bb7fb61e 포함 푸시·Hosting.
+다음: 푸시 게이트·배포 후 운영 번들 검증.
 
-**11-26 카메라1 평면(Codex)**: 주행 카메라1에서 지형·3D 객체 OFF, 다른 카메라에서 복원·고정101. 지형 시험 7/7·웹 빌드 PASS, 변경 파일 ESLint 오류0·기존 경고10. 실제 화면 미검증.
+**11-26 센서 B 구현(Codex)**: HUD·메뉴 54×28 알약·크랭크·상태 점, 고정102. 빌드·lint PASS, 가로 화면 16/17 후 단언 갱신 2/2 PASS. 미커밋·미배포, 실제 센서·폰 미확인.
 
-**11-26 미니맵 스타일(Codex)**: 메인 위성→미니맵 야외, 그 외→위성 자동 전환·고정100. 웹 빌드 PASS, 변경 파일 ESLint 오류0·기존 App 경고6. 실제 주행 화면·폰 미검증, 커밋 4bb99964. 스타일 변경 시 Static Images 추가 요청 1회.
+**11-26 메뉴 누락(Codex)**: 결과창 내부 플래그가 남아도 실제 결과가 없으면 메뉴 표시. 회귀 1/1·빌드 PASS, lint 오류0·기존 경고6. 실화면 원인 미확정·미커밋.
+다음: Chief 발생 시점 확인 후 실화면 검증.
+
+**11-26 미니맵·카메라1 배포(Codex)**: ca92207c Hosting, 검사 1712/0·HTTP 200. 실폰 확인 대기.
+
+**11-26 카메라1 평면(Codex)**: 카메라1 지형·3D OFF·다른 카메라 복원, 고정101. 시험 7/7, 실화면 미검증.
+
+**11-26 미니맵 스타일(Codex)**: 메인과 반대 위성/야외·고정100, 4bb99964 배포. 실폰 미검증.
 
 **11-24 지형OFF·3D최대(Claude Code)**: 0~4단계(건물·안개·능선) ~6단계 푸시 e26a14a3·미배포: [결과](20261124-terrain-off-3d-plan/05-result-stage4.md)·[계획](20261124-terrain-off-3d-plan/README.md). 고정91~95. 전체1702/0.
-**11-26 미커밋 폐기(Chief)**: Codex 계정 전환·rider15(재작업 예정)·20261119 FPS 실험 미커밋분 — 백업 `tmp/discarded-20261126.zip`.
+**11-26 미커밋 폐기(Chief)**: 계정 전환·rider15·FPS 실험 백업 `tmp/discarded-20261126.zip`.
 FPS 패널 `?fps=1`. 화면 시험은 Chief 직접. [5](20261124-terrain-off-3d-plan/06-result-stage5.md)·[6](20261124-terrain-off-3d-plan/07-result-stage6.md)단계. 비교 `?ridequality=0~3`·`?ridelook=0`·`?ridetrees=0`·`?viewdist=0`.
 
-**11-26 Mapbox 3D 사례 조사(Codex)**: 7개 사례 비교(Strava·BMW·Meta Ray-Ban·Snap AR·공항 실내·Standard 3D Landmarks·Globe View) 조사 완료. 코드 변경 없음.
+**11-26 Mapbox 3D 사례 조사(Codex)**: 7개 사례 조사 완료, 코드 변경 없음.
 
  **기존 FPS 기록**: [실험총괄](20261119-camera-terrain-follow/20261123-fps-experiments-summary.md)·공식선6.8FPS 후보불합격. 문서 bec2a14b 커밋, 미커밋 실험은 11-26 폐기。
 **11-22 제품 지형1배**: 2dfb84c8/1c8457a9 푸시·전체1642/0·App허용4157. 중복호출5파일 정리도 반영, Chief FPS차이없음. [원기록/기타 인계](20261124-handoff-background.md) 참조。

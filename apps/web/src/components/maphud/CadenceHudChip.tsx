@@ -1,5 +1,6 @@
 import { cadenceChipView, type CadenceHudState } from "../../lib/sensor/cadenceSensorUi";
 import "./CadenceHudChip.css";
+import { CadenceKnob } from "./CadenceKnob";
 
 /** 센서 칸이 필요로 하는 최소 결선 — 상태 + 상세 설정 열기(App 은 하나만 만든다). */
 export type CadenceChipBinding = {
@@ -37,12 +38,7 @@ export function CadenceMetricCell({
     >
       <span className="hud-metrics__label">RPM</span>
       <span className="hud-metrics__value hud-metrics__value--sensor">
-        {/* Chief 11-03 A2: LED(13px 그대로)를 볼록한 흰 둥근 단추 안에 — 누르는 버튼으로 읽히게. */}
-        <span className="hud-cadence__knob" aria-hidden>
-          <span
-            className={`hud-cadence__led hud-cadence__led--${view.led}${view.pulsing ? " hud-cadence__led--pulse" : ""}`}
-          />
-        </span>
+        <CadenceKnob led={view.led} pulsing={view.pulsing} />
         <span className="hud-metrics__sensor-rpm">{rpm}</span>
       </span>
     </button>

@@ -3093,7 +3093,7 @@ export default function App() {
   const edgePanelHandlesVisible = Boolean(
     authInitialized &&
       user &&
-      !summarySheetVisible &&
+      !summaryVisible &&
       !showAppIntro &&
       !entryLocationPrompt &&
       !needsGuestEntry &&

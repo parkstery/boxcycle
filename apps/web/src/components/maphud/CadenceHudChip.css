@@ -1,5 +1,5 @@
 /* ── 케이던스 센서 LED·계기판 센서 칸 ──────────────────────────
- * Chief 11-18 후속: RPM·센서는 계기판 맨 왼쪽(`CadenceMetricCell`). 우상단·RouteDock 알약 칩은 없다.
+ * RPM·센서는 계기판 맨 왼쪽(`CadenceMetricCell`), B안 알약 단추.
  */
 
 .hud-cadence__led {
@@ -53,23 +53,23 @@
 }
 /* 계기 캡슐의 열 격자(주행 중 6열)를 따르지 않는 혼자 칸 — 폭을 고정해 주행 전후로 자리가 같다. */
 .map-hud .hud-metrics--sensor .hud-metrics__capsule { display: flex; padding: 0; }
-/* Chief 11-03 A2: 30px 단추 + 세 자리 회전수가 들어가도록 칸 폭 62px 고정(종전 3.6rem=약 49px). */
-.map-hud .hud-metrics--sensor .hud-metrics__capsule .hud-metrics__cell--sensor { flex: 0 0 62px; width: 62px; min-width: 62px; padding: 0; }
+/* B안 54px 단추와 세 자리 회전수를 수용한다. */
+.map-hud .hud-metrics--sensor .hud-metrics__capsule .hud-metrics__cell--sensor { flex: 0 0 86px; width: 86px; min-width: 86px; padding: 0; }
 .hud-metrics__cell--sensor:focus-visible { outline: 2px solid #8ab4ff; outline-offset: 1px; }
 .hud-metrics__cell--sensor-open { background: rgba(255, 255, 255, 0.18); }
 .hud-metrics__value--sensor { align-items: center; gap: 5px; }
 /* 숫자들이 이어지도록 단추를 왼쪽으로, RPM 라벨은 오른쪽 숫자 위로 맞춘다. */
-.hud-metrics__cell--sensor > .hud-metrics__label { align-self: stretch; margin-left: 35px; }
+.hud-metrics__cell--sensor > .hud-metrics__label { align-self: stretch; margin-left: 59px; }
 .map-hud .hud-metrics--sensor .hud-metrics__cell--sensor .hud-metrics__value--sensor { width: 100%; gap: 5px; }
-.hud-metrics__value--sensor .hud-cadence__led { width: 13px; height: 13px; box-sizing: border-box; }
+.hud-metrics__value--sensor .hud-cadence__led { width: 9px; height: 9px; box-sizing: border-box; }
 .hud-metrics__value--sensor .hud-cadence__led--white { background: #f8fafc; box-shadow: 0 0 0 1.5px rgba(15, 23, 42, 0.6), 0 0 6px rgba(255, 255, 255, 0.8); }
 /*
- * Chief 11-03 A2: LED 는 13px 그대로, 30px 흰 둥근 단추(볼록한 그림자·아래 안쪽 그늘·옅은 테두리) 안에 박는다.
+ * B안: 54×28px 알약 안에 크랭크 그림과 상태 점을 표시한다.
  * 계기판 결(외곽선 글자)은 회전수 숫자에 그대로 남긴다. 누르면 살짝 눌린다.
  */
 .hud-cadence__knob {
-  flex: none; width: 30px; height: 30px; box-sizing: border-box; border-radius: 50%;
-  display: grid; place-items: center;
+  flex: none; width: 54px; height: 28px; box-sizing: border-box; border-radius: 14px;
+  display: flex; align-items: center; justify-content: space-evenly; color: #1f2a3a;
   background: #fff; border: 1px solid #c9d6ee;
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.35), inset 0 -2px 0 #dfe6f2;
   transition: transform .08s ease, box-shadow .08s ease;
@@ -86,3 +86,5 @@
 @media (prefers-reduced-motion: reduce) {
   .hud-metrics__cell--sensor-attention { animation: none; background: rgba(138, 180, 255, 0.45); }
 }
+
+.hud-cadence__crank { width: 20px; height: 20px; flex: none; }
