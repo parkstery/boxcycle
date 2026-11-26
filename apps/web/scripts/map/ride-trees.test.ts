@@ -41,11 +41,62 @@ test("숲에는 심고 건물·물 안과 실제 나무 6m 안에는 심지 않�
 test("경로 양옆에 가로수를 세우되 경로선과 차도 위는 비운다", () => {
   const route: XY[] = [[0, -200], [0, 200]];
   const data = empty();
-  data.roads.push({ cls: "street", elevated: false, pts: route });
+  data.roads.push({ cls: "tertiary", elevated: false, pts: route });
   const trees = run(data, [0, 0], route);
   assert.ok(trees.some((t) => t.x > 0) && trees.some((t) => t.x < 0), "양쪽");
-  for (const t of trees) assert.ok(near(t, route[0], route[1]) >= 6.5 / 2 + 1.1, "차도 위");
-  assert.ok(trees.length >= 20);
+  for (const t of trees) assert.ok(near(t, route[0], route[1]) >= 8 / 2 + 1.1, "차도 위");
+  assert.ok(trees.length >= 10);
+});
+
+test("길가 나무는 큰길에만, 실제 나무 자료가 있는 동네에는 심지 않는다", () => {
+  const route: XY[] = [[0, -400], [0, 400]];
+  const on = (cls: string, real: XY[] = []) => {
+    const data = empty();
+    data.roads.push({ cls, elevated: false, pts: route });
+    data.realTrees.push(...real);
+    return run(data, [0, 0], route);
+  };
+  for (const cls of ["trunk", "primary", "secondary", "tertiary"]) assert.ok(on(cls).length > 0, cls);
+  for (const cls of ["street", "street_limited", "service", "pedestrian", "path", "track"]) assert.equal(on(cls).length, 0, cls);
+  // 경로 800m: 40m 간격 양옆 최대 40그루 + 큰길 길가. 종전 20m 간격보다 적다.
+  const many = on("tertiary").length;
+  assert.ok(many <= 70, String(many));
+  // 실제 나무 3그루가 있는 곳 150m 안에는 더하지 않고, 먼 쪽은 그대로다.
+  const some = on("tertiary", [[9, 300], [9, 310], [9, 320]]);
+  for (const t of some) assert.ok([300, 310, 320].some((y) => Math.hypot(t.x - 9, t.y - y) >= 148), `${t.x},${t.y}`);
+  assert.equal(some.filter((t) => t.y > 180).length, 0);
+  assert.ok(some.some((t) => t.y < 100));
+  // 두 그루뿐이면 자료가 있다고 보지 않는다.
+  assert.ok(on("tertiary", [[9, 300], [9, 310]]).some((t) => t.y > 180));
+  // 숲·공원은 실제 나무가 있어도 그대로 심는다.
+  const park = empty();
+  park.greens.push({ cls: "wood", rings: [square(-100, -100, 100, 100)] });
+  park.realTrees.push([0, 0], [20, 0], [40, 0]);
+  assert.ok(run(park).length > 50);
+});
+
+test("상·하행을 두 줄로 그린 큰길은 두 줄 사이(차도)에 심지 않고 바깥쪽에만 심는다", () => {
+  // 원주 서원대로: 일방통행 tertiary 두 줄, 간격 9~22m(중간 13.3m).
+  for (const gap of [9, 13.3, 22]) {
+    const up: XY[] = [[0, -300], [0, 300]], down: XY[] = [[gap, 300], [gap, -300]];
+    const data = empty();
+    data.roads.push({ cls: "tertiary", elevated: false, oneway: true, pts: up }, { cls: "tertiary", elevated: false, oneway: true, pts: down });
+    data.greens.push({ cls: "park", rings: [square(-200, -200, 200, 200)] });
+    const trees = run(data, [0, 0], up);
+    assert.ok(trees.length > 30, `${gap} ${trees.length}`);
+    for (const t of trees) assert.ok(t.x < 0 || t.x > gap, `${gap}m 두 줄 사이 ${t.x.toFixed(1)},${t.y.toFixed(1)}`);
+    assert.ok(trees.some((t) => t.x < -3 && Math.abs(t.y) < 250) && trees.some((t) => t.x > gap + 3 && Math.abs(t.y) < 250), "바깥 양쪽");
+  }
+  // 양방향 한 줄 도로 두 개가 나란히 30m 넘게 떨어져 있으면 그 사이(실제 땅)는 그대로다.
+  const data = empty();
+  data.roads.push({ cls: "tertiary", elevated: false, oneway: true, pts: [[0, -300], [0, 300]] }, { cls: "tertiary", elevated: false, oneway: true, pts: [[40, 300], [40, -300]] });
+  data.greens.push({ cls: "wood", rings: [square(5, -100, 35, 100)] });
+  assert.ok(run(data).some((t) => t.x > 8 && t.x < 32), "40m 사이 숲");
+  // 일방통행이 아닌 두 도로 사이도 그대로다(교차로·이면도로를 막지 않는다).
+  const plain = empty();
+  plain.roads.push({ cls: "tertiary", elevated: false, pts: [[0, -300], [0, 300]] }, { cls: "tertiary", elevated: false, pts: [[20, -300], [20, 300]] });
+  plain.greens.push({ cls: "wood", rings: [square(5, -100, 15, 100)] });
+  assert.ok(run(plain).some((t) => t.x > 5 && t.x < 15));
 });
 
 test("교량·터널 구간의 경로에는 가로수를 세우지 않는다", () => {
@@ -114,4 +165,19 @@ test("비교용 쿼리 0 만 나무를 끈다", () => {
   assert.equal(rideTreesEnabled(""), true);
   assert.equal(rideTreesEnabled("?ridetrees=1"), true);
   assert.equal(rideTreesEnabled("?ridetrees=0"), false);
+});
+
+test("길가 나무를 끄면 경로 양옆·도로변은 비고 숲·공원은 그대로다", () => {
+  const route: XY[] = [[0, -300], [0, 300]];
+  const data = empty();
+  data.roads.push({ cls: "tertiary", elevated: false, pts: route });
+  data.greens.push({ cls: "wood", rings: [square(60, -100, 160, 100)] });
+  const on = run(data, [0, 0], route);
+  const it = placeRideTrees(data, [0, 0], route, { roadside: false });
+  let step = it.next();
+  while (!step.done) step = it.next();
+  const off: RideTree[] = step.value;
+  assert.ok(on.some((t) => Math.abs(t.x) < 15), "켬: 길가");
+  assert.equal(off.filter((t) => Math.abs(t.x) < 15).length, 0, "끔: 길가 없음");
+  assert.equal(off.length, on.filter((t) => t.x >= 60).length, "숲은 같다");
 });

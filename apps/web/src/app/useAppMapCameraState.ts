@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/refs -- App.tsx 에서 옮긴 기존 패턴, eslint.config.js 의 App.tsx 예외와 같은 범위 */
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { isFpsPanelEnabled, RIDE_LAB_TERRAIN_EVENT } from "../lib/debug/fpsMeter";
 import type { MapViewportBounds } from "../lib/activity/activityWorldLod";
 import type { Camera1Mode } from "../lib/camera/camera1Mode";
 import type { LngLat } from "../lib/geo/geo";
@@ -65,6 +66,16 @@ export function useAppMapCameraState() {
   } | null>(null);
   const mapZoomStepSeqRef = useRef(0);
   const [enable3D, setEnable3D] = useState(DEFAULT_MAP_ENABLE_3D);
+  // 시험 패널(`?fps=1`)의 「지형 3D」 스위치 — 숨긴 「3D 뷰」 메뉴와 같은 상태를 바꾼다.
+  useEffect(() => {
+    if (!isFpsPanelEnabled()) return;
+    const listener = (event: Event) => {
+      const on = (event as CustomEvent<unknown>).detail;
+      if (typeof on === "boolean") setEnable3D(on);
+    };
+    window.addEventListener(RIDE_LAB_TERRAIN_EVENT, listener);
+    return () => window.removeEventListener(RIDE_LAB_TERRAIN_EVENT, listener);
+  }, []);
   const followModeSnapshotRef = useRef(followMode);
   const mapZoomSnapshotRef = useRef(mapZoom);
   followModeSnapshotRef.current = followMode;

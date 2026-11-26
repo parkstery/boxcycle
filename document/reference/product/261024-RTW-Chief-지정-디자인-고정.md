@@ -168,3 +168,5 @@
 | 95 | 2026-11-25 | 주행 자동 품질 | **24FPS 미만이 5초 이어지면 나무(1/2→1/4)→창문 순으로 줄이고, 28FPS 이상 20초면 되돌린다.** 글자·라이더·주행선·건물·안개·능선·시야 1km는 낮추지 않는다. | Chief 「5단계 진행해」「5단계 커밋하고」, [결과](../../ops/20261124-terrain-off-3d-plan/06-result-stage5.md) | `ride-quality.test.ts` |
 
 | 96 | 2026-11-25 | 「3D 뷰」 숨김·라이더 평면 | **고정35의 3D 뷰 항목을 주행 카메라 메뉴에서 숨긴다(코드 보존, `?ride3d=1`). 카메라 1~6과 줄 배치는 유지.** 지형 OFF에서 라이더는 평면, 경사는 표고 그래프(고정34는 지형 ON에만). | Chief 「6단계 커밋하고 푸시해」, [결과](../../ops/20261124-terrain-off-3d-plan/07-result-stage6.md) | `ride-terrain-menu.test.ts`·`rider-terrain-slope.test.ts` |
+
+| 97 | 2026-11-26 | 가로수 조정·「높이」 표시 | **고정93 보완: 길가 가상 나무는 큰길(trunk~tertiary)에만, 경로 양옆 40m 간격, 150m 안 실제 나무 자료 3그루 이상이면 심지 않음, 일방통행 큰길 두 줄(30m 이내) 사이에는 심지 않음. 숲·공원은 유지. 우하단 카메라 높이는 지형 OFF 「높이」·ON 「고도」.** | Chief 「권장안대로」「고도는 높이로 변경해」「현재 상태 커밋해」, [결과](../../ops/20261124-terrain-off-3d-plan/04-result-stage3.md) | `ride-trees.test.ts`·`ride-terrain-menu.test.ts` |

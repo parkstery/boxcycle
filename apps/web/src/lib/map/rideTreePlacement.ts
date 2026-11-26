@@ -7,7 +7,8 @@
 export type XY = readonly [number, number];
 export type Ring = readonly XY[];
 
-type RideTreeRoad = { cls: string; elevated: boolean; pts: readonly XY[] };
+/** oneway: 상·하행을 따로 그린 큰길의 한쪽 줄. */
+type RideTreeRoad = { cls: string; elevated: boolean; oneway?: boolean; pts: readonly XY[] };
 export type RideTreeData = {
   roads: RideTreeRoad[];
   greens: Array<{ cls: string; rings: readonly Ring[] }>;
@@ -21,7 +22,14 @@ export type RideTree = { x: number; y: number; kind: RideTreeKind; rotation: num
 export const RIDE_TREE_RADIUS_M = 450;
 /** 여유 배치 — 시안 ①. */
 const MAX_TREES = 900;
-const ROUTE_SPACING_M = 20;
+/**
+ * 길가 나무는 실제 수를 모르는 곳에서만, 큰길에 드문드문 (2026-11-26 Chief: 실제보다 많으면 어색하다).
+ * 숲·공원 면은 그대로다.
+ */
+const ROUTE_SPACING_M = 40;
+/** 이 거리 안에 실제 나무가 이만큼 있으면 나무 자료가 있는 동네다 — 길가에 더 심지 않는다. */
+const SURVEYED_RADIUS_M = 150;
+const SURVEYED_TREES = 3;
 const ROADSIDE_CHANCE = 0.25;
 const GREEN_SCALE = 0.45;
 const CELL_M = 6.5;
@@ -36,7 +44,12 @@ export const RIDE_TREE_ROAD_WIDTH_M: Readonly<Record<string, number>> = {
   motorway: 16, motorway_link: 8, trunk: 14, trunk_link: 8, primary: 12, primary_link: 7, secondary: 10, secondary_link: 6,
   tertiary: 8, tertiary_link: 6, street: 6.5, street_limited: 6, service: 4, track: 3, path: 2.8, pedestrian: 4,
 };
-const ROADSIDE: ReadonlySet<string> = new Set(["primary", "secondary", "tertiary", "street", "street_limited", "pedestrian", "path"]);
+const MAIN_ROADS: ReadonlySet<string> = new Set(["trunk", "primary", "secondary", "tertiary"]);
+/**
+ * 큰길은 상·하행을 일방통행 두 줄로 그린 곳이 많다(원주 서원대로: 줄 간격 9~22m). 두 줄 사이는
+ * 중앙분리대가 없어도 차도다 — 이 간격 안의 마주 보는 두 줄 사이에는 심지 않는다(2026-11-26 Chief).
+ */
+const CARRIAGEWAY_PAIR_M = 30;
 /** 녹지 종류별 밀도(그루/m²). */
 const GREEN_DENSITY: Readonly<Record<string, number>> = { wood: 1 / 45, scrub: 1 / 160, park: 1 / 170, cemetery: 1 / 260, grass: 1 / 420 };
 
@@ -122,13 +135,22 @@ function kindFor(place: "street" | "wood" | "green" | "scrub", roll: number): Ri
 }
 
 /** 반환값이 최종 결과. `next()` 를 조각 시간마다 불러 메인 스레드를 오래 막지 않는다. */
-export function* placeRideTrees(data: RideTreeData, center: XY, route: readonly XY[]): Generator<void, RideTree[], void> {
+/** roadside=false 면 경로 양옆·도로변 나무를 빼고 숲·공원만 심는다(시험 패널 비교). */
+export function* placeRideTrees(
+  data: RideTreeData,
+  center: XY,
+  route: readonly XY[],
+  options: { roadside?: boolean } = {},
+): Generator<void, RideTree[], void> {
+  const withRoadside = options.roadside !== false;
   const R = RIDE_TREE_RADIUS_M;
   const clip: Box = [center[0] - R - 30, center[1] - R - 30, center[0] + R + 30, center[1] + R + 30];
   const roads = new Grid<RoadSegment>(40, clip);
+  const carriageways = new Grid<RoadSegment>(40, clip);
   const solids = new Grid<readonly Ring[]>(40, clip);
   const greens = new Grid<{ cls: string; rings: readonly Ring[] }>(40, clip);
   const real = new Grid<XY>(20, clip);
+  const survey = new Grid<XY>(50, clip);
   const keepouts = new Grid<Keepout>(30, clip);
 
   for (const road of data.roads) {
@@ -138,13 +160,17 @@ export function* placeRideTrees(data: RideTreeData, center: XY, route: readonly 
       const a = road.pts[i - 1];
       const b = road.pts[i];
       roads.add(boxOf([a, b], 12), { a, b, width, road });
+      if (road.oneway && MAIN_ROADS.has(road.cls)) carriageways.add(boxOf([a, b], CARRIAGEWAY_PAIR_M), { a, b, width, road });
     }
   }
   yield;
   for (const rings of data.buildings) if (rings[0]?.length) solids.add(boxOf(rings[0], 2), rings);
   for (const rings of data.water) if (rings[0]?.length) solids.add(boxOf(rings[0], 2), rings);
   for (const green of data.greens) if (GREEN_DENSITY[green.cls] && green.rings[0]?.length) greens.add(boxOf(green.rings[0], 0), green);
-  for (const p of data.realTrees) real.add(boxOf([p], REAL_TREE_GAP_M), p);
+  for (const p of data.realTrees) {
+    real.add(boxOf([p], REAL_TREE_GAP_M), p);
+    survey.add(boxOf([p], SURVEYED_RADIUS_M), p);
+  }
   yield;
 
   for (let i = 1; i < route.length; i++) {
@@ -164,11 +190,40 @@ export function* placeRideTrees(data: RideTreeData, center: XY, route: readonly 
   }
   yield;
 
+  /** 나란한 일방통행 큰길 두 줄 사이인가 — 두 줄에 내린 수선의 발이 점의 반대편에 있고 서로 가깝다. */
+  const betweenCarriageways = (x: number, y: number): boolean => {
+    const feet: Array<{ fx: number; fy: number; ux: number; uy: number }> = [];
+    for (const s of carriageways.at(x, y)) {
+      const dx = s.b[0] - s.a[0], dy = s.b[1] - s.a[1], len = Math.hypot(dx, dy);
+      if (len <= 0) continue;
+      const k = Math.max(0, Math.min(1, ((x - s.a[0]) * dx + (y - s.a[1]) * dy) / (len * len)));
+      const fx = s.a[0] + k * dx, fy = s.a[1] + k * dy;
+      if (Math.hypot(x - fx, y - fy) > CARRIAGEWAY_PAIR_M) continue;
+      feet.push({ fx, fy, ux: dx / len, uy: dy / len });
+    }
+    for (let i = 0; i < feet.length; i++) {
+      for (let j = i + 1; j < feet.length; j++) {
+        const p = feet[i], q = feet[j];
+        if (Math.abs(p.ux * q.ux + p.uy * q.uy) < 0.8) continue;
+        if (Math.hypot(p.fx - q.fx, p.fy - q.fy) > CARRIAGEWAY_PAIR_M) continue;
+        if ((x - p.fx) * (x - q.fx) + (y - p.fy) * (y - q.fy) < 0) return true;
+      }
+    }
+    return false;
+  };
   const blocked = (x: number, y: number, roadGap: number): boolean => {
+    if (betweenCarriageways(x, y)) return true;
     for (const s of roads.at(x, y)) if (segmentDistance(x, y, s.a, s.b) < s.width / 2 + roadGap) return true;
     for (const rings of solids.at(x, y)) if (inPolygon(x, y, rings)) return true;
     for (const p of real.at(x, y)) if (Math.hypot(p[0] - x, p[1] - y) < REAL_TREE_GAP_M) return true;
     for (const k of keepouts.at(x, y)) if (segmentDistance(x, y, k.a, k.b) < k.gap) return true;
+    return false;
+  };
+  const surveyed = (x: number, y: number): boolean => {
+    let count = 0;
+    for (const p of survey.at(x, y)) {
+      if (Math.hypot(p[0] - x, p[1] - y) < SURVEYED_RADIUS_M && ++count >= SURVEYED_TREES) return true;
+    }
     return false;
   };
   const trees: RideTree[] = [];
@@ -179,7 +234,7 @@ export function* placeRideTrees(data: RideTreeData, center: XY, route: readonly 
 
   // 1) 경로 가로수 — 경로 시작부터 센 일정 간격이라 중심이 달라도 같은 자리.
   let travelled = 0;
-  let nextAt = ROUTE_SPACING_M;
+  let nextAt = withRoadside ? ROUTE_SPACING_M : Infinity;
   let index = 0;
   for (let i = 1; i < route.length; i++) {
     const a = route[i - 1];
@@ -195,12 +250,14 @@ export function* placeRideTrees(data: RideTreeData, center: XY, route: readonly 
       if (!inRange(bx, by)) continue;
       let width = 4;
       let elevated = false;
+      let main = false;
       for (const s of roads.at(bx, by)) {
         if (segmentDistance(bx, by, s.a, s.b) > 5) continue;
         width = Math.max(width, s.width);
         if (s.road.elevated) elevated = true;
+        if (MAIN_ROADS.has(s.road.cls)) main = true;
       }
-      if (elevated) continue;
+      if (elevated || !main || surveyed(bx, by)) continue;
       for (const side of [-1, 1]) {
         const along = (treeHash(index, side, 7) - 0.5) * 3;
         const off = width / 2 + 2.6 + treeHash(index, side, 9) * 0.8;
@@ -234,14 +291,14 @@ export function* placeRideTrees(data: RideTreeData, center: XY, route: readonly 
         place = g.cls === "wood" ? "wood" : g.cls === "scrub" ? "scrub" : "green";
       }
       if (roll >= density * CELL_M * CELL_M * GREEN_SCALE) {
-        if (roll >= ROADSIDE_CHANCE) continue;
+        if (!withRoadside || roll >= ROADSIDE_CHANCE) continue;
         let roadside = false;
         for (const s of roads.at(x, y)) {
-          if (s.road.elevated || !ROADSIDE.has(s.road.cls)) continue;
+          if (s.road.elevated || !MAIN_ROADS.has(s.road.cls)) continue;
           const d = segmentDistance(x, y, s.a, s.b) - s.width / 2;
           if (d > 1.6 && d < 4.2) roadside = true;
         }
-        if (!roadside) continue;
+        if (!roadside || surveyed(x, y)) continue;
         place = "street";
       }
       const pick = treeHash(gx, gy, 4);

@@ -3,15 +3,15 @@
 | 항목 | 값 |
 |---|---|
 | 담당 | **Claude Code** |
-| 갱신 | 11-25 6단계 커밋. |
+| 갱신 | 11-25 6단계 푸시. |
 | 브랜치 | `main2` · 지형 기본1배 |
 | 마지막 배포 | 11-20 Hosting `66a0fac8`. |
 
 ## 진행 중
 
-**11-24 지형OFF·3D최대(Claude Code)**: 0~4단계(건물·안개·능선) 푸시 c11fae00·미배포: [결과](20261124-terrain-off-3d-plan/05-result-stage4.md)·[계획](20261124-terrain-off-3d-plan/README.md). 고정91~95. 전체1691/0.
+**11-24 지형OFF·3D최대(Claude Code)**: 0~4단계(건물·안개·능선) ~6단계 푸시 e26a14a3·미배포: [결과](20261124-terrain-off-3d-plan/05-result-stage4.md)·[계획](20261124-terrain-off-3d-plan/README.md). 고정91~95. 전체1702/0.
 **병행 주의**: rider15 작업이 같은 폴더에서 진행 중·knip 2건은 그쪽. 커밋은 파일 지정.
-FPS 패널 `?fps=1`(끄기 `?fps=0`) 커밋. 화면 시험은 Chief 직접. [5단계](20261124-terrain-off-3d-plan/06-result-stage5.md) 커밋 1b0fdfb7. [6단계](20261124-terrain-off-3d-plan/07-result-stage6.md) 커밋. 비교 `?ridequality=0~3`·`?ridelook=0`·`?ridetrees=0`·`?viewdist=0`.
+FPS 패널 `?fps=1`. 화면 시험은 Chief 직접. [5](20261124-terrain-off-3d-plan/06-result-stage5.md)·[6](20261124-terrain-off-3d-plan/07-result-stage6.md)단계. 비교 `?ridequality=0~3`·`?ridelook=0`·`?ridetrees=0`·`?viewdist=0`.
 
 **11-24 Chief 판정(해제됨)**: 지형OFF에도 건물 일부만 표시·지평선까지 미충족 → 위 계획 1단계가 해결 대상.
 
@@ -81,7 +81,7 @@ MiniMax 개발도구 제외·Obsidian C:\20.HDev\spinatlas-vault·rider15 수정
 
 ## 다음 한 걸음
 
-1. 지형OFF·3D최대 7단계(실기·배포). 지형ON 비용분리 조사는 보류.
+1. 지형OFF·3D최대 11-26 가로수·줄무늬·높이·비교스위치 커밋(미푸시), 도로 메우기 결정 대기→7단계. 지형ON 비용분리는 보류.
 2. 중계 보드/장애 복구와 반응형·적응형 정책은 후속. Guest 감사는 매일 유지로 확정, 상시 Firestore 백업 유지.
 3. 인터벌·이정표 실폰/실센서 확인, 반복 렌더링 스택 확보. 거리 안내·센서/RPM·관전 UID 수정은 로컬 커밋·미배포.
 

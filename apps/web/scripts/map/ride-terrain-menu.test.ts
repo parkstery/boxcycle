@@ -14,7 +14,7 @@ test("주행 카메라 메뉴의 「3D 뷰」는 숨기고 ?ride3d=1 에서만 �
   assert.match(app, /RIDE_TERRAIN_MENU = rideTerrainMenuVisible\(/);
 });
 
-test("고도 안내는 지형이 켜지면 해수면, 꺼지면 지면 기준이다", () => {
+test("지형이 꺼지면 「높이」(지면 기준), 켜지면 「고도」(해수면 기준)로 보인다", () => {
   const globals = globalThis as unknown as Record<string, unknown>;
   const saved = globals.document;
   const made: Array<{ attrs: Record<string, string>; title?: string; textContent?: string }> = [];
@@ -36,15 +36,17 @@ test("고도 안내는 지형이 켜지면 해수면, 꺼지면 지면 기준이
     const control = new MapCameraAltitudeControl();
     control.onAdd(map as never);
     const label = made[1];
-    assert.equal(label.textContent, "고도 1.5 m");
-    assert.equal(label.attrs["aria-label"], "카메라 고도(지면 기준)");
+    assert.equal(label.textContent, "높이 1.5 m");
+    assert.equal(label.attrs["aria-label"], "카메라 높이(지면 기준)");
     terrain = {};
     update();
     assert.equal(label.attrs["aria-label"], "카메라 고도(해수면 기준)");
     assert.equal(label.title, "카메라 고도(해수면 기준)");
+    assert.equal(label.textContent, "고도 1.5 m");
     terrain = null;
     update();
-    assert.equal(label.attrs["aria-label"], "카메라 고도(지면 기준)");
+    assert.equal(label.attrs["aria-label"], "카메라 높이(지면 기준)");
+    assert.equal(label.textContent, "높이 1.5 m");
     control.onRemove();
   } finally {
     globals.document = saved;

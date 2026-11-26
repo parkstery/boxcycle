@@ -28,7 +28,7 @@ export async function loadLocalData(origin, radiusM) {
     const each = (layer, fn) => { const l = tile.layers[layer]; if (l) for (let i = 0; i < l.length; i++) { const f = l.feature(i).toGeoJSON(x, y, z); fn(f.geometry, f.properties); } };
     const lines = (g) => (g.type === 'LineString' ? [g.coordinates] : g.type === 'MultiLineString' ? g.coordinates : []).map((c) => c.map(L));
     const polys = (g) => (g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : []).map((p) => p.map((ring) => ring.map(L)));
-    each('road', (g, p) => lines(g).forEach((pts) => data.roads.push({ cls: p.class, structure: p.structure ?? 'none', pts })));
+    each('road', (g, p) => lines(g).forEach((pts) => data.roads.push({ cls: p.class, structure: p.structure ?? 'none', oneway: p.oneway === 'true', name: p.name, pts })));
     each('landuse', (g, p) => polys(g).forEach((rings) => data.greens.push({ cls: p.class, rings })));
     each('landcover', (g, p) => polys(g).forEach((rings) => data.greens.push({ cls: p.class, rings })));
     each('building', (g) => polys(g).forEach((rings) => data.buildings.push(rings)));

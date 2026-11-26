@@ -14,6 +14,18 @@ export type RideEnvironment = {
   dispose(): void;
 };
 
+/** 시험 패널(`?fps=1`)의 비교 스위치. 새로고침하면 기본값(모두 켬)으로 돌아간다. */
+export type RideLab = { roadsideTrees: boolean; fog: boolean };
+const lab: RideLab = { roadsideTrees: true, fog: true };
+let applyLab: ((next: RideLab) => void) | null = null;
+export function readRideLab(): RideLab {
+  return { ...lab };
+}
+export function setRideLab(next: Partial<RideLab>): void {
+  Object.assign(lab, next);
+  applyLab?.({ ...lab });
+}
+
 export function installRideEnvironment(
   map: MapboxMap,
   options: { search: string; token: string; modelBaseUrl: string; getRoute: () => readonly [number, number][] | null },
@@ -34,6 +46,11 @@ export function installRideEnvironment(
       scenery.setWindows(level.windows);
     },
   });
+  applyLab = (next) => {
+    trees.setRoadside(next.roadsideTrees);
+    scenery.setFogVisible(next.fog);
+  };
+  applyLab({ ...lab });
   return {
     setActive(active) {
       view.setActive(active);
@@ -42,6 +59,7 @@ export function installRideEnvironment(
       scenery.setActive(active && rideSceneryEnabled(search));
     },
     dispose() {
+      applyLab = null;
       quality.dispose();
       scenery.dispose();
       trees.dispose();

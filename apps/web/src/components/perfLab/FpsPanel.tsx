@@ -1,6 +1,7 @@
 import type { Map as MapboxMap } from "mapbox-gl";
 import { useEffect, useRef, useState } from "react";
-import { FPS_WINDOW_MS, FpsMeter, type FpsReading } from "../../lib/debug/fpsMeter";
+import { FPS_WINDOW_MS, FpsMeter, RIDE_LAB_TERRAIN_EVENT, type FpsReading } from "../../lib/debug/fpsMeter";
+import { readRideLab, setRideLab, type RideLab } from "../../lib/map/rideEnvironment";
 import { rideQualityText } from "../../lib/map/rideQuality";
 import { useDraggablePanel } from "./useDraggablePanel";
 import "./FpsPanel.css";
@@ -19,7 +20,7 @@ function conditionText(map: MapboxMap | null): string {
   try {
     const terrain = map.getTerrain() ? "지형 켬" : "지형 끔";
     const altitude = map.getFreeCameraOptions().position?.toAltitude();
-    const height = altitude == null ? "" : ` · 고도 ${altitude < 100 ? altitude.toFixed(1) : Math.round(altitude)}m`;
+    const height = altitude == null ? "" : ` · ${map.getTerrain() ? "고도" : "높이"} ${altitude < 100 ? altitude.toFixed(1) : Math.round(altitude)}m`;
     return `${terrain} · 피치 ${Math.round(map.getPitch())}°${height} · 품질 ${rideQualityText()}`;
   } catch {
     return "지도 준비 중";
@@ -38,6 +39,8 @@ export function FpsPanel() {
   const [condition, setCondition] = useState("지도 준비 중");
   const [measureLeft, setMeasureLeft] = useState<number | null>(null);
   const [samples, setSamples] = useState<Sample[]>([]);
+  const [lab, setLab] = useState<RideLab>(() => readRideLab());
+  const [terrainOn, setTerrainOn] = useState(false);
   const measureEndRef = useRef<number | null>(null);
   const sampleIdRef = useRef(0);
 
@@ -55,6 +58,7 @@ export function FpsPanel() {
       const now = performance.now();
       const r = meter.read(now);
       const where = conditionText(map);
+      setTerrainOn(Boolean(map?.getTerrain()));
       setReading(r);
       setCondition(where);
       const end = measureEndRef.current;
@@ -83,6 +87,13 @@ export function FpsPanel() {
     meter.reset();
     measureEndRef.current = performance.now() + FPS_WINDOW_MS;
     setMeasureLeft(FPS_WINDOW_MS / 1000);
+  };
+  const toggle = (key: keyof RideLab) => {
+    setRideLab({ [key]: !lab[key] });
+    setLab(readRideLab());
+  };
+  const toggleTerrain = () => {
+    window.dispatchEvent(new CustomEvent(RIDE_LAB_TERRAIN_EVENT, { detail: !terrainOn }));
   };
   const stopped = reading?.current == null;
   const tone = stopped ? "idle" : (reading?.current ?? 0) >= 24 ? "good" : "bad";
@@ -120,6 +131,17 @@ export function FpsPanel() {
         {reading?.pass == null ? "" : reading.pass ? " · 합격" : " · 미달"}
       </p>
       <p className="fps-panel__line fps-panel__muted">{condition}</p>
+      <div className="fps-panel__switches" role="group" aria-label="비교 스위치">
+        <button type="button" aria-pressed={lab.roadsideTrees} disabled={terrainOn} onClick={() => toggle("roadsideTrees")}>
+          길가 나무 {lab.roadsideTrees ? "켬" : "끔"}
+        </button>
+        <button type="button" aria-pressed={lab.fog} disabled={terrainOn} onClick={() => toggle("fog")}>
+          안개 {lab.fog ? "켬" : "끔"}
+        </button>
+        <button type="button" aria-pressed={terrainOn} onClick={toggleTerrain}>
+          지형 3D {terrainOn ? "켬" : "끔"}
+        </button>
+      </div>
       {samples.map((s) => (
         <p key={s.id} className={`fps-panel__line fps-panel__sample${s.pass ? " is-pass" : ""}`}>
           <span className="fps-panel__muted">{s.label}</span>

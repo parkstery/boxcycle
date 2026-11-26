@@ -29,13 +29,14 @@ export function rideFogRange(unitM: number, viewDistanceM: number): [number, num
   return [at(viewDistanceM * FOG_START_RATIO), at(viewDistanceM * FOG_END_RATIO)];
 }
 
-function rideFog(unitM: number, viewDistanceM: number): FogSpecification {
+/** visible=false 는 시험 패널의 「안개 끔」 — 하늘색은 같고 먼 곳을 덮지 않는다. */
+export function rideFog(unitM: number, viewDistanceM: number, visible = true): FogSpecification {
   return {
     range: rideFogRange(unitM, viewDistanceM),
-    color: "hsla(208, 62%, 91%, 0.95)",
+    color: visible ? "hsla(208, 62%, 91%, 0.95)" : "hsla(208, 62%, 91%, 0)",
     "high-color": "hsl(208, 78%, 80%)",
     "space-color": "hsl(212, 82%, 68%)",
-    "horizon-blend": 0.07,
+    "horizon-blend": visible ? 0.07 : 0,
     "star-intensity": 0,
     "vertical-range": [80, 400],
   };
@@ -43,9 +44,14 @@ function rideFog(unitM: number, viewDistanceM: number): FogSpecification {
 
 type Host = MapboxMap & { version?: string; transform?: { height: number; pixelsPerMeter: number } };
 
-export type RideSceneryController = { setActive(active: boolean): void; setWindows(on: boolean): void; dispose(): void };
+export type RideSceneryController = {
+  setActive(active: boolean): void;
+  setWindows(on: boolean): void;
+  setFogVisible(on: boolean): void;
+  dispose(): void;
+};
 
-const NOOP: RideSceneryController = { setActive() {}, setWindows() {}, dispose() {} };
+const NOOP: RideSceneryController = { setActive() {}, setWindows() {}, setFogVisible() {}, dispose() {} };
 
 /** `?ridelook=0` 이면 4단계 풍경 없이 비교한다. */
 export function rideSceneryEnabled(search: string | null | undefined): boolean {
@@ -59,7 +65,8 @@ export function installRideScenery(map: MapboxMap, options: { viewDistanceM: num
   const buildings = createRideBuildings(map);
   let active = false;
   let timer: number | null = null;
-  let fog: { original: FogSpecification | null | undefined; unitM: number } | null = null;
+  let fog: { original: FogSpecification | null | undefined; unitM: number; visible: boolean } | null = null;
+  let fogVisible = true;
   let ridge: RidgeProfile | null = null;
   let ridgeAt: [number, number] | null = null;
   let ridgeBlockedUntil = 0;
@@ -78,9 +85,9 @@ export function installRideScenery(map: MapboxMap, options: { viewDistanceM: num
     if (!t) return;
     const unitM = t.height / t.pixelsPerMeter;
     // 카메라를 바꾸면 단위가 달라진다. 작은 흔들림에는 다시 정하지 않는다.
-    if (fog && Math.abs(unitM / fog.unitM - 1) < 0.08) return;
-    fog = { original: fog ? fog.original : map.getFog(), unitM };
-    map.setFog(rideFog(unitM, options.viewDistanceM));
+    if (fog && fog.visible === fogVisible && Math.abs(unitM / fog.unitM - 1) < 0.08) return;
+    fog = { original: fog ? fog.original : map.getFog(), unitM, visible: fogVisible };
+    map.setFog(rideFog(unitM, options.viewDistanceM, fogVisible));
   };
 
   const removeRidge = (): void => {
@@ -189,6 +196,9 @@ export function installRideScenery(map: MapboxMap, options: { viewDistanceM: num
       check();
     },
     setWindows: buildings.setWindows,
+    setFogVisible(on) {
+      fogVisible = on;
+    },
     dispose() {
       stop();
     },

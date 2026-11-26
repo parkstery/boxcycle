@@ -84,7 +84,7 @@ function* collect(map: MapboxMap, dataSource: string, origin: XY, center: XY): G
       const elevated = (f.properties?.structure ?? "none") !== "none";
       for (const line of linesOf(f.geometry)) {
         const pts = line.map(local);
-        if (near(pts)) data.roads.push({ cls, elevated, pts });
+        if (near(pts)) data.roads.push({ cls, elevated, oneway: f.properties?.oneway === "true", pts });
       }
     }],
     ["landuse", (f) => addPolygons(f.geometry, (rings) => data.greens.push({ cls: String(f.properties?.class ?? ""), rings }))],
@@ -129,6 +129,8 @@ export type RideTreeController = {
   setActive(active: boolean): void;
   /** 자동 품질 — 가까운 나무부터 이 수까지만 보인다. 다시 계산하지 않는다. */
   setLimit(maxTrees: number): void;
+  /** 길가(경로 양옆·도로변) 나무를 켜고 끈다. 다음 점검에서 다시 심는다. */
+  setRoadside(on: boolean): void;
   dispose(): void;
 };
 
@@ -147,6 +149,7 @@ export function installRideTrees(
   let routeSource: readonly XY[] | null = null;
   const models = new Set<string>();
   let limit = Infinity;
+  let roadside = true;
   /** 마지막 배치(가까운 순)와 그 원점 — 수만 바꿀 때 다시 쓴다. */
   let placed: { trees: RideTree[]; origin: XY } | null = null;
   const show = (): void => {
@@ -184,7 +187,7 @@ export function installRideTrees(
   };
   function* compute(at: XY, from: XY): Generator<void, RideTree[], void> {
     const data = yield* collect(map, options.dataSource, from, at);
-    return yield* placeRideTrees(data, at, route);
+    return yield* placeRideTrees(data, at, route, { roadside });
   }
   const runSlice = (): void => {
     jobTimer = null;
@@ -266,6 +269,11 @@ export function installRideTrees(
       map.on("sourcedata", onData);
       timer = window.setInterval(check, CHECK_MS);
       check();
+    },
+    setRoadside(on) {
+      if (roadside === on) return;
+      roadside = on;
+      dirty = true;
     },
     setLimit(maxTrees) {
       if (limit === maxTrees) return;

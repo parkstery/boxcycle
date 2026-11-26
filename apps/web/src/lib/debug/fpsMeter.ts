@@ -7,6 +7,8 @@ const CURRENT_WINDOW_MS = 2_000;
 const PASS_MIN_FPS = 24;
 const PASS_P95_MS = 41.7;
 const STORAGE_KEY = "rtw.fpsPanel";
+/** 시험 패널 → 앱: 지형 3D 켜기/끄기(detail: boolean). */
+export const RIDE_LAB_TERRAIN_EVENT = "spinatlas:ride-lab-terrain";
 
 export type FpsReading = {
   /** 최근 2초. 최근 1초에 그린 프레임이 없으면 null(지도 정지). */

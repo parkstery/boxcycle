@@ -96,3 +96,31 @@
 .fps-panel__sample.is-pass {
   border-left-color: #7be08a;
 }
+
+.fps-panel__switches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.3rem 0 0 0.45rem;
+}
+
+.fps-panel__switches button {
+  min-height: 34px;
+  padding: 0 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: transparent;
+  color: #9fb0c0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.fps-panel__switches button[aria-pressed="true"] {
+  border-color: #7be08a;
+  color: #edeff2;
+}
+
+.fps-panel__switches button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

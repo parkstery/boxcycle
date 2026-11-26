@@ -163,7 +163,8 @@ export function createRideBuildings(map: MapboxMap, wallImage: typeof drawWall =
   };
   const windowLayer = (filter: unknown) => ({
     id: RIDE_WINDOW_LAYER, type: "fill-extrusion", source: "composite", "source-layer": "building", minzoom: 15, filter,
-    layout: { "fill-extrusion-edge-radius": 0.4 },
+    // 모서리를 둥글리면 둘레가 닫히는 모서리 조각에 둘레 전체의 창문이 눌려 세로 줄무늬가 된다(SDK 3.23.1).
+    layout: { "fill-extrusion-edge-radius": 0 },
     paint: {
       "fill-extrusion-pattern": WINDOW_PATTERN,
       "fill-extrusion-height": HEIGHT,

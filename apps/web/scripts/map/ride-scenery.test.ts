@@ -138,6 +138,8 @@ test("건물 색과 250m 창문을 적용하고 종료하면 원래 색·필터�
   // 높이 추정값이 있는 Standard 자료를 쓴다. 일반 자료로 바꾸면 건물이 3m 로 낮아진다.
   assert.equal(f.layers[RIDE_WINDOW_LAYER].spec?.source, "composite");
   assert.match(JSON.stringify(f.layers[RIDE_WINDOW_LAYER].spec), /est_height/);
+  // 둥근 모서리는 창문을 세로 줄무늬로 누른다.
+  assert.deepEqual(f.layers[RIDE_WINDOW_LAYER].spec?.layout, { "fill-extrusion-edge-radius": 0 });
   assert.ok(f.merges() > 0);
 
   f.buildings.restore();
@@ -251,4 +253,12 @@ test("SDK 버전이 다르거나 시야 확장을 끄면 아무것도 하지 않
     installRideScenery(Object.assign({}, f.map, { version }) as never, { viewDistanceM, token: "t" }).setActive(true);
   }
   assert.equal(f.layers["3d-building"].color, "original");
+});
+
+test("시험 패널의 「안개 끔」은 하늘색은 두고 먼 곳을 덮지 않는다", async () => {
+  const { rideFog } = await import("../../src/lib/map/rideScenery.ts");
+  const on = rideFog(6.27, 1000), off = rideFog(6.27, 1000, false);
+  assert.match(String(off.color), /, 0\)$/);
+  assert.equal(off["horizon-blend"], 0);
+  assert.deepEqual({ ...off, color: on.color, "horizon-blend": on["horizon-blend"] }, on);
 });

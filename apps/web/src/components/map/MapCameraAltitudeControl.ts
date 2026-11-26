@@ -1,8 +1,8 @@
 import type { IControl, Map as MapboxMap } from "mapbox-gl";
 
-/** 지형을 켜면 해수면, 끄면 평평한 지면에서 잰 높이다. */
-const ariaFor = (terrain: boolean): string => `카메라 고도(${terrain ? "해수면" : "지면"} 기준)`;
-const PLACEHOLDER = "고도 —";
+/** 지형을 켜면 해수면에서 잰 고도, 끄면 평평한 지면에서 잰 높이다(2026-11-26 Chief 「고도는 높이로」). */
+const nameFor = (terrain: boolean): string => (terrain ? "고도" : "높이");
+const ariaFor = (terrain: boolean): string => (terrain ? "카메라 고도(해수면 기준)" : "카메라 높이(지면 기준)");
 
 function readAltitudeM(map: MapboxMap): number | null {
   try {
@@ -17,15 +17,16 @@ function readAltitudeM(map: MapboxMap): number | null {
   }
 }
 
-/** 표시 문자열. 큰 값은 km, 그 외 m. 비정상이면 PLACEHOLDER. */
-function formatCameraAltitudeLabel(altM: number | null): string {
-  if (altM == null) return PLACEHOLDER;
+/** 표시 문자열. 큰 값은 km, 그 외 m. 비정상이면 「—」. */
+function formatCameraAltitudeLabel(altM: number | null, terrain: boolean): string {
+  const name = nameFor(terrain);
+  if (altM == null) return `${name} —`;
   if (altM >= 1000) {
     const km = altM / 1000;
     const text = km >= 100 ? String(Math.round(km)) : km.toFixed(1);
-    return `고도 ${text} km`;
+    return `${name} ${text} km`;
   }
-  return `고도 ${altM.toFixed(1)} m`;
+  return `${name} ${altM.toFixed(1)} m`;
 }
 
 /**
@@ -51,7 +52,6 @@ export class MapCameraAltitudeControl implements IControl {
     label.className = "map-ctrl-camera-altitude__label";
     label.setAttribute("role", "status");
     label.setAttribute("aria-live", "polite");
-    label.textContent = PLACEHOLDER;
 
     root.appendChild(label);
     this._container = root;
@@ -83,7 +83,7 @@ export class MapCameraAltitudeControl implements IControl {
       this._label.setAttribute("aria-label", ariaFor(terrain));
       this._label.title = ariaFor(terrain);
     }
-    const text = formatCameraAltitudeLabel(readAltitudeM(this._map));
+    const text = formatCameraAltitudeLabel(readAltitudeM(this._map), terrain);
     if (text === this._lastText) return;
     this._lastText = text;
     this._label.textContent = text;
