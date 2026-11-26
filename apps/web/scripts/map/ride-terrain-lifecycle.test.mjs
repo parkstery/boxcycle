@@ -32,7 +32,7 @@ function fakeMap(){
 }
 test('production MapView effect observes, restores, flattens and disposes without retrying user off',()=>{
   const map=fakeMap();let now=0,tick,cleared=false;const changes=[];const diagnostics=[];let cutTerrain=false;
-  const context={mapRef:{current:map},mapLoaded:true,enable3D:true,rideActive:true,
+  const context={mapRef:{current:map},mapLoaded:true,enable3D:true,rideActive:true,activeQuickCamera:2,
     loadedMapStyleUrlRef:{current:DEFAULT_MAP_STYLE},currentStyleRef:{current:DEFAULT_MAP_STYLE},mapStyleRenderSettings,
     terrainFallbackRef:{current:false},onTerrainFallbackChangeRef:{current:v=>changes.push(v)},
     liveLngLatRef:{current:[127,37]},performance:{now:()=>now},document:{hidden:false},
@@ -63,6 +63,8 @@ test('production MapView effect observes, restores, flattens and disposes withou
   for(now=7000;now<=14000;now+=250)tick();
   assert.equal(map.getTerrain(),null,'terrain cut must stay off');
   cutCleanup();
+  context.activeQuickCamera=1;
+  assert.equal(effect(mapFile,'const guard = new RideTerrainGuard',context)(),undefined,'camera 1 must not start terrain recovery');
   context.enable3D=false;
   context.terrainFallbackRef.current=true;
   assert.equal(effect(mapFile,'const guard = new RideTerrainGuard',context)(),undefined);
