@@ -364,6 +364,7 @@ export default function App() {
   const [externalCameraJump, setExternalCameraJump] = useState<{
     lngLat: LngLat;
     zoom?: number;
+    worldOverview?: boolean;
     requestId: number;
     /** Mapbox [west,south,east,north] — 있으면 지도가 `fitBounds` 로 도시 프레이밍 */
     bbox?: [number, number, number, number] | null;
@@ -2736,6 +2737,23 @@ export default function App() {
     handleRideCameraDistanceFromUserZoom,
   );
 
+  const handleWorldOverview = useCallback(() => {
+    if (activeQuickCamera === 1) {
+      setMapStyle(resolveCamera1ExitMapStyle({
+        currentStyle: mapStyle,
+        styleBeforeEnter: camera1StyleBeforeEnterRef.current,
+        userToggledWhileInCamera1: camera1UserToggledStyleRef.current,
+      }));
+      camera1StyleBeforeEnterRef.current = null;
+      camera1UserToggledStyleRef.current = false;
+    }
+    setFollowMode("free");
+    setActiveQuickCamera(null);
+    setLockBaseHeading(null);
+    cameraJumpSeqRef.current += 1;
+    setExternalCameraJump({ lngLat: [0, 0], worldOverview: true, requestId: cameraJumpSeqRef.current });
+  }, [activeQuickCamera, mapStyle, setMapStyle, setFollowMode, setActiveQuickCamera, setLockBaseHeading, camera1StyleBeforeEnterRef, camera1UserToggledStyleRef]);
+
   const handleRideCameraDistancePreset = useCallback((distanceM: number) => {
     setRideCameraDistanceM(distanceM);
     setRideCameraSpanFloorMode("preset");
@@ -3369,7 +3387,10 @@ export default function App() {
                       onEnable3D: RIDE_TERRAIN_MENU ? setEnable3D : undefined,
                     }
                   : null,
-              mapControls: mapHudControls,
+              mapControls: {
+                ...mapHudControls,
+                onOverview: handleWorldOverview,
+              },
             }}
           >
           </AppMapStage>

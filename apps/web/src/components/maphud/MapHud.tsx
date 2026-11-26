@@ -167,6 +167,7 @@ export type MapHudProps = {
     onToggleStyle: () => void;
     onZoomOut: () => void;
     onZoomIn: () => void;
+    onOverview?: () => void;
     zoomOutDisabled: boolean;
     zoomInDisabled: boolean;
   } | null;
@@ -741,6 +742,17 @@ export function MapHud(props: MapHudProps) {
                   )}
                 </svg>
               </button>
+              {mapControls.onOverview ? <button
+                type="button"
+                className="hud-ride-map-controls__zoom hud-ride-map-controls__overview"
+                aria-label="세계 지도 전체보기"
+                title="세계 지도 전체보기"
+                onPointerDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={mapControls.onOverview}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c-3 3-4 6-4 9s1 6 4 9c3-3 4-6 4-9s-1-6-4-9Z" /></svg>
+              </button> : null}
               <button
                 type="button"
                 className="hud-ride-map-controls__zoom hud-ride-map-controls__zoom--in"

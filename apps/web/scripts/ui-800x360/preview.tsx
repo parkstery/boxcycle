@@ -471,7 +471,7 @@ function Preview() {
     lastRideResult:summaryShown?result:null,avgSpeedLabel:'0.0',
   }).hudMetrics;
   const [trailPreviewCalls, setTrailPreviewCalls] = useState({joined:'',visibility:'open'});
-  const [toolbarCalls,setToolbarCalls] = useState({zoomIn:0,zoomOut:0});
+  const [toolbarCalls,setToolbarCalls] = useState({zoomIn:0,zoomOut:0,overview:0});
   const trailPreview = params.has('trailPreview');
   const trailPreviewRiding = params.has('trailRiding');
   const [previewTrails] = useState<TrailInstance[]>(() => Array.from({length:12}, (_, i) => ({
@@ -609,7 +609,7 @@ function Preview() {
       metrics={summaryShown?endedHud:initial==='summary'||initial==='glance-summary'?null:hasRoute?active?{mode:'ride',elapsed:glanceRiding?'00:13':'24:08',distanceKm:glanceRiding?'0.07':'4.20',cumulativeKm:glanceRiding?'0.07':long?'1234.56':'4.20',avgKmh:glanceRiding?'19.8':'18.6',speedKmh:glanceRiding?37:24,routeTotalKm:glanceRiding?'2.02':long?'9999.99':'10.00'}:{mode:'route-preview',distanceKm:long?'1234.56':'2.02',elevation:{status:'ready',startM:46,endM:30}}:null}
       conquestLiveMeters={summaryShown?result.hudSnapshot?.newRoadMeters:active?params.has('ownedHint')?0:420:null} conquestAllOwnedHint={params.has('ownedHint')} onClearPins={noop} routeError={params.has('error')?'경로를 찾지 못했습니다. 다른 지점을 선택해 주세요.':null}
       onResumeFromPause={()=>setStage('riding')} onEndFromPause={()=>setPanel('summary')} onModifyFromPause={()=>setStage('setup')}
-      quickCamera={active&&!glanceRiding?{active:camera,camera1Mode:flatCameraMode,enable3D,terrainFallback:params.has('terrainFallback'),onEnable3D:setEnable3D,onSelect:setCamera,onSelectFlat:(mode)=>{setFlatCameraMode(mode);setCamera(1);}}:null} mapControls={{styleLabel:mapStyleLabel,styleAriaLabel:`맵 스타일 ${mapStyleLabel}, 클릭 시 ${mapStyleLabel==='위성'?'야외':'위성'}`,onToggleStyle:()=>setMapStyleLabel(value=>value==='위성'?'야외':'위성'),onZoomOut:()=>setToolbarCalls(c=>({...c,zoomOut:c.zoomOut+1})),onZoomIn:()=>setToolbarCalls(c=>({...c,zoomIn:c.zoomIn+1})),zoomOutDisabled:false,zoomInDisabled:false}}
+      quickCamera={active&&!glanceRiding?{active:camera,camera1Mode:flatCameraMode,enable3D,terrainFallback:params.has('terrainFallback'),onEnable3D:setEnable3D,onSelect:setCamera,onSelectFlat:(mode)=>{setFlatCameraMode(mode);setCamera(1);}}:null} mapControls={{styleLabel:mapStyleLabel,styleAriaLabel:`맵 스타일 ${mapStyleLabel}, 클릭 시 ${mapStyleLabel==='위성'?'야외':'위성'}`,onToggleStyle:()=>setMapStyleLabel(value=>value==='위성'?'야외':'위성'),onZoomOut:()=>setToolbarCalls(c=>({...c,zoomOut:c.zoomOut+1})),onZoomIn:()=>setToolbarCalls(c=>({...c,zoomIn:c.zoomIn+1})),onOverview:()=>setToolbarCalls(c=>({...c,overview:c.overview+1})),zoomOutDisabled:false,zoomInDisabled:false}}
       leaderboardGlancePanel={initial!=='glance-summary'?<LeaderboardGlancePanel {...glanceView} />:undefined}
       intervalFold={{folded:leftPanels.intervalFolded,onToggle:leftPanels.toggleIntervalFold}}
       cadence={{state:sensorState,open:panel==='sensor',onOpen:()=>setPanel('sensor'),attention:stage==='ready-to-start'&&params.has('blocked')}}
@@ -769,7 +769,7 @@ function Preview() {
     {panel==='routes'?<OfficialCourseListModal segment="intro" onClose={()=>setPanel('ready')} basicSharedHubs={getBasicSharedHubSummaries()} basicActiveHubCourseId={null}
       basicStartLoading={false} basicStartHubJoined={false} routeLoading={false} sessionIdle officialCourseCatalogAvailable publishedPublicCourses={[]}
       publishedPublicCoursesLoading={false} publishedPublicCoursesError={null} signedIn onEnterBasicHub={()=>setPanel('ready')} onLeaveBasicHub={noop}/>:null}
-    <span id="toolbar-preview-calls" hidden data-zoom-in={toolbarCalls.zoomIn} data-zoom-out={toolbarCalls.zoomOut} />
+    <span id="toolbar-preview-calls" hidden data-zoom-in={toolbarCalls.zoomIn} data-zoom-out={toolbarCalls.zoomOut} data-overview={toolbarCalls.overview} />
     <MenuPanel open={panel==='menu'} onClose={()=>setPanel('ready')} onOpenPlaceSearch={noop}
       onOpenRouteSource={active ? undefined : (source)=>setListRequest(r=>({source,nonce:r.nonce+1}))} onOpenSettings={()=>setPanel('settings')}
       onOpenSensor={()=>setPanel('sensor')} sensorState={sensorState} sensorRiding={active} sensorAttention={stage==='ready-to-start'&&params.has('blocked')}>

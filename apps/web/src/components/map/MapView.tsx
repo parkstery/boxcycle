@@ -333,6 +333,7 @@ export type MapViewProps = {
   externalCameraJump?: {
     lngLat: LngLat;
     zoom?: number;
+    worldOverview?: boolean;
     requestId: number;
     bbox?: [number, number, number, number] | null;
   } | null;
@@ -3290,7 +3291,7 @@ export function MapView({
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded || !externalCameraJump) return;
-    const { lngLat, zoom: zoomHint, bbox } = externalCameraJump;
+    const { lngLat, zoom: zoomHint, bbox, worldOverview } = externalCameraJump;
     map.stop();
 
     const syncZoomFromMap = () => {
@@ -3312,6 +3313,13 @@ export function MapView({
       bootFlyMovedRef.current = true;
     }
     suppressCameraFollowUntilRef.current = performance.now() + (prefersReducedMotion ? 120 : 1700);
+
+    if (worldOverview) {
+      const onEnd = () => syncZoomFromMap();
+      map.once("moveend", onEnd);
+      map.flyTo({ center: map.getCenter(), zoom: 2, pitch: 0, bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: prefersReducedMotion ? 0 : 1100, essential: true });
+      return () => { map.off("moveend", onEnd); };
+    }
 
     if (useBbox) {
       const onEnd = () => {

@@ -32,6 +32,7 @@
 .map-hud .map-hud__rail .hud-ride-map-controls__style { grid-area: style; }
 .map-hud .map-hud__rail .hud-ride-map-controls__zoom--in { grid-area: plus; }
 .map-hud .map-hud__rail .hud-ride-map-controls__zoom--out { grid-area: minus; }
+.map-hud .map-hud__rail .hud-ride-map-controls__overview { grid-area: plus; transform: translateX(calc(-100% - var(--rail-gap))); }
 .map-hud .map-hud__rail .map-hud__rail-int { grid-area: int; }
 .map-hud .map-hud__rail .map-hud__rail-rank { grid-area: rank; }
 .map-hud .map-hud__rail .ride-control-bar__end { grid-area: stop; }

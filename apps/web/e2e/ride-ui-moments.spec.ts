@@ -19,6 +19,23 @@ async function saveShot(page: Page, name: string) {
 
 test.describe('주행 UI 정리 v2', () => {
   for (const size of sizes) {
+    test(`세계 지도 버튼 위치와 클릭 ${size.width}×${size.height}`, async ({ page }) => {
+      await page.setViewportSize(size);
+      await page.goto(`${preview}?state=riding`);
+      const world = page.getByRole('button', { name: '세계 지도 전체보기' });
+      const plus = page.getByRole('button', { name: '줌 확대' });
+      await expect(world).toBeEnabled();
+      const a = (await world.boundingBox())!;
+      const b = (await plus.boundingBox())!;
+      expect(a.x + a.width).toBeLessThan(b.x);
+      expect(a.y).toBeCloseTo(b.y, 0);
+      expect(a.width).toBeCloseTo(b.width, 0);
+      await world.click();
+      await expect(page.locator('#toolbar-preview-calls')).toHaveAttribute('data-overview', '1');
+      await expect(page.locator('#toolbar-preview-calls')).toHaveAttribute('data-zoom-in', '0');
+    });
+  }
+  for (const size of sizes) {
     test(`HUD 한 행·메뉴 탭·순위 버튼 ${size.width}×${size.height}`, async ({ page }) => {
       await page.setViewportSize(size);
       await page.goto(`${preview}?state=riding&interval&intervalMs=330000`);
