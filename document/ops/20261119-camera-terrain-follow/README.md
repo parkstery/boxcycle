@@ -1,5 +1,7 @@
 # 카메라 2·3 지형 간섭 회피
 
+**11-26 3D View 보고서 갱신(Claude Code)**: [지형 OFF·3D 최대 표시 확정](20261126-3d-view-report.md)·[HTML](exports/spinatlas-3d-view-report-20261126.html)·[ZIP](exports/spinatlas-3d-view-report-20261126.zip). 주행은 지형 OFF로 전환, 최종 조합 운영 배포(595c3e3d). 11-26 미커밋 실험물은 폐기(백업 tmp/discarded-20261126.zip).
+
 **11-23 보고서 최신화(Codex)**: [실험 총괄](20261123-fps-experiments-summary.md)·[HTML](exports/spinatlas-3d-fps-report-20261123.html)·[다운로드 ZIP](exports/spinatlas-3d-fps-report-20261123.zip). 공식선 실제적용6.8FPS→단독24FPS해법불합격. 원인분리계측은미실행. 구현검증36/후속17 기록·미배포.
 
 **11-23 지형0.1배 비교(Codex)**: [5218 높이0.1/1/OFF 비교](20261123-camera-tolerance-preview.md#11-23-후속-지형-높이-01배). 안전/복귀125·측정판7·tsc/lint/build 통과, 실제Standard/day·0.1배 확인. 성능 직접검수 대기·제품1배·미배포.
