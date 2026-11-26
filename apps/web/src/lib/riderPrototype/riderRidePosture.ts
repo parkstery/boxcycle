@@ -19,7 +19,7 @@ export type RiderRidePostureBlend = {
   readonly amount: number;
 };
 
-export function isRiderRidePosture(value: unknown): value is RiderRidePosture {
+function isRiderRidePosture(value: unknown): value is RiderRidePosture {
   return typeof value === "string" && (RIDER_RIDE_POSTURES as readonly string[]).includes(value);
 }
 
