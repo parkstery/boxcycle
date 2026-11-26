@@ -10,18 +10,12 @@
 ## 진행 중
 
 **11-24 지형OFF·3D최대(Claude Code)**: 0~4단계(건물·안개·능선) ~6단계 푸시 e26a14a3·미배포: [결과](20261124-terrain-off-3d-plan/05-result-stage4.md)·[계획](20261124-terrain-off-3d-plan/README.md). 고정91~95. 전체1702/0.
-**병행 주의**: rider15 작업이 같은 폴더에서 진행 중·knip 2건은 그쪽. 커밋은 파일 지정.
+**11-26 미커밋 폐기(Chief)**: Codex 계정 전환·rider15(재작업 예정)·20261119 FPS 실험 미커밋분 — 백업 `tmp/discarded-20261126.zip`.
 FPS 패널 `?fps=1`. 화면 시험은 Chief 직접. [5](20261124-terrain-off-3d-plan/06-result-stage5.md)·[6](20261124-terrain-off-3d-plan/07-result-stage6.md)단계. 비교 `?ridequality=0~3`·`?ridelook=0`·`?ridetrees=0`·`?viewdist=0`.
 
-**11-24 Chief 판정(해제됨)**: 지형OFF에도 건물 일부만 표시·지평선까지 미충족 → 위 계획 1단계가 해결 대상.
+**11-26 Mapbox 3D 사례 조사(Codex)**: 7개 사례 비교(Strava·BMW·Meta Ray-Ban·Snap AR·공항 실내·Standard 3D Landmarks·Globe View) 조사 완료. 코드 변경 없음.
 
-**11-24 객체 거리(Codex)**: 5000 비교판 SDK cutoff 0.25~4배·기본 minZoom15. Miami 전후 차이·복원 확인.
-미커밋/미배포.
-
-**11-24 자동조건탐색(Codex)**: [35표본/재현](20261119-camera-terrain-follow/20261124-automatic-fps-sweep.md)·Standard낮/GTX1660/1562×754/5kmh。최소24 통과0/35, 절충8m35°0.5배23.6/27.1FPS·최저18/22。최대29도최저23。exports ZIP/JSON·5218 reports 준비。
-미커밋/미푸시/미배포。**프리뷰 상태**: [5218 슬라이더/반복예외 수정](20261119-camera-terrain-follow/20261124-terrain-sliders-preview.md)·높이/피치/배율/거리·패널드래그 준비。[보존 인계](20261124-handoff-background.md)。
-
- **기존 FPS 기록**: [실험총괄](20261119-camera-terrain-follow/20261123-fps-experiments-summary.md)·공식선6.8FPS/정지배경29.6FPS 후보불합격. 공식선36·추적오차32/map183 통과, 재투영 미구현·비용분리 미확정. 문서만bec2a14b 커밋·미푸시, 실험코드는 미커밋。
+ **기존 FPS 기록**: [실험총괄](20261119-camera-terrain-follow/20261123-fps-experiments-summary.md)·공식선6.8FPS 후보불합격. 문서 bec2a14b 커밋, 미커밋 실험은 11-26 폐기。
 **11-22 제품 지형1배**: 2dfb84c8/1c8457a9 푸시·전체1642/0·App허용4157. 중복호출5파일 정리도 반영, Chief FPS차이없음. [원기록/기타 인계](20261124-handoff-background.md) 참조。
 
 지도3모드 `66a0fac8` 배포.
@@ -52,15 +46,13 @@ RTDB 대역·복구 품질을 포함한 큰 구조 변경은 후속. 후보B 미
 **표고 조회**: 11-22 Chief 반려로60초 연장안 철회. 기존15초 유지·지연 원인 미해결. [과거 분석](20261102-ride-screen-layout/20261118-elevation-timeout-analysis.md).
 
 **RPM/거리/도구 인계**: RPM f3efe8ce 배포·가로16/16, 거리baf65e9f 커밋·미배포/실폰 미검증. [기록](20261102-ride-screen-layout/README.md)·[거리 결과](20261029-interval-route-hint/02-result-claude-code.md)·[압축 전 인계](20261124-handoff-background.md) 참조。
-MiniMax 개발도구 제외·Obsidian C:\20.HDev\spinatlas-vault·rider15 수정후교체·전체진단 보류. .out 정리 완료·env백업 .out/env-backup-20261116。
+MiniMax 개발도구 제외(AGENTS.md)·rider15 수정후교체·전체진단 보류.
 
 **11-16 점검**: 지역 필터 Hosting f0068146 확인. 함수·Rules는 [묶음](20261106-region-ride-stats/README.md) 확인.
 
-**11-14~15 도구**: PROGRESS 참조.
-
 **11-06 G5**: 배포 완료 428ae1b4·고정80. Chief 폰 확인·셀 연속성 제안 남음.
 
-**11-06 지역 필터**: 고정79·폰 확인 대기. geo 없는 Trail 제외.
+**11-06 지역 필터**: 고정79·폰 확인 완료(11-16 Hosting f0068146). geo 없는 Trail 제외.
 
 **11-06 PR #22**: 푸시 완료 0276202f. 위치 쓰기 임계값 조정, 효과는 측정5(분당5.0·6.4). 당시 Hosting 자동 승인 거부, 운영 반영은 관련 묶음 확인.
 
