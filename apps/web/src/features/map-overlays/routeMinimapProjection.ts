@@ -151,7 +151,7 @@ export function projectRouteMinimap(
  * 미니맵 배경 정지 지도(Mapbox Static Images API) URL — 주행 하나에 한 장.
  * 경로 bbox 는 주행 동안 변하지 않으므로 호출부가 useMemo 로 고정하면 재요청이 없다.
  *
- * 스타일은 Outdoors 고정(2026-10-07 chief) — 위성은 이만한 크기로 줄이면 경로가 묻힌다.
+ * 스타일은 호출부에서 메인 지도에 맞춰 선택한다.
  * `logo=false&attribution=false` 는 같은 화면의 메인 지도가 이미 Mapbox·OSM 저작자 표시를
  * 하고 있어서 허용된다(미니맵은 그 지도 위에 얹힌 보조 그림이다).
  */

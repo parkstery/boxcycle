@@ -9,6 +9,8 @@
 
 ## 진행 중
 
+**11-26 미니맵 스타일(Codex)**: 메인 위성→미니맵 야외, 그 외→위성 자동 전환·고정100. 웹 빌드 PASS, 변경 파일 ESLint 오류0·기존 App 경고6. 실제 주행 화면·폰 미검증, 미커밋. 스타일 변경 시 Static Images 추가 요청 1회.
+
 **11-24 지형OFF·3D최대(Claude Code)**: 0~4단계(건물·안개·능선) ~6단계 푸시 e26a14a3·미배포: [결과](20261124-terrain-off-3d-plan/05-result-stage4.md)·[계획](20261124-terrain-off-3d-plan/README.md). 고정91~95. 전체1702/0.
 **11-26 미커밋 폐기(Chief)**: Codex 계정 전환·rider15(재작업 예정)·20261119 FPS 실험 미커밋분 — 백업 `tmp/discarded-20261126.zip`.
 FPS 패널 `?fps=1`. 화면 시험은 Chief 직접. [5](20261124-terrain-off-3d-plan/06-result-stage5.md)·[6](20261124-terrain-off-3d-plan/07-result-stage6.md)단계. 비교 `?ridequality=0~3`·`?ridelook=0`·`?ridetrees=0`·`?viewdist=0`.

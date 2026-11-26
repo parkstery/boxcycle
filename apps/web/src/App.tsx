@@ -3174,6 +3174,7 @@ export default function App() {
                     routeGeometry={routeGeometry}
                     liveLngLat={liveForMap}
                     mapboxAccessToken={MAPBOX_TOKEN}
+                    mainMapIsSatellite={mapStyle === MAP_STYLE_SATELLITE}
                     traveledMeters={cumulativeDistanceMeters}
                     routeMeters={routeDistanceMeters}
                   />

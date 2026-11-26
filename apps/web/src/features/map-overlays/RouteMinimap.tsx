@@ -28,6 +28,8 @@ export type RouteMinimapProps = {
   liveLngLat: LngLat | null;
   /** 배경 정지 지도용. 비면 어두운 배경으로 폴백 */
   mapboxAccessToken: string;
+  /** 메인 지도가 위성이면 미니맵은 야외, 그 외에는 위성 */
+  mainMapIsSatellite?: boolean;
   /** 경로상 누적 거리(이어달리기 offset 포함) — 이정표 판정(주행 스토리 M2) */
   traveledMeters: number;
   /** 경로 전체 거리 */
@@ -67,7 +69,7 @@ function nearlySame(a: number, b: number, eps = 1): boolean {
 }
 
 /**
- * 주행 중 좌측 미니맵 — Outdoors 정지 지도 한 장 + SVG 경로·현재 위치.
+ * 주행 중 좌측 미니맵 — 메인 지도와 반대 스타일의 정지 지도 한 장 + SVG 경로·현재 위치.
  * 좌하단 스택에서 RouteDock 아래에 놓는다. dock 높이·HUD를 실측해 상자 크기를 제한한다.
  * 지도 터치 전파 차단. 접기·펼치기 버튼은 기본 터치·키보드 동작을 허용한다.
  */
@@ -76,6 +78,7 @@ export function RouteMinimap({
   routeGeometry,
   liveLngLat,
   mapboxAccessToken,
+  mainMapIsSatellite = false,
   traveledMeters,
   routeMeters,
   expanded: expandedProp,
@@ -195,10 +198,10 @@ export function RouteMinimap({
     return projectRouteMinimap(routeGeometry, box.w, box.h, ROUTE_MINIMAP_PAD_PX, ROUTE_MINIMAP_PAD_TOP_PX);
   }, [routeGeometry, box.w, box.h]);
 
-  // 경로·상자 크기가 같으면 같은 URL — 주행 중 재요청 없음.
+  // 경로·상자 크기·스타일이 같으면 같은 URL — 위치 갱신으로 재요청하지 않는다.
   const mapImageUrl = useMemo(
-    () => (layout ? routeMinimapStaticImageUrl(layout, box.w, box.h, mapboxAccessToken) : null),
-    [layout, box.w, box.h, mapboxAccessToken],
+    () => (layout ? routeMinimapStaticImageUrl(layout, box.w, box.h, mapboxAccessToken, mainMapIsSatellite ? "mapbox/outdoors-v12" : "mapbox/satellite-streets-v12") : null),
+    [layout, box.w, box.h, mapboxAccessToken, mainMapIsSatellite],
   );
   // 실패한 URL 을 기억해 어두운 배경으로 폴백한다(깨진 이미지 아이콘 금지). URL 이 바뀌면 다시 시도.
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
