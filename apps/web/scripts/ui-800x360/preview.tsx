@@ -717,7 +717,7 @@ function Preview() {
         return true;
       }}
     />
-    <UserInfoSheet conquestDisplayMode={conquest} conquestHasRecentGeometry={mapRecentGeometry} onConquestDisplayMode={(mode)=>{setConquest(mode);setPanel('ready');}} open={panel==='account'} onClose={()=>setPanel('ready')} user={null}
+    <UserInfoSheet conquestDisplayMode={conquest} conquestHasRecentGeometry={mapRecentGeometry} onConquestDisplayMode={(mode)=>{setConquest(mode);setPanel('ready');}} open={panel==='account'} onClose={()=>setPanel('ready')} user={params.has('accountUser') ? makeProfileUser('profile-guest') : null}
       recentSessions={params.has('historyPreview')?previewRideSessions:[]}
       isGuest tier="anonymous" subscriptionStatus="none" isPaid={false} busy={false}
       conquest={params.has('loading')?null:params.has('historyPreview')?{totalMeters:12400,totalCells:42}:{totalMeters:0,totalCells:0}}

@@ -511,8 +511,12 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
         tabIndex={props.open ? 0 : -1}
       />
       <aside ref={panelRef} className="user-info-sheet" role="dialog" aria-label="사용자 정보">
-        {/* 왼쪽 요약판: 기간 탭 + 거리(주인공) + 시간·평균 속도 */}
+        {/* 왼쪽 요약판: 계정 + 기간 탭 + 거리·시간·평균 속도 */}
         <div className="user-info-sheet__left" {...(intervalStatsOpen ? { inert: true, "aria-hidden": true as const } : {})}>
+          <div className="user-info-sheet__id">
+            <strong>{nickname}</strong>
+            {subLine ? <span>{subLine}</span> : null}
+          </div>
           <div className="user-info-sheet__stats-head" role="tablist" aria-label="통계 기간">
             {([
               { id: "day" as const, label: "오늘" },
@@ -594,13 +598,9 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
           </div>
         </div>
 
-        {/* 오른쪽: 이름·닫기 + 줄 목록 + 하단 버튼 */}
+        {/* 오른쪽: 닫기 + 줄 목록 + 하단 버튼 */}
         <div className="user-info-sheet__right" {...(intervalStatsOpen ? { inert: true, "aria-hidden": true as const } : {})}>
           <header className="user-info-sheet__head">
-            <div className="user-info-sheet__id">
-              <strong>{nickname}</strong>
-              {subLine ? <span>{subLine}</span> : null}
-            </div>
             <button
               type="button"
               className="user-info-sheet__close"
@@ -611,7 +611,7 @@ export function UserInfoSheet(props: UserInfoSheetProps) {
             </button>
           </header>
 
-          <div className="user-info-sheet__rows">
+          <div className={`user-info-sheet__rows${historyOpen ? " is-history-open" : ""}`}>
             {!historyOpen ? (
               <div className="user-info-sheet__row" role="group" aria-label="내 도로망">
                 <span className="user-info-sheet__row-k">
