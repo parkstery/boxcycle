@@ -1,5 +1,6 @@
 import type { Map as MapboxMap } from "mapbox-gl";
 import { installRideQuality, parseRideQuality } from "./rideQuality";
+import { installRideRoadFill } from "./rideRoadFill";
 import { installRideScenery, rideSceneryEnabled } from "./rideScenery";
 import { installRideTrees, rideTreesEnabled } from "./rideTreeLayer";
 import { installRideViewDistance, parseRideViewDistanceM, STANDARD_RIDE_DATA_SOURCE } from "./rideViewDistance";
@@ -15,8 +16,9 @@ export type RideEnvironment = {
 };
 
 /** 시험 패널(`?fps=1`)의 비교 스위치. 새로고침하면 기본값(모두 켬)으로 돌아간다. */
-export type RideLab = { roadsideTrees: boolean; fog: boolean };
-const lab: RideLab = { roadsideTrees: true, fog: true };
+/** roadFill: 상·하행 두 줄 큰길의 가운데를 도로색으로 메운다(2026-11-26 Chief 채택, 기본 켬). */
+export type RideLab = { roadsideTrees: boolean; fog: boolean; roadFill: boolean };
+const lab: RideLab = { roadsideTrees: true, fog: true, roadFill: true };
 let applyLab: ((next: RideLab) => void) | null = null;
 export function readRideLab(): RideLab {
   return { ...lab };
@@ -46,9 +48,11 @@ export function installRideEnvironment(
       scenery.setWindows(level.windows);
     },
   });
+  const roadFill = installRideRoadFill(map, { dataSource: STANDARD_RIDE_DATA_SOURCE });
   applyLab = (next) => {
     trees.setRoadside(next.roadsideTrees);
     scenery.setFogVisible(next.fog);
+    roadFill.setEnabled(next.roadFill);
   };
   applyLab({ ...lab });
   return {
@@ -57,10 +61,12 @@ export function installRideEnvironment(
       quality.setActive(active);
       trees.setActive(active && rideTreesEnabled(search));
       scenery.setActive(active && rideSceneryEnabled(search));
+      roadFill.setActive(active);
     },
     dispose() {
       applyLab = null;
       quality.dispose();
+      roadFill.dispose();
       scenery.dispose();
       trees.dispose();
       view.dispose();

@@ -29,6 +29,8 @@
 
 /** 낮은 랭크가 아래(먼저 그려짐), 높은 랭크가 위. 값 사이에 틈을 두어 끼워넣기를 허용한다. */
 export const RTW_LAYER_RANK = {
+  /** 상·하행 두 줄 큰길의 가운데 도로면 — Standard bottom 층(땅 위·도로 아래) */
+  "boxcycle-ride-road-fill": 90,
   /** 3D 건물 — 모든 오버레이 아래 */
   "boxcycle-3d-buildings": 100,
   /** 가상 가로수 — 조각 확보용 면과 나무. 글자보다 아래 */

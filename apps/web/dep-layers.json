@@ -453,6 +453,7 @@
       "map/rideEnvironment.ts",
       "map/rideQuality.ts",
       "map/rideRidge.ts",
+      "map/rideRoadFill.ts",
       "map/rideScenery.ts",
       "map/rideTreeLayer.ts",
       "map/rideTreePlacement.ts",

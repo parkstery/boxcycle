@@ -138,6 +138,9 @@ export function FpsPanel() {
         <button type="button" aria-pressed={lab.fog} disabled={terrainOn} onClick={() => toggle("fog")}>
           안개 {lab.fog ? "켬" : "끔"}
         </button>
+        <button type="button" aria-pressed={lab.roadFill} disabled={terrainOn} onClick={() => toggle("roadFill")}>
+          도로 메우기 {lab.roadFill ? "켬" : "끔"}
+        </button>
         <button type="button" aria-pressed={terrainOn} onClick={toggleTerrain}>
           지형 3D {terrainOn ? "켬" : "끔"}
         </button>

@@ -225,6 +225,7 @@ describe("G4 — 레이어 순서 레지스트리", () => {
       "boxcycle-dem",
       "boxcycle-standard-ride-names",
       "boxcycle-ride-trees-src",
+      "boxcycle-ride-road-fill-src",
       // CSS 키프레임 style 태그 id — 지도 레이어가 아니다
       "boxcycle-rider-pedal-strip-keyframes",
     ]);

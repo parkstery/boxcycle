@@ -170,3 +170,5 @@
 | 96 | 2026-11-25 | 「3D 뷰」 숨김·라이더 평면 | **고정35의 3D 뷰 항목을 주행 카메라 메뉴에서 숨긴다(코드 보존, `?ride3d=1`). 카메라 1~6과 줄 배치는 유지.** 지형 OFF에서 라이더는 평면, 경사는 표고 그래프(고정34는 지형 ON에만). | Chief 「6단계 커밋하고 푸시해」, [결과](../../ops/20261124-terrain-off-3d-plan/07-result-stage6.md) | `ride-terrain-menu.test.ts`·`rider-terrain-slope.test.ts` |
 
 | 97 | 2026-11-26 | 가로수 조정·「높이」 표시 | **고정93 보완: 길가 가상 나무는 큰길(trunk~tertiary)에만, 경로 양옆 40m 간격, 150m 안 실제 나무 자료 3그루 이상이면 심지 않음, 일방통행 큰길 두 줄(30m 이내) 사이에는 심지 않음. 숲·공원은 유지. 우하단 카메라 높이는 지형 OFF 「높이」·ON 「고도」.** | Chief 「권장안대로」「고도는 높이로 변경해」「현재 상태 커밋해」, [결과](../../ops/20261124-terrain-off-3d-plan/04-result-stage3.md) | `ride-trees.test.ts`·`ride-terrain-menu.test.ts` |
+
+| 98 | 2026-11-26 | 두 줄 큰길 가운데 메우기 | **지형 OFF 주행에서 30m 안에 반대 방향으로 나란한 일방통행 큰길(trunk~tertiary) 두 줄 사이를 Standard 도로면 색으로 칠해 한 길로 보이게 한다(교량·터널 제외, 주변 300m).** 실제 중앙 화단도 도로색이 될 수 있다. | Chief 「도로메우기 채택하겠다. 커밋하라」(원주 서원대로), [결과](../../ops/20261124-terrain-off-3d-plan/04-result-stage3.md) | `ride-road-fill.test.ts` |
