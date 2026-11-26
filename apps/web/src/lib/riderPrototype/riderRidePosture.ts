@@ -8,7 +8,7 @@
  */
 export const RIDER_RIDE_POSTURES = ["Ride_Hoods", "Ride_Aero", "Ride_Sprint"] as const;
 export type RiderRidePosture = (typeof RIDER_RIDE_POSTURES)[number];
-export const RIDER_RIDE_POSTURE_DEFAULT: RiderRidePosture = "Ride_Hoods";
+const RIDER_RIDE_POSTURE_DEFAULT: RiderRidePosture = "Ride_Hoods";
 /** 자세 전환에 걸리는 시간(ms). */
 export const RIDER_RIDE_POSTURE_BLEND_MS = 600;
 
@@ -38,7 +38,7 @@ export class RiderRidePostureFollow {
   private readonly states = new Map<string, PostureState>();
 
   update(id: string, target: RiderRidePosture | undefined, nowMs: number): RiderRidePostureBlend {
-    const goal = target ?? RIDER_RIDE_POSTURE_DEFAULT;
+    const goal = isRiderRidePosture(target) ? target : RIDER_RIDE_POSTURE_DEFAULT;
     const state = this.states.get(id);
     if (!state) {
       this.states.set(id, { from: goal, to: goal, startMs: Number.NEGATIVE_INFINITY });
