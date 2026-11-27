@@ -132,7 +132,7 @@ const DLAT_PER_M = 1 / 111320;
 const zoom = queryNumber("zoom", 22);
 const pitch = queryNumber("pitch", 67);
 const bearing = queryNumber("bearing", -32);
-let riderCount = Math.max(0, Math.min(3, Math.round(queryNumber("riders", 3))));
+let riderCount = Math.max(0, Math.min(30, Math.round(queryNumber("riders", 3))));
 const animate = queryNumber("animate", 1) !== 0;
 /**
  * `swayHold=1` 이고 정지면, 위상은 그대로 두고 프레임 홀짝으로 1e-9 만 흔든다.
@@ -184,7 +184,16 @@ function buildSpecs(n: number, p: number): RiderGlbModelSpec[] {
       phaseRev: (p + 0.66) % 1,
     },
   ];
-  return all.slice(0, Math.max(0, Math.min(3, n)));
+  for (let i = 3; i < Math.min(30, n); i++) {
+    all.push({
+      id: `peer-${i}`,
+      kind: i % 2 ? "peer" : "pacer",
+      lngLat: [CENTER[0] - (i % 6) * 3 * DLNG_PER_M, CENTER[1] - Math.floor(i / 6) * 2.5 * DLAT_PER_M],
+      bearingDeg: 90,
+      phaseRev: (p + i / 30) % 1,
+    });
+  }
+  return all.slice(0, Math.max(0, Math.min(30, n)));
 }
 
 /** animate=0 이면 고정 위상. swayHold 이면 그 위상에 홀짝 1e-9 를 더한다. */
@@ -315,7 +324,7 @@ window.__rtwBench = {
     return result;
   },
   setRiders: (n: number) => {
-    riderCount = Math.max(0, Math.min(3, Math.round(n)));
+    riderCount = Math.max(0, Math.min(30, Math.round(n)));
     syncRiderPreservedModels(map, buildSpecs(riderCount, displayedPhase()));
     map.triggerRepaint();
     refreshPanel();
