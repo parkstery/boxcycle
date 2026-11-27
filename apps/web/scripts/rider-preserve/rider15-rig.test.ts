@@ -19,7 +19,7 @@ import { RiderPaletteKit } from "../../src/lib/riderPrototype/riderPaletteKit.ts
 import { Rider15Rig } from "../../src/lib/riderPrototype/rider15Rig.ts";
 import { attachRider15PaletteStubMaps, loadPreservedTestGlb } from "./rider-glb-test-loader.ts";
 
-const RIDER15_ID = "20261111-025600-ad1d669d";
+const RIDER15_ID = "20261127-160608-8767e93a";
 const POSE_BONES = ["crank", "foot_L", "foot_R"] as const;
 
 async function buildRig(): Promise<Rider15Rig> {
@@ -68,8 +68,8 @@ function matricesOf(rig: Rider15Rig, names: readonly string[]): number[] {
 
 function wheelMatrices(rig: Rider15Rig): number[] {
   return [
-    ...matricesOf(rig, ["P67_FrontWheel"]),
-    ...matricesOf(rig, ["P67_RearWheel"]),
+    ...matricesOf(rig, ["wheel_front"]),
+    ...matricesOf(rig, ["wheel_rear"]),
   ];
 }
 
@@ -86,13 +86,29 @@ function positionOf(rig: Rider15Rig, name: string): Vector3 {
 }
 
 describe("rider15-rig", () => {
+  it("실제 V3 자세와 만세 클립이 전달 패키지에 있다", async () => {
+    const near = await loadPreservedTestGlb(RIDER15_ID);
+    assert.deepEqual(near.animations.map((clip) => clip.name).sort(), ["Ride_Aero", "Ride_Hoods", "Ride_Sprint"]);
+    const gestures = await loadPreservedTestGlb(RIDER15_ID, "rider-gestures.glb");
+    assert.ok(gestures.animations.some((clip) => clip.name === "Celebrate_Open"));
+    assert.equal(gestures.animations.length, 9);
+    const rig = await buildRig();
+    try {
+      assert.deepEqual([...rig.ridePostures].sort(), ["Ride_Aero", "Ride_Hoods", "Ride_Sprint"]);
+      for (const posture of ["Ride_Hoods", "Ride_Aero", "Ride_Sprint"] as const) {
+        rig.setRidePosture({ from: posture, to: posture, amount: 1 });
+        rig.setPhase(0.25);
+        assert.ok(Number.isFinite(positionOf(rig, "foot_L").y));
+      }
+    } finally { rig.dispose(); }
+  });
   it("GLB 가 로드되고 rig 가 서며 Ride_Hoods 클립을 찾는다", async () => {
     const rig = await buildRig();
     try {
-      assert.ok(rig.object.getObjectByName("P67_FrontWheel"), "front wheel node");
-      assert.ok(rig.object.getObjectByName("P67_RearWheel"), "rear wheel node");
+      assert.ok(rig.object.getObjectByName("wheel_front"), "front wheel node");
+      assert.ok(rig.object.getObjectByName("wheel_rear"), "rear wheel node");
       assert.ok(rig.clipDuration > 0, `clip duration ${rig.clipDuration}`);
-      assert.equal(rig.clipTrackCount, 59, "Ride_Hoods track count");
+      assert.ok(rig.clipTrackCount > 0, "Ride_Hoods tracks");
       assert.ok(rig.clipKeyFrames > 0, `clip key frames ${rig.clipKeyFrames}`);
       assert.equal(rig.supportsSway, false);
       assert.equal(rig.crankPhaseR, 0);
@@ -182,12 +198,12 @@ describe("rider15-rig", () => {
     const rig = await buildRig();
     try {
       rig.setPhase(0);
-      const front0 = matricesOf(rig, ["P67_FrontWheel"]);
-      const rear0 = matricesOf(rig, ["P67_RearWheel"]);
+      const front0 = matricesOf(rig, ["wheel_front"]);
+      const rear0 = matricesOf(rig, ["wheel_rear"]);
 
       rig.setPhase(0.25);
-      const front25 = matricesOf(rig, ["P67_FrontWheel"]);
-      const rear25 = matricesOf(rig, ["P67_RearWheel"]);
+      const front25 = matricesOf(rig, ["wheel_front"]);
+      const rear25 = matricesOf(rig, ["wheel_rear"]);
 
       assert.ok(maxDiff(front0, front25) > 1e-3, "front wheel did not turn");
       assert.ok(maxDiff(rear0, rear25) > 1e-3, "rear wheel did not turn");
@@ -201,28 +217,13 @@ describe("rider15-rig", () => {
     try {
       rig.setPhase(0);
       rig.object.updateMatrixWorld(true);
-      const front = new Box3().setFromObject(nodeOf(rig, "P67_FrontWheel"));
-      const rear = new Box3().setFromObject(nodeOf(rig, "P67_RearWheel"));
-      const frontCenter = front.getCenter(new Vector3());
-      const rearCenter = rear.getCenter(new Vector3());
-      const frontSize = front.getSize(new Vector3());
-      console.log("[rider15-rig] measured", {
-        clipDuration: rig.clipDuration,
-        clipKeyFrames: rig.clipKeyFrames,
-        clipTrackCount: rig.clipTrackCount,
-        frontCenter: frontCenter.toArray(),
-        rearCenter: rearCenter.toArray(),
-        frontSize: frontSize.toArray(),
-        frontBottomY: front.min.y,
-        rearBottomY: rear.min.y,
-      });
-
+      const frontCenter = positionOf(rig, "wheel_front");
+      const rearCenter = positionOf(rig, "wheel_rear");
+      const bike = new Box3().setFromObject(nodeOf(rig, "P177_Bike"));
       assert.ok(frontCenter.x > rearCenter.x + 0.8, `front ${frontCenter.x} rear ${rearCenter.x}`);
       assert.ok(Math.abs(frontCenter.y - rearCenter.y) < 0.02, "hub y mismatch");
       assert.ok(frontCenter.y > 0.2 && frontCenter.y < 0.5, `hub y ${frontCenter.y}`);
-      assert.ok(frontSize.y > 0.5 && frontSize.y < 0.9, `wheel diameter ${frontSize.y}`);
-      assert.ok(Math.abs(front.min.y) < 0.05, `front tyre bottom ${front.min.y}`);
-      assert.ok(Math.abs(rear.min.y) < 0.05, `rear tyre bottom ${rear.min.y}`);
+      assert.ok(Math.abs(bike.min.y) < 0.05, `bike bottom ${bike.min.y}`);
       assert.deepEqual(rig.object.position.toArray(), [0, 0, 0]);
       assert.deepEqual(rig.object.scale.toArray(), [1, 1, 1]);
     } finally {

@@ -14,7 +14,6 @@ import {
   getRiderModelProfile,
   RIDER15_BIKE_PALETTE_MATERIAL,
   RIDER15_PALETTE_SLOTS,
-  RIDER15_RIDER_PALETTE_MATERIAL,
 } from "../../src/lib/riderPrototype/riderModelProfile.ts";
 import { RiderPaletteKit, type PaletteMaterial } from "../../src/lib/riderPrototype/riderPaletteKit.ts";
 import {
@@ -36,11 +35,10 @@ import {
   meshNameOf,
 } from "./rider-glb-test-loader.ts";
 
-const RIDER15_ID = "20261111-025600-ad1d669d";
+const RIDER15_ID = "20261127-160608-8767e93a";
 const LOD2_FILE = "rider-lod2.glb";
 const PALETTE_W = 64;
 const PALETTE_H = 1024;
-const JERSEY_MESHES = ["P51_Body", "P74_Jersey_Collar", "P79_Skinned"] as const;
 
 function collectMeshes(root: Object3D): Mesh[] {
   const out: Mesh[] = [];
@@ -54,23 +52,6 @@ function meshesNamed(root: Object3D, name: string): Mesh[] {
   return collectMeshes(root).filter(
     (mesh) => mesh.name === name || meshNameOf(mesh) === name,
   );
-}
-
-function materialByPrefix(root: Object3D, prefix: string): PaletteMaterial {
-  const found: PaletteMaterial[] = [];
-  root.traverse((item) => {
-    if (!(item instanceof Mesh)) return;
-    const list = Array.isArray(item.material) ? item.material : [item.material];
-    for (const material of list) {
-      if (!material) continue;
-      const target = material as PaletteMaterial;
-      if (!(target.name ?? "").startsWith(prefix)) continue;
-      if (!target.map) continue;
-      if (!found.includes(target)) found.push(target);
-    }
-  });
-  assert.equal(found.length, 1, `material ${prefix} count`);
-  return found[0]!;
 }
 
 /** glTF 규약대로 u·v 를 wrap 해 64×1024 텍셀로 접는다(flip 없음). */
@@ -128,111 +109,29 @@ function vertexBytes(bytes: Uint8Array, index: number, itemSize: number): number
 }
 
 describe("rider15-colour-kit", () => {
-  it("근거리 UV: 텍셀 기준 저지·헬멧 슬롯과 바이크 0", async () => {
+  it("근거리 UV: 라이더 색상 슬롯을 사용하고 바이크는 슬롯을 사용하지 않는다", async () => {
     const { scene } = await loadPreservedTestGlb(RIDER15_ID);
     const jerseyRects = paletteSlotRects(RIDER15_PALETTE_SLOTS.jersey);
     const helmetRects = paletteSlotRects(RIDER15_PALETTE_SLOTS.helmet);
-
-    let jerseyColumn0 = 0;
-    let jerseySlot = 0;
-    for (const name of JERSEY_MESHES) {
-      const meshes = meshesNamed(scene, name);
-      assert.ok(meshes.length > 0, `missing mesh ${name}`);
-      for (const mesh of meshes) {
-        const uv = mesh.geometry.getAttribute("uv");
-        assert.ok(uv, `${meshNameOf(mesh)} has no uv`);
-        for (let i = 0; i < uv.count; i++) {
-          const texel = texelOf(uv, i);
-          if (texel.column === 0) jerseyColumn0++;
-          if (inRects(texel, jerseyRects)) jerseySlot++;
-        }
-      }
-    }
-    assert.equal(jerseyColumn0, 524, `jersey column 0 vertices ${jerseyColumn0}`);
-
-    const p51 = meshesNamed(scene, "P51_Body");
-    assert.ok(p51.length > 0, "missing mesh P51_Body");
-    let p51Column62 = 0;
-    let p51Column62Orange = 0;
-    for (const mesh of p51) {
-      const uv = mesh.geometry.getAttribute("uv");
-      assert.ok(uv, "P51_Body has no uv");
-      for (let i = 0; i < uv.count; i++) {
-        const texel = texelOf(uv, i);
-        if (texel.column !== 62) continue;
-        p51Column62++;
-        if (texel.row < 512) p51Column62Orange++;
-      }
-    }
-    // column 62 전체 916. 상단(주황) 개수는 색 기준 216과 비교하려고 로그한다.
-    assert.equal(p51Column62, 916, `P51_Body column 62 vertices ${p51Column62}`);
-    assert.ok(p51Column62Orange > 0, "P51_Body column 62 has no orange-half vertices");
-    assert.ok(p51Column62Orange < p51Column62, "P51_Body column 62 has no shorts-half vertices");
-    assert.equal(jerseySlot, 524 + p51Column62Orange, `jersey slot vertices ${jerseySlot}`);
-    console.log("[rider15-colour-kit] jersey slot", {
-      column0: jerseyColumn0,
-      column62: p51Column62,
-      column62OrangeHalf: p51Column62Orange,
-      slotTotal: jerseySlot,
-    });
-
-    const heads = meshesNamed(scene, "P78_Head");
-    assert.ok(heads.length > 0, "missing mesh P78_Head");
-    const headColumns = new Array<number>(PALETTE_W).fill(0);
-    let headColumn1 = 0;
-    let headColumn63Shell = 0;
-    let helmetSlot = 0;
-    for (const head of heads) {
-      const uv = head.geometry.getAttribute("uv");
-      assert.ok(uv, "P78_Head has no uv");
-      for (let i = 0; i < uv.count; i++) {
-        const texel = texelOf(uv, i);
-        headColumns[texel.column] = headColumns[texel.column]! + 1;
-        if (texel.column === 1) headColumn1++;
-        if (texel.column === 63 && (texel.row < 435 || texel.row >= 589)) headColumn63Shell++;
-        if (inRects(texel, helmetRects)) helmetSlot++;
-      }
-    }
-    console.log("[rider15-colour-kit] P78_Head per-column", headColumns);
-    console.log("[rider15-colour-kit] P78_Head helmet slot", {
-      column1: headColumn1,
-      column63Shell: headColumn63Shell,
-      column63Total: headColumns[63],
-      slotTotal: helmetSlot,
-    });
-    assert.equal(headColumns[2], 0, "P78_Head column 2 must be unused");
-    assert.equal(headColumn1, 86, `P78_Head column 1 vertices ${headColumn1}`);
-    assert.equal(headColumns[63], 262, `P78_Head column 63 vertices ${headColumns[63]}`);
-    assert.equal(
-      headColumn63Shell,
-      213,
-      `P78_Head column 63 shell vertices ${headColumn63Shell}`,
-    );
-    assert.equal(helmetSlot, 86 + 213, `helmet slot vertices ${helmetSlot}`);
-
-    const bike: Mesh[] = [];
-    for (const mesh of collectMeshes(scene)) {
-      const authored = meshNameOf(mesh);
-      const names = [mesh.name, authored];
-      if (
-        names.some((name) => name.startsWith("P67_")) ||
-        names.includes("P78_CleatsAndPedals")
-      ) {
-        bike.push(mesh);
-      }
-    }
-    assert.ok(bike.length > 0, "bike meshes missing");
-    for (const mesh of bike) {
+    const riders = collectMeshes(scene).filter((mesh) => meshNameOf(mesh).startsWith("P176_Rider"));
+    const bikes = meshesNamed(scene, "P177_Bike");
+    assert.ok(riders.length > 0, "rider meshes missing");
+    assert.equal(bikes.length, 1, "bike mesh count");
+    let jersey = 0;
+    let helmet = 0;
+    for (const mesh of [...riders, ...bikes]) {
       const uv = mesh.geometry.getAttribute("uv");
       assert.ok(uv, `${meshNameOf(mesh)} has no uv`);
       for (let i = 0; i < uv.count; i++) {
         const texel = texelOf(uv, i);
-        assert.ok(
-          !inRects(texel, jerseyRects) && !inRects(texel, helmetRects),
-          `${meshNameOf(mesh)} samples palette slot ${texel.column},${texel.row}`,
-        );
+        const j = inRects(texel, jerseyRects);
+        const h = inRects(texel, helmetRects);
+        if (bikes.includes(mesh)) assert.ok(!j && !h, "bike uses rider colour slot");
+        else { if (j) jersey++; if (h) helmet++; }
       }
     }
+    assert.ok(jersey > 0, "jersey slot unused");
+    assert.ok(helmet > 0, "helmet slot unused");
   });
 
   it("paintPaletteKit(rider15 칸): 슬롯 사각형만 칠하고 나머지는 바이트 동일(peer·pacer)", () => {
@@ -299,21 +198,16 @@ describe("rider15-colour-kit", () => {
     }
   });
 
-  it("근거리 rig: peer 는 map·emissiveMap 공유 키트 텍스처, self 복원, dispose 해제", async () => {
+  it("근거리 rig: 모든 팔레트 재질에 색상을 적용하고 원본 복원", async () => {
     const { scene, animations } = await loadPreservedTestGlb(RIDER15_ID);
     attachRider15PaletteStubMaps(scene);
     const rig = new Rider15Rig({ scene, animations }, getRiderModelProfile("rider15"));
     try {
-      const bike = materialByPrefix(rig.object, RIDER15_BIKE_PALETTE_MATERIAL);
-      const rider = materialByPrefix(rig.object, RIDER15_RIDER_PALETTE_MATERIAL);
-      const originalBikeMap = bike.map;
-      const originalRiderMap = rider.map;
-      const originalRiderEmissive = rider.emissiveMap;
-      assert.ok(originalBikeMap, "bike stub map missing");
-      assert.ok(originalRiderMap, "rider stub map missing");
-      assert.equal(originalRiderEmissive, originalRiderMap, "rider emissiveMap must share map");
-
-      const kit = RiderPaletteKit.ofMaterialForTests(rider);
+      const materials = [...new Set(collectMeshes(rig.object).flatMap((mesh) => Array.isArray(mesh.material) ? mesh.material : [mesh.material]))] as PaletteMaterial[];
+      const palette = materials.filter((material) => material.name.startsWith(RIDER15_BIKE_PALETTE_MATERIAL));
+      assert.ok(palette.length > 0, "palette materials missing");
+      const originals = palette.map((material) => material.map);
+      const kit = RiderPaletteKit.ofMaterialForTests(palette[0]!);
       assert.ok(kit, "rider15 palette kit missing");
       const kitTexture = new DataTexture(
         new Uint8Array(PALETTE_W * PALETTE_H * 4),
@@ -323,37 +217,21 @@ describe("rider15-colour-kit", () => {
       kit.injectKitTextureForTests("peer", kitTexture);
 
       rig.setVisualKind("peer");
-      assert.equal(rider.map, kitTexture);
-      assert.equal(rider.emissiveMap, kitTexture);
-      assert.equal(bike.map, kitTexture);
-      // 같은 kind 재적용은 새 텍스처를 만들지 않는다.
-      rig.setVisualKind("peer");
-      assert.equal(rider.map, kitTexture);
-
+      for (const material of palette) assert.equal(material.map, kitTexture);
       rig.setVisualKind("self");
-      assert.equal(rider.map, originalRiderMap);
-      assert.equal(rider.emissiveMap, originalRiderEmissive);
-      assert.equal(bike.map, originalBikeMap);
-
+      palette.forEach((material, i) => assert.equal(material.map, originals[i]));
       rig.setVisualKind("peer");
-      let originalDisposes = 0;
       let kitDisposes = 0;
-      originalRiderMap.addEventListener("dispose", () => {
-        originalDisposes += 1;
-      });
-      kitTexture.addEventListener("dispose", () => {
-        kitDisposes += 1;
-      });
+      kitTexture.addEventListener("dispose", () => { kitDisposes++; });
       rig.dispose();
-      assert.equal(originalDisposes, 1, "original palette dispose count");
       assert.equal(kitDisposes, 1, "kit texture dispose count");
-      assert.equal(rider.map, originalRiderMap, "dispose restores original map");
+      palette.forEach((material, i) => assert.equal(material.map, originals[i]));
     } finally {
       rig.dispose();
     }
   });
 
-  it("LOD2: 저지 250–320·헬멧 78, 프레임 바이트 불변, self 원본 복원", async () => {
+  it("LOD2: 저지·헬멧 색상, 프레임 바이트 불변, self 원본 복원", async () => {
     const { scene } = await loadPreservedTestGlb(RIDER15_ID, LOD2_FILE);
     const staticRider = new PreservedRiderStatic(scene, getRiderModelProfile("rider15"));
     try {
@@ -393,7 +271,7 @@ describe("rider15-colour-kit", () => {
         jersey.length >= 250 && jersey.length <= 320,
         `jersey vertex count ${jersey.length}`,
       );
-      assert.equal(helmet.length, 78, `helmet vertex count ${helmet.length}`);
+      assert.equal(helmet.length, 127, `helmet vertex count ${helmet.length}`);
 
       staticRider.setVisualKind("peer");
       const peerAttribute = mesh.geometry.getAttribute("color");

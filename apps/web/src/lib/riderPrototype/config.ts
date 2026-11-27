@@ -17,7 +17,7 @@ export const PRESERVED_RIDER_MODELS = {
   s5: { candidateId: "20260921-041426-cd81398e", profile: "s5", nickname: "s5" },
   rider14: { candidateId: "20261015-212136-df8de090", profile: "rider14", nickname: "rider14", lod2: "rider-lod2.glb" },
   rider15: {
-    candidateId: "20261111-025600-ad1d669d",
+    candidateId: "20261127-160608-8767e93a",
     profile: "rider15",
     nickname: "rider15",
     lod2: "rider-lod2.glb",
@@ -48,7 +48,7 @@ export function isRiderSwayDisabledByQuery(): boolean {
 export const PRESERVED_RIDER_CUSTOM_LAYER_ID = "boxcycle-rider-preserved-layer";
 
 export function preservedRiderAssetUrl(
-  fileName: "rider.glb" | "rider-lod2.glb" | "guide-weights.json" | "candidate.json",
+  fileName: "rider.glb" | "rider-lod2.glb" | "rider-gestures.glb" | "guide-weights.json" | "candidate.json",
 ): string {
   const baseRaw = import.meta.env.BASE_URL ?? "/";
   const base = baseRaw.endsWith("/") ? baseRaw : `${baseRaw}/`;

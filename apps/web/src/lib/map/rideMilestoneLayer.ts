@@ -8,6 +8,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { offsetLngLatByBearingMeters } from "../geo/geo";
 import type { RideMilestone } from "../route/rideMilestones";
+import { preservedRiderAssetUrl, resolvePreservedRiderModel } from "../riderPrototype/config";
 import { disposeRiderObject } from "../riderPrototype/preservedRiderRig";
 import { resolveBeforeIdByRank } from "./layerOrder";
 
@@ -294,7 +295,9 @@ export class RideMilestoneLayer implements CustomLayerInterface {
   private loadRider() {
     if (this.riderLoadStarted) return;
     this.riderLoadStarted = true;
-    const url = `${import.meta.env.BASE_URL}rider/celebration/rider15-gestures.glb`;
+    const url = resolvePreservedRiderModel() === "rider15"
+      ? preservedRiderAssetUrl("rider-gestures.glb")
+      : `${import.meta.env.BASE_URL}rider/celebration/rider15-gestures.glb`;
     void new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(url).then(({ scene, animations }) => {
       const clip = animations.find((animation) => animation.name === "Celebrate_Open");
       if (this.disposed || !clip) {
