@@ -1,0 +1,15 @@
+.ride-start-countdown {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgb(12 20 24 / 36%);
+  color: #fff;
+  touch-action: none;
+}
+.ride-start-countdown__label { font-size: 16px; font-weight: 600; }
+.ride-start-countdown__number { font-size: clamp(80px, 30vh, 132px); line-height: 1; font-variant-numeric: tabular-nums; }

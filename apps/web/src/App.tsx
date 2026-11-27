@@ -166,6 +166,8 @@ import {
 import type { SavedRoute } from "./lib/route/repo/firestoreSavedRoutes";
 import { SAVED_ROUTE_NAME_MAX } from "./lib/route/repo/firestoreSavedRoutes";
 import { useAppAuth } from "./hooks/useAppAuth";
+import { useRideStartCountdown } from "./hooks/useRideStartCountdown";
+import { RideStartCountdown } from "./components/RideStartCountdown";
 import { useRouteTokenBalance } from "./hooks/useRouteTokenBalance";
 import {
   isRouteTokenGenerateMetered,
@@ -1498,6 +1500,8 @@ export default function App() {
       : null;
   })();
 
+  const { value: rideStartCountdown, start: waitForRideStartCountdown } = useRideStartCountdown(routeGeometry, user?.uid);
+
   function handleStartRide(fromStart?: boolean, acceptedWarningKey?: string) {
     if (!routeGeometry || rideStatus !== "idle" || !user || !configured || trailStartBusy) return;
     // 이름 없는 라이더는 달리지 않는다 — 닉네임 카드부터(가입 카드를 건너뛴 경로의 마지막 확인)
@@ -1594,6 +1598,7 @@ export default function App() {
           setRouteSummary(
             `Trail ${num} 합류 · ${existing.regionLabel?.trim() || "같은 Trail에서 주행"}`,
           );
+          if (!(await waitForRideStartCountdown())) return;
           resetArrivalGate();
           resetRide(rideStartOffsetMeters);
           setSessionStartOffsetMeters(rideStartOffsetMeters);
@@ -1626,6 +1631,7 @@ export default function App() {
           `Trail ${num} 개설 · ${trail.regionLabel?.trim() || regionLabel.trim() || "새 Trail"}`,
         );
         reloadCurrentTrailMeta();
+        if (!(await waitForRideStartCountdown())) return;
         resetArrivalGate();
         resetRide(rideStartOffsetMeters);
         setSessionStartOffsetMeters(rideStartOffsetMeters);
@@ -3129,6 +3135,7 @@ export default function App() {
   return (
     <div className={`app-shell app-shell--map-first${showAppIntro ? " app-shell--intro" : ""}${!authInitialized || !user ? " app-shell--pre-auth" : ""}`}>
       <RotateOverlay />
+      <RideStartCountdown value={rideStartCountdown} />
       <DevLabPanels
         mapZoom={mapZoom}
         activeQuickCamera={activeQuickCamera}

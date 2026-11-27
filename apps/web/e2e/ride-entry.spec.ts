@@ -54,6 +54,25 @@ async function openBasicCourseModal(page: import('@playwright/test').Page) {
 test.describe('실주행 진입 시퀀스', () => {
   test.skip(!LIVE, 'Firebase 준비 필요 — RIDE_VERIFY_LIVE=1 로 실행')
 
+  test('출발 3초 카운트다운 뒤 running', async ({ page }, testInfo) => {
+    test.setTimeout(60_000) // 익명 인증·경로 준비와 실제 3초 표시를 포함한다.
+    await page.setViewportSize({ width: 800, height: 360 })
+    await enterAsGuest(page)
+    const modal = await openBasicCourseModal(page)
+    await modal.locator('button.oc-modal__item').first().click()
+    const start = page.getByRole('group', { name: '주행 제어' }).getByRole('button', { name: '주행 시작' })
+    await expect(start).toBeEnabled()
+    await start.click()
+    const countdown = page.getByRole('status', { name: '출발 카운트다운' })
+    await expect(countdown).toContainText('3', { timeout: 15_000 })
+    await expect(countdown).toContainText('2')
+    await page.screenshot({ path: testInfo.outputPath('countdown-landscape.png') })
+    await expect(countdown).toContainText('1')
+    await expect(page.getByRole('button', { name: '일시정지' })).not.toBeVisible()
+    await expect(countdown).toBeHidden()
+    await expect(page.getByRole('button', { name: '주행 종료' })).toBeEnabled()
+  })
+
   test('게스트 → 주행 입력 준비 → 입문 코스 → 주행 시작 → running', async ({ page }) => {
     await enterAsGuest(page)
     await prepareManualRideInput(page)
@@ -177,6 +196,12 @@ test.describe('실주행 진입 시퀀스', () => {
       await expect(start).toBeVisible()
       await start.click()
 
+      const countdown = page.getByRole('status', { name: '출발 카운트다운' })
+      await expect(countdown).toContainText('3')
+      await expect(countdown).toContainText('2')
+      await expect(countdown).toContainText('1')
+      await expect(page.getByRole('button', { name: '일시정지' })).not.toBeVisible()
+      await expect(countdown).toBeHidden()
       await expect(page.getByRole('group', { name: '주행 지표' })).toBeVisible()
       await expect(page.getByRole('button', { name: '주행 종료' })).toBeEnabled()
 

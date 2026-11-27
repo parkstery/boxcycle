@@ -9,6 +9,9 @@
 
 ## 진행 중
 
+**11-27 출발3초(Codex)**: 준비 후3→2→1→running, 같은좌표 재수신 유지·실제 경로/계정 변경 취소. 타이머2/2·셀렉터22/22·전용 실제앱1/1(800×360 캡처 확인)·빌드/lint PASS. 최초 전체진입2/8·6실패, 전용3즉시취소 결함 수정 후 전용만 재검.
+다음: 카운트다운 커밋/푸시 게이트→Hosting→운영 JS 해시 확인. [결과](20261111-rider15-app-integration/20261127-start-countdown.md)·[엄지척 제안](20261111-rider15-app-integration/20261127-overtake-thumbs-up-proposal.md). 엄지척 구현 없음.
+
 **11-27 푸시·Hosting(Codex)**: Chief 커밋/푸시/배포 명시 승인. 대상: 바퀴840afc0c·테이퍼a1a6c0dd·후속 반경/전신 롤 제한(현재6파일). 서버/Rules 변경 없음.
 다음 명령: git commit→git push(게이트 우회 없음)→npm run deploy:hosting→운영 JS 해시 확인. 엄지척은 자산·동행 계약 조사 후 제안만.
 

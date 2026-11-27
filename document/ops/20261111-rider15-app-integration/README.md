@@ -1,5 +1,7 @@
 # rider15 앱 통합
 
+11-27 최신: rider15 V3.0 기본 활성. [커브/전신 롤 후속](20261127-cornering-roll-followup.md)·[출발3초](20261127-start-countdown.md)·[추월 엄지척 제안](20261127-overtake-thumbs-up-proposal.md). 아래 초기 단계 표는 당시 기록.
+
 - 시작: 2026-11-11 · 수퍼바이저 Claude Code · 구현 DeepSeek(`dsh` headless, 모델 `deepseek-flash`)
 - 입력: `C:\Users\kdrea\OneDrive\Documents\img\rider15_model_work\release\V3.0_rider15` (모델 승인 완료, 앱 미통합)
 - 후보 ID: `20261111-025600-ad1d669d` → `apps/web/public/rider/preserved/candidates/20261111-025600-ad1d669d/`

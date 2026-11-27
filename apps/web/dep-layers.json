@@ -342,6 +342,7 @@
       "activity/repo/firestoreWorldActivity.ts"
     ],
     "ride": [
+      "ride/startCountdown.ts",
       "ride/backgroundSafeInterval.ts",
       "ride/calorieProfileSync.ts",
       "ride/caloriesEstimate.ts",

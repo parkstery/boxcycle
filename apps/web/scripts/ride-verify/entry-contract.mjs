@@ -8,6 +8,17 @@
 
 export const ENTRY_STEPS = [
   {
+    step: "ride-start-countdown",
+    desc: "시작 준비 성공 뒤3→2→1을 표시하고 실제 주행을 시작",
+    file: "src/components/RideStartCountdown.tsx",
+    anchors: [{ name: "출발 카운트다운", re: /aria-label="출발 카운트다운"/ }],
+    also: [{ file: "src/App.tsx", anchors: [
+      { name: "시작 전 대기", re: /await waitForRideStartCountdown\(\)/ },
+      { name: "표시 연결", re: /<RideStartCountdown value=\{rideStartCountdown\}/ },
+    ] }],
+    selector: `getByRole('status',{name:'출발 카운트다운'})`,
+  },
+  {
     step: "location-choice",
     desc: "최초 위치 컨트롤 클릭은 브라우저 위치 허용으로 직접 연결. 앱 중간 확인 없음.",
     file: "src/components/auth/EntryLocationDialog.tsx",
