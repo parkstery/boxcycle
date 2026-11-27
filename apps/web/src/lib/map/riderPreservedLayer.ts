@@ -86,7 +86,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
   private rig: PreservedRiderHandle | null = null;
   private lod2: PreservedRiderStatic | null = null;
   private specs: readonly RiderGlbModelSpec[] = [];
-  private readonly wheelMotion = new RiderWheelMotion();
+  private readonly wheelMotion = new RiderWheelMotion(2.105);
   private readonly swayEnvelope = new RiderSwayEnvelope();
   private readonly swaySpeed = new RiderSwaySpeedFollow();
   /** rider15 주행 자세(Hoods·Aero·Sprint) 전환 — 라이더 id 별 600 ms 섞기. */
