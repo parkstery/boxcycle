@@ -1,4 +1,5 @@
 import type { CustomLayerInterface, Map as MapboxMap } from "mapbox-gl";
+import { RiderWheelMotion } from "../riderPrototype/riderWheelMotion";
 import { moveLayerByRank, resolveBeforeIdByRank } from "./layerOrder";
 import {
   installRiderRenderCostProbe,
@@ -85,6 +86,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
   private rig: PreservedRiderHandle | null = null;
   private lod2: PreservedRiderStatic | null = null;
   private specs: readonly RiderGlbModelSpec[] = [];
+  private readonly wheelMotion = new RiderWheelMotion();
   private readonly swayEnvelope = new RiderSwayEnvelope();
   private readonly swaySpeed = new RiderSwaySpeedFollow();
   /** rider15 주행 자세(Hoods·Aero·Sprint) 전환 — 라이더 id 별 600 ms 섞기. */
@@ -182,6 +184,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
   }
 
   onRemove(): void {
+    this.wheelMotion.prune(new Set());
     this.generation++;
     this.terrainSlope.prune(new Set());
     unregisterRiderLightLabTarget(this);
@@ -196,6 +199,9 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
   }
 
   setSpecs(specs: readonly RiderGlbModelSpec[]): void {
+    const nowMs = performance.now();
+    this.wheelMotion.prune(new Set(specs.map((spec) => spec.id)));
+    for (const spec of specs) this.wheelMotion.update(spec.id, spec.speedMps ?? 0, nowMs);
     this.specs = specs.slice();
     this.riderRoot.visible = specs.length > 0;
     /*
@@ -208,7 +214,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
       this.lod2State === "ready" && this.lod2 != null,
       animatePose,
     );
-    if (!lod2Showing && specs[0] && this.rig) this.rig.setPhase(specs[0].phaseRev ?? 0);
+    if (!lod2Showing && specs[0] && this.rig) this.rig.setPhase(specs[0].phaseRev ?? 0, this.wheelMotion.get(specs[0].id));
     this.map?.triggerRepaint();
   }
 
@@ -290,7 +296,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
         spec.id, spec.lngLat, spec.bearingDeg, nowMs, terrainEnabled, elevationAt,
       );
       if (rig.setRidePosture) rig.setRidePosture(this.ridePosture.update(spec.id, spec.ridePosture, nowMs));
-      if (animatePose) measureRiderPose(() => rig.setPhase(spec.phaseRev ?? 0));
+      if (animatePose) measureRiderPose(() => rig.setPhase(spec.phaseRev ?? 0, this.wheelMotion.get(spec.id)));
       // 공용 rig 1개와 LOD2 정적 메시를 self/peer 순으로 그린다. 줌 < 19 이고 LOD2 가 있으면 정적 1콜.
       const staticRider = this.lod2;
       const useLod2 = shouldUseRiderLod2(this.lod2State === "ready" && staticRider != null, animatePose);
@@ -372,7 +378,7 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
     this.rig = rig;
     this.riderRoot.add(rig.object);
     this.riderRoot.visible = this.specs.length > 0;
-    if (this.specs[0]) rig.setPhase(this.specs[0].phaseRev ?? 0);
+    if (this.specs[0]) rig.setPhase(this.specs[0].phaseRev ?? 0, this.wheelMotion.get(this.specs[0].id));
     this.loadState = "ready";
     this.map.triggerRepaint();
     return true;

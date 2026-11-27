@@ -11,10 +11,12 @@ const CRANK_RPM_MIN = 14;
 export const CRANK_RPM_MAX = 128;
 /** 이 값 미만이면 “페달링 아님”으로 보고 속도 기반 추정으로 넘긴다 */
 const SENSOR_PEDALING_RPM_THRESHOLD = 8;
+export const ROAD_WHEEL_CIRCUMFERENCE_M = 2.105;
+export const VISUAL_GEAR_RATIO = 3.2;
 
 export function estimateCrankRpmFromSpeedKmh(speedKmh: number): number {
-  const speed = Math.min(95, Math.max(0, speedKmh));
-  return Math.min(CRANK_RPM_MAX, Math.max(16, 22 + speed * 2.85));
+  const speed = Number.isFinite(speedKmh) ? Math.min(95, Math.max(0, speedKmh)) : 0;
+  return Math.min(CRANK_RPM_MAX, speed * 1000 / 60 / ROAD_WHEEL_CIRCUMFERENCE_M / VISUAL_GEAR_RATIO);
 }
 
 export type LivePedalMotionInput = {

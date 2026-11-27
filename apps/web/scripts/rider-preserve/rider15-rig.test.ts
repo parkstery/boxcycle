@@ -224,19 +224,22 @@ describe("rider15-rig", () => {
     }
   });
 
-  it("setPhase(0) 과 setPhase(1) 은 같은 자세다", async () => {
+  it("페달 한 주기 뒤에도 독립 바퀴 위상을 유지한다", async () => {
     const rig = await buildRig();
     try {
       rig.setPhase(0);
       const pose0 = matricesOf(rig, POSE_BONES);
       const wheels0 = wheelMatrices(rig);
 
-      rig.setPhase(1);
+      rig.setPhase(1, 0);
       const pose1 = matricesOf(rig, POSE_BONES);
       const wheels1 = wheelMatrices(rig);
 
       assert.ok(maxDiff(pose0, pose1) <= 1e-9, `pose drift ${maxDiff(pose0, pose1)}`);
       assert.ok(maxDiff(wheels0, wheels1) <= 1e-9, `wheel drift ${maxDiff(wheels0, wheels1)}`);
+      rig.setPhase(1, 0.25);
+      assert.ok(maxDiff(pose1, matricesOf(rig, POSE_BONES)) <= 1e-9, "wheel motion must not change pedal pose");
+      assert.ok(maxDiff(wheels1, wheelMatrices(rig)) > 1e-3, "wheel must turn with a fixed pedal phase");
     } finally {
       rig.dispose();
     }
@@ -323,7 +326,7 @@ describe("rider15-rig", () => {
       assert.ok(Math.abs(front.quaternion.x) < 1e-9 && Math.abs(front.quaternion.y) < 1e-9, "spin axis must be Z");
       assert.deepEqual(front.position.toArray(), [...hubs.wheel_front], "hub stays put");
       assert.deepEqual(rear.position.toArray(), [...hubs.wheel_rear], "hub stays put");
-      rig.setPhase(1);
+      rig.setPhase(1, 0);
       assert.ok(front.quaternion.angleTo(q0) < 1e-9, "phase 1 == phase 0");
     } finally {
       rig.dispose();

@@ -160,7 +160,7 @@ export class Rider15Rig implements PreservedRiderHandle {
   }
 
   /** 위상을 클립 시간으로만 옮긴다. `mixer.update(0)` 이라 벽시계 시간은 흐르지 않는다. */
-  setPhase(phaseRev: number): void {
+  setPhase(phaseRev: number, wheelPhaseRev = phaseRev * WHEEL_REVOLUTIONS_PER_CRANK): void {
     const phase = wrapPhase(phaseRev);
     // 한 회전 = 첫 키~끝 키. GLB 첫 키가 1/24s 라 0 부터 재면 회전마다 1.5% 멈칫한다.
     // 섞이는 자세 클립은 모두 같은 위상에 둔다(크랭크·페달이 어긋나지 않는다).
@@ -170,7 +170,7 @@ export class Rider15Rig implements PreservedRiderHandle {
       action.time = start + phase * (action.getClip().duration - start);
     }
     this.mixer.update(0);
-    this.setWheels(phase);
+    this.setWheels(wheelPhaseRev);
   }
 
   /**
@@ -246,7 +246,7 @@ export class Rider15Rig implements PreservedRiderHandle {
   }
 
   private setWheels(phase: number): void {
-    const angle = -phase * Math.PI * 2 * WHEEL_REVOLUTIONS_PER_CRANK;
+    const angle = -phase * Math.PI * 2;
     for (const wheel of this.wheels) {
       if (wheel.kind === "bone") {
         // 뼈 원점 = 허브. 부모 공간 축으로 돌린 뒤 원래 자세를 곱한다(위치는 그대로).

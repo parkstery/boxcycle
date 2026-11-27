@@ -14,7 +14,7 @@ export interface PreservedRiderHandle {
   readonly object: Group;
   readonly supportsSway: boolean;
   readonly crankPhaseR: number;
-  setPhase(phaseRev: number): void;
+  setPhase(phaseRev: number, wheelPhaseRev?: number): void;
   setSway(v: PreservedRiderSway): void;
   setVisualKind(kind: RiderVisualKind): void;
   dispose(): void;

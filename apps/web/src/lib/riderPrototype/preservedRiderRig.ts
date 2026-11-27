@@ -533,7 +533,7 @@ export class PreservedRiderRig implements PreservedRiderHandle {
     return this.legs[side];
   }
 
-  setPhase(phaseRev: number): void {
+  setPhase(phaseRev: number, wheelPhaseRev = phaseRev * 3.2): void {
     this.lastPhaseRev = phaseRev;
     const crankAngle = phaseRev * Math.PI * 2;
     const poses: Record<Side, LegPose> = {
@@ -549,8 +549,8 @@ export class PreservedRiderRig implements PreservedRiderHandle {
       this.setTransform(`pedal${side}`, new Matrix4().makeTranslation(pedal.x - bind[0], pedal.y - bind[1], pedal.z - bind[2]));
       this.setTransform(`foot${side}`, poses[side].foot);
     }
-    this.setTransform("wheelFront", rotationAt([0, 0, 1], -crankAngle * 3.2, RIG.hubFront));
-    this.setTransform("wheelRear", rotationAt([0, 0, 1], -crankAngle * 3.2, RIG.hubRear));
+    this.setTransform("wheelFront", rotationAt([0, 0, 1], -wheelPhaseRev * Math.PI * 2, RIG.hubFront));
+    this.setTransform("wheelRear", rotationAt([0, 0, 1], -wheelPhaseRev * Math.PI * 2, RIG.hubRear));
   }
 
   dispose(): void {
