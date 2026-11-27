@@ -3,26 +3,16 @@
 | 항목 | 값 |
 |---|---|
 | 담당 | **Claude Code** |
-| 갱신 | 11-25 6단계 푸시. |
+| 갱신 | 11-27 Codex · 동작/출발3초 배포. |
 | 브랜치 | `main2` · 지형 기본1배 |
-| 마지막 배포 | 11-27 Hosting `eee3d1e4`(rider15 V3.0·Hoods). |
+| 마지막 배포 | 11-27 Hosting `911ca9fb`(동작·출발3초). |
 
 ## 진행 중
 
-**11-27 출발3초(Codex)**: 준비 후3→2→1→running, 같은좌표 재수신 유지·실제 경로/계정 변경 취소. 타이머2/2·셀렉터22/22·전용 실제앱1/1(800×360 캡처 확인)·빌드/lint PASS. 최초 전체진입2/8·6실패, 전용3즉시취소 결함 수정 후 전용만 재검.
-다음: 카운트다운 커밋/푸시 게이트→Hosting→운영 JS 해시 확인. [결과](20261111-rider15-app-integration/20261127-start-countdown.md)·[엄지척 제안](20261111-rider15-app-integration/20261127-overtake-thumbs-up-proposal.md). 엄지척 구현 없음.
+**11-27 바퀴·커브·출발3초 배포(Codex)**: main2 911ca9fb까지 푸시·Hosting 완료. 바퀴 속도·테이퍼 반폭13.5m/반경6.37m·전신 롤 속도/가속도 제한·3→2→1 후running 반영. 서버/Rules 변경 없음.
+검증: quick1729/0·진입계약22·타이머2·전용실앱1/1(800×360)·빌드/lint오류0. 운영HTML/JS2종200·로컬SHA일치. 최초전체진입2/8·6실패 후 전용만재검. [릴리스/실패경위](20261111-rider15-app-integration/20261127-rider-motion-release.md). 다음: 운영 새로고침·출발/커브 실폰 확인(안쪽편차3.58m).
 
-**11-27 푸시·Hosting(Codex)**: Chief 커밋/푸시/배포 명시 승인. 대상: 바퀴840afc0c·테이퍼a1a6c0dd·후속 반경/전신 롤 제한(현재6파일). 서버/Rules 변경 없음.
-다음 명령: git commit→git push(게이트 우회 없음)→npm run deploy:hosting→운영 JS 해시 확인. 엄지척은 자산·동행 계약 조사 후 제안만.
-
-**11-27 전신 기울기·반경 재조정(Codex)**: 기존80/120ms 급변·90도 반경3.19m 회귀 재현. 반폭13.5m로 반경6.37m, 롤 속도30도/s·가속도120도/s² 제한. MapView 회전용 실제dt 분리(저FPS 과대 각속도 보정).
-검증: 관련27/27·빌드·lint오류0(기존경고10)·diff PASS, localhost5000 모듈 HTTP200/새 값 확인. [후속 결과](20261111-rider15-app-integration/20261127-cornering-roll-followup.md). 안쪽편차3.58m·실화면 Chief 확인 대기, 미커밋·미배포. 주소 질문 답 대기.
-
-**11-27 커브·테이퍼(Codex)**: 포물선 가중 평균·해석적 접선, 진입/진출 곡률0부터 연속 변화. 반폭6.75m·접선 지연0·전신 기울기35도 상한·진입80/복귀120ms. 파일: geo.ts·riderTurn.ts·수치 회귀2개.
-검증: 관련25/25·quick1725/0·빌드/lint/diff PASS(quick 에뮬레이터·하네스7파일 제외). Chief 커밋 지시로 검증 완료 후 커밋 단계. [최종 결과·제약](20261111-rider15-app-integration/20261127-cornering-motion.md). 다음: 로컬5000 새로고침·커브 테이퍼 화면 확인. 푸시·배포 없음.
-
-**11-27 바퀴 RPM 수정(Codex)**: 둘레2.105m·속도 기반 독립 바퀴 위상, 페달 센서 우선/미연결 기어비3.2 추정 적용. rider14/15·본인/동행/페이서 공용 레이어 반영. GLB·통신 코드 미변경.
-검증: 바퀴/리그/레이어24/24·빌드 PASS. 첫 시험 실행은 Windows import 경로 오류, 다음 실행은 구형 정규식 1건 실패 후 갱신·전부 통과. 840afc0c 커밋 완료·미배포. Chief 로컬5000 화면 확인.
+**11-27 엄지척 제안(Codex)**: 추월 동행 이름+👍 잠시 표시→1탭→상대쪽 제스처/상대알림 권장. 좌우클립각2.708초 존재, 현주행리그와이벤트전송은미구현. [제안](20261111-rider15-app-integration/20261127-overtake-thumbs-up-proposal.md). 통신/Rules/비용 설계는후속결정.
 
 **11-27 rider15 Hosting(Codex)**: main2 eee3d1e4 푸시·배포 완료, quick 1719/0. 운영 JS·GLB 3종 HTTP 200 및 빌드 해시 일치.
 Hoods ±0.2°·몸통 원본 궤적 복원. 전용18/18·기존64/64. 다음: 실폰. [동작 계획](20261111-rider15-app-integration/20261127-rider15-posture-and-motion-plan.md).
