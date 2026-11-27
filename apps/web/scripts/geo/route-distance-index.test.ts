@@ -108,8 +108,9 @@ function linearSmooth(geometry: LineStringGeometry, distanceMeters: number, half
   if (coords.length === 1) return coords[0];
   const span = Math.max(0, halfSpanM);
   const total = Math.max(0, routeLenM);
-  const lo = Math.max(0, Math.min(total, distanceMeters - span));
-  const hi = Math.max(lo, Math.min(total, distanceMeters + span));
+  const center = Math.max(0, Math.min(total, distanceMeters));
+  const lo = Math.max(0, center - span);
+  const hi = Math.min(total, center + span);
   if (hi - lo <= 1e-9) return linearPoint(geometry, lo);
   let acc = 0;
   let sumX = 0;
@@ -128,12 +129,18 @@ function linearSmooth(geometry: LineStringGeometry, distanceMeters: number, half
     const overlapHi = Math.min(hi, acc);
     const overlap = overlapHi - overlapLo;
     if (overlap <= 0) continue;
-    const tMid = ((overlapLo + overlapHi) / 2 - segStart) / segLen;
     const pa = toMercator(a);
     const pb = toMercator(b);
-    sumX += (pa.x + (pb.x - pa.x) * tMid) * overlap;
-    sumY += (pa.y + (pb.y - pa.y) * tMid) * overlap;
-    sumLen += overlap;
+    // Simpson 규칙: 선형 위치 × 2차 커널(3차)을 세 점으로 정확히 적분.
+    for (const [fraction, factor] of [[0, 1], [0.5, 4], [1, 1]]) {
+      const distance = overlapLo + overlap * fraction;
+      const t = (distance - segStart) / segLen;
+      const u = (distance - center) / span;
+      const weight = (1 - u * u) * overlap * factor / 6;
+      sumX += (pa.x + (pb.x - pa.x) * t) * weight;
+      sumY += (pa.y + (pb.y - pa.y) * t) * weight;
+      sumLen += weight;
+    }
   }
   if (!(sumLen > 0)) return linearPoint(geometry, lo);
   return fromMercator(sumX / sumLen, sumY / sumLen);
@@ -207,7 +214,7 @@ function zigzag(): LineStringGeometry {
 }
 
 describe("route distance index", () => {
-  it("무작위 거리 1만 개 — 점·방위·구간평균이 선형 검색과 1e-9", () => {
+  it("무작위 거리 1만 개 — 점·방위·테이퍼 평균이 선형 검색/수치 적분과 1e-9", () => {
     const geometries = [vondel(), zigzag()];
     const rand = mulberry32(20261016);
     let worstHead = 0;

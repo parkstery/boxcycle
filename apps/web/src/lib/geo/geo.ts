@@ -112,7 +112,7 @@ type RouteMeterIndex = {
   cum: Float64Array;
   pointQ: Array<{ d: number; lng: number; lat: number } | null>;
   pointQi: number;
-  smoothQ: Array<{ d: number; span: number; routeLen: number; lng: number; lat: number } | null>;
+  smoothQ: Array<{ d: number; span: number; routeLen: number; lng: number; lat: number; heading: number | null } | null>;
   smoothQi: number;
 };
 
@@ -327,89 +327,94 @@ export function smoothedHeadingAtRouteDistanceMeters(
 }
 
 /**
- * 경로 위 `[d−halfSpan, d+halfSpan]` 의 연속 평균 위치.
- * 선분마다 `겹친 길이 × 겹친 부분의 중점` 을 더하고, 창 길이(끝에서 잘리면 그 길이)로 나눈다.
- * 직선에서는 선 위에 있고, 코너에서는 안쪽으로 둥글게 돈다. 좌표는 머캐이터.
+ * 커브 진입·진출에서 가중치가 0이 되는 포물선 커널(1-u²).
+ * 선분별로 정확히 적분하여 위치와 그 도함수(접선)를 함께 구한다.
+ * 균등 평균과 달리 직선→커브 경계에서 곡률이 0부터 연속으로 변한다.
  */
+function taperedRouteSample(
+  geometry: LineStringGeometry,
+  distanceMeters: number,
+  halfSpanM: number,
+  routeLenM: number,
+): { lng: number; lat: number; heading: number | null } | null {
+  if (![distanceMeters, halfSpanM, routeLenM].every(Number.isFinite)) return null;
+  const idx = routeMeterIndex(geometry);
+  const fallback = () => {
+    const p = getPointOnRouteByDistance(geometry, distanceMeters);
+    return p ? { lng: p[0], lat: p[1], heading: headingAtRouteDistanceMeters(geometry, distanceMeters) } : null;
+  };
+  if (idx.coords.length < 2 || halfSpanM <= 1e-6 || routeLenM <= 0) return fallback();
+  for (const hit of idx.smoothQ) {
+    if (hit && hit.d === distanceMeters && hit.span === halfSpanM && hit.routeLen === routeLenM) return hit;
+  }
+  const span = halfSpanM;
+  const center = Math.max(0, Math.min(routeLenM, distanceMeters));
+  const lo = Math.max(0, center - span);
+  const hi = Math.min(routeLenM, center + span);
+  const cum = idx.cum;
+  const coords = idx.coords;
+  const origin = lngLatToMercatorMeters(coords[0]);
+  let sumX = 0, sumY = 0, mass = 0;
+  let derivativeX = 0, derivativeY = 0, derivativeMass = 0;
+  const begin = firstCumGreaterThan(cum, lo);
+  const start = cum[begin] <= lo ? coords.length : Math.max(0, begin - 1);
+  for (let i = start; i < coords.length - 1; i++) {
+    const length = cum[i + 1] - cum[i];
+    if (length <= 0 || cum[i + 1] <= lo) continue;
+    if (cum[i] >= hi) break;
+    const u0 = (Math.max(lo, cum[i]) - center) / span;
+    const u1 = (Math.min(hi, cum[i + 1]) - center) / span;
+    const d2 = u1 * u1 - u0 * u0;
+    const d3 = u1 ** 3 - u0 ** 3;
+    const d4 = u1 ** 4 - u0 ** 4;
+    const weight = span * (u1 - u0 - d3 / 3);
+    const moment = span * span * (d2 / 2 - d4 / 4);
+    const a = lngLatToMercatorMeters(coords[i]);
+    const b = lngLatToMercatorMeters(coords[i + 1]);
+    const vx = (b.x - a.x) / length;
+    const vy = (b.y - a.y) / length;
+    const x = a.x - origin.x + vx * (center - cum[i]);
+    const y = a.y - origin.y + vy * (center - cum[i]);
+    sumX += x * weight + vx * moment;
+    sumY += y * weight + vy * moment;
+    mass += weight;
+    derivativeX += x * d2 + vx * span * 2 * d3 / 3;
+    derivativeY += y * d2 + vy * span * 2 * d3 / 3;
+    derivativeMass += d2;
+  }
+  if (!(mass > 1e-9)) return fallback();
+  const x = sumX / mass, y = sumY / mass;
+  const dx = derivativeX - x * derivativeMass;
+  const dy = derivativeY - y * derivativeMass;
+  const point = mercatorMetersToLngLat(origin.x + x, origin.y + y);
+  const heading = Math.hypot(dx, dy) > 1e-10
+    ? (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360
+    : headingAtRouteDistanceMeters(geometry, center);
+  const result = { d: distanceMeters, span, routeLen: routeLenM, lng: point[0], lat: point[1], heading };
+  idx.smoothQ[idx.smoothQi] = result;
+  idx.smoothQi = (idx.smoothQi + 1) % ROUTE_QUERY_SLOTS;
+  return result;
+}
+
+/** 테이퍼를 적용한 표시 위치. halfSpanM은 앞뒤 영향 범위(m). */
 export function smoothedRoutePoint(
   geometry: LineStringGeometry,
   distanceMeters: number,
   halfSpanM: number,
   routeLenM: number = lineStringLengthMeters(geometry),
 ): LngLat | null {
-  if (!Number.isFinite(distanceMeters) || !Number.isFinite(halfSpanM) || !Number.isFinite(routeLenM)) {
-    return null;
-  }
-  const coords = geometry.coordinates as LngLat[];
-  if (!coords.length) return null;
-  if (coords.length === 1) return coords[0];
-
-  const span = Math.max(0, halfSpanM);
-  const total = Math.max(0, routeLenM);
-  const lo = Math.max(0, Math.min(total, distanceMeters - span));
-  const hi = Math.max(lo, Math.min(total, distanceMeters + span));
-  if (hi - lo <= 1e-9) return getPointOnRouteByDistance(geometry, lo);
-
-  const idx = routeMeterIndex(geometry);
-  const q = idx.smoothQ;
-  for (let s = 0; s < ROUTE_QUERY_SLOTS; s += 1) {
-    const hit = q[s];
-    if (hit && hit.d === distanceMeters && hit.span === halfSpanM && hit.routeLen === routeLenM) {
-      return [hit.lng, hit.lat];
-    }
-  }
-
-  const cum = idx.cum;
-  const indexed = idx.coords;
-  let sumX = 0;
-  let sumY = 0;
-  let sumLen = 0;
-  const begin = firstCumGreaterThan(cum, lo);
-  const start = cum[begin] <= lo ? indexed.length : Math.max(0, begin - 1);
-  for (let i = start; i < indexed.length - 1; i += 1) {
-    const segLen = cum[i + 1] - cum[i];
-    if (segLen <= 0) continue;
-    const segStart = cum[i];
-    const segEnd = cum[i + 1];
-    if (segEnd <= lo) continue;
-    if (segStart >= hi) break;
-    const overlapLo = Math.max(lo, segStart);
-    const overlapHi = Math.min(hi, segEnd);
-    const overlap = overlapHi - overlapLo;
-    if (overlap <= 0) continue;
-    const tMid = ((overlapLo + overlapHi) / 2 - segStart) / segLen;
-    const a = indexed[i];
-    const b = indexed[i + 1];
-    const pa = lngLatToMercatorMeters(a);
-    const pb = lngLatToMercatorMeters(b);
-    sumX += (pa.x + (pb.x - pa.x) * tMid) * overlap;
-    sumY += (pa.y + (pb.y - pa.y) * tMid) * overlap;
-    sumLen += overlap;
-  }
-  if (!(sumLen > 0)) return getPointOnRouteByDistance(geometry, lo);
-  const point = mercatorMetersToLngLat(sumX / sumLen, sumY / sumLen);
-  idx.smoothQ[idx.smoothQi] = {
-    d: distanceMeters,
-    span: halfSpanM,
-    routeLen: routeLenM,
-    lng: point[0],
-    lat: point[1],
-  };
-  idx.smoothQi = (idx.smoothQi + 1) % ROUTE_QUERY_SLOTS;
-  return point;
+  const sample = taperedRouteSample(geometry, distanceMeters, halfSpanM, routeLenM);
+  return sample ? [sample.lng, sample.lat] : null;
 }
 
-/**
- * 구간 평균 곡선의 진행 방위(도).
- * 도함수는 `(P(d+h) − P(d−h)) / 2h` 이므로 같은 반경의 끝점 현과 같다.
- */
+/** 표시 위치와 같은 곡선의 해석적 접선. 위치와 방향의 어긋남을 막는다. */
 export function smoothedCurveHeadingAtRouteDistanceMeters(
   geometry: LineStringGeometry,
   distanceMeters: number,
   halfSpanM: number,
   routeLenM: number = lineStringLengthMeters(geometry),
 ): number | null {
-  return smoothedHeadingAtRouteDistanceMeters(geometry, distanceMeters, halfSpanM, routeLenM);
+  return taperedRouteSample(geometry, distanceMeters, halfSpanM, routeLenM)?.heading ?? null;
 }
 
 /** point 가 올라간 **현재 세그먼트** 방향(도). */

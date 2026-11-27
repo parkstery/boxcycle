@@ -1,18 +1,19 @@
 /**
  * 코너에서 라이더 방향·기울기.
  *
- * 목표 방향은 구간 평균 곡선의 끝점 현이다. 여기서는 그 목표를 각속도로 추종한 뒤
- * `atan(v·ω/g)` 로 안쪽 기울기를 만든다. 위치는 호출부가 같은 반경의 구간 평균에 둔다.
+ * 경로 방향은 표시 위치 곡선의 접선에 정렬한다. GPS 방향만 시간 보간한다.
+ * `atan(v·ω/g) = atan(v²/(g·R))` 로 몸과 자전거 전체의 안쪽 기울기를 만든다.
  */
 
-/** 위치·방향이 같이 쓰는 곡선 반경(m). 경로 거리 ±이 값의 구간 평균이 화면 위치다. */
-export const RIDER_CURVE_HALF_SPAN_M = 4;
+/** 위치·방향에 공통 적용하는 테이퍼 반폭(m). 실제 회전 반경과는 다르다. */
+export const RIDER_CURVE_HALF_SPAN_M = 6.75;
 /** 경로 거리가 없는 방향(GPS). */
 export const RIDER_TURN_HEADING_TAU_S = 0.15;
-/** 경로 거리로 이미 매끄러운 방향(본인·페이서·동행). */
-export const RIDER_TURN_HEADING_TAU_ROUTE_S = 0.03;
-const RIDER_LEAN_MAX_DEG = 20;
-const RIDER_LEAN_TAU_S = 0.25;
+/** 이미 공간 보간한 경로 접선은 지연 없이 따른다(옆미끄럼 방지). */
+export const RIDER_TURN_HEADING_TAU_ROUTE_S = 0;
+const RIDER_LEAN_MAX_DEG = 35;
+const RIDER_LEAN_IN_TAU_S = 0.08;
+const RIDER_LEAN_OUT_TAU_S = 0.12;
 
 const GRAVITY_MPS2 = 9.81;
 
@@ -41,7 +42,7 @@ function approachHeadingDeg(cur: number, target: number, dt: number, tau: number
  * 오른쪽으로 돌면 양수. 상한은 `RIDER_LEAN_MAX_DEG`.
  */
 function physicalLeanDeg(speedMps: number, yawRateRadPerS: number): number {
-  const v = Number.isFinite(speedMps) ? speedMps : 0;
+  const v = Number.isFinite(speedMps) ? Math.max(0, speedMps) : 0;
   const w = Number.isFinite(yawRateRadPerS) ? yawRateRadPerS : 0;
   const raw = (Math.atan((v * w) / GRAVITY_MPS2) * 180) / Math.PI;
   if (!Number.isFinite(raw)) return 0;
@@ -55,9 +56,9 @@ export class RiderTurnSmoother {
 
   /**
    * 처음 보는 id 는 목표 방향·기울기 0.
-   * 이후 방향은 `approachHeadingDeg`, ω 는 그 스무딩된 방향의 프레임 변화율,
-   * 기울기는 `physicalLeanDeg` 를 τ 로 추종.
-   * `headingTauS` 를 생략하면 GPS 용 0.15 s. 경로 방향은 `RIDER_TURN_HEADING_TAU_ROUTE_S`.
+   * 경로 방향은 접선 그대로, GPS 방향은 `approachHeadingDeg` 로 추종한다.
+   * ω 는 표시 방향의 변화율. 기울기는 진입 80ms·복귀 120ms 로 추종한다.
+   * headingTauS=0 은 공간 보간된 경로 전용. 생략하면 GPS 용 0.15s.
    */
   update(
     id: string,
@@ -74,13 +75,14 @@ export class RiderTurnSmoother {
       return { headingDeg: born.headingDeg, leanDeg: born.leanDeg };
     }
     const dt = Number.isFinite(dtSec) && dtSec > 0 ? dtSec : 0;
-    const tau = Number.isFinite(headingTauS) && headingTauS > 0 ? headingTauS : RIDER_TURN_HEADING_TAU_S;
+    const tau = Number.isFinite(headingTauS) && headingTauS >= 0 ? headingTauS : RIDER_TURN_HEADING_TAU_S;
     const headingDeg =
-      dt > 0 ? approachHeadingDeg(prev.headingDeg, target, dt, tau) : prev.headingDeg;
+      dt > 0 ? (tau === 0 ? target : approachHeadingDeg(prev.headingDeg, target, dt, tau)) : prev.headingDeg;
     const deltaDeg = shortestAngleDeltaDeg(prev.headingDeg, headingDeg);
     const yawRateRadPerS = dt > 0 ? ((deltaDeg * Math.PI) / 180) / dt : 0;
     const leanTarget = physicalLeanDeg(speedMps, yawRateRadPerS);
-    const leanAlpha = dt > 0 ? 1 - Math.exp(-dt / RIDER_LEAN_TAU_S) : 0;
+    const leanTau = Math.abs(leanTarget) > Math.abs(prev.leanDeg) ? RIDER_LEAN_IN_TAU_S : RIDER_LEAN_OUT_TAU_S;
+    const leanAlpha = dt > 0 ? 1 - Math.exp(-dt / leanTau) : 0;
     const leanRaw = prev.leanDeg + (leanTarget - prev.leanDeg) * leanAlpha;
     const next: TurnState = {
       headingDeg: Number.isFinite(headingDeg) ? headingDeg : prev.headingDeg,

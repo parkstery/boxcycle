@@ -8,7 +8,6 @@ import {
   lineStringLengthMeters,
   offsetLngLatByBearingMeters,
   smoothedCurveHeadingAtRouteDistanceMeters,
-  smoothedHeadingAtRouteDistanceMeters,
   smoothedRoutePoint,
   type LineStringGeometry,
   type LngLat,
@@ -270,7 +269,7 @@ describe("rider turn", () => {
     assert.ok(elapsed != null && elapsed >= 0.5 && elapsed <= 3, `elapsed ${elapsed}`);
     assert.ok(Math.abs(mid.leanDeg) >= 8, `mid lean ${mid.leanDeg.toFixed(2)} at d=${mid.d.toFixed(1)}`);
     for (const s of samples) {
-      assert.ok(Math.abs(s.leanDeg) <= 20, `lean cap ${s.leanDeg}`);
+      assert.ok(Math.abs(s.leanDeg) <= 35, `lean cap ${s.leanDeg}`);
       assert.ok(Number.isFinite(s.headingDeg) && Number.isFinite(s.leanDeg));
       const straight = s.d < cornerM - 15 || s.d > cornerM + 15;
       if (straight) assert.ok(Math.abs(s.leanDeg) < 0.5, `straight lean ${s.leanDeg.toFixed(3)} at d=${s.d.toFixed(1)}`);
@@ -299,14 +298,13 @@ describe("rider turn", () => {
     }
   });
 
-  it("90° 코너에서 구간 평균 위치와 끝점 현이 어긋나지 않는다", () => {
+  it("90° 코너에서 테이퍼 위치와 해석적 접선이 어긋나지 않는다", () => {
     const geom = cornerGeometry(-90);
     const len = lineStringLengthMeters(geom);
     const cornerM = getDistanceMeters(geom.coordinates[0], geom.coordinates[1]);
     const h = RIDER_CURVE_HALF_SPAN_M;
-    // 90°: ∫들어오는 (−h²/2, 0) + ∫나가는 (0, h²/2), 창 2h 로 나누면 (−h/4, h/4).
-    // 꼭짓점까지 거리 = (h/4)·√2 = h/(2√2).
-    const expectInset = h / (2 * Math.SQRT2);
+    // 포물선 커널의 반쪽 1차 모멘트: 각 축 편차3h/16, 꼭짓점 거리3h/(8√2).
+    const expectInset = 3 * h / (8 * Math.SQRT2);
     const inset = cornerInsetM(geom, intervalPoint);
     const c1Inset = cornerInsetM(geom, c1Midpoint);
     assert.ok(Math.abs(inset - expectInset) <= 0.05, `inset ${inset.toFixed(3)} expect ${expectInset.toFixed(3)}`);
@@ -314,9 +312,6 @@ describe("rider turn", () => {
     const stepM = SPEED_MPS * DT_SEC;
     let straightWorst = 0;
     for (let d = 0; d <= len; d += stepM) {
-      const curveH = intervalHeading(geom, d, len);
-      const chordH = smoothedHeadingAtRouteDistanceMeters(geom, d, h, len);
-      assert.equal(curveH, chordH);
       if (Math.abs(d - cornerM) <= h + 1) continue;
       const p = intervalPoint(geom, d, len);
       assert.ok(p);
@@ -381,7 +376,7 @@ describe("rider turn", () => {
     }
   });
 
-  it("경로 방향 τ 는 0.03 s 이고 생략하면 0.15 s 다", () => {
+  it("경로 접선은 지연 없이 정렬하고 GPS 방향은 0.15s 보간한다", () => {
     const gps = new RiderTurnSmoother();
     const route = new RiderTurnSmoother();
     gps.update("a", 0, 0, DT_SEC);
@@ -390,8 +385,57 @@ describe("rider turn", () => {
     const r = route.update("a", 90, SPEED_MPS, DT_SEC, RIDER_TURN_HEADING_TAU_ROUTE_S);
     const expectDeg = (tau: number) => 90 * (1 - Math.exp(-DT_SEC / tau));
     assert.equal(RIDER_TURN_HEADING_TAU_S, 0.15);
-    assert.equal(RIDER_TURN_HEADING_TAU_ROUTE_S, 0.03);
+    assert.equal(RIDER_TURN_HEADING_TAU_ROUTE_S, 0);
     assert.ok(Math.abs(g.headingDeg - expectDeg(RIDER_TURN_HEADING_TAU_S)) < 1e-6, `gps ${g.headingDeg}`);
-    assert.ok(Math.abs(r.headingDeg - expectDeg(RIDER_TURN_HEADING_TAU_ROUTE_S)) < 1e-6, `route ${r.headingDeg}`);
+    assert.ok(Math.abs(r.headingDeg - 90) < 1e-6, `route ${r.headingDeg}`);
+  });
+});
+
+
+describe("속도·반경에 따른 전신 코너링", () => {
+  it("커브 진입·진출의 곡률은 직선의 0에서 서서히 변한다", () => {
+    const geom = cornerGeometry(90);
+    const corner = getDistanceMeters(geom.coordinates[0], geom.coordinates[1]);
+    const h = RIDER_CURVE_HALF_SPAN_M;
+    const eps = h * 0.005;
+    const heading = (d: number) => smoothedCurveHeadingAtRouteDistanceMeters(geom, d, h)!;
+    const rate = (d: number) => Math.abs(shortestAngleDeltaDeg(heading(d - eps), heading(d + eps))) / (2 * eps);
+    const peak = rate(corner);
+    assert.ok(peak > 0);
+    assert.ok(rate(corner - h + eps) < peak * 0.05, "entry must taper from zero curvature");
+    assert.ok(rate(corner + h - eps) < peak * 0.05, "exit must taper to zero curvature");
+    assert.ok(rate(corner - h * 0.5) > rate(corner - h + eps));
+  });
+  it("원 궤적에서 atan(v²/gR) 기울기, 좌우·프레임률에 무관", () => {
+    for (const fps of [15, 30, 60]) for (const v of [5, 10]) for (const radius of [20, 50]) for (const sign of [-1, 1]) {
+      const smoother = new RiderTurnSmoother();
+      const dt = 1 / fps;
+      smoother.update("circle", 350, v, dt, RIDER_TURN_HEADING_TAU_ROUTE_S);
+      let lean = 0;
+      for (let i = 1; i <= fps * 2; i++) {
+        const target = 350 + sign * v / radius * dt * i * 180 / Math.PI;
+        const result = smoother.update("circle", target, v, dt, RIDER_TURN_HEADING_TAU_ROUTE_S);
+        assert.ok(Math.abs(shortestAngleDeltaDeg(result.headingDeg, target)) < 1e-8, "heading must align with path tangent");
+        lean = result.leanDeg;
+      }
+      const expected = sign * Math.atan(v * v / (9.81 * radius)) * 180 / Math.PI;
+      assert.ok(Math.abs(lean - expected) < 0.01, `${fps}fps v=${v} R=${radius}: ${lean} expected ${expected}`);
+    }
+  });
+
+  it("커브 진입에 신속히 기울고 정지하면 전신이 바로 선다", () => {
+    const smoother = new RiderTurnSmoother();
+    const dt = 1 / 60;
+    const v = 10, radius = 30;
+    smoother.update("a", 0, v, dt, RIDER_TURN_HEADING_TAU_ROUTE_S);
+    let heading = 0, lean = 0;
+    for (let i = 0; i < 12; i++) {
+      heading += v / radius * dt * 180 / Math.PI;
+      lean = smoother.update("a", heading, v, dt, RIDER_TURN_HEADING_TAU_ROUTE_S).leanDeg;
+    }
+    const steady = Math.atan(v * v / (9.81 * radius)) * 180 / Math.PI;
+    assert.ok(lean > steady * 0.9, `entry lean ${lean}`);
+    for (let i = 0; i < 60; i++) lean = smoother.update("a", heading, 0, dt, RIDER_TURN_HEADING_TAU_ROUTE_S).leanDeg;
+    assert.ok(Math.abs(lean) < 0.01, `stopped lean ${lean}`);
   });
 });
