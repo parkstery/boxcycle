@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 3,
+  "nickname": "rider15",
+  "modelProfile": "rider15",
+  "modelVersion": "V3.0",
+  "sourceCandidate": "V3.0_lite (P193, Sprint 3°)",
+  "stage": "MODEL_RELEASE_PACKAGE",
+  "status": "MODEL_READY_APP_NOT_INTEGRATED",
+  "modelPreparedAtKst": "2026-11-27",
+  "replaces": "rider15 candidate 20261111-025600-ad1d669d (P80)",
+  "compression": "EXT_meshopt_compression+KHR_mesh_quantization(12-bit positions/morphs)+KHR_materials_unlit",
+  "files": {
+    "glb": "rider.glb",
+    "lod2": "rider-lod2.glb",
+    "gestures": "rider-gestures.glb"
+  },
+  "bytes": {
+    "glb": 435288,
+    "lod2": 33376,
+    "gestures": 917432
+  },
+  "sha256": {
+    "glb": "8767e93afb64f2b5440b34a3c9a4c71f3535da91c561a6889c1539094e32f98a",
+    "lod2": "82d16a2b04ba44483b3ca384cd0d4eae1ffdb7d4b77571b928bde773bd04373c",
+    "gestures": "266f971a4868915ec603c4f8e422d8e6239c3d16a771280905f0c97cc709ed5a"
+  },
+  "near": {
+    "triangles": 17743,
+    "primitives": 3,
+    "skinJoints": 41,
+    "baseClip": "Ride_Hoods"
+  },
+  "lod2": {
+    "triangles": 5598,
+    "primitives": 1,
+    "static": true
+  },
+  "clips": {
+    "base": [
+      "Ride_Hoods"
+    ],
+    "postures": [
+      "Ride_Aero",
+      "Ride_Sprint"
+    ],
+    "gestures": [
+      "Head_Left_45",
+      "Head_Right_45",
+      "LookThumb_Left",
+      "LookThumb_Right",
+      "Celebrate_Open",
+      "Fighting_R"
+    ]
+  },
+  "candidateId": "20261127-160608-8767e93a",
+  "stagedAtKst": "2026-11-27T16:06:08+09:00"
+}
