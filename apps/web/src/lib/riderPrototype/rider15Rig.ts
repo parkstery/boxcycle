@@ -19,6 +19,7 @@ import {
 } from "./riderRidePosture";
 import type { PreservedRiderHandle, PreservedRiderSway } from "./preservedRiderHandle";
 import { disposeRiderObject } from "./preservedRiderRig";
+import { tuneRider15HoodsClip } from "./rider15HoodsClip";
 
 /** rider14 리그와 같은 시각 속도 — 크랭크 1회전당 바퀴 3.2회전. */
 const WHEEL_REVOLUTIONS_PER_CRANK = 3.2;
@@ -62,7 +63,7 @@ function rotationAt(axis: Vector3, angle: number, pivot: Vector3): Matrix4 {
 }
 
 /**
- * rider15 전용 리그. 표준 glTF 스킨과 `Ride_Hoods` 클립을 그대로 쓰고,
+ * rider15 전용 리그. 표준 glTF 스킨과 주행 클립을 사용하고,
  * 페달 위상은 클립 시간으로만 옮긴다(벽시계 시간은 쓰지 않는다).
  *
  * 좌표계는 rider14 와 같다 — +X 전진, +Y 위, m 단위, 원점이 지면.
@@ -119,7 +120,7 @@ export class Rider15Rig implements PreservedRiderHandle {
       : Math.max(...clip.tracks.map((track) => track.times.length));
 
     this.mixer = new AnimationMixer(this.root);
-    this.action = this.mixer.clipAction(clip);
+    this.action = this.mixer.clipAction(tuneRider15HoodsClip(this.root, clip));
     this.action.setLoop(LoopRepeat, Infinity);
     this.action.clampWhenFinished = false;
     this.action.enabled = true;
@@ -173,8 +174,8 @@ export class Rider15Rig implements PreservedRiderHandle {
   }
 
   /**
-   * 주행 자세를 정한다. `from`→`to` 를 `amount` 만큼 섞는다. 자전거 틸팅은 각 자세 클립에 들어 있다
-   * (Sprint 최대 15°, Hoods·Aero 8° 이내). GLB 에 없는 자세는 기본 클립으로 대신한다.
+   * 주행 자세를 정한다. `from`→`to` 를 `amount` 만큼 섞는다.
+   * GLB 에 없는 자세는 기본 클립으로 대신한다.
    * 다음 `setPhase` 부터 반영된다.
    */
   setRidePosture(blend: RiderRidePostureBlend): void {

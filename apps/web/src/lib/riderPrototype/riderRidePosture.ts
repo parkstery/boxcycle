@@ -1,9 +1,7 @@
 /**
  * rider15 주행 자세 전환. 자세별 클립(`Ride_Hoods`·`Ride_Aero`·`Ride_Sprint`)을 섞는다.
  *
- * 자전거 틸팅은 모델 클립에 들어 있다.
- * - Sprint: 엉덩이를 안장에서 든 자세. 체중이 실린(아래로 미는) 발의 반대쪽으로 최대 15° 기운다.
- * - Hoods·Aero: 안장에 앉은 자세. 틸팅은 8° 이내다.
+ * rider15 V3.0의 차체 롤은 Hoods ±0.2°(리그에서 조정), Aero ±0.6°, Sprint ±3°다.
  * 언제 Sprint 로 바꿀지(파워·케이던스 등)는 이 모듈 밖에서 정한다.
  */
 export const RIDER_RIDE_POSTURES = ["Ride_Hoods", "Ride_Aero", "Ride_Sprint"] as const;

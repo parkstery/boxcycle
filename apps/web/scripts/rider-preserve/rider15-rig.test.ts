@@ -7,7 +7,7 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { AnimationClip, Bone, Box3, DataTexture, Group, Mesh, Object3D, Quaternion, QuaternionKeyframeTrack, Vector3 } from "three";
+import { AnimationClip, AnimationMixer, Bone, Box3, DataTexture, Euler, Group, Mesh, Object3D, Quaternion, QuaternionKeyframeTrack, Vector3 } from "three";
 import { RiderRidePostureFollow, RIDER_RIDE_POSTURE_BLEND_MS } from "../../src/lib/riderPrototype/riderRidePosture.ts";
 import {
   PRESERVED_RIDER_ACTIVE_MODEL,
@@ -86,6 +86,67 @@ function positionOf(rig: Rider15Rig, name: string): Vector3 {
 }
 
 describe("rider15-rig", () => {
+  it("차체 롤을 줄인 Hoods가 원본 몸통 궤적과 차체 기준 접점을 유지한다", async () => {
+    const rig = await buildRig();
+    const source = await loadPreservedTestGlb(RIDER15_ID);
+    const clip = source.animations.find((item) => item.name === "Ride_Hoods")!;
+    const mixer = new AnimationMixer(source.scene);
+    mixer.clipAction(clip).play();
+    const originalBike = source.scene.getObjectByName("P72_BikeRoll")!;
+    const bike = nodeOf(rig, "P72_BikeRoll");
+    let maxBodyError = 0;
+    let maxContactError = 0;
+    let maxContactRotation = 0;
+    try {
+      for (let i = 0; i < 257; i++) {
+        const phase = i / 257;
+        mixer.setTime(rig.clipStart + phase * (clip.duration - rig.clipStart));
+        rig.setPhase(phase);
+        for (const name of ["pelvis", "chest", "head"]) {
+          const original = source.scene.getObjectByName(name)!.getWorldPosition(new Vector3());
+          maxBodyError = Math.max(maxBodyError, Math.abs(positionOf(rig, name).z - original.z));
+        }
+        for (const name of ["wrist_L", "wrist_R", "foot_L", "foot_R"]) {
+          const original = source.scene.getObjectByName(name)!;
+          const adjusted = nodeOf(rig, name);
+          const reference = originalBike.worldToLocal(original.getWorldPosition(new Vector3()));
+          const actual = bike.worldToLocal(adjusted.getWorldPosition(new Vector3()));
+          maxContactError = Math.max(maxContactError, reference.distanceTo(actual));
+          const referenceRotation = original.getWorldQuaternion(new Quaternion())
+            .premultiply(originalBike.getWorldQuaternion(new Quaternion()).invert());
+          const actualRotation = adjusted.getWorldQuaternion(new Quaternion())
+            .premultiply(bike.getWorldQuaternion(new Quaternion()).invert());
+          maxContactRotation = Math.max(maxContactRotation, referenceRotation.angleTo(actualRotation));
+        }
+      }
+      assert.ok(maxBodyError < 0.001, `body error: ${maxBodyError * 1000} mm`);
+      assert.ok(maxContactError < 0.002, `contact error: ${maxContactError * 1000} mm`);
+      assert.ok(maxContactRotation < 0.02, `contact rotation error: ${maxContactRotation} rad`);
+      console.log("[rider15-hoods] max error", { bodyMm: maxBodyError * 1000, contactMm: maxContactError * 1000, contactDeg: maxContactRotation * 180 / Math.PI });
+    } finally {
+      rig.dispose();
+    }
+  });
+
+  it("V3 차체 롤은 Hoods에서만 좌우 0.2°로 줄어든다", async () => {
+    const rig = await buildRig();
+    try {
+      const bike = nodeOf(rig, "P72_BikeRoll");
+      const angles = new Euler();
+      for (const [posture, amplitude] of [["Ride_Hoods", 0.2], ["Ride_Aero", 0.6], ["Ride_Sprint", 3]] as const) {
+        rig.setRidePosture({ from: posture, to: posture, amount: 1 });
+        const rolls = Array.from({ length: 128 }, (_, i) => {
+          rig.setPhase(i / 128);
+          return angles.setFromQuaternion(bike.quaternion).x * 180 / Math.PI;
+        });
+        assert.ok(Math.abs(Math.min(...rolls) + amplitude) < 0.03, `${posture} min: ${Math.min(...rolls)}°`);
+        assert.ok(Math.abs(Math.max(...rolls) - amplitude) < 0.03, `${posture} max: ${Math.max(...rolls)}°`);
+      }
+    } finally {
+      rig.dispose();
+    }
+  });
+
   it("실제 V3 자세와 만세 클립이 전달 패키지에 있다", async () => {
     const near = await loadPreservedTestGlb(RIDER15_ID);
     assert.deepEqual(near.animations.map((clip) => clip.name).sort(), ["Ride_Aero", "Ride_Hoods", "Ride_Sprint"]);
