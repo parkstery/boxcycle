@@ -2741,7 +2741,8 @@ export function MapView({
       const map = mapRef.current;
       // isStyleLoaded() 는 위성+3D terrain 에서 영구 false 가능 → 동행 스프라이트 영영 차단.
       if (!map?.style) return;
-      const dt = Math.min(0.1, (now - lastTs) / 1000);
+      const turnDt = Math.max(0, Math.min(0.5, (now - lastTs) / 1000));
+      const dt = Math.min(0.1, turnDt);
       lastTs = now;
       // Date.now() 와 같은 epoch 축. 표시 시계·거리 캐시·동행 step 이 이 값 하나를 쓴다.
       const epochMs = performance.timeOrigin + now;
@@ -2878,7 +2879,7 @@ export function MapView({
             "live-self",
             targetHeadingDeg,
             selfSpeedMps,
-            dt,
+            turnDt,
             curveHeading != null ? RIDER_TURN_HEADING_TAU_ROUTE_S : RIDER_TURN_HEADING_TAU_S,
           );
           const pedalingRunning =
@@ -2918,7 +2919,7 @@ export function MapView({
             f.properties.id,
             f.properties.hdg,
             peerSpeed,
-            dt,
+            turnDt,
             RIDER_TURN_HEADING_TAU_ROUTE_S,
           );
           specs.push({
@@ -2940,7 +2941,7 @@ export function MapView({
             f.properties.id,
             f.properties.hdg,
             pacerSpeed,
-            dt,
+            turnDt,
             RIDER_TURN_HEADING_TAU_ROUTE_S,
           );
           specs.push({

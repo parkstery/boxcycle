@@ -255,7 +255,7 @@ describe("rider turn", () => {
     assert.equal(shortestAngleDeltaDeg(10, 190), -180);
   });
 
-  it("90° 좌회전: 프레임당 12° 이하, 0.5–3초에 걸치고, 코너에서만 기운다", () => {
+  it("90° 좌회전: 프레임당 12° 이하, 3–5초에 걸치고, 코너에서만 기운다", () => {
     const { samples, cornerM } = simulate(cornerGeometry(-90));
     const worst = maxHeadingStepDeg(samples);
     const elapsed = headingChangeSec(samples, 90, 0);
@@ -266,12 +266,12 @@ describe("rider turn", () => {
       `corner90 step=${worst.toFixed(2)}° elapsed=${elapsed?.toFixed(3)}s midLean=${mid.leanDeg.toFixed(2)}°`,
     );
     assert.ok(worst <= 12, `max step ${worst.toFixed(2)}°`);
-    assert.ok(elapsed != null && elapsed >= 0.5 && elapsed <= 3, `elapsed ${elapsed}`);
+    assert.ok(elapsed != null && elapsed >= 3 && elapsed <= 5, `elapsed ${elapsed}`);
     assert.ok(Math.abs(mid.leanDeg) >= 8, `mid lean ${mid.leanDeg.toFixed(2)} at d=${mid.d.toFixed(1)}`);
     for (const s of samples) {
       assert.ok(Math.abs(s.leanDeg) <= 35, `lean cap ${s.leanDeg}`);
       assert.ok(Number.isFinite(s.headingDeg) && Number.isFinite(s.leanDeg));
-      const straight = s.d < cornerM - 15 || s.d > cornerM + 15;
+      const straight = Math.abs(s.d - cornerM) > RIDER_CURVE_HALF_SPAN_M + 10;
       if (straight) assert.ok(Math.abs(s.leanDeg) < 0.5, `straight lean ${s.leanDeg.toFixed(3)} at d=${s.d.toFixed(1)}`);
     }
   });
@@ -393,6 +393,37 @@ describe("rider turn", () => {
 
 
 describe("속도·반경에 따른 전신 코너링", () => {
+  it("급격한 방향 변화에도 저FPS 전신 기울기 속도·가속도가 제한된다", () => {
+    for (const fps of [6, 15, 30, 60]) {
+      const dt = 1 / fps;
+      const smoother = new RiderTurnSmoother();
+      smoother.update("step", 0, 10, dt, RIDER_TURN_HEADING_TAU_ROUTE_S);
+      let prev = 0, prevRate = 0;
+      for (let i = 1; i <= fps * 6; i++) {
+        const heading = i < fps * 3 ? i * 10 * dt : fps * 3 * 10 * dt;
+        const speed = i < fps * 3 ? 10 : 0;
+        const lean = smoother.update("step", heading, speed, dt, RIDER_TURN_HEADING_TAU_ROUTE_S).leanDeg;
+        const rate = (lean - prev) / dt;
+        assert.ok(Math.abs(rate) <= 30.001, `${fps}fps roll speed ${rate}`);
+        assert.ok(Math.abs(rate - prevRate) <= 120 * dt + 0.001, `${fps}fps roll acceleration`);
+        prev = lean;
+        prevRate = rate;
+      }
+      assert.ok(Math.abs(prev) < 0.05, `must recover upright: ${prev}`);
+    }
+  });
+
+  it("90도 모서리 표시 회전 반경은 6m 이상으로 넓힌다", () => {
+    const geom = cornerGeometry(90);
+    const corner = getDistanceMeters(geom.coordinates[0], geom.coordinates[1]);
+    const a = smoothedRoutePoint(geom, corner - 0.1, RIDER_CURVE_HALF_SPAN_M)!;
+    const b = smoothedRoutePoint(geom, corner, RIDER_CURVE_HALF_SPAN_M)!;
+    const c = smoothedRoutePoint(geom, corner + 0.1, RIDER_CURVE_HALF_SPAN_M)!;
+    const ab = eastNorthMeters(a, b), ac = eastNorthMeters(a, c);
+    const cross = Math.abs(ab.e * ac.n - ab.n * ac.e);
+    const radius = Math.hypot(ab.e, ab.n) * Math.hypot(ac.e, ac.n) * Math.hypot(ac.e - ab.e, ac.n - ab.n) / (2 * cross);
+    assert.ok(radius >= 6 && radius <= 7, `radius ${radius}`);
+  });
   it("커브 진입·진출의 곡률은 직선의 0에서 서서히 변한다", () => {
     const geom = cornerGeometry(90);
     const corner = getDistanceMeters(geom.coordinates[0], geom.coordinates[1]);
@@ -423,7 +454,7 @@ describe("속도·반경에 따른 전신 코너링", () => {
     }
   });
 
-  it("커브 진입에 신속히 기울고 정지하면 전신이 바로 선다", () => {
+  it("커브 진입 초기에는 조금씩 기울고 정지하면 점진적으로 복귀한다", () => {
     const smoother = new RiderTurnSmoother();
     const dt = 1 / 60;
     const v = 10, radius = 30;
@@ -434,8 +465,13 @@ describe("속도·반경에 따른 전신 코너링", () => {
       lean = smoother.update("a", heading, v, dt, RIDER_TURN_HEADING_TAU_ROUTE_S).leanDeg;
     }
     const steady = Math.atan(v * v / (9.81 * radius)) * 180 / Math.PI;
-    assert.ok(lean > steady * 0.9, `entry lean ${lean}`);
-    for (let i = 0; i < 60; i++) lean = smoother.update("a", heading, 0, dt, RIDER_TURN_HEADING_TAU_ROUTE_S).leanDeg;
+    assert.ok(lean > 0 && lean < steady * 0.5, `entry must remain gradual: ${lean}`);
+    for (let i = 0; i < 120; i++) {
+      heading += v / radius * dt * 180 / Math.PI;
+      lean = smoother.update("a", heading, v, dt, RIDER_TURN_HEADING_TAU_ROUTE_S).leanDeg;
+    }
+    assert.ok(lean > steady * 0.95, `eventual steady lean ${lean}`);
+    for (let i = 0; i < 120; i++) lean = smoother.update("a", heading, 0, dt, RIDER_TURN_HEADING_TAU_ROUTE_S).leanDeg;
     assert.ok(Math.abs(lean) < 0.01, `stopped lean ${lean}`);
   });
 });
