@@ -4,8 +4,8 @@
   "modelProfile": "rider15",
   "modelVersion": "V3.0",
   "sourceCandidate": "V3.0_lite (P193, Sprint 3°)",
-  "stage": "MODEL_RELEASE_PACKAGE",
-  "status": "MODEL_READY_APP_NOT_INTEGRATED",
+  "stage": "APP_CUSTOM_LAYER_CANDIDATE",
+  "status": "APP_APPROVED_PRODUCT_ACTIVE",
   "modelPreparedAtKst": "2026-11-27",
   "replaces": "rider15 candidate 20261111-025600-ad1d669d (P80)",
   "compression": "EXT_meshopt_compression+KHR_mesh_quantization(12-bit positions/morphs)+KHR_materials_unlit",
@@ -53,5 +53,7 @@
     ]
   },
   "candidateId": "20261127-160608-8767e93a",
-  "stagedAtKst": "2026-11-27T16:06:08+09:00"
+  "stagedAtKst": "2026-11-27T16:06:08+09:00",
+  "appApprovedAtKst": "2026-11-27",
+  "appApprovalTarget": "Chief: 개발 테스트 화면 정상 확인 및 기본 모델 전환 지시"
 }

@@ -322,9 +322,9 @@ describe("rider15-rig", () => {
     assert.deepEqual(follow.update("a", "Ride_Aero", 5000), { from: "Ride_Aero", to: "Ride_Aero", amount: 1 });
   });
 
-  it("등록은 rider15 를 DEV 후보로만 추가하고 기본 활성 모델은 rider14 다", () => {
-    assert.equal(PRESERVED_RIDER_ACTIVE_MODEL, "rider14");
-    assert.equal(resolvePreservedRiderModel(), "rider14");
+  it("rider15 V3 후보가 기본 활성 모델이고 rider14 롤백이 남는다", () => {
+    assert.equal(PRESERVED_RIDER_ACTIVE_MODEL, "rider15");
+    assert.equal(resolvePreservedRiderModel(), "rider15");
     assert.equal(PRESERVED_RIDER_MODELS.rider15.candidateId, RIDER15_ID);
     assert.equal(PRESERVED_RIDER_MODELS.rider15.lod2, "rider-lod2.glb");
     assert.equal(getRiderModelProfile("rider15").id, "rider15");

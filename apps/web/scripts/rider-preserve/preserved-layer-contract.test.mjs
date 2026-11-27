@@ -27,39 +27,32 @@ function readActivePreservedModel(configText) {
   return { modelId, candidateId: entry[1] };
 }
 
-test("approved candidate assets are staged byte-for-byte", () => {
+test("approved rider15 V3 candidate assets are staged byte-for-byte", () => {
   const config = read(path.join(webRoot, "src", "lib", "riderPrototype", "config.ts"));
   const active = readActivePreservedModel(config);
-  assert.equal(active.modelId, "rider14");
-  assert.equal(active.candidateId, "20261015-212136-df8de090");
-
-  const candidateDir = path.join(
-    webRoot,
-    "public",
-    "rider",
-    "preserved",
-    "candidates",
-    active.candidateId,
-  );
+  assert.deepEqual(active, { modelId: "rider15", candidateId: "20261127-160608-8767e93a" });
+  const candidateDir = path.join(webRoot, "public", "rider", "preserved", "candidates", active.candidateId);
   const candidate = JSON.parse(read(path.join(candidateDir, "candidate.json")));
   assert.equal(candidate.candidateId, active.candidateId);
   assert.equal(candidate.status, "APP_APPROVED_PRODUCT_ACTIVE");
-  assert.equal(sha256(path.join(candidateDir, "rider.glb")), candidate.sourceGlbSha256);
-  assert.equal(candidate.stagedGlbSha256, candidate.sourceGlbSha256);
-  assert.equal(sha256(path.join(candidateDir, "guide-weights.json")), candidate.guideRuntimeSha256);
-  if (candidate.schemaVersion === 1) {
-    assert.match(candidate.pedalReportSha256, /^[a-f0-9]{64}$/);
-  } else if (candidate.schemaVersion === 2) {
-    assert.equal(candidate.geometryEquivalentTo, S5_CANDIDATE_ID);
-    assert.equal(fs.existsSync(path.join(here, "rider14-equivalence.test.ts")), true);
-  } else {
-    assert.fail(`unexpected schemaVersion ${candidate.schemaVersion}`);
+  assert.equal(candidate.schemaVersion, 3);
+  for (const [key, hash] of Object.entries({
+    glb: "8767e93afb64f2b5440b34a3c9a4c71f3535da91c561a6889c1539094e32f98a",
+    lod2: "82d16a2b04ba44483b3ca384cd0d4eae1ffdb7d4b77571b928bde773bd04373c",
+    gestures: "266f971a4868915ec603c4f8e422d8e6239c3d16a771280905f0c97cc709ed5a",
+  })) {
+    assert.equal(candidate.sha256[key], hash);
+    assert.equal(sha256(path.join(candidateDir, candidate.files[key])), hash);
   }
-  if (candidate.files && candidate.files.lod2) {
-    const lod2Sha = sha256(path.join(candidateDir, candidate.files.lod2));
-    assert.equal(lod2Sha, candidate.lod2StagedSha256);
-    assert.equal(candidate.lod2StagedSha256, candidate.lod2SourceSha256);
-  }
+});
+
+test("rider14 rollback candidate stays byte-stable", () => {
+  const dir = path.join(webRoot, "public", "rider", "preserved", "candidates", "20261015-212136-df8de090");
+  const candidate = JSON.parse(read(path.join(dir, "candidate.json")));
+  assert.equal(sha256(path.join(dir, "rider.glb")), candidate.sourceGlbSha256);
+  assert.equal(sha256(path.join(dir, "rider-lod2.glb")), candidate.lod2SourceSha256);
+  assert.equal(sha256(path.join(dir, "guide-weights.json")), candidate.guideRuntimeSha256);
+  assert.match(read(path.join(webRoot, "src", "lib", "riderPrototype", "config.ts")), /rider14:\s*\{\s*candidateId:\s*"20261015-212136-df8de090"/);
 });
 
 test("s5 rollback candidate stays byte-stable", () => {
