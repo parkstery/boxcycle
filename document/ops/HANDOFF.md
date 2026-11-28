@@ -9,6 +9,17 @@
 
 ## 진행 중
 
+**11-28 엄지척 흐름 변경·hi 복원(Claude Code, 구현·검증 완료, Rules 배포 완료)**: 추월당하는(느린) 쪽만 👍(빠른 상대가 3m뒤~앞10m), 추월자는 [👍][👋] 응답(reply는 재응답 없음). hi=LookHi_Left/Right 복원(P194: V3.0_master 절차 바이트 재현 후 keep에 추가, 동작파일 917→1,224KB, rider.glb 불변). 리그 hi는 몸통 포함·골반/다리 불변.
+검증: nearby 17·Rules에뮬 2·리그 hi 2·rider15-rig 14 PASS, quick 1758/0, tsc·lint·dep·tidy·build·peer replay 통과, 에뮬 2인 실앱 전체흐름+양화면 손인사 캡처 확인. 11-28 Chief 승인으로 database.rules.json(kind·reply) 기본·유럽 RTDB 배포, 운영 규칙 재조회로 반영 확인. 이어 Chief 지시: 방향은 실제 비켜간 쪽(옆이격 offset→overtakeThumbsRuntime.lateralSideOfPeer, 모르면 기본 왼쪽/반대쪽). 두화면 방향 반대 일치 시험·에뮬 2인 RTDB side(left 👍 / right 👋) 확인, quick 1759/0. 이어 Chief 11-28: (1) 손목·팔꿈치 기형=앱이 뼈만 적용·rider.glb에 팔 보정모프 없음 → 동작파일 도착 시 그 모델로 리그 교체(swapRig, LOD2 유지)+제스처 모프 적용(개수 일치시만), 모델 수정 불필요. (2) 추월 툭툭=옆이격 등속 켜짐/꺼짐으로 프레임당 방향 5~7° 꺾임 → 옆 가속도 1.5m/s² 제한, 7↔5km/h 꺾임≤1.2°/frame 시험. quick 1762/0. 다음: Chief 두화면 응답 확인→커밋·푸시·Hosting 승인. 미커밋·Hosting 미배포.
+
+**11-28 추월겹침·엄지척누락(Codex)**: Chief 두화면실제제보. root원인: 전원중심선·fresh2초와최대발신12초불일치. 엄지척이력/저상대속회귀와표시전용옆이격분담수정중.
+파일: overtakeThumbs/Registry/UI freshness, MapView/App/새riderPassingMotion·회귀. 사용자실주행직접, 브라우저시험금지. 기존27파일보존·커밋/배포없음.
+11-28 06:55 Claude Code 인수 검산(Codex 06:37 이후 정지): 추월3·저속재생6·옆이격9·출발선1·엄지1·계약7·지형4 PASS, peer replay 전체 통과, tsc -b·변경lint0·의존방향 통과·vite build 성공, quick 1749/0. 남은 것: Chief 두화면 실주행 확인→커밋·푸시·Hosting(승인 필요).
+11-28 Chief 실주행: 옆비켜가기 OK(비켜갈 때 동행 툭툭 튐은 후속), 엄지척 단추 안 뜸 → Chief 결정으로 추월 판정을 근접 진입으로 교체(Claude Code): lib/ride/nearbyThumbs.ts(10m 진입 0.5초→8초 표시, 12m 밖 10초=떠남, 동일상대 30초, 최근접1명), 옛 overtakeThumbs.ts·추월시험2개 삭제, nearby-thumbs.test.ts 11/11(사보타주 확인). quick 1751/0·tsc·lint·dep·tidy·build 통과. 임시 진단장치는 모두 제거. 2인 e2e는 주행시작 단계에서 막힘(카운트다운 후 헬퍼 미갱신 추정, 미조사). 다음: Chief 두화면 확인→커밋·푸시·Hosting 승인. [저속수정](20261111-rider15-app-integration/20261128-overtake-button-low-speed-fix.md)
+
+**11-28 카메라2 출발·엄지척 테스트준비(Codex)**: staging정지·카메라2/모델/체크출발선ready후3초. 준비/주행동일곡선으로출발점프방지·20초준비실패처리. 추월버튼8초·실제팔동작/상대알림·RTDB수신자전용전송구현.
+검증: 추월3·리그1·출발선1·계약22·peer replay19·권한/실제송수신1 PASS. quick1733/1 후지도fixture보완248/0. 기존경고16. Chief직접주행지시로실앱재검중단(직전3숫자누락시험실패). [실행명령/테스트포인트](20261111-rider15-app-integration/20261128-camera2-and-thumbs-test.md). 미커밋·Hosting미배포, 새Rules기본/유럽배포완료. 최종빌드·정련·의존방향·변경lint PASS, Chief테스트가능.
+
 **11-27 바퀴·커브·출발3초 배포(Codex)**: main2 911ca9fb까지 푸시·Hosting 완료. 바퀴 속도·테이퍼 반폭13.5m/반경6.37m·전신 롤 속도/가속도 제한·3→2→1 후running 반영. 서버/Rules 변경 없음.
 검증: quick1729/0·진입계약22·타이머2·전용실앱1/1(800×360)·빌드/lint오류0. 운영HTML/JS2종200·로컬SHA일치. 최초전체진입2/8·6실패 후 전용만재검. [릴리스/실패경위](20261111-rider15-app-integration/20261127-rider-motion-release.md). 다음: 운영 새로고침·출발/커브 실폰 확인(안쪽편차3.58m).
 
