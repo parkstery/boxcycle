@@ -1,4 +1,5 @@
 import type { CustomLayerInterface, Map as MapboxMap } from "mapbox-gl";
+import { cancelThumbGesture, currentThumbGesture } from "../riderPrototype/overtakeThumbsRuntime";
 import { RiderWheelMotion } from "../riderPrototype/riderWheelMotion";
 import { moveLayerByRank, resolveBeforeIdByRank } from "./layerOrder";
 import {
@@ -296,6 +297,13 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
         spec.id, spec.lngLat, spec.bearingDeg, nowMs, terrainEnabled, elevationAt,
       );
       if (rig.setRidePosture) rig.setRidePosture(this.ridePosture.update(spec.id, spec.ridePosture, nowMs));
+      let thumb = currentThumbGesture(spec.id, nowMs);
+      if (!animatePose || Math.abs(spec.leanDeg ?? 0) >= 15) {
+        cancelThumbGesture(spec.id);
+        thumb = null;
+      }
+      const gestureKey = thumb ? (thumb.kind === "hi" ? (`hi-${thumb.side}` as const) : thumb.side) : null;
+      rig.setThumbGesture?.(gestureKey, thumb ? (nowMs - thumb.startedAtMs) / 1000 : 0, thumb?.id);
       if (animatePose) measureRiderPose(() => rig.setPhase(spec.phaseRev ?? 0, this.wheelMotion.get(spec.id)));
       // 공용 rig 1개와 LOD2 정적 메시를 self/peer 순으로 그린다. 줌 < 19 이고 LOD2 가 있으면 정적 1콜.
       const staticRider = this.lod2;
@@ -342,6 +350,21 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
         const gltf = await loader.loadAsync(preservedRiderAssetUrl("rider.glb"));
         if (generation !== this.generation || !this.map) return;
         const rig = new Rider15Rig(gltf, getRiderModelProfile("rider15"));
+        void loader.loadAsync(preservedRiderAssetUrl("rider-gestures.glb")).then((gestures) => {
+          if (generation !== this.generation) return;
+          // 11-28: 동작 파일은 손·팔 보정 모프를 모두 가진 같은 모델이다. 그 모델로 리그를 바꿔 끼워
+          // 엄지척·hi 의 팔꿈치·손 모양을 모델 그대로 쓴다. 실패하면 처음 리그에 뼈 제스처만 단다.
+          let gestureRig: Rider15Rig | null = null;
+          try {
+            gestureRig = new Rider15Rig(gestures, getRiderModelProfile("rider15"));
+            gestureRig.installThumbClips(gestures.animations);
+          } catch {
+            gestureRig?.dispose();
+            gestureRig = null;
+          }
+          if (gestureRig && this.swapRig(generation, gestureRig)) return;
+          rig.installThumbClips(gestures.animations);
+        }).catch(() => { /* 상대 알림은 제스처 자산 실패와 독립적으로 전달된다. */ });
         if (this.installRig(generation, rig)) void this.loadLod2(generation, "rider-lod2.glb");
         return;
       }
@@ -380,6 +403,22 @@ class PreservedRiderCustomLayer implements CustomLayerInterface, RiderLightLabTa
     this.riderRoot.visible = this.specs.length > 0;
     if (this.specs[0]) rig.setPhase(this.specs[0].phaseRev ?? 0, this.wheelMotion.get(this.specs[0].id));
     this.loadState = "ready";
+    this.map.triggerRepaint();
+    return true;
+  }
+
+  /** 같은 모델의 더 완전한 리그로 바꿔 끼운다. LOD2 정적 모형은 그대로 둔다. */
+  private swapRig(generation: number, rig: PreservedRiderHandle): boolean {
+    const previous = this.rig;
+    if (generation !== this.generation || !this.map || !previous) {
+      rig.dispose();
+      return false;
+    }
+    this.riderRoot.remove(previous.object);
+    previous.dispose();
+    this.rig = rig;
+    this.riderRoot.add(rig.object);
+    if (this.specs[0]) rig.setPhase(this.specs[0].phaseRev ?? 0, this.wheelMotion.get(this.specs[0].id));
     this.map.triggerRepaint();
     return true;
   }

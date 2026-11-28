@@ -39,7 +39,7 @@ test("approved rider15 V3 candidate assets are staged byte-for-byte", () => {
   for (const [key, hash] of Object.entries({
     glb: "8767e93afb64f2b5440b34a3c9a4c71f3535da91c561a6889c1539094e32f98a",
     lod2: "82d16a2b04ba44483b3ca384cd0d4eae1ffdb7d4b77571b928bde773bd04373c",
-    gestures: "266f971a4868915ec603c4f8e422d8e6239c3d16a771280905f0c97cc709ed5a",
+    gestures: "3332bec282a0245c3ff2f71eeeb273e0e49a9ea014b6a5bd4ac727c696ddc529", // 11-28 P194 LookHi 복원
   })) {
     assert.equal(candidate.sha256[key], hash);
     assert.equal(sha256(path.join(candidateDir, candidate.files[key])), hash);
@@ -90,7 +90,11 @@ test("MapView forwards the live phase and keeps the legacy GLB path", () => {
   assert.match(source, /phaseRev: liveCrankPhaseRevRef\.current/);
   assert.match(source, /syncRiderGlbModels\(map, specs\)/);
   assert.match(source, /id: "live-self"[\s\S]*?kind: "self"/);
-  assert.match(source, /id: f\.properties\.id[\s\S]*?kind: "peer"/);
+  assert.match(source, /appendPeerDisplaySpecs\(specs, fc\.features/);
+  const peerBuilder = read(path.join(webRoot, "src", "lib", "riderPrototype", "riderPassingMotion.ts"));
+  assert.match(peerBuilder, /const p = f\.properties/);
+  assert.match(peerBuilder, /id: p\.id, kind: "peer"/);
+  assert.match(peerBuilder, /phaseRev: p\.phaseRev/);
 });
 
 test("custom layer renders every rider with terrain, phase, bearing and lean", () => {

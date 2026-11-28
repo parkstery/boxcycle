@@ -152,7 +152,9 @@ describe("rider15-rig", () => {
     assert.deepEqual(near.animations.map((clip) => clip.name).sort(), ["Ride_Aero", "Ride_Hoods", "Ride_Sprint"]);
     const gestures = await loadPreservedTestGlb(RIDER15_ID, "rider-gestures.glb");
     assert.ok(gestures.animations.some((clip) => clip.name === "Celebrate_Open"));
-    assert.equal(gestures.animations.length, 9);
+    // 11-28 P194: 기존 9클립 + 추월 응답 hi(LookHi_Left/Right) 복원
+    assert.equal(gestures.animations.length, 11);
+    for (const name of ["LookThumb_Left", "LookThumb_Right", "LookHi_Left", "LookHi_Right"]) assert.ok(gestures.animations.some((clip) => clip.name === name), name);
     const rig = await buildRig();
     try {
       assert.deepEqual([...rig.ridePostures].sort(), ["Ride_Aero", "Ride_Hoods", "Ride_Sprint"]);

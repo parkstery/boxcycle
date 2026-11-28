@@ -17,7 +17,7 @@ import {
   type RiderRidePosture,
   type RiderRidePostureBlend,
 } from "./riderRidePosture";
-import type { PreservedRiderHandle, PreservedRiderSway } from "./preservedRiderHandle";
+import type { PreservedRiderHandle, PreservedRiderSway, RiderGestureKey } from "./preservedRiderHandle";
 import { disposeRiderObject } from "./preservedRiderRig";
 import { tuneRider15HoodsClip } from "./rider15HoodsClip";
 
@@ -95,6 +95,17 @@ export class Rider15Rig implements PreservedRiderHandle {
   private readonly wheels: readonly WheelSpin[];
   private readonly visualKit: RiderVisualKit;
   private disposed = false;
+  private gestureRoot: Object3D | null = null;
+  private gestureMixer: AnimationMixer | null = null;
+  /** 상체 동작 뼈. 회전뿐 아니라 위치·크기도 쓴다(11-28): 손목 보조 뼈(wristfix·elbow_volume)는 위치가, wrist 는 크기가 움직여
+   * 손목 모양을 만든다. 회전만 쓰면 손목 살이 주행 자세 위치로 당겨져 기형이 된다(손목 주변 최대 49 mm). */
+  private readonly gestureBones: { target: Object3D; sample: Object3D; base: Quaternion; basePos: Vector3; baseScale: Vector3 }[] = [];
+  private gestureActions = new Map<RiderGestureKey, { action: AnimationAction; bones: ReadonlySet<string> }>();
+  /** 손·팔 보정 모프(11-28). 같은 메시(동작 파일 모델)일 때만 짝이 생긴다. */
+  private readonly gestureMorphs: { target: number[]; sample: number[]; base: number[] }[] = [];
+  private gestureSide: RiderGestureKey | null = null;
+  private gestureElapsed = 0;
+  private readonly gestureAcceptance = new Map<string, boolean>();
 
   constructor(gltf: Rider15Gltf, profile: Rider15ModelProfile) {
     this.object.name = "approved-preserved-rider";
@@ -169,7 +180,17 @@ export class Rider15Rig implements PreservedRiderHandle {
       const start = entry?.start ?? this.clipStart;
       action.time = start + phase * (action.getClip().duration - start);
     }
+    // mixer는 같은 위상을 다시 주면 속성을 생략할 수 있으므로 직전 상체 오버레이를 먼저 걷는다.
+    for (const bone of this.gestureBones) {
+      bone.target.quaternion.copy(bone.base); bone.target.position.copy(bone.basePos); bone.target.scale.copy(bone.baseScale);
+    }
+    for (const morph of this.gestureMorphs) for (let i = 0; i < morph.base.length; i++) morph.target[i] = morph.base[i];
     this.mixer.update(0);
+    for (const bone of this.gestureBones) {
+      bone.base.copy(bone.target.quaternion); bone.basePos.copy(bone.target.position); bone.baseScale.copy(bone.target.scale);
+    }
+    for (const morph of this.gestureMorphs) for (let i = 0; i < morph.base.length; i++) morph.base[i] = morph.target[i];
+    this.applyThumbGesture();
     this.setWheels(wheelPhaseRev);
   }
 
@@ -203,6 +224,82 @@ export class Rider15Rig implements PreservedRiderHandle {
   /** 모델 자체 롤은 S5 에서 붙인다. 지금은 아무것도 하지 않는다. */
   setSway(_v: PreservedRiderSway): void {}
 
+  /**
+   * 상체 트랙만 별도 샘플링한다. 골반·다리·크랭크·바퀴는 페달 위상을 그대로 보존한다.
+   * 엄지척(LookThumb)은 고개·목·팔만, hi(LookHi, 11-28 복원)는 상체를 세우는 동작이라 몸통(lumbar·spine·chest)도 쓴다.
+   */
+  installThumbClips(clips: readonly AnimationClip[]): void {
+    this.gestureRoot = this.root.clone(true);
+    this.gestureMixer = new AnimationMixer(this.gestureRoot);
+    const arms = /^(head|neck|clavicle_[LR]|shoulder(?:_volume)?_[LR]|elbow(?:_volume)?_[LR]|forearmrot_[LR]|wrist(?:fix_(?:cuff|palmE|palmW))?_[LR])$/;
+    const torso = /^(lumbar|spine|chest)$/;
+    this.root.traverse((node) => {
+      if (!arms.test(node.name) && !torso.test(node.name)) return;
+      const sample = this.gestureRoot!.getObjectByName(node.name);
+      if (sample) this.gestureBones.push({ target: node, sample, base: node.quaternion.clone(), basePos: node.position.clone(), baseScale: node.scale.clone() });
+    });
+    // 클립의 손·팔 보정 모프도 함께 쓴다. 주행 파일(rider.glb)은 보정 모프가 적어 개수가 다르면 짝을 만들지 않는다
+    // (뼈만 적용 — 팔꿈치가 쪼그라든다). 레이어는 동작 파일이 오면 그 모델로 리그를 바꿔 끼운다.
+    this.root.traverse((node) => {
+      const influences = (node as Mesh).morphTargetInfluences;
+      if (!influences?.length) return;
+      const sample = (this.gestureRoot!.getObjectByName(node.name) as Mesh | undefined)?.morphTargetInfluences;
+      if (sample && sample.length === influences.length) this.gestureMorphs.push({ target: influences, sample, base: [...influences] });
+    });
+    const variants: [RiderGestureKey, string, boolean][] = [
+      ["left", "LookThumb_Left", false], ["right", "LookThumb_Right", false],
+      ["hi-left", "LookHi_Left", true], ["hi-right", "LookHi_Right", true],
+    ];
+    let morphsUsed = false;
+    for (const [key, clipName, withTorso] of variants) {
+      const clip = clips.find((value) => value.name === clipName);
+      if (!clip) continue;
+      const uses = (bone: string) => arms.test(bone) || (withTorso && torso.test(bone));
+      const morphCount = this.gestureMorphs[0]?.base.length ?? 0;
+      // 클립 모프 트랙의 키당 값 개수가 리그 메시 모프 개수와 같을 때만(같은 모델) 쓴다.
+      const boneTrack = (name: string) => name.endsWith(".quaternion") || name.endsWith(".position") || name.endsWith(".scale");
+      const tracks = clip.tracks.filter((track) => (uses(track.name.split(".")[0]) && boneTrack(track.name))
+        || (morphCount > 0 && track.name.endsWith(".morphTargetInfluences") && track.values.length === track.times.length * morphCount));
+      if (tracks.some((track) => track.name.endsWith(".morphTargetInfluences"))) morphsUsed = true;
+      const filtered = clip.clone(); filtered.tracks = tracks;
+      const action = this.gestureMixer.clipAction(filtered);
+      action.play(); action.enabled = false;
+      this.gestureActions.set(key, { action, bones: new Set(tracks.filter((track) => boneTrack(track.name)).map((track) => track.name.split(".")[0])) });
+    }
+    if (!morphsUsed) this.gestureMorphs.length = 0;
+  }
+
+  setThumbGesture(side: RiderGestureKey | null, elapsedSec: number, eventId?: string): void {
+    if (side && eventId && !this.gestureAcceptance.has(eventId)) {
+      this.gestureAcceptance.set(eventId, this.gestureActions.has(side));
+      if (this.gestureAcceptance.size > 200) this.gestureAcceptance.delete(this.gestureAcceptance.keys().next().value!);
+    }
+    if (eventId && !this.gestureAcceptance.get(eventId)) side = null;
+    this.gestureSide = side; this.gestureElapsed = elapsedSec;
+  }
+
+  private applyThumbGesture(): void {
+    if (!this.gestureMixer || !this.gestureSide) return;
+    const selected = this.gestureActions.get(this.gestureSide);
+    if (!selected) return;
+    const duration = selected.action.getClip().duration;
+    const t = this.gestureElapsed;
+    if (t < 0 || t >= duration) return;
+    for (const { action } of this.gestureActions.values()) action.enabled = action === selected.action;
+    selected.action.time = t;
+    this.gestureMixer.update(0);
+    const amount = Math.min(1, t / 0.2, (duration - t) / 0.3);
+    const weight = amount * amount * (3 - 2 * amount);
+    // 이 동작이 움직이지 않는 뼈는 건드리지 않는다(샘플 루트의 정지 자세로 끌려가지 않게).
+    for (const bone of this.gestureBones) {
+      if (!selected.bones.has(bone.target.name)) continue;
+      bone.target.quaternion.slerp(bone.sample.quaternion, weight);
+      bone.target.position.lerp(bone.sample.position, weight);
+      bone.target.scale.lerp(bone.sample.scale, weight);
+    }
+    for (const morph of this.gestureMorphs) for (let i = 0; i < morph.base.length; i++) morph.target[i] = morph.base[i] + (morph.sample[i] - morph.base[i]) * weight;
+  }
+
   setVisualKind(kind: RiderVisualKind): void {
     this.visualKit.apply(kind);
   }
@@ -210,6 +307,8 @@ export class Rider15Rig implements PreservedRiderHandle {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.gestureMixer?.stopAllAction();
+    if (this.gestureRoot) this.gestureMixer?.uncacheRoot(this.gestureRoot);
     this.mixer.stopAllAction();
     this.mixer.uncacheRoot(this.root);
     // 표준 스킨의 본 텍스처까지 해제한다.

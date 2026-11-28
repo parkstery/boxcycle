@@ -17,12 +17,12 @@
   "bytes": {
     "glb": 435288,
     "lod2": 33376,
-    "gestures": 917432
+    "gestures": 1224456
   },
   "sha256": {
     "glb": "8767e93afb64f2b5440b34a3c9a4c71f3535da91c561a6889c1539094e32f98a",
     "lod2": "82d16a2b04ba44483b3ca384cd0d4eae1ffdb7d4b77571b928bde773bd04373c",
-    "gestures": "266f971a4868915ec603c4f8e422d8e6239c3d16a771280905f0c97cc709ed5a"
+    "gestures": "3332bec282a0245c3ff2f71eeeb273e0e49a9ea014b6a5bd4ac727c696ddc529"
   },
   "near": {
     "triangles": 17743,
@@ -49,11 +49,14 @@
       "LookThumb_Left",
       "LookThumb_Right",
       "Celebrate_Open",
-      "Fighting_R"
+      "Fighting_R",
+      "LookHi_Left",
+      "LookHi_Right"
     ]
   },
   "candidateId": "20261127-160608-8767e93a",
   "stagedAtKst": "2026-11-27T16:06:08+09:00",
   "appApprovedAtKst": "2026-11-27",
-  "appApprovalTarget": "Chief: 개발 테스트 화면 정상 확인 및 기본 모델 전환 지시"
+  "appApprovalTarget": "Chief: 개발 테스트 화면 정상 확인 및 기본 모델 전환 지시",
+  "gesturesRevision": "2026-11-28 P194: LookHi_Left/Right 복원(추월 응답 hi, Chief 시안 승인). V3.0_master 절차 재현(바이트 일치) 후 keep 목록에 LookHi 추가, rider.glb·lod2 불변"
 }

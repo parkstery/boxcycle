@@ -22,4 +22,9 @@ export interface PreservedRiderHandle {
   setSkinMode?(mode: RiderSkinMode): void;
   /** rider15 전용 — 주행 자세(Hoods·Aero·Sprint) 전환. 다음 `setPhase` 부터 반영된다. */
   setRidePosture?(blend: RiderRidePostureBlend): void;
+  /** 엄지척(left/right)·hi(hi-left/hi-right) 상체 제스처. */
+  setThumbGesture?(side: RiderGestureKey | null, elapsedSec: number, eventId?: string): void;
 }
+
+/** 상체 제스처 — 엄지척은 기존 키(left/right), hi 는 11-28 복원 LookHi 클립. */
+export type RiderGestureKey = "left" | "right" | "hi-left" | "hi-right";
