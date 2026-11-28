@@ -1,3 +1,6 @@
+import { publishOvertakeDisplayFrame } from "../../lib/riderPrototype/overtakeThumbsRuntime";
+import { syncRideStartLine, waitForRideStartRender, frameRideStart } from "../../lib/map/rideStartLine";
+import { getRiderPreservedDebugState } from "../../lib/map/riderPreservedLayer";
 /* eslint-disable react-hooks/refs */
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import mapboxgl from "mapbox-gl";
@@ -97,6 +100,7 @@ import type { RouteProfile } from "../../services/mapboxDirections";
 import { mapMouseEventFromPickCommit } from "./mapPickEvent";
 import { resolvePedalCrankRpm } from "../../lib/sensor/crankRpm";
 import { resolveGlbPedalPose } from "../../lib/rider/riderGlbPedalPose";
+import { RiderPassingMotion, appendPeerDisplaySpecs } from "../../lib/riderPrototype/riderPassingMotion";
 import {
   RIDER_CURVE_HALF_SPAN_M,
   RIDER_TURN_HEADING_TAU_ROUTE_S,
@@ -132,6 +136,7 @@ import {
   syncRiderPreservedModels,
 } from "../../lib/map/riderPreservedLayer";
 import { MapCameraAltitudeControl } from "./MapCameraAltitudeControl";
+import { getQuickCameraProductTune } from "../../lib/camera/quickCameraProductTune";
 import { createFixedScaleBoxControl, isMapAttachedToContainer } from "./mapViewControls";
 import {
   getReducedMotionServerSnapshot,
@@ -142,7 +147,6 @@ import { mountSelfLocationMarker, syncLiveSelfRiderVisual } from "./mapViewSelfR
 import { useAssignRef } from "./useAssignRef";
 
 import {
-  computeRideFollowFraming,
   RIDE_FOLLOW_NO_PADDING,
   distanceMFromRideFollowZoom,
   measureRiderScreenDiag,
@@ -279,6 +283,7 @@ export type MapViewProps = {
   /** 출발·도착 사이 경유(순서대로 최대 3) */
   routeWaypoints: LngLat[];
   liveLngLat: LngLat | null;
+  liveRiderUid?: string;
   /** rAF 샘플 — React throttle 없이 맵 마커 위치 (가상 주행 세션) */
   sampleLiveLngLat?: (frameEpochMs?: number) => LngLat | null;
   /** `sampleLiveLngLat` 과 같은 경로 거리. 페이서 배치용. */
@@ -380,6 +385,8 @@ export type MapViewProps = {
   onMapLodViewport?: (spanKm: number, zoom: number) => void;
   /** 주행 시작 시 후방·줌 21.5 즉시 적용 — `requestId` 증가마다 1회 */
   rideFollowCameraNonce?: number;
+  rideStartStaging?: boolean;
+  onRideStartViewReady?: () => void;
   /**
    * RTW Dark 한정 — 주행 중 도로 유령화·건물 숨김 해제.
    * 2026-09-18 부터 **경로 설정 표면 정리**(팝업·도크·목표 거리 원)도 이 신호를 쓴다.
@@ -491,6 +498,7 @@ export function MapView({
   endLngLat,
   routeWaypoints,
   liveLngLat,
+  liveRiderUid,
   sampleLiveLngLat,
   sampleLiveDistM,
   pacerEnabled = true,
@@ -533,6 +541,8 @@ export function MapView({
   onMapViewport,
   onMapLodViewport,
   rideFollowCameraNonce = 0,
+  rideStartStaging = false,
+  onRideStartViewReady,
   rideActive = false,
   rideMilestoneProgress,
   rideCameraDistanceM = RIDE_CAMERA_DISTANCE_DEFAULT_M,
@@ -602,6 +612,8 @@ export function MapView({
   const selfLocationBearingRef = useRef<HTMLDivElement | null>(null);
   const selfLocationGeoBearingRef = useRef<number | null>(null);
   const liveRiderNametagRef = useRef(liveRiderNametag);
+  const liveRiderUidRef = useRef(liveRiderUid);
+  const passingMotionRef = useRef(new RiderPassingMotion());
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const mapShellRef = useRef<HTMLDivElement>(null);
   const routePickDockLayerRef = useRef<HTMLDivElement>(null);
@@ -650,6 +662,10 @@ export function MapView({
   const bootFlyMovedRef = useRef(false);
   /** 주행 카메라 거리(m) — 개발용 거리 슬라이더 최신값, rAF 루프에서 참조 */
   const rideCameraDistanceMRef = useRef(rideCameraDistanceM);
+  const rideStartStagingRef = useRef(rideStartStaging);
+  const onRideStartViewReadyRef = useRef(onRideStartViewReady);
+  useAssignRef(rideStartStagingRef, rideStartStaging);
+  useAssignRef(onRideStartViewReadyRef, onRideStartViewReady);
   const lockBaseHeadingRef = useRef(lockBaseHeading);
   const activeQuickCameraRef = useRef(activeQuickCamera);
   const rideCameraSpanFloorModeRef = useRef(rideCameraSpanFloorMode);
@@ -764,6 +780,7 @@ export function MapView({
   const rideActiveRef = useRef(rideActive);
   useAssignRef(rideActiveRef, rideActive);
   useAssignRef(liveRiderNametagRef, liveRiderNametag);
+  useAssignRef(liveRiderUidRef, liveRiderUid);
 
   useAssignRef(routeGeometryRef, routeGeometry);
 
@@ -2842,11 +2859,7 @@ export function MapView({
       tickClock?.mark("peer");
       const pacerFeatures = stepPacersForFrame(dt, showPeerSprites, epochMs);
       tickClock?.mark("pacer");
-      syncPeerDomMarkers(
-        map,
-        [...(fc.features as PeerDomGJFeature[]), ...pacerFeatures],
-        peerDomMarkersRef,
-      );
+      const markerFeatures = [...(fc.features as PeerDomGJFeature[]), ...pacerFeatures].map((f) => ({ ...f, geometry: { ...f.geometry } }));
       tickClock?.mark("markers");
       const riderLayerReady =
         RIDER_PROTOTYPE_MODE === "glb"
@@ -2903,37 +2916,7 @@ export function MapView({
           });
           turnLiveIds.push("live-self");
         }
-        for (const f of fc.features as PeerDomGJFeature[]) {
-          // 연속 위상을 그대로 쓴다 — 종전에는 6단계 `pframe` 을 다시 6으로 나눠
-          // 동행의 페달만 계단으로 움직였다(본인 라이더는 연속값).
-          const phaseRev = f.properties.phaseRev;
-          const stated = f.properties.speedMps;
-          let peerSpeed = 0;
-          if (typeof stated === "number" && Number.isFinite(stated)) peerSpeed = Math.max(0, stated);
-          else if (typeof f.properties.displayDistM === "number" && Number.isFinite(f.properties.displayDistM)) {
-            const prevDist = peerTurnDistPrevRef.current.get(f.properties.id);
-            peerTurnDistPrevRef.current.set(f.properties.id, f.properties.displayDistM);
-            if (prevDist != null && dt > 0) peerSpeed = Math.max(0, (f.properties.displayDistM - prevDist) / dt);
-          }
-          const peerTurn = riderTurnRef.current.update(
-            f.properties.id,
-            f.properties.hdg,
-            peerSpeed,
-            turnDt,
-            RIDER_TURN_HEADING_TAU_ROUTE_S,
-          );
-          specs.push({
-            id: f.properties.id,
-            kind: "peer",
-            lngLat: f.geometry.coordinates,
-            bearingDeg: peerTurn.headingDeg,
-            pedalPose: resolveGlbPedalPose(phaseRev),
-            phaseRev,
-            leanDeg: peerTurn.leanDeg,
-            speedMps: peerSpeed,
-          });
-          turnLiveIds.push(f.properties.id);
-        }
+        appendPeerDisplaySpecs(specs, fc.features, riderTurnRef.current, peerTurnDistPrevRef.current, dt, turnDt, turnLiveIds);
         for (const f of pacerFeatures) {
           const phaseRev = f.properties.phaseRev;
           const pacerSpeed = f.properties.speedMps ?? 0;
@@ -2956,6 +2939,11 @@ export function MapView({
           });
           turnLiveIds.push(f.properties.id);
         }
+        publishOvertakeDisplayFrame(selfPathDistM, specs.find((spec) => spec.id === "live-self"), fc.features,
+          (uid) => getPeerMotionRegistry().getOvertakeEvidence(uid, epochMs));
+        passingMotionRef.current.apply(specs, liveRiderUidRef.current, selfPathDistM, fc.features,
+          (uid) => getPeerMotionRegistry().getOvertakeEvidence(uid, epochMs)?.fresh === true, turnDt, markerFeatures);
+        syncRideStartLine(map, rideStartStagingRef.current ? specs.find((spec) => spec.id === "live-self") ?? null : null);
         noteRiderJitterFrame(now, selfPathDistM, fc.features, pacerFeatures);
         tickClock?.mark("spec");
         if (RIDER_PROTOTYPE_MODE === "glb") syncRiderGlbModels(map, specs);
@@ -2964,13 +2952,14 @@ export function MapView({
         const liveLabel = liveRiderNametagRef.current?.trim() ?? "";
         syncGlbLiveNametagMarker(
           map,
-          live,
+          specs.find((spec) => spec.id === "live-self")?.lngLat ?? live,
           liveLabel,
           glbLiveNametagMarkerRef,
           glbLiveNametagElRef,
         );
         tickClock?.mark("nametag");
       }
+      syncPeerDomMarkers(map, markerFeatures, peerDomMarkersRef);
       if (didTurn) {
         riderTurnRef.current.prune(turnLiveIds);
         const liveTurn = new Set(turnLiveIds);
@@ -3164,19 +3153,7 @@ export function MapView({
       currentPitch: map.getPitch(),
       distanceM: rideCameraDistanceMRef.current,
     });
-    const vp = viewportPxFromMap(map);
-    const framing = computeRideFollowFraming({
-      riderLngLat: target,
-      offsetBearing: nextCamera.offsetBearing,
-      distanceM: nextCamera.distanceM,
-      pitchDeg: nextCamera.pitch,
-      viewportWidthPx: vp.width,
-      viewportHeightPx: vp.height,
-      fallbackZoom: mapZoomRef.current,
-      screenUpBearing: nextCamera.bearing,
-    });
-    const center = framing.center;
-    const rideZoom = framing.zoom;
+    const { center, zoom: rideZoom } = frameRideStart(map, target, nextCamera, mapZoomRef.current);
     mapZoomRef.current = rideZoom;
     cameraSmoothRef.current.zoom = rideZoom;
 
@@ -3191,16 +3168,14 @@ export function MapView({
         pitch: nextCamera.pitch,
         padding: RIDE_FOLLOW_NO_PADDING,
       });
-      const smooth = cameraSmoothRef.current;
-      smooth.center = center;
-      smooth.bearing = nextCamera.bearing;
-      smooth.bearingPrimary = nextCamera.bearing;
-      smooth.pitch = nextCamera.pitch;
-      smooth.zoom = rideZoom;
-      smooth.lastTs = null;
+      Object.assign(cameraSmoothRef.current, { center, bearing: nextCamera.bearing, bearingPrimary: nextCamera.bearing,
+        pitch: nextCamera.pitch, zoom: rideZoom, lastTs: null });
+      if (rideStartStagingRef.current && activeQuickCameraRef.current === 2)
+        waitForRideStartRender(live, getQuickCameraProductTune(2)?.pitchDeg ?? live.getPitch(), RIDER_PROTOTYPE_MODE === "preserved",
+          () => rideStartStagingRef.current, () => onRideStartViewReadyRef.current?.(), () => getRiderPreservedDebugState(live));
     };
 
-    if (map.isStyleLoaded()) {
+    if (rideStartStagingRef.current || map.isStyleLoaded()) {
       applySnap();
     } else {
       map.once("style.load", applySnap);

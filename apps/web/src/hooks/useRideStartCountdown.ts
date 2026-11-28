@@ -4,11 +4,11 @@ import type { LineStringGeometry } from "../lib/geo/geo";
 
 export function useRideStartCountdown(route: LineStringGeometry | null, userId: string | undefined) {
   const [value, setValue] = useState<number | null>(null);
-  // Trail 메타 수신으로 같은 좌표의 새 객체를 받아도 준비를 취소하지 않는다.
+  const [staging, setStaging] = useState(false);
   const routeKey = useMemo(() => JSON.stringify(route?.coordinates ?? null), [route]);
   const context = useMemo(() => ({ routeKey, userId }), [routeKey, userId]);
   const contextRef = useRef<object | null>(null);
-  const pendingRef = useRef<ReturnType<typeof scheduleRideStartCountdown> | null>(null);
+  const pendingRef = useRef<{ cancel: () => void; activate: () => void } | null>(null);
   useEffect(() => {
     contextRef.current = context;
     return () => {
@@ -17,15 +17,38 @@ export function useRideStartCountdown(route: LineStringGeometry | null, userId: 
       pendingRef.current = null;
     };
   }, [context]);
-  const start = useCallback(async () => {
-    // 네트워크 준비 중 경로·계정이 바뀐 이전 요청도 시작하지 않는다.
-    if (contextRef.current !== context) return false;
+  const start = useCallback((): Promise<boolean> => {
+    if (contextRef.current !== context) return Promise.resolve(false);
     pendingRef.current?.cancel();
-    const pending = scheduleRideStartCountdown(setValue);
-    pendingRef.current = pending;
-    const ready = await pending.promise;
-    if (pendingRef.current === pending) pendingRef.current = null;
-    return ready && contextRef.current === context;
+    setStaging(true);
+    return new Promise<boolean>((resolve, reject) => {
+      let timer: ReturnType<typeof scheduleRideStartCountdown> | null = null;
+      let preparationTimer: ReturnType<typeof setTimeout> | null = null;
+      let settled = false;
+      const finish = (ready: boolean, error?: Error) => {
+        if (settled) return;
+        settled = true;
+        if (preparationTimer) clearTimeout(preparationTimer);
+        timer?.cancel();
+        setValue(null);
+        setStaging(false);
+        pendingRef.current = null;
+        if (error) reject(error);
+        else resolve(ready && contextRef.current === context);
+      };
+      preparationTimer = setTimeout(() => finish(false, new Error("출발 화면을 준비하지 못했어요. 다시 출발을 눌러 주세요.")), 20000);
+      pendingRef.current = {
+        cancel: () => finish(false),
+        activate: () => {
+          if (timer || settled) return;
+          if (contextRef.current !== context) { finish(false); return; }
+          if (preparationTimer) clearTimeout(preparationTimer);
+          timer = scheduleRideStartCountdown(setValue);
+          void timer.promise.then(finish);
+        },
+      };
+    });
   }, [context]);
-  return { value, start };
+  const viewReady = useCallback(() => pendingRef.current?.activate(), []);
+  return { value, staging, start, viewReady };
 }

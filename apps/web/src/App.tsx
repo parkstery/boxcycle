@@ -168,6 +168,7 @@ import { SAVED_ROUTE_NAME_MAX } from "./lib/route/repo/firestoreSavedRoutes";
 import { useAppAuth } from "./hooks/useAppAuth";
 import { useRideStartCountdown } from "./hooks/useRideStartCountdown";
 import { RideStartCountdown } from "./components/RideStartCountdown";
+import { OvertakeThumbsUp } from "./components/ride/OvertakeThumbsUp";
 import { useRouteTokenBalance } from "./hooks/useRouteTokenBalance";
 import {
   isRouteTokenGenerateMetered,
@@ -658,9 +659,11 @@ export default function App() {
   // 주행·일시정지 동안 폰 화면이 꺼지지 않게(10-23)
   useScreenWakeLock(rideStatus !== "idle");
 
+  const { value: rideStartCountdown, staging: rideStartStaging, start: waitForRideStartCountdown, viewReady: onRideStartViewReady } = useRideStartCountdown(routeGeometry, user?.uid);
+
   /** 주행 시작 — 후방 추적·최대 줌 / 종료 시 이전 카메라 설정 복원 */
   useEffect(() => {
-    if (rideStatus === "running") {
+    if (rideStatus === "running" || rideStartStaging) {
       if (!rideCameraRestoreRef.current) {
         rideCameraRestoreRef.current = {
           follow: followModeSnapshotRef.current,
@@ -705,7 +708,7 @@ export default function App() {
       setMapStyle((style) => mapStyleRenderSettings(style).lightPreset ? MAP_STYLE_STANDARD : style);
       setActiveQuickCamera(null);
     }
-  }, [rideStatus, arrivalSceneVisible, camera1StyleBeforeEnterRef, camera1UserToggledStyleRef, followModeSnapshotRef, mapZoomSnapshotRef, rideCameraRestoreRef, setActiveQuickCamera, setEnable3D, setFollowMode, setLockBaseHeading, setMapStyle, setMapZoom, setRideCameraDistanceM, setRideCameraSpanFloorMode, setRideFollowCameraNonce, setRideJoinBurstNonce]);
+  }, [rideStatus, rideStartStaging, arrivalSceneVisible, camera1StyleBeforeEnterRef, camera1UserToggledStyleRef, followModeSnapshotRef, mapZoomSnapshotRef, rideCameraRestoreRef, setActiveQuickCamera, setEnable3D, setFollowMode, setLockBaseHeading, setMapStyle, setMapZoom, setRideCameraDistanceM, setRideCameraSpanFloorMode, setRideFollowCameraNonce, setRideJoinBurstNonce]);
 
   const { recentSessions, recentSessionsLoading, setRecentSessions, reloadRecentSessionsFromLocalStorage } =
     useRecentRideSessions({
@@ -1500,8 +1503,6 @@ export default function App() {
       : null;
   })();
 
-  const { value: rideStartCountdown, start: waitForRideStartCountdown } = useRideStartCountdown(routeGeometry, user?.uid);
-
   function handleStartRide(fromStart?: boolean, acceptedWarningKey?: string) {
     if (!routeGeometry || rideStatus !== "idle" || !user || !configured || trailStartBusy) return;
     // 이름 없는 라이더는 달리지 않는다 — 닉네임 카드부터(가입 카드를 건너뛴 경로의 마지막 확인)
@@ -1598,6 +1599,8 @@ export default function App() {
           setRouteSummary(
             `Trail ${num} 합류 · ${existing.regionLabel?.trim() || "같은 Trail에서 주행"}`,
           );
+          resetRide(rideStartOffsetMeters);
+          setSessionStartOffsetMeters(rideStartOffsetMeters);
           if (!(await waitForRideStartCountdown())) return;
           resetArrivalGate();
           resetRide(rideStartOffsetMeters);
@@ -1631,6 +1634,8 @@ export default function App() {
           `Trail ${num} 개설 · ${trail.regionLabel?.trim() || regionLabel.trim() || "새 Trail"}`,
         );
         reloadCurrentTrailMeta();
+        resetRide(rideStartOffsetMeters);
+        setSessionStartOffsetMeters(rideStartOffsetMeters);
         if (!(await waitForRideStartCountdown())) return;
         resetArrivalGate();
         resetRide(rideStartOffsetMeters);
@@ -1758,7 +1763,7 @@ export default function App() {
 
   /** 지도·동행 공유: 항상 경로 폴리라인 위의 점만 사용(가상 거리 → 선상 보간). `liveLngLat` 직접 사용 시 경로와 미세 어긋날 수 있음 */
   const liveForMap: LngLat | null = useMemo(() => {
-    if (rideStatus === "idle") return null;
+    if (rideStatus === "idle" && !rideStartStaging) return null;
     if (!routeGeometry || routeGeometry.coordinates.length < 2) {
       return rideMetrics.liveLngLat ?? null;
     }
@@ -1772,6 +1777,7 @@ export default function App() {
     return getPointOnRouteByDistance(routeGeometry, d);
   }, [
     rideStatus,
+    rideStartStaging,
     rideMetrics.virtualDistanceMeters,
     rideMetrics.liveLngLat,
     routeGeometry,
@@ -3135,6 +3141,7 @@ export default function App() {
   return (
     <div className={`app-shell app-shell--map-first${showAppIntro ? " app-shell--intro" : ""}${!authInitialized || !user ? " app-shell--pre-auth" : ""}`}>
       <RotateOverlay />
+      <OvertakeThumbsUp key={`${trailId}:${user?.uid ?? ""}:${rideStatus}`} trailId={trailId} userId={user?.uid ?? null} displayName={resolvedLiveRiderNametag} active={rideStatus === "running"} />
       <RideStartCountdown value={rideStartCountdown} />
       <DevLabPanels
         mapZoom={mapZoom}
@@ -3225,18 +3232,22 @@ export default function App() {
               endLngLat,
               routeWaypoints,
               liveLngLat: liveForMap,
+              rideStartStaging,
+              onRideStartViewReady,
               sampleLiveLngLat: rideStatus === "idle" ? undefined : sampleLiveLngLat,
-              sampleLiveDistM: rideStatus === "idle" ? undefined : sampleLiveDistM,
+              // 준비와 주행에서 같은 표시 곡선을 써 출발 순간 위치가 뛰지 않게 한다.
+              sampleLiveDistM: rideStartStaging ? () => rideMetrics.virtualDistanceMeters : rideStatus === "idle" ? undefined : sampleLiveDistM,
               pacerEnabled,
               liveRiderMotion:
-                rideStatus === "idle"
+                rideStatus === "idle" && !rideStartStaging
                   ? null
                   : {
-                      sessionStatus: rideStatus,
-                      speedKmh: rideMetrics.appliedSpeedKmh,
+                      sessionStatus: rideStatus === "running" ? "running" : "paused",
+                      speedKmh: rideStartStaging ? 0 : rideMetrics.appliedSpeedKmh,
                       crankRpmFromSensor: bleCrankRpm.crankRpm,
                     },
               liveRiderNametag: resolvedLiveRiderNametag,
+              liveRiderUid: user?.uid,
               mapStyle,
               mapZoom,
               initialCenter: MAP_FALLBACK_CENTER,
@@ -3264,8 +3275,8 @@ export default function App() {
               resumeAnchor: resumePreview
                 ? { lngLat: resumePreview.lngLat, label: resumePreview.label }
                 : null,
-              rideActive: rideStatus === "running" || rideStatus === "paused" || arrivalSceneVisible,
-              rideMilestoneProgress: rideStatus !== "idle" || arrivalSceneVisible
+              rideActive: rideStartStaging || rideStatus === "running" || rideStatus === "paused" || arrivalSceneVisible,
+              rideMilestoneProgress: rideStartStaging || rideStatus !== "idle" || arrivalSceneVisible
                 ? {
                     distanceM: rideMetrics.virtualDistanceMeters,
                     startOffsetM: sessionStartOffsetMeters,

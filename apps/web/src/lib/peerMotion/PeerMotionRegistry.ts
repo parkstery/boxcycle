@@ -280,6 +280,27 @@ export class PeerMotionRegistry {
     return e ? e.displayDistM : null;
   }
 
+  /** 인사 후보용 수신 신선도. 위치 적분·전송·보간에는 관여하지 않는다. */
+  isFreshLive(uid: string, nowMs: number): boolean {
+    return this.getOvertakeEvidence(uid, nowMs)?.fresh ?? false;
+  }
+
+  /** 인사 판정 전용 원본 수신 증거. 중복 수신이 아닌 마지막 수락 패킷을 읽는다.
+   * capturedAt은 송신/서버 캡처축이며 같은 동행의 차이만 비교한다. receivedAt은 내 Date.now축.
+   * FS 최대12초 발행+2초 도착 여유이며 위치/외삽/발행 정책은 변경하지 않는다.
+   */
+  getOvertakeEvidence(uid: string, nowMs: number): {
+    fresh: boolean; sourceDistanceM: number; sourceCapturedAtMs: number; sourceReceivedAtMs: number; sourceSpeedMps: number;
+  } | null {
+    const entity = this.entities.get(uid);
+    const newest = entity?.buffer[entity.buffer.length - 1];
+    if (!entity || !newest) return null;
+    const age = nowMs - newest.recvAtMs;
+    return { fresh: entity.phase === "live" && age >= 0 && age <= 14000,
+      sourceDistanceM: newest.distM, sourceCapturedAtMs: newest.srcAtMs ?? newest.serverAtMs,
+      sourceReceivedAtMs: newest.recvAtMs, sourceSpeedMps: newest.speedMps };
+  }
+
   /** clock jump / publication 전환 — 서버축 엔티티 버퍼만 비우고 재생 시계 rebase */
   rebaseServerTimelineEntities(): void {
     for (const entity of this.entities.values()) {

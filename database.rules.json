@@ -16,6 +16,48 @@
             ".write": "auth != null && auth.uid == $uid && root.child('guestLifecycle').child(auth.uid).child('blocked').val() != true",
             ".validate": "newData.hasChildren(['p', 'd', 'v', 'ph', 't']) && newData.child('p').isString() && newData.child('p').val().length > 0 && newData.child('p').val().length <= 128 && newData.child('d').isNumber() && newData.child('d').val() >= 0 && newData.child('v').isNumber() && newData.child('v').val() >= 0 && newData.child('ph').isString() && (newData.child('ph').val() == 'live' || newData.child('ph').val() == 'paused' || newData.child('ph').val() == 'completed') && newData.child('t').isNumber() && newData.child('t').val() > 0 && (!newData.hasChild('tSrv') || (newData.child('tSrv').isNumber() && newData.child('tSrv').val() > 0))"
           }
+        },
+        "thumbsUp": {
+          "$targetUid": {
+            ".read": "auth != null && auth.uid == $targetUid",
+            ".indexOn": [
+              "createdAt"
+            ],
+            "$senderUid": {
+              ".write": "auth != null && auth.uid == $senderUid && $senderUid != $targetUid && newData.exists() && root.child('guestLifecycle').child(auth.uid).child('blocked').val() != true && (!data.exists() || data.child('createdAt').val() <= now - 3000)",
+              ".validate": "newData.hasChildren(['eventId','senderUid','targetUid','senderName','side','createdAt','expiresAt']) && newData.child('senderUid').val() == $senderUid && newData.child('targetUid').val() == $targetUid && newData.child('eventId').isString() && newData.child('eventId').val().length >= 16 && newData.child('eventId').val().length <= 64 && newData.child('senderName').isString() && newData.child('senderName').val().length <= 40 && (newData.child('side').val() == 'left' || newData.child('side').val() == 'right') && newData.child('createdAt').isNumber() && newData.child('createdAt').val() >= now - 1000 && newData.child('createdAt').val() <= now + 1000 && newData.child('expiresAt').isNumber() && newData.child('expiresAt').val() > now && newData.child('expiresAt').val() <= now + 10000 && newData.child('expiresAt').val() <= newData.child('createdAt').val() + 10000 && root.child('trails').child($trailId).child('motion').child($senderUid).child('ph').val() == 'live' && root.child('trails').child($trailId).child('motion').child($senderUid).child('tSrv').val() >= now - 15000 && root.child('trails').child($trailId).child('motion').child($senderUid).child('tSrv').val() <= now + 1000 && root.child('trails').child($trailId).child('motion').child($targetUid).child('ph').val() == 'live' && root.child('trails').child($trailId).child('motion').child($targetUid).child('tSrv').val() >= now - 15000 && root.child('trails').child($trailId).child('motion').child($targetUid).child('tSrv').val() <= now + 1000 && root.child('trails').child($trailId).child('motion').child($senderUid).child('p').val() == root.child('trails').child($trailId).child('motion').child($targetUid).child('p').val()",
+              "eventId": {
+                ".validate": true
+              },
+              "senderUid": {
+                ".validate": true
+              },
+              "targetUid": {
+                ".validate": true
+              },
+              "senderName": {
+                ".validate": true
+              },
+              "side": {
+                ".validate": true
+              },
+              "createdAt": {
+                ".validate": true
+              },
+              "expiresAt": {
+                ".validate": true
+              },
+              "kind": {
+                ".validate": "newData.val() == 'thumb' || (newData.val() == 'hi' && newData.parent().child('reply').val() == true)"
+              },
+              "reply": {
+                ".validate": "newData.isBoolean()"
+              },
+              "$other": {
+                ".validate": false
+              }
+            }
+          }
         }
       }
     }

@@ -86,17 +86,17 @@ test('production ride-end effect removes terrain/buildings, keeps center and use
   assert.equal(map.lastEase.center.lng,127);assert.equal(map.lastEase.center.lat,37);
 });
 test('production App end resets 3D and the comparison style after the arrival scene; pause preserves both',()=>{
-  for(const [status, arrivalSceneVisible] of [['idle',false],['idle',true],['paused',false]]){
+  for(const [status, arrivalSceneVisible, rideStartStaging] of [['idle',false,false],['idle',true,false],['paused',false,false],['idle',false,true]]){
     const dusk = nextRideComparisonMapStyle(nextRideComparisonMapStyle(DEFAULT_MAP_STYLE));
     let style = dusk;
-    const values=[];const context={rideStatus:status,arrivalSceneVisible,rideCameraRestoreRef:{current:{follow:'free',zoom:18}},
+    const values=[];const context={rideStatus:status,arrivalSceneVisible,rideStartStaging,rideCameraRestoreRef:{current:{follow:'free',zoom:18}},
       setEnable3D:v=>values.push(['3d',v]),setTerrainFallback:v=>values.push(['fallback',v]),setFollowMode:()=>{},setMapZoom:()=>{},setActiveQuickCamera:()=>{},
       setMapStyle:update=>{style=update(style);},MAP_STYLE_STANDARD,mapStyleRenderSettings,
       camera1StyleBeforeEnterRef:{current:null},camera1UserToggledStyleRef:{current:false},
     };
     effect('../../src/App.tsx','if (rideStatus === "idle" && !arrivalSceneVisible && rideCameraRestoreRef.current)',context)();
-    assert.deepEqual(values,status==='idle'&&!arrivalSceneVisible?[['3d',false],['fallback',false]]:[]);
-    assert.equal(style,status==='idle'&&!arrivalSceneVisible?MAP_STYLE_STANDARD:dusk);
+    assert.deepEqual(values,status==='idle'&&!arrivalSceneVisible&&!rideStartStaging?[['3d',false],['fallback',false]]:[]);
+    assert.equal(style,status==='idle'&&!arrivalSceneVisible&&!rideStartStaging?MAP_STYLE_STANDARD:dusk);
   }
 });
 test('arrival scene does not depend on the terrain switch',()=>{

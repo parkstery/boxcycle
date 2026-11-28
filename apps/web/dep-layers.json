@@ -342,6 +342,7 @@
       "activity/repo/firestoreWorldActivity.ts"
     ],
     "ride": [
+      "ride/nearbyThumbs.ts",
       "ride/startCountdown.ts",
       "ride/backgroundSafeInterval.ts",
       "ride/calorieProfileSync.ts",
@@ -388,6 +389,7 @@
       "ride/sanitizeLngLat.ts"
     ],
     "ride/repo": [
+      "ride/repo/rtdbThumbsUp.ts",
       "ride/repo/calorieProfileCloud.ts",
       "ride/repo/calorieProfileLocal.ts",
       "ride/repo/firestoreGlobalLivePresence.ts",
@@ -436,6 +438,7 @@
       "coach/coachingDisplayKo.ts"
     ],
     "map": [
+      "map/rideStartLine.ts",
       "map/appIntroMapView.ts",
       "map/disable3dCutoff.ts",
       "map/disableMapboxTelemetry.ts",
