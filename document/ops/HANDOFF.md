@@ -5,12 +5,12 @@
 | 담당 | **Claude Code** |
 | 갱신 | 11-27 Codex · 동작/출발3초 배포. |
 | 브랜치 | `main2` · 지형 기본1배 |
-| 마지막 배포 | 11-27 Hosting `911ca9fb`(동작·출발3초). |
+| 마지막 배포 | 11-28 Hosting `4dbfbca5`(엄지척 흐름·hi·옆이격·카메라2 출발) + RTDB Rules 기본/유럽. |
 
 ## 진행 중
 
-**11-28 엄지척 흐름 변경·hi 복원(Claude Code, 구현·검증 완료, Rules 배포 완료)**: 추월당하는(느린) 쪽만 👍(빠른 상대가 3m뒤~앞10m), 추월자는 [👍][👋] 응답(reply는 재응답 없음). hi=LookHi_Left/Right 복원(P194: V3.0_master 절차 바이트 재현 후 keep에 추가, 동작파일 917→1,224KB, rider.glb 불변). 리그 hi는 몸통 포함·골반/다리 불변.
-검증: nearby 17·Rules에뮬 2·리그 hi 2·rider15-rig 14 PASS, quick 1758/0, tsc·lint·dep·tidy·build·peer replay 통과, 에뮬 2인 실앱 전체흐름+양화면 손인사 캡처 확인. 11-28 Chief 승인으로 database.rules.json(kind·reply) 기본·유럽 RTDB 배포, 운영 규칙 재조회로 반영 확인. 이어 Chief 지시: 방향은 실제 비켜간 쪽(옆이격 offset→overtakeThumbsRuntime.lateralSideOfPeer, 모르면 기본 왼쪽/반대쪽). 두화면 방향 반대 일치 시험·에뮬 2인 RTDB side(left 👍 / right 👋) 확인, quick 1759/0. 이어 Chief 11-28: (1) 손목·팔꿈치 기형=앱이 뼈만 적용·rider.glb에 팔 보정모프 없음 → 동작파일 도착 시 그 모델로 리그 교체(swapRig, LOD2 유지)+제스처 모프 적용(개수 일치시만), 모델 수정 불필요. (2) 추월 툭툭=옆이격 등속 켜짐/꺼짐으로 프레임당 방향 5~7° 꺾임 → 옆 가속도 1.5m/s² 제한, 7↔5km/h 꺾임≤1.2°/frame 시험. quick 1762/0. 다음: Chief 두화면 응답 확인→커밋·푸시·Hosting 승인. 미커밋·Hosting 미배포.
+**11-28 엄지척 흐름 변경·hi 복원(Claude Code, 커밋·푸시·Hosting 배포 완료)**: 추월당하는(느린) 쪽만 👍(빠른 상대가 3m뒤~앞10m), 추월자는 [👍][👋] 응답(reply는 재응답 없음). hi=LookHi_Left/Right 복원(P194: V3.0_master 절차 바이트 재현 후 keep에 추가, 동작파일 917→1,224KB, rider.glb 불변). 리그 hi는 몸통 포함·골반/다리 불변.
+검증: nearby 17·Rules에뮬 2·리그 hi 2·rider15-rig 14 PASS, quick 1758/0, tsc·lint·dep·tidy·build·peer replay 통과, 에뮬 2인 실앱 전체흐름+양화면 손인사 캡처 확인. 11-28 Chief 승인으로 database.rules.json(kind·reply) 기본·유럽 RTDB 배포, 운영 규칙 재조회로 반영 확인. 이어 Chief 지시: 방향은 실제 비켜간 쪽(옆이격 offset→overtakeThumbsRuntime.lateralSideOfPeer, 모르면 기본 왼쪽/반대쪽). 두화면 방향 반대 일치 시험·에뮬 2인 RTDB side(left 👍 / right 👋) 확인, quick 1759/0. 이어 Chief 11-28: (1) 손목·팔꿈치 기형=앱이 뼈만 적용·rider.glb에 팔 보정모프 없음 → 동작파일 도착 시 그 모델로 리그 교체(swapRig, LOD2 유지)+제스처 모프 적용(개수 일치시만), 모델 수정 불필요. (2) 추월 툭툭=옆이격 등속 켜짐/꺼짐으로 프레임당 방향 5~7° 꺾임 → 옆 가속도 1.5m/s² 제한, 7↔5km/h 꺾임≤1.2°/frame 시험. quick 1762/0. Chief 커밋·푸시·배포 지시: 508a7e8b(다른 세션, 손목 위치·크기 트랙)·e33fa0fe(코드·Rules)·4dbfbca5(문서) main2 푸시(원격 SHA 일치, pre-push 첫 시도 실패·재시도 통과, 원인 미확인), deploy:hosting 완료, 운영 index JS·rider-gestures SHA 로컬 일치. 다음: 운영 새로고침 후 실폰·2인 확인.
 
 **11-28 추월겹침·엄지척누락(Codex)**: Chief 두화면실제제보. root원인: 전원중심선·fresh2초와최대발신12초불일치. 엄지척이력/저상대속회귀와표시전용옆이격분담수정중.
 파일: overtakeThumbs/Registry/UI freshness, MapView/App/새riderPassingMotion·회귀. 사용자실주행직접, 브라우저시험금지. 기존27파일보존·커밋/배포없음.
