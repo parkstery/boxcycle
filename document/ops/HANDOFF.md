@@ -9,6 +9,8 @@
 
 ## 진행 중
 
+**11-28 추월 툭툭·각도요동·두화면 간격 어긋남(Claude Code, 미커밋)**: (1) 툭툭/요동=옆이격 「최대감속」 제어가 20/30ms 섞인 PC 프레임에서 진입·진출부 방향꺾임 26회 뒤집힘(실앱 기록 ±7.3°) → 임계감쇠 스프링(ω6, 가속≤1.5, 1/60s 소단계), 불규칙프레임 회귀시험(배포본 FAIL 확인). 앞뒤 speedCv 0.01~0.03 정상. (2) 간격 어긋남: 제품 하네스 repeatPass AFTER 0m·BEFORE(나=지금/동행=과거) 1.6~2m 유지 재현 → 서버시계 「불확실」이 다음 offset 표본까지 무기한 유지되는 결함 수정(3초 자동 해제)+FPS패널(?fps=1)에 「동행 표시 지연·서버시계」 줄. Chief 현장: 툭툭 해소·진입/진출 좌우 흔들림 남음 → (3) 목표차선이 순간 속도차로 정해져 1초마다 ±0.4~0.75m/s 출렁임에 좌우전환 3~8회 재현 → 판단속도 평활(τ1.5s)·진입경사 확대·한 추월 안 목표 단조(나란해지기 전 바깥만/지난 뒤 안쪽만)·진행추월 2m 이력(확실히 느려지면 즉시 놓음) → 전환 1회. 회귀시험 추가(수정 빼면 5회 FAIL 확인). quick 1766/0·tsc·lint·tidy 통과. 간격 어긋남 가설 미확정.
+
 **11-28 엄지척 흐름 변경·hi 복원(Claude Code, 커밋·푸시·Hosting 배포 완료)**: 추월당하는(느린) 쪽만 👍(빠른 상대가 3m뒤~앞10m), 추월자는 [👍][👋] 응답(reply는 재응답 없음). hi=LookHi_Left/Right 복원(P194: V3.0_master 절차 바이트 재현 후 keep에 추가, 동작파일 917→1,224KB, rider.glb 불변). 리그 hi는 몸통 포함·골반/다리 불변.
 검증: nearby 17·Rules에뮬 2·리그 hi 2·rider15-rig 14 PASS, quick 1758/0, tsc·lint·dep·tidy·build·peer replay 통과, 에뮬 2인 실앱 전체흐름+양화면 손인사 캡처 확인. 11-28 Chief 승인으로 database.rules.json(kind·reply) 기본·유럽 RTDB 배포, 운영 규칙 재조회로 반영 확인. 이어 Chief 지시: 방향은 실제 비켜간 쪽(옆이격 offset→overtakeThumbsRuntime.lateralSideOfPeer, 모르면 기본 왼쪽/반대쪽). 두화면 방향 반대 일치 시험·에뮬 2인 RTDB side(left 👍 / right 👋) 확인, quick 1759/0. 이어 Chief 11-28: (1) 손목·팔꿈치 기형=앱이 뼈만 적용·rider.glb에 팔 보정모프 없음 → 동작파일 도착 시 그 모델로 리그 교체(swapRig, LOD2 유지)+제스처 모프 적용(개수 일치시만), 모델 수정 불필요. (2) 추월 툭툭=옆이격 등속 켜짐/꺼짐으로 프레임당 방향 5~7° 꺾임 → 옆 가속도 1.5m/s² 제한, 7↔5km/h 꺾임≤1.2°/frame 시험. quick 1762/0. Chief 커밋·푸시·배포 지시: 508a7e8b(다른 세션, 손목 위치·크기 트랙)·e33fa0fe(코드·Rules)·4dbfbca5(문서) main2 푸시(원격 SHA 일치, pre-push 첫 시도 실패·재시도 통과, 원인 미확인), deploy:hosting 완료, 운영 index JS·rider-gestures SHA 로컬 일치. 다음: 운영 새로고침 후 실폰·2인 확인.
 

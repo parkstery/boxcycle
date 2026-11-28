@@ -53,6 +53,20 @@ function truthDist(tMs, v0, a = 0, d0 = 0) {
   return d0 + v0 * t + 0.5 * a * t * t;
 }
 
+/** 구간별 등속(km/h) 거리. 슬라이더처럼 속도는 계단, 거리는 연속. */
+function piecewiseDist(segments, d0) {
+  return (tMs) => {
+    let d = d0, from = 0;
+    for (const [untilMs, kmh] of segments) {
+      const end = Math.min(tMs, untilMs);
+      if (end > from) d += (kmh / 3.6) * (end - from) / 1000;
+      if (tMs <= untilMs) return d;
+      from = untilMs;
+    }
+    return d;
+  };
+}
+
 function truthSpeedAt(fn, tMs, dt = STEP_MS) {
   const t0 = Math.max(0, tMs - dt);
   const d0 = fn(t0);
@@ -75,6 +89,15 @@ const SCENARIOS = {
     b: (t) => truthDist(t, V, 0, 99),
     linkAbMs: 40,
     linkBaMs: 40,
+  },
+  // 11-28 Chief: 저속에서 서로 추월을 두세 번 주고받은 뒤 두 화면 간격이 어긋난 채 유지.
+  repeatPass: {
+    label: "repeat pass 5~9km/h",
+    a: piecewiseDist([[15_000, 5], [35_000, 9], [55_000, 5], [80_000, 6]], 100),
+    b: piecewiseDist([[15_000, 7], [35_000, 6], [55_000, 9], [80_000, 6]], 95),
+    linkAbMs: 40,
+    linkBaMs: 40,
+    runMs: 80_000,
   },
   pass: {
     label: "pass",
@@ -197,8 +220,16 @@ function summarize(frames, opts = {}) {
   let maxSpeedDisc = 0;
   let prevSelfA = null;
   let prevT = null;
+  let maxView = 0;
+  const lastT = frames.length ? frames[frames.length - 1].t : 0;
+  const tail = [];
   for (const f of frames) {
     n += 1;
+    if (!f.solo) {
+      const view = Math.abs(f.gapA - f.gapAFromB);
+      if (view > maxView) maxView = view;
+      if (f.t >= lastT - 5_000) tail.push(view);
+    }
     const sA = sign(f.gapA);
     const sB = sign(f.gapAFromB);
     if (sA !== 0 && sB !== 0 && sA !== sB) opposite += 1;
@@ -228,6 +259,9 @@ function summarize(frames, opts = {}) {
     oppositeSignExclNearTie: oppositeExcl,
     oppositeSignExclRate: nExcl ? oppositeExcl / nExcl : 0,
     maxSelfJumpM: Math.round(maxJump * 1000) / 1000,
+    /** 두 화면이 보는 A−B 간격 차(m). 0 이면 일치. */
+    maxViewMismatchM: Math.round(maxView * 1000) / 1000,
+    tailViewMismatchM: tail.length ? Math.round((tail.reduce((x, y) => x + y, 0) / tail.length) * 1000) / 1000 : null,
     maxSpeedDiscMps: Math.round(maxSpeedDisc * 1000) / 1000,
   };
 }
@@ -272,7 +306,7 @@ async function runPair(viteA, viteB, scenarioKey, epsA, epsB, mode) {
   Date.now = () => activeNow;
 
   try {
-    for (let t = 0; t <= RUN_MS; t += STEP_MS) {
+    for (let t = 0; t <= (sc.runMs ?? RUN_MS); t += STEP_MS) {
       const wall = WALL + t;
       activeNow = wall;
 

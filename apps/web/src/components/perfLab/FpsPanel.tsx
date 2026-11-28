@@ -5,6 +5,7 @@ import { readRideLab, setRideLab, type RideLab } from "../../lib/map/rideEnviron
 import { rideQualityText } from "../../lib/map/rideQuality";
 import { rideFogText } from "../../lib/map/rideScenery";
 import { useDraggablePanel } from "./useDraggablePanel";
+import { companionDisplayDelayMs, isCompanionDisplayActive, isServerClockReady, isServerClockUncertain, peekServerTimeOffsetMs } from "../../lib/peerMotion";
 import "./FpsPanel.css";
 
 type Sample = { id: number; label: string; text: string; pass: boolean };
@@ -27,6 +28,17 @@ function conditionText(map: MapboxMap | null): string {
   } catch {
     return "지도 준비 중";
   }
+}
+
+/**
+ * 동행 공통 표시 시계 상태(11-28 진단). 동행 중인데 지연이 0ms 면 「나는 지금·동행은 과거」로 그려져
+ * 두 화면의 앞뒤 간격이 서로 어긋난다(261005 창 간 순서 역전).
+ */
+function companionClockText(): string {
+  if (!isCompanionDisplayActive()) return "동행 표시 시계 · 혼자";
+  const offset = peekServerTimeOffsetMs();
+  const clock = !isServerClockReady() ? "서버시계 미준비" : isServerClockUncertain() ? "서버시계 불확실" : "서버시계 정상";
+  return `동행 표시 지연 ${companionDisplayDelayMs()}ms · ${clock}${offset == null ? "" : ` · 오프셋 ${(offset / 1000).toFixed(1)}초`}`;
 }
 
 const round = (n: number | null): string => (n == null ? "—" : String(Math.round(n)));
@@ -59,7 +71,8 @@ export function FpsPanel() {
       }
       const now = performance.now();
       const r = meter.read(now);
-      const where = conditionText(map);
+      const where = `${conditionText(map)}
+${companionClockText()}`;
       setTerrainOn(Boolean(map?.getTerrain()));
       setReading(r);
       setCondition(where);
@@ -132,7 +145,7 @@ export function FpsPanel() {
         최저 {round(reading?.minSecond ?? null)} · p95 {ms(reading?.p95Ms ?? null)}ms
         {reading?.pass == null ? "" : reading.pass ? " · 합격" : " · 미달"}
       </p>
-      <p className="fps-panel__line fps-panel__muted">{condition}</p>
+      <p className="fps-panel__line fps-panel__muted" style={{ whiteSpace: "pre-line" }}>{condition}</p>
       <div className="fps-panel__switches" role="group" aria-label="비교 스위치">
         <button type="button" aria-pressed={lab.roadsideTrees} disabled={terrainOn} onClick={() => toggle("roadsideTrees")}>
           길가 나무 {lab.roadsideTrees ? "켬" : "끔"}

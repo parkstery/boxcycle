@@ -9,11 +9,19 @@ import { getFirebaseDatabase, isFirebaseDatabaseConfigured } from "../../firebas
 
 /** 이 이상 점프하면 버퍼를 섞지 말고 불확실만 표시한다(ms). */
 const SERVER_CLOCK_DISCONTINUITY_MS = 5_000;
+/**
+ * 큰 점프 뒤 「불확실」을 유지하는 시간(ms). 구/신 축 버퍼 정리는 점프 순간 리스너가 끝낸다.
+ * 11-28: 종전에는 다음 offset 표본이 와야만 풀렸는데 `.info/serverTimeOffset` 은 재접속 때나
+ * 바뀌어, 한 번 불확실해지면 내 라이더는 지금·동행은 과거로 계속 그려졌다(두 화면 간격 어긋남 유지).
+ */
+const SERVER_CLOCK_UNCERTAIN_HOLD_MS = 3_000;
 
 type ServerClockState = {
   offsetMs: number | null;
   ready: boolean;
   uncertain: boolean;
+  /** 이 시각(Date.now)까지 불확실. */
+  uncertainUntilMs: number;
   lastJumpAbsMs: number;
 };
 
@@ -21,6 +29,7 @@ let state: ServerClockState = {
   offsetMs: null,
   ready: false,
   uncertain: false,
+  uncertainUntilMs: 0,
   lastJumpAbsMs: 0,
 };
 
@@ -43,7 +52,7 @@ export function subscribeServerClockDiscontinuity(
   };
 }
 
-function applyOffsetSample(raw: unknown): void {
+function applyOffsetSample(raw: unknown, nowMs: number = Date.now()): void {
   const next = typeof raw === "number" && Number.isFinite(raw) ? raw : null;
   if (next == null) return;
   const prev = state.offsetMs;
@@ -51,6 +60,7 @@ function applyOffsetSample(raw: unknown): void {
     const jump = Math.abs(next - prev);
     if (jump >= SERVER_CLOCK_DISCONTINUITY_MS) {
       state.uncertain = true;
+      state.uncertainUntilMs = nowMs + SERVER_CLOCK_UNCERTAIN_HOLD_MS;
       state.lastJumpAbsMs = jump;
       // 큰 불연속 — offset 갱신 + 구/신 버퍼 혼용 금지(리스너가 reset).
       state.offsetMs = next;
@@ -116,9 +126,15 @@ export function isServerClockReady(): boolean {
   return state.ready && state.offsetMs != null;
 }
 
-export function isServerClockUncertain(): boolean {
+export function isServerClockUncertain(nowMs: number = Date.now()): boolean {
   if (testOverride) return testOverride.uncertain;
+  if (state.uncertain && nowMs >= state.uncertainUntilMs) state.uncertain = false;
   return state.uncertain;
+}
+
+/** 단위시험 전용 — Firebase 없이 `.info/serverTimeOffset` 표본을 넣는다. */
+export function __applyServerOffsetSampleForTests(raw: unknown, nowMs: number): void {
+  applyOffsetSample(raw, nowMs);
 }
 
 /** 추정 서버시각. offset 미준비면 null — 호출부는 즉시/레거시 경로로 폴백. */
@@ -142,7 +158,7 @@ export function __setServerTimeOffsetForTests(
 
 export function __resetServerClockOffsetForTests(): void {
   testOverride = null;
-  state = { offsetMs: null, ready: false, uncertain: false, lastJumpAbsMs: 0 };
+  state = { offsetMs: null, ready: false, uncertain: false, uncertainUntilMs: 0, lastJumpAbsMs: 0 };
   if (unsub) {
     unsub();
     unsub = null;

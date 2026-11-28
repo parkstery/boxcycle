@@ -110,7 +110,8 @@ test("출발 정지 뒤 속도가 역전되어도 두 라이더가 같은 왼쪽
     const first = motion.update([rider("self", 10, 0), rider("peer", 10.5, 5)], 0);
     assert.equal(first.get("peer")!.offsetM, -1);
     let result = first;
-    for (let frame = 1; frame <= fps * 8; frame++) {
+    // 11-28: 옆이격이 감쇠 스프링이라 중앙 복귀 끝이 부드럽게 감속해 약 0.1초 늦다(8초 → 9초까지 관찰).
+    for (let frame = 1; frame <= fps * 9; frame++) {
       const t = frame / fps;
       result = motion.update([rider("self", 10 + 6 * t, 6), rider("peer", 10.5 + 5 * t, 5)], 1 / fps);
       if (Math.abs(0.5 - t) <= 1.5) {
@@ -167,25 +168,55 @@ test("11-28 엄지척 방향: 두 화면에서 상대가 보이는 쪽이 서로
   assert.equal(lateralSideOfPeer("peer", 7000), null, "옆 간격 0.3m 미만은 판정하지 않는다(기본값 사용)");
 });
 
-test("11-28 툭툭 튐: 7↔5km/h 천천히 추월할 때 프레임당 몸 방향 꺾임·옆속도 급변이 없다(60·30FPS)", () => {
-  for (const fps of [60, 30]) {
+test("11-28 툭툭·각도 요동: 20/30ms 섞인 PC 프레임에서도 진입·진출부 몸 방향이 뒤집히지 않는다", () => {
+  // 전례(261017 앞뒤 떨림)와 같은 재생 조건: 고른 60Hz 에서는 안 보이고 20/30ms 섞이면 드러난다.
+  // 배포본(e33fa0fe, 최대감속 제어)은 20/30ms 에서 추월 한 번에 방향 꺾임이 26회 뒤집혔다.
+  for (const pattern of [[1000 / 60], [1000 / 30], [20, 30], [16.7, 33.3]]) {
     const motion = new RiderPassingMotion();
-    const dt = 1 / fps; let prev: { fast: number; slow: number; vf: number } | null = null;
-    let maxHeadingStep = 0, maxLateralAccel = 0, moved = 0;
-    for (let frame = 0; frame <= fps * 60; frame++) {
-      const t = frame / fps;
-      const out = motion.update([rider("fast", 7 / 3.6 * t, 7 / 3.6), rider("slow", 20 + 5 / 3.6 * t, 5 / 3.6)], frame ? dt : 0);
-      const f = out.get("fast")!, s = out.get("slow")!;
-      const vf = Math.tan(f.headingOffsetDeg * Math.PI / 180) * 7 / 3.6;
-      if (prev && frame > 1) {
-        maxHeadingStep = Math.max(maxHeadingStep, Math.abs(f.headingOffsetDeg - prev.fast), Math.abs(s.headingOffsetDeg - prev.slow));
-        maxLateralAccel = Math.max(maxLateralAccel, Math.abs(vf - prev.vf) / dt);
-      }
-      moved = Math.max(moved, Math.abs(f.offsetM));
-      prev = { fast: f.headingOffsetDeg, slow: s.headingOffsetDeg, vf };
+    let t = 0, frame = 0, flips = 0, maxStep = 0, moved = 0;
+    let prev: { h: number; dh: number } | null = null;
+    while (t < 60) {
+      const dt = frame ? pattern[frame % pattern.length] / 1000 : 0; t += dt; frame++;
+      const out = motion.update([rider("fast", 7 / 3.6 * t, 7 / 3.6), rider("slow", 20 + 5 / 3.6 * t, 5 / 3.6)], dt).get("fast")!;
+      moved = Math.max(moved, Math.abs(out.offsetM));
+      if (prev) {
+        const dh = out.headingOffsetDeg - prev.h;
+        maxStep = Math.max(maxStep, Math.abs(dh));
+        if (Math.abs(dh) > 0.05 && Math.abs(prev.dh) > 0.05 && Math.sign(dh) !== Math.sign(prev.dh)) flips++;
+        prev = { h: out.headingOffsetDeg, dh: Math.abs(dh) > 0.05 ? dh : prev.dh };
+      } else prev = { h: out.headingOffsetDeg, dh: 0 };
     }
-    assert.ok(moved > 0.9, `실제로 비켜간다 ${moved}`);
-    assert.ok(maxHeadingStep <= 1.2 * (60 / fps), `${fps}fps 프레임당 방향 꺾임 ${maxHeadingStep.toFixed(2)}° (종전 7°)`);
-    assert.ok(maxLateralAccel <= 1.5 + 1e-6, `${fps}fps 옆 가속도 ${maxLateralAccel.toFixed(2)} m/s²`);
+    const label = pattern.map((v) => v.toFixed(1)).join("/");
+    assert.ok(moved > 0.9, `${label}ms 실제로 비켜간다`);
+    // 진입(밖으로)·진출(안으로) 각각 한 번씩 「늘다→줄다」 방향 전환은 정상(최대 4회).
+    assert.ok(flips <= 4, `${label}ms 방향 꺾임 뒤집힘 ${flips}회`);
+    assert.ok(maxStep <= 1.2, `${label}ms 프레임당 방향 꺾임 ${maxStep.toFixed(2)}°`);
+  }
+});
+
+test("11-28 진입·진출 좌우 흔들림: 속도가 1초마다 출렁여도 한 번의 추월에서 「나갔다 들어옴」 한 번뿐이다", () => {
+  // Chief 3차 제보(툭툭은 사라졌고 진입·진출부 좌우 흔들림 남음). 목표 차선이 순간 속도 차로 정해져
+  // 1초마다 ±0.4~0.75m/s 출렁이는 속도(센서·경사)에 경계가 앞뒤로 움직였다.
+  // 수정 전(스프링 2차)은 같은 조건에서 좌우 전환 3~8회였다.
+  const rng = (seed: number) => () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 2 ** 32; };
+  for (const [fastKmh, slowKmh] of [[26, 21], [25, 23]]) for (const amp of [0.8, 1.5]) for (const seed of [1, 2, 3, 4]) {
+    const r = rng(seed); const motion = new RiderPassingMotion();
+    let t = 0, frame = 0, fastD = 0, slowD = 15, fastV = fastKmh / 3.6, slowV = slowKmh / 3.6, sinceStep = 0, sincePacket = 0, packetV = slowV;
+    let sign = 0, turns = 0, moved = 0;
+    while (t < 70) {
+      const dt = frame++ % 2 ? 0.03 : 0.02; t += dt; sinceStep += dt; sincePacket += dt;
+      if (sinceStep >= 1) { sinceStep = 0; fastV = fastKmh / 3.6 + (r() - 0.5) * amp; slowV = slowKmh / 3.6 + (r() - 0.5) * amp; }
+      if (sincePacket >= 0.2) { sincePacket = 0; packetV = slowV; }
+      fastD += fastV * dt; slowD += slowV * dt;
+      const out = motion.update([rider("fast", fastD, fastV), rider("slow", slowD, packetV)], dt).get("fast")!;
+      moved = Math.max(moved, -out.offsetM);
+      if (Math.abs(out.headingOffsetDeg) > 0.3) {
+        if (sign && Math.sign(out.headingOffsetDeg) !== sign) turns++;
+        sign = Math.sign(out.headingOffsetDeg);
+      }
+    }
+    const label = `${fastKmh}/${slowKmh}km/h ±${amp / 2}m/s seed${seed}`;
+    assert.ok(moved > 0.9, `${label} 실제로 비켜간다`);
+    assert.ok(turns <= 1, `${label} 좌우 전환 ${turns}회`);
   }
 });
